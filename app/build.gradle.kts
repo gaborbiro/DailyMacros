@@ -71,6 +71,7 @@ android {
 
 dependencies {
     implementation(project(":datastore"))
+    implementation(project(":core:navigation"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
