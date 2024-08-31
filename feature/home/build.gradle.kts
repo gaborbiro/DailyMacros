@@ -48,9 +48,14 @@ android {
 dependencies {
     implementation(project(":core:navigation"))
     implementation(project(":core:compose"))
+    implementation(project(":core:clause"))
+    implementation(project(":core:viewmodel"))
 
     implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.ui.tooling.preview)
+
+    debugImplementation(libs.ui.tooling)
 }

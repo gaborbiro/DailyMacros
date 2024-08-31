@@ -16,7 +16,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import dev.gaborbiro.feature.home.HomeScreenNavHost
+import dev.gaborbiro.feature.home.navigation.HomeNavHost
 import dev.gaborbiro.nutrition.core.navigation.ComposeNavigationDispatcher
 import dev.gaborbiro.nutrition.prefs.AppPrefsImpl
 import dev.gaborbiro.nutrition.prefs.domain.SampleDataItem
@@ -56,9 +56,9 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController = navController,
-                        startDestination = HomeScreenNavHost.NAV_ROUTE,
+                        startDestination = HomeNavHost.NAV_ROUTE,
                     ) {
-                        HomeScreenNavHost.buildGraph(
+                        HomeNavHost.buildGraph(
                             this,
                             navDispatcher,
                             Modifier.padding(innerPadding)
