@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -32,6 +34,20 @@ android {
             )
         }
     }
+
+    flavorDimensions.add("environment")
+
+    productFlavors {
+        create("dev") {
+            isDefault = true
+            dimension = "environment"
+            applicationIdSuffix = ".dev"
+            val chatGptApiKeyKey = "CHATGPT_API_KEY"
+            val chatGptApiKey = System.getenv(chatGptApiKeyKey) ?: gradleLocalProperties(rootDir, providers).getProperty(chatGptApiKeyKey) ?: "missing $chatGptApiKeyKey"
+            buildConfigField("String", chatGptApiKeyKey, "\"$chatGptApiKey\"")
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -64,7 +80,7 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
+    implementation(libs.androidx.compose.material3)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

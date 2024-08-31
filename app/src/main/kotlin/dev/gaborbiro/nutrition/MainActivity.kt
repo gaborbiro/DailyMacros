@@ -87,7 +87,8 @@ class MainActivity : ComponentActivity() {
 fun Content(modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
         val focuser = remember { FocusRequester() }
-        var backingText by remember { mutableStateOf("") }
+        var queryText by remember { mutableStateOf("") }
+        BuildConfig.CHATGPT_API_KEY
         TextField(
             modifier = Modifier
                 .fillMaxWidth()
@@ -97,9 +98,9 @@ fun Content(modifier: Modifier = Modifier) {
             label = {
                 Text(text = "What did you eat today")
             },
-            value = backingText,
+            value = queryText,
             onValueChange = {
-                backingText = it
+                queryText = it
             }
         )
 

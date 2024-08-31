@@ -22,3 +22,7 @@ dependencyResolutionManagement {
 rootProject.name = "Nutrition"
 include(":app")
 include(":datastore")
+include(":core:clause")
+include(":core:navigation")
+include(":core:viewmodel")
+
