@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.kapt)
 }
 
 android {
@@ -56,6 +57,10 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.ui.tooling.preview)
+
+    implementation(libs.hilt)
+    implementation(libs.hilt.navigationCompose)
+    kapt(libs.hilt.compiler)
 
     debugImplementation(libs.ui.tooling)
 }

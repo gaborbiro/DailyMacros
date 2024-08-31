@@ -1,6 +1,7 @@
 package dev.gaborbiro.feature.home.navigation
 
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import dev.gaborbiro.feature.home.screens.home.HomeScreen
@@ -19,7 +20,11 @@ object HomeNavHost : NavigatorHost {
     ) {
         builder.composable(route = NAV_ROUTE) {
             NutriTheme {
-                HomeScreen(navDispatcher, modifier)
+                HomeScreen(
+                    navDispatcher = navDispatcher,
+                    modifier = modifier,
+                    viewModel = hiltViewModel()
+                )
             }
         }
     }

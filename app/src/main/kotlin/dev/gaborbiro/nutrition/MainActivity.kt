@@ -16,6 +16,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import dagger.hilt.android.AndroidEntryPoint
 import dev.gaborbiro.feature.home.navigation.HomeNavHost
 import dev.gaborbiro.nutrition.core.navigation.ComposeNavigationDispatcher
 import dev.gaborbiro.nutrition.prefs.AppPrefsImpl
@@ -23,6 +24,7 @@ import dev.gaborbiro.nutrition.prefs.domain.SampleDataItem
 import dev.gaborbiro.nutrition.core.compose.theme.NutriTheme
 import kotlinx.coroutines.flow.flowOf
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

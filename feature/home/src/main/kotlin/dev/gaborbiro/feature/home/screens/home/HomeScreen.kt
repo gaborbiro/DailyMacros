@@ -19,7 +19,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.gaborbiro.feature.home.screens.home.model.HomeUIUpdates
 import dev.gaborbiro.feature.home.screens.home.model.HomeViewState
 import dev.gaborbiro.nutrition.core.clause.resolve
@@ -29,8 +28,11 @@ import dev.gaborbiro.nutrition.core.navigation.NavigationDispatcher
 
 
 @Composable
-fun HomeScreen(navDispatcher: NavigationDispatcher, modifier: Modifier) {
-    val viewModel: HomeViewModel = viewModel()
+fun HomeScreen(
+    navDispatcher: NavigationDispatcher,
+    modifier: Modifier,
+    viewModel: HomeViewModel,
+) {
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()
 
     HomeContent(
