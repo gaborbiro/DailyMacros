@@ -1,4 +1,4 @@
-package dev.gaborbiro.nutrition.ui.theme
+package dev.gaborbiro.nutrition.core.compose.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

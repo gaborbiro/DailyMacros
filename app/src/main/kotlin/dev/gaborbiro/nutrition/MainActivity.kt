@@ -19,12 +19,8 @@ import androidx.navigation.compose.rememberNavController
 import dev.gaborbiro.nutrition.core.navigation.ComposeNavigationDispatcher
 import dev.gaborbiro.nutrition.prefs.AppPrefsImpl
 import dev.gaborbiro.nutrition.prefs.domain.SampleDataItem
-import dev.gaborbiro.nutrition.ui.theme.NutriTheme
-import dev.gaborbiro.nutrition.utils.epochMillisToLocal
-import dev.gaborbiro.nutrition.utils.epochMillisToUTC
-import dev.gaborbiro.nutrition.utils.toEpochMillis
+import dev.gaborbiro.nutrition.core.compose.theme.NutriTheme
 import kotlinx.coroutines.flow.flowOf
-import java.time.LocalDateTime
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,9 +55,9 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController = navController,
-                        startDestination = MainScreenNavHost.NAV_ROUTE,
+                        startDestination = HomeScreenNavHost.NAV_ROUTE,
                     ) {
-                        MainScreenNavHost.buildGraph(
+                        HomeScreenNavHost.buildGraph(
                             this,
                             navDispatcher,
                             Modifier.padding(innerPadding)

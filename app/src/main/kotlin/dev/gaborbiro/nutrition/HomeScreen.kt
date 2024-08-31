@@ -17,14 +17,14 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import dev.gaborbiro.nutrition.core.compose.Padding
+import dev.gaborbiro.nutrition.core.compose.PreviewContext
 import dev.gaborbiro.nutrition.core.navigation.NavigationDispatcher
 import dev.gaborbiro.nutrition.core.navigation.NavigatorHost
-import dev.gaborbiro.nutrition.ui.theme.NutriTheme
-import dev.gaborbiro.nutrition.ui.theme.Padding
 
 
 @Composable
-fun MainScreen(navDispatcher: NavigationDispatcher, modifier: Modifier) {
+fun HomeScreen(navDispatcher: NavigationDispatcher, modifier: Modifier) {
     Column(modifier = modifier) {
         val focuser = remember { FocusRequester() }
         var queryText by remember { mutableStateOf("") }
@@ -32,7 +32,7 @@ fun MainScreen(navDispatcher: NavigationDispatcher, modifier: Modifier) {
         TextField(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(Padding.medium)
+                .padding(horizontal = Padding.normal)
                 .focusRequester(focuser),
             singleLine = false,
             label = {
@@ -50,9 +50,9 @@ fun MainScreen(navDispatcher: NavigationDispatcher, modifier: Modifier) {
     }
 }
 
-object MainScreenNavHost : NavigatorHost {
+object HomeScreenNavHost : NavigatorHost {
 
-    const val NAV_ROUTE = "main"
+    const val NAV_ROUTE = "home"
 
     override fun buildGraph(
         builder: NavGraphBuilder,
@@ -60,8 +60,8 @@ object MainScreenNavHost : NavigatorHost {
         modifier: Modifier,
     ) {
         builder.composable(route = NAV_ROUTE) {
-            NutriTheme {
-                MainScreen(navDispatcher, modifier)
+            dev.gaborbiro.nutrition.core.compose.theme.NutriTheme {
+                HomeScreen(navDispatcher, modifier)
             }
         }
     }
@@ -70,11 +70,11 @@ object MainScreenNavHost : NavigatorHost {
 
 @Preview(showBackground = true)
 @Composable
-fun MainScreenPreview() {
-    NutriTheme {
-        MainScreen(
+fun HomeScreenPreview() {
+    PreviewContext { modifier ->
+        HomeScreen(
             navDispatcher = NavigationDispatcher.DUMMY_IMPLEMENTATION,
-            Modifier,
+            modifier,
         )
     }
 }

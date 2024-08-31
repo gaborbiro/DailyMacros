@@ -1,4 +1,4 @@
-package dev.gaborbiro.nutrition.ui.theme
+package dev.gaborbiro.nutrition.core.compose.theme
 
 import androidx.compose.ui.graphics.Color
 
