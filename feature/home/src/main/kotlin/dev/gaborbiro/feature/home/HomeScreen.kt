@@ -1,4 +1,4 @@
-package dev.gaborbiro.nutrition
+package dev.gaborbiro.feature.home
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,7 +28,6 @@ fun HomeScreen(navDispatcher: NavigationDispatcher, modifier: Modifier) {
     Column(modifier = modifier) {
         val focuser = remember { FocusRequester() }
         var queryText by remember { mutableStateOf("") }
-        BuildConfig.CHATGPT_API_KEY
         TextField(
             modifier = Modifier
                 .fillMaxWidth()
@@ -66,7 +65,6 @@ object HomeScreenNavHost : NavigatorHost {
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable

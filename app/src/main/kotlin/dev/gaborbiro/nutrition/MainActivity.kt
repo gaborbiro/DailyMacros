@@ -16,6 +16,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import dev.gaborbiro.feature.home.HomeScreenNavHost
 import dev.gaborbiro.nutrition.core.navigation.ComposeNavigationDispatcher
 import dev.gaborbiro.nutrition.prefs.AppPrefsImpl
 import dev.gaborbiro.nutrition.prefs.domain.SampleDataItem

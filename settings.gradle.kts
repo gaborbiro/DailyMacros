@@ -26,4 +26,4 @@ include(":core:clause")
 include(":core:compose")
 include(":core:navigation")
 include(":core:viewmodel")
-
+include(":feature:home")

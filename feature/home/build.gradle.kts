@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "dev.gaborbiro.nutrition.core.clause"
+    namespace = "dev.gaborbiro.nutrition.feature.home"
     compileSdk = libs.versions.android.sdk.compile.get().toInt()
 
     defaultConfig {
@@ -37,6 +37,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     kotlinOptions {
@@ -45,7 +46,11 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:navigation"))
+    implementation(project(":core:compose"))
+
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.ui.tooling.preview)
 }

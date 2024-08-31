@@ -43,7 +43,10 @@ android {
             dimension = "environment"
             applicationIdSuffix = ".dev"
             val chatGptApiKeyKey = "CHATGPT_API_KEY"
-            val chatGptApiKey = System.getenv(chatGptApiKeyKey) ?: gradleLocalProperties(rootDir, providers).getProperty(chatGptApiKeyKey) ?: "missing $chatGptApiKeyKey"
+            val chatGptApiKey = System.getenv(chatGptApiKeyKey) ?: gradleLocalProperties(
+                rootDir,
+                providers
+            ).getProperty(chatGptApiKeyKey) ?: "missing $chatGptApiKeyKey"
             buildConfigField("String", chatGptApiKeyKey, "\"$chatGptApiKey\"")
         }
     }
@@ -73,22 +76,12 @@ dependencies {
     implementation(project(":datastore"))
     implementation(project(":core:navigation"))
     implementation(project(":core:compose"))
+    implementation(project(":feature:home"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
 }
