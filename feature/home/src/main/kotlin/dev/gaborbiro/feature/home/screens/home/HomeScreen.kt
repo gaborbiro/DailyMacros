@@ -1,11 +1,17 @@
 package dev.gaborbiro.feature.home.screens.home
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -40,9 +46,10 @@ fun HomeScreen(
 ) {
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
-
     val snackbarHostState = remember { SnackbarHostState() }
+
     Scaffold(
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.union(WindowInsets.ime),
         modifier = Modifier
             .fillMaxSize(),
         snackbarHost = {
@@ -70,7 +77,11 @@ fun HomeScreen(
             is HomeUIUpdates.Toast -> {
                 val message = update.message.resolve()
                 scope.launch {
-                    snackbarHostState.showSnackbar(message)
+                    snackbarHostState.showSnackbar(
+                        message = message,
+                        withDismissAction = true,
+                        duration = SnackbarDuration.Short,
+                    )
                 }
             }
 

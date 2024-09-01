@@ -82,7 +82,7 @@ import com.google.gson.Gson
  *     ...
  *     viewModelScope.launch {
  *         appPrefs.someString.get().collect { text: String? ->
- *             
+ *
  *         }
  *     }
  *     ...
