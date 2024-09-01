@@ -37,8 +37,9 @@ dependencies {
     implementation(project(":preferences"))
     implementation(project(":app_prefs:domain"))
 
-    implementation(libs.hilt)
-    kapt(libs.hilt.compiler)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.datastore.preferences)
+
+    implementation(libs.hilt)
+    kapt(libs.hilt.compiler)
 }

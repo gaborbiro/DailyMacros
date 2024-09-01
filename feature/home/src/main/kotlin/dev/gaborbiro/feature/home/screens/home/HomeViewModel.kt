@@ -12,6 +12,7 @@ import dev.gaborbiro.nutrition.core.viewmodel.BaseViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     application: Application,
