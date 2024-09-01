@@ -1,12 +1,11 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
-    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.kapt)
 }
 
 android {
-    namespace = "dev.gaborbiro.nutrition.feature.home"
+    namespace = "dev.gaborbiro.nutrition.app_prefs"
     compileSdk = libs.versions.android.sdk.compile.get().toInt()
 
     defaultConfig {
@@ -24,44 +23,22 @@ android {
                 "proguard-rules.pro"
             )
         }
-
-        getByName("debug") {
-            isMinifyEnabled = false
-            isShrinkResources = false
-        }
     }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-
-    buildFeatures {
-        compose = true
-        buildConfig = true
-    }
-
     kotlinOptions {
         jvmTarget = "1.8"
     }
 }
 
 dependencies {
-    implementation(project(":core:navigation"))
-    implementation(project(":core:compose"))
-    implementation(project(":core:clause"))
-    implementation(project(":core:viewmodel"))
+    implementation(project(":preferences"))
     implementation(project(":app_prefs:domain"))
 
-    implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.ui.tooling.preview)
-
     implementation(libs.hilt)
-    implementation(libs.hilt.navigationCompose)
     kapt(libs.hilt.compiler)
-
-    debugImplementation(libs.ui.tooling)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.datastore.preferences)
 }

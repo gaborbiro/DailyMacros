@@ -1,10 +1,13 @@
 package dev.gaborbiro.feature.home.screens.home
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -12,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -25,6 +29,7 @@ import dev.gaborbiro.nutrition.core.clause.resolve
 import dev.gaborbiro.nutrition.core.compose.Padding
 import dev.gaborbiro.nutrition.core.compose.PreviewContext
 import dev.gaborbiro.nutrition.core.navigation.NavigationDispatcher
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -34,21 +39,39 @@ fun HomeScreen(
     viewModel: HomeViewModel,
 ) {
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
 
-    HomeContent(
-        modifier = modifier,
-        viewState = viewState,
-        onButtonTapped = {
-            viewModel.onButtonTapped()
-        }
+    val snackbarHostState = remember { SnackbarHostState() }
+    Scaffold(
+        modifier = Modifier
+            .fillMaxSize(),
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        },
+        content = { innerPadding ->
+            HomeContent(
+                modifier = modifier
+                    .padding(innerPadding),
+                viewState = viewState,
+                onTextChanged = {
+                    viewModel.onTextChanged(it)
+                },
+                onButtonTapped = {
+                    viewModel.onButtonTapped()
+                }
+            )
+        },
     )
 
     val uiUpdates by viewModel.uiUpdates.collectAsStateWithLifecycle()
-    val context = LocalContext.current
+
     uiUpdates.forEach { uiUpdate ->
         when (val update = uiUpdate.get()) {
             is HomeUIUpdates.Toast -> {
-                Toast.makeText(context, update.message.resolve(), Toast.LENGTH_SHORT).show()
+                val message = update.message.resolve()
+                scope.launch {
+                    snackbarHostState.showSnackbar(message)
+                }
             }
 
             null -> {}
@@ -60,6 +83,7 @@ fun HomeScreen(
 private fun HomeContent(
     modifier: Modifier,
     viewState: HomeViewState,
+    onTextChanged: (String) -> Unit,
     onButtonTapped: () -> Unit,
 ) {
     Column(modifier = modifier) {
@@ -77,6 +101,7 @@ private fun HomeContent(
             },
             value = queryText,
             onValueChange = {
+                onTextChanged(it)
                 queryText = it
             }
         )
@@ -100,7 +125,8 @@ fun HomeScreenPreview() {
         HomeContent(
             modifier,
             HomeViewState(),
-            {}
+            {},
+            {},
         )
     }
 }
