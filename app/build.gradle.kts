@@ -1,4 +1,5 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import java.io.FileNotFoundException
 
 plugins {
     alias(libs.plugins.android.application)
@@ -44,11 +45,11 @@ android {
             isDefault = true
             dimension = "environment"
             applicationIdSuffix = ".dev"
+
             val chatGptApiKeyKey = "CHATGPT_API_KEY"
-            val chatGptApiKey = System.getenv(chatGptApiKeyKey) ?: gradleLocalProperties(
-                rootDir,
-                providers
-            ).getProperty(chatGptApiKeyKey) ?: "missing $chatGptApiKeyKey"
+            val chatGptApiKey = System.getenv(chatGptApiKeyKey)
+                ?: gradleLocalProperties(rootDir, providers).getProperty(chatGptApiKeyKey)
+                ?: "missing $chatGptApiKeyKey"
             buildConfigField("String", chatGptApiKeyKey, "\"$chatGptApiKey\"")
         }
     }
@@ -79,7 +80,7 @@ dependencies {
     implementation(project(":core:compose"))
     implementation(project(":feature:home"))
     implementation(project(":app_prefs"))
-    implementation(project(":app_prefs:domain"))
+    implementation(project(":data:chatgpt"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -92,4 +93,8 @@ dependencies {
 
     implementation(libs.hilt)
     kapt(libs.hilt.compiler)
+
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.gson)
+    implementation(libs.okhttp.loggingInterceptor)
 }

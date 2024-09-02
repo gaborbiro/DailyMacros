@@ -1,12 +1,13 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
-    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.kapt)
 }
 
 android {
-    namespace = "dev.gaborbiro.nutrition.feature.home"
+    namespace = "dev.gaborbiro.nutrition.data.chatgpt"
     compileSdk = libs.versions.android.sdk.compile.get().toInt()
 
     defaultConfig {
@@ -37,7 +38,6 @@ android {
     }
 
     buildFeatures {
-        compose = true
         buildConfig = true
     }
 
@@ -47,23 +47,16 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:navigation"))
-    implementation(project(":core:compose"))
-    implementation(project(":core:clause"))
-    implementation(project(":core:viewmodel"))
-    implementation(project(":app_prefs:domain"))
     implementation(project(":data:chatgpt:domain"))
-    implementation(project(":feature:common"))
 
     implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.core.ktx)
 
     implementation(libs.hilt)
-    implementation(libs.hilt.navigationCompose)
     kapt(libs.hilt.compiler)
 
-    debugImplementation(libs.ui.tooling)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.gson)
+    implementation(libs.okhttp)
+    implementation(libs.gson)
 }

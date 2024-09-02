@@ -11,5 +11,5 @@ import javax.inject.Named
 internal class AppPrefsImpl @Inject constructor(@Named("appPrefs") store: DataStore<Preferences>) :
     StoreBase(store), AppPrefs {
 
-    override val text = stringDelegate("TEXT")
+    override val request = stringDelegate("TEXT")
 }

@@ -4,6 +4,9 @@ import kotlinx.coroutines.flow.Flow
 
 
 interface StoreItem<T> {
+    /**
+     * Use .first() to simply read the current value
+     */
     fun get(): Flow<T?>
 
     /**

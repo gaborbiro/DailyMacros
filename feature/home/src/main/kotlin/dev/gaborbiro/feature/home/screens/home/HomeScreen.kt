@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.union
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
@@ -26,7 +25,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.gaborbiro.feature.home.screens.home.model.HomeUIUpdates
@@ -98,9 +96,8 @@ private fun HomeContent(
     onButtonTapped: () -> Unit,
 ) {
     Column(modifier = modifier) {
-        val text = viewState.text.resolve()
         val focuser = remember { FocusRequester() }
-        var queryText by remember(text) { mutableStateOf(text) }
+        var queryText by remember(viewState.question) { mutableStateOf(viewState.question) }
         TextField(
             modifier = Modifier
                 .fillMaxWidth()
@@ -110,22 +107,27 @@ private fun HomeContent(
             label = {
                 Text(text = "What did you eat today")
             },
-            value = queryText,
+            value = queryText ?: "",
             onValueChange = {
                 onTextChanged(it)
                 queryText = it
             }
         )
+        LaunchedEffect(Unit) {
+            focuser.requestFocus()
+        }
         Button(
             modifier = Modifier.padding(Padding.normal),
             onClick = onButtonTapped
         ) {
             Text(text = "Click me")
         }
-
-        LaunchedEffect(Unit) {
-            focuser.requestFocus()
-        }
+        Text(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Padding.normal),
+            text = viewState.answer ?: ""
+        )
     }
 }
 

@@ -4,5 +4,5 @@ import dev.gaborbiro.nutrition.preferences.domain.StoreItem
 
 
 interface AppPrefs {
-    val text: StoreItem<String>
+    val request: StoreItem<String>
 }

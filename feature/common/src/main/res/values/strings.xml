@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error.connectivity">Error connecting to server. Please check your internet
+        connection.
+    </string>
+    <string name="error.contact_support">Oops! Something went wrong.</string>
+    <string name="error.try_again">Oops! Something went wrong. Please try again later.</string>
+    <string name="error.session_expired_sign_in">Session expired. Please sign in again.</string>
+</resources>
