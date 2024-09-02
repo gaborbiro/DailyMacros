@@ -8,6 +8,8 @@ import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.google.gson.Gson
+import dev.gaborbiro.nutrition.preferences.domain.MapStoreItem
+import dev.gaborbiro.nutrition.preferences.domain.StoreItem
 
 
 /**
@@ -96,7 +98,7 @@ abstract class StoreBase(val dataStore: DataStore<Preferences>) {
     protected inline fun <reified T> gsonSerializablePrefsDelegate(
         key: String,
         size: Int = 1 * 1024 * 1024, // 1MB
-    ): dev.gaborbiro.nutrition.preferences.domain.StoreItem<T> {
+    ): StoreItem<T> {
         return StoreItemImpl(
             key = stringPreferencesKey(key),
             dataStore = dataStore,
@@ -107,7 +109,7 @@ abstract class StoreBase(val dataStore: DataStore<Preferences>) {
     protected inline fun <reified T> gsonSerializableMapPrefsDelegate(
         keyBase: String,
         size: Int = 1 * 1024 * 1024, // 1MB
-    ): dev.gaborbiro.nutrition.preferences.domain.MapStoreItem<T> {
+    ): MapStoreItem<T> {
         return MapStoreItemImpl(
             key = keyBase,
             createKey = { stringPreferencesKey(it) },
@@ -141,28 +143,28 @@ abstract class StoreBase(val dataStore: DataStore<Preferences>) {
             }
         }
 
-    protected fun intDelegate(key: String): dev.gaborbiro.nutrition.preferences.domain.StoreItem<Int> {
+    protected fun intDelegate(key: String): StoreItem<Int> {
         return StoreItemImpl(
             key = intPreferencesKey(key),
             dataStore = dataStore,
         )
     }
 
-    protected fun doubleDelegate(key: String): dev.gaborbiro.nutrition.preferences.domain.StoreItem<Double> {
+    protected fun doubleDelegate(key: String): StoreItem<Double> {
         return StoreItemImpl(
             key = doublePreferencesKey(key),
             dataStore = dataStore,
         )
     }
 
-    protected fun stringDelegate(key: String): dev.gaborbiro.nutrition.preferences.domain.StoreItem<String> {
+    protected fun stringDelegate(key: String): StoreItem<String> {
         return StoreItemImpl(
             key = stringPreferencesKey(key),
             dataStore = dataStore,
         )
     }
 
-    protected fun booleanMapPrefsDelegate(keyBase: String): dev.gaborbiro.nutrition.preferences.domain.MapStoreItem<Boolean> {
+    protected fun booleanMapPrefsDelegate(keyBase: String): MapStoreItem<Boolean> {
         return MapStoreItemImpl(
             key = keyBase,
             createKey = { booleanPreferencesKey(it) },
