@@ -4,5 +4,6 @@ import dev.gaborbiro.nutrition.preferences.domain.StoreItem
 
 
 interface AppPrefs {
-    val request: StoreItem<String>
+    val lastQuery: StoreItem<String>
+    val googleApiAccessToken: StoreItem<String>
 }

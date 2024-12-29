@@ -1,13 +1,24 @@
 package dev.gaborbiro.feature.home.screens.home
 
+import android.app.Activity.RESULT_OK
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarDuration
@@ -22,16 +33,24 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.android.gms.auth.api.identity.AuthorizationRequest
+import com.google.android.gms.auth.api.identity.Identity
+import com.google.android.gms.common.api.Scope
+import com.google.api.services.keep.v1.KeepScopes
 import dev.gaborbiro.feature.home.screens.home.model.HomeUIUpdates
 import dev.gaborbiro.feature.home.screens.home.model.HomeViewState
 import dev.gaborbiro.nutrition.core.clause.resolve
 import dev.gaborbiro.nutrition.core.compose.Padding
 import dev.gaborbiro.nutrition.core.compose.PreviewContext
+import dev.gaborbiro.nutrition.core.compose.theme.NutriColor
 import dev.gaborbiro.nutrition.core.navigation.NavigationDispatcher
 import kotlinx.coroutines.launch
 
@@ -61,14 +80,60 @@ fun HomeScreen(
                 onTextChanged = {
                     viewModel.onTextChanged(it)
                 },
-                onButtonTapped = {
-                    viewModel.onButtonTapped()
+                onAskChatGPTButtonTapped = {
+                    viewModel.onAskChatGPTButtonTapped()
+                },
+                onFetchKeepNotesButtonTapped = {
+                    viewModel.onFetchKeepNotesButtonTapped()
                 }
             )
         },
     )
 
     val uiUpdates by viewModel.uiUpdates.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+//    val credentialManager = remember { CredentialManager.create(context) }
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { result: ActivityResult ->
+        if (result.resultCode == RESULT_OK) {
+            val authorizationResult =
+                Identity.getAuthorizationClient(context)
+                    .getAuthorizationResultFromIntent(result.data)
+            viewModel.onAuthorizationResult(authorizationResult)
+        } else {
+            viewModel.handleSignInFailure(null)
+        }
+    }
+
+    viewState.authorizationRequest?.let {
+        LaunchedEffect(it) {
+            Identity
+                .getAuthorizationClient(context)
+                .authorize(it)
+                .addOnSuccessListener { authorizationResult ->
+                    if (authorizationResult.hasResolution()) {
+                        val pendingIntent = authorizationResult.pendingIntent
+                        launcher.launch(
+                            IntentSenderRequest.Builder(pendingIntent!!.intentSender).build()
+                        )
+                    } else {
+                        viewModel.onAuthorizationResult(authorizationResult)
+                    }
+                }
+//            try {
+//                val result: GetCredentialResponse = credentialManager.getCredential(
+//                    request = it,
+//                    context = context,
+//                )
+//                viewModel.handleSignIn(result)
+//            } catch (e: GetCredentialException) {
+//                viewModel.handleSignInFailure(e)
+//            } catch (e: Throwable) {
+//                viewModel.handleSignInFailure(e)
+//            }
+        }
+    }
 
     uiUpdates.forEach { uiUpdate ->
         when (val update = uiUpdate.get()) {
@@ -78,7 +143,7 @@ fun HomeScreen(
                     snackbarHostState.showSnackbar(
                         message = message,
                         withDismissAction = true,
-                        duration = SnackbarDuration.Short,
+                        duration = SnackbarDuration.Long,
                     )
                 }
             }
@@ -93,9 +158,13 @@ private fun HomeContent(
     modifier: Modifier,
     viewState: HomeViewState,
     onTextChanged: (String) -> Unit,
-    onButtonTapped: () -> Unit,
+    onAskChatGPTButtonTapped: () -> Unit,
+    onFetchKeepNotesButtonTapped: () -> Unit,
 ) {
-    Column(modifier = modifier) {
+    Column(
+        modifier = modifier
+            .verticalScroll(rememberScrollState())
+    ) {
         val focuser = remember { FocusRequester() }
         var queryText by remember(viewState.question) { mutableStateOf(viewState.question) }
         TextField(
@@ -116,11 +185,45 @@ private fun HomeContent(
         LaunchedEffect(Unit) {
             focuser.requestFocus()
         }
-        Button(
-            modifier = Modifier.padding(Padding.normal),
-            onClick = onButtonTapped
+        Box(contentAlignment = Alignment.Center) {
+            Button(
+                modifier = Modifier.padding(
+                    start = Padding.normal,
+                    end = Padding.normal,
+                    top = Padding.normal
+                ),
+                onClick = onAskChatGPTButtonTapped
+            ) {
+                Text(text = "Ask ChatGPT")
+            }
+            if (viewState.showQueryProgress) {
+                CircularProgressIndicator()
+            }
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
         ) {
-            Text(text = "Click me")
+            Box(contentAlignment = Alignment.Center) {
+                Button(
+                    modifier = Modifier
+                        .padding(
+                            start = Padding.normal,
+                            end = Padding.normal,
+                            top = Padding.medium
+                        ),
+                    colors = ButtonDefaults.buttonColors().copy(
+                        containerColor = NutriColor.Purple40,
+                        contentColor = Color.White,
+                    ),
+                    onClick = onFetchKeepNotesButtonTapped,
+                ) {
+                    Text(text = "Fetch Keep notes")
+                }
+                if (viewState.showFetchKeepNotesProgress) {
+                    CircularProgressIndicator()
+                }
+            }
         }
         Text(
             modifier = Modifier
@@ -138,6 +241,7 @@ fun HomeScreenPreview() {
         HomeContent(
             modifier,
             HomeViewState(),
+            {},
             {},
             {},
         )

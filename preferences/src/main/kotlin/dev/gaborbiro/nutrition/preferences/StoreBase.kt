@@ -171,4 +171,12 @@ abstract class StoreBase(val dataStore: DataStore<Preferences>) {
             prefs = dataStore,
         )
     }
+
+    protected fun stringMapPrefsDelegate(keyBase: String): MapStoreItem<String> {
+        return MapStoreItemImpl(
+            key = keyBase,
+            createKey = { stringPreferencesKey(it) },
+            prefs = dataStore,
+        )
+    }
 }

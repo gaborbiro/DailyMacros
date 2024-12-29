@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -31,6 +33,21 @@ android {
         }
     }
 
+    flavorDimensions.add("environment")
+
+    productFlavors {
+        create("dev") {
+            isDefault = true
+            dimension = "environment"
+
+            val googleClientIdKey = "GOOGLE_CLIENT_ID"
+            val googleClientId = System.getenv(googleClientIdKey)
+                ?: gradleLocalProperties(rootDir, providers).getProperty(googleClientIdKey)
+                ?: "missing $googleClientIdKey"
+            buildConfigField("String", googleClientIdKey, "\"$googleClientId\"")
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -43,6 +60,14 @@ android {
 
     kotlinOptions {
         jvmTarget = "1.8"
+    }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/INDEX.LIST"
+            excludes += "/META-INF/DEPENDENCIES"
+        }
     }
 }
 
@@ -63,7 +88,15 @@ dependencies {
 
     implementation(libs.hilt)
     implementation(libs.hilt.navigationCompose)
+    implementation(libs.play.services.auth.base)
+    implementation(libs.play.services.auth)
     kapt(libs.hilt.compiler)
+
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
+    implementation(libs.google.api.client)
+    implementation(libs.google.api.keep)
 
     debugImplementation(libs.ui.tooling)
 }

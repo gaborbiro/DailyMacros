@@ -17,6 +17,7 @@ import javax.inject.Singleton
 
 private val Context.appPrefsDataStore: DataStore<Preferences> by preferencesDataStore("appPrefs")
 
+
 @Module
 @InstallIn(SingletonComponent::class)
 internal abstract class AppPrefsModule {

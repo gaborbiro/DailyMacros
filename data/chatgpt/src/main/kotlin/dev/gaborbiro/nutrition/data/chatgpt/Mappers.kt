@@ -1,7 +1,7 @@
 package dev.gaborbiro.nutrition.data.chatgpt
 
 import dev.gaborbiro.nutrition.data.common.model.DomainError
-import dev.gaborbiro.nutrition.data.chatgpt.domain.model.Request
+import dev.gaborbiro.nutrition.data.chatgpt.domain.model.QueryRequest
 import dev.gaborbiro.nutrition.data.chatgpt.domain.model.Response
 import dev.gaborbiro.nutrition.data.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.nutrition.data.chatgpt.service.model.ChatGPTRequest
@@ -10,7 +10,7 @@ import dev.gaborbiro.nutrition.data.chatgpt.service.model.Message
 import dev.gaborbiro.nutrition.data.chatgpt.service.model.Role
 
 
-internal fun Request.toApiModel(): ChatGPTRequest {
+internal fun QueryRequest.toApiModel(): ChatGPTRequest {
     return ChatGPTRequest(
         messages = listOf(
             Message(

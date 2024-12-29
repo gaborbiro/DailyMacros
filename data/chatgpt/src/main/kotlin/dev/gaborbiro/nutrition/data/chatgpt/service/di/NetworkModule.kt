@@ -16,6 +16,7 @@ internal class NetworkModule {
     @Provides
     @Singleton
     fun provideChatGPTService(@WithSession retrofit: Retrofit): ChatGPTService {
-        return retrofit.create(ChatGPTService::class.java)
+        return retrofit
+            .create(ChatGPTService::class.java)
     }
 }

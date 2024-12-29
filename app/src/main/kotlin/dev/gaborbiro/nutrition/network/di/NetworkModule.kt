@@ -1,22 +1,31 @@
 package dev.gaborbiro.nutrition.network.di
 
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import dev.gaborbiro.nutrition.network.AuthInterceptor
 import dev.gaborbiro.nutrition.data.chatgpt.service.di.WithSession
+import dev.gaborbiro.nutrition.network.AuthInterceptor
+import okhttp3.CookieJar
+import okhttp3.JavaNetCookieJar
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.net.CookieManager
 import java.util.concurrent.TimeUnit.SECONDS
 import javax.inject.Singleton
+
+private val Context.cookiesPrefs: DataStore<Preferences> by preferencesDataStore("cookiePrefs")
 
 
 @Module
 @InstallIn(SingletonComponent::class)
-class NetworkModule {
+internal class NetworkModule {
 
     companion object {
         private const val REQUEST_TIMEOUT_IN_SECONDS = 90L
@@ -48,6 +57,7 @@ class NetworkModule {
         @BaseUrl baseUrl: String,
     ): Retrofit {
         val okHttpClient = okHttpClientBuilder
+            .cookieJar(JavaNetCookieJar(CookieManager()))
             .build()
         return Retrofit.Builder()
             .baseUrl(baseUrl)

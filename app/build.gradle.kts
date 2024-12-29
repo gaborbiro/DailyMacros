@@ -1,5 +1,4 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
-import java.io.FileNotFoundException
 
 plugins {
     alias(libs.plugins.android.application)
@@ -23,6 +22,15 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
+        }
+    }
+
+    signingConfigs {
+        getByName("debug") {
+            keyAlias = "debug"
+            keyPassword = "keystore"
+            storeFile = file("../signing/debug.jks")
+            storePassword = "keystore"
         }
     }
 
@@ -51,6 +59,8 @@ android {
                 ?: gradleLocalProperties(rootDir, providers).getProperty(chatGptApiKeyKey)
                 ?: "missing $chatGptApiKeyKey"
             buildConfigField("String", chatGptApiKeyKey, "\"$chatGptApiKey\"")
+
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 
@@ -71,6 +81,8 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/INDEX.LIST"
+            excludes += "/META-INF/DEPENDENCIES"
         }
     }
 }
@@ -97,4 +109,8 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
     implementation(libs.okhttp.loggingInterceptor)
+    implementation(libs.okhttp.urlconnection)
+
+    implementation(project(":preferences"))
+    implementation(libs.androidx.datastore.preferences)
 }

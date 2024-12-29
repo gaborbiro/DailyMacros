@@ -2,8 +2,7 @@
 android-sdk-min = "30"
 android-sdk-compile = "34"
 android-sdk-target = "35"
-converterGson = "2.9.0"
-enable-proguard-with-release-builds = "true"
+enable-proguard-with-release-builds = "false"
 
 agp = "8.5.2"
 kotlin = "2.0.0"
@@ -30,9 +29,19 @@ uiTooling = "1.6.8"
 hilt = "2.49"
 google-ksp = "1.8.21-1.0.11"
 hiltNavigationCompose = "1.2.0"
+converterGson = "2.9.0"
+androidx-credentials = "1.2.2"
+
+googleApiClient = "2.4.0"
+googleid = "1.1.1"
+keep = "v1-rev20220322-2.0.0"
+playServicesAuthBase = "18.0.13"
+playServicesAuth = "21.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "androidx-credentials" }
+androidx-credentials-play-services-auth = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "androidx-credentials" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -62,10 +71,17 @@ retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = 
 retrofit-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "converterGson" }
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 okhttp-loggingInterceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
+okhttp-urlconnection = { group = "com.squareup.okhttp3", name = "okhttp-urlconnection", version.ref = "okhttp" }
 
 hilt = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
 hilt-navigationCompose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
+
+google-api-keep = { group = "com.google.apis", name = "google-api-services-keep", version.ref = "keep" }
+google-api-client = { group = "com.google.api-client", name = "google-api-client", version.ref = "googleApiClient" }
+googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleid" }
+play-services-auth-base = { group = "com.google.android.gms", name = "play-services-auth-base", version.ref = "playServicesAuthBase" }
+play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
