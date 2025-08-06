@@ -62,7 +62,8 @@ class NotesWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
             val prefs = currentState<Preferences>()
-            val fileStore = FileStoreFactoryImpl(LocalContext.current).getStore("public", keepFiles = true)
+            val fileStore =
+                FileStoreFactoryImpl(LocalContext.current).getStore("public", keepFiles = true)
             val bitmapStore = BitmapStore(fileStore)
             val recordsUIMapper = RecordsUIMapper(bitmapStore)
             val recentRecords = recordsUIMapper.map(
@@ -119,11 +120,6 @@ fun Preferences.retrieveTopTemplates(): List<Template> {
 }
 
 class NotesWidgetReceiver : GlanceAppWidgetReceiver() {
-
-    override val glanceAppWidget: GlanceAppWidget = NotesWidget()
-}
-
-class NotesWidgetReceiverSmall : GlanceAppWidgetReceiver() {
 
     override val glanceAppWidget: GlanceAppWidget = NotesWidget()
 }
