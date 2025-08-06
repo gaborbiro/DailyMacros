@@ -31,6 +31,15 @@ android {
         }
     }
 
+    signingConfigs {
+        getByName("debug") {
+            keyAlias = "debug"
+            keyPassword = "keystore"
+            storeFile = file("../signing/keystore.jks")
+            storePassword = "keystore"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -45,6 +54,8 @@ android {
                 ?: gradleLocalProperties(rootDir, providers).getProperty(chatGptApiKeyKey)
                 ?: "missing $chatGptApiKeyKey"
             buildConfigField("String", chatGptApiKeyKey, "\"$chatGptApiKey\"")
+
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
