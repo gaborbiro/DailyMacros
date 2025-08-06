@@ -1,12 +1,6 @@
 pluginManagement {
     repositories {
-        google {
-            content {
-                includeGroupByRegex("com\\.android.*")
-                includeGroupByRegex("com\\.google.*")
-                includeGroupByRegex("androidx.*")
-            }
-        }
+        google()
         mavenCentral()
         gradlePluginPortal()
     }
@@ -16,21 +10,13 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven {
+            url = uri("https://androidx.dev/snapshots/latest/artifacts/repository")
+            content {
+                includeGroupByRegex("androidx\\..*")
+            }
+        }
     }
 }
-
-rootProject.name = "Nutrition"
+rootProject.name = "Nutri"
 include(":app")
-include(":core:clause")
-include(":core:compose")
-include(":core:navigation")
-include(":core:viewmodel")
-include(":preferences")
-include(":preferences:domain")
-include(":app_prefs")
-include(":app_prefs:domain")
-include(":data:common")
-include(":data:chatgpt")
-include(":data:chatgpt:domain")
-include(":feature:common")
-include(":feature:home")
