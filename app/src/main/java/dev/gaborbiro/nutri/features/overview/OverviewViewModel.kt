@@ -1,4 +1,4 @@
-package dev.gaborbiro.nutri.features.notes
+package dev.gaborbiro.nutri.features.overview
 
 import android.content.Context
 import android.util.Log
@@ -8,7 +8,7 @@ import dev.gaborbiro.nutri.features.common.ErrorViewModel
 import dev.gaborbiro.nutri.features.common.RecordsUIMapper
 import dev.gaborbiro.nutri.features.common.model.RecordViewState
 import dev.gaborbiro.nutri.features.modal.usecase.FetchNutrientsUseCase
-import dev.gaborbiro.nutri.features.notes.model.NotesViewState
+import dev.gaborbiro.nutri.features.overview.model.OverviewViewState
 import dev.gaborbiro.nutri.store.bitmap.BitmapStore
 import dev.gaborbiro.nutri.store.file.FileStoreFactoryImpl
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,9 +18,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class NotesScreenViewModel(
+class OverviewViewModel(
     private val appContext: Context,
-    private val navigator: NotesListNavigator,
+    private val navigator: OverviewNavigator,
     private val fetchNutrientsUseCase: FetchNutrientsUseCase,
 ) : ErrorViewModel() {
 
@@ -28,8 +28,8 @@ class NotesScreenViewModel(
     private val repository by lazy { RecordsRepository.get(fileStore) }
     private val uiMapper by lazy { RecordsUIMapper(BitmapStore(fileStore)) }
 
-    private val _uiState: MutableStateFlow<NotesViewState> = MutableStateFlow(NotesViewState())
-    val uiState: StateFlow<NotesViewState> = _uiState.asStateFlow()
+    private val _uiState: MutableStateFlow<OverviewViewState> = MutableStateFlow(OverviewViewState())
+    val uiState: StateFlow<OverviewViewState> = _uiState.asStateFlow()
 
     fun onSearchTermChanged(search: String?) {
         viewModelScope.launch {

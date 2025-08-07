@@ -1,4 +1,4 @@
-package dev.gaborbiro.nutri.features.notes.views
+package dev.gaborbiro.nutri.features.overview.views
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically

@@ -1,4 +1,4 @@
-package dev.gaborbiro.nutri.features.notes.views
+package dev.gaborbiro.nutri.features.overview.views
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
@@ -48,7 +48,7 @@ import dev.gaborbiro.nutri.features.common.model.RecordViewState
 
 
 @Composable
-fun NoteListItem(
+fun OverviewListItem(
     modifier: Modifier = Modifier,
     record: RecordViewState,
     onDuplicateRecord: (RecordViewState) -> Unit,

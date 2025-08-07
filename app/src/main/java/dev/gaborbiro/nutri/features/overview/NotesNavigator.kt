@@ -1,9 +1,9 @@
-package dev.gaborbiro.nutri.features.notes
+package dev.gaborbiro.nutri.features.overview
 
 import android.content.Context
 import dev.gaborbiro.nutri.features.modal.ModalActivity
 
-interface NotesListNavigator {
+interface OverviewNavigator {
 
     fun updateRecordPhoto(recordId: Long)
 
@@ -12,7 +12,7 @@ interface NotesListNavigator {
     fun viewImage(recordId: Long)
 }
 
-class NotesListNavigatorImpl(private val appContext: Context) : NotesListNavigator {
+class OverviewNavigatorImpl(private val appContext: Context) : OverviewNavigator {
 
     override fun updateRecordPhoto(recordId: Long) {
         ModalActivity.launchRedoImage(appContext, recordId)

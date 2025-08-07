@@ -20,9 +20,9 @@ import dev.gaborbiro.nutri.design.NotesTheme
 import dev.gaborbiro.nutri.features.common.RecordsMapper
 import dev.gaborbiro.nutri.features.modal.ModalActivity.Companion.REQUEST_TIMEOUT_IN_SECONDS
 import dev.gaborbiro.nutri.features.modal.usecase.FetchNutrientsUseCase
-import dev.gaborbiro.nutri.features.notes.NotesListNavigatorImpl
-import dev.gaborbiro.nutri.features.notes.NotesScreen
-import dev.gaborbiro.nutri.features.notes.NotesScreenViewModel
+import dev.gaborbiro.nutri.features.overview.OverviewNavigatorImpl
+import dev.gaborbiro.nutri.features.overview.OverviewScreen
+import dev.gaborbiro.nutri.features.overview.OverviewViewModel
 import dev.gaborbiro.nutri.store.bitmap.BitmapStore
 import dev.gaborbiro.nutri.store.file.FileStoreFactoryImpl
 import okhttp3.OkHttpClient
@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val navigator = NotesListNavigatorImpl(this)
+        val navigator = OverviewNavigatorImpl(this)
         val fileStore = FileStoreFactoryImpl(this).getStore("public", keepFiles = true)
         val bitmapStore = BitmapStore(fileStore)
         val recordsRepository = RecordsRepository.get(fileStore)
@@ -87,7 +87,7 @@ class MainActivity : ComponentActivity() {
             mapper = RecordsMapper(),
         )
 
-        val viewModel = NotesScreenViewModel(
+        val viewModel = OverviewViewModel(
             appContext = this,
             navigator = navigator,
             fetchNutrientsUseCase = fetchNutrientsUseCase,
@@ -101,7 +101,7 @@ class MainActivity : ComponentActivity() {
                     startDestination = NoteList.route,
                 ) {
                     composable(route = NoteList.route) {
-                        NotesScreen(viewModel)
+                        OverviewScreen(viewModel)
                     }
                 }
             }

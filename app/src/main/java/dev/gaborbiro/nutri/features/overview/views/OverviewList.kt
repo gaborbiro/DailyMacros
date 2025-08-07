@@ -1,4 +1,4 @@
-package dev.gaborbiro.nutri.features.notes.views
+package dev.gaborbiro.nutri.features.overview.views
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
@@ -28,14 +28,14 @@ import androidx.compose.ui.unit.dp
 import dev.gaborbiro.nutri.design.NotesTheme
 import dev.gaborbiro.nutri.design.PaddingDefault
 import dev.gaborbiro.nutri.features.common.model.RecordViewState
-import dev.gaborbiro.nutri.features.notes.model.NotesViewState
+import dev.gaborbiro.nutri.features.overview.model.OverviewViewState
 import dev.gaborbiro.nutri.util.createDummyBitmap
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-internal fun NotesList(
-    viewState: NotesViewState,
+internal fun OverviewList(
+    viewState: OverviewViewState,
     onDuplicateRecord: (RecordViewState) -> Unit,
     onUpdateImage: (RecordViewState) -> Unit,
     onDeleteImage: (RecordViewState) -> Unit,
@@ -93,7 +93,7 @@ internal fun NotesList(
             state = listState,
         ) {
             items(records.size, key = { records[it].recordId }) {
-                NoteListItem(
+                OverviewListItem(
                     modifier = Modifier.Companion
                         .animateItem(),
                     record = records[it],
@@ -122,8 +122,8 @@ internal fun NotesList(
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NotesListPreview() {
     NotesTheme {
-        NotesList(
-            viewState = NotesViewState(
+        OverviewList(
+            viewState = OverviewViewState(
                 records = listOf(
                     RecordViewState(
                         recordId = 1L,

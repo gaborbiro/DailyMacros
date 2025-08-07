@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 
-package dev.gaborbiro.nutri.features.notes
+package dev.gaborbiro.nutri.features.overview
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -9,12 +9,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.gaborbiro.nutri.features.notes.views.NotesList
+import dev.gaborbiro.nutri.features.overview.views.OverviewList
 import dev.gaborbiro.nutri.features.widget.NotesWidget
 
 @Composable
-fun NotesScreen(
-    viewModel: NotesScreenViewModel,
+fun OverviewScreen(
+    viewModel: OverviewViewModel,
 ) {
     val context = LocalContext.current
     LaunchedEffect(key1 = Unit) {
@@ -28,7 +28,7 @@ fun NotesScreen(
         NotesWidget.reload(context)
     }
 
-    NotesList(
+    OverviewList(
         viewState,
         onDuplicateRecord = viewModel::onDuplicateRecordRequested,
         onUpdateImage = viewModel::onUpdateImageRequested,
