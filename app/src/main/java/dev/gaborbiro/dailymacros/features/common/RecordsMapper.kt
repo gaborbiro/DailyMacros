@@ -1,0 +1,46 @@
+package dev.gaborbiro.dailymacros.features.common
+
+import dev.gaborbiro.dailymacros.data.chatgpt.model.FoodPicSummaryRequest
+import dev.gaborbiro.dailymacros.data.chatgpt.model.FoodPicSummaryResponse
+import dev.gaborbiro.dailymacros.data.chatgpt.model.NutrientApiModel
+import dev.gaborbiro.dailymacros.data.chatgpt.model.NutrientsRequest
+import dev.gaborbiro.dailymacros.data.chatgpt.model.NutrientsResponse
+import dev.gaborbiro.dailymacros.data.records.domain.model.Nutrients
+import dev.gaborbiro.dailymacros.data.records.domain.model.Record
+
+class RecordsMapper {
+
+    fun mapFoodPicsSummaryRequest(base64Image: String): FoodPicSummaryRequest {
+        return FoodPicSummaryRequest(
+            base64Image = base64Image,
+        )
+    }
+
+    fun map(response: FoodPicSummaryResponse): List<String> {
+        return response.summary
+    }
+
+    fun mapNutrientsRequest(record: Record, base64Image: String? = null): NutrientsRequest {
+        return NutrientsRequest(
+            base64Image = base64Image,
+            title = record.template.name,
+            description = record.template.description,
+        )
+    }
+
+    fun map(response: NutrientsResponse): Pair<Nutrients?, String> {
+        return response.nutrients?.let(::map) to response.comments
+    }
+
+    private fun map(nutrientApiModel: NutrientApiModel): Nutrients {
+        return Nutrients(
+            calories = nutrientApiModel.kcal,
+            protein = nutrientApiModel.proteinGrams,
+            carbohydrates = nutrientApiModel.carbGrams,
+            ofWhichSugar = nutrientApiModel.ofWhichSugarGrams,
+            fat = nutrientApiModel.fatGrams,
+            ofWhichSaturated = nutrientApiModel.ofWhichSaturatedGrams,
+            salt = nutrientApiModel.saltGrams,
+        )
+    }
+}

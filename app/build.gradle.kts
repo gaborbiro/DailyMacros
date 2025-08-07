@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "dev.gaborbiro.nutri"
+    namespace = "dev.gaborbiro.dailymacros"
     compileSdk = 36
 
     defaultConfig {
