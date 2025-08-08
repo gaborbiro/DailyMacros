@@ -65,14 +65,6 @@ class ModalActivity : BaseErrorDialogActivity() {
 
     companion object {
 
-//        fun getDeleteRecordIntent(context: Context, recordId: Long): Intent {
-//            return Intent(context, HostActivity::class.java).also {
-//                it.putExtra(EXTRA_ACTION, ACTION_DELETE)
-//                it.putExtra(EXTRA_RECORD_ID, recordId)
-//                it.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-//            }
-//        }
-
         fun launchAddRecordWithCamera(context: Context) =
             launchActivity(context, getCameraIntent(context))
 
@@ -135,6 +127,7 @@ class ModalActivity : BaseErrorDialogActivity() {
         private fun getActionIntent(context: Context, action: Action) =
             Intent(context, ModalActivity::class.java).also {
                 it.putExtra(EXTRA_ACTION, action.name)
+                it.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
             }
 
         private const val EXTRA_ACTION = "extra_action"
@@ -236,12 +229,6 @@ class ModalActivity : BaseErrorDialogActivity() {
                 viewModel.changeImage(recordId)
             }
 
-//            Action.DELETE -> {
-//                val recordId = intent.getLongExtra(EXTRA_RECORD_ID, -1L)
-//                viewModel.deleteRecord(recordId)
-//                hideActionNotification()
-//            }
-
             Action.VIEW_RECORD_DETAILS -> {
                 val recordId = intent.getLongExtra(EXTRA_RECORD_ID, -1L)
                 viewModel.viewRecordDetails(recordId)
@@ -316,9 +303,9 @@ class ModalActivity : BaseErrorDialogActivity() {
         when (dialogState) {
             is DialogState.InputDialog -> InputDialog(
                 dialogState = dialogState,
-                onDialogDismissed = viewModel::onDialogDismissed,
                 onRecordDetailsSubmitRequested = viewModel::onRecordDetailsSubmitRequested,
                 onRecordDetailsUserTyping = viewModel::onRecordDetailsUserTyping,
+                onDismissRequest = viewModel::onDialogDismissed,
             )
 
             is DialogState.EditTargetConfirmationDialog -> EditTargetConfirmationDialog(
@@ -329,8 +316,8 @@ class ModalActivity : BaseErrorDialogActivity() {
 
             is DialogState.EditImageTargetConfirmationDialog -> EditImageTargetConfirmationDialog(
                 dialogState = dialogState,
-                onDialogDismissed = viewModel::onDialogDismissed,
                 onEditImageTargetConfirmed = viewModel::onEditImageTargetConfirmed,
+                onDialogDismissed = viewModel::onDialogDismissed,
             )
 
             is DialogState.ViewImageDialog -> ImageDialog(

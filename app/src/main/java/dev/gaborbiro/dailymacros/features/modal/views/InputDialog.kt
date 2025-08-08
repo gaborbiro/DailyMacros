@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,12 +13,18 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -53,6 +60,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import dev.gaborbiro.dailymacros.design.NotesTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
@@ -63,14 +71,18 @@ import kotlinx.coroutines.delay
 @Composable
 fun InputDialog(
     dialogState: DialogState.InputDialog,
-    onDialogDismissed: () -> Unit,
     onRecordDetailsSubmitRequested: (String, String) -> Unit,
     onRecordDetailsUserTyping: (String, String) -> Unit,
+    onDismissRequest: () -> Unit,
 ) {
     Dialog(
-        onDismissRequest = {
-            onDialogDismissed()
-        },
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = false,   // <-- we will handle outside taps
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false,
+        )
     ) {
 //            val image = (dialogState as? DialogState.InputDialogState.Edit)?.image
         val title = (dialogState as? DialogState.InputDialog.RecordDetails)?.title
@@ -79,42 +91,58 @@ fun InputDialog(
         val description = (dialogState as? DialogState.InputDialog.RecordDetails)?.description
         val calories = (dialogState as? DialogState.InputDialog.RecordDetails)?.calories
         val carbs = (dialogState as? DialogState.InputDialog.RecordDetails)?.carbs
-        val sugar = (dialogState as? DialogState.InputDialog.RecordDetails)?.sugar
+        val sugar = (dialogState as? DialogState.InputDialog.RecordDetails)?.ofWhichSugar
         val protein = (dialogState as? DialogState.InputDialog.RecordDetails)?.protein
         val fat = (dialogState as? DialogState.InputDialog.RecordDetails)?.fat
-        val saturated = (dialogState as? DialogState.InputDialog.RecordDetails)?.saturated
+        val saturated = (dialogState as? DialogState.InputDialog.RecordDetails)?.ofWhichSaturated
         val salt = (dialogState as? DialogState.InputDialog.RecordDetails)?.salt
 
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shadowElevation = 4.dp,
-            modifier = Modifier.Companion
-                .wrapContentHeight()
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
         ) {
-            InputDialogContent(
-                onCancel = {
-                    onDialogDismissed()
-                },
-                onSubmit = { title, description ->
-                    onRecordDetailsSubmitRequested(title, description)
-                },
-                onChange = { title, description ->
-                    onRecordDetailsUserTyping(title, description)
-                },
-                title = title,
-                titleSuggestions = titleSuggestion?.first ?: emptyList(),
-                titleSuggestionProgressIndicator = titleSuggestion?.second ?: false,
-                description = description,
-                calories = calories,
-                protein = protein,
-                carbs = carbs,
-                sugar = sugar,
-                fat = fat,
-                saturated = saturated,
-                salt = salt,
-                error = dialogState.validationError,
+            // Scrim/outside area: only dismiss on TAP (no drag)
+            Box(
+                Modifier
+                    .matchParentSize()
+                    .pointerInput(Unit) {
+                        detectTapGestures(onTap = { onDismissRequest() })
+                    }
             )
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .wrapContentHeight()
+                    .padding(PaddingDefault)
+                    .windowInsetsPadding(WindowInsets.systemBars.union(WindowInsets.ime)),
+                shape = MaterialTheme.shapes.medium,
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                shadowElevation = 6.dp,
+            ) {
+                InputDialogContent(
+                    onCancel = {
+                        onDismissRequest()
+                    },
+                    onSubmit = { title, description ->
+                        onRecordDetailsSubmitRequested(title, description)
+                    },
+                    onChange = { title, description ->
+                        onRecordDetailsUserTyping(title, description)
+                    },
+                    title = title,
+                    titleSuggestions = titleSuggestion?.first ?: emptyList(),
+                    titleSuggestionProgressIndicator = titleSuggestion?.second ?: false,
+                    description = description,
+                    calories = calories,
+                    protein = protein,
+                    carbs = carbs,
+                    sugar = sugar,
+                    fat = fat,
+                    saturated = saturated,
+                    salt = salt,
+                    error = dialogState.validationError,
+                )
+            }
         }
     }
 }
@@ -130,13 +158,13 @@ fun InputDialogContent(
     titleSuggestionProgressIndicator: Boolean,
     description: String? = null,
     error: String?,
-    calories: Int?,
-    protein: Float?,
-    carbs: Float?,
-    sugar: Float?,
-    fat: Float?,
-    saturated: Float?,
-    salt: Float?,
+    calories: String?,
+    protein: String?,
+    carbs: String?,
+    sugar: String?,
+    fat: String?,
+    saturated: String?,
+    salt: String?,
 ) {
     val focusRequester = remember { FocusRequester() }
     var titleFieldValue by remember {
@@ -255,50 +283,85 @@ fun InputDialogContent(
             },
         )
 
-        FlowRow(
+        Column(
             modifier = Modifier
-                .fillMaxWidth(),
+                .padding(top = 12.dp)
         ) {
             calories?.let {
-                AutoSizingLabeledTextField(
-                    label = "Calories",
-                    value = "$calories cal",
+                PillLabel(
+                    modifier = Modifier
+                        .padding(top = 4.dp),
+                    text = calories,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                    border = null,
+                    elevation = 0.dp,
                 )
             }
             protein?.let {
-                AutoSizingLabeledTextField(
-                    label = "Protein",
-                    value = "${it}g",
+                PillLabel(
+                    modifier = Modifier
+                        .padding(top = 4.dp),
+                    text = protein,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                    border = null,
+                    elevation = 0.dp,
                 )
             }
             carbs?.let {
-                AutoSizingLabeledTextField(
-                    label = "Carbs",
-                    value = "${it}g",
+                PillLabel(
+                    modifier = Modifier
+                        .padding(top = 4.dp),
+                    text = carbs,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                    border = null,
+                    elevation = 0.dp,
                 )
             }
             sugar?.let {
-                AutoSizingLabeledTextField(
-                    label = "Sugar",
-                    value = "${it}g",
+                PillLabel(
+                    modifier = Modifier
+                        .padding(start = 16.dp, top = 4.dp),
+                    text = sugar,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                    border = null,
+                    elevation = 0.dp,
                 )
             }
             fat?.let {
-                AutoSizingLabeledTextField(
-                    label = "Fat",
-                    value = "${it}g",
+                PillLabel(
+                    modifier = Modifier
+                        .padding(top = 4.dp),
+                    text = fat,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                    border = null,
+                    elevation = 0.dp,
                 )
             }
             saturated?.let {
-                AutoSizingLabeledTextField(
-                    label = "Saturated",
-                    value = "${it}g",
+                PillLabel(
+                    modifier = Modifier
+                        .padding(start = 16.dp, top = 4.dp),
+                    text = saturated,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                    border = null,
+                    elevation = 0.dp,
                 )
             }
             salt?.let {
-                AutoSizingLabeledTextField(
-                    label = "Salt",
-                    value = "${it}g",
+                PillLabel(
+                    modifier = Modifier
+                        .padding(top = 4.dp),
+                    text = salt,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                    border = null,
+                    elevation = 0.dp,
                 )
             }
         }
@@ -391,7 +454,6 @@ fun PillLabel(
 fun AutoSizingLabeledTextField(
     modifier: Modifier = Modifier
         .padding(top = 8.dp),
-    label: String,
     value: String,
     minWidthDp: Dp = 0.dp,
 ) {
@@ -400,36 +462,28 @@ fun AutoSizingLabeledTextField(
 
     // Compute width in DP: text + padding on both sides, clamped to minWidthDp
     val widthDp = with(density) {
-        (textPxWidth.toDp() )
+        (textPxWidth.toDp())
             .coerceAtLeast(minWidthDp)
     }
 
-    Column(
+    BasicTextField(
         modifier = modifier
             .width(widthDp)
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-        )
-        BasicTextField(
-            modifier = Modifier
-                .pointerInput(Unit) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            awaitPointerEvent()
-                        }
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) {
+                        awaitPointerEvent()
                     }
-                },
-            value = value,
-            onValueChange = {},
-            singleLine = true,
-            onTextLayout = { layoutResult ->
-                textPxWidth = layoutResult.size.width
+                }
             },
-            textStyle = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurface),
-        )
-    }
+        value = value,
+        onValueChange = {},
+        singleLine = true,
+        onTextLayout = { layoutResult ->
+            textPxWidth = layoutResult.size.width
+        },
+        textStyle = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurface),
+    )
 }
 
 @Preview
@@ -443,7 +497,7 @@ private fun NoteInputDialogContentPreview() {
                 titleSuggestionProgressIndicator = true,
                 titleSuggestions = emptyList(),
             ),
-            onDialogDismissed = {},
+            onDismissRequest = {},
             onRecordDetailsSubmitRequested = { _, _ -> },
             onRecordDetailsUserTyping = { _, _ -> },
         )
@@ -464,15 +518,15 @@ private fun NoteInputDialogContentPreviewEdit() {
                 titleSuggestions = emptyList(),
                 title = "This is a title",
                 description = "This is a description",
-                calories = 100,
-                protein = 10f,
-                carbs = 10f,
-                sugar = 10f,
-                fat = 10f,
-                saturated = 10f,
-                salt = 10f,
+                calories = "Calories: 2100 cal",
+                protein = "Protein: 150g",
+                carbs = "Carbs: 100g",
+                ofWhichSugar = "of which sugars: 30g",
+                fat = "Fat 100g",
+                ofWhichSaturated = "of which saturated: 20g",
+                salt = "Salt: 5g",
             ),
-            onDialogDismissed = {},
+            onDismissRequest = {},
             onRecordDetailsSubmitRequested = { _, _ -> },
             onRecordDetailsUserTyping = { _, _ -> },
         )
@@ -489,7 +543,7 @@ private fun NoteInputDialogContentPreviewSuggestion() {
                 image = null,
                 titleSuggestions = listOf("This is a title suggestion", "This is another title suggestion"),
             ),
-            onDialogDismissed = {},
+            onDismissRequest = {},
             onRecordDetailsSubmitRequested = { _, _ -> },
             onRecordDetailsUserTyping = { _, _ -> },
         )
@@ -507,7 +561,7 @@ private fun NoteInputDialogContentPreviewError() {
                 titleSuggestions = listOf("This is a title suggestion", "This is another title suggestion"),
                 validationError = "error"
             ),
-            onDialogDismissed = {},
+            onDismissRequest = {},
             onRecordDetailsSubmitRequested = { _, _ -> },
             onRecordDetailsUserTyping = { _, _ -> },
         )

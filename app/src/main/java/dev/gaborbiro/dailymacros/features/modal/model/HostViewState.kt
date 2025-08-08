@@ -52,13 +52,13 @@ sealed class DialogState {
             val image: String?,
             val title: String,
             val description: String,
-            val calories: Int?,
-            val carbs: Float?,
-            val sugar: Float?,
-            val protein: Float?,
-            val fat: Float?,
-            val saturated: Float?,
-            val salt: Float?,
+            val calories: String?,
+            val carbs: String?,
+            val ofWhichSugar: String?,
+            val protein: String?,
+            val fat: String?,
+            val ofWhichSaturated: String?,
+            val salt: String?,
             val titleSuggestions: List<String>,
             val titleSuggestionProgressIndicator: Boolean = false,
             override val validationError: String? = null,
@@ -70,7 +70,7 @@ sealed class DialogState {
         abstract fun withValidationError(validationError: String?): InputDialog
     }
 
-    data class SelectActionDialog(val recordId: Long): DialogState()
+    data class SelectActionDialog(val recordId: Long) : DialogState()
 }
 
 sealed class ImagePickerState {

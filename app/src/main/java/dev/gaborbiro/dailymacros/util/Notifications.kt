@@ -46,7 +46,6 @@ fun Context.setMacrosPermaNotification(message: String) {
         .setStyle(
             NotificationCompat.BigTextStyle()
                 .bigText(message)
-                .setSummaryText("Tap to read more")
         )
         .setOngoing(true)
         .setAutoCancel(false)

@@ -33,19 +33,7 @@ class RecordsUIMapper(
 
             else -> timestamp.formatShort()
         }
-        val nutrientsStr: String? = record.template.nutrients
-            ?.let { it ->
-                listOfNotNull(
-                    it.calories?.let { "${it} cal" },
-                    it.protein?.let { "protein ${it}g" },
-                    it.carbohydrates?.let { "carbs ${it}g" },
-                    it.ofWhichSugar?.let { "sugar ${it}g" },
-                    it.fat?.let { "fat ${it}g" },
-                    it.ofWhichSaturated?.let { "saturated ${it}g" },
-                    it.salt?.let { "salt ${it}g" },
-                ).joinToString()
-            }
-            ?.takeIf { it.isNotBlank() }
+        val nutrientsStr: String? = record.template.nutrients?.let(::map)
         return RecordViewState(
             recordId = record.id,
             templateId = record.template.id,

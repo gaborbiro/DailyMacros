@@ -7,6 +7,7 @@ import dev.gaborbiro.dailymacros.data.records.domain.model.Nutrients
 import dev.gaborbiro.dailymacros.data.records.domain.model.Record
 import dev.gaborbiro.dailymacros.features.common.RecordsMapper
 import dev.gaborbiro.dailymacros.features.common.inputStreamToBase64
+import dev.gaborbiro.dailymacros.features.common.map
 import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
 import dev.gaborbiro.dailymacros.util.showSimpleNotification
 
@@ -36,6 +37,7 @@ class FetchNutrientsUseCase(
             templateId = record.template.id,
             nutrients = nutrients,
         )
-        appContext.showSimpleNotification(123L, record.template.name, comment)
+        val nutrientsStr = map(record.template.nutrients)
+        appContext.showSimpleNotification(123L, record.template.name, nutrientsStr + "\n" + comment)
     }
 }

@@ -6,6 +6,13 @@ import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.data.chatgpt.model.DomainError
 import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.features.common.ErrorViewModel
+import dev.gaborbiro.dailymacros.features.common.mapCalories
+import dev.gaborbiro.dailymacros.features.common.mapCarbohydrates
+import dev.gaborbiro.dailymacros.features.common.mapFat
+import dev.gaborbiro.dailymacros.features.common.mapProtein
+import dev.gaborbiro.dailymacros.features.common.mapSalt
+import dev.gaborbiro.dailymacros.features.common.mapSaturated
+import dev.gaborbiro.dailymacros.features.common.mapSugar
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.HostViewState
 import dev.gaborbiro.dailymacros.features.modal.model.ImagePickerState
@@ -136,13 +143,13 @@ class ModalScreenViewModel(
                         image = record.template.image,
                         title = record.template.name,
                         description = record.template.description,
-                        calories = record.template.nutrients?.calories,
-                        protein = record.template.nutrients?.protein,
-                        carbs = record.template.nutrients?.carbohydrates,
-                        sugar = record.template.nutrients?.ofWhichSugar,
-                        fat = record.template.nutrients?.fat,
-                        saturated = record.template.nutrients?.ofWhichSaturated,
-                        salt = record.template.nutrients?.salt,
+                        calories = mapCalories(record.template.nutrients?.calories),
+                        protein = mapProtein(record.template.nutrients?.protein),
+                        carbs = mapCarbohydrates(record.template.nutrients?.carbohydrates),
+                        ofWhichSugar = mapSugar(record.template.nutrients?.ofWhichSugar),
+                        fat = mapFat(record.template.nutrients?.fat),
+                        ofWhichSaturated = mapSaturated(record.template.nutrients?.ofWhichSaturated),
+                        salt = mapSalt(record.template.nutrients?.salt),
                         titleSuggestions = emptyList(),
                         validationError = null,
                     ),
