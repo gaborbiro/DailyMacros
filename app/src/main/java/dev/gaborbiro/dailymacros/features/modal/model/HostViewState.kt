@@ -24,7 +24,7 @@ sealed class DialogState {
         val image: String?,
     ) : DialogState()
 
-    data class ShowImageDialog(val bitmap: Bitmap) : DialogState()
+    data class ViewImageDialog(val bitmap: Bitmap) : DialogState()
 
     sealed class InputDialog(
         open val validationError: String? = null,
@@ -47,7 +47,7 @@ sealed class DialogState {
                 copy(validationError = validationError)
         }
 
-        data class Edit(
+        data class RecordDetails(
             val recordId: Long,
             val image: String?,
             val title: String,
@@ -69,9 +69,11 @@ sealed class DialogState {
 
         abstract fun withValidationError(validationError: String?): InputDialog
     }
+
+    data class SelectActionDialog(val recordId: Long): DialogState()
 }
 
 sealed class ImagePickerState {
-    class EditImage(val recordId: Long) : ImagePickerState()
+    class ChangeImage(val recordId: Long) : ImagePickerState()
     object Create : ImagePickerState()
 }

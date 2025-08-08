@@ -3,7 +3,6 @@ package dev.gaborbiro.dailymacros.features.modal.views
 import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -41,7 +40,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextRange
@@ -57,7 +55,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import dev.gaborbiro.dailymacros.design.NotesTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
-import dev.gaborbiro.dailymacros.design.PaddingDouble
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import kotlinx.coroutines.delay
@@ -76,17 +73,17 @@ fun InputDialog(
         },
     ) {
 //            val image = (dialogState as? DialogState.InputDialogState.Edit)?.image
-        val title = (dialogState as? DialogState.InputDialog.Edit)?.title
+        val title = (dialogState as? DialogState.InputDialog.RecordDetails)?.title
         val titleSuggestion = (dialogState as? DialogState.InputDialog.CreateWithImage)
             ?.let { it.titleSuggestions to it.titleSuggestionProgressIndicator }
-        val description = (dialogState as? DialogState.InputDialog.Edit)?.description
-        val calories = (dialogState as? DialogState.InputDialog.Edit)?.calories
-        val carbs = (dialogState as? DialogState.InputDialog.Edit)?.carbs
-        val sugar = (dialogState as? DialogState.InputDialog.Edit)?.sugar
-        val protein = (dialogState as? DialogState.InputDialog.Edit)?.protein
-        val fat = (dialogState as? DialogState.InputDialog.Edit)?.fat
-        val saturated = (dialogState as? DialogState.InputDialog.Edit)?.saturated
-        val salt = (dialogState as? DialogState.InputDialog.Edit)?.salt
+        val description = (dialogState as? DialogState.InputDialog.RecordDetails)?.description
+        val calories = (dialogState as? DialogState.InputDialog.RecordDetails)?.calories
+        val carbs = (dialogState as? DialogState.InputDialog.RecordDetails)?.carbs
+        val sugar = (dialogState as? DialogState.InputDialog.RecordDetails)?.sugar
+        val protein = (dialogState as? DialogState.InputDialog.RecordDetails)?.protein
+        val fat = (dialogState as? DialogState.InputDialog.RecordDetails)?.fat
+        val saturated = (dialogState as? DialogState.InputDialog.RecordDetails)?.saturated
+        val salt = (dialogState as? DialogState.InputDialog.RecordDetails)?.salt
 
         Surface(
             shape = RoundedCornerShape(16.dp),
@@ -460,7 +457,7 @@ private fun NoteInputDialogContentPreview() {
 private fun NoteInputDialogContentPreviewEdit() {
     NotesTheme {
         InputDialog(
-            dialogState = DialogState.InputDialog.Edit(
+            dialogState = DialogState.InputDialog.RecordDetails(
                 recordId = 1L,
                 image = null,
                 titleSuggestionProgressIndicator = true,

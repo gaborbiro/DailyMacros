@@ -36,7 +36,8 @@ fun NotesWidgetContent(
             recentRecords = recentRecords,
             topTemplates = topTemplates,
             showTemplates = showTopTemplates,
-            recordTapActionProvider = { recordId -> navigator.getDuplicateRecordAction(recordId) },
+            recordImageTapActionProvider = { recordId -> navigator.getRecordImageTappedAction(recordId) },
+            recordBodyTapActionProvider = { recordId -> navigator.getRecordBodyTappedAction(recordId) },
             templateTapActionProvider = { templateId -> navigator.getApplyTemplateAction(templateId) },
             onTemplatesExpandButtonTapped = onTemplatesExpandButtonTapped,
         )

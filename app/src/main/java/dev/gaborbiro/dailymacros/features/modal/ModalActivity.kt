@@ -47,6 +47,7 @@ import dev.gaborbiro.dailymacros.features.modal.views.EditImageTargetConfirmatio
 import dev.gaborbiro.dailymacros.features.modal.views.EditTargetConfirmationDialog
 import dev.gaborbiro.dailymacros.features.modal.views.ImageDialog
 import dev.gaborbiro.dailymacros.features.modal.views.InputDialog
+import dev.gaborbiro.dailymacros.features.modal.views.SelectActionDialog
 import dev.gaborbiro.dailymacros.features.widget.NotesWidget
 import dev.gaborbiro.dailymacros.generateImageFilename
 import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
@@ -72,42 +73,50 @@ class ModalActivity : BaseErrorDialogActivity() {
 //            }
 //        }
 
-        fun launchCreateNoteWithCamera(context: Context) =
+        fun launchAddRecordWithCamera(context: Context) =
             launchActivity(context, getCameraIntent(context))
 
         private fun getCameraIntent(context: Context) = getActionIntent(context, Action.CAMERA)
 
-        fun launchAddNoteWithImage(context: Context) =
+        fun launchAddRecordWithImagePicker(context: Context) =
             launchActivity(context, getImagePickerIntent(context))
 
         private fun getImagePickerIntent(context: Context) =
             getActionIntent(context, Action.PICK_IMAGE)
 
-        fun launchShowImage(context: Context, recordId: Long) = launchActivity(
+        fun launchViewImage(context: Context, recordId: Long) = launchActivity(
             appContext = context,
-            intent = getShowImageIntent(context),
+            intent = getViewImageAction(context),
             EXTRA_RECORD_ID to recordId,
         )
 
-        private fun getShowImageIntent(context: Context) =
-            getActionIntent(context, Action.SHOW_IMAGE)
+        private fun getViewImageAction(context: Context) =
+            getActionIntent(context, Action.VIEW_IMAGE)
 
-        fun launchAddNote(context: Context) = launchActivity(context, getTextOnlyIntent(context))
+        fun launchAddRecord(context: Context) = launchActivity(context, getTextOnlyIntent(context))
 
         private fun getTextOnlyIntent(context: Context) = getActionIntent(context, Action.TEXT_ONLY)
 
-        fun launchRedoImage(context: Context, recordId: Long) {
+        fun launchChangeImage(context: Context, recordId: Long) {
             launchActivity(
                 appContext = context,
-                intent = getActionIntent(context, Action.REDO_IMAGE),
+                intent = getActionIntent(context, Action.CHANGE_IMAGE),
                 EXTRA_RECORD_ID to recordId
             )
         }
 
-        fun launchEdit(context: Context, recordId: Long) {
+        fun launchViewRecordDetails(context: Context, recordId: Long) {
             launchActivity(
                 appContext = context,
-                intent = getActionIntent(context, Action.EDIT),
+                intent = getActionIntent(context, Action.VIEW_RECORD_DETAILS),
+                EXTRA_RECORD_ID to recordId
+            )
+        }
+
+        fun launchSelectRecordAction(context: Context, recordId: Long) {
+            launchActivity(
+                appContext = context,
+                intent = getActionIntent(context, Action.SELECT_RECORD_ACTION),
                 EXTRA_RECORD_ID to recordId
             )
         }
@@ -131,7 +140,7 @@ class ModalActivity : BaseErrorDialogActivity() {
         private const val EXTRA_ACTION = "extra_action"
 
         private enum class Action {
-            CAMERA, PICK_IMAGE, TEXT_ONLY, REDO_IMAGE, EDIT, SHOW_IMAGE
+            CAMERA, PICK_IMAGE, TEXT_ONLY, CHANGE_IMAGE, VIEW_RECORD_DETAILS, VIEW_IMAGE, SELECT_RECORD_ACTION
         }
 
         private const val EXTRA_RECORD_ID = "record_id"
@@ -218,13 +227,13 @@ class ModalActivity : BaseErrorDialogActivity() {
         }
 
         when (action) {
-            Action.CAMERA -> viewModel.onStartWithCamera()
-            Action.PICK_IMAGE -> viewModel.onStartWithImagePicker()
-            Action.TEXT_ONLY -> viewModel.onStartWithJustText()
+            Action.CAMERA -> viewModel.addRecordWithCamera()
+            Action.PICK_IMAGE -> viewModel.addRecordWithImagePicker()
+            Action.TEXT_ONLY -> viewModel.addRecord()
 
-            Action.REDO_IMAGE -> {
+            Action.CHANGE_IMAGE -> {
                 val recordId = intent.getLongExtra(EXTRA_RECORD_ID, -1L)
-                viewModel.onStartWithRedoImage(recordId)
+                viewModel.changeImage(recordId)
             }
 
 //            Action.DELETE -> {
@@ -233,14 +242,19 @@ class ModalActivity : BaseErrorDialogActivity() {
 //                hideActionNotification()
 //            }
 
-            Action.EDIT -> {
+            Action.VIEW_RECORD_DETAILS -> {
                 val recordId = intent.getLongExtra(EXTRA_RECORD_ID, -1L)
-                viewModel.onStartWithEdit(recordId)
+                viewModel.viewRecordDetails(recordId)
             }
 
-            Action.SHOW_IMAGE -> {
+            Action.VIEW_IMAGE -> {
                 val recordId = intent.getLongExtra(EXTRA_RECORD_ID, -1L)
-                viewModel.onStartWithShowImage(recordId)
+                viewModel.viewImage(recordId)
+            }
+
+            Action.SELECT_RECORD_ACTION -> {
+                val recordId = intent.getLongExtra(EXTRA_RECORD_ID, -1L)
+                viewModel.selectRecordAction(recordId)
             }
         }
 
@@ -264,7 +278,7 @@ class ModalActivity : BaseErrorDialogActivity() {
             }
 
             when (viewState.imagePicker) {
-                is ImagePickerState.Create, is ImagePickerState.EditImage -> {
+                is ImagePickerState.Create, is ImagePickerState.ChangeImage -> {
                     val launcher = rememberLauncherForActivityResult(
                         contract = ActivityResultContracts.PickVisualMedia(),
                         onResult = {
@@ -319,8 +333,16 @@ class ModalActivity : BaseErrorDialogActivity() {
                 onEditImageTargetConfirmed = viewModel::onEditImageTargetConfirmed,
             )
 
-            is DialogState.ShowImageDialog -> ImageDialog(
+            is DialogState.ViewImageDialog -> ImageDialog(
                 image = dialogState.bitmap,
+                onDialogDismissed = viewModel::onDialogDismissed,
+            )
+
+            is DialogState.SelectActionDialog -> SelectActionDialog(
+                recordId = dialogState.recordId,
+                onRepeatTapped = viewModel::onRepeatRecordTapped,
+                onEditTapped = viewModel::onEditTapped,
+                onDeleteTapped = viewModel::onDeleteTapped,
                 onDialogDismissed = viewModel::onDialogDismissed,
             )
 

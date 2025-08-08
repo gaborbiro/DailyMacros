@@ -15,14 +15,14 @@ interface OverviewNavigator {
 class OverviewNavigatorImpl(private val appContext: Context) : OverviewNavigator {
 
     override fun updateRecordPhoto(recordId: Long) {
-        ModalActivity.launchRedoImage(appContext, recordId)
+        ModalActivity.launchChangeImage(appContext, recordId)
     }
 
     override fun editRecord(recordId: Long) {
-        ModalActivity.launchEdit(appContext, recordId)
+        ModalActivity.launchViewRecordDetails(appContext, recordId)
     }
 
     override fun viewImage(recordId: Long) {
-        ModalActivity.launchShowImage(appContext, recordId)
+        ModalActivity.launchViewImage(appContext, recordId)
     }
 }

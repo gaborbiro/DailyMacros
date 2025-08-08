@@ -10,7 +10,6 @@ import androidx.glance.appwidget.action.actionRunCallback
 import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.features.modal.ModalActivity
 import dev.gaborbiro.dailymacros.store.file.FileStoreFactoryImpl
-import dev.gaborbiro.dailymacros.util.showSimpleNotification
 
 interface NotesWidgetNavigator {
 
@@ -20,7 +19,9 @@ interface NotesWidgetNavigator {
 
     fun getLaunchNewNoteViaTextOnlyAction(): Action
 
-    fun getDuplicateRecordAction(recordId: Long): Action
+    fun getRecordImageTappedAction(recordId: Long): Action
+
+    fun getRecordBodyTappedAction(recordId: Long): Action
 
     fun getApplyTemplateAction(templateId: Long): Action
 
@@ -41,8 +42,16 @@ class NotesWidgetNavigatorImpl : NotesWidgetNavigator {
         return actionRunCallback<AddNoteAction>()
     }
 
-    override fun getDuplicateRecordAction(recordId: Long): Action {
-        return actionRunCallback<DuplicateNoteAction>(
+    override fun getRecordImageTappedAction(recordId: Long): Action {
+        return actionRunCallback<ImageTappedAction>(
+            actionParametersOf(
+                ActionParameters.Key<Long>(PREFS_KEY_RECORD) to recordId
+            )
+        )
+    }
+
+    override fun getRecordBodyTappedAction(recordId: Long): Action {
+        return actionRunCallback<RecordBodyTappedAction>(
             actionParametersOf(
                 ActionParameters.Key<Long>(PREFS_KEY_RECORD) to recordId
             )
@@ -69,7 +78,7 @@ class AddNoteWithCameraAction : ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters,
     ) {
-        ModalActivity.launchCreateNoteWithCamera(context)
+        ModalActivity.launchAddRecordWithCamera(context)
     }
 }
 
@@ -79,7 +88,7 @@ class AddNoteWithImageAction : ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters,
     ) {
-        ModalActivity.launchAddNoteWithImage(context)
+        ModalActivity.launchAddRecordWithImagePicker(context)
     }
 }
 
@@ -89,28 +98,29 @@ class AddNoteAction : ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters,
     ) {
-        ModalActivity.launchAddNote(context)
+        ModalActivity.launchAddRecord(context)
     }
 }
 
-class DuplicateNoteAction : ActionCallback {
-
+class ImageTappedAction : ActionCallback {
     override suspend fun onAction(
         context: Context,
         glanceId: GlanceId,
         parameters: ActionParameters,
     ) {
-        val fileStore = FileStoreFactoryImpl(context).getStore("public", keepFiles = true)
         val recordId = parameters[ActionParameters.Key<Long>(PREFS_KEY_RECORD)]!!
-        val repo = RecordsRepository.get(fileStore)
-        val oldRecord = repo.getRecord(recordId)
-        val newRecordId = repo.duplicateRecord(recordId)
-        val newRecord = repo.getRecord(newRecordId)
-        context.showSimpleNotification(
-            recordId, newRecord
-            ?.let { "Created note with '${newRecord.template.name}'" }
-            ?: run { "Could not create note with '${oldRecord?.template?.name ?: "?"}'" }
-        )
+        ModalActivity.launchViewImage(context, recordId)
+    }
+}
+
+class RecordBodyTappedAction : ActionCallback {
+    override suspend fun onAction(
+        context: Context,
+        glanceId: GlanceId,
+        parameters: ActionParameters,
+    ) {
+        val recordId = parameters[ActionParameters.Key<Long>(PREFS_KEY_RECORD)]!!
+        ModalActivity.launchSelectRecordAction(context, recordId)
     }
 }
 

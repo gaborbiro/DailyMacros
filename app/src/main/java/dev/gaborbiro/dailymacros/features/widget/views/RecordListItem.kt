@@ -24,21 +24,22 @@ import dev.gaborbiro.dailymacros.design.PaddingWidgetHalf
 @Composable
 fun RecordListItem(
     record: RecordViewState,
-    tapActionProvider: Action,
+    imageTappedActionProvider: Action,
+    bodyTappedActionProvider: Action,
 ) {
     Row(
         modifier = GlanceModifier
             .fillMaxWidth()
             .padding(vertical = PaddingWidgetHalf, horizontal = PaddingWidgetDefault)
-            .clickable(tapActionProvider)
     ) {
         record.bitmap
             ?.let { image: Bitmap ->
                 Image(
+                    modifier = GlanceModifier
+                        .size(WidgetImageSize)
+                        .clickable(imageTappedActionProvider),
                     provider = ImageProvider(image),
                     contentDescription = "note image",
-                    modifier = GlanceModifier
-                        .size(WidgetImageSize),
                     contentScale = ContentScale.Crop,
                 )
             }
@@ -49,7 +50,8 @@ fun RecordListItem(
             modifier = GlanceModifier
                 .defaultWeight()
                 .fillMaxHeight()
-                .padding(start = PaddingWidgetDefault),
+                .padding(start = PaddingWidgetDefault)
+                .clickable(bodyTappedActionProvider),
             verticalAlignment = Alignment.Vertical.Top,
         ) {
             Text(

@@ -19,7 +19,8 @@ fun RecordsList(
     recentRecords: List<RecordViewState>,
     topTemplates: List<TemplateUIModel>,
     showTemplates: Boolean,
-    recordTapActionProvider: (recordId: Long) -> Action,
+    recordImageTapActionProvider: (recordId: Long) -> Action,
+    recordBodyTapActionProvider: (recordId: Long) -> Action,
     templateTapActionProvider: (templateId: Long) -> Action,
     onTemplatesExpandButtonTapped: () -> Unit,
 ) {
@@ -52,7 +53,8 @@ fun RecordsList(
                     val record = recentRecords[index]
                     RecordListItem(
                         record = record,
-                        tapActionProvider = recordTapActionProvider(record.recordId),
+                        imageTappedActionProvider = recordImageTapActionProvider(record.recordId),
+                        bodyTappedActionProvider = recordBodyTapActionProvider(record.recordId),
                     )
                 }
 

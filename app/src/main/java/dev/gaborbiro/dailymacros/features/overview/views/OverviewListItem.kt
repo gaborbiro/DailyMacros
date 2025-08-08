@@ -167,7 +167,7 @@ private fun PopupMenu(
             ),
             PopUpMenuItem(
                 icon = Icons.Outlined.Edit,
-                label = "Edit",
+                label = "Details",
                 onMenuItemSelected = onEditRecordMenuItemTapped,
                 hasBottomDivider = true,
             ),

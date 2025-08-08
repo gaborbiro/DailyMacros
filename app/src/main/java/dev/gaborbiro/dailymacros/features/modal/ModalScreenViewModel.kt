@@ -69,7 +69,7 @@ class ModalScreenViewModel(
     }
 
     @UiThread
-    fun onStartWithCamera() {
+    fun addRecordWithCamera() {
         _viewState.update {
             it.copy(
                 showCamera = true,
@@ -78,7 +78,7 @@ class ModalScreenViewModel(
     }
 
     @UiThread
-    fun onStartWithImagePicker() {
+    fun addRecordWithImagePicker() {
         _viewState.update {
             it.copy(
                 imagePicker = ImagePickerState.Create,
@@ -87,7 +87,7 @@ class ModalScreenViewModel(
     }
 
     @UiThread
-    fun onStartWithJustText() {
+    fun addRecord() {
         _viewState.update {
             it.copy(
                 dialog = DialogState.InputDialog.Create(),
@@ -96,20 +96,20 @@ class ModalScreenViewModel(
     }
 
     @UiThread
-    fun onStartWithRedoImage(recordId: Long) {
+    fun changeImage(recordId: Long) {
         _viewState.update {
             it.copy(
-                imagePicker = ImagePickerState.EditImage(recordId),
+                imagePicker = ImagePickerState.ChangeImage(recordId),
             )
         }
     }
 
-    fun onStartWithShowImage(recordId: Long) {
+    fun viewImage(recordId: Long) {
         runSafely {
             val image = getRecordImageUseCase.execute(recordId, thumbnail = false)!!
             _viewState.update {
                 it.copy(
-                    dialog = DialogState.ShowImageDialog(image)
+                    dialog = DialogState.ViewImageDialog(image)
                 )
             }
         }
@@ -126,12 +126,12 @@ class ModalScreenViewModel(
 //    }
 
     @UiThread
-    fun onStartWithEdit(recordId: Long) {
+    fun viewRecordDetails(recordId: Long) {
         runSafely {
             val record = recordsRepository.getRecord(recordId)!!
             _viewState.update {
                 it.copy(
-                    dialog = DialogState.InputDialog.Edit(
+                    dialog = DialogState.InputDialog.RecordDetails(
                         recordId = recordId,
                         image = record.template.image,
                         title = record.template.name,
@@ -146,6 +146,17 @@ class ModalScreenViewModel(
                         titleSuggestions = emptyList(),
                         validationError = null,
                     ),
+                )
+            }
+        }
+    }
+
+    @UiThread
+    fun selectRecordAction(recordId: Long) {
+        runSafely {
+            _viewState.update {
+                it.copy(
+                    dialog = DialogState.SelectActionDialog(recordId)
                 )
             }
         }
@@ -242,7 +253,7 @@ class ModalScreenViewModel(
                     }
                 }
 
-                is ImagePickerState.EditImage -> {
+                is ImagePickerState.ChangeImage -> {
                     val result = validateEditImageUseCase.execute(imagePicker.recordId)
                     when (result) {
                         is EditImageValidationResult.AskConfirmation -> {
@@ -265,6 +276,27 @@ class ModalScreenViewModel(
                     }
                 }
             }
+        }
+    }
+
+    @UiThread
+    fun onRepeatRecordTapped(recordId: Long) {
+        viewModelScope.launch {
+            recordsRepository.duplicateRecord(recordId)
+            refreshWidgetAndClose()
+        }
+    }
+
+    @UiThread
+    fun onEditTapped(recordId: Long) {
+        viewRecordDetails(recordId)
+    }
+
+    @UiThread
+    fun onDeleteTapped(recordId: Long) {
+        viewModelScope.launch {
+            recordsRepository.deleteRecord(recordId)
+            refreshWidgetAndClose()
         }
     }
 
@@ -304,7 +336,7 @@ class ModalScreenViewModel(
                     handleCreateRecordDetailsSubmitted(dialogState, title, description)
                 }
 
-                is DialogState.InputDialog.Edit -> {
+                is DialogState.InputDialog.RecordDetails -> {
                     handleEditRecordDialogSubmitted(dialogState, title, description)
                 }
 
@@ -335,7 +367,7 @@ class ModalScreenViewModel(
     }
 
     private suspend fun handleEditRecordDialogSubmitted(
-        dialogState: DialogState.InputDialog.Edit,
+        dialogState: DialogState.InputDialog.RecordDetails,
         title: String,
         description: String,
     ) {

@@ -36,6 +36,6 @@ class FetchNutrientsUseCase(
             templateId = record.template.id,
             nutrients = nutrients,
         )
-        appContext.showSimpleNotification(123L, comment)
+        appContext.showSimpleNotification(123L, record.template.name, comment)
     }
 }

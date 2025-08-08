@@ -57,14 +57,14 @@ fun Context.setMacrosPermaNotification(message: String) {
     )
 }
 
-fun Context.showSimpleNotification(id: Long, message: String) {
+fun Context.showSimpleNotification(id: Long, title: String, message: String) {
     val builder = NotificationCompat.Builder(this, CHANNEL_ID_GENERAL)
         .setSmallIcon(R.drawable.ic_launcher_foreground)
         .setContentText(message)
         .setStyle(
             NotificationCompat.BigTextStyle()
                 .bigText(message)
-                .setSummaryText("Tap to read more")
+                .setSummaryText(title)
         )
     getSystemService(NotificationManager::class.java).notify(
         id.toInt(),
