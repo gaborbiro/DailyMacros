@@ -36,7 +36,7 @@ class RecordsUIMapper(
         val nutrientsStr: String? = record.template.nutrients
             ?.let { it ->
                 listOfNotNull(
-                    it.calories?.let { "${it}kcal" },
+                    it.calories?.let { "${it} cal" },
                     it.protein?.let { "protein ${it}g" },
                     it.carbohydrates?.let { "carbs ${it}g" },
                     it.ofWhichSugar?.let { "sugar ${it}g" },

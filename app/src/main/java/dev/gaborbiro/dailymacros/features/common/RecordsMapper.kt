@@ -34,7 +34,7 @@ class RecordsMapper {
 
     private fun map(nutrientApiModel: NutrientApiModel): Nutrients {
         return Nutrients(
-            calories = nutrientApiModel.kcal,
+            calories = nutrientApiModel.calories,
             protein = nutrientApiModel.proteinGrams,
             carbohydrates = nutrientApiModel.carbGrams,
             ofWhichSugar = nutrientApiModel.ofWhichSugarGrams,

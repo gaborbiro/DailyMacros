@@ -50,6 +50,7 @@ fun Context.setMacrosPermaNotification(message: String) {
         )
         .setOngoing(true)
         .setAutoCancel(false)
+        .setVisibility(NotificationCompat.VISIBILITY_SECRET)
     getSystemService(NotificationManager::class.java).notify(
         NOTIFICATION_ID_DAILY_MACROS,
         builder.build()
@@ -69,7 +70,6 @@ fun Context.showSimpleNotification(id: Long, message: String) {
         id.toInt(),
         builder.build()
     )
-
 }
 
 //fun Context.hideActionNotification() {

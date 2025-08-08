@@ -52,6 +52,15 @@ sealed class DialogState {
             val image: String?,
             val title: String,
             val description: String,
+            val calories: Int?,
+            val carbs: Float?,
+            val sugar: Float?,
+            val protein: Float?,
+            val fat: Float?,
+            val saturated: Float?,
+            val salt: Float?,
+            val titleSuggestions: List<String>,
+            val titleSuggestionProgressIndicator: Boolean = false,
             override val validationError: String? = null,
         ) : InputDialog(validationError) {
             override fun withValidationError(validationError: String?) =

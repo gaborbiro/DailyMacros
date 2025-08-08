@@ -6,7 +6,7 @@ data class NutrientsResponse(
 )
 
 data class NutrientApiModel(
-    val kcal: Int?,
+    val calories: Int?,
     val proteinGrams: Float?,
     val carbGrams: Float?,
     val ofWhichSugarGrams: Float?,

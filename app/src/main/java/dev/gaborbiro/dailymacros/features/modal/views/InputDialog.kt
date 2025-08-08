@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.features.modal.views
 import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -17,8 +18,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +32,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,6 +41,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
@@ -73,6 +80,14 @@ fun InputDialog(
         val titleSuggestion = (dialogState as? DialogState.InputDialog.CreateWithImage)
             ?.let { it.titleSuggestions to it.titleSuggestionProgressIndicator }
         val description = (dialogState as? DialogState.InputDialog.Edit)?.description
+        val calories = (dialogState as? DialogState.InputDialog.Edit)?.calories
+        val carbs = (dialogState as? DialogState.InputDialog.Edit)?.carbs
+        val sugar = (dialogState as? DialogState.InputDialog.Edit)?.sugar
+        val protein = (dialogState as? DialogState.InputDialog.Edit)?.protein
+        val fat = (dialogState as? DialogState.InputDialog.Edit)?.fat
+        val saturated = (dialogState as? DialogState.InputDialog.Edit)?.saturated
+        val salt = (dialogState as? DialogState.InputDialog.Edit)?.salt
+
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -94,6 +109,13 @@ fun InputDialog(
                 titleSuggestions = titleSuggestion?.first ?: emptyList(),
                 titleSuggestionProgressIndicator = titleSuggestion?.second ?: false,
                 description = description,
+                calories = calories,
+                protein = protein,
+                carbs = carbs,
+                sugar = sugar,
+                fat = fat,
+                saturated = saturated,
+                salt = salt,
                 error = dialogState.validationError,
             )
         }
@@ -111,6 +133,13 @@ fun InputDialogContent(
     titleSuggestionProgressIndicator: Boolean,
     description: String? = null,
     error: String?,
+    calories: Int?,
+    protein: Float?,
+    carbs: Float?,
+    sugar: Float?,
+    fat: Float?,
+    saturated: Float?,
+    salt: Float?,
 ) {
     val focusRequester = remember { FocusRequester() }
     var titleFieldValue by remember {
@@ -204,10 +233,7 @@ fun InputDialogContent(
                     .align(Alignment.CenterHorizontally)
             )
         } else {
-            Spacer(
-                modifier = Modifier
-                    .height(PaddingDefault)
-            )
+            Spacer(modifier = Modifier.height(PaddingDefault))
         }
 
         TextField(
@@ -232,7 +258,55 @@ fun InputDialogContent(
             },
         )
 
-        Spacer(modifier = Modifier.height(PaddingDouble))
+        FlowRow(
+            modifier = Modifier
+                .fillMaxWidth(),
+        ) {
+            calories?.let {
+                AutoSizingLabeledTextField(
+                    label = "Calories",
+                    value = "$calories cal",
+                )
+            }
+            protein?.let {
+                AutoSizingLabeledTextField(
+                    label = "Protein",
+                    value = "${it}g",
+                )
+            }
+            carbs?.let {
+                AutoSizingLabeledTextField(
+                    label = "Carbs",
+                    value = "${it}g",
+                )
+            }
+            sugar?.let {
+                AutoSizingLabeledTextField(
+                    label = "Sugar",
+                    value = "${it}g",
+                )
+            }
+            fat?.let {
+                AutoSizingLabeledTextField(
+                    label = "Fat",
+                    value = "${it}g",
+                )
+            }
+            saturated?.let {
+                AutoSizingLabeledTextField(
+                    label = "Saturated",
+                    value = "${it}g",
+                )
+            }
+            salt?.let {
+                AutoSizingLabeledTextField(
+                    label = "Salt",
+                    value = "${it}g",
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(PaddingDefault))
 
         Row(
             modifier = Modifier
@@ -316,6 +390,51 @@ fun PillLabel(
     }
 }
 
+@Composable
+fun AutoSizingLabeledTextField(
+    modifier: Modifier = Modifier
+        .padding(top = 8.dp),
+    label: String,
+    value: String,
+    minWidthDp: Dp = 0.dp,
+) {
+    var textPxWidth by remember { mutableIntStateOf(0) }
+    val density = LocalDensity.current
+
+    // Compute width in DP: text + padding on both sides, clamped to minWidthDp
+    val widthDp = with(density) {
+        (textPxWidth.toDp() )
+            .coerceAtLeast(minWidthDp)
+    }
+
+    Column(
+        modifier = modifier
+            .width(widthDp)
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+        )
+        BasicTextField(
+            modifier = Modifier
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            awaitPointerEvent()
+                        }
+                    }
+                },
+            value = value,
+            onValueChange = {},
+            singleLine = true,
+            onTextLayout = { layoutResult ->
+                textPxWidth = layoutResult.size.width
+            },
+            textStyle = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurface),
+        )
+    }
+}
+
 @Preview
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
@@ -326,6 +445,35 @@ private fun NoteInputDialogContentPreview() {
                 image = null,
                 titleSuggestionProgressIndicator = true,
                 titleSuggestions = emptyList(),
+            ),
+            onDialogDismissed = {},
+            onRecordDetailsSubmitRequested = { _, _ -> },
+            onRecordDetailsUserTyping = { _, _ -> },
+        )
+    }
+}
+
+
+@Preview
+@Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+private fun NoteInputDialogContentPreviewEdit() {
+    NotesTheme {
+        InputDialog(
+            dialogState = DialogState.InputDialog.Edit(
+                recordId = 1L,
+                image = null,
+                titleSuggestionProgressIndicator = true,
+                titleSuggestions = emptyList(),
+                title = "This is a title",
+                description = "This is a description",
+                calories = 100,
+                protein = 10f,
+                carbs = 10f,
+                sugar = 10f,
+                fat = 10f,
+                saturated = 10f,
+                salt = 10f,
             ),
             onDialogDismissed = {},
             onRecordDetailsSubmitRequested = { _, _ -> },

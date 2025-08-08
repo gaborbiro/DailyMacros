@@ -84,7 +84,7 @@ internal fun ChatGPTResponse.toNutrientsResponse(): NutrientsResponse {
 
     val breakdown = response.nutrients?.let {
         NutrientApiModel(
-            kcal = response.nutrients.calories?.toInt(),
+            calories = response.nutrients.calories?.toInt(),
             proteinGrams = response.nutrients.protein?.toFloat(),
             carbGrams = response.nutrients.carbs?.toFloat(),
             ofWhichSugarGrams = response.nutrients.ofWhichSugars?.toFloat(),

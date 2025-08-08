@@ -49,7 +49,7 @@ class ObserveMacrosUseCase(
                         }.toInt()
 
                     val macros =
-                        "$totalCalories kcal, protein: ${totalProtein}g, carbs: ${totalCarbs}g, sugar: ${totalSugar}g, fat: ${totalFat}g, saturated: ${totalSaturated}g, salt: ${totalSalt}g"
+                        "$totalCalories cal, protein: ${totalProtein}g, carbs: ${totalCarbs}g, sugar: ${totalSugar}g, fat: ${totalFat}g, saturated: ${totalSaturated}g, salt: ${totalSalt}g"
 
                     appContext.setMacrosPermaNotification(macros)
                 }

@@ -63,9 +63,9 @@ internal fun ChatGPTResponse.toFoodPicSummaryResponse(): FoodPicSummaryResponse 
     )
     return resultJson
         ?.let {
-            val titleAndKCal = gson.fromJson(resultJson, Summary::class.java)
+            val summary = gson.fromJson(resultJson, Summary::class.java)
             FoodPicSummaryResponse(
-                summary = titleAndKCal.summary,
+                summary = summary.summary,
             )
         }
         ?: FoodPicSummaryResponse(emptyList())
