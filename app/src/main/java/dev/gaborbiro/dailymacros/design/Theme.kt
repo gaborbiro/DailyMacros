@@ -13,22 +13,20 @@ import androidx.glance.color.ColorProviders
 import androidx.glance.material3.ColorProviders
 
 
-object NotesColors {
-    val NotesPunchy = Color(0xFF288B95)
-
+object DailyMacrosColors {
     val BackgroundWhite = Color(0xFFE6E4F1)
     val BackgroundDark = Color(0xFF464646)
 
     val CardColorLight = Color(0xFFEEEEF0)
     val SurfaceDark = Color(0xFF212222)
 
-    val Notes80 = Color(0xFFBDF6FF)
-    val NotesGrey80 = Color(0xFFC1D8DB) // 188 deg
-    val NotesHi80 = Color(0xFFB8EFDF) //163 deg
+    val DailyMacros80 = Color(0xFFBDF6FF)
+    val DailyMacrosGrey80 = Color(0xFFC1D8DB) // 188 deg
+    val DailyMacrosHi80 = Color(0xFFB8EFDF) //163 deg
 
-    val Notes40 = Color(0xFF5098A3)
-    val NotesGrey40 = Color(0xFF5B6D70)
-    val NotesHi40 = Color(0xFF527D71)
+    val DailyMacros40 = Color(0xFF5098A3)
+    val NDailyMacrosGrey40 = Color(0xFF5B6D70)
+    val DailyMacrosHi40 = Color(0xFF527D71)
 
     val surfaceVariantLight = Color(0xFFFFFFFF)
     val surfaceVariantDark = Color(0xFF1C1C1E)
@@ -36,37 +34,37 @@ object NotesColors {
 
 
 private val DarkColorScheme = darkColorScheme(
-    primary = NotesColors.Notes80,
-    secondary = NotesColors.NotesGrey80,
-    tertiary = NotesColors.NotesHi80,
-    surfaceVariant = NotesColors.surfaceVariantDark,
+    primary = DailyMacrosColors.DailyMacros80,
+    secondary = DailyMacrosColors.DailyMacrosGrey80,
+    tertiary = DailyMacrosColors.DailyMacrosHi80,
+    surfaceVariant = DailyMacrosColors.surfaceVariantDark,
 
-    background = NotesColors.BackgroundDark,
+    background = DailyMacrosColors.BackgroundDark,
 
-    surface = NotesColors.SurfaceDark,
+    surface = DailyMacrosColors.SurfaceDark,
 
     onSecondaryContainer = Color.White, // tab bar icon
-    secondaryContainer = NotesColors.BackgroundDark, // tab bar button container
+    secondaryContainer = DailyMacrosColors.BackgroundDark, // tab bar button container
 )
 
 
 private val LightColorScheme = lightColorScheme(
-    primary = NotesColors.Notes40,
-    secondary = NotesColors.NotesGrey40,
-    tertiary = NotesColors.NotesHi40,
+    primary = DailyMacrosColors.DailyMacros40,
+    secondary = DailyMacrosColors.NDailyMacrosGrey40,
+    tertiary = DailyMacrosColors.DailyMacrosHi40,
 
-    surfaceVariant = NotesColors.surfaceVariantLight,
+    surfaceVariant = DailyMacrosColors.surfaceVariantLight,
 
-    background = NotesColors.BackgroundWhite,
+    background = DailyMacrosColors.BackgroundWhite,
 
-    surface = NotesColors.CardColorLight,
+    surface = DailyMacrosColors.CardColorLight,
 
     onSecondaryContainer = Color.White, // tab bar icon
-    secondaryContainer = NotesColors.BackgroundWhite, // tab bar button container
+    secondaryContainer = DailyMacrosColors.BackgroundWhite, // tab bar button container
 )
 
 @Composable
-fun NotesTheme(
+fun DailyMacrosTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit,
@@ -88,7 +86,7 @@ fun NotesTheme(
     )
 }
 
-object NotesGlanceColorScheme {
+object DailyMacrosGlanceColorScheme {
 
     val colors: ColorProviders
         @Composable get() {

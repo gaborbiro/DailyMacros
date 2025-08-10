@@ -9,6 +9,7 @@ import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.model.RecordViewState
 import dev.gaborbiro.dailymacros.features.modal.usecase.FetchNutrientsUseCase
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
+import dev.gaborbiro.dailymacros.features.overview.useCases.ObserveMacroGoalsUseCase
 import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
 import dev.gaborbiro.dailymacros.store.file.FileStoreFactoryImpl
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,14 +23,27 @@ class OverviewViewModel(
     private val appContext: Context,
     private val navigator: OverviewNavigator,
     private val fetchNutrientsUseCase: FetchNutrientsUseCase,
+    private val observeMacroGoalsUseCase: ObserveMacroGoalsUseCase,
 ) : ErrorViewModel() {
 
     private val fileStore by lazy { FileStoreFactoryImpl(appContext).getStore("public", keepFiles = true) }
     private val repository by lazy { RecordsRepository.get(fileStore) }
     private val uiMapper by lazy { RecordsUIMapper(BitmapStore(fileStore)) }
 
-    private val _uiState: MutableStateFlow<OverviewViewState> = MutableStateFlow(OverviewViewState())
+    private val _uiState: MutableStateFlow<OverviewViewState> =
+        MutableStateFlow(OverviewViewState())
     val uiState: StateFlow<OverviewViewState> = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            observeMacroGoalsUseCase.execute()
+                .collect { macroGoals ->
+                    _uiState.update {
+                        it.copy(macroGoals = macroGoals)
+                    }
+                }
+        }
+    }
 
     fun onSearchTermChanged(search: String?) {
         viewModelScope.launch {

@@ -61,7 +61,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import dev.gaborbiro.dailymacros.design.NotesTheme
+import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
@@ -111,7 +111,7 @@ fun InputDialog(
             )
             Surface(
                 modifier = Modifier
-                    .align(Alignment.Center)
+                    .align(Alignment.TopCenter)
                     .wrapContentHeight()
                     .padding(PaddingDefault)
                     .windowInsetsPadding(WindowInsets.systemBars.union(WindowInsets.ime)),
@@ -490,7 +490,7 @@ fun AutoSizingLabeledTextField(
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreview() {
-    NotesTheme {
+    DailyMacrosTheme {
         InputDialog(
             dialogState = DialogState.InputDialog.CreateWithImage(
                 image = null,
@@ -509,7 +509,7 @@ private fun NoteInputDialogContentPreview() {
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreviewEdit() {
-    NotesTheme {
+    DailyMacrosTheme {
         InputDialog(
             dialogState = DialogState.InputDialog.RecordDetails(
                 recordId = 1L,
@@ -537,7 +537,7 @@ private fun NoteInputDialogContentPreviewEdit() {
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreviewSuggestion() {
-    NotesTheme {
+    DailyMacrosTheme {
         InputDialog(
             dialogState = DialogState.InputDialog.CreateWithImage(
                 image = null,
@@ -554,7 +554,7 @@ private fun NoteInputDialogContentPreviewSuggestion() {
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreviewError() {
-    NotesTheme {
+    DailyMacrosTheme {
         InputDialog(
             dialogState = DialogState.InputDialog.CreateWithImage(
                 image = null,

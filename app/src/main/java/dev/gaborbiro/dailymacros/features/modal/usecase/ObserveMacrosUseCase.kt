@@ -3,6 +3,13 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 import android.content.Context
 import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.data.records.domain.model.Record
+import dev.gaborbiro.dailymacros.features.common.mapCalories
+import dev.gaborbiro.dailymacros.features.common.mapCarbohydrates
+import dev.gaborbiro.dailymacros.features.common.mapFat
+import dev.gaborbiro.dailymacros.features.common.mapProtein
+import dev.gaborbiro.dailymacros.features.common.mapSalt
+import dev.gaborbiro.dailymacros.features.common.mapSaturated
+import dev.gaborbiro.dailymacros.features.common.mapSugar
 import dev.gaborbiro.dailymacros.util.setMacrosPermaNotification
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -18,6 +25,13 @@ class ObserveMacrosUseCase(
     suspend fun execute() = coroutineScope {
         launch {
             val today = LocalDateTime.now().truncatedTo(ChronoUnit.DAYS)
+            val caloriesGoals = "(1900-2000)"
+            val proteinGoals = "(170-185)"
+            val carbsGoals = "(120-150)"
+            val sugarGoals = "(<50 ttl., <25 add.)"
+            val fatGoals = "(50-65)"
+            val saltGoals = "(<5g)"
+
             recordsRepository
                 .getRecordsFlow(today)
                 .distinctUntilChanged()
@@ -48,8 +62,13 @@ class ObserveMacrosUseCase(
                             it.template.nutrients?.salt?.toDouble() ?: 0.0
                         }.toInt()
 
-                    val macros =
-                        "$totalCalories cal, protein: ${totalProtein}g, carbs: ${totalCarbs}g, sugar: ${totalSugar}g, fat: ${totalFat}g, saturated: ${totalSaturated}g, salt: ${totalSalt}g"
+                    val macros = "${mapCalories(totalCalories)} ${caloriesGoals}\n" +
+                            "${mapProtein(totalProtein)} ${proteinGoals}\n" +
+                            "${mapCarbohydrates(totalCarbs)} ${carbsGoals}\n" +
+                            "--- ${mapSugar(totalSugar)} ${sugarGoals}\n" +
+                            "${mapFat(totalFat)} ${fatGoals}\n" +
+                            "--- ${mapSaturated(totalSaturated)}\n" +
+                            "${mapSalt(totalSalt)} $saltGoals"
 
                     appContext.setMacrosPermaNotification(macros)
                 }

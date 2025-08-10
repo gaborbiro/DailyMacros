@@ -23,7 +23,7 @@ import dev.gaborbiro.dailymacros.data.chatgpt.service.model.ContentEntryOutputCo
 import dev.gaborbiro.dailymacros.data.chatgpt.service.model.OutputContent
 import dev.gaborbiro.dailymacros.data.chatgpt.service.model.OutputContentDeserializer
 import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
-import dev.gaborbiro.dailymacros.design.NotesTheme
+import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.features.common.BaseErrorDialogActivity
 import dev.gaborbiro.dailymacros.features.common.ErrorViewModel
 import dev.gaborbiro.dailymacros.features.common.RecordsMapper
@@ -288,7 +288,7 @@ class ModalActivity : BaseErrorDialogActivity() {
                 NotesWidget.reload(this@ModalActivity)
             }
 
-            NotesTheme {
+            DailyMacrosTheme {
                 ModalView(viewState.dialog)
             }
 

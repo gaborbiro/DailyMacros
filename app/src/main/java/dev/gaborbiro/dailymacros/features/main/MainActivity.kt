@@ -16,13 +16,14 @@ import dev.gaborbiro.dailymacros.data.chatgpt.service.model.ContentEntryOutputCo
 import dev.gaborbiro.dailymacros.data.chatgpt.service.model.OutputContent
 import dev.gaborbiro.dailymacros.data.chatgpt.service.model.OutputContentDeserializer
 import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
-import dev.gaborbiro.dailymacros.design.NotesTheme
+import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.features.common.RecordsMapper
 import dev.gaborbiro.dailymacros.features.modal.ModalActivity.Companion.REQUEST_TIMEOUT_IN_SECONDS
 import dev.gaborbiro.dailymacros.features.modal.usecase.FetchNutrientsUseCase
 import dev.gaborbiro.dailymacros.features.overview.OverviewNavigatorImpl
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
+import dev.gaborbiro.dailymacros.features.overview.useCases.ObserveMacroGoalsUseCase
 import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
 import dev.gaborbiro.dailymacros.store.file.FileStoreFactoryImpl
 import okhttp3.OkHttpClient
@@ -91,10 +92,13 @@ class MainActivity : ComponentActivity() {
             appContext = this,
             navigator = navigator,
             fetchNutrientsUseCase = fetchNutrientsUseCase,
+            observeMacroGoalsUseCase = ObserveMacroGoalsUseCase(
+                recordsRepository = recordsRepository,
+            )
         )
 
         setContent {
-            NotesTheme {
+            DailyMacrosTheme {
                 val navController = rememberNavController()
                 NavHost(
                     navController = navController,

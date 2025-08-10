@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.overview.views
 
 import android.content.res.Configuration
+import android.util.Range
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -25,9 +26,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.design.NotesTheme
+import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.common.model.RecordViewState
+import dev.gaborbiro.dailymacros.features.common.views.GoalCellItem
+import dev.gaborbiro.dailymacros.features.common.views.MacroGoalsUIModel
+import dev.gaborbiro.dailymacros.features.common.views.MacroGoalsView
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
 import dev.gaborbiro.dailymacros.util.dummyBitmap
 import kotlinx.coroutines.delay
@@ -93,6 +97,11 @@ internal fun OverviewList(
             contentPadding = PaddingValues(top = PaddingDefault, bottom = 86.dp),
             state = listState,
         ) {
+            viewState.macroGoals?.let {
+                item {
+                    MacroGoalsView(it)
+                }
+            }
             items(records.size, key = { records[it].recordId }) {
                 OverviewListItem(
                     modifier = Modifier.Companion
@@ -123,7 +132,7 @@ internal fun OverviewList(
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NotesListPreview() {
-    NotesTheme {
+    DailyMacrosTheme {
         OverviewList(
             viewState = OverviewViewState(
                 records = listOf(
@@ -141,6 +150,50 @@ private fun NotesListPreview() {
                         bitmap = dummyBitmap(),
                         timestamp = "2022-05-01 00:00:00"
                     )
+                ),
+                macroGoals = MacroGoalsUIModel(
+                    calories = GoalCellItem(
+                        title = "Calories",
+                        value = "1005 cal",
+                        rangeLabel = "2.1-2.2kcal",
+                        range = Range(.84f, .88f),
+                        progress = .15f,
+                    ),
+                    protein = GoalCellItem(
+                        title = "Protein",
+                        value = "110g",
+                        rangeLabel = "170-190g",
+                        range = Range(.8095f, .9047f),
+                        progress = .0809f,
+                    ),
+                    fat = GoalCellItem(
+                        title = "Fat",
+                        value = "30g",
+                        rangeLabel = "45-60g",
+                        range = Range(.6818f, .9091f),
+                        progress = .2121f,
+                    ),
+                    carbs = GoalCellItem(
+                        title = "Carbs",
+                        value = "105g",
+                        rangeLabel = "150-200g",
+                        range = Range(.6818f, .9091f),
+                        progress = .1818f,
+                    ),
+                    sugar = GoalCellItem(
+                        title = "Sugar",
+                        value = "35g",
+                        rangeLabel = "<40g ttl., <25g",
+                        range = Range(.9091f, .9091f),
+                        progress = .2955f,
+                    ),
+                    salt = GoalCellItem(
+                        title = "Salt",
+                        value = "0g",
+                        rangeLabel = "<5g (≈2g Na)",
+                        range = Range(.9091f, .9091f),
+                        progress = .0f,
+                    ),
                 )
             ),
             onRepeatMenuItemTapped = {},

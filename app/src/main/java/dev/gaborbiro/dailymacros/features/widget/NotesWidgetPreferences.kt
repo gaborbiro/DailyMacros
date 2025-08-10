@@ -9,16 +9,16 @@ import java.io.File
 
 object NotesWidgetPreferences : GlanceStateDefinition<Preferences> {
 
+    private const val filename = "notes"
+
     override suspend fun getDataStore(context: Context, fileKey: String): DataStore<Preferences> {
         return context.dataStore
     }
 
     override fun getLocation(context: Context, fileKey: String): File {
-        return File(context.applicationContext.filesDir, "datastore/$fileName")
+        return File(context.applicationContext.filesDir, "datastore/$filename")
     }
 
-    private const val fileName = "notes"
-
     private val Context.dataStore: DataStore<Preferences>
-        by preferencesDataStore(name = fileName)
+        by preferencesDataStore(name = filename)
 }

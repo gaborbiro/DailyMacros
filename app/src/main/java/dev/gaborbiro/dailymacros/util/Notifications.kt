@@ -40,7 +40,7 @@ fun Context.createNotificationChannels() {
 
 fun Context.setMacrosPermaNotification(message: String) {
     val builder = NotificationCompat.Builder(this, CHANNEL_ID_DAILY_MACROS)
-        .setSmallIcon(R.drawable.ic_launcher_foreground)
+        .setSmallIcon(R.drawable.ic_transparent)
         .setContentTitle("Daily macros")
         .setContentText(message)
         .setStyle(

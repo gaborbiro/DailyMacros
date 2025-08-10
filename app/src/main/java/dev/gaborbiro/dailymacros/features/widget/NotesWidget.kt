@@ -21,7 +21,7 @@ import androidx.work.WorkManager
 import com.google.gson.reflect.TypeToken
 import dev.gaborbiro.dailymacros.data.records.domain.model.Record
 import dev.gaborbiro.dailymacros.data.records.domain.model.Template
-import dev.gaborbiro.dailymacros.design.NotesGlanceColorScheme
+import dev.gaborbiro.dailymacros.design.DailyMacrosGlanceColorScheme
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.TemplatesUIMapper
 import dev.gaborbiro.dailymacros.features.widget.views.NotesWidgetContent
@@ -78,7 +78,7 @@ class NotesWidget : GlanceAppWidget() {
 
             var showTopTemplates by remember { mutableStateOf(false) }
 
-            GlanceTheme(colors = NotesGlanceColorScheme.colors) {
+            GlanceTheme(colors = DailyMacrosGlanceColorScheme.colors) {
                 NotesWidgetContent(
                     modifier = GlanceModifier
                         .fillMaxSize(),
