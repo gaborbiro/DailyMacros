@@ -7,8 +7,11 @@ import androidx.glance.action.ActionParameters
 import androidx.glance.action.actionParametersOf
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
-import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.data.records.DBMapper
+import dev.gaborbiro.dailymacros.data.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.features.modal.ModalActivity
+import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
+import dev.gaborbiro.dailymacros.store.db.AppDatabase
 import dev.gaborbiro.dailymacros.store.file.FileStoreFactoryImpl
 
 interface NotesWidgetNavigator {
@@ -133,7 +136,13 @@ class ApplyTemplateAction : ActionCallback {
     ) {
         val fileStore = FileStoreFactoryImpl(context).getStore("public", keepFiles = true)
         val templateId = parameters[ActionParameters.Key<Long>(PREFS_KEY_TEMPLATE)]!!
-        RecordsRepository.get(fileStore).applyTemplate(templateId)
+        val recordsRepository = RecordsRepositoryImpl(
+            templatesDAO = AppDatabase.getInstance().templatesDAO(),
+            recordsDAO = AppDatabase.getInstance().recordsDAO(),
+            dBMapper = DBMapper(),
+            bitmapStore = BitmapStore(fileStore),
+        )
+        recordsRepository.applyTemplate(templateId)
     }
 }
 

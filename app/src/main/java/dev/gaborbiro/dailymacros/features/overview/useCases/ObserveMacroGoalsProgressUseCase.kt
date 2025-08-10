@@ -3,19 +3,19 @@ package dev.gaborbiro.dailymacros.features.overview.useCases
 import android.util.Range
 import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.data.records.domain.model.Record
-import dev.gaborbiro.dailymacros.features.common.views.GoalCellItem
-import dev.gaborbiro.dailymacros.features.common.views.MacroGoalsUIModel
+import dev.gaborbiro.dailymacros.features.overview.model.GoalCellItem
+import dev.gaborbiro.dailymacros.features.overview.model.MacroGoalsProgress
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
-class ObserveMacroGoalsUseCase(
+internal class ObserveMacroGoalsProgressUseCase(
     private val recordsRepository: RecordsRepository,
 ) {
 
-    suspend fun execute(): Flow<MacroGoalsUIModel> {
+    suspend fun execute(): Flow<MacroGoalsProgress> {
         val today = LocalDateTime.now().truncatedTo(ChronoUnit.DAYS)
         return recordsRepository
             .getRecordsFlow(today)
@@ -42,7 +42,7 @@ class ObserveMacroGoalsUseCase(
                     todaysRecords.sumOf {
                         it.template.nutrients?.salt?.toDouble() ?: 0.0
                     }.toInt()
-                MacroGoalsUIModel(
+                MacroGoalsProgress(
                     calories = GoalCellItem(
                         title = "Calories",
                         value = "$totalCalories cal",

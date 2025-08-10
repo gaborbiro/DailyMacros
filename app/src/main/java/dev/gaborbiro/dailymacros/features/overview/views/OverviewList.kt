@@ -28,10 +28,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
-import dev.gaborbiro.dailymacros.features.common.model.RecordViewState
-import dev.gaborbiro.dailymacros.features.common.views.GoalCellItem
-import dev.gaborbiro.dailymacros.features.common.views.MacroGoalsUIModel
-import dev.gaborbiro.dailymacros.features.common.views.MacroGoalsView
+import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
+import dev.gaborbiro.dailymacros.features.overview.model.GoalCellItem
+import dev.gaborbiro.dailymacros.features.overview.model.MacroGoalsProgress
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
 import dev.gaborbiro.dailymacros.util.dummyBitmap
 import kotlinx.coroutines.delay
@@ -40,14 +39,14 @@ import kotlinx.coroutines.launch
 @Composable
 internal fun OverviewList(
     viewState: OverviewViewState,
-    onRepeatMenuItemTapped: (RecordViewState) -> Unit,
-    onChangeImageMenuItemTapped: (RecordViewState) -> Unit,
-    onDeleteImageMenuItemTapped: (RecordViewState) -> Unit,
-    onEditRecordMenuItemTapped: (RecordViewState) -> Unit,
-    onDeleteRecordMenuItemTapped: (RecordViewState) -> Unit,
-    onNutrientsMenuItemTapped: (RecordViewState) -> Unit,
-    onRecordImageTapped: (RecordViewState) -> Unit,
-    onRecordBodyTapped: (RecordViewState) -> Unit,
+    onRepeatMenuItemTapped: (RecordUIModel) -> Unit,
+    onChangeImageMenuItemTapped: (RecordUIModel) -> Unit,
+    onDeleteImageMenuItemTapped: (RecordUIModel) -> Unit,
+    onEditRecordMenuItemTapped: (RecordUIModel) -> Unit,
+    onDeleteRecordMenuItemTapped: (RecordUIModel) -> Unit,
+    onNutrientsMenuItemTapped: (RecordUIModel) -> Unit,
+    onRecordImageTapped: (RecordUIModel) -> Unit,
+    onRecordBodyTapped: (RecordUIModel) -> Unit,
     onUndoDeleteTapped: () -> Unit,
     onUndoDeleteDismissed: () -> Unit,
     onUndoDeleteSnackbarShown: () -> Unit,
@@ -97,7 +96,7 @@ internal fun OverviewList(
             contentPadding = PaddingValues(top = PaddingDefault, bottom = 86.dp),
             state = listState,
         ) {
-            viewState.macroGoals?.let {
+            viewState.macroGoalsProgress?.let {
                 item {
                     MacroGoalsView(it)
                 }
@@ -136,14 +135,14 @@ private fun NotesListPreview() {
         OverviewList(
             viewState = OverviewViewState(
                 records = listOf(
-                    RecordViewState(
+                    RecordUIModel(
                         recordId = 1L,
                         title = "Title",
                         templateId = 1L,
                         bitmap = dummyBitmap(),
                         timestamp = "2022-01-01 00:00:00"
                     ),
-                    RecordViewState(
+                    RecordUIModel(
                         recordId = 2L,
                         title = "Title 2",
                         templateId = 1L,
@@ -151,7 +150,7 @@ private fun NotesListPreview() {
                         timestamp = "2022-05-01 00:00:00"
                     )
                 ),
-                macroGoals = MacroGoalsUIModel(
+                macroGoalsProgress = MacroGoalsProgress(
                     calories = GoalCellItem(
                         title = "Calories",
                         value = "1005 cal",

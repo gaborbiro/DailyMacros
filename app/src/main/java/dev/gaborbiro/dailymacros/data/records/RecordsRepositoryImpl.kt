@@ -6,23 +6,22 @@ import dev.gaborbiro.dailymacros.data.records.domain.model.Nutrients
 import dev.gaborbiro.dailymacros.data.records.domain.model.Record
 import dev.gaborbiro.dailymacros.data.records.domain.model.RecordToSave
 import dev.gaborbiro.dailymacros.data.records.domain.model.Template
+import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
 import dev.gaborbiro.dailymacros.store.db.records.RecordsDAO
 import dev.gaborbiro.dailymacros.store.db.records.TemplatesDAO
 import dev.gaborbiro.dailymacros.store.db.records.model.RecordDBModel
 import dev.gaborbiro.dailymacros.store.db.records.model.TemplateDBModel
-import dev.gaborbiro.dailymacros.store.file.FileStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import java.time.LocalDateTime
-import kotlin.collections.emptyList
 
-class RecordsRepositoryImpl(
+internal class RecordsRepositoryImpl(
     private val templatesDAO: TemplatesDAO,
     private val recordsDAO: RecordsDAO,
-    private val mapper: DBMapper,
-    private val fileStore: FileStore,
+    private val dBMapper: DBMapper,
+    private val bitmapStore: BitmapStore,
 ) : RecordsRepository {
 
     override suspend fun getRecords(since: LocalDateTime? /* = null */): List<Record> {
@@ -31,25 +30,25 @@ class RecordsRepositoryImpl(
             ?.let {
                 records.filter { it.record.timestamp >= since }
             } ?: records
-        return mapper.map(filteredRecords)
+        return dBMapper.map(filteredRecords)
     }
 
     override suspend fun getRecordsFlow(since: LocalDateTime): Flow<List<Record>> {
         return try {
             recordsDAO
                 .getFlow(since)
-                .map { mapper.map(it) }
+                .map { dBMapper.map(it) }
         } catch (t: Throwable) {
             flowOf(emptyList())
         }
     }
 
     override suspend fun getTemplatesByFrequency(): List<Template> {
-        return templatesDAO.getByFrequency().map(mapper::map)
+        return templatesDAO.getByFrequency().map(dBMapper::map)
     }
 
     override suspend fun getRecordsByTemplate(templateId: Long): List<Record> {
-        return mapper.map(recordsDAO.getByTemplate(templateId))
+        return dBMapper.map(recordsDAO.getByTemplate(templateId))
     }
 
     override fun getFlowBySearchTerm(search: String? /* = null */): Flow<List<Record>> {
@@ -61,15 +60,15 @@ class RecordsRepositoryImpl(
             }
             raw
                 .distinctUntilChanged()
-                .map(mapper::map)
+                .map(dBMapper::map)
         } catch (t: Throwable) {
             flowOf(emptyList())
         }
     }
 
     override suspend fun saveRecord(record: RecordToSave): Long {
-        val templateId = templatesDAO.insertOrUpdate(mapper.map(record.template))
-        return recordsDAO.insertOrUpdate(mapper.map(record, templateId))
+        val templateId = templatesDAO.insertOrUpdate(dBMapper.map(record.template))
+        return recordsDAO.insertOrUpdate(dBMapper.map(record, templateId))
     }
 
     override suspend fun updateRecord(record: Record) {
@@ -85,19 +84,19 @@ class RecordsRepositoryImpl(
 
     override suspend fun duplicateRecord(recordId: Long): Long {
         return getRecord(recordId)!!.let { record ->
-            recordsDAO.insertOrUpdate(mapper.map(record, LocalDateTime.now()))
+            recordsDAO.insertOrUpdate(dBMapper.map(record, LocalDateTime.now()))
         }
     }
 
     @Transaction
     override suspend fun getRecord(recordId: Long): Record? {
-        return recordsDAO.get(recordId)?.let(mapper::map)
+        return recordsDAO.get(recordId)?.let(dBMapper::map)
     }
 
     override suspend fun deleteRecord(recordId: Long): Record {
         val record = recordsDAO.get(recordId)!!
         recordsDAO.delete(recordId)
-        return mapper.map(record)
+        return dBMapper.map(record)
     }
 
     override suspend fun applyTemplate(templateId: Long): Long {
@@ -166,7 +165,7 @@ class RecordsRepositoryImpl(
 
     private suspend fun deleteImageIfUnused(image: String): Boolean {
         if (templatesDAO.get(image).isEmpty()) {
-            fileStore.delete(image)
+            bitmapStore.delete(image)
         }
         return false
     }

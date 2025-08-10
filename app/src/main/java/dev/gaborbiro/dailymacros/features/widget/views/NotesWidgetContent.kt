@@ -10,7 +10,7 @@ import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.wrapContentHeight
-import dev.gaborbiro.dailymacros.features.common.model.RecordViewState
+import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.common.model.TemplateUIModel
 import dev.gaborbiro.dailymacros.features.widget.NotesWidgetNavigator
 
@@ -20,7 +20,7 @@ fun NotesWidgetContent(
     showTopTemplates: Boolean,
     onTemplatesExpandButtonTapped: () -> Unit,
     navigator: NotesWidgetNavigator,
-    recentRecords: List<RecordViewState>,
+    recentRecords: List<RecordUIModel>,
     topTemplates: List<TemplateUIModel>,
 ) {
     Column(

@@ -1,34 +1,13 @@
 package dev.gaborbiro.dailymacros.data.records.domain
 
-import dev.gaborbiro.dailymacros.data.records.DBMapper
-import dev.gaborbiro.dailymacros.data.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.data.records.domain.model.Nutrients
 import dev.gaborbiro.dailymacros.data.records.domain.model.Record
-import dev.gaborbiro.dailymacros.data.records.domain.model.Template
 import dev.gaborbiro.dailymacros.data.records.domain.model.RecordToSave
-import dev.gaborbiro.dailymacros.store.db.AppDatabase
-import dev.gaborbiro.dailymacros.store.file.FileStore
+import dev.gaborbiro.dailymacros.data.records.domain.model.Template
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDateTime
 
-interface RecordsRepository {
-
-    companion object {
-
-        private lateinit var INSTANCE: RecordsRepository
-
-        fun get(fileStore: FileStore): RecordsRepository {
-            if (!::INSTANCE.isInitialized) {
-                INSTANCE = RecordsRepositoryImpl(
-                    templatesDAO = AppDatabase.getInstance().templatesDAO(),
-                    recordsDAO = AppDatabase.getInstance().recordsDAO(),
-                    mapper = DBMapper.get(),
-                    fileStore = fileStore,
-                )
-            }
-            return INSTANCE
-        }
-    }
+internal interface RecordsRepository {
 
     suspend fun getRecords(since: LocalDateTime? = null): List<Record>
 
@@ -55,7 +34,10 @@ interface RecordsRepository {
     /**
      * @return whether the template and image have been deleted
      */
-    suspend fun deleteTemplateIfUnused(templateId: Long, imageToo: Boolean = true): Pair<Boolean, Boolean>
+    suspend fun deleteTemplateIfUnused(
+        templateId: Long,
+        imageToo: Boolean = true,
+    ): Pair<Boolean, Boolean>
 
     /**
      * null means value is not changed

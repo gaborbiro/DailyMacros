@@ -7,7 +7,7 @@ import dev.gaborbiro.dailymacros.data.records.domain.model.RecordToSave
 import dev.gaborbiro.dailymacros.data.records.domain.model.TemplateToSave
 import dev.gaborbiro.dailymacros.features.common.BaseUseCase
 
-class EditRecordUseCase(
+internal class EditRecordUseCase(
     private val repository: RecordsRepository,
 ) : BaseUseCase() {
 

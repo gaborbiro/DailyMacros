@@ -22,11 +22,12 @@ import dev.gaborbiro.dailymacros.data.chatgpt.service.model.ContentEntry
 import dev.gaborbiro.dailymacros.data.chatgpt.service.model.ContentEntryOutputContentDeserializer
 import dev.gaborbiro.dailymacros.data.chatgpt.service.model.OutputContent
 import dev.gaborbiro.dailymacros.data.chatgpt.service.model.OutputContentDeserializer
-import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.data.records.DBMapper
+import dev.gaborbiro.dailymacros.data.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
-import dev.gaborbiro.dailymacros.features.common.BaseErrorDialogActivity
-import dev.gaborbiro.dailymacros.features.common.ErrorViewModel
-import dev.gaborbiro.dailymacros.features.common.RecordsMapper
+import dev.gaborbiro.dailymacros.features.common.error.BaseErrorDialogActivity
+import dev.gaborbiro.dailymacros.features.common.error.ErrorViewModel
+import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.HostViewState
 import dev.gaborbiro.dailymacros.features.modal.model.ImagePickerState
@@ -38,7 +39,6 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FetchNutrientsUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodPicSummaryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.ObserveMacrosUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditImageUseCase
@@ -51,6 +51,7 @@ import dev.gaborbiro.dailymacros.features.modal.views.SelectActionDialog
 import dev.gaborbiro.dailymacros.features.widget.NotesWidget
 import dev.gaborbiro.dailymacros.generateImageFilename
 import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
+import dev.gaborbiro.dailymacros.store.db.AppDatabase
 import dev.gaborbiro.dailymacros.store.file.FileStoreFactoryImpl
 import okhttp3.OkHttpClient
 import okhttp3.java.net.cookiejar.JavaNetCookieJar
@@ -144,8 +145,13 @@ class ModalActivity : BaseErrorDialogActivity() {
     private val fileStore = FileStoreFactoryImpl(this).getStore("public", keepFiles = true)
 
     private val viewModel by lazy {
-        val recordsRepository = RecordsRepository.get(fileStore)
         val bitmapStore = BitmapStore(fileStore)
+        val recordsRepository = RecordsRepositoryImpl(
+            templatesDAO = AppDatabase.getInstance().templatesDAO(),
+            recordsDAO = AppDatabase.getInstance().recordsDAO(),
+            dBMapper = DBMapper(),
+            bitmapStore = bitmapStore,
+        )
 
         val logger = HttpLoggingInterceptor().also {
             it.level = HttpLoggingInterceptor.Level.BODY
@@ -184,11 +190,19 @@ class ModalActivity : BaseErrorDialogActivity() {
         )
 
         val recordsMapper = RecordsMapper()
+        val nutrientsUIMapper = NutrientsUIMapper()
 
         ModalScreenViewModel(
             bitmapStore = bitmapStore,
             recordsRepository = recordsRepository,
-            fetchNutrientsUseCase = FetchNutrientsUseCase(this, bitmapStore, chatGPTRepository, recordsRepository, recordsMapper),
+            fetchNutrientsUseCase = FetchNutrientsUseCase(
+                this,
+                bitmapStore,
+                chatGPTRepository,
+                recordsRepository,
+                recordsMapper,
+                nutrientsUIMapper,
+            ),
             createRecordUseCase = CreateRecordUseCase(recordsRepository),
             editRecordUseCase = EditRecordUseCase(recordsRepository),
             editTemplateUseCase = EditTemplateUseCase(recordsRepository),
@@ -200,7 +214,7 @@ class ModalActivity : BaseErrorDialogActivity() {
             editTemplateImageUseCase = EditTemplateImageUseCase(recordsRepository),
             getRecordImageUseCase = GetRecordImageUseCase(recordsRepository, bitmapStore),
             foodPicSummaryUseCase = FoodPicSummaryUseCase(bitmapStore, chatGPTRepository, recordsMapper),
-            observeMacrosUseCase = ObserveMacrosUseCase(this, recordsRepository),
+            nutrientsUIMapper = nutrientsUIMapper,
         )
     }
 

@@ -7,7 +7,7 @@ import dev.gaborbiro.dailymacros.data.records.domain.model.TemplateToSave
 import dev.gaborbiro.dailymacros.features.common.BaseUseCase
 import java.time.LocalDateTime
 
-class CreateRecordUseCase(
+internal class CreateRecordUseCase(
     private val recordsRepository: RecordsRepository,
 ) : BaseUseCase() {
 

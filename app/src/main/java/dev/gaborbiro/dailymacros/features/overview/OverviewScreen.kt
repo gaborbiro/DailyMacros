@@ -13,7 +13,7 @@ import dev.gaborbiro.dailymacros.features.overview.views.OverviewList
 import dev.gaborbiro.dailymacros.features.widget.NotesWidget
 
 @Composable
-fun OverviewScreen(
+internal fun OverviewScreen(
     viewModel: OverviewViewModel,
 ) {
     val context = LocalContext.current

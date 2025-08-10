@@ -3,7 +3,7 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.features.common.BaseUseCase
 
-class EditTemplateUseCase(
+internal class EditTemplateUseCase(
     private val repository: RecordsRepository
 ) : BaseUseCase() {
 

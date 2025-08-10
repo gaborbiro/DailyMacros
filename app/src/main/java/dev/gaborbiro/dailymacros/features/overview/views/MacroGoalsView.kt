@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.common.views
+package dev.gaborbiro.dailymacros.features.overview.views
 
 import android.util.Range
 import androidx.compose.foundation.background
@@ -24,26 +24,11 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.DailyMacrosColors
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
-
-data class MacroGoalsUIModel(
-    val calories: GoalCellItem,
-    val protein: GoalCellItem,
-    val fat: GoalCellItem,
-    val carbs: GoalCellItem,
-    val sugar: GoalCellItem,
-    val salt: GoalCellItem,
-)
-
-data class GoalCellItem(
-    val title: String,
-    val value: String,
-    val rangeLabel: String,
-    val range: Range<Float>,
-    val progress: Float,
-)
+import dev.gaborbiro.dailymacros.features.overview.model.GoalCellItem
+import dev.gaborbiro.dailymacros.features.overview.model.MacroGoalsProgress
 
 @Composable
-fun MacroGoalsView(model: MacroGoalsUIModel) {
+fun MacroGoalsView(model: MacroGoalsProgress) {
     val matrix = arrayOf(
         arrayOf(
             model.calories, model.protein, model.fat,
@@ -124,7 +109,7 @@ fun MacroGoalsView(model: MacroGoalsUIModel) {
 private fun MacroGoalsViewPreview() {
     DailyMacrosTheme {
         MacroGoalsView(
-            MacroGoalsUIModel(
+            MacroGoalsProgress(
                 calories = GoalCellItem(
                     title = "Calories",
                     value = "1005 cal",

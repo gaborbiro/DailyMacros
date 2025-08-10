@@ -45,22 +45,22 @@ import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
-import dev.gaborbiro.dailymacros.features.common.model.RecordViewState
+import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.util.dummyBitmap
 
 
 @Composable
 fun OverviewListItem(
     modifier: Modifier = Modifier,
-    record: RecordViewState,
-    onRepeatMenuItemTapped: (RecordViewState) -> Unit,
-    onChangeImageMenuItemTapped: (RecordViewState) -> Unit,
-    onDeleteImageMenuItemTapped: (RecordViewState) -> Unit,
-    onEditRecordMenuItemTapped: (RecordViewState) -> Unit,
-    onDeleteRecordMenuItemTapped: (RecordViewState) -> Unit,
-    onNutrientsMenuItemTapped: (RecordViewState) -> Unit,
-    onRecordImageTapped: (RecordViewState) -> Unit,
-    onRecordBodyTapped: (RecordViewState) -> Unit,
+    record: RecordUIModel,
+    onRepeatMenuItemTapped: (RecordUIModel) -> Unit,
+    onChangeImageMenuItemTapped: (RecordUIModel) -> Unit,
+    onDeleteImageMenuItemTapped: (RecordUIModel) -> Unit,
+    onEditRecordMenuItemTapped: (RecordUIModel) -> Unit,
+    onDeleteRecordMenuItemTapped: (RecordUIModel) -> Unit,
+    onNutrientsMenuItemTapped: (RecordUIModel) -> Unit,
+    onRecordImageTapped: (RecordUIModel) -> Unit,
+    onRecordBodyTapped: (RecordUIModel) -> Unit,
 ) {
     Row(
         modifier = modifier
@@ -116,7 +116,7 @@ private fun RecordImage(
 }
 
 @Composable
-private fun TitleAndSubtitle(modifier: Modifier, record: RecordViewState) {
+private fun TitleAndSubtitle(modifier: Modifier, record: RecordUIModel) {
     Column(
         modifier,
         verticalArrangement = Arrangement.Center,
@@ -255,7 +255,7 @@ private data class PopUpMenuItem(
 @Composable
 private fun OverviewListItemPReview() {
     OverviewListItem(
-        record = RecordViewState(
+        record = RecordUIModel(
             recordId = 1L,
             title = "Title",
             templateId = 1L,

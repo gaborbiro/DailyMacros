@@ -1,17 +1,14 @@
 package dev.gaborbiro.dailymacros.features.overview
 
-import android.content.Context
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
-import dev.gaborbiro.dailymacros.features.common.ErrorViewModel
+import dev.gaborbiro.dailymacros.features.common.error.ErrorViewModel
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
-import dev.gaborbiro.dailymacros.features.common.model.RecordViewState
+import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.modal.usecase.FetchNutrientsUseCase
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
-import dev.gaborbiro.dailymacros.features.overview.useCases.ObserveMacroGoalsUseCase
-import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
-import dev.gaborbiro.dailymacros.store.file.FileStoreFactoryImpl
+import dev.gaborbiro.dailymacros.features.overview.useCases.ObserveMacroGoalsProgressUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,16 +16,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class OverviewViewModel(
-    private val appContext: Context,
+internal class OverviewViewModel(
     private val navigator: OverviewNavigator,
+    private val repository: RecordsRepository,
+    private val uiMapper: RecordsUIMapper,
     private val fetchNutrientsUseCase: FetchNutrientsUseCase,
-    private val observeMacroGoalsUseCase: ObserveMacroGoalsUseCase,
+    private val observeMacroGoalsProgressUseCase: ObserveMacroGoalsProgressUseCase,
 ) : ErrorViewModel() {
-
-    private val fileStore by lazy { FileStoreFactoryImpl(appContext).getStore("public", keepFiles = true) }
-    private val repository by lazy { RecordsRepository.get(fileStore) }
-    private val uiMapper by lazy { RecordsUIMapper(BitmapStore(fileStore)) }
 
     private val _uiState: MutableStateFlow<OverviewViewState> =
         MutableStateFlow(OverviewViewState())
@@ -36,10 +30,10 @@ class OverviewViewModel(
 
     init {
         viewModelScope.launch {
-            observeMacroGoalsUseCase.execute()
-                .collect { macroGoals ->
+            observeMacroGoalsProgressUseCase.execute()
+                .collect { macroGoalsProgress ->
                     _uiState.update {
-                        it.copy(macroGoals = macroGoals)
+                        it.copy(macroGoalsProgress = macroGoalsProgress)
                     }
                 }
         }
@@ -59,29 +53,29 @@ class OverviewViewModel(
         }
     }
 
-    fun onRepeatMenuItemTapped(record: RecordViewState) {
+    fun onRepeatMenuItemTapped(record: RecordUIModel) {
         viewModelScope.launch {
             repository.duplicateRecord(record.recordId)
         }
         refreshWidget()
     }
 
-    fun onChangeImageMenuItemTapped(record: RecordViewState) {
+    fun onChangeImageMenuItemTapped(record: RecordUIModel) {
         navigator.updateRecordPhoto(record.recordId)
     }
 
-    fun onDeleteImageMenuItemTapped(record: RecordViewState) {
+    fun onDeleteImageMenuItemTapped(record: RecordUIModel) {
         viewModelScope.launch {
             repository.deleteImage(record.templateId)
         }
         refreshWidget()
     }
 
-    fun onEditRecordMenuItemTapped(record: RecordViewState) {
+    fun onEditRecordMenuItemTapped(record: RecordUIModel) {
         navigator.editRecord(recordId = record.recordId)
     }
 
-    fun onDeleteRecordMenuItemTapped(record: RecordViewState) {
+    fun onDeleteRecordMenuItemTapped(record: RecordUIModel) {
         viewModelScope.launch {
             val oldRecord = repository.deleteRecord(recordId = record.recordId)
             _uiState.update {
@@ -94,11 +88,11 @@ class OverviewViewModel(
         }
     }
 
-    fun onRecordImageTapped(record: RecordViewState) {
+    fun onRecordImageTapped(record: RecordUIModel) {
         navigator.viewImage(record.recordId)
     }
 
-    fun onRecordBodyTapped(record: RecordViewState) {
+    fun onRecordBodyTapped(record: RecordUIModel) {
         navigator.editRecord(record.recordId)
     }
 
@@ -130,7 +124,7 @@ class OverviewViewModel(
         }
     }
 
-    fun onNutrientsMenuItemTapped(record: RecordViewState) {
+    fun onNutrientsMenuItemTapped(record: RecordUIModel) {
         viewModelScope.launch {
             fetchNutrientsUseCase.execute(
                 record.recordId

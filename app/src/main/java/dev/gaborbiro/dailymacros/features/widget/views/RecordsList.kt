@@ -10,13 +10,13 @@ import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingWidgetHalf
-import dev.gaborbiro.dailymacros.features.common.model.RecordViewState
+import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.common.model.TemplateUIModel
 
 @Composable
 fun RecordsList(
     modifier: GlanceModifier,
-    recentRecords: List<RecordViewState>,
+    recentRecords: List<RecordUIModel>,
     topTemplates: List<TemplateUIModel>,
     showTemplates: Boolean,
     recordImageTapActionProvider: (recordId: Long) -> Action,

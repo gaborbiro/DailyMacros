@@ -3,7 +3,7 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 import dev.gaborbiro.dailymacros.data.chatgpt.ChatGPTRepository
 import dev.gaborbiro.dailymacros.data.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.data.chatgpt.toDomainModel
-import dev.gaborbiro.dailymacros.features.common.RecordsMapper
+import dev.gaborbiro.dailymacros.features.modal.RecordsMapper
 import dev.gaborbiro.dailymacros.features.common.inputStreamToBase64
 import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
 

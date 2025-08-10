@@ -10,7 +10,7 @@ import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.ModalScreenViewModel
 
 @Composable
-fun EditTargetConfirmationDialog(
+internal fun EditTargetConfirmationDialog(
     dialogState: DialogState.EditTargetConfirmationDialog,
     onEditTargetConfirmed: (ModalScreenViewModel.Companion.EditTarget) -> Unit,
     onDialogDismissed: () -> Unit,
@@ -24,7 +24,7 @@ fun EditTargetConfirmationDialog(
 
 
 @Composable
-fun EditImageTargetConfirmationDialog(
+internal fun EditImageTargetConfirmationDialog(
     dialogState: DialogState.EditImageTargetConfirmationDialog,
     onEditImageTargetConfirmed: (ModalScreenViewModel.Companion.EditTarget) -> Unit,
     onDialogDismissed: () -> Unit,
@@ -37,7 +37,7 @@ fun EditImageTargetConfirmationDialog(
 }
 
 @Composable
-fun TargetConfirmationDialog(
+internal fun TargetConfirmationDialog(
     count: Int,
     onConfirmed: (ModalScreenViewModel.Companion.EditTarget) -> Unit,
     onDialogDismissed: () -> Unit,

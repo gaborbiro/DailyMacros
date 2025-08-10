@@ -10,20 +10,31 @@ import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkRequest
 import androidx.work.WorkerParameters
-import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.data.records.DBMapper
+import dev.gaborbiro.dailymacros.data.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.data.records.domain.model.Record
 import dev.gaborbiro.dailymacros.data.records.domain.model.Template
 import dev.gaborbiro.dailymacros.features.widget.NotesWidget
+import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
+import dev.gaborbiro.dailymacros.store.db.AppDatabase
 import dev.gaborbiro.dailymacros.store.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.util.gson
 import java.time.LocalDateTime
 
-class ReloadWorkRequest(
+internal class ReloadWorkRequest(
     appContext: Context,
     private val workerParameters: WorkerParameters,
 ) : CoroutineWorker(appContext, workerParameters) {
 
-    private val fileStore = FileStoreFactoryImpl(appContext).getStore("public", keepFiles = true)
+    private val fileStore by lazy { FileStoreFactoryImpl(appContext).getStore("public", keepFiles = true) }
+    private val recordsRepository by lazy {
+        RecordsRepositoryImpl(
+            templatesDAO = AppDatabase.getInstance().templatesDAO(),
+            recordsDAO = AppDatabase.getInstance().recordsDAO(),
+            dBMapper = DBMapper(),
+            bitmapStore = BitmapStore(fileStore),
+        )
+    }
 
     companion object {
         private const val RECORD_DAYS_TO_DISPLAY_DEFAULT = 7
@@ -55,7 +66,6 @@ class ReloadWorkRequest(
 
     override suspend fun doWork(): Result {
         return try {
-            val repository = RecordsRepository.get(fileStore)
             val recordDaysToDisplay =
                 workerParameters.inputData.getInt(
                     PREFS_RECORD_DAYS_TO_DISPLAY,
@@ -64,8 +74,8 @@ class ReloadWorkRequest(
             val templateCount =
                 workerParameters.inputData.getInt(PREFS_TEMPLATE_COUNT, TEMPLATE_COUNT_DEFAULT)
             val recentRecords =
-                repository.getRecords(LocalDateTime.now().minusDays(recordDaysToDisplay.toLong()))
-            val topTemplates = repository.getTemplatesByFrequency().take(templateCount)
+                recordsRepository.getRecords(LocalDateTime.now().minusDays(recordDaysToDisplay.toLong()))
+            val topTemplates = recordsRepository.getTemplatesByFrequency().take(templateCount)
             sendToWidgets(applicationContext, recentRecords, topTemplates)
             Result.success()
         } catch (t: Throwable) {

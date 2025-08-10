@@ -17,13 +17,13 @@ import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import androidx.glance.text.Text
-import dev.gaborbiro.dailymacros.features.common.model.RecordViewState
+import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
 import dev.gaborbiro.dailymacros.design.PaddingWidgetHalf
 
 @Composable
 fun RecordListItem(
-    record: RecordViewState,
+    record: RecordUIModel,
     imageTappedActionProvider: Action,
     bodyTappedActionProvider: Action,
 ) {

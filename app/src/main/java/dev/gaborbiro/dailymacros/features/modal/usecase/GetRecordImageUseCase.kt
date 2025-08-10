@@ -5,7 +5,7 @@ import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.features.common.BaseUseCase
 import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
 
-class GetRecordImageUseCase(
+internal class GetRecordImageUseCase(
     private val repository: RecordsRepository,
     private val bitmapStore: BitmapStore
 ) : BaseUseCase() {

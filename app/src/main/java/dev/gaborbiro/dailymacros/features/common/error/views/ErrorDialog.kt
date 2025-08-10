@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.common.views
+package dev.gaborbiro.dailymacros.features.common.error.views
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -15,8 +15,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import dev.gaborbiro.dailymacros.features.common.ErrorViewModel
-import dev.gaborbiro.dailymacros.features.common.model.ErrorViewState
+import dev.gaborbiro.dailymacros.features.common.error.ErrorViewModel
+import dev.gaborbiro.dailymacros.features.common.error.model.ErrorViewState
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingDouble
 

@@ -15,16 +15,20 @@ import dev.gaborbiro.dailymacros.data.chatgpt.service.model.ContentEntry
 import dev.gaborbiro.dailymacros.data.chatgpt.service.model.ContentEntryOutputContentDeserializer
 import dev.gaborbiro.dailymacros.data.chatgpt.service.model.OutputContent
 import dev.gaborbiro.dailymacros.data.chatgpt.service.model.OutputContentDeserializer
-import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.data.records.DBMapper
+import dev.gaborbiro.dailymacros.data.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
-import dev.gaborbiro.dailymacros.features.common.RecordsMapper
+import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
+import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.modal.ModalActivity.Companion.REQUEST_TIMEOUT_IN_SECONDS
+import dev.gaborbiro.dailymacros.features.modal.RecordsMapper
 import dev.gaborbiro.dailymacros.features.modal.usecase.FetchNutrientsUseCase
 import dev.gaborbiro.dailymacros.features.overview.OverviewNavigatorImpl
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
-import dev.gaborbiro.dailymacros.features.overview.useCases.ObserveMacroGoalsUseCase
+import dev.gaborbiro.dailymacros.features.overview.useCases.ObserveMacroGoalsProgressUseCase
 import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
+import dev.gaborbiro.dailymacros.store.db.AppDatabase
 import dev.gaborbiro.dailymacros.store.file.FileStoreFactoryImpl
 import okhttp3.OkHttpClient
 import okhttp3.java.net.cookiejar.JavaNetCookieJar
@@ -42,7 +46,13 @@ class MainActivity : ComponentActivity() {
         val navigator = OverviewNavigatorImpl(this)
         val fileStore = FileStoreFactoryImpl(this).getStore("public", keepFiles = true)
         val bitmapStore = BitmapStore(fileStore)
-        val recordsRepository = RecordsRepository.get(fileStore)
+
+        val recordsRepository = RecordsRepositoryImpl(
+            templatesDAO = AppDatabase.getInstance().templatesDAO(),
+            recordsDAO = AppDatabase.getInstance().recordsDAO(),
+            dBMapper = DBMapper(),
+            bitmapStore = bitmapStore,
+        )
 
         val logger = HttpLoggingInterceptor().also {
             it.level = HttpLoggingInterceptor.Level.BODY
@@ -80,19 +90,23 @@ class MainActivity : ComponentActivity() {
             service = retrofit.create(ChatGPTService::class.java)
         )
 
+        val nutrientsUIMapper = NutrientsUIMapper()
+
         val fetchNutrientsUseCase = FetchNutrientsUseCase(
             appContext = this,
             bitmapStore = bitmapStore,
             recordsRepository = recordsRepository,
             chatGPTRepository = chatGPTRepository,
-            mapper = RecordsMapper(),
+            recordsMapper = RecordsMapper(),
+            nutrientsUIMapper = nutrientsUIMapper,
         )
 
         val viewModel = OverviewViewModel(
-            appContext = this,
             navigator = navigator,
+            repository = recordsRepository,
+            uiMapper = RecordsUIMapper(bitmapStore, nutrientsUIMapper),
             fetchNutrientsUseCase = fetchNutrientsUseCase,
-            observeMacroGoalsUseCase = ObserveMacroGoalsUseCase(
+            observeMacroGoalsProgressUseCase = ObserveMacroGoalsProgressUseCase(
                 recordsRepository = recordsRepository,
             )
         )

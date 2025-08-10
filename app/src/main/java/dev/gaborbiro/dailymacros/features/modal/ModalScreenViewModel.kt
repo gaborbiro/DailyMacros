@@ -5,14 +5,8 @@ import androidx.annotation.UiThread
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.data.chatgpt.model.DomainError
 import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
-import dev.gaborbiro.dailymacros.features.common.ErrorViewModel
-import dev.gaborbiro.dailymacros.features.common.mapCalories
-import dev.gaborbiro.dailymacros.features.common.mapCarbohydrates
-import dev.gaborbiro.dailymacros.features.common.mapFat
-import dev.gaborbiro.dailymacros.features.common.mapProtein
-import dev.gaborbiro.dailymacros.features.common.mapSalt
-import dev.gaborbiro.dailymacros.features.common.mapSaturated
-import dev.gaborbiro.dailymacros.features.common.mapSugar
+import dev.gaborbiro.dailymacros.features.common.error.ErrorViewModel
+import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.HostViewState
 import dev.gaborbiro.dailymacros.features.modal.model.ImagePickerState
@@ -27,7 +21,6 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.EditValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.FetchNutrientsUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodPicSummaryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.ObserveMacrosUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditImageUseCase
@@ -40,7 +33,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class ModalScreenViewModel(
+internal class ModalScreenViewModel(
     private val bitmapStore: BitmapStore,
     private val recordsRepository: RecordsRepository,
     private val createRecordUseCase: CreateRecordUseCase,
@@ -55,7 +48,7 @@ class ModalScreenViewModel(
     private val editTemplateImageUseCase: EditTemplateImageUseCase,
     private val getRecordImageUseCase: GetRecordImageUseCase,
     private val foodPicSummaryUseCase: FoodPicSummaryUseCase,
-    private val observeMacrosUseCase: ObserveMacrosUseCase,
+    private val nutrientsUIMapper: NutrientsUIMapper,
 ) : ErrorViewModel() {
 
     companion object {
@@ -68,12 +61,6 @@ class ModalScreenViewModel(
     val viewState: StateFlow<HostViewState> = _viewState.asStateFlow()
 
     private var imageSummaryJob: Job? = null
-
-    init {
-        viewModelScope.launch {
-            observeMacrosUseCase.execute()
-        }
-    }
 
     @UiThread
     fun addRecordWithCamera() {
@@ -143,13 +130,13 @@ class ModalScreenViewModel(
                         image = record.template.image,
                         title = record.template.name,
                         description = record.template.description,
-                        calories = mapCalories(record.template.nutrients?.calories),
-                        protein = mapProtein(record.template.nutrients?.protein),
-                        carbs = mapCarbohydrates(record.template.nutrients?.carbohydrates),
-                        ofWhichSugar = mapSugar(record.template.nutrients?.ofWhichSugar),
-                        fat = mapFat(record.template.nutrients?.fat),
-                        ofWhichSaturated = mapSaturated(record.template.nutrients?.ofWhichSaturated),
-                        salt = mapSalt(record.template.nutrients?.salt),
+                        calories = nutrientsUIMapper.mapCalories(record.template.nutrients?.calories),
+                        protein = nutrientsUIMapper.mapProtein(record.template.nutrients?.protein),
+                        carbs = nutrientsUIMapper.mapCarbohydrates(record.template.nutrients?.carbohydrates),
+                        ofWhichSugar = nutrientsUIMapper.mapSugar(record.template.nutrients?.ofWhichSugar),
+                        fat = nutrientsUIMapper.mapFat(record.template.nutrients?.fat),
+                        ofWhichSaturated = nutrientsUIMapper.mapSaturated(record.template.nutrients?.ofWhichSaturated),
+                        salt = nutrientsUIMapper.mapSalt(record.template.nutrients?.salt),
                         titleSuggestions = emptyList(),
                         validationError = null,
                     ),

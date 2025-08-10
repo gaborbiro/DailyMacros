@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.common
+package dev.gaborbiro.dailymacros.features.modal
 
 import dev.gaborbiro.dailymacros.data.chatgpt.model.FoodPicSummaryRequest
 import dev.gaborbiro.dailymacros.data.chatgpt.model.FoodPicSummaryResponse

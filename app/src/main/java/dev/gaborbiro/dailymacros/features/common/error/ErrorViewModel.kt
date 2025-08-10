@@ -1,9 +1,9 @@
-package dev.gaborbiro.dailymacros.features.common
+package dev.gaborbiro.dailymacros.features.common.error
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.gaborbiro.dailymacros.features.common.model.ErrorViewState
+import dev.gaborbiro.dailymacros.features.common.error.model.ErrorViewState
 import ellipsize
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job

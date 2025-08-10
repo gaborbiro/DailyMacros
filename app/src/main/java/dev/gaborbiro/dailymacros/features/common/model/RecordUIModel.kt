@@ -2,7 +2,7 @@ package dev.gaborbiro.dailymacros.features.common.model
 
 import android.graphics.Bitmap
 
-class RecordViewState(
+class RecordUIModel(
     val recordId: Long,
     val templateId: Long,
     val bitmap: Bitmap?,

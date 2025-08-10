@@ -10,10 +10,10 @@ data class Template(
 
 data class Nutrients(
     val calories: Int?,
+    val protein: Float?,
     val carbohydrates: Float?,
     val ofWhichSugar: Float?,
     val fat: Float?,
     val ofWhichSaturated: Float?,
-    val protein: Float?,
     val salt: Float?,
 )
