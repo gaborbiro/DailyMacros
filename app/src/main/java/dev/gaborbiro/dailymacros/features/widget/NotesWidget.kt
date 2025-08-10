@@ -24,7 +24,6 @@ import dev.gaborbiro.dailymacros.data.records.domain.model.Template
 import dev.gaborbiro.dailymacros.design.DailyMacrosGlanceColorScheme
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
-import dev.gaborbiro.dailymacros.features.common.TemplatesUIMapper
 import dev.gaborbiro.dailymacros.features.widget.views.NotesWidgetContent
 import dev.gaborbiro.dailymacros.features.widget.workers.ReloadWorkRequest
 import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore

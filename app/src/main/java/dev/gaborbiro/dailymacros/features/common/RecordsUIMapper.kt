@@ -13,7 +13,6 @@ internal class RecordsUIMapper(
     private val bitmapStore: BitmapStore,
     private val nutrientsUIMapper: NutrientsUIMapper,
 ) {
-
     fun map(records: List<Record>, thumbnail: Boolean): List<RecordUIModel> {
         return records.map {
             map(it, thumbnail)

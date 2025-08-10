@@ -11,11 +11,11 @@ import androidx.glance.layout.Column
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.wrapContentHeight
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
-import dev.gaborbiro.dailymacros.features.common.model.TemplateUIModel
+import dev.gaborbiro.dailymacros.features.widget.model.TemplateUIModel
 import dev.gaborbiro.dailymacros.features.widget.NotesWidgetNavigator
 
 @Composable
-fun NotesWidgetContent(
+internal fun NotesWidgetContent(
     modifier: GlanceModifier,
     showTopTemplates: Boolean,
     onTemplatesExpandButtonTapped: () -> Unit,

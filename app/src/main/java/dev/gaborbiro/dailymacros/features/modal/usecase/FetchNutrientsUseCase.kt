@@ -7,7 +7,7 @@ import dev.gaborbiro.dailymacros.data.records.domain.model.Nutrients
 import dev.gaborbiro.dailymacros.data.records.domain.model.Record
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.modal.RecordsMapper
-import dev.gaborbiro.dailymacros.features.common.inputStreamToBase64
+import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
 import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
 import dev.gaborbiro.dailymacros.util.showSimpleNotification
 

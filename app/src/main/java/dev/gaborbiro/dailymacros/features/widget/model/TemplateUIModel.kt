@@ -1,8 +1,8 @@
-package dev.gaborbiro.dailymacros.features.common.model
+package dev.gaborbiro.dailymacros.features.widget.model
 
 import android.graphics.Bitmap
 
-class TemplateUIModel(
+internal class TemplateUIModel(
     val templateId: Long,
     val bitmap: Bitmap?,
     val title: String,

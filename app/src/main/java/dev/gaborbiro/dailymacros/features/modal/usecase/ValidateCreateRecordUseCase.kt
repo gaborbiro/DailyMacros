@@ -1,10 +1,12 @@
 package dev.gaborbiro.dailymacros.features.modal.usecase
 
-import dev.gaborbiro.dailymacros.features.common.BaseUseCase
+class ValidateCreateRecordUseCase {
 
-class ValidateCreateRecordUseCase : BaseUseCase() {
-
-    suspend fun execute(image: String?, title: String, description: String): CreateValidationResult {
+    suspend fun execute(
+        image: String?,
+        title: String,
+        description: String,
+    ): CreateValidationResult {
         if (title.isBlank()) {
             return CreateValidationResult.Error("Cannot be empty")
         }

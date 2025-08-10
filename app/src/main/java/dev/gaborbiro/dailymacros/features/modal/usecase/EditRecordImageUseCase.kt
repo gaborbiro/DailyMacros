@@ -4,11 +4,10 @@ import android.util.Log
 import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.data.records.domain.model.RecordToSave
 import dev.gaborbiro.dailymacros.data.records.domain.model.TemplateToSave
-import dev.gaborbiro.dailymacros.features.common.BaseUseCase
 
 internal class EditRecordImageUseCase(
     private val repository: RecordsRepository,
-) : BaseUseCase() {
+) {
 
     suspend fun execute(recordId: Long, filename: String?) {
         val record = repository.getRecord(recordId)!!

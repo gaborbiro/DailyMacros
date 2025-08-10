@@ -15,12 +15,12 @@ import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import androidx.glance.text.Text
-import dev.gaborbiro.dailymacros.features.common.model.TemplateUIModel
+import dev.gaborbiro.dailymacros.features.widget.model.TemplateUIModel
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
 import dev.gaborbiro.dailymacros.design.PaddingWidgetHalf
 
 @Composable
-fun WidgetTemplateListItem(
+internal fun WidgetTemplateListItem(
     template: TemplateUIModel,
     tapActionProvider: Action,
 ) {

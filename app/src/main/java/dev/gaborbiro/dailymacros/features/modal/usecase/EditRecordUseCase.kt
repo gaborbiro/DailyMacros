@@ -5,11 +5,10 @@ import androidx.annotation.UiThread
 import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.data.records.domain.model.RecordToSave
 import dev.gaborbiro.dailymacros.data.records.domain.model.TemplateToSave
-import dev.gaborbiro.dailymacros.features.common.BaseUseCase
 
 internal class EditRecordUseCase(
     private val repository: RecordsRepository,
-) : BaseUseCase() {
+) {
 
     @UiThread
     suspend fun execute(recordId: Long, title: String, description: String) {

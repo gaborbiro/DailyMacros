@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.common
+package dev.gaborbiro.dailymacros.features.modal
 
 import android.graphics.Bitmap
 import android.util.Base64

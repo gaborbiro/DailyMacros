@@ -9,7 +9,7 @@ import dev.gaborbiro.dailymacros.store.file.FileStore
 import java.io.File
 import java.io.InputStream
 
-class BitmapStore(
+internal class BitmapStore(
     private val fileStore: FileStore,
 ) {
     private var cache: LruCache<String, Bitmap>

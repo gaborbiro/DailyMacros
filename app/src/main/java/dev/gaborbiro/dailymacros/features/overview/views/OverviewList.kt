@@ -93,7 +93,7 @@ internal fun OverviewList(
             modifier = Modifier
                 .padding(paddingValues),
             verticalArrangement = Arrangement.spacedBy(PaddingDefault),
-            contentPadding = PaddingValues(top = PaddingDefault, bottom = 86.dp),
+            contentPadding = PaddingValues(bottom = 86.dp),
             state = listState,
         ) {
             viewState.macroGoalsProgress?.let {

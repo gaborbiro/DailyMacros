@@ -11,10 +11,10 @@ import androidx.glance.layout.size
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingWidgetHalf
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
-import dev.gaborbiro.dailymacros.features.common.model.TemplateUIModel
+import dev.gaborbiro.dailymacros.features.widget.model.TemplateUIModel
 
 @Composable
-fun RecordsList(
+internal fun RecordsList(
     modifier: GlanceModifier,
     recentRecords: List<RecordUIModel>,
     topTemplates: List<TemplateUIModel>,
