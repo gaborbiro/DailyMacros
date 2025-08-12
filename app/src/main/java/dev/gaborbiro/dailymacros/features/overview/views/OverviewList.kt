@@ -90,10 +90,11 @@ internal fun OverviewList(
         containerColor = MaterialTheme.colorScheme.background,
     ) { paddingValues ->
         LazyColumn(
-            modifier = Modifier
-                .padding(paddingValues),
             verticalArrangement = Arrangement.spacedBy(PaddingDefault),
-            contentPadding = PaddingValues(bottom = 86.dp),
+            contentPadding = PaddingValues(
+                top = paddingValues.calculateTopPadding(),
+                bottom = paddingValues.calculateBottomPadding() + 86.dp
+            ),
             state = listState,
         ) {
             viewState.macroGoalsProgress?.let {

@@ -15,20 +15,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import dev.gaborbiro.dailymacros.features.common.error.ErrorViewModel
-import dev.gaborbiro.dailymacros.features.common.error.model.ErrorViewState
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingDouble
+import dev.gaborbiro.dailymacros.features.common.error.model.ErrorViewState
 
 @Composable
-fun ErrorDialog(viewModel: ErrorViewModel, error: ErrorViewState) {
-    Dialog(onDismissRequest = { viewModel.onErrorDialogDismissRequested() }) {
+fun ErrorDialog(error: ErrorViewState, onDismissRequested: () -> Unit) {
+    Dialog(onDismissRequested) {
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.primaryContainer,
             shadowElevation = 4.dp,
         ) {
-            Column(modifier = Modifier.padding(PaddingDefault)) {
+            Column(
+                modifier = Modifier
+                    .padding(PaddingDefault)
+            ) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
                     text = error.message,
@@ -39,16 +41,16 @@ fun ErrorDialog(viewModel: ErrorViewModel, error: ErrorViewState) {
                 Spacer(modifier = Modifier.height(PaddingDouble))
 
                 Button(
-                    onClick = { viewModel.onErrorDialogDismissRequested() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                        .padding(horizontal = 40.dp),
+                    onClick = onDismissRequested,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                         contentColor = MaterialTheme.colorScheme.onTertiaryContainer
                     ),
                     shape = RoundedCornerShape(50.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .padding(horizontal = 40.dp)
                 ) {
                     Text(text = "Ok")
                 }

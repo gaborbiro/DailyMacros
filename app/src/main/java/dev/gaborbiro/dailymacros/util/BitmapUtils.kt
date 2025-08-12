@@ -61,8 +61,8 @@ fun modifyImage(source: Bitmap, rotateAngle: Float, maxWidthPx: Int?): Bitmap {
     )
 }
 
-fun Dp.px(): Float {
-    return App.appContext.dpToPixel(this.value)
+fun Dp.px(context: Context): Float {
+    return context.dpToPixel(this.value)
 }
 
 fun Context.dpToPixel(dp: Float): Float {

@@ -1,12 +1,14 @@
 package dev.gaborbiro.dailymacros.features.modal
 
 import android.net.Uri
+import android.util.Log
 import androidx.annotation.UiThread
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.data.chatgpt.model.DomainError
 import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
-import dev.gaborbiro.dailymacros.features.common.error.ErrorViewModel
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
+import dev.gaborbiro.dailymacros.features.common.error.model.ErrorViewState
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.HostViewState
 import dev.gaborbiro.dailymacros.features.modal.model.ImagePickerState
@@ -26,6 +28,8 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseC
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
+import ellipsize
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -49,7 +53,7 @@ internal class ModalScreenViewModel(
     private val getRecordImageUseCase: GetRecordImageUseCase,
     private val foodPicSummaryUseCase: FoodPicSummaryUseCase,
     private val nutrientsUIMapper: NutrientsUIMapper,
-) : ErrorViewModel() {
+) : ViewModel() {
 
     companion object {
         enum class EditTarget {
@@ -59,6 +63,10 @@ internal class ModalScreenViewModel(
 
     private val _viewState: MutableStateFlow<HostViewState> = MutableStateFlow(HostViewState())
     val viewState: StateFlow<HostViewState> = _viewState.asStateFlow()
+
+    private val _errorState: MutableStateFlow<ErrorViewState?> = MutableStateFlow(null)
+    val errorState: StateFlow<ErrorViewState?> = _errorState.asStateFlow()
+
 
     private var imageSummaryJob: Job? = null
 
@@ -100,10 +108,9 @@ internal class ModalScreenViewModel(
 
     fun viewImage(recordId: Long) {
         runSafely {
-            val image = getRecordImageUseCase.execute(recordId, thumbnail = false)!!
             _viewState.update {
                 it.copy(
-                    dialog = DialogState.ViewImageDialog(image)
+                    dialog = getRecordImageUseCase.execute(recordId, thumbnail = false)!!
                 )
             }
         }
@@ -295,7 +302,7 @@ internal class ModalScreenViewModel(
     }
 
     @UiThread
-    fun onDialogDismissed() {
+    fun onDialogDismissRequested() {
         imageSummaryJob?.cancel()
         runSafely {
             _viewState.update {
@@ -456,6 +463,12 @@ internal class ModalScreenViewModel(
         }
     }
 
+    fun onErrorDialogDismissRequested() {
+        _errorState.update {
+            null
+        }
+    }
+
     private fun refreshWidgetAndClose() {
         _viewState.update {
             it.copy(
@@ -464,5 +477,27 @@ internal class ModalScreenViewModel(
                 imagePicker = null,
             )
         }
+    }
+
+    private fun runSafely(task: suspend () -> Unit): Job {
+        return viewModelScope.launch(errorHandler) {
+            task()
+        }
+    }
+
+    private val errorHandler = CoroutineExceptionHandler { _, exception ->
+        _errorState.update {
+            ErrorViewState(
+                "Oops. Something went wrong ${
+                    exception.message?.let {
+                        "\n\n(${
+                            it.ellipsize(
+                                300
+                            )
+                        })"
+                    } ?: ""
+                }")
+        }
+        Log.w("BaseViewModel", "Uncaught exception", exception)
     }
 }

@@ -13,12 +13,12 @@ import dev.gaborbiro.dailymacros.features.modal.ModalScreenViewModel
 internal fun EditTargetConfirmationDialog(
     dialogState: DialogState.EditTargetConfirmationDialog,
     onEditTargetConfirmed: (ModalScreenViewModel.Companion.EditTarget) -> Unit,
-    onDialogDismissed: () -> Unit,
+    onDismissRequested: () -> Unit,
 ) {
     TargetConfirmationDialog(
         count = dialogState.count,
         onConfirmed = onEditTargetConfirmed,
-        onDialogDismissed = onDialogDismissed,
+        onDismissRequested = onDismissRequested,
     )
 }
 
@@ -27,12 +27,12 @@ internal fun EditTargetConfirmationDialog(
 internal fun EditImageTargetConfirmationDialog(
     dialogState: DialogState.EditImageTargetConfirmationDialog,
     onEditImageTargetConfirmed: (ModalScreenViewModel.Companion.EditTarget) -> Unit,
-    onDialogDismissed: () -> Unit,
+    onDismissRequested: () -> Unit,
 ) {
     TargetConfirmationDialog(
         count = dialogState.count,
         onConfirmed = onEditImageTargetConfirmed,
-        onDialogDismissed = onDialogDismissed,
+        onDismissRequested = onDismissRequested,
     )
 }
 
@@ -40,9 +40,9 @@ internal fun EditImageTargetConfirmationDialog(
 internal fun TargetConfirmationDialog(
     count: Int,
     onConfirmed: (ModalScreenViewModel.Companion.EditTarget) -> Unit,
-    onDialogDismissed: () -> Unit,
+    onDismissRequested: () -> Unit,
 ) {
-    Dialog(onDismissRequest = onDialogDismissed) {
+    Dialog(onDismissRequest = onDismissRequested) {
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -57,7 +57,7 @@ internal fun TargetConfirmationDialog(
                     }
                     onConfirmed(vmTarget)
                 },
-                onCancel = onDialogDismissed,
+                onCancel = onDismissRequested,
             )
         }
     }

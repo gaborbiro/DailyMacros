@@ -24,7 +24,10 @@ sealed class DialogState {
         val image: String?,
     ) : DialogState()
 
-    data class ViewImageDialog(val bitmap: Bitmap) : DialogState()
+    data class ViewImageDialog(
+        val title: String,
+        val bitmap: Bitmap
+    ) : DialogState()
 
     sealed class InputDialog(
         open val validationError: String? = null,

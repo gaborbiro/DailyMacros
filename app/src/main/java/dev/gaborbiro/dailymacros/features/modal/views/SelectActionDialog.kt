@@ -23,9 +23,9 @@ fun SelectActionDialog(
     onRepeatTapped: (recordId: Long) -> Unit,
     onEditTapped: (recordId: Long) -> Unit,
     onDeleteTapped: (recordId: Long) -> Unit,
-    onDialogDismissed: () -> Unit,
+    onDismissRequested: () -> Unit,
 ) {
-    Dialog(onDismissRequest = onDialogDismissed) {
+    Dialog(onDismissRequest = onDismissRequested) {
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,

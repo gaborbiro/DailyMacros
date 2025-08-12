@@ -7,8 +7,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.core.net.toUri
 import androidx.core.os.bundleOf
@@ -25,9 +27,9 @@ import dev.gaborbiro.dailymacros.data.chatgpt.service.model.OutputContentDeseria
 import dev.gaborbiro.dailymacros.data.records.DBMapper
 import dev.gaborbiro.dailymacros.data.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
-import dev.gaborbiro.dailymacros.features.common.error.BaseErrorDialogActivity
-import dev.gaborbiro.dailymacros.features.common.error.ErrorViewModel
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
+import dev.gaborbiro.dailymacros.features.common.error.model.ErrorViewState
+import dev.gaborbiro.dailymacros.features.common.error.views.ErrorDialog
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.HostViewState
 import dev.gaborbiro.dailymacros.features.modal.model.ImagePickerState
@@ -62,7 +64,7 @@ import java.net.CookieManager
 import java.util.concurrent.TimeUnit.SECONDS
 
 
-class ModalActivity : BaseErrorDialogActivity() {
+class ModalActivity : AppCompatActivity() {
 
     companion object {
 
@@ -218,10 +220,6 @@ class ModalActivity : BaseErrorDialogActivity() {
         )
     }
 
-    override fun baseViewModel(): ErrorViewModel {
-        return viewModel
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val action = intent.getStringExtra(EXTRA_ACTION)
@@ -260,8 +258,19 @@ class ModalActivity : BaseErrorDialogActivity() {
         }
 
         setContent {
-            HandleErrors()
             val viewState: HostViewState by viewModel.viewState.collectAsStateWithLifecycle()
+
+            DailyMacrosTheme {
+                Dialog(viewState.dialog)
+            }
+
+            val error: State<ErrorViewState?> = viewModel.errorState.collectAsStateWithLifecycle()
+
+            error.value?.let {
+                DailyMacrosTheme {
+                    ErrorDialog(error = it, onDismissRequested = viewModel::onErrorDialogDismissRequested)
+                }
+            }
 
             if (viewState.showCamera) {
                 val filename = generateImageFilename()
@@ -299,11 +308,7 @@ class ModalActivity : BaseErrorDialogActivity() {
             }
 
             if (viewState.refreshWidget) {
-                NotesWidget.reload(this@ModalActivity)
-            }
-
-            DailyMacrosTheme {
-                ModalView(viewState.dialog)
+                NotesWidget.reload(context = this@ModalActivity)
             }
 
             if (viewState.closeScreen) {
@@ -313,30 +318,30 @@ class ModalActivity : BaseErrorDialogActivity() {
     }
 
     @Composable
-    fun ModalView(dialogState: DialogState?) {
+    fun Dialog(dialogState: DialogState?) {
         when (dialogState) {
             is DialogState.InputDialog -> InputDialog(
                 dialogState = dialogState,
                 onRecordDetailsSubmitRequested = viewModel::onRecordDetailsSubmitRequested,
                 onRecordDetailsUserTyping = viewModel::onRecordDetailsUserTyping,
-                onDismissRequest = viewModel::onDialogDismissed,
+                onDismissRequested = viewModel::onDialogDismissRequested,
             )
 
             is DialogState.EditTargetConfirmationDialog -> EditTargetConfirmationDialog(
                 dialogState = dialogState,
                 onEditTargetConfirmed = viewModel::onEditTargetConfirmed,
-                onDialogDismissed = viewModel::onDialogDismissed,
+                onDismissRequested = viewModel::onDialogDismissRequested,
             )
 
             is DialogState.EditImageTargetConfirmationDialog -> EditImageTargetConfirmationDialog(
                 dialogState = dialogState,
                 onEditImageTargetConfirmed = viewModel::onEditImageTargetConfirmed,
-                onDialogDismissed = viewModel::onDialogDismissed,
+                onDismissRequested = viewModel::onDialogDismissRequested,
             )
 
             is DialogState.ViewImageDialog -> ImageDialog(
-                image = dialogState.bitmap,
-                onDialogDismissed = viewModel::onDialogDismissed,
+                dialogState = dialogState,
+                onDismissRequested = viewModel::onDialogDismissRequested,
             )
 
             is DialogState.SelectActionDialog -> SelectActionDialog(
@@ -344,11 +349,11 @@ class ModalActivity : BaseErrorDialogActivity() {
                 onRepeatTapped = viewModel::onRepeatRecordTapped,
                 onEditTapped = viewModel::onEditTapped,
                 onDeleteTapped = viewModel::onDeleteTapped,
-                onDialogDismissed = viewModel::onDialogDismissed,
+                onDismissRequested = viewModel::onDialogDismissRequested,
             )
 
             null -> {
-                // no dialog is shown
+                // nothing to do
             }
         }
     }

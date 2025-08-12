@@ -1,7 +1,7 @@
 package dev.gaborbiro.dailymacros.features.modal.usecase
 
-import android.graphics.Bitmap
 import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
 
 internal class GetRecordImageUseCase(
@@ -9,10 +9,18 @@ internal class GetRecordImageUseCase(
     private val bitmapStore: BitmapStore,
 ) {
 
-    suspend fun execute(recordId: Long, thumbnail: Boolean): Bitmap? {
-        return repository.getRecord(recordId)!!.template.image
+    suspend fun execute(recordId: Long, thumbnail: Boolean): DialogState.ViewImageDialog? {
+        val template = repository.getRecord(recordId)!!.template
+        return template
+            .image
             ?.let {
                 bitmapStore.read(it, thumbnail)
+            }
+            ?.let {
+                DialogState.ViewImageDialog(
+                    title = template.name,
+                    bitmap = it
+                )
             }
     }
 }

@@ -1,9 +1,9 @@
 package dev.gaborbiro.dailymacros.features.overview
 
 import android.util.Log
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
-import dev.gaborbiro.dailymacros.features.common.error.ErrorViewModel
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.modal.usecase.FetchNutrientsUseCase
@@ -22,7 +22,7 @@ internal class OverviewViewModel(
     private val uiMapper: RecordsUIMapper,
     private val fetchNutrientsUseCase: FetchNutrientsUseCase,
     private val observeMacroGoalsProgressUseCase: ObserveMacroGoalsProgressUseCase,
-) : ErrorViewModel() {
+) : ViewModel() {
 
     private val _uiState: MutableStateFlow<OverviewViewState> =
         MutableStateFlow(OverviewViewState())
