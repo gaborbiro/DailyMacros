@@ -33,10 +33,25 @@ internal class RecordsRepositoryImpl(
         return dBMapper.map(filteredRecords)
     }
 
-    override suspend fun getRecordsFlow(since: LocalDateTime): Flow<List<Record>> {
+    override suspend fun getRecordsFlow(
+        since: LocalDateTime,
+    ): Flow<List<Record>> {
         return try {
             recordsDAO
                 .getFlow(since)
+                .map { dBMapper.map(it) }
+        } catch (t: Throwable) {
+            flowOf(emptyList())
+        }
+    }
+
+    override suspend fun getRecordsFlow(
+        since: LocalDateTime,
+        until: LocalDateTime,
+    ): Flow<List<Record>> {
+        return try {
+            recordsDAO
+                .getFlow(since, until)
                 .map { dBMapper.map(it) }
         } catch (t: Throwable) {
             flowOf(emptyList())

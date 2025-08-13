@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
-import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.overview.model.NutrientProgressItem
@@ -96,7 +95,12 @@ internal fun OverviewList(
             ),
             state = listState,
         ) {
-            viewState.nutrientProgress?.let {
+            viewState.todaysNutrientProgress?.let {
+                item {
+                    NutrientProgressView(it)
+                }
+            }
+            viewState.yesterdaysNutrientProgress?.let {
                 item {
                     NutrientProgressView(it)
                 }
@@ -152,7 +156,7 @@ private fun NotesListPreview() {
                         timestamp = "2022-05-01 00:00:00"
                     )
                 ),
-                nutrientProgress = NutrientProgress(
+                todaysNutrientProgress = NutrientProgress(
                     calories = NutrientProgressItem(
                         title = "Calories",
                         progress = .15f,

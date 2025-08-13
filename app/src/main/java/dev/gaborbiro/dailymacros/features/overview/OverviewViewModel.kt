@@ -8,7 +8,7 @@ import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.modal.usecase.FetchNutrientsUseCase
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
-import dev.gaborbiro.dailymacros.features.overview.useCases.ObserveMacroGoalsProgressUseCase
+import dev.gaborbiro.dailymacros.features.overview.useCases.ObserveNutrientProgressUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,7 +21,7 @@ internal class OverviewViewModel(
     private val repository: RecordsRepository,
     private val uiMapper: RecordsUIMapper,
     private val fetchNutrientsUseCase: FetchNutrientsUseCase,
-    private val observeMacroGoalsProgressUseCase: ObserveMacroGoalsProgressUseCase,
+    private val observeNutrientProgressUseCase: ObserveNutrientProgressUseCase,
 ) : ViewModel() {
 
     private val _uiState: MutableStateFlow<OverviewViewState> =
@@ -30,10 +30,14 @@ internal class OverviewViewModel(
 
     init {
         viewModelScope.launch {
-            observeMacroGoalsProgressUseCase.execute()
-                .collect { macroGoalsProgress ->
+            observeNutrientProgressUseCase.execute()
+                .collect { progresses ->
+                    val (todaysNutrientProgress, yesterdaysNutrientProgress) = progresses
                     _uiState.update {
-                        it.copy(nutrientProgress = macroGoalsProgress)
+                        it.copy(
+                            todaysNutrientProgress = todaysNutrientProgress,
+                            yesterdaysNutrientProgress = yesterdaysNutrientProgress,
+                        )
                     }
                 }
         }
