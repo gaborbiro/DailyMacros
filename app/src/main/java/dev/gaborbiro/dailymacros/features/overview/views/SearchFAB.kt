@@ -30,7 +30,7 @@ import dev.gaborbiro.dailymacros.design.PaddingDefault
 @Composable
 internal fun SearchFAB(onSearch: (String?) -> Unit) {
     var fabExpanded by remember { mutableStateOf(false) }
-    var text by remember {
+    var text by remember(fabExpanded) {
         mutableStateOf("")
     }
     val focusRequester = remember { FocusRequester() }
