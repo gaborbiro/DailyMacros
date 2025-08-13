@@ -39,6 +39,6 @@ internal class FetchNutrientsUseCase(
             nutrients = nutrients,
         )
         val nutrientsStr = nutrientsUIMapper.map(nutrients)
-        appContext.showSimpleNotification(123L, record.template.name, nutrientsStr + "\n" + comment)
+        appContext.showSimpleNotification(123L, null, record.template.name + "\n" + nutrientsStr + "\n" + comment)
     }
 }

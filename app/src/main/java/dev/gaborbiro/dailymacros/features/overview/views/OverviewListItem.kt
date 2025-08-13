@@ -3,10 +3,8 @@ package dev.gaborbiro.dailymacros.features.overview.views
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,35 +13,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Cake
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.FileCopy
-import androidx.compose.material.icons.outlined.HideImage
-import androidx.compose.material.icons.outlined.Image
-import androidx.compose.material3.Divider
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
@@ -79,7 +60,7 @@ fun OverviewListItem(
             modifier = Modifier
                 .size(PaddingDefault)
         )
-        TitleAndSubtitle(
+        RecordTextContent(
             modifier = Modifier
                 .wrapContentHeight()
                 .clickable(onClick = { onRecordBodyTapped(record) })
@@ -117,7 +98,7 @@ private fun RecordImage(
 }
 
 @Composable
-private fun TitleAndSubtitle(modifier: Modifier, record: RecordUIModel) {
+private fun RecordTextContent(modifier: Modifier, record: RecordUIModel) {
     Column(
         modifier,
         verticalArrangement = Arrangement.Center,
@@ -146,119 +127,6 @@ private fun TitleAndSubtitle(modifier: Modifier, record: RecordUIModel) {
         )
     }
 }
-
-@Composable
-private fun PopupMenu(
-    onRepeatMenuItemTapped: () -> Unit,
-    onChangeImageMenuItemTapped: () -> Unit,
-    onDeleteImageMenuItemTapped: () -> Unit,
-    onEditRecordMenuItemTapped: () -> Unit,
-    onDeleteRecordMenuItemTapped: () -> Unit,
-    onNutrientsMenuItemTapped: () -> Unit,
-) {
-    PopUpMenuButton(
-        options = listOf(
-            PopUpMenuItem(
-                icon = Icons.Outlined.FileCopy,
-                label = "Repeat",
-                onMenuItemSelected = onRepeatMenuItemTapped,
-                hasBottomDivider = true,
-            ),
-            PopUpMenuItem(
-                icon = Icons.Outlined.Image,
-                label = "Change image",
-                onMenuItemSelected = onChangeImageMenuItemTapped,
-            ),
-            PopUpMenuItem(
-                icon = Icons.Outlined.HideImage,
-                label = "Delete image",
-                onMenuItemSelected = onDeleteImageMenuItemTapped,
-            ),
-            PopUpMenuItem(
-                icon = Icons.Outlined.Edit,
-                label = "Details",
-                onMenuItemSelected = onEditRecordMenuItemTapped,
-                hasBottomDivider = true,
-            ),
-            PopUpMenuItem(
-                icon = Icons.Outlined.Delete,
-                label = "Delete",
-                onMenuItemSelected = onDeleteRecordMenuItemTapped,
-                hasBottomDivider = true,
-            ),
-            PopUpMenuItem(
-                icon = Icons.Outlined.Cake,
-                label = "Nutrients",
-                onMenuItemSelected = onNutrientsMenuItemTapped,
-            ),
-        ),
-    )
-}
-
-@Composable
-private fun PopUpMenuButton(
-    options: List<PopUpMenuItem>,
-) {
-    val expanded = remember { mutableStateOf(false) }
-
-    Column {
-        Box(modifier = Modifier.size(36.dp)) {
-            IconButton(onClick = {
-                expanded.value = expanded.value.not()
-            }) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_more_vert),
-                    contentDescription = "overflow menu",
-                    modifier = Modifier.padding(horizontal = 4.dp),
-                    tint = MaterialTheme.colorScheme.onSurface,
-                )
-            }
-        }
-
-        Box {
-            DropdownMenu(
-                expanded = expanded.value,
-                onDismissRequest = { expanded.value = false },
-                modifier = Modifier
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-            ) {
-                options.forEachIndexed { _, item ->
-                    DropdownMenuItem(
-                        onClick = {
-                            expanded.value = false
-                            item.onMenuItemSelected()
-                        },
-                        text = {
-                            Text(
-                                text = item.label,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = item.icon,
-                                contentDescription = item.label,
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            )
-                        }
-                    )
-                    if (item.hasBottomDivider) {
-                        Divider(color = MaterialTheme.colorScheme.onPrimaryContainer)
-                    }
-                }
-            }
-        }
-    }
-}
-
-private data class PopUpMenuItem(
-    val label: String,
-    val icon: ImageVector,
-    val hasBottomDivider: Boolean = false,
-    val onMenuItemSelected: () -> Unit,
-)
 
 @Preview
 @Composable
