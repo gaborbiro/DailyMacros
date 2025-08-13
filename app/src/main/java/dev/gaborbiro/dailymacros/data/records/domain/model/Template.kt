@@ -16,4 +16,5 @@ data class Nutrients(
     val fat: Float?,
     val ofWhichSaturated: Float?,
     val salt: Float?,
+    val fibre: Float?,
 )

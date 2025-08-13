@@ -24,14 +24,16 @@ fun Context.createNotificationChannels() {
 }
 
 fun Context.showSimpleNotification(id: Long, title: String?, message: String?) {
-    val builder = NotificationCompat.Builder(this, CHANNEL_ID_GENERAL)
+    var builder = NotificationCompat.Builder(this, CHANNEL_ID_GENERAL)
         .setSmallIcon(R.drawable.ic_launcher_foreground)
-        .setContentText(message)
-        .setStyle(
-            NotificationCompat.BigTextStyle()
-                .bigText(message)
-                .setSummaryText(title)
-        )
+    message?.let {
+        builder = builder.setContentText(message)
+            .setStyle(
+                NotificationCompat.BigTextStyle()
+                    .bigText(message)
+                    .setSummaryText(title ?: "")
+            )
+    }
     getSystemService(NotificationManager::class.java).notify(
         id.toInt(),
         builder.build()

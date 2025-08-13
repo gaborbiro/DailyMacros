@@ -50,7 +50,7 @@ internal fun SearchFAB(onSearch: (String?) -> Unit) {
         ) {
             AnimatedVisibility(visible = fabExpanded) {
                 TextField(
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .focusRequester(focusRequester)
                         .onGloballyPositioned {
                             focusRequester.requestFocus() // IMPORTANT
@@ -77,10 +77,11 @@ internal fun SearchFAB(onSearch: (String?) -> Unit) {
                 )
             }
             Icon(
+                modifier = Modifier
+                    .padding(PaddingDefault),
                 imageVector = if (!fabExpanded) Icons.Filled.Search else Icons.Filled.Close,
                 contentDescription = "search",
                 tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                modifier = Modifier.Companion.padding(PaddingDefault)
             )
         }
     }

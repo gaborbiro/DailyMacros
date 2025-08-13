@@ -33,12 +33,16 @@ internal class FetchNutrientsUseCase(
                 base64Image = base64Image,
             )
         )
-        val (nutrients: Nutrients?, comment) = recordsMapper.map(response)
+        val (nutrients: Nutrients?, issues: String?) = recordsMapper.map(response)
         recordsRepository.updateTemplate(
             templateId = record.template.id,
             nutrients = nutrients,
         )
         val nutrientsStr = nutrientsUIMapper.map(nutrients)
-        appContext.showSimpleNotification(123L, null, record.template.name + "\n" + nutrientsStr + "\n" + comment)
+        appContext.showSimpleNotification(
+            id = 123L,
+            title = null,
+            message = listOfNotNull(record.template.name, nutrientsStr, issues).joinToString("\n"),
+        )
     }
 }

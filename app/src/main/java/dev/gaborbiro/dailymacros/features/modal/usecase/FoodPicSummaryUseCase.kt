@@ -5,6 +5,7 @@ import dev.gaborbiro.dailymacros.data.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.data.chatgpt.toDomainModel
 import dev.gaborbiro.dailymacros.features.modal.RecordsMapper
 import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
+import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
 
 internal class FoodPicSummaryUseCase(
@@ -13,7 +14,7 @@ internal class FoodPicSummaryUseCase(
     private val mapper: RecordsMapper,
 ) {
 
-    suspend fun execute(filename: String): List<String> {
+    suspend fun execute(filename: String): DialogState.InputDialog.SummarySuggestions {
         val response = try {
             val inputStream = bitmapStore.get(filename, thumbnail = false)
             chatGPTRepository.summarizeFoodPic(

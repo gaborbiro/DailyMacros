@@ -113,6 +113,7 @@ class MainActivity : ComponentActivity() {
             fetchNutrientsUseCase = fetchNutrientsUseCase,
             observeMacroGoalsProgressUseCase = ObserveMacroGoalsProgressUseCase(
                 recordsRepository = recordsRepository,
+                nutrientsUIMapper = nutrientsUIMapper,
             )
         )
 

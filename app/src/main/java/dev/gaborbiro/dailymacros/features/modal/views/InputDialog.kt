@@ -1,28 +1,19 @@
 package dev.gaborbiro.dailymacros.features.modal.views
 
 import android.content.res.Configuration
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -35,16 +26,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
@@ -61,8 +48,10 @@ internal fun InputDialog(
     onDismissRequested: () -> Unit,
 ) {
     val title = (dialogState as? DialogState.InputDialog.RecordDetails)?.title
-    val titleSuggestion = (dialogState as? DialogState.InputDialog.CreateWithImage)
-        ?.let { it.titleSuggestions to it.titleSuggestionProgressIndicator }
+    val suggestions = (dialogState as? DialogState.InputDialog.CreateWithImage)
+        ?.suggestions
+    val showProgressIndicator = (dialogState as? DialogState.InputDialog.CreateWithImage)
+        ?.showProgressIndicator
     val description =
         (dialogState as? DialogState.InputDialog.RecordDetails)?.description
     val calories = (dialogState as? DialogState.InputDialog.RecordDetails)?.calories
@@ -73,6 +62,7 @@ internal fun InputDialog(
     val saturated =
         (dialogState as? DialogState.InputDialog.RecordDetails)?.ofWhichSaturated
     val salt = (dialogState as? DialogState.InputDialog.RecordDetails)?.salt
+    val fibre = (dialogState as? DialogState.InputDialog.RecordDetails)?.fibre
 
     val titleField: MutableState<TextFieldValue> = remember {
         mutableStateOf(TextFieldValue(title ?: ""))
@@ -93,8 +83,8 @@ internal fun InputDialog(
             InputDialogContent(
                 onChange = onRecordDetailsUserTyping,
                 titleField = titleField,
-                titleSuggestions = titleSuggestion?.first ?: emptyList(),
-                titleSuggestionProgressIndicator = titleSuggestion?.second ?: false,
+                suggestions = suggestions,
+                showProgressIndicator = showProgressIndicator ?: false,
                 descriptionField = descriptionField,
                 error = dialogState.validationError,
                 calories = calories,
@@ -104,6 +94,7 @@ internal fun InputDialog(
                 fat = fat,
                 saturated = saturated,
                 salt = salt,
+                fibre = fibre,
             )
         },
         buttons = {
@@ -139,8 +130,8 @@ internal fun InputDialog(
 private fun ColumnScope.InputDialogContent(
     onChange: (String, String) -> Unit,
     titleField: MutableState<TextFieldValue>,
-    titleSuggestions: List<String>,
-    titleSuggestionProgressIndicator: Boolean,
+    suggestions: DialogState.InputDialog.SummarySuggestions?,
+    showProgressIndicator: Boolean,
     descriptionField: MutableState<TextFieldValue>,
     error: String?,
     calories: String?,
@@ -150,6 +141,7 @@ private fun ColumnScope.InputDialogContent(
     fat: String?,
     saturated: String?,
     salt: String?,
+    fibre: String?,
 ) {
     Row(
         modifier = Modifier
@@ -215,31 +207,34 @@ private fun ColumnScope.InputDialogContent(
         )
     }
 
-    titleSuggestions.takeIf { it.isNotEmpty() }?.let {
-        Spacer(
-            modifier = Modifier
-                .height(PaddingHalf)
-        )
-        FlowRow(
-            modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-        ) {
-            it.forEach {
-                PillLabel(
-                    modifier = Modifier
-                        .padding(bottom = 4.dp),
-                    text = it,
-                    onClick = {
-                        titleField.value =
-                            titleField.value.copy(text = it, selection = TextRange(it.length))
-                        onChange(titleField.value.text, descriptionField.value.text)
-                    },
-                )
+    suggestions
+        ?.titles
+        ?.takeIf { it.isNotEmpty() }
+        ?.let {
+            Spacer(
+                modifier = Modifier
+                    .height(PaddingHalf)
+            )
+            FlowRow(
+                modifier = Modifier
+                    .padding(horizontal = PaddingDefault)
+            ) {
+                it.forEach {
+                    PillLabel(
+                        modifier = Modifier
+                            .padding(bottom = 4.dp),
+                        text = it,
+                        onClick = {
+                            titleField.value =
+                                titleField.value.copy(text = it, selection = TextRange(it.length))
+                            onChange(titleField.value.text, descriptionField.value.text)
+                        },
+                    )
+                }
             }
         }
-    }
 
-    if (titleSuggestionProgressIndicator) {
+    if (showProgressIndicator) {
         CircularProgressIndicator(
             modifier = Modifier
                 .padding(vertical = PaddingDefault)
@@ -276,6 +271,31 @@ private fun ColumnScope.InputDialogContent(
         },
     )
 
+    suggestions
+        ?.description
+        ?.takeIf { it.isNotBlank() }
+        ?.let { descriptionSuggestion ->
+            Spacer(
+                modifier = Modifier
+                    .height(PaddingHalf)
+            )
+            FlowRow(
+                modifier = Modifier
+                    .padding(horizontal = PaddingDefault)
+            ) {
+                PillLabel(
+                    modifier = Modifier
+                        .padding(bottom = 4.dp),
+                    text = descriptionSuggestion,
+                    onClick = {
+                        descriptionField.value =
+                            descriptionField.value.copy(text = descriptionSuggestion, selection = TextRange(descriptionSuggestion.length))
+                        onChange(titleField.value.text, descriptionField.value.text)
+                    },
+                )
+            }
+        }
+
     Macros(
         calories = calories,
         protein = protein,
@@ -284,6 +304,7 @@ private fun ColumnScope.InputDialogContent(
         fat = fat,
         saturated = saturated,
         salt = salt,
+        fibre = fibre,
     )
 }
 
@@ -296,8 +317,17 @@ private fun Macros(
     fat: String?,
     saturated: String?,
     salt: String?,
+    fibre: String?,
 ) {
-    if (calories != null || protein != null || carbs != null || sugar != null || fat != null || saturated != null || salt != null) {
+    if (calories != null ||
+        protein != null ||
+        carbs != null ||
+        sugar != null ||
+        fat != null ||
+        saturated != null ||
+        salt != null ||
+        fibre != null
+    ) {
         Spacer(
             modifier = Modifier
                 .height(PaddingDefault)
@@ -395,61 +425,32 @@ private fun Macros(
         )
     }
 
-    if (calories != null || protein != null || carbs != null || sugar != null || fat != null || saturated != null || salt != null) {
+    fibre?.let {
+        PillLabel(
+            modifier = Modifier
+                .padding(horizontal = PaddingDefault)
+                .padding(top = 4.dp),
+            text = fibre,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+            border = null,
+            elevation = 0.dp,
+        )
+    }
+
+    if (calories != null ||
+        protein != null ||
+        carbs != null ||
+        sugar != null ||
+        fat != null ||
+        saturated != null ||
+        salt != null ||
+        fibre != null
+    ) {
         Spacer(
             modifier = Modifier
                 .height(PaddingDefault)
         )
-    }
-}
-
-@Composable
-private fun PillLabel(
-    modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-    text: String,
-    onClick: (() -> Unit)? = null, // if null, it's non-clickable/label-style
-    backgroundColor: Color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-    contentColor: Color = MaterialTheme.colorScheme.primary,
-    border: BorderStroke? = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
-    elevation: Dp = 0.dp,
-    enabled: Boolean = true,
-    textStyle: TextStyle = MaterialTheme.typography.bodySmall,
-) {
-    val shape = RoundedCornerShape(50) // pill
-
-    val clickableModifier = if (onClick != null && enabled) {
-        Modifier.clickable(
-            onClick = onClick,
-            indication = LocalIndication.current,
-            interactionSource = remember { MutableInteractionSource() }
-        )
-    } else {
-        Modifier
-    }
-
-    Surface(
-        modifier = modifier
-            .then(clickableModifier),
-        shape = shape,
-        color = backgroundColor,
-        contentColor = contentColor,
-        tonalElevation = elevation,
-        border = border,
-        shadowElevation = elevation
-    ) {
-        Box(
-            modifier = Modifier
-                .defaultMinSize(minHeight = 24.dp) // make it thinner than default buttons
-                .padding(contentPadding),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = text,
-                style = textStyle,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
     }
 }
 
@@ -461,8 +462,8 @@ private fun NoteInputDialogContentPreview() {
         InputDialog(
             dialogState = DialogState.InputDialog.CreateWithImage(
                 image = null,
-                titleSuggestionProgressIndicator = true,
-                titleSuggestions = emptyList(),
+                showProgressIndicator = true,
+                suggestions = null,
             ),
             onRecordDetailsSubmitRequested = { _, _ -> },
             onRecordDetailsUserTyping = { _, _ -> },
@@ -492,6 +493,7 @@ private fun NoteInputDialogContentPreviewEdit() {
                 fat = "Fat 100g",
                 ofWhichSaturated = "of which saturated: 20g",
                 salt = "Salt: 5g",
+                fibre = "Fibre: 4.5g",
             ),
             onRecordDetailsSubmitRequested = { _, _ -> },
             onRecordDetailsUserTyping = { _, _ -> },
@@ -508,7 +510,10 @@ private fun NoteInputDialogContentPreviewSuggestion() {
         InputDialog(
             dialogState = DialogState.InputDialog.CreateWithImage(
                 image = null,
-                titleSuggestions = listOf("This is a title suggestion", "This is another title suggestion"),
+                suggestions = DialogState.InputDialog.SummarySuggestions(
+                    titles = listOf("This is a title suggestion", "This is another title suggestion"),
+                    description = "",
+                ),
             ),
             onRecordDetailsSubmitRequested = { _, _ -> },
             onRecordDetailsUserTyping = { _, _ -> },
@@ -525,7 +530,10 @@ private fun NoteInputDialogContentPreviewError() {
         InputDialog(
             dialogState = DialogState.InputDialog.CreateWithImage(
                 image = null,
-                titleSuggestions = listOf("This is a title suggestion", "This is another title suggestion"),
+                suggestions = DialogState.InputDialog.SummarySuggestions(
+                    titles = listOf("This is a title suggestion", "This is another title suggestion"),
+                    description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
+                ),
                 validationError = "error"
             ),
             onRecordDetailsSubmitRequested = { _, _ -> },

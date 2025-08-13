@@ -2,7 +2,7 @@ package dev.gaborbiro.dailymacros.data.chatgpt.model
 
 data class NutrientsResponse(
     val nutrients: NutrientApiModel?,
-    val comments: String,
+    val issues: String?,
 )
 
 data class NutrientApiModel(
@@ -13,4 +13,5 @@ data class NutrientApiModel(
     val fatGrams: Float?,
     val ofWhichSaturatedGrams: Float?,
     val saltGrams: Float?,
+    val fibreGrams: Float?,
 )

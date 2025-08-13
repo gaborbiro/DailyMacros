@@ -137,13 +137,14 @@ internal class ModalScreenViewModel(
                         image = record.template.image,
                         title = record.template.name,
                         description = record.template.description,
-                        calories = nutrientsUIMapper.mapCalories(calories = record.template.nutrients?.calories),
-                        protein = nutrientsUIMapper.mapProtein(protein = record.template.nutrients?.protein),
-                        carbs = nutrientsUIMapper.mapCarbohydrates(carbohydrates = record.template.nutrients?.carbohydrates, sugar = null),
-                        ofWhichSugar = nutrientsUIMapper.mapSugar(sugar = record.template.nutrients?.ofWhichSugar),
-                        fat = nutrientsUIMapper.mapFat(fat = record.template.nutrients?.fat, saturated = null),
-                        ofWhichSaturated = nutrientsUIMapper.mapSaturated(saturated = record.template.nutrients?.ofWhichSaturated),
-                        salt = nutrientsUIMapper.mapSalt(salt = record.template.nutrients?.salt),
+                        calories = nutrientsUIMapper.mapCalories(value = record.template.nutrients?.calories),
+                        protein = nutrientsUIMapper.mapProtein(value = record.template.nutrients?.protein),
+                        carbs = nutrientsUIMapper.mapCarbohydrates(value = record.template.nutrients?.carbohydrates, sugar = null),
+                        ofWhichSugar = nutrientsUIMapper.mapSugar(value = record.template.nutrients?.ofWhichSugar),
+                        fat = nutrientsUIMapper.mapFat(value = record.template.nutrients?.fat, saturated = null),
+                        ofWhichSaturated = nutrientsUIMapper.mapSaturated(value = record.template.nutrients?.ofWhichSaturated),
+                        salt = nutrientsUIMapper.mapSalt(value = record.template.nutrients?.salt),
+                        fibre = nutrientsUIMapper.mapFibre(value = record.template.nutrients?.fibre),
                         titleSuggestions = emptyList(),
                         validationError = null,
                     ),
@@ -172,8 +173,8 @@ internal class ModalScreenViewModel(
                     showCamera = false,
                     dialog = DialogState.InputDialog.CreateWithImage(
                         image = filename,
-                        titleSuggestionProgressIndicator = true,
-                        titleSuggestions = emptyList(),
+                        showProgressIndicator = true,
+                        suggestions = null,
                     ),
                 )
             }
@@ -181,7 +182,7 @@ internal class ModalScreenViewModel(
                 val summary = foodPicSummaryUseCase.execute(filename)
                 _viewState.update { currentState ->
                     if (currentState.dialog is DialogState.InputDialog.CreateWithImage) {
-                        currentState.copy(dialog = currentState.dialog.copy(titleSuggestions = summary))
+                        currentState.copy(dialog = currentState.dialog.copy(suggestions = summary))
                     } else {
                         currentState
                     }
@@ -191,7 +192,7 @@ internal class ModalScreenViewModel(
             } finally {
                 _viewState.update { currentState ->
                     if (currentState.dialog is DialogState.InputDialog.CreateWithImage) {
-                        currentState.copy(dialog = currentState.dialog.copy(titleSuggestionProgressIndicator = false))
+                        currentState.copy(dialog = currentState.dialog.copy(showProgressIndicator = false))
                     } else {
                         currentState
                     }
@@ -210,8 +211,8 @@ internal class ModalScreenViewModel(
                     imagePicker = null,
                     dialog = DialogState.InputDialog.CreateWithImage(
                         image = null,
-                        titleSuggestionProgressIndicator = true,
-                        titleSuggestions = emptyList(),
+                        showProgressIndicator = true,
+                        suggestions = null,
                     ),
                 )
             }
@@ -223,21 +224,19 @@ internal class ModalScreenViewModel(
                             imagePicker = null,
                             dialog = DialogState.InputDialog.CreateWithImage(
                                 image = persistedFilename,
-                                titleSuggestionProgressIndicator = true,
-                                titleSuggestions = emptyList(),
+                                showProgressIndicator = true,
+                                suggestions = null,
                             ),
                         )
                     }
                     persistedFilename?.let {
                         try {
                             val summary = foodPicSummaryUseCase.execute(persistedFilename)
-                            summary?.let {
-                                _viewState.update { currentState ->
-                                    if (currentState.dialog is DialogState.InputDialog.CreateWithImage) {
-                                        currentState.copy(dialog = currentState.dialog.copy(titleSuggestions = it))
-                                    } else {
-                                        currentState
-                                    }
+                            _viewState.update { currentState ->
+                                if (currentState.dialog is DialogState.InputDialog.CreateWithImage) {
+                                    currentState.copy(dialog = currentState.dialog.copy(suggestions = summary))
+                                } else {
+                                    currentState
                                 }
                             }
                         } catch (e: DomainError) {
@@ -245,7 +244,7 @@ internal class ModalScreenViewModel(
                         } finally {
                             _viewState.update { currentState ->
                                 if (currentState.dialog is DialogState.InputDialog.CreateWithImage) {
-                                    currentState.copy(dialog = currentState.dialog.copy(titleSuggestionProgressIndicator = false))
+                                    currentState.copy(dialog = currentState.dialog.copy(showProgressIndicator = false))
                                 } else {
                                     currentState
                                 }

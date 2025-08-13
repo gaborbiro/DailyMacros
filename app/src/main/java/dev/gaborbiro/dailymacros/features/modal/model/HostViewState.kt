@@ -42,13 +42,18 @@ sealed class DialogState {
 
         data class CreateWithImage(
             val image: String?,
-            val titleSuggestions: List<String>,
-            val titleSuggestionProgressIndicator: Boolean = false,
+            val showProgressIndicator: Boolean = false,
+            val suggestions: SummarySuggestions?,
             override val validationError: String? = null,
         ) : InputDialog(validationError) {
             override fun withValidationError(validationError: String?) =
                 copy(validationError = validationError)
         }
+
+        data class SummarySuggestions(
+            val titles: List<String>,
+            val description: String?
+        )
 
         data class RecordDetails(
             val recordId: Long,
@@ -62,6 +67,7 @@ sealed class DialogState {
             val fat: String?,
             val ofWhichSaturated: String?,
             val salt: String?,
+            val fibre: String?,
             val titleSuggestions: List<String>,
             val titleSuggestionProgressIndicator: Boolean = false,
             override val validationError: String? = null,

@@ -8,5 +8,5 @@ data class OverviewViewState(
     val refreshWidget: Boolean = false,
     val showUndoDeleteSnackbar: Boolean = false,
     val recordToUndelete: Record? = null,
-    val macroGoalsProgress: MacroGoalsProgress? = null,
+    val nutrientProgress: NutrientProgress? = null,
 )

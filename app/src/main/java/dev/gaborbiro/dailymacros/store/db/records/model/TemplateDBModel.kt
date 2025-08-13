@@ -25,6 +25,7 @@ data class TemplateDBModel(
     val fat: Float? = null,
     val ofWhichSaturated: Float? = null,
     val salt: Float? = null,
+    val fibre: Float? = null,
 ) : DBModel() {
 
     @Ignore
@@ -40,6 +41,7 @@ data class TemplateDBModel(
         fat: Float? = null,
         ofWhichSaturated: Float? = null,
         salt: Float? = null,
+        fibre: Float? = null,
     ) : this(
         image = image,
         name = name,
@@ -51,6 +53,7 @@ data class TemplateDBModel(
         fat = fat,
         ofWhichSaturated = ofWhichSaturated,
         salt = salt,
+        fibre = fibre,
     ) {
         this.id = id
     }

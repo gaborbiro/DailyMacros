@@ -33,7 +33,7 @@ internal class OverviewViewModel(
             observeMacroGoalsProgressUseCase.execute()
                 .collect { macroGoalsProgress ->
                     _uiState.update {
-                        it.copy(macroGoalsProgress = macroGoalsProgress)
+                        it.copy(nutrientProgress = macroGoalsProgress)
                     }
                 }
         }

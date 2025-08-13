@@ -1,12 +1,13 @@
 package dev.gaborbiro.dailymacros.store.db
 
 import android.content.Context
+import androidx.room.AutoMigration
 import androidx.room.Database
+import androidx.room.ProvidedTypeConverter
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.room.migration.AutoMigrationSpec
 import dev.gaborbiro.dailymacros.store.db.records.RecordsDAO
 import dev.gaborbiro.dailymacros.store.db.records.TemplatesDAO
 import dev.gaborbiro.dailymacros.store.db.records.model.RecordDBModel
@@ -14,8 +15,11 @@ import dev.gaborbiro.dailymacros.store.db.records.model.TemplateDBModel
 
 @Database(
     entities = [RecordDBModel::class, TemplateDBModel::class],
-    version = 1,
+    version = 2,
     exportSchema = true,
+    autoMigrations = [
+        AutoMigration(1, 2, AddAgeColumnSpec::class)
+    ]
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -44,3 +48,6 @@ abstract class AppDatabase : RoomDatabase() {
         }
     }
 }
+
+@ProvidedTypeConverter
+class AddAgeColumnSpec : AutoMigrationSpec

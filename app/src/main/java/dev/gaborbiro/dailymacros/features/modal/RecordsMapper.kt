@@ -7,6 +7,7 @@ import dev.gaborbiro.dailymacros.data.chatgpt.model.NutrientsRequest
 import dev.gaborbiro.dailymacros.data.chatgpt.model.NutrientsResponse
 import dev.gaborbiro.dailymacros.data.records.domain.model.Nutrients
 import dev.gaborbiro.dailymacros.data.records.domain.model.Record
+import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 
 class RecordsMapper {
 
@@ -16,8 +17,11 @@ class RecordsMapper {
         )
     }
 
-    fun map(response: FoodPicSummaryResponse): List<String> {
-        return response.summary
+    fun map(response: FoodPicSummaryResponse): DialogState.InputDialog.SummarySuggestions {
+        return DialogState.InputDialog.SummarySuggestions(
+            titles = response.titles,
+            description = response.description
+        )
     }
 
     fun mapNutrientsRequest(record: Record, base64Image: String? = null): NutrientsRequest {
@@ -28,8 +32,8 @@ class RecordsMapper {
         )
     }
 
-    fun map(response: NutrientsResponse): Pair<Nutrients?, String> {
-        return response.nutrients?.let(::map) to response.comments
+    fun map(response: NutrientsResponse): Pair<Nutrients?, String?> {
+        return response.nutrients?.let(::map) to response.issues
     }
 
     private fun map(nutrientApiModel: NutrientApiModel): Nutrients {
@@ -41,6 +45,7 @@ class RecordsMapper {
             fat = nutrientApiModel.fatGrams,
             ofWhichSaturated = nutrientApiModel.ofWhichSaturatedGrams,
             salt = nutrientApiModel.saltGrams,
+            fibre = nutrientApiModel.fibreGrams,
         )
     }
 }

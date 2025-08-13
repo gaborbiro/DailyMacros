@@ -75,14 +75,18 @@ private fun PopUpMenuButton(
     val expanded = remember { mutableStateOf(false) }
 
     Column {
-        Box(modifier = Modifier.Companion.size(36.dp)) {
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+        ) {
             IconButton(onClick = {
                 expanded.value = expanded.value.not()
             }) {
                 Icon(
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp),
                     painter = painterResource(id = R.drawable.ic_more_vert),
                     contentDescription = "overflow menu",
-                    modifier = Modifier.Companion.padding(horizontal = 4.dp),
                     tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
@@ -90,10 +94,10 @@ private fun PopUpMenuButton(
 
         Box {
             DropdownMenu(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.primaryContainer),
                 expanded = expanded.value,
                 onDismissRequest = { expanded.value = false },
-                modifier = Modifier.Companion
-                    .background(MaterialTheme.colorScheme.primaryContainer),
             ) {
                 options.forEachIndexed { _, item ->
                     DropdownMenuItem(

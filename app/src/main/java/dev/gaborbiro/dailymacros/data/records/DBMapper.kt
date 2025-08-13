@@ -26,6 +26,7 @@ internal class DBMapper {
                 ofWhichSugar = template.ofWhichSugar,
                 ofWhichSaturated = template.ofWhichSaturated,
                 salt = template.salt,
+                fibre = template.fibre,
             )
         )
     }

@@ -121,9 +121,10 @@ internal class RecordsRepositoryImpl(
                     protein = nutrients?.protein ?: oldTemplate.protein,
                     carbohydrates = nutrients?.carbohydrates ?: oldTemplate.carbohydrates,
                     ofWhichSugar = nutrients?.ofWhichSugar ?: oldTemplate.ofWhichSugar,
+                    fat = nutrients?.fat ?: oldTemplate.fat,
                     ofWhichSaturated = nutrients?.ofWhichSaturated ?: oldTemplate.ofWhichSaturated,
                     salt = nutrients?.salt ?: oldTemplate.salt,
-                    fat = nutrients?.fat ?: oldTemplate.fat,
+                    fibre = nutrients?.fibre ?: oldTemplate.fibre,
                 )
             )
             oldTemplate.image?.let { deleteImageIfUnused(it) }

@@ -34,7 +34,7 @@ internal class RecordsUIMapper(
             else -> timestamp.formatShort()
         }
         val nutrientsStr: String? =
-            record.template.nutrients?.let { nutrientsUIMapper.map(it, short = true) }
+            record.template.nutrients?.let { nutrientsUIMapper.map(it, isShort = true) }
 
         return RecordUIModel(
             recordId = record.id,

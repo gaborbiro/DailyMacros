@@ -3,8 +3,9 @@ package dev.gaborbiro.dailymacros.features.overview.useCases
 import android.util.Range
 import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.data.records.domain.model.Record
-import dev.gaborbiro.dailymacros.features.overview.model.GoalCellItem
-import dev.gaborbiro.dailymacros.features.overview.model.MacroGoalsProgress
+import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
+import dev.gaborbiro.dailymacros.features.overview.model.NutrientProgressItem
+import dev.gaborbiro.dailymacros.features.overview.model.NutrientProgress
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -13,9 +14,10 @@ import java.time.temporal.ChronoUnit
 
 internal class ObserveMacroGoalsProgressUseCase(
     private val recordsRepository: RecordsRepository,
+    private val nutrientsUIMapper: NutrientsUIMapper,
 ) {
 
-    suspend fun execute(): Flow<MacroGoalsProgress> {
+    suspend fun execute(): Flow<NutrientProgress> {
         val today = LocalDateTime.now().truncatedTo(ChronoUnit.DAYS)
         return recordsRepository
             .getRecordsFlow(today)
@@ -42,48 +44,48 @@ internal class ObserveMacroGoalsProgressUseCase(
                     todaysRecords.sumOf {
                         it.template.nutrients?.salt?.toDouble() ?: 0.0
                     }.toInt()
-                MacroGoalsProgress(
-                    calories = GoalCellItem(
+                NutrientProgress(
+                    calories = NutrientProgressItem(
                         title = "Calories",
-                        value = "$totalCalories cal",
-                        rangeLabel = "2.1-2.2kcal",
+                        progress = totalCalories.toFloat() / 2500,
+                        progressLabel = nutrientsUIMapper.mapCalories(totalCalories, withLabel = false)!!,
                         range = Range(.84f, .88f),
-                        progress = totalCalories.toFloat() / 2500
+                        rangeLabel = "2.1-2.2kcal",
                     ),
-                    protein = GoalCellItem(
+                    protein = NutrientProgressItem(
                         title = "Protein",
-                        value = "${totalProtein}g",
-                        rangeLabel = "170-190g",
+                        progress = totalProtein.toFloat() / 220,
+                        progressLabel = "${totalProtein}g",
                         range = Range(.8095f, .9047f),
-                        progress = totalProtein.toFloat() / 220
+                        rangeLabel = "170-190g",
                     ),
-                    fat = GoalCellItem(
+                    fat = NutrientProgressItem(
                         title = "Fat",
-                        value = "${totalFat}g",
+                        progress = totalFat.toFloat() / 66,
+                        progressLabel = "${totalFat}g",
+                        range = Range(.6818f, .9091f),
                         rangeLabel = "45-60g",
-                        range = Range(.6818f, .9091f),
-                        progress = totalFat.toFloat() / 66
                     ),
-                    carbs = GoalCellItem(
+                    carbs = NutrientProgressItem(
                         title = "Carbs",
-                        value = "${totalCarbs}g",
-                        rangeLabel = "150-200g",
+                        progress = totalCarbs.toFloat() / 220,
+                        progressLabel = "${totalCarbs}g",
                         range = Range(.6818f, .9091f),
-                        progress = totalCarbs.toFloat() / 220
+                        rangeLabel = "150-200g",
                     ),
-                    sugar = GoalCellItem(
+                    sugar = NutrientProgressItem(
                         title = "Sugar",
-                        value = "${totalSugar}g",
+                        progress = totalSugar.toFloat() / 40,
+                        progressLabel = "${totalSugar}g",
+                        range = Range(.9f, 1f),
                         rangeLabel = "<40g ttl., <25g",
-                        range = Range(.9f, 1f),
-                        progress = totalSugar.toFloat() / 40
                     ),
-                    salt = GoalCellItem(
+                    salt = NutrientProgressItem(
                         title = "Salt",
-                        value = "${totalSalt}g",
-                        rangeLabel = "<5g (≈2g Na)",
+                        progress = totalSalt.toFloat() / 5f,
+                        progressLabel = "${totalSalt}g",
                         range = Range(.9f, 1f),
-                        progress = totalSalt.toFloat() / 5f
+                        rangeLabel = "<5g (≈2g Na)",
                     ),
                 )
             }

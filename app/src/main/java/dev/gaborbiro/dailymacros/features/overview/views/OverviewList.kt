@@ -28,8 +28,8 @@ import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
-import dev.gaborbiro.dailymacros.features.overview.model.GoalCellItem
-import dev.gaborbiro.dailymacros.features.overview.model.MacroGoalsProgress
+import dev.gaborbiro.dailymacros.features.overview.model.NutrientProgressItem
+import dev.gaborbiro.dailymacros.features.overview.model.NutrientProgress
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
 import dev.gaborbiro.dailymacros.util.randomBitmap
 import kotlinx.coroutines.delay
@@ -96,14 +96,14 @@ internal fun OverviewList(
             ),
             state = listState,
         ) {
-            viewState.macroGoalsProgress?.let {
+            viewState.nutrientProgress?.let {
                 item {
-                    MacroGoalsView(it)
+                    NutrientProgressView(it)
                 }
             }
             items(records.size, key = { records[it].recordId }) {
                 OverviewListItem(
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .animateItem(),
                     record = records[it],
                     onRepeatMenuItemTapped = { record ->
@@ -152,48 +152,48 @@ private fun NotesListPreview() {
                         timestamp = "2022-05-01 00:00:00"
                     )
                 ),
-                macroGoalsProgress = MacroGoalsProgress(
-                    calories = GoalCellItem(
+                nutrientProgress = NutrientProgress(
+                    calories = NutrientProgressItem(
                         title = "Calories",
-                        value = "1005 cal",
-                        rangeLabel = "2.1-2.2kcal",
-                        range = Range(.84f, .88f),
                         progress = .15f,
+                        progressLabel = "1005cal",
+                        range = Range(.84f, .88f),
+                        rangeLabel = "2.1-2.2kcal",
                     ),
-                    protein = GoalCellItem(
+                    protein = NutrientProgressItem(
                         title = "Protein",
-                        value = "110g",
-                        rangeLabel = "170-190g",
-                        range = Range(.8095f, .9047f),
                         progress = .0809f,
+                        progressLabel = "110g",
+                        range = Range(.8095f, .9047f),
+                        rangeLabel = "170-190g",
                     ),
-                    fat = GoalCellItem(
+                    fat = NutrientProgressItem(
                         title = "Fat",
-                        value = "30g",
-                        rangeLabel = "45-60g",
-                        range = Range(.6818f, .9091f),
                         progress = .2121f,
-                    ),
-                    carbs = GoalCellItem(
-                        title = "Carbs",
-                        value = "105g",
-                        rangeLabel = "150-200g",
+                        progressLabel = "30g",
                         range = Range(.6818f, .9091f),
+                        rangeLabel = "45-60g",
+                    ),
+                    carbs = NutrientProgressItem(
+                        title = "Carbs",
                         progress = .1818f,
+                        progressLabel = "105g",
+                        range = Range(.6818f, .9091f),
+                        rangeLabel = "150-200g",
                     ),
-                    sugar = GoalCellItem(
+                    sugar = NutrientProgressItem(
                         title = "Sugar",
-                        value = "35g",
-                        rangeLabel = "<40g ttl., <25g",
-                        range = Range(.9091f, .9091f),
                         progress = .2955f,
-                    ),
-                    salt = GoalCellItem(
-                        title = "Salt",
-                        value = "0g",
-                        rangeLabel = "<5g (≈2g Na)",
+                        progressLabel = "35g",
                         range = Range(.9091f, .9091f),
+                        rangeLabel = "<40g ttl., <25g",
+                    ),
+                    salt = NutrientProgressItem(
+                        title = "Salt",
                         progress = .0f,
+                        progressLabel = "0g",
+                        range = Range(.9091f, .9091f),
+                        rangeLabel = "<5g (≈2g Na)",
                     ),
                 )
             ),
