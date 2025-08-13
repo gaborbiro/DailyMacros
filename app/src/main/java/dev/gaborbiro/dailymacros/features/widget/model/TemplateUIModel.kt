@@ -6,8 +6,9 @@ internal class TemplateUIModel(
     val templateId: Long,
     val bitmap: Bitmap?,
     val title: String,
+    val description: String?,
 ) {
     override fun toString(): String {
-        return "TemplateUIModel(templateId=$templateId, bitmap=${bitmap?.byteCount ?: 0} bytes, title='$title')"
+        return "TemplateUIModel(templateId=$templateId, bitmap=${bitmap?.byteCount ?: 0} bytes, title='$title', description='$description')"
     }
 }

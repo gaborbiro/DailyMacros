@@ -150,16 +150,19 @@ private fun RecordListPreviewExpanded() {
                 TemplateUIModel(
                     templateId = 1,
                     title = "Breakfast",
+                    description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     bitmap = randomBitmap(),
                 ),
                 TemplateUIModel(
                     templateId = 2,
                     title = "Lunch",
+                    description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     bitmap = randomBitmap(),
                 ),
                 TemplateUIModel(
                     templateId = 3,
                     title = "Dinner",
+                    description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     bitmap = null,
                 ),
             ),

@@ -2,25 +2,29 @@ package dev.gaborbiro.dailymacros.features.widget
 
 import android.graphics.Bitmap
 import dev.gaborbiro.dailymacros.data.records.domain.model.Template
+import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.widget.model.TemplateUIModel
 import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
 
-internal class TemplatesUIMapper(
+internal class WidgetUIMapper(
     private val bitmapStore: BitmapStore,
+    private val nutrientsUIMapper: NutrientsUIMapper,
 ) {
 
-    fun map(records: List<Template>, thumbnail: Boolean): List<TemplateUIModel> {
-        return records.map {
+    fun map(templates: List<Template>, thumbnail: Boolean): List<TemplateUIModel> {
+        return templates.map {
             map(it, thumbnail)
         }
     }
 
     private fun map(template: Template, thumbnail: Boolean): TemplateUIModel {
         val bitmap: Bitmap? = template.image?.let { bitmapStore.read(it, thumbnail) }
+        val description = nutrientsUIMapper.map(template.nutrients, isShort = true)
         return TemplateUIModel(
             templateId = template.id,
             bitmap = bitmap,
             title = template.name,
+            description = description,
         )
     }
 }

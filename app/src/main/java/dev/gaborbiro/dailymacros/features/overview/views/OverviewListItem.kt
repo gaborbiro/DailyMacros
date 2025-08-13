@@ -22,6 +22,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -110,7 +112,7 @@ private fun RecordTextContent(modifier: Modifier, record: RecordUIModel) {
             text = record.title,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
         )
         Text(
             modifier = Modifier
@@ -122,7 +124,7 @@ private fun RecordTextContent(modifier: Modifier, record: RecordUIModel) {
         )
         Text(
             text = record.timestamp,
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.labelMedium,
             modifier = Modifier
                 .padding(top = PaddingQuarter)
         )

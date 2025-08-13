@@ -23,6 +23,6 @@ interface TemplatesDAO {
     @Query("DELETE FROM templates WHERE _id = :id")
     suspend fun delete(id: Long): Int
 
-    @Query("SELECT templates._id, templates.image, templates.name, templates.description, COUNT(records._id) as count FROM templates LEFT JOIN records ON templates._id = records.templateId GROUP BY templates._id ORDER BY count DESC")
+    @Query("SELECT templates._id, templates.image, templates.name, templates.description, templates.calories, templates.protein, templates.carbohydrates, templates.ofWhichSugar, templates.fat, templates.ofWhichSaturated, templates.salt, templates.fibre, COUNT(records._id) as count FROM templates LEFT JOIN records ON templates._id = records.templateId GROUP BY templates._id ORDER BY count DESC")
     suspend fun getByFrequency(): List<TemplateDBModel>
 }

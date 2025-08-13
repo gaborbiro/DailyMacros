@@ -11,6 +11,7 @@ import androidx.glance.action.action
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.layout.Alignment
+import androidx.glance.layout.Column
 import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
@@ -54,15 +55,28 @@ internal fun TemplateListItem(
             ?: run {
                 Spacer(modifier = GlanceModifier.size(WidgetTemplateImageSize))
             }
-        Text(
-            modifier = GlanceModifier
-                .defaultWeight()
-                .wrapContentHeight()
-                .padding(horizontal = PaddingWidgetDefaultHorizontal),
-            text = template.title,
-            maxLines = 2,
-            style = titleTextStyle,
-        )
+        Column {
+            Text(
+                modifier = GlanceModifier
+                    .defaultWeight()
+                    .wrapContentHeight()
+                    .padding(horizontal = PaddingWidgetDefaultHorizontal),
+                text = template.title,
+                maxLines = 1,
+                style = titleTextStyle,
+            )
+            template.description?.let {
+                Text(
+                    modifier = GlanceModifier
+                        .defaultWeight()
+                        .wrapContentHeight()
+                        .padding(horizontal = PaddingWidgetDefaultHorizontal),
+                    text = template.description,
+                    maxLines = 2,
+                    style = descriptionTextStyle,
+                )
+            }
+        }
     }
 }
 
@@ -74,6 +88,7 @@ private fun TemplateListItemPreview() {
         TemplateListItem(
             template = TemplateUIModel(
                 title = "Breakfast",
+                description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                 bitmap = randomBitmap(),
                 templateId = 0L,
             ),

@@ -106,8 +106,8 @@ fun NutrientProgressView(model: NutrientProgress) {
                     text = cellData.title,
                     style = MaterialTheme.typography.bodySmall,
                 )
-                val text = HighlightSubstring(
-                    text = cellData.progressLabel + " (" + cellData.rangeLabel + ")",
+                val text = highlightSubstring(
+                    text = cellData.progressLabel + " /" + cellData.rangeLabel,
                     highlight = cellData.progressLabel,
                     textStyle = MaterialTheme.typography.bodyMedium
                         .copy(color = Color.Blue.copy(alpha = .5f)),
@@ -124,7 +124,7 @@ fun NutrientProgressView(model: NutrientProgress) {
     }
 }
 
-private fun HighlightSubstring(
+private fun highlightSubstring(
     text: String,
     highlight: String,
     textStyle: TextStyle,
@@ -144,21 +144,6 @@ private fun HighlightSubstring(
         }
     }
 }
-
-//private fun TextStyle.toSpanStyle(): SpanStyle {
-//    return SpanStyle(
-//        color = this.color,
-//        fontSize = this.fontSize,
-//        fontWeight = this.fontWeight,
-//        fontStyle = this.fontStyle,
-//        fontSynthesis = this.fontSynthesis,
-//        fontFamily = this.fontFamily,
-//        letterSpacing = this.letterSpacing,
-//        background = this.background,
-//        textDecoration = this.textDecoration,
-//        shadow = this.shadow
-//    )
-//}
 
 @Preview
 @Composable

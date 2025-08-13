@@ -54,7 +54,6 @@ internal fun OverviewList(
 ) {
     val listState: LazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-    val records = viewState.records
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -102,11 +101,11 @@ internal fun OverviewList(
                     NutrientProgressView(it)
                 }
             }
-            items(records.size, key = { records[it].recordId }) {
+            items(viewState.records.size, key = { viewState.records[it].recordId }) {
                 OverviewListItem(
                     modifier = Modifier
                         .animateItem(),
-                    record = records[it],
+                    record = viewState.records[it],
                     onRepeatMenuItemTapped = { record ->
                         onRepeatMenuItemTapped(record)
                         coroutineScope.launch {

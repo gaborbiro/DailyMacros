@@ -11,7 +11,6 @@ import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.LocalContext
-import androidx.glance.action.actionStartActivity
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
@@ -25,7 +24,6 @@ import dev.gaborbiro.dailymacros.data.records.domain.model.Template
 import dev.gaborbiro.dailymacros.design.WidgetColorScheme
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
-import dev.gaborbiro.dailymacros.features.main.MainActivity
 import dev.gaborbiro.dailymacros.features.widget.views.WidgetContent
 import dev.gaborbiro.dailymacros.features.widget.workers.ReloadWorkRequest
 import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
@@ -73,9 +71,9 @@ class NotesWidget : GlanceAppWidget() {
                 records = prefs.retrieveRecentRecords(),
                 thumbnail = true,
             )
-            val templatesUIMapper = TemplatesUIMapper(bitmapStore)
-            val topTemplates = templatesUIMapper.map(
-                records = prefs.retrieveTopTemplates(),
+            val widgetUIMapper = WidgetUIMapper(bitmapStore, nutrientsUIMapper)
+            val topTemplates = widgetUIMapper.map(
+                templates = prefs.retrieveTopTemplates(),
                 thumbnail = true,
             )
 
