@@ -7,12 +7,7 @@ import androidx.glance.action.ActionParameters
 import androidx.glance.action.actionParametersOf
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
-import dev.gaborbiro.dailymacros.data.records.DBMapper
-import dev.gaborbiro.dailymacros.data.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.features.modal.ModalActivity
-import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
-import dev.gaborbiro.dailymacros.store.db.AppDatabase
-import dev.gaborbiro.dailymacros.store.file.FileStoreFactoryImpl
 
 interface NotesWidgetNavigator {
 
@@ -26,7 +21,9 @@ interface NotesWidgetNavigator {
 
     fun getRecordBodyTappedAction(recordId: Long): Action
 
-    fun getApplyTemplateAction(templateId: Long): Action
+    fun getTemplateImageTappedAction(templateId: Long): Action
+
+    fun getTemplateBodyTappedAction(templateId: Long): Action
 
     fun getReloadAction(): Action
 }
@@ -46,7 +43,7 @@ class NotesWidgetNavigatorImpl : NotesWidgetNavigator {
     }
 
     override fun getRecordImageTappedAction(recordId: Long): Action {
-        return actionRunCallback<ImageTappedAction>(
+        return actionRunCallback<RecordImageTappedAction>(
             actionParametersOf(
                 ActionParameters.Key<Long>(PREFS_KEY_RECORD) to recordId
             )
@@ -61,8 +58,16 @@ class NotesWidgetNavigatorImpl : NotesWidgetNavigator {
         )
     }
 
-    override fun getApplyTemplateAction(templateId: Long): Action {
-        return actionRunCallback<ApplyTemplateAction>(
+    override fun getTemplateImageTappedAction(templateId: Long): Action {
+        return actionRunCallback<TemplateImageTappedAction>(
+            actionParametersOf(
+                ActionParameters.Key<Long>(PREFS_KEY_TEMPLATE) to templateId
+            )
+        )
+    }
+
+    override fun getTemplateBodyTappedAction(templateId: Long): Action {
+        return actionRunCallback<TemplateBodyTappedAction>(
             actionParametersOf(
                 ActionParameters.Key<Long>(PREFS_KEY_TEMPLATE) to templateId
             )
@@ -105,14 +110,25 @@ class AddNoteAction : ActionCallback {
     }
 }
 
-class ImageTappedAction : ActionCallback {
+class RecordImageTappedAction : ActionCallback {
     override suspend fun onAction(
         context: Context,
         glanceId: GlanceId,
         parameters: ActionParameters,
     ) {
         val recordId = parameters[ActionParameters.Key<Long>(PREFS_KEY_RECORD)]!!
-        ModalActivity.launchViewImage(context, recordId)
+        ModalActivity.launchViewRecordImage(context, recordId)
+    }
+}
+
+class TemplateImageTappedAction : ActionCallback {
+    override suspend fun onAction(
+        context: Context,
+        glanceId: GlanceId,
+        parameters: ActionParameters,
+    ) {
+        val templateId = parameters[ActionParameters.Key<Long>(PREFS_KEY_TEMPLATE)]!!
+        ModalActivity.launchViewTemplateImage(context, templateId)
     }
 }
 
@@ -127,22 +143,34 @@ class RecordBodyTappedAction : ActionCallback {
     }
 }
 
-class ApplyTemplateAction : ActionCallback {
+//class ApplyTemplateAction : ActionCallback {
+//
+//    override suspend fun onAction(
+//        context: Context,
+//        glanceId: GlanceId,
+//        parameters: ActionParameters,
+//    ) {
+//        val fileStore = FileStoreFactoryImpl(context).getStore("public", keepFiles = true)
+//        val templateId = parameters[ActionParameters.Key<Long>(PREFS_KEY_TEMPLATE)]!!
+//        val recordsRepository = RecordsRepositoryImpl(
+//            templatesDAO = AppDatabase.getInstance().templatesDAO(),
+//            recordsDAO = AppDatabase.getInstance().recordsDAO(),
+//            dBMapper = DBMapper(),
+//            bitmapStore = BitmapStore(fileStore),
+//        )
+//        recordsRepository.applyTemplate(templateId)
+//    }
+//}
+
+class TemplateBodyTappedAction : ActionCallback {
 
     override suspend fun onAction(
         context: Context,
         glanceId: GlanceId,
         parameters: ActionParameters,
     ) {
-        val fileStore = FileStoreFactoryImpl(context).getStore("public", keepFiles = true)
         val templateId = parameters[ActionParameters.Key<Long>(PREFS_KEY_TEMPLATE)]!!
-        val recordsRepository = RecordsRepositoryImpl(
-            templatesDAO = AppDatabase.getInstance().templatesDAO(),
-            recordsDAO = AppDatabase.getInstance().recordsDAO(),
-            dBMapper = DBMapper(),
-            bitmapStore = BitmapStore(fileStore),
-        )
-        recordsRepository.applyTemplate(templateId)
+        ModalActivity.launchSelectTemplateAction(context, templateId)
     }
 }
 

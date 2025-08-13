@@ -23,6 +23,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.EditValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.FetchNutrientsUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodPicSummaryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditImageUseCase
@@ -51,6 +52,7 @@ internal class ModalScreenViewModel(
     private val editRecordImageUseCase: EditRecordImageUseCase,
     private val editTemplateImageUseCase: EditTemplateImageUseCase,
     private val getRecordImageUseCase: GetRecordImageUseCase,
+    private val getTemplateImageUseCase: GetTemplateImageUseCase,
     private val foodPicSummaryUseCase: FoodPicSummaryUseCase,
     private val nutrientsUIMapper: NutrientsUIMapper,
 ) : ViewModel() {
@@ -106,11 +108,21 @@ internal class ModalScreenViewModel(
         }
     }
 
-    fun viewImage(recordId: Long) {
+    fun viewRecordImage(recordId: Long) {
         runSafely {
             _viewState.update {
                 it.copy(
                     dialog = getRecordImageUseCase.execute(recordId, thumbnail = false)!!
+                )
+            }
+        }
+    }
+
+    fun viewTemplateImage(templateId: Long) {
+        runSafely {
+            _viewState.update {
+                it.copy(
+                    dialog = getTemplateImageUseCase.execute(templateId, thumbnail = false)!!
                 )
             }
         }
@@ -158,7 +170,18 @@ internal class ModalScreenViewModel(
         runSafely {
             _viewState.update {
                 it.copy(
-                    dialog = DialogState.SelectActionDialog(recordId)
+                    dialog = DialogState.SelectRecordActionDialog(recordId)
+                )
+            }
+        }
+    }
+
+    @UiThread
+    fun selectTemplateAction(templateId: Long) {
+        runSafely {
+            _viewState.update {
+                it.copy(
+                    dialog = DialogState.SelectTemplateActionDialog(templateId)
                 )
             }
         }
@@ -283,6 +306,14 @@ internal class ModalScreenViewModel(
     fun onRepeatRecordTapped(recordId: Long) {
         viewModelScope.launch {
             recordsRepository.duplicateRecord(recordId)
+            refreshWidgetAndClose()
+        }
+    }
+
+    @UiThread
+    fun onRepeatTemplateTapped(templateId: Long) {
+        viewModelScope.launch {
+            recordsRepository.applyTemplate(templateId)
             refreshWidgetAndClose()
         }
     }

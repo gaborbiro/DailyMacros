@@ -41,6 +41,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FetchNutrientsUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodPicSummaryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditImageUseCase
@@ -49,7 +50,8 @@ import dev.gaborbiro.dailymacros.features.modal.views.EditImageTargetConfirmatio
 import dev.gaborbiro.dailymacros.features.modal.views.EditTargetConfirmationDialog
 import dev.gaborbiro.dailymacros.features.modal.views.ImageDialog
 import dev.gaborbiro.dailymacros.features.modal.views.InputDialog
-import dev.gaborbiro.dailymacros.features.modal.views.SelectActionDialog
+import dev.gaborbiro.dailymacros.features.modal.views.SelectRecordActionDialog
+import dev.gaborbiro.dailymacros.features.modal.views.SelectTemplateActionDialog
 import dev.gaborbiro.dailymacros.features.widget.NotesWidget
 import dev.gaborbiro.dailymacros.generateImageFilename
 import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
@@ -79,10 +81,16 @@ class ModalActivity : AppCompatActivity() {
         private fun getImagePickerIntent(context: Context) =
             getActionIntent(context, Action.PICK_IMAGE)
 
-        fun launchViewImage(context: Context, recordId: Long) = launchActivity(
+        fun launchViewRecordImage(context: Context, recordId: Long) = launchActivity(
             appContext = context,
             intent = getViewImageAction(context),
             EXTRA_RECORD_ID to recordId,
+        )
+
+        fun launchViewTemplateImage(context: Context, templateId: Long) = launchActivity(
+            appContext = context,
+            intent = getViewImageAction(context),
+            EXTRA_TEMPLATE_ID to templateId,
         )
 
         private fun getViewImageAction(context: Context) =
@@ -116,6 +124,14 @@ class ModalActivity : AppCompatActivity() {
             )
         }
 
+        fun launchSelectTemplateAction(context: Context, templateId: Long) {
+            launchActivity(
+                appContext = context,
+                intent = getActionIntent(context, Action.SELECT_TEMPLATE_ACTION),
+                EXTRA_TEMPLATE_ID to templateId
+            )
+        }
+
         private fun launchActivity(
             appContext: Context,
             intent: Intent,
@@ -136,10 +152,11 @@ class ModalActivity : AppCompatActivity() {
         private const val EXTRA_ACTION = "extra_action"
 
         private enum class Action {
-            CAMERA, PICK_IMAGE, TEXT_ONLY, CHANGE_IMAGE, VIEW_RECORD_DETAILS, VIEW_IMAGE, SELECT_RECORD_ACTION
+            CAMERA, PICK_IMAGE, TEXT_ONLY, CHANGE_IMAGE, VIEW_RECORD_DETAILS, VIEW_IMAGE, SELECT_RECORD_ACTION, SELECT_TEMPLATE_ACTION
         }
 
         private const val EXTRA_RECORD_ID = "record_id"
+        private const val EXTRA_TEMPLATE_ID = "template_id"
 
         const val REQUEST_TIMEOUT_IN_SECONDS = 90L
     }
@@ -215,6 +232,7 @@ class ModalActivity : AppCompatActivity() {
             editRecordImageUseCase = EditRecordImageUseCase(recordsRepository),
             editTemplateImageUseCase = EditTemplateImageUseCase(recordsRepository),
             getRecordImageUseCase = GetRecordImageUseCase(recordsRepository, bitmapStore),
+            getTemplateImageUseCase = GetTemplateImageUseCase(recordsRepository, bitmapStore),
             foodPicSummaryUseCase = FoodPicSummaryUseCase(bitmapStore, chatGPTRepository, recordsMapper),
             nutrientsUIMapper = nutrientsUIMapper,
         )
@@ -248,12 +266,22 @@ class ModalActivity : AppCompatActivity() {
 
             Action.VIEW_IMAGE -> {
                 val recordId = intent.getLongExtra(EXTRA_RECORD_ID, -1L)
-                viewModel.viewImage(recordId)
+                if (recordId != -1L) {
+                    viewModel.viewRecordImage(recordId)
+                } else {
+                    val templateId = intent.getLongExtra(EXTRA_TEMPLATE_ID, -1L)
+                    viewModel.viewTemplateImage(templateId)
+                }
             }
 
             Action.SELECT_RECORD_ACTION -> {
                 val recordId = intent.getLongExtra(EXTRA_RECORD_ID, -1L)
                 viewModel.selectRecordAction(recordId)
+            }
+
+            Action.SELECT_TEMPLATE_ACTION -> {
+                val templateId = intent.getLongExtra(EXTRA_TEMPLATE_ID, -1L)
+                viewModel.selectTemplateAction(templateId)
             }
         }
 
@@ -344,13 +372,21 @@ class ModalActivity : AppCompatActivity() {
                 onDismissRequested = viewModel::onDialogDismissRequested,
             )
 
-            is DialogState.SelectActionDialog -> SelectActionDialog(
+            is DialogState.SelectRecordActionDialog -> SelectRecordActionDialog(
                 recordId = dialogState.recordId,
                 onRepeatTapped = viewModel::onRepeatRecordTapped,
                 onEditTapped = viewModel::onEditTapped,
                 onDeleteTapped = viewModel::onDeleteTapped,
                 onDismissRequested = viewModel::onDialogDismissRequested,
             )
+
+            is DialogState.SelectTemplateActionDialog -> {
+                SelectTemplateActionDialog(
+                    templateId = dialogState.templateId,
+                    onRepeatTapped = viewModel::onRepeatTemplateTapped,
+                    onDismissRequested = viewModel::onDialogDismissRequested,
+                )
+            }
 
             null -> {
                 // nothing to do

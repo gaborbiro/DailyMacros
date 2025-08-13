@@ -6,26 +6,30 @@ import androidx.glance.GlanceModifier
 import androidx.glance.action.Action
 import androidx.glance.action.action
 import androidx.glance.appwidget.lazy.LazyColumn
+import androidx.glance.layout.Column
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxWidth
+import androidx.glance.layout.height
 import androidx.glance.layout.size
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
+import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefault
 import dev.gaborbiro.dailymacros.features.widget.model.TemplateUIModel
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 import dev.gaborbiro.dailymacros.util.randomBitmap
 
 @Composable
-internal fun RecordsList(
+internal fun WidgetList(
     modifier: GlanceModifier,
     recentRecords: List<RecordUIModel>,
     topTemplates: List<TemplateUIModel>,
     showTemplates: Boolean,
     recordImageTapActionProvider: @Composable (recordId: Long) -> Action,
     recordBodyTapActionProvider: @Composable (recordId: Long) -> Action,
-    templateTapActionProvider: @Composable (templateId: Long) -> Action,
+    templateImageTapActionProvider: @Composable (templateId: Long) -> Action,
+    templateBodyTapActionProvider: @Composable (templateId: Long) -> Action,
     onTemplatesExpandButtonTapped: () -> Unit,
 ) {
     LazyColumn(
@@ -54,28 +58,47 @@ internal fun RecordsList(
             when {
                 index < recentRecords.size -> {
                     val record = recentRecords[mappedIndex]
-                    RecordListItem(
-                        record = record,
-                        imageTappedActionProvider = recordImageTapActionProvider(record.recordId),
-                        bodyTappedActionProvider = recordBodyTapActionProvider(record.recordId),
-                    )
+                    Column(
+                        modifier = GlanceModifier
+                            .fillMaxWidth()
+                    ) {
+                        Spacer(modifier = GlanceModifier.height(PaddingWidgetDefault))
+                        RecordListItem(
+                            record = record,
+                            imageTappedActionProvider = recordImageTapActionProvider(record.recordId),
+                            bodyTappedActionProvider = recordBodyTapActionProvider(record.recordId),
+                        )
+                    }
                 }
 
                 index == recentRecords.size -> {
-                    SectionTitle(
-                        title = "Top Meals",
-                        trailingImage = if (showTemplates) R.drawable.keyboard_arrow_down else R.drawable.keyboard_arrow_right,
-                        onClick = onTemplatesExpandButtonTapped,
-                    )
+                    Column(
+                        modifier = GlanceModifier
+                            .fillMaxWidth()
+                    ) {
+                        Spacer(modifier = GlanceModifier.height(PaddingWidgetDefault))
+                        SectionTitle(
+                            title = "Top Meals",
+                            trailingImage = if (showTemplates) R.drawable.keyboard_arrow_down else R.drawable.keyboard_arrow_right,
+                            onClick = onTemplatesExpandButtonTapped,
+                        )
+                    }
                 }
 
                 else -> {
                     if (showTemplates) {
                         val template = topTemplates[mappedIndex]
-                        TemplateListItem(
-                            template = template,
-                            tapActionProvider = templateTapActionProvider(template.templateId),
-                        )
+                        Column(
+                            modifier = GlanceModifier
+                                .fillMaxWidth()
+                        ) {
+                            Spacer(modifier = GlanceModifier.height(PaddingWidgetDefault))
+                            TemplateListItem(
+                                template = template,
+                                imageTapActionProvider = templateImageTapActionProvider(template.templateId),
+                                bodyTapActionProvider = templateBodyTapActionProvider(template.templateId),
+                            )
+                        }
                     } else {
                         Spacer(modifier = GlanceModifier.size(5.dp))
                     }
@@ -96,7 +119,7 @@ private fun mapListIndex(recentRecordsSize: Int, index: Int) = when {
 @OptIn(ExperimentalGlancePreviewApi::class)
 private fun RecordListPreviewExpanded() {
     WidgetPreview {
-        RecordsList(
+        WidgetList(
             modifier = GlanceModifier
                 .fillMaxWidth(),
             recentRecords = listOf(
@@ -145,7 +168,8 @@ private fun RecordListPreviewExpanded() {
             showTemplates = true,
             recordImageTapActionProvider = { action {} },
             recordBodyTapActionProvider = { action {} },
-            templateTapActionProvider = { action {} },
+            templateImageTapActionProvider = { action {} },
+            templateBodyTapActionProvider = { action {} },
             onTemplatesExpandButtonTapped = { },
         )
     }
@@ -156,7 +180,7 @@ private fun RecordListPreviewExpanded() {
 @OptIn(ExperimentalGlancePreviewApi::class)
 private fun RecordListPreviewCollapsed() {
     WidgetPreview {
-        RecordsList(
+        WidgetList(
             modifier = GlanceModifier
                 .fillMaxWidth(),
             recentRecords = listOf(
@@ -189,7 +213,8 @@ private fun RecordListPreviewCollapsed() {
             showTemplates = false,
             recordImageTapActionProvider = { action {} },
             recordBodyTapActionProvider = { action {} },
-            templateTapActionProvider = { action {} },
+            templateImageTapActionProvider = { action {} },
+            templateBodyTapActionProvider = { action {} },
             onTemplatesExpandButtonTapped = { },
         )
     }

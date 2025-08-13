@@ -11,11 +11,11 @@ internal class NutrientsUIMapper {
             nutrients?.protein?.let { mapProtein(it, isShort) },
             nutrients?.carbohydrates?.let { mapCarbohydrates(it, nutrients.ofWhichSugar, isShort) },
             if (!isShort) {
-                nutrients?.ofWhichSugar?.let { mapSugar(it, isShort = false) }
+                nutrients?.ofWhichSugar?.let { mapSugar(it) }
             } else null,
             nutrients?.fat?.let { mapFat(it, nutrients.ofWhichSaturated, isShort) },
             if (!isShort) {
-                nutrients?.ofWhichSaturated?.let { mapSaturated(it, isShort = false) }
+                nutrients?.ofWhichSaturated?.let { mapSaturated(it) }
             } else null,
             nutrients?.salt?.let { mapSalt(it, isShort) },
             nutrients?.fibre?.let { mapFibre(it, isShort) }
@@ -29,13 +29,15 @@ internal class NutrientsUIMapper {
         isShort: Boolean = false,
         withLabel: Boolean = true,
     ): String? {
+        val smallScaleValue = false
         val (shortFormat, longFormat) = generateFormats(
-            label = "Calories:",
             shortLabel = "",
+            longLabel = "Calories:",
             unit = "cal",
             withLabel = withLabel,
+            forceDecimal = smallScaleValue,
         )
-        return map(value, shortFormat, longFormat, isShort)
+        return map(value, shortFormat, longFormat, isShort, forceDecimal = smallScaleValue)
     }
 
     fun mapProtein(
@@ -43,12 +45,15 @@ internal class NutrientsUIMapper {
         isShort: Boolean = false,
         withLabel: Boolean = true,
     ): String? {
+        val smallScaleValue = false
         val (shortFormat, longFormat) = generateFormats(
-            label = "Protein:",
-            unit = "g",
+            shortLabel = "prot",
+            longLabel = "Protein:",
+            unit = if (isShort) "" else "g",
             withLabel = withLabel,
+            forceDecimal = smallScaleValue,
         )
-        return map(value, shortFormat, longFormat, isShort)
+        return map(value, shortFormat, longFormat, isShort, forceDecimal = smallScaleValue)
     }
 
     fun mapCarbohydrates(
@@ -57,12 +62,15 @@ internal class NutrientsUIMapper {
         isShort: Boolean = false,
         withLabel: Boolean = true,
     ): String? {
+        val smallScaleValue = false
         val (shortFormat, longFormat) = generateFormats(
-            label = "Carbs:",
-            unit = "g",
+            shortLabel = "carb",
+            longLabel = "Carbs:",
+            unit = if (isShort) "" else "g",
             withLabel = withLabel,
+            forceDecimal = smallScaleValue,
         )
-        return map(value, shortFormat, longFormat, isShort) {
+        return map(value, shortFormat, longFormat, isShort, forceDecimal = smallScaleValue) {
             mapSugar(sugar, isShort, withLabel = false)
         }
     }
@@ -72,13 +80,15 @@ internal class NutrientsUIMapper {
         isShort: Boolean = false,
         withLabel: Boolean = true,
     ): String? {
+        val smallScaleValue = true
         val (shortFormat, longFormat) = generateFormats(
-            label = "of which sugar:",
             shortLabel = "",
-            unit = "g",
+            longLabel = "of which sugar:",
+            unit = if (isShort) "" else "g",
             withLabel = withLabel,
+            forceDecimal = smallScaleValue,
         )
-        return map(value, shortFormat, longFormat, isShort)
+        return map(value, shortFormat, longFormat, isShort, forceDecimal = smallScaleValue)
     }
 
     fun mapFat(
@@ -87,12 +97,15 @@ internal class NutrientsUIMapper {
         isShort: Boolean = false,
         withLabel: Boolean = true,
     ): String? {
+        val smallScaleValue = false
         val (shortFormat, longFormat) = generateFormats(
-            label = "Fat:",
-            unit = "g",
+            shortLabel = "fat",
+            longLabel = "Fat:",
+            unit = if (isShort) "" else "g",
             withLabel = withLabel,
+            forceDecimal = smallScaleValue,
         )
-        return map(value, shortFormat, longFormat, isShort) {
+        return map(value, shortFormat, longFormat, isShort, forceDecimal = smallScaleValue) {
             mapSaturated(saturated, isShort, withLabel = false)
         }
     }
@@ -102,13 +115,15 @@ internal class NutrientsUIMapper {
         isShort: Boolean = false,
         withLabel: Boolean = true,
     ): String? {
+        val smallScaleValue = false
         val (shortFormat, longFormat) = generateFormats(
-            label = "of which saturated:",
             shortLabel = "",
-            unit = "g",
+            longLabel = "of which saturated:",
+            unit = if (isShort) "" else "g",
             withLabel = withLabel,
+            forceDecimal = smallScaleValue,
         )
-        return map(value, shortFormat, longFormat, isShort)
+        return map(value, shortFormat, longFormat, isShort, forceDecimal = smallScaleValue)
     }
 
     fun mapSalt(
@@ -116,12 +131,15 @@ internal class NutrientsUIMapper {
         isShort: Boolean = false,
         withLabel: Boolean = true,
     ): String? {
+        val smallScaleValue = true
         val (shortFormat, longFormat) = generateFormats(
-            label = "Salt:",
-            unit = "g",
+            shortLabel = "sal",
+            longLabel = "Salt:",
+            unit = if (isShort) "" else "g",
             withLabel = withLabel,
+            forceDecimal = smallScaleValue,
         )
-        return map(value, shortFormat, longFormat, isShort)
+        return map(value, shortFormat, longFormat, isShort, forceDecimal = smallScaleValue)
     }
 
     fun mapFibre(
@@ -129,12 +147,15 @@ internal class NutrientsUIMapper {
         isShort: Boolean = false,
         withLabel: Boolean = true,
     ): String? {
+        val smallScaleValue = false
         val (shortFormat, longFormat) = generateFormats(
-            label = "Fibre:",
-            unit = "g",
+            shortLabel = "fib",
+            longLabel = "Fibre:",
+            unit = if (isShort) "" else "g",
             withLabel = withLabel,
+            forceDecimal = smallScaleValue,
         )
-        return map(value, shortFormat, longFormat, isShort)
+        return map(value, shortFormat, longFormat, isShort, forceDecimal = smallScaleValue)
     }
 
     private fun map(
@@ -142,9 +163,13 @@ internal class NutrientsUIMapper {
         shortFormat: DecimalFormat,
         longFormat: DecimalFormat,
         isShort: Boolean = false,
+        forceDecimal: Boolean,
         contractedValue: (() -> String?)? = null,
     ): String? {
         return value
+            ?.takeIf {
+                if (forceDecimal) true else it.toInt() > 0f
+            }
             ?.let {
                 if (isShort) {
                     shortFormat.format(value) + (contractedValue?.invoke()?.let { "($it)" } ?: "")
@@ -162,26 +187,30 @@ internal class NutrientsUIMapper {
     }
 
     private fun generateFormats(
-        label: String,
-        shortLabel: String? = label,
+        shortLabel: String,
+        longLabel: String,
         unit: String,
         withLabel: Boolean,
+        forceDecimal: Boolean,
     ): Pair<DecimalFormat, DecimalFormat> {
         val unitLiteral = unit.literal()
-        val decimalFormat = "0.#$unitLiteral"
-        val labelLiteral = "$label ".literal()
+        val longDecimalFormat = "0.#$unitLiteral"
+        val shortDecimalFormat = if (forceDecimal) longDecimalFormat else "#$unitLiteral"
         val shortLabelLiteral = "$shortLabel ".literal()
+        val longLabelLiteral = "$longLabel ".literal()
         val shortFormat =
-            if (withLabel) DecimalFormat("$shortLabelLiteral$decimalFormat") else DecimalFormat(decimalFormat)
+            if (withLabel) DecimalFormat("$shortLabelLiteral$shortDecimalFormat") else DecimalFormat(shortDecimalFormat)
         val longFormat =
-            if (withLabel) DecimalFormat("$labelLiteral$decimalFormat") else DecimalFormat(decimalFormat)
+            if (withLabel) DecimalFormat("$longLabelLiteral$longDecimalFormat") else DecimalFormat(longDecimalFormat)
         return shortFormat to longFormat
     }
 
     /**
-     * @return receiver wrapped in '' if non blank, empty string otherwise
+     * @return receiver wrapped in '' if non blank, [default] otherwise
      */
-    private fun String.literal() = takeIf(String::isNotBlank)
+    private fun String.literal(
+        default: String? = "",
+    ) = takeIf(String::isNotBlank)
         ?.let { "'$this'" }
-        ?: ""
+        ?: default
 }

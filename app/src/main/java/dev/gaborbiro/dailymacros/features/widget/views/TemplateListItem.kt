@@ -29,13 +29,13 @@ import dev.gaborbiro.dailymacros.util.randomBitmap
 @Composable
 internal fun TemplateListItem(
     template: TemplateUIModel,
-    tapActionProvider: Action,
+    imageTapActionProvider: Action,
+    bodyTapActionProvider: Action,
 ) {
     Row(
         modifier = GlanceModifier
             .fillMaxWidth()
-            .clickable(tapActionProvider)
-            .padding(top = PaddingWidgetDefault),
+            .clickable(bodyTapActionProvider),
         verticalAlignment = Alignment.Vertical.CenterVertically,
     ) {
         template.bitmap
@@ -43,6 +43,7 @@ internal fun TemplateListItem(
                 Image(
                     modifier = GlanceModifier
                         .size(WidgetTemplateImageSize)
+                        .clickable(imageTapActionProvider)
                         .cornerRadius(6.dp),
                     provider = ImageProvider(image),
                     contentDescription = "note image",
@@ -56,7 +57,7 @@ internal fun TemplateListItem(
             modifier = GlanceModifier
                 .defaultWeight()
                 .wrapContentHeight()
-                .padding(start = PaddingWidgetDefault),
+                .padding(horizontal = PaddingWidgetDefault),
             text = template.title,
             maxLines = 2,
             style = titleTextStyle,
@@ -75,7 +76,8 @@ private fun TemplateListItemPreview() {
                 bitmap = randomBitmap(),
                 templateId = 0L,
             ),
-            tapActionProvider = action { }
+            imageTapActionProvider = action { },
+            bodyTapActionProvider = action { },
         )
     }
 }

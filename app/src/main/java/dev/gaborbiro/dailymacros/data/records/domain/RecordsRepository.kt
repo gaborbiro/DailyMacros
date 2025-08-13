@@ -21,6 +21,8 @@ internal interface RecordsRepository {
 
     suspend fun getRecord(recordId: Long): Record?
 
+    suspend fun getTemplate(templateId: Long): Template?
+
     suspend fun saveRecord(record: RecordToSave): Long
 
     suspend fun updateRecord(record: Record)

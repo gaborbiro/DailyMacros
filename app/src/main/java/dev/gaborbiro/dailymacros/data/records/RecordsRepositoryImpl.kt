@@ -93,6 +93,10 @@ internal class RecordsRepositoryImpl(
         return recordsDAO.get(recordId)?.let(dBMapper::map)
     }
 
+    override suspend fun getTemplate(templateId: Long): Template? {
+        return templatesDAO.get(templateId)?.let(dBMapper::map)
+    }
+
     override suspend fun deleteRecord(recordId: Long): Record {
         val record = recordsDAO.get(recordId)!!
         recordsDAO.delete(recordId)

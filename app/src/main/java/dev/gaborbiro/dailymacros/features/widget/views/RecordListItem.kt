@@ -17,8 +17,10 @@ import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxWidth
+import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
+import androidx.glance.layout.width
 import androidx.glance.layout.wrapContentHeight
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
@@ -37,13 +39,13 @@ fun RecordListItem(
     Row(
         modifier = GlanceModifier
             .fillMaxWidth()
-            .padding(top = PaddingWidgetDefault)
     ) {
         record.bitmap
             ?.let { image: Bitmap ->
                 Image(
                     modifier = GlanceModifier
-                        .size(WidgetImageSize)
+                        .width(WidgetImageSize * .75f)
+                        .height(WidgetImageSize)
                         .clickable(imageTappedActionProvider)
                         .cornerRadius(8.dp),
                     provider = ImageProvider(image),

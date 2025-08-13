@@ -29,7 +29,7 @@ internal fun WidgetContent(
             .cornerRadius(8.dp),
         horizontalAlignment = Alignment.Start
     ) {
-        RecordsList(
+        WidgetList(
             modifier = GlanceModifier
                 .fillMaxWidth()
                 .defaultWeight(),
@@ -38,7 +38,8 @@ internal fun WidgetContent(
             showTemplates = showTopTemplates,
             recordImageTapActionProvider = { recordId -> navigator.getRecordImageTappedAction(recordId) },
             recordBodyTapActionProvider = { recordId -> navigator.getRecordBodyTappedAction(recordId) },
-            templateTapActionProvider = { templateId -> navigator.getApplyTemplateAction(templateId) },
+            templateImageTapActionProvider = { templateId -> navigator.getTemplateImageTappedAction(templateId) },
+            templateBodyTapActionProvider = { templateId -> navigator.getTemplateBodyTappedAction(templateId) },
             onTemplatesExpandButtonTapped = onTemplatesExpandButtonTapped,
         )
         ButtonLayout(

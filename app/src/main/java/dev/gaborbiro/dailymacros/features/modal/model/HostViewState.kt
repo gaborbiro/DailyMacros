@@ -79,7 +79,8 @@ sealed class DialogState {
         abstract fun withValidationError(validationError: String?): InputDialog
     }
 
-    data class SelectActionDialog(val recordId: Long) : DialogState()
+    data class SelectRecordActionDialog(val recordId: Long) : DialogState()
+    data class SelectTemplateActionDialog(val templateId: Long) : DialogState()
 }
 
 sealed class ImagePickerState {

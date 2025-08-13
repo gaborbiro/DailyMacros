@@ -27,19 +27,18 @@ import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 fun SectionTitle(title: String, @DrawableRes trailingImage: Int? = null, onClick: () -> Unit) {
     Box(
         modifier = GlanceModifier
-            .padding(top = PaddingWidgetDefault)
-            .padding(horizontal = PaddingWidgetDefault)
-            .clickable(onClick),
+            .padding(horizontal = PaddingWidgetDefault),
         contentAlignment = Alignment.CenterEnd,
     ) {
         Text(
-            text = title,
             modifier = GlanceModifier
                 .background(sectionTitleBackground)
                 .wrapContentHeight()
                 .fillMaxWidth()
                 .padding(horizontal = PaddingWidgetDouble, vertical = PaddingWidgetHalf)
-                .cornerRadius(4.dp),
+                .cornerRadius(4.dp)
+                .clickable(onClick),
+            text = title,
             style = sectionTitleTextStyle,
         )
         trailingImage?.let {

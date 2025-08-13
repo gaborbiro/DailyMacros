@@ -5,24 +5,27 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 
 @Composable
-fun SelectActionDialog(
-    recordId: Long,
-    onRepeatTapped: (recordId: Long) -> Unit,
-    onEditTapped: (recordId: Long) -> Unit,
-    onDeleteTapped: (recordId: Long) -> Unit,
+fun SelectTemplateActionDialog(
+    templateId: Long,
+    onRepeatTapped: (templateId: Long) -> Unit,
     onDismissRequested: () -> Unit,
 ) {
     Dialog(onDismissRequest = onDismissRequested) {
@@ -33,7 +36,7 @@ fun SelectActionDialog(
         ) {
             Column(modifier = Modifier.padding(PaddingDefault)) {
                 Button(
-                    onClick = { onRepeatTapped(recordId) },
+                    onClick = { onRepeatTapped(templateId) },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                         contentColor = MaterialTheme.colorScheme.onTertiaryContainer
@@ -43,39 +46,13 @@ fun SelectActionDialog(
                         .fillMaxWidth()
                         .height(50.dp)
                 ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_dinner_dining),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
                     Text(text = "Repeat")
-                }
-
-                Spacer(modifier = Modifier.height(PaddingDefault))
-
-                Button(
-                    onClick = { onEditTapped(recordId) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer
-                    ),
-                    shape = RoundedCornerShape(50.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                ) {
-                    Text(text = "Details")
-                }
-
-                Spacer(modifier = Modifier.height(PaddingDefault))
-
-                Button(
-                    onClick = { onDeleteTapped(recordId) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer
-                    ),
-                    shape = RoundedCornerShape(50.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                ) {
-                    Text(text = "Delete")
                 }
             }
         }
