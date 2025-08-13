@@ -21,10 +21,10 @@ import androidx.work.WorkManager
 import com.google.gson.reflect.TypeToken
 import dev.gaborbiro.dailymacros.data.records.domain.model.Record
 import dev.gaborbiro.dailymacros.data.records.domain.model.Template
-import dev.gaborbiro.dailymacros.design.DailyMacrosGlanceColorScheme
+import dev.gaborbiro.dailymacros.design.WidgetColorScheme
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
-import dev.gaborbiro.dailymacros.features.widget.views.NotesWidgetContent
+import dev.gaborbiro.dailymacros.features.widget.views.WidgetContent
 import dev.gaborbiro.dailymacros.features.widget.workers.ReloadWorkRequest
 import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
 import dev.gaborbiro.dailymacros.store.file.FileStoreFactoryImpl
@@ -79,8 +79,8 @@ class NotesWidget : GlanceAppWidget() {
 
             var showTopTemplates by remember { mutableStateOf(false) }
 
-            GlanceTheme(colors = DailyMacrosGlanceColorScheme.colors) {
-                NotesWidgetContent(
+            GlanceTheme(colors = WidgetColorScheme.colors) {
+                WidgetContent(
                     modifier = GlanceModifier
                         .fillMaxSize(),
                     navigator = NotesWidgetNavigatorImpl(),

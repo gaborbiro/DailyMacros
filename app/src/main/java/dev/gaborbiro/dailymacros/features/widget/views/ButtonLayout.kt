@@ -2,26 +2,32 @@ package dev.gaborbiro.dailymacros.features.widget.views
 
 import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.unit.dp
 import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.action.Action
+import androidx.glance.action.action
 import androidx.glance.action.clickable
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Row
+import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.padding
+import androidx.glance.layout.wrapContentHeight
+import androidx.glance.preview.ExperimentalGlancePreviewApi
+import androidx.glance.preview.Preview
 import dev.gaborbiro.dailymacros.R
+import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefault
+import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 
 @Composable
-fun WidgetButtonLayout(
+fun ButtonLayout(
     modifier: GlanceModifier,
-    launchNoteViaCameraAction: () -> Action,
-    launchNewNoteViaImagePickerActionProvider: () -> Action,
-    launchNewNoteViaTextOnlyActionProvider: () -> Action,
-    reloadActionProvider: () -> Action,
+    launchNoteViaCameraAction: @Composable () -> Action,
+    launchNewNoteViaImagePickerActionProvider: @Composable () -> Action,
+    launchNewNoteViaTextOnlyActionProvider: @Composable () -> Action,
+    reloadActionProvider: @Composable () -> Action,
 ) {
     Row(
         modifier = modifier,
@@ -30,7 +36,7 @@ fun WidgetButtonLayout(
         WidgetButton(
             modifier = GlanceModifier
                 .defaultWeight()
-                .padding(vertical = 10.dp),
+                .padding(vertical = PaddingWidgetDefault),
             iconResId = R.drawable.ic_add_photo,
             contentDescription = "New note via camera",
             tapAction = launchNoteViaCameraAction(),
@@ -38,7 +44,7 @@ fun WidgetButtonLayout(
         WidgetButton(
             modifier = GlanceModifier
                 .defaultWeight()
-                .padding(vertical = 10.dp),
+                .padding(vertical = PaddingWidgetDefault),
             iconResId = R.drawable.ic_add_picture,
             contentDescription = "New note via existing image",
             tapAction = launchNewNoteViaImagePickerActionProvider(),
@@ -46,7 +52,7 @@ fun WidgetButtonLayout(
         WidgetButton(
             modifier = GlanceModifier
                 .defaultWeight()
-                .padding(vertical = 10.dp),
+                .padding(vertical = PaddingWidgetDefault),
             iconResId = R.drawable.ic_add,
             contentDescription = "New note",
             tapAction = launchNewNoteViaTextOnlyActionProvider(),
@@ -54,7 +60,7 @@ fun WidgetButtonLayout(
         WidgetButton(
             modifier = GlanceModifier
                 .defaultWeight()
-                .padding(vertical = 10.dp),
+                .padding(vertical = PaddingWidgetDefault),
             iconResId = R.drawable.ic_refresh,
             contentDescription = "Reload",
             tapAction = reloadActionProvider(),
@@ -70,9 +76,27 @@ private fun WidgetButton(
     tapAction: Action,
 ) {
     Image(
+        modifier = modifier
+            .clickable(tapAction),
         provider = ImageProvider(resId = iconResId),
         contentDescription = contentDescription,
         colorFilter = ColorFilter.tint(GlanceTheme.colors.onBackground),
-        modifier = modifier.clickable(tapAction)
     )
+}
+
+@Preview(widthDp = 200, heightDp = 50)
+@Composable
+@OptIn(ExperimentalGlancePreviewApi::class)
+private fun ButtonLayoutPreview() {
+    WidgetPreview {
+        ButtonLayout(
+            modifier = GlanceModifier
+                .fillMaxWidth()
+                .wrapContentHeight(),
+            launchNoteViaCameraAction = { action {} },
+            launchNewNoteViaImagePickerActionProvider = { action {} },
+            launchNewNoteViaTextOnlyActionProvider = { action {} },
+            reloadActionProvider = { action {} },
+        )
+    }
 }

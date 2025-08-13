@@ -10,7 +10,6 @@ import android.util.DisplayMetrics
 import android.view.Surface
 import androidx.compose.ui.unit.Dp
 import androidx.core.graphics.createBitmap
-import dev.gaborbiro.dailymacros.App
 import kotlin.math.pow
 import kotlin.random.Random
 
@@ -70,14 +69,16 @@ fun Context.dpToPixel(dp: Float): Float {
     return dp * (metrics.densityDpi / 160f)
 }
 
-fun dummyBitmap(
-    color: Int = android.graphics.Color.rgb(
+fun randomBitmap(
+    width: Int = 200,
+    height: Int = 200,
+    color: Int = Color.rgb(
         Random.nextInt(256),
         Random.nextInt(256),
         Random.nextInt(256)
     ),
 ): Bitmap {
-    return createBitmap(200, 200).apply {
+    return createBitmap(width, height).apply {
         val canvas = Canvas(this)
         val paint = Paint().apply {
             this.isAntiAlias = true
@@ -85,7 +86,7 @@ fun dummyBitmap(
             this.style = Paint.Style.FILL
         }
         // draw a background circle and some text
-        canvas.drawCircle(100f, 100f, 90f, paint)
+        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
         paint.color = bestContrastingTextColor(color)
         paint.textSize = 40f
         paint.textAlign = Paint.Align.CENTER

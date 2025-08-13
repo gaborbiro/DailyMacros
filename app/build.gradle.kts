@@ -103,6 +103,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycleVersion")
 
     implementation("androidx.glance:glance-appwidget:1.2.0-alpha01")
+    implementation("androidx.glance:glance-appwidget-preview:1.2.0-alpha01")
+    implementation("androidx.glance:glance-preview:1.2.0-alpha01")
     implementation("androidx.glance:glance-material3:1.2.0-alpha01")
 
     // Navigation

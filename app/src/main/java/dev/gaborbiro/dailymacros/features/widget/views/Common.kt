@@ -30,10 +30,18 @@ val titleTextStyle: TextStyle
         color = GlanceTheme.colors.onBackground,
     )
 
-val dateTextStyle: TextStyle
+val descriptionTextStyle: TextStyle
     @Composable get() = TextStyle(
         fontWeight = FontWeight.Normal,
         fontSize = 12.sp,
+        textAlign = TextAlign.Start,
+        color = GlanceTheme.colors.onBackground,
+    )
+
+val dateTextStyle: TextStyle
+    @Composable get() = TextStyle(
+        fontWeight = FontWeight.Normal,
+        fontSize = 10.sp,
         textAlign = TextAlign.Start,
         color = GlanceTheme.colors.onBackground,
     )

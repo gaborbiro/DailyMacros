@@ -86,7 +86,7 @@ fun DailyMacrosTheme(
     )
 }
 
-object DailyMacrosGlanceColorScheme {
+object WidgetColorScheme {
 
     val colors: ColorProviders
         @Composable get() {

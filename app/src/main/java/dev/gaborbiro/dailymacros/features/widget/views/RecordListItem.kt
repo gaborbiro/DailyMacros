@@ -2,11 +2,14 @@ package dev.gaborbiro.dailymacros.features.widget.views
 
 import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.action.Action
+import androidx.glance.action.action
 import androidx.glance.action.clickable
+import androidx.glance.appwidget.cornerRadius
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.ContentScale
@@ -16,10 +19,14 @@ import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
+import androidx.glance.layout.wrapContentHeight
+import androidx.glance.preview.ExperimentalGlancePreviewApi
+import androidx.glance.preview.Preview
 import androidx.glance.text.Text
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
-import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
-import dev.gaborbiro.dailymacros.design.PaddingWidgetHalf
+import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefault
+import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
+import dev.gaborbiro.dailymacros.util.randomBitmap
 
 @Composable
 fun RecordListItem(
@@ -30,16 +37,17 @@ fun RecordListItem(
     Row(
         modifier = GlanceModifier
             .fillMaxWidth()
-            .padding(vertical = PaddingWidgetHalf, horizontal = PaddingWidgetDefault)
+            .padding(top = PaddingWidgetDefault)
     ) {
         record.bitmap
             ?.let { image: Bitmap ->
                 Image(
                     modifier = GlanceModifier
                         .size(WidgetImageSize)
-                        .clickable(imageTappedActionProvider),
+                        .clickable(imageTappedActionProvider)
+                        .cornerRadius(8.dp),
                     provider = ImageProvider(image),
-                    contentDescription = "note image",
+                    contentDescription = "meal photo",
                     contentScale = ContentScale.Crop,
                 )
             }
@@ -49,22 +57,46 @@ fun RecordListItem(
         Column(
             modifier = GlanceModifier
                 .defaultWeight()
-                .fillMaxHeight()
-                .padding(start = PaddingWidgetDefault)
+                .wrapContentHeight()
+                .padding(horizontal = PaddingWidgetDefault)
                 .clickable(bodyTappedActionProvider),
             verticalAlignment = Alignment.Vertical.Top,
         ) {
             Text(
                 text = record.title,
-                maxLines = 2,
+                maxLines = 1,
                 style = titleTextStyle,
             )
             Text(
-                modifier = GlanceModifier
-                    .fillMaxWidth(),
+                text = record.description,
+                maxLines = 2,
+                style = descriptionTextStyle,
+            )
+            Text(
                 text = record.timestamp,
+                maxLines = 1,
                 style = dateTextStyle,
             )
         }
+    }
+}
+
+@Preview
+@Composable
+@OptIn(ExperimentalGlancePreviewApi::class)
+private fun RecordListItemPreview() {
+    WidgetPreview {
+        RecordListItem(
+            record = RecordUIModel(
+                recordId = 1,
+                templateId = 1L,
+                title = "Breakfast",
+                description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0, Fiber: 1111dfdf sdf asdfasdf as df",
+                timestamp = "Yesterday",
+                bitmap = randomBitmap(),
+            ),
+            imageTappedActionProvider = action {},
+            bodyTappedActionProvider = action {},
+        )
     }
 }

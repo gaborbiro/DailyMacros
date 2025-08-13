@@ -8,8 +8,9 @@ class RecordUIModel(
     val bitmap: Bitmap?,
     val timestamp: String,
     val title: String,
+    val description: String,
 ) {
     override fun toString(): String {
-        return "RecordUIModel(recordId=$recordId, templateId=$templateId, bitmap=${bitmap?.byteCount ?: 0} bytes, timestamp='$timestamp', title='$title')"
+        return "RecordUIModel(recordId=$recordId, templateId=$templateId, bitmap=${bitmap?.byteCount ?: 0} bytes, timestamp='$timestamp', title='$title', description='$description')"
     }
 }

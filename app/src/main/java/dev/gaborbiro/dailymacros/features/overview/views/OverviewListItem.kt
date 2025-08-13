@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.features.overview.views
 
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -46,7 +47,7 @@ import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
-import dev.gaborbiro.dailymacros.util.dummyBitmap
+import dev.gaborbiro.dailymacros.util.randomBitmap
 
 
 @Composable
@@ -125,9 +126,17 @@ private fun TitleAndSubtitle(modifier: Modifier, record: RecordUIModel) {
             modifier = Modifier
                 .fillMaxWidth(),
             text = record.title,
-            maxLines = 3,
+            maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.bodyMedium,
+        )
+        Text(
+            modifier = Modifier
+                .fillMaxWidth(),
+            text = record.description,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            style = MaterialTheme.typography.bodySmall,
         )
         Text(
             text = record.timestamp,
@@ -253,13 +262,15 @@ private data class PopUpMenuItem(
 
 @Preview
 @Composable
-private fun OverviewListItemPReview() {
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+private fun OverviewListItemPreview() {
     OverviewListItem(
         record = RecordUIModel(
             recordId = 1L,
             title = "Title",
+            description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
             templateId = 1L,
-            bitmap = dummyBitmap(),
+            bitmap = randomBitmap(),
             timestamp = "2022-01-01 00:00:00"
         ),
         onRepeatMenuItemTapped = {},

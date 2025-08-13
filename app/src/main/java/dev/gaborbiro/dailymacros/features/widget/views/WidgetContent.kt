@@ -15,7 +15,7 @@ import dev.gaborbiro.dailymacros.features.widget.model.TemplateUIModel
 import dev.gaborbiro.dailymacros.features.widget.NotesWidgetNavigator
 
 @Composable
-internal fun NotesWidgetContent(
+internal fun WidgetContent(
     modifier: GlanceModifier,
     showTopTemplates: Boolean,
     onTemplatesExpandButtonTapped: () -> Unit,
@@ -41,10 +41,9 @@ internal fun NotesWidgetContent(
             templateTapActionProvider = { templateId -> navigator.getApplyTemplateAction(templateId) },
             onTemplatesExpandButtonTapped = onTemplatesExpandButtonTapped,
         )
-        WidgetButtonLayout(
+        ButtonLayout(
             modifier = GlanceModifier
                 .fillMaxWidth()
-                .defaultWeight()
                 .wrapContentHeight(),
             launchNoteViaCameraAction = { navigator.getLaunchNewNoteViaCameraAction() },
             launchNewNoteViaImagePickerActionProvider = { navigator.getLaunchNewNoteViaImagePickerAction() },

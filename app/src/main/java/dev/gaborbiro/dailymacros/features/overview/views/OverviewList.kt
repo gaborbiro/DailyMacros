@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,7 +31,7 @@ import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.overview.model.GoalCellItem
 import dev.gaborbiro.dailymacros.features.overview.model.MacroGoalsProgress
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
-import dev.gaborbiro.dailymacros.util.dummyBitmap
+import dev.gaborbiro.dailymacros.util.randomBitmap
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -139,15 +138,17 @@ private fun NotesListPreview() {
                     RecordUIModel(
                         recordId = 1L,
                         title = "Title",
+                        description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                         templateId = 1L,
-                        bitmap = dummyBitmap(),
+                        bitmap = randomBitmap(),
                         timestamp = "2022-01-01 00:00:00"
                     ),
                     RecordUIModel(
                         recordId = 2L,
                         title = "Title 2",
+                        description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                         templateId = 1L,
-                        bitmap = dummyBitmap(),
+                        bitmap = randomBitmap(),
                         timestamp = "2022-05-01 00:00:00"
                     )
                 ),
