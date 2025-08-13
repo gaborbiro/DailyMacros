@@ -21,7 +21,7 @@ import androidx.glance.layout.wrapContentHeight
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
-import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefault
+import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultHorizontal
 import dev.gaborbiro.dailymacros.features.widget.model.TemplateUIModel
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 import dev.gaborbiro.dailymacros.util.randomBitmap
@@ -35,7 +35,8 @@ internal fun TemplateListItem(
     Row(
         modifier = GlanceModifier
             .fillMaxWidth()
-            .clickable(bodyTapActionProvider),
+            .clickable(bodyTapActionProvider)
+            .padding(start = PaddingWidgetDefaultHorizontal),
         verticalAlignment = Alignment.Vertical.CenterVertically,
     ) {
         template.bitmap
@@ -57,7 +58,7 @@ internal fun TemplateListItem(
             modifier = GlanceModifier
                 .defaultWeight()
                 .wrapContentHeight()
-                .padding(horizontal = PaddingWidgetDefault),
+                .padding(horizontal = PaddingWidgetDefaultHorizontal),
             text = template.title,
             maxLines = 2,
             style = titleTextStyle,

@@ -8,7 +8,7 @@ import dev.gaborbiro.dailymacros.design.WidgetColorScheme
 internal fun WidgetPreview(
     content: @Composable () -> Unit,
 ) {
-    GlanceTheme(colors = WidgetColorScheme.colors) {
+    GlanceTheme(colors = WidgetColorScheme.colors()) {
         content()
     }
 }

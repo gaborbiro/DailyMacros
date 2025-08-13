@@ -18,16 +18,15 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
 import dev.gaborbiro.dailymacros.R
-import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefault
-import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDouble
-import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetHalf
+import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultHorizontal
+import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultVertical
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 
 @Composable
 fun SectionTitle(title: String, @DrawableRes trailingImage: Int? = null, onClick: () -> Unit) {
     Box(
         modifier = GlanceModifier
-            .padding(horizontal = PaddingWidgetDefault),
+            .padding(horizontal = PaddingWidgetDefaultHorizontal),
         contentAlignment = Alignment.CenterEnd,
     ) {
         Text(
@@ -35,7 +34,7 @@ fun SectionTitle(title: String, @DrawableRes trailingImage: Int? = null, onClick
                 .background(sectionTitleBackground)
                 .wrapContentHeight()
                 .fillMaxWidth()
-                .padding(horizontal = PaddingWidgetDouble, vertical = PaddingWidgetHalf)
+                .padding(horizontal = PaddingWidgetDefaultHorizontal, vertical = PaddingWidgetDefaultVertical)
                 .cornerRadius(4.dp)
                 .clickable(onClick),
             text = title,
@@ -44,7 +43,7 @@ fun SectionTitle(title: String, @DrawableRes trailingImage: Int? = null, onClick
         trailingImage?.let {
             Image(
                 modifier = GlanceModifier
-                    .padding(end = PaddingWidgetDefault),
+                    .padding(end = PaddingWidgetDefaultHorizontal),
                 provider = ImageProvider(trailingImage),
                 contentDescription = "",
             )

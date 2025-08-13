@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.design
 
+import android.content.Context
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -32,7 +33,6 @@ object DailyMacrosColors {
     val surfaceVariantDark = Color(0xFF1C1C1E)
 }
 
-
 private val DarkColorScheme = darkColorScheme(
     primary = DailyMacrosColors.DailyMacros80,
     secondary = DailyMacrosColors.DailyMacrosGrey80,
@@ -46,7 +46,6 @@ private val DarkColorScheme = darkColorScheme(
     onSecondaryContainer = Color.White, // tab bar icon
     secondaryContainer = DailyMacrosColors.BackgroundDark, // tab bar button container
 )
-
 
 private val LightColorScheme = lightColorScheme(
     primary = DailyMacrosColors.DailyMacros40,
@@ -88,11 +87,28 @@ fun DailyMacrosTheme(
 
 object WidgetColorScheme {
 
-    val colors: ColorProviders
-        @Composable get() {
-            return ColorProviders(
-                light = LightColorScheme,
-                dark = DarkColorScheme,
-            )
+    @Composable
+    fun colors(
+        context: Context? = null,
+        dynamicColor: Boolean = true,
+    ): ColorProviders {
+        val (light, dark) = when {
+            dynamicColor -> {
+                context
+                    ?.let {
+                        dynamicLightColorScheme(context) to dynamicDarkColorScheme(context)
+                    }
+                    ?: run {
+                        LightColorScheme to DarkColorScheme
+                    }
+            }
+
+            else -> LightColorScheme to DarkColorScheme
         }
+
+        return ColorProviders(
+            light = light,
+            dark = dark,
+        )
+    }
 }

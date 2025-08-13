@@ -15,7 +15,6 @@ import androidx.glance.layout.Column
 import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
-import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
@@ -26,7 +25,7 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
-import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefault
+import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultHorizontal
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 import dev.gaborbiro.dailymacros.util.randomBitmap
 
@@ -39,6 +38,7 @@ fun RecordListItem(
     Row(
         modifier = GlanceModifier
             .fillMaxWidth()
+            .padding(start = PaddingWidgetDefaultHorizontal)
     ) {
         record.bitmap
             ?.let { image: Bitmap ->
@@ -60,7 +60,7 @@ fun RecordListItem(
             modifier = GlanceModifier
                 .defaultWeight()
                 .wrapContentHeight()
-                .padding(horizontal = PaddingWidgetDefault)
+                .padding(horizontal = PaddingWidgetDefaultHorizontal)
                 .clickable(bodyTappedActionProvider),
             verticalAlignment = Alignment.Vertical.Top,
         ) {

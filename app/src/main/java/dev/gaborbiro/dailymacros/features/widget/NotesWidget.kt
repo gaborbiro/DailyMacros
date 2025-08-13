@@ -11,6 +11,7 @@ import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.LocalContext
+import androidx.glance.action.actionStartActivity
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
@@ -24,6 +25,7 @@ import dev.gaborbiro.dailymacros.data.records.domain.model.Template
 import dev.gaborbiro.dailymacros.design.WidgetColorScheme
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
+import dev.gaborbiro.dailymacros.features.main.MainActivity
 import dev.gaborbiro.dailymacros.features.widget.views.WidgetContent
 import dev.gaborbiro.dailymacros.features.widget.workers.ReloadWorkRequest
 import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
@@ -41,8 +43,8 @@ class NotesWidget : GlanceAppWidget() {
                 ReloadWorkRequest.getWorkRequest(
                     recentRecordsPrefsKey = PREFS_RECENT_RECORDS,
                     topTemplatesPrefsKey = PREFS_TOP_TEMPLATES,
-                    recordDaysToDisplay = 30,
-                    templateCount = 30,
+                    recordDaysToDisplay = 3,
+                    templateCount = 15,
                 )
             )
         }
@@ -79,7 +81,7 @@ class NotesWidget : GlanceAppWidget() {
 
             var showTopTemplates by remember { mutableStateOf(false) }
 
-            GlanceTheme(colors = WidgetColorScheme.colors) {
+            GlanceTheme(colors = WidgetColorScheme.colors(context)) {
                 WidgetContent(
                     modifier = GlanceModifier
                         .fillMaxSize(),

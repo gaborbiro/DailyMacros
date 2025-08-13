@@ -5,8 +5,10 @@ import androidx.glance.GlanceId
 import androidx.glance.action.Action
 import androidx.glance.action.ActionParameters
 import androidx.glance.action.actionParametersOf
+import androidx.glance.action.actionStartActivity
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
+import dev.gaborbiro.dailymacros.features.main.MainActivity
 import dev.gaborbiro.dailymacros.features.modal.ModalActivity
 
 interface NotesWidgetNavigator {
@@ -26,6 +28,8 @@ interface NotesWidgetNavigator {
     fun getTemplateBodyTappedAction(templateId: Long): Action
 
     fun getReloadAction(): Action
+
+    fun getOpenAppAction(): Action
 }
 
 class NotesWidgetNavigatorImpl : NotesWidgetNavigator {
@@ -76,6 +80,10 @@ class NotesWidgetNavigatorImpl : NotesWidgetNavigator {
 
     override fun getReloadAction(): Action {
         return actionRunCallback<RefreshAction>()
+    }
+
+    override fun getOpenAppAction(): Action {
+        return actionStartActivity<MainActivity>()
     }
 }
 

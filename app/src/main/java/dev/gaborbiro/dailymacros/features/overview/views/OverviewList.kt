@@ -27,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
+import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.overview.model.NutrientProgressItem
 import dev.gaborbiro.dailymacros.features.overview.model.NutrientProgress
@@ -89,7 +90,7 @@ internal fun OverviewList(
         containerColor = MaterialTheme.colorScheme.background,
     ) { paddingValues ->
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(PaddingDefault),
+            verticalArrangement = Arrangement.spacedBy(PaddingHalf),
             contentPadding = PaddingValues(
                 top = paddingValues.calculateTopPadding(),
                 bottom = paddingValues.calculateBottomPadding() + 86.dp

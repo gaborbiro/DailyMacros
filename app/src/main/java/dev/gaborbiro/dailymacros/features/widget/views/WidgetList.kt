@@ -15,14 +15,13 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
-import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefault
+import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultVertical
 import dev.gaborbiro.dailymacros.features.widget.model.TemplateUIModel
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 import dev.gaborbiro.dailymacros.util.randomBitmap
 
 @Composable
 internal fun WidgetList(
-    modifier: GlanceModifier,
     recentRecords: List<RecordUIModel>,
     topTemplates: List<TemplateUIModel>,
     showTemplates: Boolean,
@@ -32,9 +31,7 @@ internal fun WidgetList(
     templateBodyTapActionProvider: @Composable (templateId: Long) -> Action,
     onTemplatesExpandButtonTapped: () -> Unit,
 ) {
-    LazyColumn(
-        modifier = modifier,
-    ) {
+    LazyColumn {
         items(
             count = recentRecords.size + topTemplates.size + 1,
             itemId = {
@@ -62,7 +59,7 @@ internal fun WidgetList(
                         modifier = GlanceModifier
                             .fillMaxWidth()
                     ) {
-                        Spacer(modifier = GlanceModifier.height(PaddingWidgetDefault))
+                        Spacer(modifier = GlanceModifier.height(PaddingWidgetDefaultVertical))
                         RecordListItem(
                             record = record,
                             imageTappedActionProvider = recordImageTapActionProvider(record.recordId),
@@ -76,7 +73,7 @@ internal fun WidgetList(
                         modifier = GlanceModifier
                             .fillMaxWidth()
                     ) {
-                        Spacer(modifier = GlanceModifier.height(PaddingWidgetDefault))
+                        Spacer(modifier = GlanceModifier.height(PaddingWidgetDefaultVertical))
                         SectionTitle(
                             title = "Top Meals",
                             trailingImage = if (showTemplates) R.drawable.keyboard_arrow_down else R.drawable.keyboard_arrow_right,
@@ -92,7 +89,7 @@ internal fun WidgetList(
                             modifier = GlanceModifier
                                 .fillMaxWidth()
                         ) {
-                            Spacer(modifier = GlanceModifier.height(PaddingWidgetDefault))
+                            Spacer(modifier = GlanceModifier.height(PaddingWidgetDefaultVertical))
                             TemplateListItem(
                                 template = template,
                                 imageTapActionProvider = templateImageTapActionProvider(template.templateId),
@@ -104,6 +101,9 @@ internal fun WidgetList(
                     }
                 }
             }
+        }
+        item {
+            Spacer(modifier = GlanceModifier.height(64.dp))
         }
     }
 }
@@ -120,8 +120,6 @@ private fun mapListIndex(recentRecordsSize: Int, index: Int) = when {
 private fun RecordListPreviewExpanded() {
     WidgetPreview {
         WidgetList(
-            modifier = GlanceModifier
-                .fillMaxWidth(),
             recentRecords = listOf(
                 RecordUIModel(
                     recordId = 1,
@@ -181,8 +179,6 @@ private fun RecordListPreviewExpanded() {
 private fun RecordListPreviewCollapsed() {
     WidgetPreview {
         WidgetList(
-            modifier = GlanceModifier
-                .fillMaxWidth(),
             recentRecords = listOf(
                 RecordUIModel(
                     recordId = 1,

@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.PaddingDefault
+import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.util.randomBitmap
@@ -46,7 +47,7 @@ fun OverviewListItem(
 ) {
     Row(
         modifier = modifier
-            .padding(start = PaddingDefault, end = PaddingDefault)
+            .padding(start = PaddingHalf)
             .wrapContentHeight(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -58,13 +59,13 @@ fun OverviewListItem(
         )
         Spacer(
             modifier = Modifier
-                .size(PaddingDefault)
+                .size(PaddingHalf)
         )
         RecordTextContent(
             modifier = Modifier
                 .wrapContentHeight()
                 .clickable(onClick = { onRecordBodyTapped(record) })
-                .padding(end = PaddingDefault)
+                .padding(end = PaddingHalf)
                 .weight(1f),
             record = record
         )
