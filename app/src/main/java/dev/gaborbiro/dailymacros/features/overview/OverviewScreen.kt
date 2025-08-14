@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -19,7 +18,6 @@ import dev.gaborbiro.dailymacros.features.overview.views.OverviewList
 internal fun OverviewScreen(
     viewModel: OverviewViewModel,
 ) {
-    val context = LocalContext.current
     LaunchedEffect(key1 = Unit) {
         viewModel.onSearchTermChanged(search = null)
     }

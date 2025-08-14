@@ -8,6 +8,7 @@ import androidx.glance.action.action
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.layout.Column
 import androidx.glance.layout.Spacer
+import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.size
@@ -32,7 +33,10 @@ internal fun WidgetList(
     onTemplatesExpandButtonTapped: () -> Unit,
 ) {
     val totalItemCount = recentRecords.size + topTemplates.size
-    LazyColumn {
+    LazyColumn(
+        modifier = GlanceModifier
+            .fillMaxSize()
+    ) {
         items(
             count = totalItemCount + if (totalItemCount > 0) 1 else 0,
             itemId = {

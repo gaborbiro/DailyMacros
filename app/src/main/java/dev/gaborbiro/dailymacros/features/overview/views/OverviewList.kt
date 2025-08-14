@@ -20,7 +20,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -28,7 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
-import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingDouble
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.model.NutrientProgressItem
@@ -93,50 +91,54 @@ internal fun OverviewList(
         containerColor = MaterialTheme.colorScheme.background,
     ) { paddingValues ->
         LazyColumn(
+            modifier = Modifier
+                .padding(top = paddingValues.calculateTopPadding()),
             verticalArrangement = Arrangement.spacedBy(PaddingHalf),
             contentPadding = PaddingValues(
-                top = paddingValues.calculateTopPadding(),
                 bottom = paddingValues.calculateBottomPadding() + 86.dp
             ),
             state = listState,
         ) {
-            items(viewState.list.size, key = { viewState.list[it].id }) { index ->
-                val item = viewState.list[index]
+            viewState.list.forEachIndexed { index, item ->
                 when (item) {
                     is RecordUIModel -> {
-                        RecordListItem(
-                            modifier = Modifier
-                                .animateItem(),
-                            record = item,
-                            onRepeatMenuItemTapped = { record ->
-                                onRepeatMenuItemTapped(record)
-                                coroutineScope.launch {
-                                    delay(200L)
-                                    listState.scrollToItem(0)
-                                }
-                            },
-                            onChangeImageMenuItemTapped = onChangeImageMenuItemTapped,
-                            onDeleteImageMenuItemTapped = onDeleteImageMenuItemTapped,
-                            onEditRecordMenuItemTapped = onEditRecordMenuItemTapped,
-                            onDeleteRecordMenuItemTapped = onDeleteRecordMenuItemTapped,
-                            onNutrientsMenuItemTapped = onNutrientsMenuItemTapped,
-                            onRecordImageTapped = onRecordImageTapped,
-                            onRecordBodyTapped = onRecordBodyTapped,
-                        )
+                        item(key = item.recordId) {
+                            RecordListItem(
+                                modifier = Modifier
+                                    .animateItem(),
+                                record = item,
+                                onRepeatMenuItemTapped = { record ->
+                                    onRepeatMenuItemTapped(record)
+                                    coroutineScope.launch {
+                                        delay(200L)
+                                        listState.scrollToItem(0)
+                                    }
+                                },
+                                onChangeImageMenuItemTapped = onChangeImageMenuItemTapped,
+                                onDeleteImageMenuItemTapped = onDeleteImageMenuItemTapped,
+                                onEditRecordMenuItemTapped = onEditRecordMenuItemTapped,
+                                onDeleteRecordMenuItemTapped = onDeleteRecordMenuItemTapped,
+                                onNutrientsMenuItemTapped = onNutrientsMenuItemTapped,
+                                onRecordImageTapped = onRecordImageTapped,
+                                onRecordBodyTapped = onRecordBodyTapped,
+                            )
+                        }
                     }
 
                     is NutrientProgressUIModel -> {
-                        NutrientProgressView(
-                            modifier = Modifier
-                                .let {
-                                    if (index > 0) {
-                                        it.padding(top = PaddingDouble)
-                                    } else {
-                                        it
-                                    }
-                                },
-                            model = item
-                        )
+                        stickyHeader(key = item.date) {
+                            NutrientProgressView(
+                                modifier = Modifier
+                                    .let {
+                                        if (index > 0) {
+                                            it.padding(top = PaddingDouble)
+                                        } else {
+                                            it
+                                        }
+                                    },
+                                model = item
+                            )
+                        }
                     }
                 }
             }
