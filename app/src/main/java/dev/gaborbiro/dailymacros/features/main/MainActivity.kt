@@ -27,8 +27,6 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.FetchNutrientsUseCase
 import dev.gaborbiro.dailymacros.features.overview.OverviewNavigatorImpl
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
-import dev.gaborbiro.dailymacros.features.overview.useCases.ObserveNutrientProgressUseCase
-import dev.gaborbiro.dailymacros.features.overview.useCases.OverviewUIMapper
 import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
 import dev.gaborbiro.dailymacros.store.db.AppDatabase
 import dev.gaborbiro.dailymacros.store.file.FileStoreFactoryImpl
@@ -105,17 +103,11 @@ class MainActivity : ComponentActivity() {
             nutrientsUIMapper = nutrientsUIMapper,
         )
 
-        val overviewUIMapper = OverviewUIMapper(nutrientsUIMapper)
-
         val viewModel = OverviewViewModel(
             navigator = navigator,
             repository = recordsRepository,
             uiMapper = RecordsUIMapper(bitmapStore, nutrientsUIMapper),
             fetchNutrientsUseCase = fetchNutrientsUseCase,
-            observeNutrientProgressUseCase = ObserveNutrientProgressUseCase(
-                recordsRepository = recordsRepository,
-                overviewUIMapper = overviewUIMapper,
-            )
         )
 
         setContent {

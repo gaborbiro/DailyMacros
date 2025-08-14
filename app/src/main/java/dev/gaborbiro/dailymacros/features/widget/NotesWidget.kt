@@ -24,6 +24,7 @@ import dev.gaborbiro.dailymacros.data.records.domain.model.Template
 import dev.gaborbiro.dailymacros.design.WidgetColorScheme
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
+import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.widget.views.WidgetContent
 import dev.gaborbiro.dailymacros.features.widget.workers.ReloadWorkRequest
 import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
@@ -88,7 +89,7 @@ class NotesWidget : GlanceAppWidget() {
                     onTemplatesExpandButtonTapped = {
                         showTopTemplates = showTopTemplates.not()
                     },
-                    recentRecords = recentRecords,
+                    recentRecords = recentRecords.filterIsInstance<RecordUIModel>(),
                     topTemplates = topTemplates,
                 )
             }

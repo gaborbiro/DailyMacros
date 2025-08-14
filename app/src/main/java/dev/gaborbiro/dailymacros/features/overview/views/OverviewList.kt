@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.lazy.LazyColumn
@@ -26,14 +27,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
+import dev.gaborbiro.dailymacros.design.PaddingDefault
+import dev.gaborbiro.dailymacros.design.PaddingDouble
 import dev.gaborbiro.dailymacros.design.PaddingHalf
+import dev.gaborbiro.dailymacros.features.common.model.NutrientProgressItem
+import dev.gaborbiro.dailymacros.features.common.model.NutrientProgressUIModel
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
-import dev.gaborbiro.dailymacros.features.overview.model.NutrientProgressItem
-import dev.gaborbiro.dailymacros.features.overview.model.NutrientProgress
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
 import dev.gaborbiro.dailymacros.util.randomBitmap
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 @Composable
 internal fun OverviewList(
@@ -95,36 +99,45 @@ internal fun OverviewList(
             ),
             state = listState,
         ) {
-            viewState.todaysNutrientProgress?.let {
-                item {
-                    NutrientProgressView(it)
+            items(viewState.list.size, key = { viewState.list[it].id }) { index ->
+                val item = viewState.list[index]
+                when (item) {
+                    is RecordUIModel -> {
+                        RecordListItem(
+                            modifier = Modifier
+                                .animateItem(),
+                            record = item,
+                            onRepeatMenuItemTapped = { record ->
+                                onRepeatMenuItemTapped(record)
+                                coroutineScope.launch {
+                                    delay(200L)
+                                    listState.scrollToItem(0)
+                                }
+                            },
+                            onChangeImageMenuItemTapped = onChangeImageMenuItemTapped,
+                            onDeleteImageMenuItemTapped = onDeleteImageMenuItemTapped,
+                            onEditRecordMenuItemTapped = onEditRecordMenuItemTapped,
+                            onDeleteRecordMenuItemTapped = onDeleteRecordMenuItemTapped,
+                            onNutrientsMenuItemTapped = onNutrientsMenuItemTapped,
+                            onRecordImageTapped = onRecordImageTapped,
+                            onRecordBodyTapped = onRecordBodyTapped,
+                        )
+                    }
+
+                    is NutrientProgressUIModel -> {
+                        NutrientProgressView(
+                            modifier = Modifier
+                                .let {
+                                    if (index > 0) {
+                                        it.padding(top = PaddingDouble)
+                                    } else {
+                                        it
+                                    }
+                                },
+                            model = item
+                        )
+                    }
                 }
-            }
-            viewState.yesterdaysNutrientProgress?.let {
-                item {
-                    NutrientProgressView(it)
-                }
-            }
-            items(viewState.records.size, key = { viewState.records[it].recordId }) {
-                OverviewListItem(
-                    modifier = Modifier
-                        .animateItem(),
-                    record = viewState.records[it],
-                    onRepeatMenuItemTapped = { record ->
-                        onRepeatMenuItemTapped(record)
-                        coroutineScope.launch {
-                            delay(200L)
-                            listState.scrollToItem(0)
-                        }
-                    },
-                    onChangeImageMenuItemTapped = onChangeImageMenuItemTapped,
-                    onDeleteImageMenuItemTapped = onDeleteImageMenuItemTapped,
-                    onEditRecordMenuItemTapped = onEditRecordMenuItemTapped,
-                    onDeleteRecordMenuItemTapped = onDeleteRecordMenuItemTapped,
-                    onNutrientsMenuItemTapped = onNutrientsMenuItemTapped,
-                    onRecordImageTapped = onRecordImageTapped,
-                    onRecordBodyTapped = onRecordBodyTapped,
-                )
             }
         }
         ScrollToTopView(listState)
@@ -138,7 +151,52 @@ private fun NotesListPreview() {
     DailyMacrosTheme {
         OverviewList(
             viewState = OverviewViewState(
-                records = listOf(
+                list = listOf(
+                    NutrientProgressUIModel(
+                        date = LocalDate.now(),
+                        calories = NutrientProgressItem(
+                            title = "Calories",
+                            progress = .15f,
+                            progressLabel = "1005cal",
+                            range = Range(.84f, .88f),
+                            rangeLabel = "2.1-2.2kcal",
+                        ),
+                        protein = NutrientProgressItem(
+                            title = "Protein",
+                            progress = .0809f,
+                            progressLabel = "110g",
+                            range = Range(.8095f, .9047f),
+                            rangeLabel = "170-190g",
+                        ),
+                        fat = NutrientProgressItem(
+                            title = "Fat",
+                            progress = .2121f,
+                            progressLabel = "30g",
+                            range = Range(.6818f, .9091f),
+                            rangeLabel = "45-60g",
+                        ),
+                        carbs = NutrientProgressItem(
+                            title = "Carbs",
+                            progress = .1818f,
+                            progressLabel = "105g",
+                            range = Range(.6818f, .9091f),
+                            rangeLabel = "150-200g",
+                        ),
+                        sugar = NutrientProgressItem(
+                            title = "Sugar",
+                            progress = .2955f,
+                            progressLabel = "35g",
+                            range = Range(.9091f, .9091f),
+                            rangeLabel = "<40g ttl., <25g",
+                        ),
+                        salt = NutrientProgressItem(
+                            title = "Salt",
+                            progress = .0f,
+                            progressLabel = "0g",
+                            range = Range(.9091f, .9091f),
+                            rangeLabel = "<5g (≈2g Na)",
+                        ),
+                    ),
                     RecordUIModel(
                         recordId = 1L,
                         title = "Title",
@@ -156,50 +214,6 @@ private fun NotesListPreview() {
                         timestamp = "2022-05-01 00:00:00"
                     )
                 ),
-                todaysNutrientProgress = NutrientProgress(
-                    calories = NutrientProgressItem(
-                        title = "Calories",
-                        progress = .15f,
-                        progressLabel = "1005cal",
-                        range = Range(.84f, .88f),
-                        rangeLabel = "2.1-2.2kcal",
-                    ),
-                    protein = NutrientProgressItem(
-                        title = "Protein",
-                        progress = .0809f,
-                        progressLabel = "110g",
-                        range = Range(.8095f, .9047f),
-                        rangeLabel = "170-190g",
-                    ),
-                    fat = NutrientProgressItem(
-                        title = "Fat",
-                        progress = .2121f,
-                        progressLabel = "30g",
-                        range = Range(.6818f, .9091f),
-                        rangeLabel = "45-60g",
-                    ),
-                    carbs = NutrientProgressItem(
-                        title = "Carbs",
-                        progress = .1818f,
-                        progressLabel = "105g",
-                        range = Range(.6818f, .9091f),
-                        rangeLabel = "150-200g",
-                    ),
-                    sugar = NutrientProgressItem(
-                        title = "Sugar",
-                        progress = .2955f,
-                        progressLabel = "35g",
-                        range = Range(.9091f, .9091f),
-                        rangeLabel = "<40g ttl., <25g",
-                    ),
-                    salt = NutrientProgressItem(
-                        title = "Salt",
-                        progress = .0f,
-                        progressLabel = "0g",
-                        range = Range(.9091f, .9091f),
-                        rangeLabel = "<5g (≈2g Na)",
-                    ),
-                )
             ),
             onRepeatMenuItemTapped = {},
             onChangeImageMenuItemTapped = {},

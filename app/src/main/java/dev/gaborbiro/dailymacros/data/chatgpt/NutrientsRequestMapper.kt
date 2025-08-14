@@ -44,19 +44,19 @@ internal fun NutrientsRequest.toApiModel(): ChatGPTRequest {
                             - If a nutrient is completely unknown but the rest can be estimated, omit that nutrient field rather than guessing wildly.
 
                             CONFIDENCE RULES:
-                            - Output `"nutrients"` only if:
+                            - Output `nutrients` only if:
                               1. You are highly confident the photo shows real food or drink.  
                               2. The title/description provide enough detail to make a reasonable nutrient estimate (e.g., type of food, preparation, ingredients).  
                             - If either condition is not met:
-                              - Omit `"nutrients"`.
-                              - Include `"issues"` with a short, clear sentence explaining what’s missing or unclear so the user can improve their input.
+                              - Omit `nutrients`.
+                              - Include `issues` with a short, clear sentence explaining what’s missing or unclear so the user can improve their input.
 
                             ACCURACY PRINCIPLE:
                             - Perfect accuracy is less important than **reliability and consistency** in estimates across different meals.  
                             - Use typical/average nutritional values for standard foods when exact packaging data is unavailable.
 
                             OUTPUT FORMAT:
-                            Always return valid JSON with no trailing commas.
+                            Always return valid JSON with no trailing commas. Only return the following json formats. No breakdowns or calculations outside this format.
 
                             If nutrients can be estimated:
                             {
@@ -79,7 +79,7 @@ internal fun NutrientsRequest.toApiModel(): ChatGPTRequest {
 
                             NOTES:
                             - Always use both the image and the text provided.
-                            - If values are extremely uncertain (e.g., ambiguous dish), consider omitting `"nutrients"` entirely and use `"issues"` instead.
+                            - If values are extremely uncertain (e.g., ambiguous dish), consider omitting `nutrients` entirely and use `issues` instead.
                         """.trimIndent()
                     )
                 ),

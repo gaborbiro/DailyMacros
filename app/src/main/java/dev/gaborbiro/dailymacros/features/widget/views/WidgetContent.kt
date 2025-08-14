@@ -24,8 +24,6 @@ import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.widget.NotesWidgetNavigator
 import dev.gaborbiro.dailymacros.features.widget.NotesWidgetNavigatorImpl
-import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultHorizontal
-import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultVertical
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetHalfVertical
 import dev.gaborbiro.dailymacros.features.widget.model.TemplateUIModel
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview

@@ -25,11 +25,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.DailyMacrosColors
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
-import dev.gaborbiro.dailymacros.features.overview.model.NutrientProgress
-import dev.gaborbiro.dailymacros.features.overview.model.NutrientProgressItem
+import dev.gaborbiro.dailymacros.features.common.model.NutrientProgressItem
+import dev.gaborbiro.dailymacros.features.common.model.NutrientProgressUIModel
+import java.time.LocalDate
 
 @Composable
-fun NutrientProgressView(model: NutrientProgress) {
+fun NutrientProgressView(
+    modifier: Modifier = Modifier,
+    model: NutrientProgressUIModel,
+) {
     val matrix = arrayOf(
         arrayOf(
             model.calories, model.protein, model.fat,
@@ -40,6 +44,7 @@ fun NutrientProgressView(model: NutrientProgress) {
     )
 
     EqualTable(
+        modifier = modifier,
         rows = 2,
         cols = 3,
     ) { r, c ->
@@ -150,7 +155,8 @@ private fun highlightSubstring(
 private fun MacroGoalsViewPreview() {
     DailyMacrosTheme {
         NutrientProgressView(
-            NutrientProgress(
+            model = NutrientProgressUIModel(
+                date = LocalDate.now(),
                 calories = NutrientProgressItem(
                     title = "Calories",
                     progress = .15f,

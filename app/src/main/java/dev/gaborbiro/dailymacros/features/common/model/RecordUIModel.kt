@@ -9,7 +9,9 @@ class RecordUIModel(
     val timestamp: String,
     val title: String,
     val description: String,
-) {
+): BaseListItem {
+    override val id = recordId
+
     override fun toString(): String {
         return "RecordUIModel(recordId=$recordId, templateId=$templateId, bitmap=${bitmap?.byteCount ?: 0} bytes, timestamp='$timestamp', title='$title', description='$description')"
     }

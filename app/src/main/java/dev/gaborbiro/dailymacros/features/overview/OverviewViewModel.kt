@@ -8,7 +8,6 @@ import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.modal.usecase.FetchNutrientsUseCase
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
-import dev.gaborbiro.dailymacros.features.overview.useCases.ObserveNutrientProgressUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,27 +20,11 @@ internal class OverviewViewModel(
     private val repository: RecordsRepository,
     private val uiMapper: RecordsUIMapper,
     private val fetchNutrientsUseCase: FetchNutrientsUseCase,
-    private val observeNutrientProgressUseCase: ObserveNutrientProgressUseCase,
 ) : ViewModel() {
 
     private val _uiState: MutableStateFlow<OverviewViewState> =
         MutableStateFlow(OverviewViewState())
     val uiState: StateFlow<OverviewViewState> = _uiState.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            observeNutrientProgressUseCase.execute()
-                .collect { progresses ->
-                    val (todaysNutrientProgress, yesterdaysNutrientProgress) = progresses
-                    _uiState.update {
-                        it.copy(
-                            todaysNutrientProgress = todaysNutrientProgress,
-                            yesterdaysNutrientProgress = yesterdaysNutrientProgress,
-                        )
-                    }
-                }
-        }
-    }
 
     fun onSearchTermChanged(search: String?) {
         viewModelScope.launch {

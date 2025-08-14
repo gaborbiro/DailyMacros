@@ -22,12 +22,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
@@ -35,7 +33,7 @@ import dev.gaborbiro.dailymacros.util.randomBitmap
 
 
 @Composable
-fun OverviewListItem(
+fun RecordListItem(
     modifier: Modifier = Modifier,
     record: RecordUIModel,
     onRepeatMenuItemTapped: (RecordUIModel) -> Unit,
@@ -135,7 +133,7 @@ private fun RecordTextContent(modifier: Modifier, record: RecordUIModel) {
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun OverviewListItemPreview() {
-    OverviewListItem(
+    RecordListItem(
         record = RecordUIModel(
             recordId = 1L,
             title = "Title",
