@@ -8,6 +8,8 @@ import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.modal.usecase.FetchNutrientsUseCase
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
+import dev.gaborbiro.dailymacros.features.widget.NotesWidget
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -44,7 +46,7 @@ internal class OverviewViewModel(
         viewModelScope.launch {
             repository.duplicateRecord(record.recordId)
         }
-        refreshWidget()
+        NotesWidget.reload()
     }
 
     fun onChangeImageMenuItemTapped(record: RecordUIModel) {
@@ -55,7 +57,7 @@ internal class OverviewViewModel(
         viewModelScope.launch {
             repository.deleteImage(record.templateId)
         }
-        refreshWidget()
+        NotesWidget.reload()
     }
 
     fun onEditRecordMenuItemTapped(record: RecordUIModel) {
@@ -71,7 +73,7 @@ internal class OverviewViewModel(
                     recordToUndelete = oldRecord,
                 )
             }
-            refreshWidget()
+            NotesWidget.reload()
         }
     }
 
@@ -92,22 +94,29 @@ internal class OverviewViewModel(
                 recordToUndelete = null,
             )
         }
+        NotesWidget.reload()
     }
 
     fun onUndoDeleteDismissed() {
-        viewModelScope.launch {
+        deleteTemplate(_uiState.value.recordToUndelete!!.template.id)
+        _uiState.update {
+            it.copy(
+                recordToUndelete = null,
+            )
+        }
+    }
+
+    private fun deleteTemplate(templateId: Long) {
+        GlobalScope.launch {
             val (templateDeleted, imageDeleted) = repository.deleteTemplateIfUnused(
-                _uiState.value.recordToUndelete!!.template.id
+                templateId = templateId,
+                imageToo = true,
             )
             Log.d(
                 "Notes",
                 "template deleted: $templateDeleted, image deleted: $imageDeleted"
             )
-        }
-        _uiState.update {
-            it.copy(
-                recordToUndelete = null,
-            )
+            NotesWidget.reload()
         }
     }
 
@@ -119,23 +128,17 @@ internal class OverviewViewModel(
         }
     }
 
-    private fun refreshWidget() {
-        _uiState.update {
-            it.copy(refreshWidget = true)
-        }
-    }
-
-    fun onWidgetRefreshed() {
-        _uiState.update {
-            it.copy(refreshWidget = false)
-        }
-    }
-
     fun onUndoDeleteSnackbarShown() {
         _uiState.update {
             it.copy(
                 showUndoDeleteSnackbar = false
             )
+        }
+    }
+
+    fun finalizePendingUndos() {
+        _uiState.value.recordToUndelete?.let {
+            deleteTemplate(it.template.id)
         }
     }
 }

@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 
 data class HostViewState(
     val imagePicker: ImagePickerState? = null,
-    val refreshWidget: Boolean = false,
     val closeScreen: Boolean = false,
     val dialog: DialogState? = null,
 )
@@ -25,7 +24,7 @@ sealed class DialogState {
 
     data class ViewImageDialog(
         val title: String,
-        val bitmap: Bitmap
+        val bitmap: Bitmap,
     ) : DialogState()
 
     sealed class InputDialog(
@@ -51,7 +50,7 @@ sealed class DialogState {
 
         data class SummarySuggestions(
             val titles: List<String>,
-            val description: String?
+            val description: String?,
         )
 
         data class RecordDetails(

@@ -19,6 +19,7 @@ import dev.gaborbiro.dailymacros.data.chatgpt.service.model.OutputContentDeseria
 import dev.gaborbiro.dailymacros.data.records.DBMapper
 import dev.gaborbiro.dailymacros.data.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
+import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.modal.ModalActivity.Companion.REQUEST_TIMEOUT_IN_SECONDS

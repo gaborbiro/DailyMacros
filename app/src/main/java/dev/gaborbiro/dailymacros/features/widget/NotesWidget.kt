@@ -19,6 +19,7 @@ import androidx.glance.currentState
 import androidx.glance.layout.fillMaxSize
 import androidx.work.WorkManager
 import com.google.gson.reflect.TypeToken
+import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.data.records.domain.model.Record
 import dev.gaborbiro.dailymacros.data.records.domain.model.Template
 import dev.gaborbiro.dailymacros.design.WidgetColorScheme
@@ -37,8 +38,8 @@ class NotesWidget : GlanceAppWidget() {
         const val PREFS_RECENT_RECORDS = "recent_records"
         const val PREFS_TOP_TEMPLATES = "top_templates"
 
-        fun reload(context: Context) {
-            WorkManager.getInstance(context).enqueue(
+        fun reload() {
+            WorkManager.getInstance(App.appContext).enqueue(
                 ReloadWorkRequest.getWorkRequest(
                     recentRecordsPrefsKey = PREFS_RECENT_RECORDS,
                     topTemplatesPrefsKey = PREFS_TOP_TEMPLATES,

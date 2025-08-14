@@ -40,7 +40,7 @@ internal interface RecordsRepository {
      */
     suspend fun deleteTemplateIfUnused(
         templateId: Long,
-        imageToo: Boolean = true,
+        imageToo: Boolean,
     ): Pair<Boolean, Boolean>
 
     /**

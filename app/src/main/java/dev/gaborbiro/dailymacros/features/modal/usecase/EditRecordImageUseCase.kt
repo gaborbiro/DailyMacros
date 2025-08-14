@@ -1,12 +1,13 @@
 package dev.gaborbiro.dailymacros.features.modal.usecase
 
-import android.util.Log
 import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.data.records.domain.model.RecordToSave
 import dev.gaborbiro.dailymacros.data.records.domain.model.TemplateToSave
+import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 
 internal class EditRecordImageUseCase(
     private val repository: RecordsRepository,
+    private val deleteRecordUseCase: DeleteRecordUseCase,
 ) {
 
     suspend fun execute(recordId: Long, filename: String?) {
@@ -20,9 +21,6 @@ internal class EditRecordImageUseCase(
             ),
         )
         repository.saveRecord(newRecord)
-        repository.deleteRecord(recordId)
-        val (templateDeleted, imageDeleted) =
-            repository.deleteTemplateIfUnused(record.template.id)
-        Log.d("Notes", "template deleted: $templateDeleted, image deleted: $imageDeleted")
+        deleteRecordUseCase.execute(recordId)
     }
 }

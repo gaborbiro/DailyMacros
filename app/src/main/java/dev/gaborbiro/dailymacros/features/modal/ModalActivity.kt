@@ -29,6 +29,7 @@ import dev.gaborbiro.dailymacros.data.chatgpt.service.model.OutputContentDeseria
 import dev.gaborbiro.dailymacros.data.records.DBMapper
 import dev.gaborbiro.dailymacros.data.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
+import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.common.error.model.ErrorViewState
 import dev.gaborbiro.dailymacros.features.common.error.views.ErrorDialog
@@ -212,6 +213,7 @@ class ModalActivity : AppCompatActivity() {
 
         val recordsMapper = RecordsMapper()
         val nutrientsUIMapper = NutrientsUIMapper()
+        val deleteRecordUseCase = DeleteRecordUseCase(recordsRepository)
 
         ModalScreenViewModel(
             bitmapStore = bitmapStore,
@@ -231,12 +233,13 @@ class ModalActivity : AppCompatActivity() {
             validateCreateRecordUseCase = ValidateCreateRecordUseCase(),
             saveImageUseCase = SaveImageUseCase(this, bitmapStore),
             validateEditImageUseCase = ValidateEditImageUseCase(recordsRepository),
-            editRecordImageUseCase = EditRecordImageUseCase(recordsRepository),
+            editRecordImageUseCase = EditRecordImageUseCase(recordsRepository, deleteRecordUseCase),
             editTemplateImageUseCase = EditTemplateImageUseCase(recordsRepository),
             getRecordImageUseCase = GetRecordImageUseCase(recordsRepository, bitmapStore),
             getTemplateImageUseCase = GetTemplateImageUseCase(recordsRepository, bitmapStore),
             foodPicSummaryUseCase = FoodPicSummaryUseCase(bitmapStore, chatGPTRepository, recordsMapper),
             nutrientsUIMapper = nutrientsUIMapper,
+            deleteRecordUseCase = deleteRecordUseCase,
         )
     }
 
@@ -335,10 +338,6 @@ class ModalActivity : AppCompatActivity() {
                 null -> {
                     // nothing to do
                 }
-            }
-
-            if (viewState.refreshWidget) {
-                NotesWidget.reload(context = this@ModalActivity)
             }
 
             if (viewState.closeScreen) {

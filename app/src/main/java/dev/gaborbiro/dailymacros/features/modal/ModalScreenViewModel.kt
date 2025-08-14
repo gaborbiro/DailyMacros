@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.data.chatgpt.model.DomainError
 import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.common.error.model.ErrorViewState
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
@@ -28,6 +29,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
+import dev.gaborbiro.dailymacros.features.widget.NotesWidget
 import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
 import ellipsize
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -54,6 +56,7 @@ internal class ModalScreenViewModel(
     private val getRecordImageUseCase: GetRecordImageUseCase,
     private val getTemplateImageUseCase: GetTemplateImageUseCase,
     private val foodPicSummaryUseCase: FoodPicSummaryUseCase,
+    private val deleteRecordUseCase: DeleteRecordUseCase,
     private val nutrientsUIMapper: NutrientsUIMapper,
 ) : ViewModel() {
 
@@ -256,7 +259,8 @@ internal class ModalScreenViewModel(
                         }
 
                         EditImageValidationResult.Valid -> {
-                            refreshWidgetAndClose()
+                            NotesWidget.reload()
+                            close()
                             editRecordImageUseCase.execute(imagePicker.recordId, persistedFilename)
                         }
                     }
@@ -269,7 +273,8 @@ internal class ModalScreenViewModel(
     fun onRepeatRecordTapped(recordId: Long) {
         viewModelScope.launch {
             recordsRepository.duplicateRecord(recordId)
-            refreshWidgetAndClose()
+            NotesWidget.reload()
+            close()
         }
     }
 
@@ -277,7 +282,8 @@ internal class ModalScreenViewModel(
     fun onRepeatTemplateTapped(templateId: Long) {
         viewModelScope.launch {
             recordsRepository.applyTemplate(templateId)
-            refreshWidgetAndClose()
+            NotesWidget.reload()
+            close()
         }
     }
 
@@ -289,8 +295,9 @@ internal class ModalScreenViewModel(
     @UiThread
     fun onDeleteTapped(recordId: Long) {
         viewModelScope.launch {
-            recordsRepository.deleteRecord(recordId)
-            refreshWidgetAndClose()
+            deleteRecordUseCase.execute(recordId)
+            NotesWidget.reload()
+            close()
         }
     }
 
@@ -353,7 +360,8 @@ internal class ModalScreenViewModel(
             }
 
             is CreateValidationResult.Valid -> {
-                refreshWidgetAndClose()
+                NotesWidget.reload()
+                close()
                 val recordId = createRecordUseCase.execute(image, title, description)
                 fetchNutrientsUseCase.execute(recordId)
             }
@@ -390,7 +398,8 @@ internal class ModalScreenViewModel(
                     title = title,
                     description = description,
                 )
-                refreshWidgetAndClose()
+                NotesWidget.reload()
+                close()
             }
 
             is EditValidationResult.Error -> {
@@ -411,7 +420,8 @@ internal class ModalScreenViewModel(
 
     @UiThread
     fun onEditImageTargetConfirmed(target: EditTarget) {
-        refreshWidgetAndClose()
+        NotesWidget.reload()
+        close()
         (_viewState.value.dialog as? DialogState.EditImageTargetConfirmationDialog)?.let {
             runSafely {
                 when (target) {
@@ -429,7 +439,8 @@ internal class ModalScreenViewModel(
 
     @UiThread
     fun onEditTargetConfirmed(target: EditTarget) {
-        refreshWidgetAndClose()
+        NotesWidget.reload()
+        close()
         (_viewState.value.dialog as? DialogState.EditTargetConfirmationDialog)?.let {
             val recordId = it.recordId
             val title = it.newTitle
@@ -462,10 +473,9 @@ internal class ModalScreenViewModel(
         }
     }
 
-    private fun refreshWidgetAndClose() {
+    private fun close() {
         _viewState.update {
             it.copy(
-                refreshWidget = true,
                 closeScreen = true,
                 imagePicker = null,
             )

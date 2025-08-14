@@ -132,6 +132,7 @@ internal class BitmapStore(
 
     fun delete(filename: String) {
         fileStore.delete(filename)
+        fileStore.delete(insertSuffixToFilename(filename, THUMBNAIL_SUFFIX))
     }
 
     /**

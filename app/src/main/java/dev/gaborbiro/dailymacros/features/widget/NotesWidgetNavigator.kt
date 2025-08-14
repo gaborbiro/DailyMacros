@@ -189,7 +189,7 @@ class RefreshAction : ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters,
     ) {
-        NotesWidget.reload(context)
+        NotesWidget.reload()
     }
 }
 
