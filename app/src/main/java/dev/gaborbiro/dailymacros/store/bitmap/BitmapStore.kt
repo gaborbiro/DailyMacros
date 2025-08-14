@@ -3,7 +3,8 @@ package dev.gaborbiro.dailymacros.store.bitmap
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.util.LruCache
-import dev.gaborbiro.dailymacros.ImageFileFormat
+import dev.gaborbiro.dailymacros.FoodPicFormat
+import dev.gaborbiro.dailymacros.FoodPicQuality
 import dev.gaborbiro.dailymacros.data.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.store.file.FileStore
 import java.io.File
@@ -121,8 +122,8 @@ internal class BitmapStore(
     fun write(filename: String, bitmap: Bitmap) {
         fileStore.write(filename) { outputStream ->
             bitmap.compress(
-                /* format = */ ImageFileFormat,
-                /* quality = */ 100,  // quality is ignored with PNG
+                /* format = */ FoodPicFormat,
+                /* quality = */ FoodPicQuality,
                 /* stream = */ outputStream
             )
         }

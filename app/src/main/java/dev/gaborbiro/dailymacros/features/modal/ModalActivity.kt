@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
@@ -17,6 +18,7 @@ import androidx.core.os.bundleOf
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
+import dev.gaborbiro.dailymacros.FoodPicExt
 import dev.gaborbiro.dailymacros.data.chatgpt.AuthInterceptor
 import dev.gaborbiro.dailymacros.data.chatgpt.ChatGPTRepositoryImpl
 import dev.gaborbiro.dailymacros.data.chatgpt.service.ChatGPTService
@@ -53,7 +55,6 @@ import dev.gaborbiro.dailymacros.features.modal.views.InputDialog
 import dev.gaborbiro.dailymacros.features.modal.views.SelectRecordActionDialog
 import dev.gaborbiro.dailymacros.features.modal.views.SelectTemplateActionDialog
 import dev.gaborbiro.dailymacros.features.widget.NotesWidget
-import dev.gaborbiro.dailymacros.generateImageFilename
 import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
 import dev.gaborbiro.dailymacros.store.db.AppDatabase
 import dev.gaborbiro.dailymacros.store.file.FileStoreFactoryImpl
@@ -162,6 +163,7 @@ class ModalActivity : AppCompatActivity() {
     }
 
     private val fileStore = FileStoreFactoryImpl(this).getStore("public", keepFiles = true)
+    private val cacheFileStore = FileStoreFactoryImpl(this).getStore("public", keepFiles = false)
 
     private val viewModel by lazy {
         val bitmapStore = BitmapStore(fileStore)
@@ -300,27 +302,27 @@ class ModalActivity : AppCompatActivity() {
                 }
             }
 
-            if (viewState.showCamera) {
-                val filename = generateImageFilename()
-
-                val launcher = rememberLauncherForActivityResult(
-                    contract = ActivityResultContracts.TakePicture(),
-                    onResult = {
-                        viewModel.onPhotoTaken(filename)
-                    }
-                )
-                SideEffect {
-                    val uri = fileStore.createFile(filename).toUri()
-                    launcher.launch(uri)
-                }
-            }
-
             when (viewState.imagePicker) {
-                is ImagePickerState.Create, is ImagePickerState.ChangeImage -> {
+                ImagePickerState.Take -> {
+                    val filename = "temp.$FoodPicExt"
                     val launcher = rememberLauncherForActivityResult(
-                        contract = ActivityResultContracts.PickVisualMedia(),
+                        contract = ActivityResultContracts.TakePicture(),
                         onResult = {
-                            viewModel.onImagePicked(it)
+                            val uri = cacheFileStore.getOrCreateFile(filename).toUri()
+                            viewModel.onImageAvailable(uri)
+                        }
+                    )
+                    SideEffect {
+                        val uri = cacheFileStore.getOrCreateFile(filename).toUri()
+                        launcher.launch(uri)
+                    }
+                }
+
+                is ImagePickerState.Select, is ImagePickerState.ChangeImage -> {
+                    val launcher = rememberLauncherForActivityResult(
+                        contract = PickVisualMedia(),
+                        onResult = {
+                            viewModel.onImageAvailable(it)
                         }
                     )
                     SideEffect {

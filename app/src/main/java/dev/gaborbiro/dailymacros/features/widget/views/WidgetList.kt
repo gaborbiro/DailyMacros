@@ -31,9 +31,10 @@ internal fun WidgetList(
     templateBodyTapActionProvider: @Composable (templateId: Long) -> Action,
     onTemplatesExpandButtonTapped: () -> Unit,
 ) {
+    val totalItemCount = recentRecords.size + topTemplates.size
     LazyColumn {
         items(
-            count = recentRecords.size + topTemplates.size + 1,
+            count = totalItemCount + if (totalItemCount > 0) 1 else 0,
             itemId = {
                 val index = mapListIndex(recentRecords.size, it)
                 when {

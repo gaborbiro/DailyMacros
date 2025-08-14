@@ -3,7 +3,6 @@ package dev.gaborbiro.dailymacros.features.modal.model
 import android.graphics.Bitmap
 
 data class HostViewState(
-    val showCamera: Boolean = false,
     val imagePicker: ImagePickerState? = null,
     val refreshWidget: Boolean = false,
     val closeScreen: Boolean = false,
@@ -85,5 +84,6 @@ sealed class DialogState {
 
 sealed class ImagePickerState {
     class ChangeImage(val recordId: Long) : ImagePickerState()
-    object Create : ImagePickerState()
+    object Select : ImagePickerState()
+    object Take : ImagePickerState()
 }

@@ -3,7 +3,7 @@ package dev.gaborbiro.dailymacros.features.modal
 import android.graphics.Bitmap
 import android.util.Base64
 import android.util.Base64OutputStream
-import dev.gaborbiro.dailymacros.ImageFileFormat
+import dev.gaborbiro.dailymacros.FoodPicFormat
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 
@@ -12,7 +12,7 @@ import java.io.InputStream
  */
 internal fun inputStreamToBase64(
     input: InputStream,
-    format: Bitmap.CompressFormat = ImageFileFormat,
+    format: Bitmap.CompressFormat = FoodPicFormat,
 ): String {
     val mimeType = when (format) {
         Bitmap.CompressFormat.PNG -> "image/png"

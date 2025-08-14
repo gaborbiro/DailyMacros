@@ -22,7 +22,7 @@ interface FileStore {
     /**
      * @return android.net.Uri but in a String format. Use android.net.Uri.parse(this) or androidx.core.net.toUri() to convert it to Uri.
      */
-    fun createFile(filename: String): String
+    fun getOrCreateFile(filename: String): String
 
     /**
      * @return local file path on the device

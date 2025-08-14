@@ -76,7 +76,7 @@ internal class ModalScreenViewModel(
     fun addRecordWithCamera() {
         _viewState.update {
             it.copy(
-                showCamera = true,
+                imagePicker = ImagePickerState.Take,
             )
         }
     }
@@ -85,7 +85,7 @@ internal class ModalScreenViewModel(
     fun addRecordWithImagePicker() {
         _viewState.update {
             it.copy(
-                imagePicker = ImagePickerState.Create,
+                imagePicker = ImagePickerState.Select,
             )
         }
     }
@@ -188,44 +188,7 @@ internal class ModalScreenViewModel(
     }
 
     @UiThread
-    fun onPhotoTaken(filename: String) {
-        imageSummaryJob?.cancel()
-        imageSummaryJob = runSafely {
-            _viewState.update {
-                it.copy(
-                    showCamera = false,
-                    dialog = DialogState.InputDialog.CreateWithImage(
-                        image = filename,
-                        showProgressIndicator = true,
-                        suggestions = null,
-                    ),
-                )
-            }
-            try {
-                val summary = foodPicSummaryUseCase.execute(filename)
-                _viewState.update { currentState ->
-                    if (currentState.dialog is DialogState.InputDialog.CreateWithImage) {
-                        currentState.copy(dialog = currentState.dialog.copy(suggestions = summary))
-                    } else {
-                        currentState
-                    }
-                }
-            } catch (e: DomainError) {
-                e.printStackTrace()
-            } finally {
-                _viewState.update { currentState ->
-                    if (currentState.dialog is DialogState.InputDialog.CreateWithImage) {
-                        currentState.copy(dialog = currentState.dialog.copy(showProgressIndicator = false))
-                    } else {
-                        currentState
-                    }
-                }
-            }
-        }
-    }
-
-    @UiThread
-    fun onImagePicked(uri: Uri?) {
+    fun onImageAvailable(uri: Uri?) {
         imageSummaryJob?.cancel()
         imageSummaryJob = runSafely {
             val imagePicker = _viewState.value.imagePicker!!
@@ -241,7 +204,7 @@ internal class ModalScreenViewModel(
             }
             val persistedFilename = uri?.let { saveImageUseCase.execute(it) }
             when (imagePicker) {
-                ImagePickerState.Create -> {
+                ImagePickerState.Take, ImagePickerState.Select -> {
                     _viewState.update {
                         it.copy(
                             imagePicker = null,

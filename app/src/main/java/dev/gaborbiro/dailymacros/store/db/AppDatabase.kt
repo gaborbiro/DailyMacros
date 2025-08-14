@@ -15,11 +15,8 @@ import dev.gaborbiro.dailymacros.store.db.records.model.TemplateDBModel
 
 @Database(
     entities = [RecordDBModel::class, TemplateDBModel::class],
-    version = 2,
+    version = 1,
     exportSchema = true,
-    autoMigrations = [
-        AutoMigration(1, 2, AddAgeColumnSpec::class)
-    ]
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -48,6 +45,3 @@ abstract class AppDatabase : RoomDatabase() {
         }
     }
 }
-
-@ProvidedTypeConverter
-class AddAgeColumnSpec : AutoMigrationSpec

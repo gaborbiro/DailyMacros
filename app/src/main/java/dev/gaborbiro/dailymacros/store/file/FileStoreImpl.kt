@@ -40,7 +40,7 @@ internal class FileStoreImpl(
         }
     }
 
-    override fun createFile(filename: String): String {
+    override fun getOrCreateFile(filename: String): String {
         return destinationProvider.getContentUri(filename).toString()
     }
 
