@@ -1,7 +1,7 @@
 package dev.gaborbiro.dailymacros.features.common
 
 import android.util.Log
-import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 
 internal class DeleteRecordUseCase(
     private val repository: RecordsRepository,

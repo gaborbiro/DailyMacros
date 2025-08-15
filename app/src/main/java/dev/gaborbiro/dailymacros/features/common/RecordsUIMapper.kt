@@ -2,12 +2,12 @@ package dev.gaborbiro.dailymacros.features.common
 
 import android.graphics.Bitmap
 import android.util.Range
-import dev.gaborbiro.dailymacros.data.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.features.common.model.BaseListItem
 import dev.gaborbiro.dailymacros.features.common.model.NutrientProgressItem
 import dev.gaborbiro.dailymacros.features.common.model.NutrientProgressUIModel
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
-import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
+import dev.gaborbiro.dailymacros.data.bitmap.ImageStore
 import dev.gaborbiro.dailymacros.util.formatShort
 import dev.gaborbiro.dailymacros.util.formatShortTime
 import java.time.LocalDate
@@ -15,7 +15,7 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 internal class RecordsUIMapper(
-    private val bitmapStore: BitmapStore,
+    private val imageStore: ImageStore,
     private val nutrientsUIMapper: NutrientsUIMapper,
 ) {
     fun map(records: List<Record>, thumbnail: Boolean): List<BaseListItem> {
@@ -101,7 +101,7 @@ internal class RecordsUIMapper(
     }
 
     private fun map(record: Record, thumbnail: Boolean): RecordUIModel {
-        val bitmap: Bitmap? = record.template.image?.let { bitmapStore.read(it, thumbnail) }
+        val bitmap: Bitmap? = record.template.image?.let { imageStore.read(it, thumbnail) }
         val timestamp = record.timestamp
         val timestampStr = when {
             !timestamp.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS)) -> {

@@ -2,7 +2,7 @@ package dev.gaborbiro.dailymacros
 
 import android.app.Application
 import android.content.Context
-import dev.gaborbiro.dailymacros.store.db.AppDatabase
+import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.util.createNotificationChannels
 
 class App : Application() {

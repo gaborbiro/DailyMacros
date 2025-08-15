@@ -80,9 +80,9 @@ android {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.16.0")
+    implementation("androidx.core:core-ktx:1.17.0")
 
-    val composeVersion = "1.8.3"
+    val composeVersion = "1.9.0"
     implementation("androidx.compose.ui:ui:$composeVersion")
     implementation("androidx.compose.ui:ui-graphics:$composeVersion")
     implementation("androidx.compose.ui:ui-tooling-preview:$composeVersion")
@@ -91,7 +91,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("androidx.compose.material3:material3:1.3.2")
     implementation("androidx.activity:activity-compose:1.10.1")
-    implementation(platform("androidx.compose:compose-bom:2025.07.00"))
+    implementation(platform("androidx.compose:compose-bom:2025.08.00"))
 
 
     implementation("androidx.appcompat:appcompat:1.7.1")
@@ -127,6 +127,9 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp-java-net-cookiejar:5.1.0")
     implementation("com.squareup.okhttp3:okhttp:5.1.0")
     implementation("com.google.code.gson:gson:2.13.1")
+
+    implementation("com.google.mlkit:image-labeling:17.0.9")
+
 
     debugImplementation("androidx.compose.ui:ui-tooling:$composeVersion")
     debugImplementation("androidx.compose.ui:ui-test-manifest:$composeVersion")

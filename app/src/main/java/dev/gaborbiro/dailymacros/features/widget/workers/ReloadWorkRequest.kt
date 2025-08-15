@@ -10,14 +10,14 @@ import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkRequest
 import androidx.work.WorkerParameters
-import dev.gaborbiro.dailymacros.data.records.DBMapper
-import dev.gaborbiro.dailymacros.data.records.RecordsRepositoryImpl
-import dev.gaborbiro.dailymacros.data.records.domain.model.Record
-import dev.gaborbiro.dailymacros.data.records.domain.model.Template
+import dev.gaborbiro.dailymacros.repo.records.DBMapper
+import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
+import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
 import dev.gaborbiro.dailymacros.features.widget.NotesWidget
-import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
-import dev.gaborbiro.dailymacros.store.db.AppDatabase
-import dev.gaborbiro.dailymacros.store.file.FileStoreFactoryImpl
+import dev.gaborbiro.dailymacros.data.bitmap.ImageStore
+import dev.gaborbiro.dailymacros.data.db.AppDatabase
+import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.util.gson
 import java.time.LocalDateTime
 
@@ -32,7 +32,7 @@ internal class ReloadWorkRequest(
             templatesDAO = AppDatabase.getInstance().templatesDAO(),
             recordsDAO = AppDatabase.getInstance().recordsDAO(),
             dBMapper = DBMapper(),
-            bitmapStore = BitmapStore(fileStore),
+            imageStore = ImageStore(fileStore),
         )
     }
 

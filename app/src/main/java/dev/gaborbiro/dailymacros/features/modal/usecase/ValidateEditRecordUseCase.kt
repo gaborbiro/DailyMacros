@@ -1,6 +1,6 @@
 package dev.gaborbiro.dailymacros.features.modal.usecase
 
-import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 
 internal class ValidateEditRecordUseCase(
     private val repository: RecordsRepository,

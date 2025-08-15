@@ -1,9 +1,9 @@
 package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import androidx.annotation.UiThread
-import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
-import dev.gaborbiro.dailymacros.data.records.domain.model.RecordToSave
-import dev.gaborbiro.dailymacros.data.records.domain.model.TemplateToSave
+import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repo.records.domain.model.RecordToSave
+import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateToSave
 import java.time.LocalDateTime
 
 internal class CreateRecordUseCase(

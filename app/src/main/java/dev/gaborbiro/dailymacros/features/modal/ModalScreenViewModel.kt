@@ -5,8 +5,8 @@ import android.util.Log
 import androidx.annotation.UiThread
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.gaborbiro.dailymacros.data.chatgpt.model.DomainError
-import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repo.chatgpt.model.DomainError
+import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.common.error.model.ErrorViewState
@@ -30,7 +30,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseC
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.widget.NotesWidget
-import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
+import dev.gaborbiro.dailymacros.data.bitmap.ImageStore
 import ellipsize
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
@@ -41,7 +41,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 internal class ModalScreenViewModel(
-    private val bitmapStore: BitmapStore,
+    private val imageStore: ImageStore,
     private val recordsRepository: RecordsRepository,
     private val createRecordUseCase: CreateRecordUseCase,
     private val fetchNutrientsUseCase: FetchNutrientsUseCase,
@@ -308,7 +308,7 @@ internal class ModalScreenViewModel(
             _viewState.update {
                 (it.dialog as? DialogState.InputDialog.CreateWithImage)
                     ?.image?.let {
-                        bitmapStore.delete(it)
+                        imageStore.delete(it)
                     }
                 it.copy(
                     closeScreen = true,

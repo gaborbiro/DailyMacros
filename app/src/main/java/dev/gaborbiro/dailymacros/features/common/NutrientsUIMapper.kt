@@ -1,7 +1,7 @@
 package dev.gaborbiro.dailymacros.features.common
 
 import android.icu.text.DecimalFormat
-import dev.gaborbiro.dailymacros.data.records.domain.model.Nutrients
+import dev.gaborbiro.dailymacros.repo.records.domain.model.Nutrients
 
 internal class NutrientsUIMapper {
 

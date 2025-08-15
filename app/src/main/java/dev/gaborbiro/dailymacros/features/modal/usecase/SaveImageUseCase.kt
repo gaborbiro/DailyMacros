@@ -5,13 +5,13 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import dev.gaborbiro.dailymacros.FoodPicMaxSize
 import dev.gaborbiro.dailymacros.generateFoodPicFilename
-import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
+import dev.gaborbiro.dailymacros.data.bitmap.ImageStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 internal class SaveImageUseCase(
     private val appContext: Context,
-    private val bitmapStore: BitmapStore,
+    private val imageStore: ImageStore,
 ) {
 
     suspend fun execute(uri: Uri): String {
@@ -33,7 +33,7 @@ internal class SaveImageUseCase(
                 decoder.isMutableRequired = false
             }
             val filename = generateFoodPicFilename()
-            bitmapStore.write(filename, bitmap)
+            imageStore.write(filename, bitmap)
             filename
         }
     }

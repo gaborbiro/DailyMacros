@@ -1,19 +1,19 @@
 package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import android.content.Context
-import dev.gaborbiro.dailymacros.data.chatgpt.ChatGPTRepository
-import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
-import dev.gaborbiro.dailymacros.data.records.domain.model.Nutrients
-import dev.gaborbiro.dailymacros.data.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repo.chatgpt.ChatGPTRepository
+import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repo.records.domain.model.Nutrients
+import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.modal.RecordsMapper
 import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
-import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
+import dev.gaborbiro.dailymacros.data.bitmap.ImageStore
 import dev.gaborbiro.dailymacros.util.showSimpleNotification
 
 internal class FetchNutrientsUseCase(
     private val appContext: Context,
-    private val bitmapStore: BitmapStore,
+    private val imageStore: ImageStore,
     private val chatGPTRepository: ChatGPTRepository,
     private val recordsRepository: RecordsRepository,
     private val recordsMapper: RecordsMapper,
@@ -24,7 +24,7 @@ internal class FetchNutrientsUseCase(
         val record: Record = recordsRepository.getRecord(recordId)!!
         val base64Image = record.template.image
             ?.let { imageFilename: String ->
-                val inputStream = bitmapStore.get(imageFilename, thumbnail = false)
+                val inputStream = imageStore.get(imageFilename, thumbnail = false)
                 inputStreamToBase64(inputStream)
             }
         val response = chatGPTRepository.nutrients(

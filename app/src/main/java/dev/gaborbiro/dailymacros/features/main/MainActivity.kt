@@ -9,17 +9,16 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
-import dev.gaborbiro.dailymacros.data.chatgpt.AuthInterceptor
-import dev.gaborbiro.dailymacros.data.chatgpt.ChatGPTRepositoryImpl
-import dev.gaborbiro.dailymacros.data.chatgpt.service.ChatGPTService
-import dev.gaborbiro.dailymacros.data.chatgpt.service.model.ContentEntry
-import dev.gaborbiro.dailymacros.data.chatgpt.service.model.ContentEntryOutputContentDeserializer
-import dev.gaborbiro.dailymacros.data.chatgpt.service.model.OutputContent
-import dev.gaborbiro.dailymacros.data.chatgpt.service.model.OutputContentDeserializer
-import dev.gaborbiro.dailymacros.data.records.DBMapper
-import dev.gaborbiro.dailymacros.data.records.RecordsRepositoryImpl
+import dev.gaborbiro.dailymacros.repo.chatgpt.AuthInterceptor
+import dev.gaborbiro.dailymacros.repo.chatgpt.ChatGPTRepositoryImpl
+import dev.gaborbiro.dailymacros.repo.chatgpt.service.ChatGPTService
+import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntry
+import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntryOutputContentDeserializer
+import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContent
+import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContentDeserializer
+import dev.gaborbiro.dailymacros.repo.records.DBMapper
+import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
-import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.modal.ModalActivity.Companion.REQUEST_TIMEOUT_IN_SECONDS
@@ -28,9 +27,9 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.FetchNutrientsUseCase
 import dev.gaborbiro.dailymacros.features.overview.OverviewNavigatorImpl
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
-import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
-import dev.gaborbiro.dailymacros.store.db.AppDatabase
-import dev.gaborbiro.dailymacros.store.file.FileStoreFactoryImpl
+import dev.gaborbiro.dailymacros.data.bitmap.ImageStore
+import dev.gaborbiro.dailymacros.data.db.AppDatabase
+import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import okhttp3.OkHttpClient
 import okhttp3.java.net.cookiejar.JavaNetCookieJar
 import okhttp3.logging.HttpLoggingInterceptor
@@ -48,13 +47,13 @@ class MainActivity : ComponentActivity() {
 
         val navigator = OverviewNavigatorImpl(this)
         val fileStore = FileStoreFactoryImpl(this).getStore("public", keepFiles = true)
-        val bitmapStore = BitmapStore(fileStore)
+        val imageStore = ImageStore(fileStore)
 
         val recordsRepository = RecordsRepositoryImpl(
             templatesDAO = AppDatabase.getInstance().templatesDAO(),
             recordsDAO = AppDatabase.getInstance().recordsDAO(),
             dBMapper = DBMapper(),
-            bitmapStore = bitmapStore,
+            imageStore = imageStore,
         )
 
         val logger = HttpLoggingInterceptor().also {
@@ -97,7 +96,7 @@ class MainActivity : ComponentActivity() {
 
         val fetchNutrientsUseCase = FetchNutrientsUseCase(
             appContext = this,
-            bitmapStore = bitmapStore,
+            imageStore = imageStore,
             recordsRepository = recordsRepository,
             chatGPTRepository = chatGPTRepository,
             recordsMapper = RecordsMapper(),
@@ -107,7 +106,7 @@ class MainActivity : ComponentActivity() {
         val viewModel = OverviewViewModel(
             navigator = navigator,
             repository = recordsRepository,
-            uiMapper = RecordsUIMapper(bitmapStore, nutrientsUIMapper),
+            uiMapper = RecordsUIMapper(imageStore, nutrientsUIMapper),
             fetchNutrientsUseCase = fetchNutrientsUseCase,
         )
 

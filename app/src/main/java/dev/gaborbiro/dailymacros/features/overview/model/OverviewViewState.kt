@@ -1,6 +1,6 @@
 package dev.gaborbiro.dailymacros.features.overview.model
 
-import dev.gaborbiro.dailymacros.data.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.features.common.model.BaseListItem
 
 data class OverviewViewState(

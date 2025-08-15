@@ -20,16 +20,16 @@ import androidx.glance.layout.fillMaxSize
 import androidx.work.WorkManager
 import com.google.gson.reflect.TypeToken
 import dev.gaborbiro.dailymacros.App
-import dev.gaborbiro.dailymacros.data.records.domain.model.Record
-import dev.gaborbiro.dailymacros.data.records.domain.model.Template
+import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
 import dev.gaborbiro.dailymacros.design.WidgetColorScheme
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.widget.views.WidgetContent
 import dev.gaborbiro.dailymacros.features.widget.workers.ReloadWorkRequest
-import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
-import dev.gaborbiro.dailymacros.store.file.FileStoreFactoryImpl
+import dev.gaborbiro.dailymacros.data.bitmap.ImageStore
+import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.util.gson
 
 class NotesWidget : GlanceAppWidget() {
@@ -66,14 +66,14 @@ class NotesWidget : GlanceAppWidget() {
             val prefs = currentState<Preferences>()
             val fileStore =
                 FileStoreFactoryImpl(LocalContext.current).getStore("public", keepFiles = true)
-            val bitmapStore = BitmapStore(fileStore)
+            val imageStore = ImageStore(fileStore)
             val nutrientsUIMapper = NutrientsUIMapper()
-            val recordsUIMapper = RecordsUIMapper(bitmapStore, nutrientsUIMapper)
+            val recordsUIMapper = RecordsUIMapper(imageStore, nutrientsUIMapper)
             val recentRecords = recordsUIMapper.map(
                 records = prefs.retrieveRecentRecords(),
                 thumbnail = true,
             )
-            val widgetUIMapper = WidgetUIMapper(bitmapStore, nutrientsUIMapper)
+            val widgetUIMapper = WidgetUIMapper(imageStore, nutrientsUIMapper)
             val topTemplates = widgetUIMapper.map(
                 templates = prefs.retrieveTopTemplates(),
                 thumbnail = true,

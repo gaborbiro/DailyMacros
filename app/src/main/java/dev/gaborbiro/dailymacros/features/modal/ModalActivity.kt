@@ -19,15 +19,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import dev.gaborbiro.dailymacros.FoodPicExt
-import dev.gaborbiro.dailymacros.data.chatgpt.AuthInterceptor
-import dev.gaborbiro.dailymacros.data.chatgpt.ChatGPTRepositoryImpl
-import dev.gaborbiro.dailymacros.data.chatgpt.service.ChatGPTService
-import dev.gaborbiro.dailymacros.data.chatgpt.service.model.ContentEntry
-import dev.gaborbiro.dailymacros.data.chatgpt.service.model.ContentEntryOutputContentDeserializer
-import dev.gaborbiro.dailymacros.data.chatgpt.service.model.OutputContent
-import dev.gaborbiro.dailymacros.data.chatgpt.service.model.OutputContentDeserializer
-import dev.gaborbiro.dailymacros.data.records.DBMapper
-import dev.gaborbiro.dailymacros.data.records.RecordsRepositoryImpl
+import dev.gaborbiro.dailymacros.repo.chatgpt.AuthInterceptor
+import dev.gaborbiro.dailymacros.repo.chatgpt.ChatGPTRepositoryImpl
+import dev.gaborbiro.dailymacros.repo.chatgpt.service.ChatGPTService
+import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntry
+import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntryOutputContentDeserializer
+import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContent
+import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContentDeserializer
+import dev.gaborbiro.dailymacros.repo.records.DBMapper
+import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
@@ -55,10 +55,9 @@ import dev.gaborbiro.dailymacros.features.modal.views.ImageDialog
 import dev.gaborbiro.dailymacros.features.modal.views.InputDialog
 import dev.gaborbiro.dailymacros.features.modal.views.SelectRecordActionDialog
 import dev.gaborbiro.dailymacros.features.modal.views.SelectTemplateActionDialog
-import dev.gaborbiro.dailymacros.features.widget.NotesWidget
-import dev.gaborbiro.dailymacros.store.bitmap.BitmapStore
-import dev.gaborbiro.dailymacros.store.db.AppDatabase
-import dev.gaborbiro.dailymacros.store.file.FileStoreFactoryImpl
+import dev.gaborbiro.dailymacros.data.bitmap.ImageStore
+import dev.gaborbiro.dailymacros.data.db.AppDatabase
+import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import okhttp3.OkHttpClient
 import okhttp3.java.net.cookiejar.JavaNetCookieJar
 import okhttp3.logging.HttpLoggingInterceptor
@@ -167,12 +166,12 @@ class ModalActivity : AppCompatActivity() {
     private val cacheFileStore = FileStoreFactoryImpl(this).getStore("public", keepFiles = false)
 
     private val viewModel by lazy {
-        val bitmapStore = BitmapStore(fileStore)
+        val imageStore = ImageStore(fileStore)
         val recordsRepository = RecordsRepositoryImpl(
             templatesDAO = AppDatabase.getInstance().templatesDAO(),
             recordsDAO = AppDatabase.getInstance().recordsDAO(),
             dBMapper = DBMapper(),
-            bitmapStore = bitmapStore,
+            imageStore = imageStore,
         )
 
         val logger = HttpLoggingInterceptor().also {
@@ -216,11 +215,11 @@ class ModalActivity : AppCompatActivity() {
         val deleteRecordUseCase = DeleteRecordUseCase(recordsRepository)
 
         ModalScreenViewModel(
-            bitmapStore = bitmapStore,
+            imageStore = imageStore,
             recordsRepository = recordsRepository,
             fetchNutrientsUseCase = FetchNutrientsUseCase(
                 this,
-                bitmapStore,
+                imageStore,
                 chatGPTRepository,
                 recordsRepository,
                 recordsMapper,
@@ -231,13 +230,13 @@ class ModalActivity : AppCompatActivity() {
             editTemplateUseCase = EditTemplateUseCase(recordsRepository),
             validateEditRecordUseCase = ValidateEditRecordUseCase(recordsRepository),
             validateCreateRecordUseCase = ValidateCreateRecordUseCase(),
-            saveImageUseCase = SaveImageUseCase(this, bitmapStore),
+            saveImageUseCase = SaveImageUseCase(this, imageStore),
             validateEditImageUseCase = ValidateEditImageUseCase(recordsRepository),
             editRecordImageUseCase = EditRecordImageUseCase(recordsRepository, deleteRecordUseCase),
             editTemplateImageUseCase = EditTemplateImageUseCase(recordsRepository),
-            getRecordImageUseCase = GetRecordImageUseCase(recordsRepository, bitmapStore),
-            getTemplateImageUseCase = GetTemplateImageUseCase(recordsRepository, bitmapStore),
-            foodPicSummaryUseCase = FoodPicSummaryUseCase(bitmapStore, chatGPTRepository, recordsMapper),
+            getRecordImageUseCase = GetRecordImageUseCase(recordsRepository, imageStore),
+            getTemplateImageUseCase = GetTemplateImageUseCase(recordsRepository, imageStore),
+            foodPicSummaryUseCase = FoodPicSummaryUseCase(imageStore, chatGPTRepository, recordsMapper),
             nutrientsUIMapper = nutrientsUIMapper,
             deleteRecordUseCase = deleteRecordUseCase,
         )

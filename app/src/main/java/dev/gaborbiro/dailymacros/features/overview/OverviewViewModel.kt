@@ -3,7 +3,7 @@ package dev.gaborbiro.dailymacros.features.overview
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.gaborbiro.dailymacros.data.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.modal.usecase.FetchNutrientsUseCase

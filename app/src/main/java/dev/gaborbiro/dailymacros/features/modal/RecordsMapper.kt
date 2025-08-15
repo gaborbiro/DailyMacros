@@ -1,12 +1,12 @@
 package dev.gaborbiro.dailymacros.features.modal
 
-import dev.gaborbiro.dailymacros.data.chatgpt.model.FoodPicSummaryRequest
-import dev.gaborbiro.dailymacros.data.chatgpt.model.FoodPicSummaryResponse
-import dev.gaborbiro.dailymacros.data.chatgpt.model.NutrientApiModel
-import dev.gaborbiro.dailymacros.data.chatgpt.model.NutrientsRequest
-import dev.gaborbiro.dailymacros.data.chatgpt.model.NutrientsResponse
-import dev.gaborbiro.dailymacros.data.records.domain.model.Nutrients
-import dev.gaborbiro.dailymacros.data.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repo.chatgpt.model.FoodPicSummaryRequest
+import dev.gaborbiro.dailymacros.repo.chatgpt.model.FoodPicSummaryResponse
+import dev.gaborbiro.dailymacros.repo.chatgpt.model.NutrientApiModel
+import dev.gaborbiro.dailymacros.repo.chatgpt.model.NutrientsRequest
+import dev.gaborbiro.dailymacros.repo.chatgpt.model.NutrientsResponse
+import dev.gaborbiro.dailymacros.repo.records.domain.model.Nutrients
+import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 
 class RecordsMapper {
