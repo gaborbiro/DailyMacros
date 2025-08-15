@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.data.bitmap
+package dev.gaborbiro.dailymacros.data.image
 
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder

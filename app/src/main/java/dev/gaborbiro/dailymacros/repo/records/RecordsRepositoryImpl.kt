@@ -6,7 +6,7 @@ import dev.gaborbiro.dailymacros.repo.records.domain.model.Nutrients
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.RecordToSave
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
-import dev.gaborbiro.dailymacros.data.bitmap.ImageStore
+import dev.gaborbiro.dailymacros.data.image.ImageStore
 import dev.gaborbiro.dailymacros.data.db.records.RecordsDAO
 import dev.gaborbiro.dailymacros.data.db.records.TemplatesDAO
 import dev.gaborbiro.dailymacros.data.db.records.model.RecordDBModel

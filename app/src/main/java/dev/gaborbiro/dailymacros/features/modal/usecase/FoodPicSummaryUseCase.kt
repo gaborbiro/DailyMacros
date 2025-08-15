@@ -6,7 +6,7 @@ import dev.gaborbiro.dailymacros.repo.chatgpt.toDomainModel
 import dev.gaborbiro.dailymacros.features.modal.RecordsMapper
 import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
-import dev.gaborbiro.dailymacros.data.bitmap.ImageStore
+import dev.gaborbiro.dailymacros.data.image.ImageStore
 
 internal class FoodPicSummaryUseCase(
     private val imageStore: ImageStore,

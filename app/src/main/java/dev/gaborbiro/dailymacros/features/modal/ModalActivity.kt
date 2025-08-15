@@ -55,7 +55,7 @@ import dev.gaborbiro.dailymacros.features.modal.views.ImageDialog
 import dev.gaborbiro.dailymacros.features.modal.views.InputDialog
 import dev.gaborbiro.dailymacros.features.modal.views.SelectRecordActionDialog
 import dev.gaborbiro.dailymacros.features.modal.views.SelectTemplateActionDialog
-import dev.gaborbiro.dailymacros.data.bitmap.ImageStore
+import dev.gaborbiro.dailymacros.data.image.ImageStore
 import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import okhttp3.OkHttpClient

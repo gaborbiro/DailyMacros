@@ -4,7 +4,7 @@ import android.graphics.Bitmap
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.widget.model.TemplateUIModel
-import dev.gaborbiro.dailymacros.data.bitmap.ImageStore
+import dev.gaborbiro.dailymacros.data.image.ImageStore
 
 internal class WidgetUIMapper(
     private val imageStore: ImageStore,

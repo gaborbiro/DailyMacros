@@ -1,6 +1,6 @@
 package dev.gaborbiro.dailymacros.repo.labeler
 
-import dev.gaborbiro.dailymacros.data.bitmap.ImageStore
+import dev.gaborbiro.dailymacros.data.image.ImageStore
 
 internal class OfflineLabelerRepositoryImpl(
     private val imageStore: ImageStore,

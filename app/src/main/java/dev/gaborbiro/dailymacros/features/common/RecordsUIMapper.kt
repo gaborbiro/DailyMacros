@@ -7,7 +7,7 @@ import dev.gaborbiro.dailymacros.features.common.model.BaseListItem
 import dev.gaborbiro.dailymacros.features.common.model.NutrientProgressItem
 import dev.gaborbiro.dailymacros.features.common.model.NutrientProgressUIModel
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
-import dev.gaborbiro.dailymacros.data.bitmap.ImageStore
+import dev.gaborbiro.dailymacros.data.image.ImageStore
 import dev.gaborbiro.dailymacros.util.formatShort
 import dev.gaborbiro.dailymacros.util.formatShortTime
 import java.time.LocalDate
