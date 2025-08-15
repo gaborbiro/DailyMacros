@@ -1,6 +1,6 @@
 package dev.gaborbiro.dailymacros.data.file
 
-interface FileStoreFactory {
+internal interface FileStoreFactory {
 
     /**
      * @param folder In order to keep things organised, a non-blank parent folder must be specified

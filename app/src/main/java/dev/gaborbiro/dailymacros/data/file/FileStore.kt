@@ -4,7 +4,7 @@ import android.net.Uri
 import java.io.InputStream
 import java.io.OutputStream
 
-interface FileStore {
+internal interface FileStore {
 
     /**
      * Do not call this on the main thread.

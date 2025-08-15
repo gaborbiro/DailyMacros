@@ -10,7 +10,7 @@ internal class FileDestinationProviderPermanent(
 
     /**
      * Provides the following File:
-     * /data/data/com.somnologymd.smdapp[.dev/.qa]?/files/[folder]/[filePath]
+     * /data/data/dev.gaborbiro.nutri/files/[folder]/[filePath]
      *
      * Files in the /files folder stay around forever (or until the app is uninstalled).
      * Clear Cache won't clear them. This is good for storing data on the long term, but it is
