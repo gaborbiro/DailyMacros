@@ -31,6 +31,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.widget.NotesWidget
 import dev.gaborbiro.dailymacros.data.image.ImageStore
+import dev.gaborbiro.dailymacros.features.modal.usecase.InitLLMUseCase
 import ellipsize
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
@@ -58,13 +59,8 @@ internal class ModalScreenViewModel(
     private val foodPicSummaryUseCase: FoodPicSummaryUseCase,
     private val deleteRecordUseCase: DeleteRecordUseCase,
     private val nutrientsUIMapper: NutrientsUIMapper,
+    private val initLLMUseCase: InitLLMUseCase,
 ) : ViewModel() {
-
-    companion object {
-        enum class EditTarget {
-            RECORD, TEMPLATE
-        }
-    }
 
     private val _viewState: MutableStateFlow<HostViewState> = MutableStateFlow(HostViewState())
     val viewState: StateFlow<HostViewState> = _viewState.asStateFlow()
@@ -72,8 +68,13 @@ internal class ModalScreenViewModel(
     private val _errorState: MutableStateFlow<ErrorViewState?> = MutableStateFlow(null)
     val errorState: StateFlow<ErrorViewState?> = _errorState.asStateFlow()
 
-
     private var imageSummaryJob: Job? = null
+
+    init {
+        viewModelScope.launch {
+            initLLMUseCase.execute()
+        }
+    }
 
     @UiThread
     fun addRecordWithCamera() {
@@ -220,14 +221,16 @@ internal class ModalScreenViewModel(
                     }
                     persistedFilename?.let {
                         try {
-                            val summary = foodPicSummaryUseCase.execute(persistedFilename)
+                            foodPicSummaryUseCase.execute(persistedFilename)
+                                .collect {
                             _viewState.update { currentState ->
                                 if (currentState.dialog is DialogState.InputDialog.CreateWithImage) {
-                                    currentState.copy(dialog = currentState.dialog.copy(suggestions = summary))
+                                            currentState.copy(dialog = currentState.dialog.copy(suggestions = it))
                                 } else {
                                     currentState
                                 }
                             }
+                                }
                         } catch (e: DomainError) {
                             e.printStackTrace()
                         } finally {
@@ -502,5 +505,11 @@ internal class ModalScreenViewModel(
                 }")
         }
         Log.w("BaseViewModel", "Uncaught exception", exception)
+    }
+
+    companion object {
+        enum class EditTarget {
+            RECORD, TEMPLATE
+        }
     }
 }

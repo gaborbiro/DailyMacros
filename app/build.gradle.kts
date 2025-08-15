@@ -128,8 +128,12 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:5.1.0")
     implementation("com.google.code.gson:gson:2.13.1")
 
+    implementation("com.google.mediapipe:tasks-genai:0.10.25")
+    implementation("com.google.mediapipe:tasks-core:0.10.26.1")
+    implementation("androidx.exifinterface:exifinterface:1.4.1")
     implementation("com.google.mlkit:image-labeling:17.0.9")
-
+    implementation("com.google.mlkit:image-labeling-custom:17.0.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2") // For coroutines + Tasks.await()
 
     debugImplementation("androidx.compose.ui:ui-tooling:$composeVersion")
     debugImplementation("androidx.compose.ui:ui-test-manifest:$composeVersion")

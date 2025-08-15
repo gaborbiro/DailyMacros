@@ -1,6 +1,8 @@
 package dev.gaborbiro.dailymacros.repo.labeler
 
+import kotlinx.coroutines.flow.Flow
+
 interface OfflineLabelerRepository {
 
-    fun labelImage(image: String): List<Pair<String, Float>>
+    suspend fun labelImage(image: String): Flow<List<String>>
 }

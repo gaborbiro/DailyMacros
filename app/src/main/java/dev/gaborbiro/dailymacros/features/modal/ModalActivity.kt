@@ -19,15 +19,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import dev.gaborbiro.dailymacros.FoodPicExt
-import dev.gaborbiro.dailymacros.repo.chatgpt.AuthInterceptor
-import dev.gaborbiro.dailymacros.repo.chatgpt.ChatGPTRepositoryImpl
-import dev.gaborbiro.dailymacros.repo.chatgpt.service.ChatGPTService
-import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntry
-import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntryOutputContentDeserializer
-import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContent
-import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContentDeserializer
-import dev.gaborbiro.dailymacros.repo.records.DBMapper
-import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
+import dev.gaborbiro.dailymacros.data.db.AppDatabase
+import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
+import dev.gaborbiro.dailymacros.data.image.ImageStore
+import dev.gaborbiro.dailymacros.data.mlkit.MLKitStore
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
@@ -45,6 +40,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.FetchNutrientsUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodPicSummaryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.InitLLMUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditImageUseCase
@@ -55,9 +51,16 @@ import dev.gaborbiro.dailymacros.features.modal.views.ImageDialog
 import dev.gaborbiro.dailymacros.features.modal.views.InputDialog
 import dev.gaborbiro.dailymacros.features.modal.views.SelectRecordActionDialog
 import dev.gaborbiro.dailymacros.features.modal.views.SelectTemplateActionDialog
-import dev.gaborbiro.dailymacros.data.image.ImageStore
-import dev.gaborbiro.dailymacros.data.db.AppDatabase
-import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
+import dev.gaborbiro.dailymacros.repo.chatgpt.AuthInterceptor
+import dev.gaborbiro.dailymacros.repo.chatgpt.ChatGPTRepositoryImpl
+import dev.gaborbiro.dailymacros.repo.chatgpt.service.ChatGPTService
+import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntry
+import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntryOutputContentDeserializer
+import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContent
+import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContentDeserializer
+import dev.gaborbiro.dailymacros.repo.labeler.OfflineLabelerRepositoryImpl
+import dev.gaborbiro.dailymacros.repo.records.DBMapper
+import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
 import okhttp3.OkHttpClient
 import okhttp3.java.net.cookiejar.JavaNetCookieJar
 import okhttp3.logging.HttpLoggingInterceptor
@@ -213,6 +216,7 @@ class ModalActivity : AppCompatActivity() {
         val recordsMapper = RecordsMapper()
         val nutrientsUIMapper = NutrientsUIMapper()
         val deleteRecordUseCase = DeleteRecordUseCase(recordsRepository)
+        val mlKitStore = MLKitStore(fileStore, imageStore)
 
         ModalScreenViewModel(
             imageStore = imageStore,
@@ -236,9 +240,15 @@ class ModalActivity : AppCompatActivity() {
             editTemplateImageUseCase = EditTemplateImageUseCase(recordsRepository),
             getRecordImageUseCase = GetRecordImageUseCase(recordsRepository, imageStore),
             getTemplateImageUseCase = GetTemplateImageUseCase(recordsRepository, imageStore),
-            foodPicSummaryUseCase = FoodPicSummaryUseCase(imageStore, chatGPTRepository, recordsMapper),
+            foodPicSummaryUseCase = FoodPicSummaryUseCase(
+                imageStore,
+                chatGPTRepository,
+                labelerRepository = OfflineLabelerRepositoryImpl(mlKitStore),
+                recordsMapper
+            ),
             nutrientsUIMapper = nutrientsUIMapper,
             deleteRecordUseCase = deleteRecordUseCase,
+            initLLMUseCase = InitLLMUseCase(mlKitStore),
         )
     }
 
