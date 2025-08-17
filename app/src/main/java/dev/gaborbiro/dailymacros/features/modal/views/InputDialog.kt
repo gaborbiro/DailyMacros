@@ -63,6 +63,7 @@ internal fun InputDialog(
         (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.ofWhichSaturated
     val salt = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.salt
     val fibre = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.fibre
+    val notes = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.notes
 
     val titleField: MutableState<TextFieldValue> = remember {
         mutableStateOf(TextFieldValue(title ?: ""))
@@ -95,6 +96,7 @@ internal fun InputDialog(
                 saturated = saturated,
                 salt = salt,
                 fibre = fibre,
+                notes = notes,
             )
         },
         buttons = {
@@ -142,6 +144,7 @@ private fun ColumnScope.InputDialogContent(
     saturated: String?,
     salt: String?,
     fibre: String?,
+    notes: String?,
 ) {
     Row(
         modifier = Modifier
@@ -305,6 +308,7 @@ private fun ColumnScope.InputDialogContent(
         saturated = saturated,
         salt = salt,
         fibre = fibre,
+        notes = notes,
     )
 }
 
@@ -318,6 +322,7 @@ private fun Macros(
     saturated: String?,
     salt: String?,
     fibre: String?,
+    notes: String?,
 ) {
     if (calories != null ||
         protein != null ||
@@ -326,7 +331,8 @@ private fun Macros(
         fat != null ||
         saturated != null ||
         salt != null ||
-        fibre != null
+        fibre != null ||
+        notes != null
     ) {
         Spacer(
             modifier = Modifier
@@ -438,6 +444,19 @@ private fun Macros(
         )
     }
 
+    notes?.let {
+        PillLabel(
+            modifier = Modifier
+                .padding(horizontal = PaddingDefault)
+                .padding(top = 4.dp),
+            text = notes,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+            border = null,
+            elevation = 0.dp,
+        )
+    }
+
     if (calories != null ||
         protein != null ||
         carbs != null ||
@@ -445,7 +464,8 @@ private fun Macros(
         fat != null ||
         saturated != null ||
         salt != null ||
-        fibre != null
+        fibre != null ||
+        notes != null
     ) {
         Spacer(
             modifier = Modifier
@@ -494,6 +514,7 @@ private fun NoteInputDialogContentPreviewEdit() {
                 ofWhichSaturated = "of which saturated: 20g",
                 salt = "Salt: 5g",
                 fibre = "Fibre: 4.5g",
+                notes = "Notes: This is a note",
             ),
             onRecordDetailsSubmitRequested = { _, _ -> },
             onRecordDetailsUserTyping = { _, _ -> },

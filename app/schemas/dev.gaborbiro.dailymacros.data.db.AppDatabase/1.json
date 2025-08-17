@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "360a92ab9ee305f6604901a6184e3857",
+    "identityHash": "743ec4e03bdc56f16f3f02d9016c9c7b",
     "entities": [
       {
         "tableName": "records",
@@ -94,7 +94,7 @@
       },
       {
         "tableName": "nutrients",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`templateId` INTEGER NOT NULL, `calories` INTEGER, `protein` REAL, `carbohydrates` REAL, `ofWhichSugar` REAL, `fat` REAL, `ofWhichSaturated` REAL, `salt` REAL, `fibre` REAL, `_id` INTEGER PRIMARY KEY AUTOINCREMENT, FOREIGN KEY(`templateId`) REFERENCES `templates`(`_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`templateId` INTEGER NOT NULL, `calories` INTEGER, `protein` REAL, `carbohydrates` REAL, `ofWhichSugar` REAL, `fat` REAL, `ofWhichSaturated` REAL, `salt` REAL, `fibre` REAL, `notes` TEXT, `_id` INTEGER PRIMARY KEY AUTOINCREMENT, FOREIGN KEY(`templateId`) REFERENCES `templates`(`_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "templateId",
@@ -143,6 +143,11 @@
             "affinity": "REAL"
           },
           {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT"
+          },
+          {
             "fieldPath": "id",
             "columnName": "_id",
             "affinity": "INTEGER"
@@ -182,7 +187,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '360a92ab9ee305f6604901a6184e3857')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '743ec4e03bdc56f16f3f02d9016c9c7b')"
     ]
   }
 }

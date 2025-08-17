@@ -160,8 +160,8 @@ internal class NutrientsUIMapper {
 
     private fun map(
         value: Number?,
-        shortFormat: DecimalFormat,
-        longFormat: DecimalFormat,
+        shortFormat: SafeNumberFormatter,
+        longFormat: SafeNumberFormatter,
         isShort: Boolean = false,
         forceDecimal: Boolean,
         contractedValue: (() -> String?)? = null,
@@ -181,7 +181,7 @@ internal class NutrientsUIMapper {
                 if (isShort) {
                     null
                 } else {
-                    longFormat.format(value ?: 0)
+                    longFormat.format(value)
                 }
             }
     }
@@ -192,17 +192,29 @@ internal class NutrientsUIMapper {
         unit: String,
         withLabel: Boolean,
         forceDecimal: Boolean,
-    ): Pair<DecimalFormat, DecimalFormat> {
+    ): Pair<SafeNumberFormatter, SafeNumberFormatter> {
         val unitLiteral = unit.literal()
         val longDecimalFormat = "0.##$unitLiteral"
         val shortDecimalFormat = if (forceDecimal) longDecimalFormat else "#$unitLiteral"
         val shortLabelLiteral = "$shortLabel ".literal()
         val longLabelLiteral = "$longLabel ".literal()
-        val shortFormat =
-            if (withLabel) DecimalFormat("$shortLabelLiteral$shortDecimalFormat") else DecimalFormat(shortDecimalFormat)
-        val longFormat =
-            if (withLabel) DecimalFormat("$longLabelLiteral$longDecimalFormat") else DecimalFormat(longDecimalFormat)
-        return shortFormat to longFormat
+        val shortFormat = if (withLabel) {
+            DecimalFormat("$shortLabelLiteral$shortDecimalFormat")
+        } else {
+            DecimalFormat(shortDecimalFormat)
+        }
+        val longFormat = if (withLabel) {
+            DecimalFormat("$longLabelLiteral$longDecimalFormat")
+        } else {
+            DecimalFormat(longDecimalFormat)
+        }
+        val shortSafeFormatter = object : SafeNumberFormatter(shortFormat) {
+            override fun nullFormat(): String = shortLabel
+        }
+        val longSafeFormatter = object : SafeNumberFormatter(longFormat) {
+            override fun nullFormat(): String = longLabel
+        }
+        return shortSafeFormatter to longSafeFormatter
     }
 
     /**
@@ -213,4 +225,12 @@ internal class NutrientsUIMapper {
     ) = takeIf(String::isNotBlank)
         ?.let { "'$this'" }
         ?: default
+
+    private abstract class SafeNumberFormatter(
+        private val format: DecimalFormat,
+    ) {
+        fun format(value: Number?): String = value?.let { format.format(it) } ?: nullFormat()
+
+        abstract fun nullFormat(): String
+    }
 }

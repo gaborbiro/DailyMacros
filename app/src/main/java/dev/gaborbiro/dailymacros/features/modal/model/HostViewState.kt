@@ -72,6 +72,7 @@ sealed class DialogState {
             val ofWhichSaturated: String?,
             val salt: String?,
             val fibre: String?,
+            val notes: String?,
             val titleSuggestions: List<String>,
             val titleSuggestionProgressIndicator: Boolean = false,
             override val validationError: String? = null,

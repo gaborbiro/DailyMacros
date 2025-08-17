@@ -1,15 +1,15 @@
 package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import android.content.Context
+import dev.gaborbiro.dailymacros.data.image.ImageStore
+import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
+import dev.gaborbiro.dailymacros.features.modal.RecordsMapper
+import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
+import dev.gaborbiro.dailymacros.features.widget.NotesWidget
 import dev.gaborbiro.dailymacros.repo.chatgpt.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Nutrients
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
-import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
-import dev.gaborbiro.dailymacros.features.modal.RecordsMapper
-import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
-import dev.gaborbiro.dailymacros.data.image.ImageStore
-import dev.gaborbiro.dailymacros.features.widget.NotesWidget
 import dev.gaborbiro.dailymacros.util.showSimpleNotification
 
 internal class FetchNutrientsUseCase(
@@ -34,7 +34,7 @@ internal class FetchNutrientsUseCase(
                 base64Image = base64Image,
             )
         )
-        val (nutrients: Nutrients?, issues: String?, notes: String?) = recordsMapper.map(response)
+        val (nutrients: Nutrients?, issues: String?) = recordsMapper.map(response)
         recordsRepository.updateTemplate(
             templateId = record.template.id,
             nutrients = nutrients,
@@ -43,7 +43,7 @@ internal class FetchNutrientsUseCase(
         appContext.showSimpleNotification(
             id = 123L,
             title = null,
-            message = listOfNotNull(record.template.name, nutrientsStr, issues, notes).joinToString("\n"),
+            message = listOfNotNull(record.template.name, nutrientsStr, issues, nutrients?.notes).joinToString("\n"),
         )
         NotesWidget.reload()
     }

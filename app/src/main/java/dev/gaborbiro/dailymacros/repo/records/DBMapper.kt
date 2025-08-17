@@ -50,6 +50,7 @@ internal class DBMapper {
             ofWhichSaturated = template.ofWhichSaturated,
             salt = template.salt,
             fibre = template.fibre,
+            notes = template.notes,
         )
     }
 
@@ -102,7 +103,8 @@ internal class DBMapper {
             fat = nutrients.fat,
             ofWhichSaturated = nutrients.ofWhichSaturated,
             salt = nutrients.salt,
-            fibre = nutrients.fibre
+            fibre = nutrients.fibre,
+            notes = nutrients.notes,
         )
     }
 }

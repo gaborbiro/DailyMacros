@@ -32,11 +32,11 @@ class RecordsMapper {
         )
     }
 
-    fun map(response: NutrientsResponse): Triple<Nutrients?, String?, String?> {
-        return Triple(response.nutrients?.let(::map), response.issues, response.notes)
+    fun map(response: NutrientsResponse): Pair<Nutrients?, String?> {
+        return response.nutrients?.let { map(it, response.notes) } to response.issues
     }
 
-    private fun map(nutrientApiModel: NutrientApiModel): Nutrients {
+    private fun map(nutrientApiModel: NutrientApiModel, notes: String?): Nutrients {
         return Nutrients(
             calories = nutrientApiModel.calories,
             protein = nutrientApiModel.proteinGrams,
@@ -46,6 +46,7 @@ class RecordsMapper {
             ofWhichSaturated = nutrientApiModel.ofWhichSaturatedGrams,
             salt = nutrientApiModel.saltGrams,
             fibre = nutrientApiModel.fibreGrams,
+            notes = notes,
         )
     }
 }

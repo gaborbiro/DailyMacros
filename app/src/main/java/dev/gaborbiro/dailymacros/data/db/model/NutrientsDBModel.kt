@@ -27,4 +27,5 @@ data class NutrientsDBModel(
     val ofWhichSaturated: Float?,
     val salt: Float?,
     val fibre: Float?,
+    val notes: String?,
 ) : DBModel()

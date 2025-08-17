@@ -162,6 +162,7 @@ internal class ModalScreenViewModel(
                         fibre = nutrientsUIMapper.mapFibre(value = record.template.nutrients?.fibre),
                         titleSuggestions = emptyList(),
                         validationError = null,
+                        notes = record.template.nutrients?.notes,
                     ),
                 )
             }
