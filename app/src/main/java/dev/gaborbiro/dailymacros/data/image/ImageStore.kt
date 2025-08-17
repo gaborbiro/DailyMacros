@@ -20,7 +20,7 @@ internal class ImageStore(
         const val THUMBNAIL_SUFFIX = "-thumb"
     }
 
-    private val maxThumbnailSizePx = 512 // maximum height and length of thumbnail variant of images
+    private val maxThumbnailSizePx = 256 // maximum height and length of thumbnail variant of images
 
     init {
         val maxMemoryBytes = (Runtime.getRuntime().maxMemory()).toInt()
