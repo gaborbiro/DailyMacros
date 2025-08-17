@@ -82,6 +82,8 @@ internal fun NutrientsRequest.toApiModel(): ChatGPTRequest {
                             - Always use both the image and the texts provided.
                             - If values are extremely uncertain (e.g., ambiguous dish), consider omitting `nutrients` entirely and use `issues` instead.
                             - Any breakdowns, calculations or observations should go into the "notes" field.
+                            - Mention in the notes the top contributor ingredient for each significant nutrient.
+                            - Separate multiple notes by newline.
                         """.trimIndent()
                     )
                 ),

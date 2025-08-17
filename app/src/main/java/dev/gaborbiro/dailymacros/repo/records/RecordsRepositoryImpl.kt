@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.repo.records
 import androidx.room.Transaction
 import dev.gaborbiro.dailymacros.data.db.RecordsDAO
 import dev.gaborbiro.dailymacros.data.db.TemplatesDAO
+import dev.gaborbiro.dailymacros.data.db.model.NutrientsDBModel
 import dev.gaborbiro.dailymacros.data.db.model.RecordDBModel
 import dev.gaborbiro.dailymacros.data.db.model.TemplateDBModel
 import dev.gaborbiro.dailymacros.data.db.model.TemplateWithNutrients
@@ -152,7 +153,10 @@ internal class RecordsRepositoryImpl(
         if (nutrients == null) {
             templatesDAO.deleteNutrientsForTemplate(templateId)
         } else {
-            val nutrientsDBModel = dBMapper.map(nutrients).copy(templateId = templateId)
+            val nutrientsDBModel: NutrientsDBModel = dBMapper.map(nutrients).copy(
+                templateId = templateId,
+            )
+            nutrientsDBModel.id = oldTemplate.nutrients?.id
             templatesDAO.insertOrUpdate(nutrientsDBModel)
         }
 

@@ -39,9 +39,6 @@ interface TemplatesDAO {
     @Query("SELECT * FROM templates WHERE _id = :id")
     suspend fun get(id: Long): TemplateWithNutrients
 
-//    @Query("SELECT * FROM templates WHERE _id=:id")
-//    suspend fun get(id: Long): TemplateDBModel?
-
     @Query("SELECT * FROM templates")
     suspend fun getAll(): List<TemplateWithNutrients>
 
