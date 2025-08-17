@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.repo.chatgpt.model
 data class NutrientsResponse(
     val nutrients: NutrientApiModel?,
     val issues: String?,
+    val notes: String?,
 )
 
 data class NutrientApiModel(

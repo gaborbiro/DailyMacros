@@ -1,14 +1,18 @@
 package dev.gaborbiro.dailymacros.features.overview
 
 import android.util.Log
+import androidx.annotation.UiThread
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
+import dev.gaborbiro.dailymacros.features.common.model.BaseListItem
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.modal.usecase.FetchNutrientsUseCase
+import dev.gaborbiro.dailymacros.features.overview.model.DialogState
+import dev.gaborbiro.dailymacros.features.overview.model.EditState
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
 import dev.gaborbiro.dailymacros.features.widget.NotesWidget
+import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,9 +28,9 @@ internal class OverviewViewModel(
     private val fetchNutrientsUseCase: FetchNutrientsUseCase,
 ) : ViewModel() {
 
-    private val _uiState: MutableStateFlow<OverviewViewState> =
+    private val _viewState: MutableStateFlow<OverviewViewState> =
         MutableStateFlow(OverviewViewState())
-    val uiState: StateFlow<OverviewViewState> = _uiState.asStateFlow()
+    val uiState: StateFlow<OverviewViewState> = _viewState.asStateFlow()
 
     fun onSearchTermChanged(search: String?) {
         viewModelScope.launch {
@@ -34,8 +38,8 @@ internal class OverviewViewModel(
                 .map {
                     uiMapper.map(it, thumbnail = true)
                 }
-                .collect { records ->
-                    _uiState.update {
+                .collect { records: List<BaseListItem> ->
+                    _viewState.update {
                         it.copy(records)
                     }
                 }
@@ -50,14 +54,64 @@ internal class OverviewViewModel(
     }
 
     fun onChangeImageMenuItemTapped(record: RecordUIModel) {
-        navigator.updateRecordPhoto(record.recordId)
+        if (record.hasNutrients) {
+            _viewState.update {
+                it.copy(dialog = DialogState.ConfirmDestructiveChangeDialog(editState = EditState.ChangeImage(record.recordId)))
+            }
+        } else {
+            updateRecordPhoto(record.recordId)
+        }
     }
 
     fun onDeleteImageMenuItemTapped(record: RecordUIModel) {
+        if (record.bitmap != null) {
+            if (record.hasNutrients) {
+                _viewState.update {
+                    it.copy(dialog = DialogState.ConfirmDestructiveChangeDialog(editState = EditState.RemoveImage(record.templateId)))
+                }
+            } else {
+                removePhoto(record.templateId)
+            }
+        }
+    }
+
+    fun onDestructiveChangeConfirmed() {
+        (_viewState.value.dialog as? DialogState.ConfirmDestructiveChangeDialog)?.let {
+            when (it.editState) {
+                is EditState.ChangeImage -> {
+                    updateRecordPhoto(it.editState.recordId)
+                }
+
+                is EditState.RemoveImage -> {
+                    removePhoto(it.editState.templateId)
+                }
+            }
+            _viewState.update {
+                it.copy(
+                    dialog = null,
+                )
+            }
+        }
+    }
+
+    private fun updateRecordPhoto(recordId: Long) {
+        navigator.updateRecordPhoto(recordId)
+    }
+
+    private fun removePhoto(templateId: Long) {
         viewModelScope.launch {
-            repository.deleteImage(record.templateId)
+            repository.deleteImage(templateId)
         }
         NotesWidget.reload()
+    }
+
+    @UiThread
+    fun onDialogDismissRequested() {
+        _viewState.update {
+            it.copy(
+                dialog = null,
+            )
+        }
     }
 
     fun onEditRecordMenuItemTapped(record: RecordUIModel) {
@@ -67,7 +121,7 @@ internal class OverviewViewModel(
     fun onDeleteRecordMenuItemTapped(record: RecordUIModel) {
         viewModelScope.launch {
             val oldRecord = repository.deleteRecord(recordId = record.recordId)
-            _uiState.update {
+            _viewState.update {
                 it.copy(
                     showUndoDeleteSnackbar = true,
                     recordToUndelete = oldRecord,
@@ -87,9 +141,9 @@ internal class OverviewViewModel(
 
     fun onUndoDeleteTapped() {
         viewModelScope.launch {
-            repository.updateRecord(_uiState.value.recordToUndelete!!)
+            repository.updateRecord(_viewState.value.recordToUndelete!!)
         }
-        _uiState.update {
+        _viewState.update {
             it.copy(
                 recordToUndelete = null,
             )
@@ -98,8 +152,8 @@ internal class OverviewViewModel(
     }
 
     fun onUndoDeleteDismissed() {
-        deleteTemplate(_uiState.value.recordToUndelete!!.template.id)
-        _uiState.update {
+        deleteTemplate(_viewState.value.recordToUndelete!!.template.id)
+        _viewState.update {
             it.copy(
                 recordToUndelete = null,
             )
@@ -129,7 +183,7 @@ internal class OverviewViewModel(
     }
 
     fun onUndoDeleteSnackbarShown() {
-        _uiState.update {
+        _viewState.update {
             it.copy(
                 showUndoDeleteSnackbar = false
             )
@@ -137,7 +191,7 @@ internal class OverviewViewModel(
     }
 
     fun finalizePendingUndos() {
-        _uiState.value.recordToUndelete?.let {
+        _viewState.value.recordToUndelete?.let {
             deleteTemplate(it.template.id)
         }
     }

@@ -7,4 +7,16 @@ data class OverviewViewState(
     val list: List<BaseListItem> = emptyList(),
     val showUndoDeleteSnackbar: Boolean = false,
     val recordToUndelete: Record? = null,
+    val dialog: DialogState? = null,
 )
+
+sealed class DialogState {
+    data class ConfirmDestructiveChangeDialog(
+        val editState: EditState,
+    ) : DialogState()
+}
+
+sealed class EditState {
+    data class ChangeImage(val recordId: Long) : EditState()
+    data class RemoveImage(val templateId: Long) : EditState()
+}

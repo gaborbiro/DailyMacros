@@ -140,7 +140,8 @@ private fun OverviewListItemPreview() {
             description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
             templateId = 1L,
             bitmap = randomBitmap(),
-            timestamp = "2022-01-01 00:00:00"
+            timestamp = "2022-01-01 00:00:00",
+            hasNutrients = true,
         ),
         onRepeatMenuItemTapped = {},
         onChangeImageMenuItemTapped = {},

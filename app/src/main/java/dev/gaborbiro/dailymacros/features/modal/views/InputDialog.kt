@@ -47,22 +47,22 @@ internal fun InputDialog(
     onRecordDetailsUserTyping: (title: String, description: String) -> Unit,
     onDismissRequested: () -> Unit,
 ) {
-    val title = (dialogState as? DialogState.InputDialog.RecordDetails)?.title
-    val suggestions = (dialogState as? DialogState.InputDialog.CreateWithImage)
+    val title = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.title
+    val suggestions = (dialogState as? DialogState.InputDialog.CreateWithImageDialog)
         ?.suggestions
-    val showProgressIndicator = (dialogState as? DialogState.InputDialog.CreateWithImage)
+    val showProgressIndicator = (dialogState as? DialogState.InputDialog.CreateWithImageDialog)
         ?.showProgressIndicator
     val description =
-        (dialogState as? DialogState.InputDialog.RecordDetails)?.description
-    val calories = (dialogState as? DialogState.InputDialog.RecordDetails)?.calories
-    val carbs = (dialogState as? DialogState.InputDialog.RecordDetails)?.carbs
-    val sugar = (dialogState as? DialogState.InputDialog.RecordDetails)?.ofWhichSugar
-    val protein = (dialogState as? DialogState.InputDialog.RecordDetails)?.protein
-    val fat = (dialogState as? DialogState.InputDialog.RecordDetails)?.fat
+        (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.description
+    val calories = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.calories
+    val carbs = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.carbs
+    val sugar = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.ofWhichSugar
+    val protein = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.protein
+    val fat = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.fat
     val saturated =
-        (dialogState as? DialogState.InputDialog.RecordDetails)?.ofWhichSaturated
-    val salt = (dialogState as? DialogState.InputDialog.RecordDetails)?.salt
-    val fibre = (dialogState as? DialogState.InputDialog.RecordDetails)?.fibre
+        (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.ofWhichSaturated
+    val salt = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.salt
+    val fibre = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.fibre
 
     val titleField: MutableState<TextFieldValue> = remember {
         mutableStateOf(TextFieldValue(title ?: ""))
@@ -460,7 +460,7 @@ private fun Macros(
 private fun NoteInputDialogContentPreview() {
     DailyMacrosTheme {
         InputDialog(
-            dialogState = DialogState.InputDialog.CreateWithImage(
+            dialogState = DialogState.InputDialog.CreateWithImageDialog(
                 image = null,
                 showProgressIndicator = true,
                 suggestions = null,
@@ -479,7 +479,7 @@ private fun NoteInputDialogContentPreview() {
 private fun NoteInputDialogContentPreviewEdit() {
     DailyMacrosTheme {
         InputDialog(
-            dialogState = DialogState.InputDialog.RecordDetails(
+            dialogState = DialogState.InputDialog.RecordDetailsDialog(
                 recordId = 1L,
                 image = null,
                 titleSuggestionProgressIndicator = true,
@@ -508,7 +508,7 @@ private fun NoteInputDialogContentPreviewEdit() {
 private fun NoteInputDialogContentPreviewSuggestion() {
     DailyMacrosTheme {
         InputDialog(
-            dialogState = DialogState.InputDialog.CreateWithImage(
+            dialogState = DialogState.InputDialog.CreateWithImageDialog(
                 image = null,
                 suggestions = DialogState.InputDialog.SummarySuggestions(
                     titles = listOf("This is a title suggestion", "This is another title suggestion"),
@@ -528,7 +528,7 @@ private fun NoteInputDialogContentPreviewSuggestion() {
 private fun NoteInputDialogContentPreviewError() {
     DailyMacrosTheme {
         InputDialog(
-            dialogState = DialogState.InputDialog.CreateWithImage(
+            dialogState = DialogState.InputDialog.CreateWithImageDialog(
                 image = null,
                 suggestions = DialogState.InputDialog.SummarySuggestions(
                     titles = listOf("This is a title suggestion", "This is another title suggestion"),

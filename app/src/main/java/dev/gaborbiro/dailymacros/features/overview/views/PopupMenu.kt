@@ -40,7 +40,7 @@ internal fun PopupMenu(
             ),
             PopUpMenuItem(
                 icon = painterResource(R.drawable.ic_nutrition),
-                label = "Nutrients",
+                label = "Nutrients (AI)",
                 onMenuItemSelected = onNutrientsMenuItemTapped,
             ),
             PopUpMenuItem(

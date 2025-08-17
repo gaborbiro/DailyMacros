@@ -1,16 +1,16 @@
 package dev.gaborbiro.dailymacros.repo.records
 
 import androidx.room.Transaction
+import dev.gaborbiro.dailymacros.data.db.records.RecordsDAO
+import dev.gaborbiro.dailymacros.data.db.records.TemplatesDAO
+import dev.gaborbiro.dailymacros.data.db.records.model.RecordDBModel
+import dev.gaborbiro.dailymacros.data.db.records.model.TemplateDBModel
+import dev.gaborbiro.dailymacros.data.image.ImageStore
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Nutrients
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.RecordToSave
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
-import dev.gaborbiro.dailymacros.data.image.ImageStore
-import dev.gaborbiro.dailymacros.data.db.records.RecordsDAO
-import dev.gaborbiro.dailymacros.data.db.records.TemplatesDAO
-import dev.gaborbiro.dailymacros.data.db.records.model.RecordDBModel
-import dev.gaborbiro.dailymacros.data.db.records.model.TemplateDBModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
@@ -131,20 +131,37 @@ internal class RecordsRepositoryImpl(
     ) {
         templatesDAO.get(templateId)?.let { oldTemplate ->
             templatesDAO.insertOrUpdate(
-                TemplateDBModel(
-                    id = templateId,
-                    image = image ?: oldTemplate.image,
-                    name = title ?: oldTemplate.name,
-                    description = description ?: oldTemplate.description,
-                    calories = nutrients?.calories ?: oldTemplate.calories,
-                    protein = nutrients?.protein ?: oldTemplate.protein,
-                    carbohydrates = nutrients?.carbohydrates ?: oldTemplate.carbohydrates,
-                    ofWhichSugar = nutrients?.ofWhichSugar ?: oldTemplate.ofWhichSugar,
-                    fat = nutrients?.fat ?: oldTemplate.fat,
-                    ofWhichSaturated = nutrients?.ofWhichSaturated ?: oldTemplate.ofWhichSaturated,
-                    salt = nutrients?.salt ?: oldTemplate.salt,
-                    fibre = nutrients?.fibre ?: oldTemplate.fibre,
-                )
+                if (nutrients == null) {
+                    TemplateDBModel(
+                        id = templateId,
+                        image = image ?: oldTemplate.image,
+                        name = title ?: oldTemplate.name,
+                        description = description ?: oldTemplate.description,
+                        calories = oldTemplate.calories,
+                        protein = oldTemplate.protein,
+                        carbohydrates = oldTemplate.carbohydrates,
+                        ofWhichSugar = oldTemplate.ofWhichSugar,
+                        fat = oldTemplate.fat,
+                        ofWhichSaturated = oldTemplate.ofWhichSaturated,
+                        salt = oldTemplate.salt,
+                        fibre = oldTemplate.fibre,
+                    )
+                } else {
+                    TemplateDBModel(
+                        id = templateId,
+                        image = image ?: oldTemplate.image,
+                        name = title ?: oldTemplate.name,
+                        description = description ?: oldTemplate.description,
+                        calories = nutrients.calories,
+                        protein = nutrients.protein,
+                        carbohydrates = nutrients.carbohydrates,
+                        ofWhichSugar = nutrients.ofWhichSugar,
+                        fat = nutrients.fat,
+                        ofWhichSaturated = nutrients.ofWhichSaturated,
+                        salt = nutrients.salt,
+                        fibre = nutrients.fibre,
+                    )
+                }
             )
             oldTemplate.image?.let { deleteImageIfUnused(it) }
         }

@@ -5,8 +5,7 @@ import android.util.Log
 import androidx.annotation.UiThread
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.gaborbiro.dailymacros.repo.chatgpt.model.DomainError
-import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.data.image.ImageStore
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.common.error.model.ErrorViewState
@@ -30,7 +29,8 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseC
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.widget.NotesWidget
-import dev.gaborbiro.dailymacros.data.image.ImageStore
+import dev.gaborbiro.dailymacros.repo.chatgpt.model.DomainError
+import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import ellipsize
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
@@ -97,7 +97,7 @@ internal class ModalScreenViewModel(
     fun addRecord() {
         _viewState.update {
             it.copy(
-                dialog = DialogState.InputDialog.Create(),
+                dialog = DialogState.InputDialog.CreateDialog(),
             )
         }
     }
@@ -147,7 +147,7 @@ internal class ModalScreenViewModel(
             val record = recordsRepository.getRecord(recordId)!!
             _viewState.update {
                 it.copy(
-                    dialog = DialogState.InputDialog.RecordDetails(
+                    dialog = DialogState.InputDialog.RecordDetailsDialog(
                         recordId = recordId,
                         image = record.template.image,
                         title = record.template.name,
@@ -191,52 +191,50 @@ internal class ModalScreenViewModel(
     }
 
     @UiThread
-    fun onImageAvailable(uri: Uri?) {
+    fun onImageAvailable(uri: Uri) {
         imageSummaryJob?.cancel()
         imageSummaryJob = runSafely {
             val imagePicker = _viewState.value.imagePicker!!
             _viewState.update {
                 it.copy(
                     imagePicker = null,
-                    dialog = DialogState.InputDialog.CreateWithImage(
+                    dialog = DialogState.InputDialog.CreateWithImageDialog(
                         image = null,
                         showProgressIndicator = true,
                         suggestions = null,
                     ),
                 )
             }
-            val persistedFilename = uri?.let { saveImageUseCase.execute(it) }
+            val persistedFilename = saveImageUseCase.execute(uri)
             when (imagePicker) {
                 ImagePickerState.Take, ImagePickerState.Select -> {
                     _viewState.update {
                         it.copy(
                             imagePicker = null,
-                            dialog = DialogState.InputDialog.CreateWithImage(
+                            dialog = DialogState.InputDialog.CreateWithImageDialog(
                                 image = persistedFilename,
                                 showProgressIndicator = true,
                                 suggestions = null,
                             ),
                         )
                     }
-                    persistedFilename?.let {
-                        try {
-                            val summary = foodPicSummaryUseCase.execute(persistedFilename)
-                            _viewState.update { currentState ->
-                                if (currentState.dialog is DialogState.InputDialog.CreateWithImage) {
-                                    currentState.copy(dialog = currentState.dialog.copy(suggestions = summary))
-                                } else {
-                                    currentState
-                                }
+                    try {
+                        val summary = foodPicSummaryUseCase.execute(persistedFilename)
+                        _viewState.update { currentState ->
+                            if (currentState.dialog is DialogState.InputDialog.CreateWithImageDialog) {
+                                currentState.copy(dialog = currentState.dialog.copy(suggestions = summary))
+                            } else {
+                                currentState
                             }
-                        } catch (e: DomainError) {
-                            e.printStackTrace()
-                        } finally {
-                            _viewState.update { currentState ->
-                                if (currentState.dialog is DialogState.InputDialog.CreateWithImage) {
-                                    currentState.copy(dialog = currentState.dialog.copy(showProgressIndicator = false))
-                                } else {
-                                    currentState
-                                }
+                        }
+                    } catch (e: DomainError) {
+                        e.printStackTrace()
+                    } finally {
+                        _viewState.update { currentState ->
+                            if (currentState.dialog is DialogState.InputDialog.CreateWithImageDialog) {
+                                currentState.copy(dialog = currentState.dialog.copy(showProgressIndicator = false))
+                            } else {
+                                currentState
                             }
                         }
                     }
@@ -266,6 +264,15 @@ internal class ModalScreenViewModel(
                     }
                 }
             }
+        }
+    }
+
+    fun onImagePickerCanceled() {
+        _viewState.update {
+            it.copy(
+                imagePicker = null,
+                closeScreen = true,
+            )
         }
     }
 
@@ -306,13 +313,29 @@ internal class ModalScreenViewModel(
         imageSummaryJob?.cancel()
         runSafely {
             _viewState.update {
-                (it.dialog as? DialogState.InputDialog.CreateWithImage)
+                (it.dialog as? DialogState.InputDialog.CreateWithImageDialog)
                     ?.image?.let {
                         imageStore.delete(it)
                     }
                 it.copy(
                     closeScreen = true,
                 )
+            }
+        }
+    }
+
+    @UiThread
+    fun onDestructiveChangeConfirmed() {
+        val dialogState = (_viewState.value.dialog as? DialogState.ConfirmDestructiveChangeDialog)
+        dialogState?.let {
+            viewModelScope.launch {
+                editRecordUseCase.execute(
+                    recordId = dialogState.recordId,
+                    title = dialogState.newTitle,
+                    description = dialogState.newDescription,
+                )
+                NotesWidget.reload()
+                close()
             }
         }
     }
@@ -333,11 +356,11 @@ internal class ModalScreenViewModel(
         val dialogState = (_viewState.value.dialog as? DialogState.InputDialog)
         runSafely {
             when (dialogState) {
-                is DialogState.InputDialog.Create, is DialogState.InputDialog.CreateWithImage -> {
+                is DialogState.InputDialog.CreateDialog, is DialogState.InputDialog.CreateWithImageDialog -> {
                     handleCreateRecordDetailsSubmitted(dialogState, title, description)
                 }
 
-                is DialogState.InputDialog.RecordDetails -> {
+                is DialogState.InputDialog.RecordDetailsDialog -> {
                     handleEditRecordDialogSubmitted(dialogState, title, description)
                 }
 
@@ -351,7 +374,7 @@ internal class ModalScreenViewModel(
         title: String,
         description: String,
     ) {
-        val image = (dialogState as? DialogState.InputDialog.CreateWithImage)?.image
+        val image = (dialogState as? DialogState.InputDialog.CreateWithImageDialog)?.image
         val result = validateCreateRecordUseCase.execute(image, title, description)
 
         when (result) {
@@ -369,7 +392,7 @@ internal class ModalScreenViewModel(
     }
 
     private suspend fun handleEditRecordDialogSubmitted(
-        dialogState: DialogState.InputDialog.RecordDetails,
+        dialogState: DialogState.InputDialog.RecordDetailsDialog,
         title: String,
         description: String,
     ) {
@@ -393,13 +416,25 @@ internal class ModalScreenViewModel(
             }
 
             is EditValidationResult.Valid -> {
-                editRecordUseCase.execute(
-                    recordId = dialogState.recordId,
-                    title = title,
-                    description = description,
-                )
-                NotesWidget.reload()
-                close()
+                if (result.showNutrientDeletionConfirmationDialog) {
+                    _viewState.update {
+                        it.copy(
+                            dialog = DialogState.ConfirmDestructiveChangeDialog(
+                                recordId = dialogState.recordId,
+                                newTitle = title,
+                                newDescription = description,
+                            ),
+                        )
+                    }
+                } else {
+                    editRecordUseCase.execute(
+                        recordId = dialogState.recordId,
+                        title = title,
+                        description = description,
+                    )
+                    NotesWidget.reload()
+                    close()
+                }
             }
 
             is EditValidationResult.Error -> {

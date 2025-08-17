@@ -16,6 +16,12 @@ sealed class DialogState {
         val newDescription: String,
     ) : DialogState()
 
+    data class ConfirmDestructiveChangeDialog(
+        val recordId: Long,
+        val newTitle: String,
+        val newDescription: String,
+    ) : DialogState()
+
     data class EditImageTargetConfirmationDialog(
         val recordId: Long,
         val count: Int,
@@ -31,14 +37,14 @@ sealed class DialogState {
         open val validationError: String? = null,
     ) : DialogState() {
 
-        data class Create(
+        data class CreateDialog(
             override val validationError: String? = null,
         ) : InputDialog(validationError) {
             override fun withValidationError(validationError: String?) =
                 copy(validationError = validationError)
         }
 
-        data class CreateWithImage(
+        data class CreateWithImageDialog(
             val image: String?,
             val showProgressIndicator: Boolean = false,
             val suggestions: SummarySuggestions?,
@@ -53,7 +59,7 @@ sealed class DialogState {
             val description: String?,
         )
 
-        data class RecordDetails(
+        data class RecordDetailsDialog(
             val recordId: Long,
             val image: String?,
             val title: String,

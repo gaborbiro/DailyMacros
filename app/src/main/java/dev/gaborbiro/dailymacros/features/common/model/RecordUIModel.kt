@@ -9,6 +9,7 @@ class RecordUIModel(
     val timestamp: String,
     val title: String,
     val description: String,
+    val hasNutrients: Boolean,
 ): BaseListItem {
     override val id = recordId
 

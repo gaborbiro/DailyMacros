@@ -24,9 +24,9 @@ internal fun NutrientsRequest.toApiModel(): ChatGPTRequest {
                             You are an intelligent image and text analyser for a nutrient tracker app.  
                             The user provides:
                             1. A photo of a meal or drink, AND/OR  
-                            2. A title and description (often produced by a previous step in this app).  
+                            2. A title and optional description (often produced by a previous step in this app).  
 
-                            Your job: estimate the nutrient content for the item.
+                            Your job: estimate the nutrient content.
 
                             TASK:
                             - Estimate the following nutrients:
@@ -40,20 +40,7 @@ internal fun NutrientsRequest.toApiModel(): ChatGPTRequest {
                               • fibre (g)  
 
                             - Only include nutrients you can reasonably estimate.  
-                            - Round all numbers to **1 decimal place**.  
-                            - If a nutrient is completely unknown but the rest can be estimated, omit that nutrient field rather than guessing wildly.
-
-                            CONFIDENCE RULES:
-                            - Output `nutrients` only if:
-                              1. You are highly confident the photo shows real food or drink.  
-                              2. The title/description provide enough detail to make a reasonable nutrient estimate (e.g., type of food, preparation, ingredients).  
-                            - If either condition is not met:
-                              - Omit `nutrients`.
-                              - Include `issues` with a short, clear sentence explaining what’s missing or unclear so the user can improve their input.
-
-                            ACCURACY PRINCIPLE:
-                            - Perfect accuracy is less important than **reliability and consistency** in estimates across different meals.  
-                            - Use typical/average nutritional values for standard foods when exact packaging data is unavailable.
+                            - Round all numbers to **1 decimal place**, except salt, which should have **2 decimal places**.
 
                             OUTPUT FORMAT:
                             Always return valid JSON with no trailing commas. Only return the following json formats. No breakdowns or calculations outside this format.
@@ -69,17 +56,32 @@ internal fun NutrientsRequest.toApiModel(): ChatGPTRequest {
                                 "ofWhichSaturatedFats": 12.8,
                                 "salt": 5.4,
                                 "fibre": 5.0
-                              }
+                              },
+                              "notes": "",
                             }
 
                             If nutrients cannot be estimated:
                             {
                               "issues": "No clear food item visible in the image. Provide a clearer photo or detailed description."
                             }
+                            
+                            ACCURACY PRINCIPLE:
+                            - Perfect accuracy is less important than **reliability and consistency** in estimates across different meals.  
+                            - Use typical/average nutritional values for standard foods when exact packaging data is unavailable.
+                            - When exact packaging data is available but one or more nutrients are missing from it, estimate them if you can. Otherwise mention them in "notes"
+
+                            CONFIDENCE RULES:
+                            - Output "nutrients" only if:
+                              1. You are highly confident the photo shows real food or drink.  
+                              2. The title/description and image provide enough detail to make a reasonable nutrient estimate (e.g., type of food, preparation, ingredients).  
+                            - If either condition is not met:
+                              - Omit "nutrients".
+                              - Include "issues" with a short, clear sentence explaining what’s missing or unclear so the user can improve their input.
 
                             NOTES:
-                            - Always use both the image and the text provided.
+                            - Always use both the image and the texts provided.
                             - If values are extremely uncertain (e.g., ambiguous dish), consider omitting `nutrients` entirely and use `issues` instead.
+                            - Any breakdowns, calculations or observations should go into the "notes" field.
                         """.trimIndent()
                     )
                 ),
@@ -107,7 +109,7 @@ internal fun ChatGPTResponse.toNutrientsResponse(): NutrientsResponse {
         ?.content
         ?.filterIsInstance<OutputContent.Text>()
         ?.firstOrNull {
-            it.text.isNotBlank() && it.text != "null"
+            it.text.isNotBlank()
         }
         ?.text
 
@@ -124,12 +126,14 @@ internal fun ChatGPTResponse.toNutrientsResponse(): NutrientsResponse {
 
     class Response(
         @SerializedName("nutrients") val nutrients: Nutrients?,
+        @SerializedName("notes") val notes: String?,
         @SerializedName("issues") val issues: String?,
     )
 
     val response = gson.fromJson(resultJson, Response::class.java)
 
     val nutrients = response.nutrients?.let {
+        // null value doesn't mean 0 for that nutrient, the AI just has no information on it.
         NutrientApiModel(
             calories = response.nutrients.calories?.toInt(),
             proteinGrams = response.nutrients.protein?.toFloat(),
@@ -143,6 +147,7 @@ internal fun ChatGPTResponse.toNutrientsResponse(): NutrientsResponse {
     }
     return NutrientsResponse(
         nutrients = nutrients,
-        issues = response.issues
+        issues = response.issues,
+        notes = response.notes,
     )
 }

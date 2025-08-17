@@ -8,6 +8,9 @@ data class Template(
     val nutrients: Nutrients?,
 )
 
+/**
+ * null doesn't mean 0 for that nutrient. It means it's unknown.
+ */
 data class Nutrients(
     val calories: Int?,
     val protein: Float?,

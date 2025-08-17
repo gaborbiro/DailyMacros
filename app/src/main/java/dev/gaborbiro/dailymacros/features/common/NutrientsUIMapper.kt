@@ -194,7 +194,7 @@ internal class NutrientsUIMapper {
         forceDecimal: Boolean,
     ): Pair<DecimalFormat, DecimalFormat> {
         val unitLiteral = unit.literal()
-        val longDecimalFormat = "0.#$unitLiteral"
+        val longDecimalFormat = "0.##$unitLiteral"
         val shortDecimalFormat = if (forceDecimal) longDecimalFormat else "#$unitLiteral"
         val shortLabelLiteral = "$shortLabel ".literal()
         val longLabelLiteral = "$longLabel ".literal()

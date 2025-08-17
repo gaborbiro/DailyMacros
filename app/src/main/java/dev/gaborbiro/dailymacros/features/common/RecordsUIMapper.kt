@@ -124,6 +124,7 @@ internal class RecordsUIMapper(
             timestamp = timestampStr,
             title = record.template.name,
             description = nutrientsStr ?: "",
+            hasNutrients = record.template.nutrients != null,
         )
     }
 }

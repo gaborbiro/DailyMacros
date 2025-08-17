@@ -19,15 +19,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import dev.gaborbiro.dailymacros.FoodPicExt
-import dev.gaborbiro.dailymacros.repo.chatgpt.AuthInterceptor
-import dev.gaborbiro.dailymacros.repo.chatgpt.ChatGPTRepositoryImpl
-import dev.gaborbiro.dailymacros.repo.chatgpt.service.ChatGPTService
-import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntry
-import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntryOutputContentDeserializer
-import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContent
-import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContentDeserializer
-import dev.gaborbiro.dailymacros.repo.records.DBMapper
-import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
+import dev.gaborbiro.dailymacros.data.db.AppDatabase
+import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
+import dev.gaborbiro.dailymacros.data.image.ImageStore
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
@@ -49,15 +43,22 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
+import dev.gaborbiro.dailymacros.features.common.view.ConfirmDestructiveChangeDialog
 import dev.gaborbiro.dailymacros.features.modal.views.EditImageTargetConfirmationDialog
 import dev.gaborbiro.dailymacros.features.modal.views.EditTargetConfirmationDialog
 import dev.gaborbiro.dailymacros.features.modal.views.ImageDialog
 import dev.gaborbiro.dailymacros.features.modal.views.InputDialog
 import dev.gaborbiro.dailymacros.features.modal.views.SelectRecordActionDialog
 import dev.gaborbiro.dailymacros.features.modal.views.SelectTemplateActionDialog
-import dev.gaborbiro.dailymacros.data.image.ImageStore
-import dev.gaborbiro.dailymacros.data.db.AppDatabase
-import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
+import dev.gaborbiro.dailymacros.repo.chatgpt.AuthInterceptor
+import dev.gaborbiro.dailymacros.repo.chatgpt.ChatGPTRepositoryImpl
+import dev.gaborbiro.dailymacros.repo.chatgpt.service.ChatGPTService
+import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntry
+import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntryOutputContentDeserializer
+import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContent
+import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContentDeserializer
+import dev.gaborbiro.dailymacros.repo.records.DBMapper
+import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
 import okhttp3.OkHttpClient
 import okhttp3.java.net.cookiejar.JavaNetCookieJar
 import okhttp3.logging.HttpLoggingInterceptor
@@ -228,7 +229,7 @@ class ModalActivity : AppCompatActivity() {
             createRecordUseCase = CreateRecordUseCase(recordsRepository),
             editRecordUseCase = EditRecordUseCase(recordsRepository),
             editTemplateUseCase = EditTemplateUseCase(recordsRepository),
-            validateEditRecordUseCase = ValidateEditRecordUseCase(recordsRepository),
+            validateEditRecordUseCase = ValidateEditRecordUseCase(recordsRepository, recordsMapper),
             validateCreateRecordUseCase = ValidateCreateRecordUseCase(),
             saveImageUseCase = SaveImageUseCase(this, imageStore),
             validateEditImageUseCase = ValidateEditImageUseCase(recordsRepository),
@@ -324,12 +325,14 @@ class ModalActivity : AppCompatActivity() {
                     val launcher = rememberLauncherForActivityResult(
                         contract = PickVisualMedia(),
                         onResult = {
-                            viewModel.onImageAvailable(it)
+                            it
+                                ?.let { viewModel.onImageAvailable(it) }
+                                ?: run { viewModel.onImagePickerCanceled() }
                         }
                     )
                     SideEffect {
                         val request =
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            PickVisualMediaRequest(PickVisualMedia.ImageOnly)
                         launcher.launch(request)
                     }
                 }
@@ -384,6 +387,13 @@ class ModalActivity : AppCompatActivity() {
                 SelectTemplateActionDialog(
                     templateId = dialogState.templateId,
                     onRepeatTapped = viewModel::onRepeatTemplateTapped,
+                    onDismissRequested = viewModel::onDialogDismissRequested,
+                )
+            }
+
+            is DialogState.ConfirmDestructiveChangeDialog -> {
+                ConfirmDestructiveChangeDialog(
+                    onConfirm = viewModel::onDestructiveChangeConfirmed,
                     onDismissRequested = viewModel::onDialogDismissRequested,
                 )
             }

@@ -12,6 +12,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.gaborbiro.dailymacros.features.common.view.ConfirmDestructiveChangeDialog
+import dev.gaborbiro.dailymacros.features.overview.model.DialogState
 import dev.gaborbiro.dailymacros.features.overview.views.OverviewList
 
 @Composable
@@ -40,6 +42,8 @@ internal fun OverviewScreen(
         onSearchTermChanged = viewModel::onSearchTermChanged,
     )
 
+    Dialog(viewState.dialog, viewModel)
+
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -49,5 +53,21 @@ internal fun OverviewScreen(
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+}
+
+@Composable
+private fun Dialog(dialogState: DialogState?, viewModel: OverviewViewModel) {
+    when (dialogState) {
+        is DialogState.ConfirmDestructiveChangeDialog -> {
+            ConfirmDestructiveChangeDialog(
+                onConfirm = viewModel::onDestructiveChangeConfirmed,
+                onDismissRequested = viewModel::onDialogDismissRequested,
+            )
+        }
+
+        null -> {
+            // nothing to do
+        }
     }
 }

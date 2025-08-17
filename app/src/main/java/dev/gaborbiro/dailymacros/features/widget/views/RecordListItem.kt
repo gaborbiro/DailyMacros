@@ -54,7 +54,7 @@ fun RecordListItem(
                 )
             }
             ?: run {
-                Spacer(modifier = GlanceModifier.size(WidgetImageSize))
+                Spacer(modifier = GlanceModifier.size(WidgetImageSize * .75f))
             }
         Column(
             modifier = GlanceModifier
@@ -96,6 +96,7 @@ private fun RecordListItemPreview() {
                 description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0, Fiber: 1111dfdf sdf asdfasdf as df",
                 timestamp = "Yesterday",
                 bitmap = randomBitmap(),
+                hasNutrients = true,
             ),
             imageTappedActionProvider = action {},
             bodyTappedActionProvider = action {},
