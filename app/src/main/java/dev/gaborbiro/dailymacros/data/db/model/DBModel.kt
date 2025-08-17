@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.data.db.common
+package dev.gaborbiro.dailymacros.data.db.model
 
 import androidx.room.ColumnInfo
 import androidx.room.PrimaryKey

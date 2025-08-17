@@ -1,10 +1,11 @@
 package dev.gaborbiro.dailymacros.repo.records
 
 import androidx.room.Transaction
-import dev.gaborbiro.dailymacros.data.db.records.RecordsDAO
-import dev.gaborbiro.dailymacros.data.db.records.TemplatesDAO
-import dev.gaborbiro.dailymacros.data.db.records.model.RecordDBModel
-import dev.gaborbiro.dailymacros.data.db.records.model.TemplateDBModel
+import dev.gaborbiro.dailymacros.data.db.RecordsDAO
+import dev.gaborbiro.dailymacros.data.db.TemplatesDAO
+import dev.gaborbiro.dailymacros.data.db.model.RecordDBModel
+import dev.gaborbiro.dailymacros.data.db.model.TemplateDBModel
+import dev.gaborbiro.dailymacros.data.db.model.TemplateWithNutrients
 import dev.gaborbiro.dailymacros.data.image.ImageStore
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Nutrients
@@ -24,12 +25,15 @@ internal class RecordsRepositoryImpl(
     private val imageStore: ImageStore,
 ) : RecordsRepository {
 
+    // -------- Reads --------
+
     override suspend fun getRecords(since: LocalDateTime? /* = null */): List<Record> {
         val records = recordsDAO.get()
         val filteredRecords = since
             ?.let {
                 records.filter { it.record.timestamp >= since }
-            } ?: records
+            }
+            ?: records
         return dBMapper.map(filteredRecords)
     }
 
@@ -40,7 +44,7 @@ internal class RecordsRepositoryImpl(
             recordsDAO
                 .getFlow(since)
                 .map { dBMapper.map(it) }
-        } catch (t: Throwable) {
+        } catch (_: Throwable) {
             flowOf(emptyList())
         }
     }
@@ -53,7 +57,7 @@ internal class RecordsRepositoryImpl(
             recordsDAO
                 .getFlow(since, until)
                 .map { dBMapper.map(it) }
-        } catch (t: Throwable) {
+        } catch (_: Throwable) {
             flowOf(emptyList())
         }
     }
@@ -69,20 +73,36 @@ internal class RecordsRepositoryImpl(
     override fun getFlowBySearchTerm(search: String? /* = null */): Flow<List<Record>> {
         return try {
             val raw = if (search.isNullOrEmpty()) {
-                recordsDAO.getFlow()
+                recordsDAO.getFlow(LocalDateTime.MIN)
             } else {
                 recordsDAO.getFlowBySearchTerm(search)
             }
             raw
                 .distinctUntilChanged()
                 .map(dBMapper::map)
-        } catch (t: Throwable) {
+        } catch (_: Throwable) {
             flowOf(emptyList())
         }
     }
 
+    @Transaction
+    override suspend fun getRecord(recordId: Long): Record {
+        return recordsDAO.get(recordId).let(dBMapper::map)
+    }
+
+    override suspend fun getTemplate(templateId: Long): Template? {
+        val (template, nutrients) = templatesDAO.get(templateId)
+        return dBMapper.map(template, nutrients)
+    }
+
+    // -------- Writes --------
+
     override suspend fun saveRecord(record: RecordToSave): Long {
-        val templateId = templatesDAO.insertOrUpdate(dBMapper.map(record.template))
+        val template = dBMapper.map(record.template)
+        val rowId = templatesDAO.insertOrUpdate(template)
+        val templateId = if (rowId == -1L) {
+            requireNotNull(template.id) { "Template id must be set when updating" }
+        } else rowId
         return recordsDAO.insertOrUpdate(dBMapper.map(record, templateId))
     }
 
@@ -98,24 +118,14 @@ internal class RecordsRepositoryImpl(
     }
 
     override suspend fun duplicateRecord(recordId: Long): Long {
-        return getRecord(recordId)!!.let { record ->
-            recordsDAO.insertOrUpdate(dBMapper.map(record, LocalDateTime.now()))
-        }
-    }
-
-    @Transaction
-    override suspend fun getRecord(recordId: Long): Record? {
-        return recordsDAO.get(recordId)?.let(dBMapper::map)
-    }
-
-    override suspend fun getTemplate(templateId: Long): Template? {
-        return templatesDAO.get(templateId)?.let(dBMapper::map)
+        val record = getRecord(recordId)
+        return recordsDAO.insertOrUpdate(dBMapper.map(record, LocalDateTime.now()))
     }
 
     override suspend fun deleteRecord(recordId: Long): Record {
-        val record = recordsDAO.get(recordId)!!
+        val recordWithTemplateAndNutrients = recordsDAO.get(recordId)
         recordsDAO.delete(recordId)
-        return dBMapper.map(record)
+        return dBMapper.map(recordWithTemplateAndNutrients)
     }
 
     override suspend fun applyTemplate(templateId: Long): Long {
@@ -124,61 +134,43 @@ internal class RecordsRepositoryImpl(
 
     override suspend fun updateTemplate(
         templateId: Long,
-        image: String?,/* = null */
-        title: String?,/* = null */
-        description: String?,/* = null */
+        image: String?, /* = null */
+        title: String?, /* = null */
+        description: String?, /* = null */
         nutrients: Nutrients?,
     ) {
-        templatesDAO.get(templateId)?.let { oldTemplate ->
-            templatesDAO.insertOrUpdate(
-                if (nutrients == null) {
-                    TemplateDBModel(
-                        id = templateId,
-                        image = image ?: oldTemplate.image,
-                        name = title ?: oldTemplate.name,
-                        description = description ?: oldTemplate.description,
-                        calories = oldTemplate.calories,
-                        protein = oldTemplate.protein,
-                        carbohydrates = oldTemplate.carbohydrates,
-                        ofWhichSugar = oldTemplate.ofWhichSugar,
-                        fat = oldTemplate.fat,
-                        ofWhichSaturated = oldTemplate.ofWhichSaturated,
-                        salt = oldTemplate.salt,
-                        fibre = oldTemplate.fibre,
-                    )
-                } else {
-                    TemplateDBModel(
-                        id = templateId,
-                        image = image ?: oldTemplate.image,
-                        name = title ?: oldTemplate.name,
-                        description = description ?: oldTemplate.description,
-                        calories = nutrients.calories,
-                        protein = nutrients.protein,
-                        carbohydrates = nutrients.carbohydrates,
-                        ofWhichSugar = nutrients.ofWhichSugar,
-                        fat = nutrients.fat,
-                        ofWhichSaturated = nutrients.ofWhichSaturated,
-                        salt = nutrients.salt,
-                        fibre = nutrients.fibre,
-                    )
-                }
-            )
-            oldTemplate.image?.let { deleteImageIfUnused(it) }
+        val oldTemplate = templatesDAO.get(templateId)
+
+        templatesDAO.insertOrUpdate(
+            TemplateDBModel(
+                image = image ?: oldTemplate.template.image,
+                name = title ?: oldTemplate.template.name,
+                description = description ?: oldTemplate.template.description,
+            ).apply { id = templateId }
+        )
+
+        if (nutrients == null) {
+            templatesDAO.deleteNutrientsForTemplate(templateId)
+        } else {
+            val nutrientsDBModel = dBMapper.map(nutrients).copy(templateId = templateId)
+            templatesDAO.insertOrUpdate(nutrientsDBModel)
         }
+
+        oldTemplate.template.image?.let { deleteImageIfUnused(it) }
     }
 
     override suspend fun deleteImage(templateId: Long) {
-        templatesDAO.get(templateId)?.let { oldTemplate ->
-            templatesDAO.insertOrUpdate(
-                TemplateDBModel(
-                    id = templateId,
-                    image = null,
-                    name = oldTemplate.name,
-                    description = oldTemplate.description,
-                )
-            )
-            oldTemplate.image?.let { deleteImageIfUnused(it) }
-        }
+        val oldTemplate = templatesDAO.get(templateId)
+        templatesDAO.insertOrUpdate(
+            TemplateDBModel(
+                image = null,
+                name = oldTemplate.template.name,
+                description = oldTemplate.template.description,
+            ).apply {
+                id = templateId
+            }
+        )
+        oldTemplate.template.image?.let { deleteImageIfUnused(it) }
     }
 
     override suspend fun deleteTemplateIfUnused(
@@ -186,7 +178,7 @@ internal class RecordsRepositoryImpl(
         imageToo: Boolean,
     ): Pair<Boolean, Boolean> {
         return if (recordsDAO.getByTemplate(templateId).isEmpty()) { // template is unused
-            val image = templatesDAO.get(templateId)!!.image
+            val image = templatesDAO.get(templateId).template.image
             val documentDeleted = templatesDAO.delete(templateId) > 0
             val imageDeleted = if (imageToo) {
                 image
@@ -201,7 +193,7 @@ internal class RecordsRepositoryImpl(
     }
 
     private suspend fun deleteImageIfUnused(image: String): Boolean {
-        if (templatesDAO.get(image).isEmpty()) {
+        if (templatesDAO.getByImage(image).isEmpty()) {
             imageStore.delete(image)
         }
         return false

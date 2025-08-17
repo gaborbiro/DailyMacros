@@ -5,13 +5,12 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import dev.gaborbiro.dailymacros.data.db.records.RecordsDAO
-import dev.gaborbiro.dailymacros.data.db.records.TemplatesDAO
-import dev.gaborbiro.dailymacros.data.db.records.model.RecordDBModel
-import dev.gaborbiro.dailymacros.data.db.records.model.TemplateDBModel
+import dev.gaborbiro.dailymacros.data.db.model.NutrientsDBModel
+import dev.gaborbiro.dailymacros.data.db.model.RecordDBModel
+import dev.gaborbiro.dailymacros.data.db.model.TemplateDBModel
 
 @Database(
-    entities = [RecordDBModel::class, TemplateDBModel::class],
+    entities = [RecordDBModel::class, TemplateDBModel::class, NutrientsDBModel::class],
     version = 1,
     exportSchema = true,
 )

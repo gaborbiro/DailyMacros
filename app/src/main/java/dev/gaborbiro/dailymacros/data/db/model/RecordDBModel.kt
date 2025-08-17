@@ -1,12 +1,11 @@
-package dev.gaborbiro.dailymacros.data.db.records.model
+package dev.gaborbiro.dailymacros.data.db.model
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
-import dev.gaborbiro.dailymacros.data.db.common.COLUMN_ID
-import dev.gaborbiro.dailymacros.data.db.common.DBModel
 import java.time.LocalDateTime
 
-const val COLUMN_TEMPLATE = "templateId"
+const val COLUMN_TEMPLATE_ID = "templateId"
 
 @Entity(
     tableName = "records",
@@ -14,12 +13,12 @@ const val COLUMN_TEMPLATE = "templateId"
         ForeignKey(
             entity = TemplateDBModel::class,
             parentColumns = arrayOf(COLUMN_ID),
-            childColumns = arrayOf(COLUMN_TEMPLATE),
+            childColumns = arrayOf(COLUMN_TEMPLATE_ID),
             onDelete = ForeignKey.CASCADE,
         )
     ]
 )
 data class RecordDBModel(
     val timestamp: LocalDateTime,
-    val templateId: Long,
+    @ColumnInfo(name = COLUMN_TEMPLATE_ID) val templateId: Long,
 ) : DBModel()
