@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "11d469661ca5b80589ebe7f33d3073e1",
+    "identityHash": "45572a52c6899a27c36eec12973f1213",
     "entities": [
       {
         "tableName": "records",
@@ -169,7 +169,7 @@
       },
       {
         "tableName": "template_images",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`templateId` INTEGER NOT NULL, `image` TEXT NOT NULL, `sortOrder` INTEGER NOT NULL, `isPrimary` INTEGER NOT NULL, `_id` INTEGER PRIMARY KEY AUTOINCREMENT, FOREIGN KEY(`templateId`) REFERENCES `templates`(`_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`templateId` INTEGER NOT NULL, `image` TEXT NOT NULL, `sortOrder` INTEGER NOT NULL, `_id` INTEGER PRIMARY KEY AUTOINCREMENT, FOREIGN KEY(`templateId`) REFERENCES `templates`(`_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "templateId",
@@ -186,12 +186,6 @@
           {
             "fieldPath": "sortOrder",
             "columnName": "sortOrder",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "isPrimary",
-            "columnName": "isPrimary",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -254,7 +248,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '11d469661ca5b80589ebe7f33d3073e1')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '45572a52c6899a27c36eec12973f1213')"
     ]
   }
 }

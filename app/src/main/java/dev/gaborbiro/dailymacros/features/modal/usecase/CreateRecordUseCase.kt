@@ -12,14 +12,14 @@ internal class CreateRecordUseCase(
 
     @UiThread
     suspend fun execute(
-        image: String?,
+        images: List<String>,
         title: String,
         description: String,
     ): Long {
         val record = RecordToSave(
             timestamp = LocalDateTime.now(),
-            template = TemplateToSave(
-                primaryImage = image,
+            templateToSave = TemplateToSave(
+                images = images,
                 name = title,
                 description = description,
             ),

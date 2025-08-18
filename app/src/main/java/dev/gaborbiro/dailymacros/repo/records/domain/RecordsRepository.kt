@@ -49,11 +49,9 @@ internal interface RecordsRepository {
      */
     suspend fun updateTemplate(
         templateId: Long,
-        image: String? = null,
         title: String? = null,
         description: String? = null,
+        images: List<String>? = null,
         macros: Macros? = null,
     )
-
-    suspend fun deleteImage(templateId: Long)
 }

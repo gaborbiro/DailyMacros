@@ -3,7 +3,7 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 class ValidateCreateRecordUseCase {
 
     suspend fun execute(
-        image: String?,
+        images: List<String>,
         title: String,
         description: String,
     ): CreateValidationResult {

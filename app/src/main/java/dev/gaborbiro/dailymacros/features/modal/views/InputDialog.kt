@@ -38,6 +38,7 @@ import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.view.PreviewImageStoreProvider
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
+import dev.gaborbiro.dailymacros.features.modal.model.MacrosUIModel
 import kotlinx.coroutines.delay
 
 
@@ -47,14 +48,15 @@ internal fun InputDialog(
     onRecordDetailsSubmitRequested: (title: String, description: String) -> Unit,
     onRecordDetailsUserTyping: (title: String, description: String) -> Unit,
     onImageTapped: (String) -> Unit,
-    onAddImageTapped: () -> Unit,
+    onAddImageViaCameraTapped: () -> Unit,
+    onAddImageViaPickerTapped: () -> Unit,
     onDismissRequested: () -> Unit,
 ) {
     val title = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.title
-    val images =
+    val images: List<String> =
         (dialogState as? DialogState.InputDialog.RecordDetailsDialog)
             ?.images
-            ?: run { (dialogState as? DialogState.InputDialog.CreateWithImageDialog)?.image?.let { listOf(it) } }
+            ?: run { (dialogState as? DialogState.InputDialog.CreateWithImageDialog)?.images }
             ?: emptyList()
     val suggestions = (dialogState as? DialogState.InputDialog.CreateWithImageDialog)
         ?.suggestions
@@ -62,16 +64,7 @@ internal fun InputDialog(
         ?.showProgressIndicator
     val description =
         (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.description
-    val calories = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.calories
-    val protein = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.protein
-    val fat = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.fat
-    val saturated =
-        (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.ofWhichSaturated
-    val carbs = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.carbs
-    val sugar = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.ofWhichSugar
-    val salt = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.salt
-    val fibre = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.fibre
-    val notes = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.notes
+    val macros = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.macros
 
     val titleField: MutableState<TextFieldValue> = remember {
         mutableStateOf(TextFieldValue(title ?: ""))
@@ -97,17 +90,10 @@ internal fun InputDialog(
                 showProgressIndicator = showProgressIndicator ?: false,
                 descriptionField = descriptionField,
                 error = dialogState.validationError,
-                calories = calories,
-                protein = protein,
-                fat = fat,
-                saturated = saturated,
-                carbs = carbs,
-                sugar = sugar,
-                salt = salt,
-                fibre = fibre,
-                notes = notes,
+                macros = macros,
                 onImageTapped = onImageTapped,
-                onAddImageTapped = onAddImageTapped,
+                onAddImageViaCameraTapped = onAddImageViaCameraTapped,
+                onAddImageViaPickerTapped = onAddImageViaPickerTapped,
             )
         },
         buttons = {
@@ -148,17 +134,10 @@ private fun ColumnScope.InputDialogContent(
     showProgressIndicator: Boolean,
     descriptionField: MutableState<TextFieldValue>,
     error: String?,
-    calories: String?,
-    protein: String?,
-    fat: String?,
-    saturated: String?,
-    carbs: String?,
-    sugar: String?,
-    salt: String?,
-    fibre: String?,
-    notes: String?,
+    macros: MacrosUIModel?,
     onImageTapped: (String) -> Unit,
-    onAddImageTapped: () -> Unit,
+    onAddImageViaCameraTapped: () -> Unit,
+    onAddImageViaPickerTapped: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -170,7 +149,7 @@ private fun ColumnScope.InputDialogContent(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "Describe what you ate or drank",
+            text = "Describe your meal or drink",
             color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.titleMedium,
         )
@@ -265,17 +244,15 @@ private fun ColumnScope.InputDialogContent(
         )
     }
 
-    images.takeIf { it.isNotEmpty() }
-        ?.let {
-            ImageStrip(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = PaddingDefault),
-                images = it,
-                onImageTapped = onImageTapped,
-                onAddImageTapped = onAddImageTapped,
-            )
-        }
+    ImageStrip(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = PaddingDefault),
+        images = images,
+        onImageTapped = onImageTapped,
+        onAddImageViaCameraTapped = onAddImageViaCameraTapped,
+        onAddImageViaPickerTapped = onAddImageViaPickerTapped,
+    )
 
     TextField(
         modifier = Modifier
@@ -325,17 +302,9 @@ private fun ColumnScope.InputDialogContent(
             }
         }
 
-    MacroTable(
-        calories = calories,
-        protein = protein,
-        fat = fat,
-        saturated = saturated,
-        carbs = carbs,
-        sugar = sugar,
-        salt = salt,
-        fibre = fibre,
-        notes = notes,
-    )
+    macros?.let {
+        MacroTable(macros = macros)
+    }
 }
 
 @Preview
@@ -352,20 +321,23 @@ private fun NoteInputDialogContentPreviewEdit() {
                     titleSuggestions = emptyList(),
                     title = "This is a title",
                     description = "This is a description",
-                    calories = "Calories: 2100 cal",
-                    protein = "Protein: 150g",
-                    fat = "Fat 100g",
-                    ofWhichSaturated = "of which saturated: 20g",
-                    carbs = "Carbs: 100g",
-                    ofWhichSugar = "of which sugars: 30g",
-                    salt = "Salt: 5g",
-                    fibre = "Fibre: 4.5g",
-                    notes = "Notes: This is a note",
+                    macros = MacrosUIModel(
+                        calories = "Calories: 2100 cal",
+                        protein = "Protein: 150g",
+                        fat = "Fat 100g",
+                        ofWhichSaturated = "of which saturated: 20g",
+                        carbs = "Carbs: 100g",
+                        ofWhichSugar = "of which sugars: 30g",
+                        salt = "Salt: 5g",
+                        fibre = "Fibre: 4.5g",
+                        notes = "Notes: This is a note",
+                    )
                 ),
                 onRecordDetailsSubmitRequested = { _, _ -> },
                 onRecordDetailsUserTyping = { _, _ -> },
                 onImageTapped = {},
-                onAddImageTapped = {},
+                onAddImageViaCameraTapped = {},
+                onAddImageViaPickerTapped = {},
                 onDismissRequested = {},
             )
         }
@@ -379,14 +351,15 @@ private fun NoteInputDialogContentPreview() {
     DailyMacrosTheme {
         InputDialog(
             dialogState = DialogState.InputDialog.CreateWithImageDialog(
-                image = "",
+                images = listOf("1", "2"),
                 showProgressIndicator = true,
                 suggestions = null,
             ),
             onRecordDetailsSubmitRequested = { _, _ -> },
             onRecordDetailsUserTyping = { _, _ -> },
             onImageTapped = {},
-            onAddImageTapped = {},
+            onAddImageViaCameraTapped = {},
+            onAddImageViaPickerTapped = {},
             onDismissRequested = {},
         )
     }
@@ -401,7 +374,7 @@ private fun NoteInputDialogContentPreviewSuggestion() {
         PreviewImageStoreProvider {
             InputDialog(
                 dialogState = DialogState.InputDialog.CreateWithImageDialog(
-                    image = "",
+                    images = listOf("1", "2"),
                     suggestions = DialogState.InputDialog.SummarySuggestions(
                         titles = listOf("This is a title suggestion", "This is another title suggestion"),
                         description = "",
@@ -410,7 +383,8 @@ private fun NoteInputDialogContentPreviewSuggestion() {
                 onRecordDetailsSubmitRequested = { _, _ -> },
                 onRecordDetailsUserTyping = { _, _ -> },
                 onImageTapped = {},
-                onAddImageTapped = {},
+                onAddImageViaCameraTapped = {},
+                onAddImageViaPickerTapped = {},
                 onDismissRequested = {},
             )
         }
@@ -424,7 +398,7 @@ private fun NoteInputDialogContentPreviewError() {
     DailyMacrosTheme {
         InputDialog(
             dialogState = DialogState.InputDialog.CreateWithImageDialog(
-                image = "",
+                images = listOf("1", "2"),
                 suggestions = DialogState.InputDialog.SummarySuggestions(
                     titles = listOf("This is a title suggestion", "This is another title suggestion"),
                     description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
@@ -434,7 +408,8 @@ private fun NoteInputDialogContentPreviewError() {
             onRecordDetailsSubmitRequested = { _, _ -> },
             onRecordDetailsUserTyping = { _, _ -> },
             onImageTapped = {},
-            onAddImageTapped = {},
+            onAddImageViaCameraTapped = {},
+            onAddImageViaPickerTapped = {},
             onDismissRequested = {},
         )
     }

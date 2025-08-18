@@ -23,7 +23,7 @@ import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingDouble
 
 @Composable
-fun ConfirmDestructiveChangeDialog(
+fun ConfirmDeleteNutrientDataDialog(
     onConfirm: () -> Unit,
     onDismissRequested: () -> Unit,
 ) {
@@ -69,7 +69,7 @@ fun ConfirmDestructiveChangeDialog(
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun ConfirmDestructiveChangeDialogPreview() {
     DailyMacrosTheme {
-        ConfirmDestructiveChangeDialog(
+        ConfirmDeleteNutrientDataDialog(
             onConfirm = {},
             onDismissRequested = {},
         )

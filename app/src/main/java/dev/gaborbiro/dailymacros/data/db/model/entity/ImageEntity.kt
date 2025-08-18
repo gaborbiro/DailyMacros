@@ -24,6 +24,5 @@ import androidx.room.Index
 data class ImageEntity(
     @ColumnInfo(name = COLUMN_TEMPLATE_ID) val templateId: Long,
     val image: String,
-    val sortOrder: Int,              // 0..n, for display order
-    val isPrimary: Boolean = false   // one per template (enforced in code)
+    val sortOrder: Int,
 ) : BaseEntity()

@@ -5,12 +5,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -25,44 +25,35 @@ import dev.gaborbiro.dailymacros.R
 @Composable
 internal fun PopupMenu(
     onRepeatMenuItemTapped: () -> Unit,
-//    onChangeImageMenuItemTapped: () -> Unit,
-//    onDeleteImageMenuItemTapped: () -> Unit,
-    onEditRecordMenuItemTapped: () -> Unit,
+    onDetailsMenuItemTapped: () -> Unit,
     onDeleteRecordMenuItemTapped: () -> Unit,
     onMacrosMenuItemTapped: () -> Unit,
 ) {
     PopUpMenuButton(
         options = listOf(
             PopUpMenuItem(
-                icon = painterResource(R.drawable.ic_dinner_dining),
+                icon = painterResource(R.drawable.ic_exposure_plus_1),
                 label = "Repeat",
                 onMenuItemSelected = onRepeatMenuItemTapped,
+                isDestructiveAction = false,
             ),
             PopUpMenuItem(
                 icon = painterResource(R.drawable.ic_nutrition),
                 label = "Macros (AI)",
                 onMenuItemSelected = onMacrosMenuItemTapped,
+                isDestructiveAction = false,
             ),
             PopUpMenuItem(
                 icon = painterResource(R.drawable.ic_topic),
                 label = "Details",
-                onMenuItemSelected = onEditRecordMenuItemTapped,
-                hasBottomDivider = true,
+                onMenuItemSelected = onDetailsMenuItemTapped,
+                isDestructiveAction = false,
             ),
-//            PopUpMenuItem(
-//                icon = painterResource(R.drawable.ic_add_picture),
-//                label = "Change image",
-//                onMenuItemSelected = onChangeImageMenuItemTapped,
-//            ),
-//            PopUpMenuItem(
-//                icon = painterResource(R.drawable.ic_hide_image),
-//                label = "Delete image",
-//                onMenuItemSelected = onDeleteImageMenuItemTapped,
-//            ),
             PopUpMenuItem(
                 icon = painterResource(R.drawable.ic_delete),
                 label = "Delete",
                 onMenuItemSelected = onDeleteRecordMenuItemTapped,
+                isDestructiveAction = true,
             ),
         ),
     )
@@ -95,12 +86,22 @@ private fun PopUpMenuButton(
         Box {
             DropdownMenu(
                 modifier = Modifier
-                    .background(MaterialTheme.colorScheme.primaryContainer),
+                    .background(MaterialTheme.colorScheme.secondaryContainer),
                 expanded = expanded.value,
                 onDismissRequest = { expanded.value = false },
             ) {
                 options.forEachIndexed { _, item ->
+                    val background =
+                        if (item.isDestructiveAction) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer
+                    val tint =
+                        if (item.isDestructiveAction) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSecondaryContainer
                     DropdownMenuItem(
+                        modifier = Modifier
+                            .background(background),
+                        colors = MenuDefaults.itemColors(
+                            leadingIconColor = tint,
+                            textColor = tint,
+                        ),
                         onClick = {
                             expanded.value = false
                             item.onMenuItemSelected()
@@ -109,7 +110,6 @@ private fun PopUpMenuButton(
                             Text(
                                 text = item.label,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 overflow = TextOverflow.Companion.Ellipsis
                             )
                         },
@@ -117,13 +117,9 @@ private fun PopUpMenuButton(
                             Icon(
                                 painter = item.icon,
                                 contentDescription = item.label,
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
                             )
                         }
                     )
-                    if (item.hasBottomDivider) {
-                        Divider(color = MaterialTheme.colorScheme.onPrimaryContainer)
-                    }
                 }
             }
         }
@@ -133,6 +129,6 @@ private fun PopUpMenuButton(
 private data class PopUpMenuItem(
     val label: String,
     val icon: Painter,
-    val hasBottomDivider: Boolean = false,
     val onMenuItemSelected: () -> Unit,
+    val isDestructiveAction: Boolean,
 )

@@ -8,41 +8,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.PaddingDefault
+import dev.gaborbiro.dailymacros.features.modal.model.MacrosUIModel
 
 @Composable
 internal fun MacroTable(
-    calories: String?,
-    protein: String?,
-    fat: String?,
-    saturated: String?,
-    carbs: String?,
-    sugar: String?,
-    salt: String?,
-    fibre: String?,
-    notes: String?,
+    macros: MacrosUIModel,
 ) {
-    if (calories != null ||
-        protein != null ||
-        fat != null ||
-        saturated != null ||
-        carbs != null ||
-        sugar != null ||
-        salt != null ||
-        fibre != null ||
-        notes != null
-    ) {
-        Spacer(
-            modifier = Modifier.Companion
-                .height(PaddingDefault)
-        )
-    }
+    Spacer(
+        modifier = Modifier.Companion
+            .height(PaddingDefault)
+    )
 
-    calories?.let {
+    macros.calories?.let {
         PillLabel(
             modifier = Modifier.Companion
                 .padding(horizontal = PaddingDefault)
                 .padding(top = 4.dp),
-            text = calories,
+            text = it,
             contentColor = MaterialTheme.colorScheme.onSurface,
             backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
             border = null,
@@ -50,12 +32,12 @@ internal fun MacroTable(
         )
     }
 
-    protein?.let {
+    macros.protein?.let {
         PillLabel(
             modifier = Modifier.Companion
                 .padding(horizontal = PaddingDefault)
                 .padding(top = 4.dp),
-            text = protein,
+            text = it,
             contentColor = MaterialTheme.colorScheme.onSurface,
             backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
             border = null,
@@ -63,12 +45,12 @@ internal fun MacroTable(
         )
     }
 
-    fat?.let {
+    macros.fat?.let {
         PillLabel(
             modifier = Modifier.Companion
                 .padding(horizontal = PaddingDefault)
                 .padding(top = 4.dp),
-            text = fat,
+            text = it,
             contentColor = MaterialTheme.colorScheme.onSurface,
             backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
             border = null,
@@ -76,12 +58,12 @@ internal fun MacroTable(
         )
     }
 
-    saturated?.let {
+    macros.ofWhichSaturated?.let {
         PillLabel(
             modifier = Modifier.Companion
                 .padding(horizontal = PaddingDefault)
                 .padding(start = 16.dp, top = 4.dp),
-            text = saturated,
+            text = it,
             contentColor = MaterialTheme.colorScheme.onSurface,
             backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
             border = null,
@@ -89,12 +71,12 @@ internal fun MacroTable(
         )
     }
 
-    carbs?.let {
+    macros.carbs?.let {
         PillLabel(
             modifier = Modifier.Companion
                 .padding(horizontal = PaddingDefault)
                 .padding(top = 4.dp),
-            text = carbs,
+            text = it,
             contentColor = MaterialTheme.colorScheme.onSurface,
             backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
             border = null,
@@ -102,12 +84,12 @@ internal fun MacroTable(
         )
     }
 
-    sugar?.let {
+    macros.ofWhichSugar?.let {
         PillLabel(
             modifier = Modifier.Companion
                 .padding(horizontal = PaddingDefault)
                 .padding(start = 16.dp, top = 4.dp),
-            text = sugar,
+            text = it,
             contentColor = MaterialTheme.colorScheme.onSurface,
             backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
             border = null,
@@ -115,12 +97,12 @@ internal fun MacroTable(
         )
     }
 
-    salt?.let {
+    macros.salt?.let {
         PillLabel(
             modifier = Modifier.Companion
                 .padding(horizontal = PaddingDefault)
                 .padding(top = 4.dp),
-            text = salt,
+            text = it,
             contentColor = MaterialTheme.colorScheme.onSurface,
             backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
             border = null,
@@ -128,12 +110,12 @@ internal fun MacroTable(
         )
     }
 
-    fibre?.let {
+    macros.fibre?.let {
         PillLabel(
             modifier = Modifier.Companion
                 .padding(horizontal = PaddingDefault)
                 .padding(top = 4.dp),
-            text = fibre,
+            text = it,
             contentColor = MaterialTheme.colorScheme.onSurface,
             backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
             border = null,
@@ -141,12 +123,12 @@ internal fun MacroTable(
         )
     }
 
-    notes?.let {
+    macros.notes?.let {
         PillLabel(
             modifier = Modifier.Companion
                 .padding(horizontal = PaddingDefault)
                 .padding(top = 4.dp),
-            text = notes,
+            text = it,
             contentColor = MaterialTheme.colorScheme.onSurface,
             backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
             border = null,
@@ -154,19 +136,8 @@ internal fun MacroTable(
         )
     }
 
-    if (calories != null ||
-        protein != null ||
-        fat != null ||
-        saturated != null ||
-        carbs != null ||
-        sugar != null ||
-        salt != null ||
-        fibre != null ||
-        notes != null
-    ) {
-        Spacer(
-            modifier = Modifier.Companion
-                .height(PaddingDefault)
-        )
-    }
+    Spacer(
+        modifier = Modifier.Companion
+            .height(PaddingDefault)
+    )
 }

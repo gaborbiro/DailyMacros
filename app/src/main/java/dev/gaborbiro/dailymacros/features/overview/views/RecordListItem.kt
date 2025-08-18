@@ -34,9 +34,7 @@ fun RecordListItem(
     modifier: Modifier = Modifier,
     record: RecordUIModel,
     onRepeatMenuItemTapped: (RecordUIModel) -> Unit,
-//    onChangeImageMenuItemTapped: (RecordUIModel) -> Unit,
-//    onDeleteImageMenuItemTapped: (RecordUIModel) -> Unit,
-    onEditRecordMenuItemTapped: (RecordUIModel) -> Unit,
+    onDetailsMenuItemTapped: (RecordUIModel) -> Unit,
     onDeleteRecordMenuItemTapped: (RecordUIModel) -> Unit,
     onMacrosMenuItemTapped: (RecordUIModel) -> Unit,
     onRecordImageTapped: (RecordUIModel) -> Unit,
@@ -69,9 +67,7 @@ fun RecordListItem(
         )
         PopupMenu(
             onRepeatMenuItemTapped = { onRepeatMenuItemTapped(record) },
-//            onChangeImageMenuItemTapped = { onChangeImageMenuItemTapped(record) },
-//            onDeleteImageMenuItemTapped = { onDeleteImageMenuItemTapped(record) },
-            onEditRecordMenuItemTapped = { onEditRecordMenuItemTapped(record) },
+            onDetailsMenuItemTapped = { onDetailsMenuItemTapped(record) },
             onDeleteRecordMenuItemTapped = { onDeleteRecordMenuItemTapped(record) },
             onMacrosMenuItemTapped = { onMacrosMenuItemTapped(record) },
         )
@@ -144,9 +140,7 @@ private fun OverviewListItemPreview() {
                 hasMacros = true,
             ),
             onRepeatMenuItemTapped = {},
-//        onChangeImageMenuItemTapped = {},
-//        onDeleteImageMenuItemTapped = {},
-            onEditRecordMenuItemTapped = {},
+            onDetailsMenuItemTapped = {},
             onDeleteRecordMenuItemTapped = {},
             onRecordImageTapped = {},
             onRecordBodyTapped = {},

@@ -12,14 +12,14 @@ val WidgetImageSize = 64.dp
 val WidgetTemplateImageSize = 48.dp
 
 val sectionTitleBackground
-    @Composable get() = GlanceTheme.colors.tertiaryContainer
+    @Composable get() = GlanceTheme.colors.secondaryContainer
 
 val sectionTitleTextStyle: TextStyle
     @Composable get() = TextStyle(
         fontWeight = FontWeight.Bold,
         fontSize = 12.sp,
         textAlign = TextAlign.Center,
-        color = GlanceTheme.colors.onTertiaryContainer
+        color = GlanceTheme.colors.onSecondaryContainer
     )
 
 val titleTextStyle: TextStyle

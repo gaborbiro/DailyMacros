@@ -80,13 +80,20 @@ internal class RecordsRepositoryImpl(
     // -------- Writes --------
 
     override suspend fun saveRecord(record: RecordToSave): Long {
-        val template = mapper.map(record.template)
+        val template = mapper.map(record.templateToSave)
         val rowId = templatesDAO.insertOrUpdate(template)
         val templateId = if (rowId == -1L) {
             requireNotNull(template.id) { "Template id must be set when updating" }
         } else rowId
-        record.template.primaryImage?.let { uri ->
-            ensureImagePresentAndPrimary(templateId, uri)
+        templatesDAO.deleteAllImagesForTemplate(templateId)
+        record.templateToSave.images.forEachIndexed { index, image ->
+            templatesDAO.upsertImage(
+                ImageEntity(
+                    templateId = templateId,
+                    image = image,
+                    sortOrder = index,
+                )
+            )
         }
         return recordsDAO.insertOrUpdate(mapper.map(record, templateId))
     }
@@ -119,9 +126,9 @@ internal class RecordsRepositoryImpl(
 
     override suspend fun updateTemplate(
         templateId: Long,
-        image: String?, /* = null */
         title: String?, /* = null */
         description: String?, /* = null */
+        images: List<String>?,
         macros: Macros?,
     ) {
         val oldTemplate = templatesDAO.getTemplateById(templateId)
@@ -133,6 +140,19 @@ internal class RecordsRepositoryImpl(
             ).apply { id = templateId }
         )
 
+        images?.let {
+            templatesDAO.deleteAllImagesForTemplate(templateId)
+            images.forEachIndexed { index, image ->
+                templatesDAO.upsertImage(
+                    ImageEntity(
+                        templateId = templateId,
+                        image = image,
+                        sortOrder = index,
+                    )
+                )
+            }
+        }
+
         if (macros == null) {
             templatesDAO.deleteMacrosForTemplate(templateId)
         } else {
@@ -143,51 +163,6 @@ internal class RecordsRepositoryImpl(
             )
             templatesDAO.insertOrUpdate(entity)
         }
-
-        if (!image.isNullOrEmpty()) {
-            val existing = templatesDAO.getImagesForTemplate(templateId)
-            val already = existing.firstOrNull { it.image == image }
-            val imageId = if (already != null) {
-                already.id!!
-            } else {
-                val nextSort = (existing.maxOfOrNull { it.sortOrder } ?: -1) + 1
-                templatesDAO.upsertImage(
-                    ImageEntity(
-                        templateId = templateId,
-                        image = image,
-                        sortOrder = nextSort,
-                        isPrimary = false
-                    )
-                )
-            }
-            templatesDAO.setPrimary(templateId, imageId)
-        }
-    }
-
-    private suspend fun ensureImagePresentAndPrimary(templateId: Long, image: String) {
-        val existing = templatesDAO.getImagesForTemplate(templateId)
-        val already = existing.firstOrNull { it.image == image }
-        val imageId = if (already != null) {
-            already.id!!
-        } else {
-            val nextSort = (existing.maxOfOrNull { it.sortOrder } ?: -1) + 1
-            templatesDAO.upsertImage(
-                ImageEntity(
-                    templateId = templateId,
-                    image = image,
-                    sortOrder = nextSort,
-                    isPrimary = false
-                )
-            )
-        }
-        templatesDAO.setPrimary(templateId, imageId)
-    }
-
-    override suspend fun deleteImage(templateId: Long) {
-        val images = templatesDAO.getImagesForTemplate(templateId)
-        val toDelete = images.firstOrNull { it.isPrimary } ?: images.firstOrNull() ?: return
-        templatesDAO.deleteImage(toDelete.id!!)
-        deleteImageIfUnused(toDelete.image)
     }
 
     override suspend fun deleteTemplateIfUnused(
@@ -208,7 +183,7 @@ internal class RecordsRepositoryImpl(
     }
 
     private suspend fun deleteImageIfUnused(image: String): Boolean {
-        val refs = templatesDAO.countByUri(image)
+        val refs = templatesDAO.countTemplatesByImage(image)
         if (refs == 0) {
             imageStore.delete(image)
             return true

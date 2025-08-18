@@ -1,15 +1,12 @@
 package dev.gaborbiro.dailymacros.features.overview
 
 import android.util.Log
-import androidx.annotation.UiThread
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.model.BaseListItemUIModel
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.modal.usecase.FetchMacrosUseCase
-import dev.gaborbiro.dailymacros.features.overview.model.DialogState
-import dev.gaborbiro.dailymacros.features.overview.model.EditState
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
 import dev.gaborbiro.dailymacros.features.widget.NotesWidget
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
@@ -75,46 +72,7 @@ internal class OverviewViewModel(
 //        }
 //    }
 
-    fun onDestructiveChangeConfirmed() {
-        (_viewState.value.dialog as? DialogState.ConfirmDestructiveChangeDialog)?.let {
-            when (it.editState) {
-                is EditState.ChangeImage -> {
-                    updateRecordPhoto(it.editState.recordId)
-                }
-
-                is EditState.RemoveImage -> {
-                    removePhoto(it.editState.templateId)
-                }
-            }
-            _viewState.update {
-                it.copy(
-                    dialog = null,
-                )
-            }
-        }
-    }
-
-    private fun updateRecordPhoto(recordId: Long) {
-        navigator.updateRecordPhoto(recordId)
-    }
-
-    private fun removePhoto(templateId: Long) {
-        viewModelScope.launch {
-            repository.deleteImage(templateId)
-        }
-        NotesWidget.reload()
-    }
-
-    @UiThread
-    fun onDialogDismissRequested() {
-        _viewState.update {
-            it.copy(
-                dialog = null,
-            )
-        }
-    }
-
-    fun onEditRecordMenuItemTapped(record: RecordUIModel) {
+    fun onDetailsMenuItemTapped(record: RecordUIModel) {
         navigator.editRecord(recordId = record.recordId)
     }
 

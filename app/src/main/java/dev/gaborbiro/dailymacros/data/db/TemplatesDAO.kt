@@ -5,10 +5,10 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
+import dev.gaborbiro.dailymacros.data.db.model.TemplateJoined
+import dev.gaborbiro.dailymacros.data.db.model.entity.ImageEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.MacrosEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
-import dev.gaborbiro.dailymacros.data.db.model.entity.ImageEntity
-import dev.gaborbiro.dailymacros.data.db.model.TemplateJoined
 
 @Dao
 interface TemplatesDAO {
@@ -23,26 +23,8 @@ interface TemplatesDAO {
     suspend fun deleteMacrosForTemplate(templateId: Long): Int
 
     @Transaction
-    suspend fun upsertTemplateWithMacros(
-        template: TemplateEntity,
-        macros: MacrosEntity?,
-    ): TemplateJoined {
-        val rid = insertOrUpdate(template)
-        val templateId = if (rid == -1L) requireNotNull(template.id) else rid
-        if (macros == null) {
-            deleteMacrosForTemplate(templateId)
-        } else {
-            insertOrUpdate(macros.copy(templateId = templateId))
-        }
-        return getTemplateById(templateId)
-    }
-
-    @Transaction
     @Query("SELECT * FROM templates WHERE _id = :id")
     suspend fun getTemplateById(id: Long): TemplateJoined
-
-    @Query("SELECT * FROM templates")
-    suspend fun getAll(): List<TemplateJoined>
 
     @Query("DELETE FROM templates WHERE _id = :id")
     suspend fun delete(id: Long): Int
@@ -71,9 +53,6 @@ interface TemplatesDAO {
     @Query("SELECT * FROM template_images WHERE templateId = :templateId ORDER BY sortOrder ASC")
     suspend fun getImagesForTemplate(templateId: Long): List<ImageEntity>
 
-    @Query("SELECT * FROM template_images WHERE _id = :imageId")
-    suspend fun getImageById(imageId: Long): ImageEntity?
-
     @Query("DELETE FROM template_images WHERE _id = :imageId")
     suspend fun deleteImage(imageId: Long): Int
 
@@ -81,17 +60,7 @@ interface TemplatesDAO {
     suspend fun deleteAllImagesForTemplate(templateId: Long): Int
 
     @Query("SELECT COUNT(*) FROM template_images WHERE image = :image")
-    suspend fun countByUri(image: String): Int
-
-    // Make exactly one primary by flipping flags in one SQL hit
-    @Query(
-        """
-        UPDATE template_images
-        SET isPrimary = (_id = :imageId)
-        WHERE templateId = :templateId
-    """
-    )
-    suspend fun setPrimary(templateId: Long, imageId: Long): Int
+    suspend fun countTemplatesByImage(image: String): Int
 
     @Query("UPDATE template_images SET sortOrder = :sort WHERE _id = :imageId")
     suspend fun setSortOrder(imageId: Long, sort: Int): Int

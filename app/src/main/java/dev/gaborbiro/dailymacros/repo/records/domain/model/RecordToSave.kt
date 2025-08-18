@@ -4,5 +4,5 @@ import java.time.LocalDateTime
 
 data class RecordToSave(
     val timestamp: LocalDateTime,
-    val template: TemplateToSave,
+    val templateToSave: TemplateToSave,
 )

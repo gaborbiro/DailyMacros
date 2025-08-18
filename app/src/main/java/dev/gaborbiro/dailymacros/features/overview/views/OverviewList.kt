@@ -42,9 +42,7 @@ import java.time.LocalDate
 internal fun OverviewList(
     viewState: OverviewViewState,
     onRepeatMenuItemTapped: (RecordUIModel) -> Unit,
-//    onChangeImageMenuItemTapped: (RecordUIModel) -> Unit,
-//    onDeleteImageMenuItemTapped: (RecordUIModel) -> Unit,
-    onEditRecordMenuItemTapped: (RecordUIModel) -> Unit,
+    onDetailsMenuItemTapped: (RecordUIModel) -> Unit,
     onDeleteRecordMenuItemTapped: (RecordUIModel) -> Unit,
     onMacrosMenuItemTapped: (RecordUIModel) -> Unit,
     onRecordImageTapped: (RecordUIModel) -> Unit,
@@ -114,9 +112,7 @@ internal fun OverviewList(
                                         listState.scrollToItem(0)
                                     }
                                 },
-//                                onChangeImageMenuItemTapped = onChangeImageMenuItemTapped,
-//                                onDeleteImageMenuItemTapped = onDeleteImageMenuItemTapped,
-                                onEditRecordMenuItemTapped = onEditRecordMenuItemTapped,
+                                onDetailsMenuItemTapped = onDetailsMenuItemTapped,
                                 onDeleteRecordMenuItemTapped = onDeleteRecordMenuItemTapped,
                                 onMacrosMenuItemTapped = onMacrosMenuItemTapped,
                                 onRecordImageTapped = onRecordImageTapped,
@@ -231,9 +227,7 @@ private fun NotesListPreview() {
                     ),
                 ),
                 onRepeatMenuItemTapped = {},
-//            onChangeImageMenuItemTapped = {},
-//            onDeleteImageMenuItemTapped = {},
-                onEditRecordMenuItemTapped = {},
+                onDetailsMenuItemTapped = {},
                 onDeleteRecordMenuItemTapped = {},
                 onRecordImageTapped = {},
                 onRecordBodyTapped = {},

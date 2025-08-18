@@ -12,7 +12,7 @@ import dev.gaborbiro.dailymacros.features.modal.ModalScreenViewModel
 @Composable
 internal fun EditTargetConfirmationDialog(
     dialogState: DialogState.EditTargetConfirmationDialog,
-    onEditTargetConfirmed: (ModalScreenViewModel.Companion.EditTarget) -> Unit,
+    onEditTargetConfirmed: (ModalScreenViewModel.Companion.ChangeImagesTarget) -> Unit,
     onDismissRequested: () -> Unit,
 ) {
     TargetConfirmationDialog(
@@ -22,24 +22,10 @@ internal fun EditTargetConfirmationDialog(
     )
 }
 
-
-@Composable
-internal fun EditImageTargetConfirmationDialog(
-    dialogState: DialogState.EditImageTargetConfirmationDialog,
-    onEditImageTargetConfirmed: (ModalScreenViewModel.Companion.EditTarget) -> Unit,
-    onDismissRequested: () -> Unit,
-) {
-    TargetConfirmationDialog(
-        count = dialogState.count,
-        onConfirmed = onEditImageTargetConfirmed,
-        onDismissRequested = onDismissRequested,
-    )
-}
-
 @Composable
 internal fun TargetConfirmationDialog(
     count: Int,
-    onConfirmed: (ModalScreenViewModel.Companion.EditTarget) -> Unit,
+    onConfirmed: (ModalScreenViewModel.Companion.ChangeImagesTarget) -> Unit,
     onDismissRequested: () -> Unit,
 ) {
     Dialog(onDismissRequest = onDismissRequested) {
@@ -52,8 +38,8 @@ internal fun TargetConfirmationDialog(
                 count = count,
                 onSubmit = { target ->
                     val vmTarget = when (target) {
-                        EditTarget.RECORD -> ModalScreenViewModel.Companion.EditTarget.RECORD
-                        EditTarget.TEMPLATE -> ModalScreenViewModel.Companion.EditTarget.TEMPLATE
+                        EditTarget.RECORD -> ModalScreenViewModel.Companion.ChangeImagesTarget.RECORD
+                        EditTarget.TEMPLATE -> ModalScreenViewModel.Companion.ChangeImagesTarget.TEMPLATE
                     }
                     onConfirmed(vmTarget)
                 },

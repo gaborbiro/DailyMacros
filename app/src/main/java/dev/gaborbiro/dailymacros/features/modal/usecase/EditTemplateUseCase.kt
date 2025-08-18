@@ -6,12 +6,13 @@ internal class EditTemplateUseCase(
     private val repository: RecordsRepository,
 ) {
 
-    suspend fun execute(recordId: Long, title: String, description: String) {
+    suspend fun execute(recordId: Long, images: List<String>, title: String, description: String) {
         val templateId = repository.getRecord(recordId)!!.template.dbId
         repository.updateTemplate(
             templateId = templateId,
             title = title,
-            description = description
+            description = description,
+            images = images,
         )
     }
 }

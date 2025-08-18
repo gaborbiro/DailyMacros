@@ -3,8 +3,6 @@ package dev.gaborbiro.dailymacros.features.modal.model
 import android.graphics.Bitmap
 
 data class ModalViewState(
-    val imagePicker: ImagePickerState? = null,
-    val closeScreen: Boolean = false,
     val dialogs: List<DialogState> = emptyList(),
 )
 
@@ -12,20 +10,16 @@ sealed class DialogState {
     data class EditTargetConfirmationDialog(
         val recordId: Long,
         val count: Int,
-        val newTitle: String,
-        val newDescription: String,
+        val images: List<String>,
+        val title: String,
+        val description: String,
     ) : DialogState()
 
-    data class ConfirmDestructiveChangeDialog(
+    data class ConfirmDeleteNutrientDataDialog(
         val recordId: Long,
-        val newTitle: String,
-        val newDescription: String,
-    ) : DialogState()
-
-    data class EditImageTargetConfirmationDialog(
-        val recordId: Long,
-        val count: Int,
-        val image: String?,
+        val images: List<String>,
+        val title: String,
+        val description: String,
     ) : DialogState()
 
     data class ViewImageDialog(
@@ -45,7 +39,7 @@ sealed class DialogState {
         }
 
         data class CreateWithImageDialog(
-            val image: String?,
+            val images: List<String>,
             val showProgressIndicator: Boolean = false,
             val suggestions: SummarySuggestions?,
             override val validationError: String? = null,
@@ -64,15 +58,7 @@ sealed class DialogState {
             val images: List<String>,
             val title: String,
             val description: String,
-            val calories: String?,
-            val protein: String?,
-            val fat: String?,
-            val ofWhichSaturated: String?,
-            val carbs: String?,
-            val ofWhichSugar: String?,
-            val salt: String?,
-            val fibre: String?,
-            val notes: String?,
+            val macros: MacrosUIModel?,
             val titleSuggestions: List<String>,
             val titleSuggestionProgressIndicator: Boolean = false,
             override val validationError: String? = null,
@@ -84,12 +70,26 @@ sealed class DialogState {
         abstract fun withValidationError(validationError: String?): InputDialog
     }
 
+    data class NewImage(val imagePickerState: ImagePickerState) : DialogState()
+
     data class SelectRecordActionDialog(val recordId: Long) : DialogState()
+
     data class SelectTemplateActionDialog(val templateId: Long) : DialogState()
 }
 
-sealed class ImagePickerState {
-    class ChangeImage(val recordId: Long) : ImagePickerState()
-    object Select : ImagePickerState()
-    object Take : ImagePickerState()
+sealed class ImagePickerState(open val recordId: Long?) {
+    data class Select(override val recordId: Long?) : ImagePickerState(recordId)
+    data class Take(override val recordId: Long?) : ImagePickerState(recordId)
 }
+
+data class MacrosUIModel(
+    val calories: String?,
+    val protein: String?,
+    val fat: String?,
+    val ofWhichSaturated: String?,
+    val carbs: String?,
+    val ofWhichSugar: String?,
+    val salt: String?,
+    val fibre: String?,
+    val notes: String?,
+)

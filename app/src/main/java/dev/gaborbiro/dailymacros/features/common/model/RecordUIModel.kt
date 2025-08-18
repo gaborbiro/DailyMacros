@@ -1,6 +1,6 @@
 package dev.gaborbiro.dailymacros.features.common.model
 
-class RecordUIModel(
+data class RecordUIModel(
     val recordId: Long,
     val templateId: Long,
     val images: List<String>,

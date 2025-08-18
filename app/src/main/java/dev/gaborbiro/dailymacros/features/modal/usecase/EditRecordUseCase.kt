@@ -11,7 +11,7 @@ internal class EditRecordUseCase(
 ) {
 
     @UiThread
-    suspend fun execute(recordId: Long, title: String, description: String) {
+    suspend fun execute(recordId: Long, images: List<String>, title: String, description: String) {
         val record = repository.getRecord(recordId)!!
         repository.deleteRecord(recordId)
         // note: image shouldn't be deleted
@@ -20,8 +20,8 @@ internal class EditRecordUseCase(
         Log.d("Notes", "template deleted: $templateDeleted, image deleted: $imageDeleted")
         val newRecord = RecordToSave(
             timestamp = record.timestamp,
-            template = TemplateToSave(
-                primaryImage = record.template.primaryImage,
+            templateToSave = TemplateToSave(
+                images = images,
                 name = title,
                 description = description,
                 // deleting associated macro information because title/description has changed

@@ -47,7 +47,7 @@ fun SelectTemplateActionDialog(
                         .height(50.dp)
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_dinner_dining),
+                        painter = painterResource(id = R.drawable.ic_exposure_plus_1),
                         contentDescription = null,
                         modifier = Modifier.size(18.dp)
                     )

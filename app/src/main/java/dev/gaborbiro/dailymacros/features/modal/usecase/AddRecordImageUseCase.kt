@@ -5,17 +5,17 @@ import dev.gaborbiro.dailymacros.repo.records.domain.model.RecordToSave
 import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateToSave
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 
-internal class EditRecordImageUseCase(
+internal class AddRecordImageUseCase(
     private val repository: RecordsRepository,
     private val deleteRecordUseCase: DeleteRecordUseCase,
 ) {
 
-    suspend fun execute(recordId: Long, filename: String?) {
+    suspend fun execute(recordId: Long, filename: String) {
         val record = repository.getRecord(recordId)!!
         val newRecord = RecordToSave(
             timestamp = record.timestamp,
-            template = TemplateToSave(
-                primaryImage = filename,
+            templateToSave = TemplateToSave(
+                images = record.template.images + filename,
                 name = record.template.name,
                 description = record.template.description,
             ),

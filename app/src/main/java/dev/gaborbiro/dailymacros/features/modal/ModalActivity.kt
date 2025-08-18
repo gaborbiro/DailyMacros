@@ -14,6 +14,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.core.net.toUri
 import androidx.core.os.bundleOf
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -21,6 +24,7 @@ import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import dev.gaborbiro.dailymacros.DefaultFoodPicExt
 import dev.gaborbiro.dailymacros.data.db.AppDatabase
+import dev.gaborbiro.dailymacros.data.file.FileStore
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
@@ -28,15 +32,14 @@ import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.common.error.model.ErrorViewState
 import dev.gaborbiro.dailymacros.features.common.error.views.ErrorDialog
-import dev.gaborbiro.dailymacros.features.common.view.ConfirmDestructiveChangeDialog
+import dev.gaborbiro.dailymacros.features.common.view.ConfirmDeleteNutrientDataDialog
 import dev.gaborbiro.dailymacros.features.common.view.LocalImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.ImagePickerState
 import dev.gaborbiro.dailymacros.features.modal.model.ModalViewState
+import dev.gaborbiro.dailymacros.features.modal.usecase.AddRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.EditRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditRecordUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FetchMacrosUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodPicSummaryUseCase
@@ -46,7 +49,6 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
-import dev.gaborbiro.dailymacros.features.modal.views.EditImageTargetConfirmationDialog
 import dev.gaborbiro.dailymacros.features.modal.views.EditTargetConfirmationDialog
 import dev.gaborbiro.dailymacros.features.modal.views.ImageDialog
 import dev.gaborbiro.dailymacros.features.modal.views.InputDialog
@@ -104,14 +106,6 @@ class ModalActivity : AppCompatActivity() {
 
         private fun getTextOnlyIntent(context: Context) = getActionIntent(context, Action.TEXT_ONLY)
 
-        fun launchChangeImage(context: Context, recordId: Long) {
-            launchActivity(
-                appContext = context,
-                intent = getActionIntent(context, Action.CHANGE_IMAGE),
-                EXTRA_RECORD_ID to recordId
-            )
-        }
-
         fun launchViewRecordDetails(context: Context, recordId: Long) {
             launchActivity(
                 appContext = context,
@@ -156,7 +150,7 @@ class ModalActivity : AppCompatActivity() {
         private const val EXTRA_ACTION = "extra_action"
 
         private enum class Action {
-            CAMERA, PICK_IMAGE, TEXT_ONLY, CHANGE_IMAGE, VIEW_RECORD_DETAILS, VIEW_IMAGE, SELECT_RECORD_ACTION, SELECT_TEMPLATE_ACTION
+            CAMERA, PICK_IMAGE, TEXT_ONLY, VIEW_RECORD_DETAILS, VIEW_IMAGE, SELECT_RECORD_ACTION, SELECT_TEMPLATE_ACTION
         }
 
         private const val EXTRA_RECORD_ID = "record_id"
@@ -235,8 +229,7 @@ class ModalActivity : AppCompatActivity() {
             validateCreateRecordUseCase = ValidateCreateRecordUseCase(),
             saveImageUseCase = SaveImageUseCase(this, imageStore),
             validateEditImageUseCase = ValidateEditImageUseCase(recordsRepository),
-            editRecordImageUseCase = EditRecordImageUseCase(recordsRepository, deleteRecordUseCase),
-            editTemplateImageUseCase = EditTemplateImageUseCase(recordsRepository),
+            addRecordImageUseCase = AddRecordImageUseCase(recordsRepository, deleteRecordUseCase),
             getRecordImageUseCase = GetRecordImageUseCase(recordsRepository, imageStore),
             getTemplateImageUseCase = GetTemplateImageUseCase(recordsRepository, imageStore),
             foodPicSummaryUseCase = FoodPicSummaryUseCase(imageStore, chatGPTRepository, recordsMapper),
@@ -260,11 +253,6 @@ class ModalActivity : AppCompatActivity() {
             Action.CAMERA -> viewModel.addRecordWithCamera()
             Action.PICK_IMAGE -> viewModel.addRecordWithImagePicker()
             Action.TEXT_ONLY -> viewModel.addRecord()
-
-            Action.CHANGE_IMAGE -> {
-                val recordId = intent.getLongExtra(EXTRA_RECORD_ID, -1L)
-                viewModel.changeImage(recordId)
-            }
 
             Action.VIEW_RECORD_DETAILS -> {
                 val recordId = intent.getLongExtra(EXTRA_RECORD_ID, -1L)
@@ -294,11 +282,13 @@ class ModalActivity : AppCompatActivity() {
 
         setContent {
             val viewState: ModalViewState by viewModel.viewState.collectAsStateWithLifecycle()
+            var displayHappened by remember { mutableStateOf(false) }
 
             DailyMacrosTheme {
                 CompositionLocalProvider(LocalImageStore provides imageStore) {
                     viewState.dialogs.forEach {
                         Dialog(it)
+                        displayHappened = true
                     }
                 }
             }
@@ -311,48 +301,7 @@ class ModalActivity : AppCompatActivity() {
                 }
             }
 
-            when (viewState.imagePicker) {
-                ImagePickerState.Take -> {
-                    val filename = "temp.$DefaultFoodPicExt"
-                    val launcher = rememberLauncherForActivityResult(
-                        contract = ActivityResultContracts.TakePicture(),
-                        onResult = { imageSaved ->
-                            if (imageSaved) {
-                                val uri = cacheFileStore.getOrCreateFile(filename).toUri()
-                                viewModel.onImageAvailable(uri)
-                            } else {
-                                viewModel.onImagePickerCanceled()
-                            }
-                        }
-                    )
-                    SideEffect {
-                        val uri = cacheFileStore.getOrCreateFile(filename).toUri()
-                        launcher.launch(uri)
-                    }
-                }
-
-                is ImagePickerState.Select, is ImagePickerState.ChangeImage -> {
-                    val launcher = rememberLauncherForActivityResult(
-                        contract = PickVisualMedia(),
-                        onResult = {
-                            it
-                                ?.let { viewModel.onImageAvailable(it) }
-                                ?: run { viewModel.onImagePickerCanceled() }
-                        }
-                    )
-                    SideEffect {
-                        val request =
-                            PickVisualMediaRequest(PickVisualMedia.ImageOnly)
-                        launcher.launch(request)
-                    }
-                }
-
-                null -> {
-                    // nothing to do
-                }
-            }
-
-            if (viewState.closeScreen) {
+            if (displayHappened && viewState.dialogs.isEmpty()) {
                 finish()
             }
         }
@@ -366,19 +315,14 @@ class ModalActivity : AppCompatActivity() {
                 onRecordDetailsSubmitRequested = viewModel::onRecordDetailsSubmitRequested,
                 onRecordDetailsUserTyping = viewModel::onRecordDetailsUserTyping,
                 onImageTapped = viewModel::onImageTapped,
-                onAddImageTapped = viewModel::onAddImageTapped,
+                onAddImageViaCameraTapped = { viewModel.onAddImageViaCameraTapped(dialogState) },
+                onAddImageViaPickerTapped = { viewModel.onAddImageViaPickerTapped(dialogState) },
                 onDismissRequested = viewModel::onDialogDismissRequested,
             )
 
             is DialogState.EditTargetConfirmationDialog -> EditTargetConfirmationDialog(
                 dialogState = dialogState,
                 onEditTargetConfirmed = viewModel::onEditTargetConfirmed,
-                onDismissRequested = viewModel::onDialogDismissRequested,
-            )
-
-            is DialogState.EditImageTargetConfirmationDialog -> EditImageTargetConfirmationDialog(
-                dialogState = dialogState,
-                onEditImageTargetConfirmed = viewModel::onEditImageTargetConfirmed,
                 onDismissRequested = viewModel::onDialogDismissRequested,
             )
 
@@ -403,15 +347,67 @@ class ModalActivity : AppCompatActivity() {
                 )
             }
 
-            is DialogState.ConfirmDestructiveChangeDialog -> {
-                ConfirmDestructiveChangeDialog(
-                    onConfirm = viewModel::onDestructiveChangeConfirmed,
+            is DialogState.ConfirmDeleteNutrientDataDialog -> {
+                ConfirmDeleteNutrientDataDialog(
+                    onConfirm = viewModel::onDeleteNutrientDataConfirmed,
                     onDismissRequested = viewModel::onDialogDismissRequested,
+                )
+            }
+
+            is DialogState.NewImage -> {
+                NewImageUI(
+                    dialogState = dialogState,
+                    viewModel = viewModel,
+                    cacheFileStore = cacheFileStore,
                 )
             }
 
             null -> {
                 // nothing to do
+            }
+        }
+    }
+}
+
+@Composable
+private fun NewImageUI(
+    dialogState: DialogState.NewImage,
+    viewModel: ModalScreenViewModel,
+    cacheFileStore: FileStore,
+) {
+    when (dialogState.imagePickerState) {
+        is ImagePickerState.Take -> {
+            val filename = "temp.$DefaultFoodPicExt"
+            val launcher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.TakePicture(),
+                onResult = { imageSaved ->
+                    if (imageSaved) {
+                        val uri = cacheFileStore.getOrCreateFile(filename).toUri()
+                        viewModel.onImageSelected(uri, dialogState)
+                    } else {
+                        viewModel.onNoImageSelected()
+                    }
+                }
+            )
+            SideEffect {
+                val uri = cacheFileStore.getOrCreateFile(filename).toUri()
+                launcher.launch(uri)
+            }
+        }
+
+        is ImagePickerState.Select -> {
+            val launcher = rememberLauncherForActivityResult(
+                contract = PickVisualMedia(),
+                onResult = {
+                    it
+                        ?.let { viewModel.onImageSelected(it, dialogState) }
+                        ?: run { viewModel.onNoImageSelected() }
+                }
+            )
+            SideEffect {
+                val request =
+                    PickVisualMediaRequest(PickVisualMedia.ImageOnly)
+                launcher.launch(request)
             }
         }
     }
