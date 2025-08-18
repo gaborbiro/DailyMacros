@@ -16,7 +16,7 @@ import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 
 @Composable
 fun ImageDialog(
-    dialogState: DialogState.ViewImagesDialog,
+    dialogState: DialogState.ViewImageDialog,
     onDismissRequested: () -> Unit,
 ) {
     Dialog(
@@ -33,7 +33,7 @@ fun ImageDialog(
         ) {
             Image(
                 bitmap = dialogState.bitmap.asImageBitmap(),
-                contentDescription = dialogState.title,
+                contentDescription = "Image: ${dialogState.title}",
             )
         }
     }

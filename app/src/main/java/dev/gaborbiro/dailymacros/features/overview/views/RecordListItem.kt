@@ -26,6 +26,7 @@ import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.common.view.LocalImage
+import dev.gaborbiro.dailymacros.features.common.view.PreviewImageStoreProvider
 
 
 @Composable
@@ -89,8 +90,7 @@ private fun RecordImage(
             modifier = modifier
                 .clip(RoundedCornerShape(10.dp)),
             contentScale = ContentScale.Crop,
-            contentDescription = "image: $title"
-
+            contentDescription = "image of $title"
         )
     } ?: run {
         Spacer(modifier)
@@ -132,23 +132,25 @@ private fun RecordTextContent(modifier: Modifier, record: RecordUIModel) {
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun OverviewListItemPreview() {
-    RecordListItem(
-        record = RecordUIModel(
-            recordId = 1L,
-            title = "Title",
-            description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
-            templateId = 1L,
-            images = emptyList(),
-            timestamp = "2022-01-01 00:00:00",
-            hasMacros = true,
-        ),
-        onRepeatMenuItemTapped = {},
+    PreviewImageStoreProvider {
+        RecordListItem(
+            record = RecordUIModel(
+                recordId = 1L,
+                title = "Title",
+                description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
+                templateId = 1L,
+                images = listOf("", ""),
+                timestamp = "2022-01-01 00:00:00",
+                hasMacros = true,
+            ),
+            onRepeatMenuItemTapped = {},
 //        onChangeImageMenuItemTapped = {},
 //        onDeleteImageMenuItemTapped = {},
-        onEditRecordMenuItemTapped = {},
-        onDeleteRecordMenuItemTapped = {},
-        onRecordImageTapped = {},
-        onRecordBodyTapped = {},
-        onMacrosMenuItemTapped = {},
-    )
+            onEditRecordMenuItemTapped = {},
+            onDeleteRecordMenuItemTapped = {},
+            onRecordImageTapped = {},
+            onRecordBodyTapped = {},
+            onMacrosMenuItemTapped = {},
+        )
+    }
 }

@@ -87,7 +87,7 @@ private fun RecordListItemPreview() {
                 title = "Breakfast",
                 description = "8cal, Prot 8, Fat 4, Sat 2, Carb 9, Sug 9, Sal: 0, Fibre: 1111dfdf sdf asdfasdf as df",
                 timestamp = "Yesterday",
-                images = emptyList(),
+                images = listOf("", ""),
                 hasMacros = true,
             ),
             imageTappedActionProvider = action {},

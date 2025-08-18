@@ -9,7 +9,7 @@ internal class GetTemplateImageUseCase(
     private val imageStore: ImageStore,
 ) {
 
-    suspend fun execute(templateId: Long, thumbnail: Boolean): DialogState.ViewImagesDialog? {
+    suspend fun execute(templateId: Long, thumbnail: Boolean): DialogState.ViewImageDialog? {
         val template = repository.getTemplate(templateId)!!
         return template
             .primaryImage
@@ -17,7 +17,7 @@ internal class GetTemplateImageUseCase(
                 imageStore.read(it, thumbnail)
             }
             ?.let {
-                DialogState.ViewImagesDialog(
+                DialogState.ViewImageDialog(
                     title = template.name,
                     bitmap = it
                 )

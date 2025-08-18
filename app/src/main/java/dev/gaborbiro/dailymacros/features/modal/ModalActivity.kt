@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
@@ -27,9 +28,11 @@ import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.common.error.model.ErrorViewState
 import dev.gaborbiro.dailymacros.features.common.error.views.ErrorDialog
+import dev.gaborbiro.dailymacros.features.common.view.ConfirmDestructiveChangeDialog
+import dev.gaborbiro.dailymacros.features.common.view.LocalImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
-import dev.gaborbiro.dailymacros.features.modal.model.ModalViewState
 import dev.gaborbiro.dailymacros.features.modal.model.ImagePickerState
+import dev.gaborbiro.dailymacros.features.modal.model.ModalViewState
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditRecordUseCase
@@ -43,7 +46,6 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
-import dev.gaborbiro.dailymacros.features.common.view.ConfirmDestructiveChangeDialog
 import dev.gaborbiro.dailymacros.features.modal.views.EditImageTargetConfirmationDialog
 import dev.gaborbiro.dailymacros.features.modal.views.EditTargetConfirmationDialog
 import dev.gaborbiro.dailymacros.features.modal.views.ImageDialog
@@ -165,9 +167,9 @@ class ModalActivity : AppCompatActivity() {
 
     private val fileStore = FileStoreFactoryImpl(this).getStore("public", keepFiles = true)
     private val cacheFileStore = FileStoreFactoryImpl(this).getStore("public", keepFiles = false)
+    private val imageStore = ImageStoreImpl(fileStore)
 
     private val viewModel by lazy {
-        val imageStore = ImageStoreImpl(fileStore)
         val recordsRepository = RecordsRepositoryImpl(
             templatesDAO = AppDatabase.getInstance().templatesDAO(),
             recordsDAO = AppDatabase.getInstance().recordsDAO(),
@@ -294,7 +296,11 @@ class ModalActivity : AppCompatActivity() {
             val viewState: ModalViewState by viewModel.viewState.collectAsStateWithLifecycle()
 
             DailyMacrosTheme {
-                Dialog(viewState.dialog)
+                CompositionLocalProvider(LocalImageStore provides imageStore) {
+                    viewState.dialogs.forEach {
+                        Dialog(it)
+                    }
+                }
             }
 
             val error: State<ErrorViewState?> = viewModel.errorState.collectAsStateWithLifecycle()
@@ -359,6 +365,8 @@ class ModalActivity : AppCompatActivity() {
                 dialogState = dialogState,
                 onRecordDetailsSubmitRequested = viewModel::onRecordDetailsSubmitRequested,
                 onRecordDetailsUserTyping = viewModel::onRecordDetailsUserTyping,
+                onImageTapped = viewModel::onImageTapped,
+                onAddImageTapped = viewModel::onAddImageTapped,
                 onDismissRequested = viewModel::onDialogDismissRequested,
             )
 
@@ -374,7 +382,7 @@ class ModalActivity : AppCompatActivity() {
                 onDismissRequested = viewModel::onDialogDismissRequested,
             )
 
-            is DialogState.ViewImagesDialog -> ImageDialog(
+            is DialogState.ViewImageDialog -> ImageDialog(
                 dialogState = dialogState,
                 onDismissRequested = viewModel::onDialogDismissRequested,
             )
@@ -382,7 +390,7 @@ class ModalActivity : AppCompatActivity() {
             is DialogState.SelectRecordActionDialog -> SelectRecordActionDialog(
                 recordId = dialogState.recordId,
                 onRepeatTapped = viewModel::onRepeatRecordTapped,
-                onEditTapped = viewModel::onEditTapped,
+                onDetailsTapped = viewModel::onDetailsTapped,
                 onDeleteTapped = viewModel::onDeleteTapped,
                 onDismissRequested = viewModel::onDialogDismissRequested,
             )

@@ -19,7 +19,6 @@ import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultVertical
 import dev.gaborbiro.dailymacros.features.widget.model.TemplateUIModel
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
-import dev.gaborbiro.dailymacros.util.randomBitmap
 
 @Composable
 internal fun WidgetList(
@@ -132,7 +131,7 @@ private fun RecordListPreviewExpanded() {
                     title = "Breakfast",
                     description = "8cal, Prot 8, Carb 9, Sug 9, Fat 4, Sat 2, Sal: 0",
                     timestamp = "Yesterday",
-                    images = emptyList(),
+                    images = listOf("", ""),
                     hasMacros = true,
                 ),
                 RecordUIModel(
@@ -141,7 +140,7 @@ private fun RecordListPreviewExpanded() {
                     timestamp = "Yesterday",
                     title = "Lunch",
                     description = "8cal, Prot 8, Carb 9, Sug 9, Fat 4, Sat 2, Sal: 0",
-                    images = emptyList(),
+                    images = listOf("", ""),
                     hasMacros = true,
                 ),
                 RecordUIModel(
@@ -150,7 +149,7 @@ private fun RecordListPreviewExpanded() {
                     timestamp = "Yesterday",
                     title = "Dinner",
                     description = "8cal, Prot 8, Carb 9, Sug 9, Fat 4, Sat 2, Sal: 0",
-                    images = emptyList(),
+                    images = listOf("", ""),
                     hasMacros = true,
                 ),
             ),
@@ -159,19 +158,19 @@ private fun RecordListPreviewExpanded() {
                     templateId = 1,
                     title = "Breakfast",
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
-                    images = emptyList(),
+                    images = listOf("", ""),
                 ),
                 TemplateUIModel(
                     templateId = 2,
                     title = "Lunch",
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
-                    images = emptyList(),
+                    images = listOf("", ""),
                 ),
                 TemplateUIModel(
                     templateId = 3,
                     title = "Dinner",
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
-                    images = emptyList(),
+                    images = listOf("", ""),
                 ),
             ),
             showTemplates = true,
@@ -197,7 +196,7 @@ private fun RecordListPreviewCollapsed() {
                     title = "Breakfast",
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     timestamp = "Yesterday",
-                    images = emptyList(),
+                    images = listOf("", ""),
                     hasMacros = true,
                 ),
                 RecordUIModel(
@@ -206,7 +205,7 @@ private fun RecordListPreviewCollapsed() {
                     timestamp = "Yesterday",
                     title = "Lunch",
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
-                    images = emptyList(),
+                    images = listOf("", ""),
                     hasMacros = true,
                 ),
                 RecordUIModel(
@@ -215,7 +214,7 @@ private fun RecordListPreviewCollapsed() {
                     timestamp = "Yesterday",
                     title = "Dinner",
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
-                    images = emptyList(),
+                    images = listOf("", ""),
                     hasMacros = true,
                 ),
             ),

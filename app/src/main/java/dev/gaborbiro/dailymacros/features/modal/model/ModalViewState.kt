@@ -5,7 +5,7 @@ import android.graphics.Bitmap
 data class ModalViewState(
     val imagePicker: ImagePickerState? = null,
     val closeScreen: Boolean = false,
-    val dialog: DialogState? = null,
+    val dialogs: List<DialogState> = emptyList(),
 )
 
 sealed class DialogState {
@@ -28,7 +28,7 @@ sealed class DialogState {
         val image: String?,
     ) : DialogState()
 
-    data class ViewImagesDialog(
+    data class ViewImageDialog(
         val title: String,
         val bitmap: Bitmap,
     ) : DialogState()

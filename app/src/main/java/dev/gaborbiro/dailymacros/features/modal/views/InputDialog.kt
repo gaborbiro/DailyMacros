@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
+import dev.gaborbiro.dailymacros.features.common.view.PreviewImageStoreProvider
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import kotlinx.coroutines.delay
 
@@ -45,10 +46,16 @@ internal fun InputDialog(
     dialogState: DialogState.InputDialog,
     onRecordDetailsSubmitRequested: (title: String, description: String) -> Unit,
     onRecordDetailsUserTyping: (title: String, description: String) -> Unit,
+    onImageTapped: (String) -> Unit,
+    onAddImageTapped: () -> Unit,
     onDismissRequested: () -> Unit,
 ) {
     val title = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.title
-    val images = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.images ?: emptyList()
+    val images =
+        (dialogState as? DialogState.InputDialog.RecordDetailsDialog)
+            ?.images
+            ?: run { (dialogState as? DialogState.InputDialog.CreateWithImageDialog)?.image?.let { listOf(it) } }
+            ?: emptyList()
     val suggestions = (dialogState as? DialogState.InputDialog.CreateWithImageDialog)
         ?.suggestions
     val showProgressIndicator = (dialogState as? DialogState.InputDialog.CreateWithImageDialog)
@@ -99,6 +106,8 @@ internal fun InputDialog(
                 salt = salt,
                 fibre = fibre,
                 notes = notes,
+                onImageTapped = onImageTapped,
+                onAddImageTapped = onAddImageTapped,
             )
         },
         buttons = {
@@ -148,6 +157,8 @@ private fun ColumnScope.InputDialogContent(
     salt: String?,
     fibre: String?,
     notes: String?,
+    onImageTapped: (String) -> Unit,
+    onAddImageTapped: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -254,6 +265,18 @@ private fun ColumnScope.InputDialogContent(
         )
     }
 
+    images.takeIf { it.isNotEmpty() }
+        ?.let {
+            ImageStrip(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = PaddingDefault),
+                images = it,
+                onImageTapped = onImageTapped,
+                onAddImageTapped = onAddImageTapped,
+            )
+        }
+
     TextField(
         modifier = Modifier
             .fillMaxWidth()
@@ -302,7 +325,7 @@ private fun ColumnScope.InputDialogContent(
             }
         }
 
-    Macros(
+    MacroTable(
         calories = calories,
         protein = protein,
         fat = fat,
@@ -315,165 +338,37 @@ private fun ColumnScope.InputDialogContent(
     )
 }
 
+@Preview
 @Composable
-private fun Macros(
-    calories: String?,
-    protein: String?,
-    fat: String?,
-    saturated: String?,
-    carbs: String?,
-    sugar: String?,
-    salt: String?,
-    fibre: String?,
-    notes: String?,
-) {
-    if (calories != null ||
-        protein != null ||
-        fat != null ||
-        saturated != null ||
-        carbs != null ||
-        sugar != null ||
-        salt != null ||
-        fibre != null ||
-        notes != null
-    ) {
-        Spacer(
-            modifier = Modifier
-                .height(PaddingDefault)
-        )
-    }
-
-    calories?.let {
-        PillLabel(
-            modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(top = 4.dp),
-            text = calories,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-            border = null,
-            elevation = 0.dp,
-        )
-    }
-
-    protein?.let {
-        PillLabel(
-            modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(top = 4.dp),
-            text = protein,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-            border = null,
-            elevation = 0.dp,
-        )
-    }
-
-    fat?.let {
-        PillLabel(
-            modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(top = 4.dp),
-            text = fat,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-            border = null,
-            elevation = 0.dp,
-        )
-    }
-
-    saturated?.let {
-        PillLabel(
-            modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(start = 16.dp, top = 4.dp),
-            text = saturated,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-            border = null,
-            elevation = 0.dp,
-        )
-    }
-
-    carbs?.let {
-        PillLabel(
-            modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(top = 4.dp),
-            text = carbs,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-            border = null,
-            elevation = 0.dp,
-        )
-    }
-
-    sugar?.let {
-        PillLabel(
-            modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(start = 16.dp, top = 4.dp),
-            text = sugar,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-            border = null,
-            elevation = 0.dp,
-        )
-    }
-
-    salt?.let {
-        PillLabel(
-            modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(top = 4.dp),
-            text = salt,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-            border = null,
-            elevation = 0.dp,
-        )
-    }
-
-    fibre?.let {
-        PillLabel(
-            modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(top = 4.dp),
-            text = fibre,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-            border = null,
-            elevation = 0.dp,
-        )
-    }
-
-    notes?.let {
-        PillLabel(
-            modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(top = 4.dp),
-            text = notes,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-            border = null,
-            elevation = 0.dp,
-        )
-    }
-
-    if (calories != null ||
-        protein != null ||
-        fat != null ||
-        saturated != null ||
-        carbs != null ||
-        sugar != null ||
-        salt != null ||
-        fibre != null ||
-        notes != null
-    ) {
-        Spacer(
-            modifier = Modifier
-                .height(PaddingDefault)
-        )
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+private fun NoteInputDialogContentPreviewEdit() {
+    DailyMacrosTheme {
+        PreviewImageStoreProvider {
+            InputDialog(
+                dialogState = DialogState.InputDialog.RecordDetailsDialog(
+                    recordId = 1L,
+                    images = listOf("1", "2"),
+                    titleSuggestionProgressIndicator = true,
+                    titleSuggestions = emptyList(),
+                    title = "This is a title",
+                    description = "This is a description",
+                    calories = "Calories: 2100 cal",
+                    protein = "Protein: 150g",
+                    fat = "Fat 100g",
+                    ofWhichSaturated = "of which saturated: 20g",
+                    carbs = "Carbs: 100g",
+                    ofWhichSugar = "of which sugars: 30g",
+                    salt = "Salt: 5g",
+                    fibre = "Fibre: 4.5g",
+                    notes = "Notes: This is a note",
+                ),
+                onRecordDetailsSubmitRequested = { _, _ -> },
+                onRecordDetailsUserTyping = { _, _ -> },
+                onImageTapped = {},
+                onAddImageTapped = {},
+                onDismissRequested = {},
+            )
+        }
     }
 }
 
@@ -484,65 +379,41 @@ private fun NoteInputDialogContentPreview() {
     DailyMacrosTheme {
         InputDialog(
             dialogState = DialogState.InputDialog.CreateWithImageDialog(
-                image = null,
+                image = "",
                 showProgressIndicator = true,
                 suggestions = null,
             ),
             onRecordDetailsSubmitRequested = { _, _ -> },
             onRecordDetailsUserTyping = { _, _ -> },
+            onImageTapped = {},
+            onAddImageTapped = {},
             onDismissRequested = {},
         )
     }
 }
 
-
-@Preview
-@Composable
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-private fun NoteInputDialogContentPreviewEdit() {
-    DailyMacrosTheme {
-        InputDialog(
-            dialogState = DialogState.InputDialog.RecordDetailsDialog(
-                recordId = 1L,
-                images = emptyList(),
-                titleSuggestionProgressIndicator = true,
-                titleSuggestions = emptyList(),
-                title = "This is a title",
-                description = "This is a description",
-                calories = "Calories: 2100 cal",
-                protein = "Protein: 150g",
-                fat = "Fat 100g",
-                ofWhichSaturated = "of which saturated: 20g",
-                carbs = "Carbs: 100g",
-                ofWhichSugar = "of which sugars: 30g",
-                salt = "Salt: 5g",
-                fibre = "Fibre: 4.5g",
-                notes = "Notes: This is a note",
-            ),
-            onRecordDetailsSubmitRequested = { _, _ -> },
-            onRecordDetailsUserTyping = { _, _ -> },
-            onDismissRequested = {},
-        )
-    }
-}
 
 @Preview
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreviewSuggestion() {
     DailyMacrosTheme {
-        InputDialog(
-            dialogState = DialogState.InputDialog.CreateWithImageDialog(
-                image = null,
-                suggestions = DialogState.InputDialog.SummarySuggestions(
-                    titles = listOf("This is a title suggestion", "This is another title suggestion"),
-                    description = "",
+        PreviewImageStoreProvider {
+            InputDialog(
+                dialogState = DialogState.InputDialog.CreateWithImageDialog(
+                    image = "",
+                    suggestions = DialogState.InputDialog.SummarySuggestions(
+                        titles = listOf("This is a title suggestion", "This is another title suggestion"),
+                        description = "",
+                    ),
                 ),
-            ),
-            onRecordDetailsSubmitRequested = { _, _ -> },
-            onRecordDetailsUserTyping = { _, _ -> },
-            onDismissRequested = {},
-        )
+                onRecordDetailsSubmitRequested = { _, _ -> },
+                onRecordDetailsUserTyping = { _, _ -> },
+                onImageTapped = {},
+                onAddImageTapped = {},
+                onDismissRequested = {},
+            )
+        }
     }
 }
 
@@ -553,7 +424,7 @@ private fun NoteInputDialogContentPreviewError() {
     DailyMacrosTheme {
         InputDialog(
             dialogState = DialogState.InputDialog.CreateWithImageDialog(
-                image = null,
+                image = "",
                 suggestions = DialogState.InputDialog.SummarySuggestions(
                     titles = listOf("This is a title suggestion", "This is another title suggestion"),
                     description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
@@ -562,6 +433,8 @@ private fun NoteInputDialogContentPreviewError() {
             ),
             onRecordDetailsSubmitRequested = { _, _ -> },
             onRecordDetailsUserTyping = { _, _ -> },
+            onImageTapped = {},
+            onAddImageTapped = {},
             onDismissRequested = {},
         )
     }

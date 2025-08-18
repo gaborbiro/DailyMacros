@@ -85,7 +85,7 @@ private fun TemplateListItemPreview() {
             template = TemplateUIModel(
                 title = "Breakfast",
                 description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
-                images = emptyList(),
+                images = listOf("", ""),
                 templateId = 0L,
             ),
             imageTapActionProvider = action { },

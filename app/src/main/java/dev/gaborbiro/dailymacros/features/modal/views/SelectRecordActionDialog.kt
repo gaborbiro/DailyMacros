@@ -26,7 +26,7 @@ import dev.gaborbiro.dailymacros.design.PaddingDefault
 fun SelectRecordActionDialog(
     recordId: Long,
     onRepeatTapped: (recordId: Long) -> Unit,
-    onEditTapped: (recordId: Long) -> Unit,
+    onDetailsTapped: (recordId: Long) -> Unit,
     onDeleteTapped: (recordId: Long) -> Unit,
     onDismissRequested: () -> Unit,
 ) {
@@ -63,7 +63,7 @@ fun SelectRecordActionDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
-                    onClick = { onEditTapped(recordId) },
+                    onClick = { onDetailsTapped(recordId) },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                         contentColor = MaterialTheme.colorScheme.onTertiaryContainer
