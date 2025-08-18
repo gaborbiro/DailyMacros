@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.data.db.model
+package dev.gaborbiro.dailymacros.data.db.model.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
@@ -11,14 +11,14 @@ const val COLUMN_TEMPLATE_ID = "templateId"
     tableName = "records",
     foreignKeys = [
         ForeignKey(
-            entity = TemplateDBModel::class,
+            entity = TemplateEntity::class,
             parentColumns = arrayOf(COLUMN_ID),
             childColumns = arrayOf(COLUMN_TEMPLATE_ID),
             onDelete = ForeignKey.CASCADE,
         )
     ]
 )
-data class RecordDBModel(
+data class RecordEntity(
     val timestamp: LocalDateTime,
     @ColumnInfo(name = COLUMN_TEMPLATE_ID) val templateId: Long,
-) : DBModel()
+) : BaseEntity()

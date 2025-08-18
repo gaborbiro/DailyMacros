@@ -5,14 +5,15 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import dev.gaborbiro.dailymacros.data.db.model.NutrientsDBModel
-import dev.gaborbiro.dailymacros.data.db.model.RecordDBModel
-import dev.gaborbiro.dailymacros.data.db.model.TemplateDBModel
+import dev.gaborbiro.dailymacros.data.db.model.entity.NutrientsEntity
+import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
+import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
+import dev.gaborbiro.dailymacros.data.db.model.entity.ImageEntity
 
 @Database(
-    entities = [RecordDBModel::class, TemplateDBModel::class, NutrientsDBModel::class],
-    version = 1,
-    exportSchema = true,
+    entities = [RecordEntity::class, TemplateEntity::class, NutrientsEntity::class, ImageEntity::class],
+    version = 2,
+    exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -37,6 +38,7 @@ abstract class AppDatabase : RoomDatabase() {
                 AppDatabase::class.java,
                 "app_db"
             )
+                .fallbackToDestructiveMigration()
                 .build()
         }
     }

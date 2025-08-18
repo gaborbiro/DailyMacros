@@ -1,5 +1,5 @@
 package dev.gaborbiro.dailymacros.features.common.model
 
-interface BaseListItem {
+interface BaseListItemUIModel {
     val id: Any
 }

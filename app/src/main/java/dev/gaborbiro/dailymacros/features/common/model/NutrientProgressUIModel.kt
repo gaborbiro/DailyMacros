@@ -11,7 +11,7 @@ data class NutrientProgressUIModel(
     val carbs: NutrientProgressItem,
     val sugar: NutrientProgressItem,
     val salt: NutrientProgressItem,
-): BaseListItem {
+): BaseListItemUIModel {
     override val id = date
 }
 

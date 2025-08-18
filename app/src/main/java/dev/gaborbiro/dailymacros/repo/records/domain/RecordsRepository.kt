@@ -9,13 +9,14 @@ import java.time.LocalDateTime
 
 internal interface RecordsRepository {
 
-    suspend fun getRecords(since: LocalDateTime? = null): List<Record>
+    suspend fun getRecords(since: LocalDateTime): List<Record>
 
-    suspend fun getRecordsFlow(since: LocalDateTime): Flow<List<Record>>
+    suspend fun getRecordsFlow(
+        since: LocalDateTime,
+        until: LocalDateTime? = null,
+    ): Flow<List<Record>>
 
-    suspend fun getRecordsFlow(since: LocalDateTime, until: LocalDateTime): Flow<List<Record>>
-
-    suspend fun getTemplatesByFrequency(): List<Template>
+    suspend fun getTop10(): List<Template>
 
     suspend fun getRecordsByTemplate(templateId: Long): List<Record>
 

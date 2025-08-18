@@ -13,7 +13,7 @@ internal class ValidateEditRecordUseCase(
             return EditValidationResult.Error("Title cannot be empty")
         }
         val template = repository.getRecord(recordId)!!.template
-        val templateId = template.id
+        val templateId = template.dbId
         val records = repository.getRecordsByTemplate(templateId)
         return if (records.size < 2) {
             val confirmNutrientDeletion = template.nutrients != null

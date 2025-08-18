@@ -10,7 +10,7 @@ class RecordUIModel(
     val title: String,
     val description: String,
     val hasNutrients: Boolean,
-): BaseListItem {
+): BaseListItemUIModel {
     override val id = recordId
 
     override fun toString(): String {

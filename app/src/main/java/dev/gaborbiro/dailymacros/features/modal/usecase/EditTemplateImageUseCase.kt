@@ -7,7 +7,7 @@ internal class EditTemplateImageUseCase(
 ) {
 
     suspend fun execute(recordId: Long, uri: String?) {
-        val templateId = repository.getRecord(recordId)!!.template.id
+        val templateId = repository.getRecord(recordId)!!.template.dbId
         repository.updateTemplate(templateId, uri)
     }
 }

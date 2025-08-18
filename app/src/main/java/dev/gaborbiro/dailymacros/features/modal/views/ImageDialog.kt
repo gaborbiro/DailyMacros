@@ -16,7 +16,7 @@ import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 
 @Composable
 fun ImageDialog(
-    dialogState: DialogState.ViewImageDialog,
+    dialogState: DialogState.ViewImagesDialog,
     onDismissRequested: () -> Unit,
 ) {
     Dialog(

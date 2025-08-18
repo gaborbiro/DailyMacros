@@ -10,7 +10,7 @@ internal class DeleteRecordUseCase(
     suspend fun execute(recordId: Long) {
         val record = repository.deleteRecord(recordId)
         val (templateDeleted, imageDeleted) =
-            repository.deleteTemplateIfUnused(templateId = record.template.id, imageToo = true)
+            repository.deleteTemplateIfUnused(templateId = record.template.dbId, imageToo = true)
         Log.d("Notes", "template deleted: $templateDeleted, image deleted: $imageDeleted")
     }
 }

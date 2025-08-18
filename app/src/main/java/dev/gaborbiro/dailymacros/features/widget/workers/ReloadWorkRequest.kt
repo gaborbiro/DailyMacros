@@ -10,7 +10,7 @@ import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkRequest
 import androidx.work.WorkerParameters
-import dev.gaborbiro.dailymacros.repo.records.DBMapper
+import dev.gaborbiro.dailymacros.repo.records.ApiMapper
 import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
@@ -31,7 +31,7 @@ internal class ReloadWorkRequest(
         RecordsRepositoryImpl(
             templatesDAO = AppDatabase.getInstance().templatesDAO(),
             recordsDAO = AppDatabase.getInstance().recordsDAO(),
-            dBMapper = DBMapper(),
+            mapper = ApiMapper(),
             imageStore = ImageStore(fileStore),
         )
     }
@@ -75,7 +75,7 @@ internal class ReloadWorkRequest(
                 workerParameters.inputData.getInt(PREFS_TEMPLATE_COUNT, TEMPLATE_COUNT_DEFAULT)
             val recentRecords =
                 recordsRepository.getRecords(LocalDateTime.now().minusDays(recordDaysToDisplay.toLong()))
-            val topTemplates = recordsRepository.getTemplatesByFrequency().take(templateCount)
+            val topTemplates = recordsRepository.getTop10().take(templateCount)
             sendToWidgets(applicationContext, recentRecords, topTemplates)
             Result.success()
         } catch (t: Throwable) {

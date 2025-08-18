@@ -19,7 +19,7 @@ internal class CreateRecordUseCase(
         val record = RecordToSave(
             timestamp = LocalDateTime.now(),
             template = TemplateToSave(
-                image = image,
+                primaryImage = image,
                 name = title,
                 description = description,
             ),

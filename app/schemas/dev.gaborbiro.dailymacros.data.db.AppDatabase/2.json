@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 1,
-    "identityHash": "743ec4e03bdc56f16f3f02d9016c9c7b",
+    "version": 2,
+    "identityHash": "29002b40595f96f10481894d3a581d82",
     "entities": [
       {
         "tableName": "records",
@@ -48,13 +48,8 @@
       },
       {
         "tableName": "templates",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`image` TEXT, `name` TEXT NOT NULL, `description` TEXT NOT NULL, `_id` INTEGER PRIMARY KEY AUTOINCREMENT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `description` TEXT NOT NULL, `_id` INTEGER PRIMARY KEY AUTOINCREMENT)",
         "fields": [
-          {
-            "fieldPath": "image",
-            "columnName": "image",
-            "affinity": "TEXT"
-          },
           {
             "fieldPath": "name",
             "columnName": "name",
@@ -78,19 +73,7 @@
           "columnNames": [
             "_id"
           ]
-        },
-        "indices": [
-          {
-            "name": "index_templates_name_image",
-            "unique": true,
-            "columnNames": [
-              "name",
-              "image"
-            ],
-            "orders": [],
-            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_templates_name_image` ON `${TABLE_NAME}` (`name`, `image`)"
-          }
-        ]
+        }
       },
       {
         "tableName": "nutrients",
@@ -183,11 +166,95 @@
             ]
           }
         ]
+      },
+      {
+        "tableName": "template_images",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`templateId` INTEGER NOT NULL, `image` TEXT NOT NULL, `sortOrder` INTEGER NOT NULL, `isPrimary` INTEGER NOT NULL, `_id` INTEGER PRIMARY KEY AUTOINCREMENT, FOREIGN KEY(`templateId`) REFERENCES `templates`(`_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "templateId",
+            "columnName": "templateId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "image",
+            "columnName": "image",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sortOrder",
+            "columnName": "sortOrder",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isPrimary",
+            "columnName": "isPrimary",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "id",
+            "columnName": "_id",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_template_images_templateId",
+            "unique": false,
+            "columnNames": [
+              "templateId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_template_images_templateId` ON `${TABLE_NAME}` (`templateId`)"
+          },
+          {
+            "name": "index_template_images_image",
+            "unique": false,
+            "columnNames": [
+              "image"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_template_images_image` ON `${TABLE_NAME}` (`image`)"
+          },
+          {
+            "name": "index_template_images_templateId_sortOrder",
+            "unique": true,
+            "columnNames": [
+              "templateId",
+              "sortOrder"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_template_images_templateId_sortOrder` ON `${TABLE_NAME}` (`templateId`, `sortOrder`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "templates",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "templateId"
+            ],
+            "referencedColumns": [
+              "_id"
+            ]
+          }
+        ]
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '743ec4e03bdc56f16f3f02d9016c9c7b')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '29002b40595f96f10481894d3a581d82')"
     ]
   }
 }

@@ -28,7 +28,7 @@ sealed class DialogState {
         val image: String?,
     ) : DialogState()
 
-    data class ViewImageDialog(
+    data class ViewImagesDialog(
         val title: String,
         val bitmap: Bitmap,
     ) : DialogState()

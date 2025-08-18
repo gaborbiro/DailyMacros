@@ -9,15 +9,15 @@ internal class GetRecordImageUseCase(
     private val imageStore: ImageStore,
 ) {
 
-    suspend fun execute(recordId: Long, thumbnail: Boolean): DialogState.ViewImageDialog? {
+    suspend fun execute(recordId: Long, thumbnail: Boolean): DialogState.ViewImagesDialog? {
         val template = repository.getRecord(recordId)!!.template
         return template
-            .image
+            .primaryImage
             ?.let {
                 imageStore.read(it, thumbnail)
             }
             ?.let {
-                DialogState.ViewImageDialog(
+                DialogState.ViewImagesDialog(
                     title = template.name,
                     bitmap = it
                 )

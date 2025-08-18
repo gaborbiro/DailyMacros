@@ -5,7 +5,7 @@ import androidx.annotation.UiThread
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
-import dev.gaborbiro.dailymacros.features.common.model.BaseListItem
+import dev.gaborbiro.dailymacros.features.common.model.BaseListItemUIModel
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.modal.usecase.FetchNutrientsUseCase
 import dev.gaborbiro.dailymacros.features.overview.model.DialogState
@@ -38,7 +38,7 @@ internal class OverviewViewModel(
                 .map {
                     uiMapper.map(it, thumbnail = true)
                 }
-                .collect { records: List<BaseListItem> ->
+                .collect { records: List<BaseListItemUIModel> ->
                     _viewState.update {
                         it.copy(records)
                     }
@@ -152,7 +152,7 @@ internal class OverviewViewModel(
     }
 
     fun onUndoDeleteDismissed() {
-        deleteTemplate(_viewState.value.recordToUndelete!!.template.id)
+        deleteTemplate(_viewState.value.recordToUndelete!!.template.dbId)
         _viewState.update {
             it.copy(
                 recordToUndelete = null,
@@ -192,7 +192,7 @@ internal class OverviewViewModel(
 
     fun finalizePendingUndos() {
         _viewState.value.recordToUndelete?.let {
-            deleteTemplate(it.template.id)
+            deleteTemplate(it.template.dbId)
         }
     }
 }

@@ -1,10 +1,10 @@
 package dev.gaborbiro.dailymacros.features.overview.model
 
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
-import dev.gaborbiro.dailymacros.features.common.model.BaseListItem
+import dev.gaborbiro.dailymacros.features.common.model.BaseListItemUIModel
 
 data class OverviewViewState(
-    val list: List<BaseListItem> = emptyList(),
+    val list: List<BaseListItemUIModel> = emptyList(),
     val showUndoDeleteSnackbar: Boolean = false,
     val recordToUndelete: Record? = null,
     val dialog: DialogState? = null,

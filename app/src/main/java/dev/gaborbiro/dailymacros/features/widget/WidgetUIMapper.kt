@@ -18,10 +18,10 @@ internal class WidgetUIMapper(
     }
 
     private fun map(template: Template, thumbnail: Boolean): TemplateUIModel {
-        val bitmap: Bitmap? = template.image?.let { imageStore.read(it, thumbnail) }
+        val bitmap: Bitmap? = template.primaryImage?.let { imageStore.read(it, thumbnail) }
         val description = nutrientsUIMapper.map(template.nutrients, isShort = true)
         return TemplateUIModel(
-            templateId = template.id,
+            templateId = template.dbId,
             bitmap = bitmap,
             title = template.name,
             description = description,

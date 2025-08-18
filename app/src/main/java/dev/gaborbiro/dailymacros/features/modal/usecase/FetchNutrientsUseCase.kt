@@ -23,7 +23,7 @@ internal class FetchNutrientsUseCase(
 
     suspend fun execute(recordId: Long) {
         val record: Record = recordsRepository.getRecord(recordId)!!
-        val base64Image = record.template.image
+        val base64Image = record.template.primaryImage
             ?.let { imageFilename: String ->
                 val inputStream = imageStore.get(imageFilename, thumbnail = false)
                 inputStreamToBase64(inputStream)
@@ -36,7 +36,7 @@ internal class FetchNutrientsUseCase(
         )
         val (nutrients: Nutrients?, issues: String?) = recordsMapper.map(response)
         recordsRepository.updateTemplate(
-            templateId = record.template.id,
+            templateId = record.template.dbId,
             nutrients = nutrients,
         )
         val nutrientsStr = nutrientsUIMapper.map(nutrients)

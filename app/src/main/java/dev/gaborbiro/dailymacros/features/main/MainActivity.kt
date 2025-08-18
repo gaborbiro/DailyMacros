@@ -16,7 +16,7 @@ import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntry
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntryOutputContentDeserializer
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContent
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContentDeserializer
-import dev.gaborbiro.dailymacros.repo.records.DBMapper
+import dev.gaborbiro.dailymacros.repo.records.ApiMapper
 import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
         val recordsRepository = RecordsRepositoryImpl(
             templatesDAO = AppDatabase.getInstance().templatesDAO(),
             recordsDAO = AppDatabase.getInstance().recordsDAO(),
-            dBMapper = DBMapper(),
+            mapper = ApiMapper(),
             imageStore = imageStore,
         )
 

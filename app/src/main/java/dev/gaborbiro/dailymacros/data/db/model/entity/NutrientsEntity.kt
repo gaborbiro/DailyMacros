@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.data.db.model
+package dev.gaborbiro.dailymacros.data.db.model.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
@@ -9,7 +9,7 @@ import androidx.room.Index
     tableName = "nutrients",
     foreignKeys = [
         ForeignKey(
-            entity = TemplateDBModel::class,
+            entity = TemplateEntity::class,
             parentColumns = [COLUMN_ID],
             childColumns = [COLUMN_TEMPLATE_ID],
             onDelete = ForeignKey.CASCADE
@@ -17,7 +17,7 @@ import androidx.room.Index
     ],
     indices = [Index(value = [COLUMN_TEMPLATE_ID], unique = true)] // enforce 1:1
 )
-data class NutrientsDBModel(
+data class NutrientsEntity(
     @ColumnInfo(name = COLUMN_TEMPLATE_ID) val templateId: Long,
     val calories: Int?,
     val protein: Float?,
@@ -28,4 +28,4 @@ data class NutrientsDBModel(
     val salt: Float?,
     val fibre: Float?,
     val notes: String?,
-) : DBModel()
+) : BaseEntity()

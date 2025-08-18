@@ -149,7 +149,7 @@ internal class ModalScreenViewModel(
                 it.copy(
                     dialog = DialogState.InputDialog.RecordDetailsDialog(
                         recordId = recordId,
-                        image = record.template.image,
+                        image = record.template.primaryImage,
                         title = record.template.name,
                         description = record.template.description,
                         calories = nutrientsUIMapper.mapCalories(value = record.template.nutrients?.calories),

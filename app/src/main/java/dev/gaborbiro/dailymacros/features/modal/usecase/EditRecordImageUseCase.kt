@@ -15,7 +15,7 @@ internal class EditRecordImageUseCase(
         val newRecord = RecordToSave(
             timestamp = record.timestamp,
             template = TemplateToSave(
-                image = filename,
+                primaryImage = filename,
                 name = record.template.name,
                 description = record.template.description,
             ),

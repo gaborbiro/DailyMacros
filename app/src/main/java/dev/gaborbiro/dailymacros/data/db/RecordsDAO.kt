@@ -4,8 +4,8 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
-import dev.gaborbiro.dailymacros.data.db.model.RecordDBModel
-import dev.gaborbiro.dailymacros.data.db.model.RecordWithTemplateAndNutrients
+import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
+import dev.gaborbiro.dailymacros.data.db.model.RecordJoined
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDateTime
 
@@ -13,19 +13,19 @@ import java.time.LocalDateTime
 interface RecordsDAO {
 
     @Upsert
-    suspend fun insertOrUpdate(record: RecordDBModel): Long
+    suspend fun insertOrUpdate(record: RecordEntity): Long
 
     @Transaction
     @Query("SELECT * FROM records ORDER BY timestamp DESC")
-    suspend fun get(): List<RecordWithTemplateAndNutrients>
+    suspend fun get(): List<RecordJoined>
 
     @Transaction
     @Query("SELECT * FROM records WHERE templateId=:templateId ORDER BY timestamp DESC")
-    suspend fun getByTemplate(templateId: Long): List<RecordWithTemplateAndNutrients>
+    suspend fun getByTemplate(templateId: Long): List<RecordJoined>
 
     @Transaction
     @Query("SELECT * FROM records WHERE timestamp >= :since ORDER BY timestamp DESC")
-    fun getFlow(since: LocalDateTime?): Flow<List<RecordWithTemplateAndNutrients>>
+    fun getFlow(since: LocalDateTime?): Flow<List<RecordJoined>>
 
     @Transaction
     @Query(
@@ -38,7 +38,7 @@ interface RecordsDAO {
     fun getFlow(
         since: LocalDateTime?,
         until: LocalDateTime,
-    ): Flow<List<RecordWithTemplateAndNutrients>>
+    ): Flow<List<RecordJoined>>
 
     @Transaction
     @Query(
@@ -53,11 +53,11 @@ interface RecordsDAO {
         ORDER BY R.timestamp DESC
     """
     )
-    fun getFlowBySearchTerm(search: String): Flow<List<RecordWithTemplateAndNutrients>>
+    fun getFlowBySearchTerm(search: String): Flow<List<RecordJoined>>
 
     @Transaction
     @Query("SELECT * FROM records WHERE _id=:id")
-    suspend fun get(id: Long): RecordWithTemplateAndNutrients
+    suspend fun get(id: Long): RecordJoined
 
     @Transaction
     @Query("DELETE FROM records WHERE _id = :id")

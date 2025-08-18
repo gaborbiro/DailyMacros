@@ -16,12 +16,12 @@ internal class EditRecordUseCase(
         repository.deleteRecord(recordId)
         // note: image shouldn't be deleted
         val (templateDeleted, imageDeleted) =
-            repository.deleteTemplateIfUnused(record.template.id, imageToo = false)
+            repository.deleteTemplateIfUnused(record.template.dbId, imageToo = false)
         Log.d("Notes", "template deleted: $templateDeleted, image deleted: $imageDeleted")
         val newRecord = RecordToSave(
             timestamp = record.timestamp,
             template = TemplateToSave(
-                image = record.template.image,
+                primaryImage = record.template.primaryImage,
                 name = title,
                 description = description,
                 // deleting associated nutrient information because title/description has changed
