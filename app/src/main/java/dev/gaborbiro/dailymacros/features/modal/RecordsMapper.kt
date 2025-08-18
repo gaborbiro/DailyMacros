@@ -40,10 +40,10 @@ class RecordsMapper {
         return Macros(
             calories = macrosApiModel.calories,
             protein = macrosApiModel.proteinGrams,
-            carbohydrates = macrosApiModel.carbGrams,
-            ofWhichSugar = macrosApiModel.ofWhichSugarGrams,
             fat = macrosApiModel.fatGrams,
             ofWhichSaturated = macrosApiModel.ofWhichSaturatedGrams,
+            carbohydrates = macrosApiModel.carbGrams,
+            ofWhichSugar = macrosApiModel.ofWhichSugarGrams,
             salt = macrosApiModel.saltGrams,
             fibre = macrosApiModel.fibreGrams,
             notes = notes,

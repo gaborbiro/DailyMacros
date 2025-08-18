@@ -55,12 +55,12 @@ internal fun InputDialog(
     val description =
         (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.description
     val calories = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.calories
-    val carbs = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.carbs
-    val sugar = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.ofWhichSugar
     val protein = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.protein
     val fat = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.fat
     val saturated =
         (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.ofWhichSaturated
+    val carbs = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.carbs
+    val sugar = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.ofWhichSugar
     val salt = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.salt
     val fibre = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.fibre
     val notes = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.notes
@@ -90,10 +90,10 @@ internal fun InputDialog(
                 error = dialogState.validationError,
                 calories = calories,
                 protein = protein,
-                carbs = carbs,
-                sugar = sugar,
                 fat = fat,
                 saturated = saturated,
+                carbs = carbs,
+                sugar = sugar,
                 salt = salt,
                 fibre = fibre,
                 notes = notes,
@@ -138,10 +138,10 @@ private fun ColumnScope.InputDialogContent(
     error: String?,
     calories: String?,
     protein: String?,
-    carbs: String?,
-    sugar: String?,
     fat: String?,
     saturated: String?,
+    carbs: String?,
+    sugar: String?,
     salt: String?,
     fibre: String?,
     notes: String?,
@@ -302,10 +302,10 @@ private fun ColumnScope.InputDialogContent(
     Macros(
         calories = calories,
         protein = protein,
-        carbs = carbs,
-        sugar = sugar,
         fat = fat,
         saturated = saturated,
+        carbs = carbs,
+        sugar = sugar,
         salt = salt,
         fibre = fibre,
         notes = notes,
@@ -316,20 +316,20 @@ private fun ColumnScope.InputDialogContent(
 private fun Macros(
     calories: String?,
     protein: String?,
-    carbs: String?,
-    sugar: String?,
     fat: String?,
     saturated: String?,
+    carbs: String?,
+    sugar: String?,
     salt: String?,
     fibre: String?,
     notes: String?,
 ) {
     if (calories != null ||
         protein != null ||
-        carbs != null ||
-        sugar != null ||
         fat != null ||
         saturated != null ||
+        carbs != null ||
+        sugar != null ||
         salt != null ||
         fibre != null ||
         notes != null
@@ -366,32 +366,6 @@ private fun Macros(
         )
     }
 
-    carbs?.let {
-        PillLabel(
-            modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(top = 4.dp),
-            text = carbs,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-            border = null,
-            elevation = 0.dp,
-        )
-    }
-
-    sugar?.let {
-        PillLabel(
-            modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(start = 16.dp, top = 4.dp),
-            text = sugar,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-            border = null,
-            elevation = 0.dp,
-        )
-    }
-
     fat?.let {
         PillLabel(
             modifier = Modifier
@@ -411,6 +385,32 @@ private fun Macros(
                 .padding(horizontal = PaddingDefault)
                 .padding(start = 16.dp, top = 4.dp),
             text = saturated,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+            border = null,
+            elevation = 0.dp,
+        )
+    }
+
+    carbs?.let {
+        PillLabel(
+            modifier = Modifier
+                .padding(horizontal = PaddingDefault)
+                .padding(top = 4.dp),
+            text = carbs,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+            border = null,
+            elevation = 0.dp,
+        )
+    }
+
+    sugar?.let {
+        PillLabel(
+            modifier = Modifier
+                .padding(horizontal = PaddingDefault)
+                .padding(start = 16.dp, top = 4.dp),
+            text = sugar,
             contentColor = MaterialTheme.colorScheme.onSurface,
             backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
             border = null,
@@ -459,10 +459,10 @@ private fun Macros(
 
     if (calories != null ||
         protein != null ||
-        carbs != null ||
-        sugar != null ||
         fat != null ||
         saturated != null ||
+        carbs != null ||
+        sugar != null ||
         salt != null ||
         fibre != null ||
         notes != null
@@ -508,10 +508,10 @@ private fun NoteInputDialogContentPreviewEdit() {
                 description = "This is a description",
                 calories = "Calories: 2100 cal",
                 protein = "Protein: 150g",
-                carbs = "Carbs: 100g",
-                ofWhichSugar = "of which sugars: 30g",
                 fat = "Fat 100g",
                 ofWhichSaturated = "of which saturated: 20g",
+                carbs = "Carbs: 100g",
+                ofWhichSugar = "of which sugars: 30g",
                 salt = "Salt: 5g",
                 fibre = "Fibre: 4.5g",
                 notes = "Notes: This is a note",

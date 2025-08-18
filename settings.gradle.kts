@@ -18,5 +18,5 @@ dependencyResolutionManagement {
         }
     }
 }
-rootProject.name = "Daily Macros"
+rootProject.name = "DailyMacros"
 include(":app")

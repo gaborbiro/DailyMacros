@@ -9,13 +9,13 @@ internal class MacrosUIMapper {
         return listOfNotNull(
             macros?.calories?.let { mapCalories(it, isShort) },
             macros?.protein?.let { mapProtein(it, isShort) },
-            macros?.carbohydrates?.let { mapCarbohydrates(it, macros.ofWhichSugar, isShort) },
-            if (!isShort) {
-                macros?.ofWhichSugar?.let { mapSugar(it) }
-            } else null,
             macros?.fat?.let { mapFat(it, macros.ofWhichSaturated, isShort) },
             if (!isShort) {
                 macros?.ofWhichSaturated?.let { mapSaturated(it) }
+            } else null,
+            macros?.carbohydrates?.let { mapCarbohydrates(it, macros.ofWhichSugar, isShort) },
+            if (!isShort) {
+                macros?.ofWhichSugar?.let { mapSugar(it) }
             } else null,
             macros?.salt?.let { mapSalt(it, isShort) },
             macros?.fibre?.let { mapFibre(it, isShort) }

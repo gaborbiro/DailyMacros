@@ -9,10 +9,10 @@ data class MacrosResponse(
 data class MacrosApiModel(
     val calories: Int?,
     val proteinGrams: Float?,
-    val carbGrams: Float?,
-    val ofWhichSugarGrams: Float?,
     val fatGrams: Float?,
     val ofWhichSaturatedGrams: Float?,
+    val carbGrams: Float?,
+    val ofWhichSugarGrams: Float?,
     val saltGrams: Float?,
     val fibreGrams: Float?,
 )

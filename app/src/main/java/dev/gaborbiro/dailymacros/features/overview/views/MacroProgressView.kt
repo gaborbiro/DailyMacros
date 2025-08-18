@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.features.overview.views
 
+import android.content.res.Configuration
 import android.util.Range
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -8,14 +9,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
@@ -25,8 +29,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.DailyMacrosColors
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
-import dev.gaborbiro.dailymacros.features.common.model.MacroProgressUIModel
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
+import dev.gaborbiro.dailymacros.features.common.model.MacroProgressUIModel
 import java.time.LocalDate
 
 @Composable
@@ -34,90 +38,105 @@ fun MacroProgressView(
     modifier: Modifier = Modifier,
     model: MacroProgressUIModel,
 ) {
-    val matrix = model.macros.chunked(3)
+    val cols = 3
+    val chunks = remember(model.macros) { model.macros.chunked(cols) }
+    if (chunks.isEmpty()) return
 
     EqualTable(
         modifier = modifier,
-        rows = 2,
-        cols = 3,
+        rows = chunks.size,
+        cols = cols,
     ) { r, c ->
-        val cellData = matrix[r][c]
-        Box(
-            Modifier
-                .border(1.dp, DailyMacrosColors.DailyMacrosGrey80)
-                .background(color = DailyMacrosColors.CardColorLight)
-        ) {
-            Row(Modifier.fillMaxWidth()) {
-                Spacer(
-                    Modifier
-                        .weight(
-                            cellData.range.lower
-                                .coerceAtLeast(.0001f)
-                        )
-                )
-                Box(
-                    modifier = Modifier
-                        .weight(
-                            (cellData.range.upper - cellData.range.lower)
-                                .coerceAtLeast(.0001f)
-                        )
-                        .fillMaxHeight()
-                        .background(Color.Magenta.copy(alpha = .15f)),
-                )
-                Spacer(
-                    Modifier
-                        .weight(
-                            (1 - cellData.range.upper)
-                                .coerceAtLeast(.0001f)
-                        )
-                )
-            }
-            Row(Modifier.fillMaxWidth()) {
-                Spacer(
-                    Modifier.weight(
-                        (cellData.progress)
-                            .coerceAtLeast(.0001f)
-                    )
-                )
-                Box(
-                    modifier = Modifier
-                        .width(2.dp)
-                        .fillMaxHeight()
-                        .background(Color.Blue.copy(alpha = .5f)),
-                )
-                Spacer(
-                    Modifier
-                        .weight(
-                            (1 - cellData.progress)
-                                .coerceAtLeast(.0001f)
-                        )
-                )
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                    .align(Alignment.Center)
+        val macroProgress = chunks.getOrNull(r)?.getOrNull(c)
+
+        if (macroProgress != null) {
+            Box(
+                Modifier
+                    .border(1.dp, color = Color.White)
+                    .background(color = DailyMacrosColors.CardColorLight)
             ) {
-                Text(
-                    color = Color.Black,
-                    text = cellData.title,
-                    style = MaterialTheme.typography.bodySmall,
-                )
-                val text = highlightSubstring(
-                    text = cellData.progressLabel + " /" + cellData.rangeLabel,
-                    highlight = cellData.progressLabel,
-                    textStyle = MaterialTheme.typography.bodyMedium
-                        .copy(color = Color.Blue.copy(alpha = .5f)),
-                )
-                Text(
+                Row(Modifier.fillMaxWidth()) {
+                    Spacer(
+                        Modifier
+                            .weight(
+                                macroProgress.range.lower
+                                    .coerceAtLeast(.0001f)
+                            )
+                    )
+                    Box(
+                        modifier = Modifier
+                            .weight(
+                                (macroProgress.range.upper - macroProgress.range.lower)
+                                    .coerceAtLeast(.0001f)
+                            )
+                            .fillMaxHeight()
+                            .background(
+                                brush = Brush.horizontalGradient(
+                                    colors = listOf(
+                                        Color.Magenta.copy(alpha = 0.15f),
+                                        Color.Magenta.copy(alpha = 0.4f)
+                                    )
+                                )
+                            ),
+                    )
+                    Spacer(
+                        Modifier
+                            .weight(
+                                (1 - macroProgress.range.upper)
+                                    .coerceAtLeast(.0001f)
+                            )
+                    )
+                }
+                Row(Modifier.fillMaxWidth()) {
+                    Spacer(
+                        Modifier.weight(
+                            (macroProgress.progress)
+                                .coerceAtLeast(.0001f)
+                        )
+                    )
+                    Box(
+                        modifier = Modifier
+                            .width(1.dp)
+                            .fillMaxHeight()
+                            .background(Color.Blue.copy(alpha = .5f)),
+                    )
+                    Spacer(
+                        Modifier
+                            .weight(
+                                (1 - macroProgress.progress)
+                                    .coerceAtLeast(.0001f)
+                            )
+                    )
+                }
+                Column(
                     modifier = Modifier
-                        .padding(top = 4.dp),
-                    color = Color.Black,
-                    text = text,
-                    style = MaterialTheme.typography.labelSmall,
-                )
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .align(Alignment.Center)
+                ) {
+                    Text(
+                        color = Color.Black,
+                        text = macroProgress.title,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    val text = highlightSubstring(
+                        text = macroProgress.progressLabel + " /" + macroProgress.rangeLabel,
+                        highlight = macroProgress.progressLabel,
+                        textStyle = MaterialTheme.typography.bodyMedium
+                            .copy(color = Color.Blue.copy(alpha = 1f)),
+                    )
+                    Text(
+                        modifier = Modifier
+                            .padding(top = 4.dp),
+                        color = Color.Black,
+                        text = text,
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
             }
+        } else {
+            // Empty filler cell so the grid stays aligned
+            Spacer(Modifier.fillMaxSize())
         }
     }
 }
@@ -145,6 +164,7 @@ private fun highlightSubstring(
 
 @Preview
 @Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun MacroGoalsViewPreview() {
     DailyMacrosTheme {
         MacroProgressView(
