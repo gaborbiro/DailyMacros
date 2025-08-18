@@ -39,7 +39,7 @@ fun ConfirmDestructiveChangeDialog(
             ) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = "This will delete nutrient information. You can re-query it from the app, with the \"\uD83C\uDF4ENutrients\" menu item.",
+                    text = "This will delete macronutrient information. You can re-query it from the app, with the \"\uD83C\uDF4ENutrients\" menu item.",
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.titleMedium,
                 )
@@ -67,7 +67,7 @@ fun ConfirmDestructiveChangeDialog(
 @Preview
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-private fun ConfirmNutrientsDeletionDialogPreview() {
+private fun ConfirmDestructiveChangeDialogPreview() {
     DailyMacrosTheme {
         ConfirmDestructiveChangeDialog(
             onConfirm = {},

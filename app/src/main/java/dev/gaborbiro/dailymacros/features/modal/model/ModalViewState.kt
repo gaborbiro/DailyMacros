@@ -2,7 +2,7 @@ package dev.gaborbiro.dailymacros.features.modal.model
 
 import android.graphics.Bitmap
 
-data class HostViewState(
+data class ModalViewState(
     val imagePicker: ImagePickerState? = null,
     val closeScreen: Boolean = false,
     val dialog: DialogState? = null,

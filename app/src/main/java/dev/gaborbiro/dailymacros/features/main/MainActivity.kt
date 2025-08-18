@@ -19,11 +19,11 @@ import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContentDeseria
 import dev.gaborbiro.dailymacros.repo.records.ApiMapper
 import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
-import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
+import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.modal.ModalActivity.Companion.REQUEST_TIMEOUT_IN_SECONDS
 import dev.gaborbiro.dailymacros.features.modal.RecordsMapper
-import dev.gaborbiro.dailymacros.features.modal.usecase.FetchNutrientsUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.FetchMacrosUseCase
 import dev.gaborbiro.dailymacros.features.overview.OverviewNavigatorImpl
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
@@ -92,22 +92,22 @@ class MainActivity : ComponentActivity() {
             service = retrofit.create(ChatGPTService::class.java)
         )
 
-        val nutrientsUIMapper = NutrientsUIMapper()
+        val macrosUIMapper = MacrosUIMapper()
 
-        val fetchNutrientsUseCase = FetchNutrientsUseCase(
+        val fetchMacrosUseCase = FetchMacrosUseCase(
             appContext = this,
             imageStore = imageStore,
             recordsRepository = recordsRepository,
             chatGPTRepository = chatGPTRepository,
             recordsMapper = RecordsMapper(),
-            nutrientsUIMapper = nutrientsUIMapper,
+            macrosUIMapper = macrosUIMapper,
         )
 
         val viewModel = OverviewViewModel(
             navigator = navigator,
             repository = recordsRepository,
-            uiMapper = RecordsUIMapper(imageStore, nutrientsUIMapper),
-            fetchNutrientsUseCase = fetchNutrientsUseCase,
+            uiMapper = RecordsUIMapper(imageStore, macrosUIMapper),
+            fetchMacrosUseCase = fetchMacrosUseCase,
         )
 
         setContent {

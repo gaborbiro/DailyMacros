@@ -29,7 +29,7 @@ internal fun PopupMenu(
     onDeleteImageMenuItemTapped: () -> Unit,
     onEditRecordMenuItemTapped: () -> Unit,
     onDeleteRecordMenuItemTapped: () -> Unit,
-    onNutrientsMenuItemTapped: () -> Unit,
+    onMacrosMenuItemTapped: () -> Unit,
 ) {
     PopUpMenuButton(
         options = listOf(
@@ -40,8 +40,8 @@ internal fun PopupMenu(
             ),
             PopUpMenuItem(
                 icon = painterResource(R.drawable.ic_nutrition),
-                label = "Nutrients (AI)",
-                onMenuItemSelected = onNutrientsMenuItemTapped,
+                label = "Macros (AI)",
+                onMenuItemSelected = onMacrosMenuItemTapped,
             ),
             PopUpMenuItem(
                 icon = painterResource(R.drawable.ic_topic),

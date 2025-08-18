@@ -7,10 +7,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.data.image.ImageStore
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
-import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
+import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.common.error.model.ErrorViewState
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
-import dev.gaborbiro.dailymacros.features.modal.model.HostViewState
+import dev.gaborbiro.dailymacros.features.modal.model.ModalViewState
 import dev.gaborbiro.dailymacros.features.modal.model.ImagePickerState
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateValidationResult
@@ -20,7 +20,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.EditRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditValidationResult
-import dev.gaborbiro.dailymacros.features.modal.usecase.FetchNutrientsUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.FetchMacrosUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodPicSummaryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
@@ -44,7 +44,7 @@ internal class ModalScreenViewModel(
     private val imageStore: ImageStore,
     private val recordsRepository: RecordsRepository,
     private val createRecordUseCase: CreateRecordUseCase,
-    private val fetchNutrientsUseCase: FetchNutrientsUseCase,
+    private val fetchMacrosUseCase: FetchMacrosUseCase,
     private val editRecordUseCase: EditRecordUseCase,
     private val editTemplateUseCase: EditTemplateUseCase,
     private val validateEditRecordUseCase: ValidateEditRecordUseCase,
@@ -57,7 +57,7 @@ internal class ModalScreenViewModel(
     private val getTemplateImageUseCase: GetTemplateImageUseCase,
     private val foodPicSummaryUseCase: FoodPicSummaryUseCase,
     private val deleteRecordUseCase: DeleteRecordUseCase,
-    private val nutrientsUIMapper: NutrientsUIMapper,
+    private val macrosUIMapper: MacrosUIMapper,
 ) : ViewModel() {
 
     companion object {
@@ -66,8 +66,8 @@ internal class ModalScreenViewModel(
         }
     }
 
-    private val _viewState: MutableStateFlow<HostViewState> = MutableStateFlow(HostViewState())
-    val viewState: StateFlow<HostViewState> = _viewState.asStateFlow()
+    private val _viewState: MutableStateFlow<ModalViewState> = MutableStateFlow(ModalViewState())
+    val viewState: StateFlow<ModalViewState> = _viewState.asStateFlow()
 
     private val _errorState: MutableStateFlow<ErrorViewState?> = MutableStateFlow(null)
     val errorState: StateFlow<ErrorViewState?> = _errorState.asStateFlow()
@@ -152,17 +152,17 @@ internal class ModalScreenViewModel(
                         image = record.template.primaryImage,
                         title = record.template.name,
                         description = record.template.description,
-                        calories = nutrientsUIMapper.mapCalories(value = record.template.nutrients?.calories),
-                        protein = nutrientsUIMapper.mapProtein(value = record.template.nutrients?.protein),
-                        carbs = nutrientsUIMapper.mapCarbohydrates(value = record.template.nutrients?.carbohydrates, sugar = null),
-                        ofWhichSugar = nutrientsUIMapper.mapSugar(value = record.template.nutrients?.ofWhichSugar),
-                        fat = nutrientsUIMapper.mapFat(value = record.template.nutrients?.fat, saturated = null),
-                        ofWhichSaturated = nutrientsUIMapper.mapSaturated(value = record.template.nutrients?.ofWhichSaturated),
-                        salt = nutrientsUIMapper.mapSalt(value = record.template.nutrients?.salt),
-                        fibre = nutrientsUIMapper.mapFibre(value = record.template.nutrients?.fibre),
+                        calories = macrosUIMapper.mapCalories(value = record.template.macros?.calories),
+                        protein = macrosUIMapper.mapProtein(value = record.template.macros?.protein),
+                        carbs = macrosUIMapper.mapCarbohydrates(value = record.template.macros?.carbohydrates, sugar = null),
+                        ofWhichSugar = macrosUIMapper.mapSugar(value = record.template.macros?.ofWhichSugar),
+                        fat = macrosUIMapper.mapFat(value = record.template.macros?.fat, saturated = null),
+                        ofWhichSaturated = macrosUIMapper.mapSaturated(value = record.template.macros?.ofWhichSaturated),
+                        salt = macrosUIMapper.mapSalt(value = record.template.macros?.salt),
+                        fibre = macrosUIMapper.mapFibre(value = record.template.macros?.fibre),
                         titleSuggestions = emptyList(),
                         validationError = null,
-                        notes = record.template.nutrients?.notes,
+                        notes = record.template.macros?.notes,
                     ),
                 )
             }
@@ -387,7 +387,7 @@ internal class ModalScreenViewModel(
                 NotesWidget.reload()
                 close()
                 val recordId = createRecordUseCase.execute(image, title, description)
-                fetchNutrientsUseCase.execute(recordId)
+                fetchMacrosUseCase.execute(recordId)
             }
         }
     }
@@ -417,7 +417,7 @@ internal class ModalScreenViewModel(
             }
 
             is EditValidationResult.Valid -> {
-                if (result.showNutrientDeletionConfirmationDialog) {
+                if (result.showMacrosDeletionConfirmationDialog) {
                     _viewState.update {
                         it.copy(
                             dialog = DialogState.ConfirmDestructiveChangeDialog(

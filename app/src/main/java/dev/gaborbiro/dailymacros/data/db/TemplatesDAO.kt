@@ -5,7 +5,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
-import dev.gaborbiro.dailymacros.data.db.model.entity.NutrientsEntity
+import dev.gaborbiro.dailymacros.data.db.model.entity.MacrosEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.ImageEntity
 import dev.gaborbiro.dailymacros.data.db.model.TemplateJoined
@@ -17,22 +17,22 @@ interface TemplatesDAO {
     suspend fun insertOrUpdate(template: TemplateEntity): Long
 
     @Upsert
-    suspend fun insertOrUpdate(nutrients: NutrientsEntity): Long
+    suspend fun insertOrUpdate(macros: MacrosEntity): Long
 
-    @Query("DELETE FROM nutrients WHERE templateId = :templateId")
-    suspend fun deleteNutrientsForTemplate(templateId: Long): Int
+    @Query("DELETE FROM macros WHERE templateId = :templateId")
+    suspend fun deleteMacrosForTemplate(templateId: Long): Int
 
     @Transaction
-    suspend fun upsertTemplateWithNutrients(
+    suspend fun upsertTemplateWithMacros(
         template: TemplateEntity,
-        nutrients: NutrientsEntity?,
+        macros: MacrosEntity?,
     ): TemplateJoined {
         val rid = insertOrUpdate(template)
         val templateId = if (rid == -1L) requireNotNull(template.id) else rid
-        if (nutrients == null) {
-            deleteNutrientsForTemplate(templateId)
+        if (macros == null) {
+            deleteMacrosForTemplate(templateId)
         } else {
-            insertOrUpdate(nutrients.copy(templateId = templateId))
+            insertOrUpdate(macros.copy(templateId = templateId))
         }
         return getTemplateById(templateId)
     }

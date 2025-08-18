@@ -33,7 +33,7 @@ internal fun OverviewScreen(
         onDeleteImageMenuItemTapped = viewModel::onDeleteImageMenuItemTapped,
         onEditRecordMenuItemTapped = viewModel::onEditRecordMenuItemTapped,
         onDeleteRecordMenuItemTapped = viewModel::onDeleteRecordMenuItemTapped,
-        onNutrientsMenuItemTapped = viewModel::onNutrientsMenuItemTapped,
+        onMacrosMenuItemTapped = viewModel::onMacrosMenuItemTapped,
         onRecordImageTapped = viewModel::onRecordImageTapped,
         onRecordBodyTapped = viewModel::onRecordBodyTapped,
         onUndoDeleteTapped = viewModel::onUndoDeleteTapped,

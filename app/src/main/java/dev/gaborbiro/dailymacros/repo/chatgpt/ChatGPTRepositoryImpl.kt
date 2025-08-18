@@ -2,8 +2,8 @@ package dev.gaborbiro.dailymacros.repo.chatgpt
 
 import dev.gaborbiro.dailymacros.repo.chatgpt.model.FoodPicSummaryRequest
 import dev.gaborbiro.dailymacros.repo.chatgpt.model.FoodPicSummaryResponse
-import dev.gaborbiro.dailymacros.repo.chatgpt.model.NutrientsRequest
-import dev.gaborbiro.dailymacros.repo.chatgpt.model.NutrientsResponse
+import dev.gaborbiro.dailymacros.repo.chatgpt.model.MacrosRequest
+import dev.gaborbiro.dailymacros.repo.chatgpt.model.MacrosResponse
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.ChatGPTService
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repo.chatgpt.util.parse
@@ -29,14 +29,14 @@ internal class ChatGPTRepositoryImpl(
         }
     }
 
-    override suspend fun nutrients(request: NutrientsRequest): NutrientsResponse {
+    override suspend fun macros(request: MacrosRequest): MacrosResponse {
         try {
-            return runCatching(logTag = "nutrients") {
+            return runCatching(logTag = "macros") {
                 val response = service.callResponses(
                     request = request.toApiModel(),
                 )
                 return@runCatching parse(response)
-                    .toNutrientsResponse()
+                    .toMacrosResponse()
             }
         } catch (apiError: ChatGPTApiError) {
             throw apiError

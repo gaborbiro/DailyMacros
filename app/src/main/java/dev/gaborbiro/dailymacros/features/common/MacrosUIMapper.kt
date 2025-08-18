@@ -1,24 +1,24 @@
 package dev.gaborbiro.dailymacros.features.common
 
 import android.icu.text.DecimalFormat
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Nutrients
+import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
 
-internal class NutrientsUIMapper {
+internal class MacrosUIMapper {
 
-    fun map(nutrients: Nutrients?, isShort: Boolean = false): String? {
+    fun map(macros: Macros?, isShort: Boolean = false): String? {
         return listOfNotNull(
-            nutrients?.calories?.let { mapCalories(it, isShort) },
-            nutrients?.protein?.let { mapProtein(it, isShort) },
-            nutrients?.carbohydrates?.let { mapCarbohydrates(it, nutrients.ofWhichSugar, isShort) },
+            macros?.calories?.let { mapCalories(it, isShort) },
+            macros?.protein?.let { mapProtein(it, isShort) },
+            macros?.carbohydrates?.let { mapCarbohydrates(it, macros.ofWhichSugar, isShort) },
             if (!isShort) {
-                nutrients?.ofWhichSugar?.let { mapSugar(it) }
+                macros?.ofWhichSugar?.let { mapSugar(it) }
             } else null,
-            nutrients?.fat?.let { mapFat(it, nutrients.ofWhichSaturated, isShort) },
+            macros?.fat?.let { mapFat(it, macros.ofWhichSaturated, isShort) },
             if (!isShort) {
-                nutrients?.ofWhichSaturated?.let { mapSaturated(it) }
+                macros?.ofWhichSaturated?.let { mapSaturated(it) }
             } else null,
-            nutrients?.salt?.let { mapSalt(it, isShort) },
-            nutrients?.fibre?.let { mapFibre(it, isShort) }
+            macros?.salt?.let { mapSalt(it, isShort) },
+            macros?.fibre?.let { mapFibre(it, isShort) }
         )
             .joinToString()
             .takeIf { it.isNotBlank() }

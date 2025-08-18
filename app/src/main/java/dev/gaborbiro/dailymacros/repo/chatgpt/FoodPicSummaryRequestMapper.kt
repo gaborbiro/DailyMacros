@@ -19,7 +19,7 @@ internal fun FoodPicSummaryRequest.toApiModel(): ChatGPTRequest {
                 content = listOf(
                     InputContent.Text(
                         """
-                            You are an intelligent image and text analyser for a nutrient tracker app.  
+                            You are an intelligent image and text analyser for a macronutrient tracker app.  
                             The user uploads a photo of what they ate or drank.  
                             Your job: suggest concise, accurate summaries of the food/drink in the image.  
 
@@ -27,7 +27,7 @@ internal fun FoodPicSummaryRequest.toApiModel(): ChatGPTRequest {
                             1. Suggest one or more short titles (max 3–4 words each) that identify the food/drink.  
                                - Keep them brief but informative.  
                                - If the food/drink is packaged and the packaging label is visible, include one title exactly as printed on the label (original language), and one translated to English if necessary.  
-                            2. Provide one descriptive sentence that lists the major nutrient-relevant components you see.  
+                            2. Provide one descriptive sentence that lists the major macronutrient-relevant components you see.  
                                - Focus on items that significantly affect the nutritional profile.  
                                - Do NOT try to name every small garnish or decorative element.  
                                - Include packaging size only if it is a standard, recognisable variant (e.g., “250g ready meal”, “500ml kefir bottle”).  
@@ -46,7 +46,7 @@ internal fun FoodPicSummaryRequest.toApiModel(): ChatGPTRequest {
                             Always return a valid JSON object in this structure:  
                             {
                                 "titles": ["<short English title>", "<short title from packaging if in another language>"],
-                                "description": "<1-sentence description listing the main nutrient-relevant items>"
+                                "description": "<1-sentence description listing the main macronutrient-relevant items>"
                             }
 
                             EXAMPLES:

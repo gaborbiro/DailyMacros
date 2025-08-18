@@ -2,10 +2,10 @@ package dev.gaborbiro.dailymacros.repo.records
 
 import dev.gaborbiro.dailymacros.data.db.model.RecordJoined
 import dev.gaborbiro.dailymacros.data.db.model.TemplateJoined
-import dev.gaborbiro.dailymacros.data.db.model.entity.NutrientsEntity
+import dev.gaborbiro.dailymacros.data.db.model.entity.MacrosEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Nutrients
+import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.RecordToSave
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
@@ -23,14 +23,14 @@ internal class ApiMapper {
             images = orderedImages,
             name = template.entity.name,
             description = template.entity.description,
-            nutrients = template.nutrients?.let(::map)
+            macros = template.macros?.let(::map)
         )
     }
 
-    // -------- Domain <— DB: Nutrients --------
+    // -------- Domain <— DB: Macros --------
 
-    private fun map(template: NutrientsEntity): Nutrients {
-        return Nutrients(
+    private fun map(template: MacrosEntity): Macros {
+        return Macros(
             calories = template.calories,
             protein = template.protein,
             fat = template.fat,
@@ -80,19 +80,19 @@ internal class ApiMapper {
         )
     }
 
-    // Domain Nutrients -> NutrientsEntity (templateId set by caller via .copy)
-    fun map(nutrients: Nutrients, id: Long?, templateId: Long): NutrientsEntity {
-        return NutrientsEntity(
+    // Domain Macros -> MacrosEntity (templateId set by caller via .copy)
+    fun map(macros: Macros, id: Long?, templateId: Long): MacrosEntity {
+        return MacrosEntity(
             templateId = templateId,
-            calories = nutrients.calories,
-            protein = nutrients.protein,
-            carbohydrates = nutrients.carbohydrates,
-            ofWhichSugar = nutrients.ofWhichSugar,
-            fat = nutrients.fat,
-            ofWhichSaturated = nutrients.ofWhichSaturated,
-            salt = nutrients.salt,
-            fibre = nutrients.fibre,
-            notes = nutrients.notes,
+            calories = macros.calories,
+            protein = macros.protein,
+            carbohydrates = macros.carbohydrates,
+            ofWhichSugar = macros.ofWhichSugar,
+            fat = macros.fat,
+            ofWhichSaturated = macros.ofWhichSaturated,
+            salt = macros.salt,
+            fibre = macros.fibre,
+            notes = macros.notes,
         ).also {
             it.id = id
         }

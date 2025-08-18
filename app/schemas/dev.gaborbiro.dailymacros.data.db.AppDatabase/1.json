@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 2,
-    "identityHash": "29002b40595f96f10481894d3a581d82",
+    "version": 1,
+    "identityHash": "11d469661ca5b80589ebe7f33d3073e1",
     "entities": [
       {
         "tableName": "records",
@@ -76,7 +76,7 @@
         }
       },
       {
-        "tableName": "nutrients",
+        "tableName": "macros",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`templateId` INTEGER NOT NULL, `calories` INTEGER, `protein` REAL, `carbohydrates` REAL, `ofWhichSugar` REAL, `fat` REAL, `ofWhichSaturated` REAL, `salt` REAL, `fibre` REAL, `notes` TEXT, `_id` INTEGER PRIMARY KEY AUTOINCREMENT, FOREIGN KEY(`templateId`) REFERENCES `templates`(`_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
@@ -144,13 +144,13 @@
         },
         "indices": [
           {
-            "name": "index_nutrients_templateId",
+            "name": "index_macros_templateId",
             "unique": true,
             "columnNames": [
               "templateId"
             ],
             "orders": [],
-            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_nutrients_templateId` ON `${TABLE_NAME}` (`templateId`)"
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_macros_templateId` ON `${TABLE_NAME}` (`templateId`)"
           }
         ],
         "foreignKeys": [
@@ -254,7 +254,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '29002b40595f96f10481894d3a581d82')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '11d469661ca5b80589ebe7f33d3073e1')"
     ]
   }
 }

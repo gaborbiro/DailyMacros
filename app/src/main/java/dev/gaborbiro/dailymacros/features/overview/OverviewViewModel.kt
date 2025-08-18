@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.model.BaseListItemUIModel
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
-import dev.gaborbiro.dailymacros.features.modal.usecase.FetchNutrientsUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.FetchMacrosUseCase
 import dev.gaborbiro.dailymacros.features.overview.model.DialogState
 import dev.gaborbiro.dailymacros.features.overview.model.EditState
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
@@ -25,7 +25,7 @@ internal class OverviewViewModel(
     private val navigator: OverviewNavigator,
     private val repository: RecordsRepository,
     private val uiMapper: RecordsUIMapper,
-    private val fetchNutrientsUseCase: FetchNutrientsUseCase,
+    private val fetchMacrosUseCase: FetchMacrosUseCase,
 ) : ViewModel() {
 
     private val _viewState: MutableStateFlow<OverviewViewState> =
@@ -54,7 +54,7 @@ internal class OverviewViewModel(
     }
 
     fun onChangeImageMenuItemTapped(record: RecordUIModel) {
-        if (record.hasNutrients) {
+        if (record.hasMacros) {
             _viewState.update {
                 it.copy(dialog = DialogState.ConfirmDestructiveChangeDialog(editState = EditState.ChangeImage(record.recordId)))
             }
@@ -65,7 +65,7 @@ internal class OverviewViewModel(
 
     fun onDeleteImageMenuItemTapped(record: RecordUIModel) {
         if (record.bitmap != null) {
-            if (record.hasNutrients) {
+            if (record.hasMacros) {
                 _viewState.update {
                     it.copy(dialog = DialogState.ConfirmDestructiveChangeDialog(editState = EditState.RemoveImage(record.templateId)))
                 }
@@ -174,9 +174,9 @@ internal class OverviewViewModel(
         }
     }
 
-    fun onNutrientsMenuItemTapped(record: RecordUIModel) {
+    fun onMacrosMenuItemTapped(record: RecordUIModel) {
         viewModelScope.launch {
-            fetchNutrientsUseCase.execute(
+            fetchMacrosUseCase.execute(
                 record.recordId
             )
         }

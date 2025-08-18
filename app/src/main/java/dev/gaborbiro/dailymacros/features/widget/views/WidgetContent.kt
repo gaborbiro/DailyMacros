@@ -110,7 +110,7 @@ private fun WidgetContentPreviewExpanded() {
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     timestamp = "Yesterday",
                     bitmap = null,
-                    hasNutrients = true,
+                    hasMacros = true,
                 ),
                 RecordUIModel(
                     recordId = 2L,
@@ -119,7 +119,7 @@ private fun WidgetContentPreviewExpanded() {
                     title = "Lunch",
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     bitmap = randomBitmap(),
-                    hasNutrients = true,
+                    hasMacros = true,
                 ),
                 RecordUIModel(
                     recordId = 3L,
@@ -128,7 +128,7 @@ private fun WidgetContentPreviewExpanded() {
                     title = "Dinner",
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     bitmap = randomBitmap(),
-                    hasNutrients = true,
+                    hasMacros = true,
                 ),
             ),
             topTemplates = listOf(
@@ -174,7 +174,7 @@ private fun WidgetContentPreviewCollapsed() {
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     timestamp = "Yesterday",
                     bitmap = null,
-                    hasNutrients = true,
+                    hasMacros = true,
                 ),
                 RecordUIModel(
                     recordId = 2L,
@@ -183,7 +183,7 @@ private fun WidgetContentPreviewCollapsed() {
                     title = "Lunch",
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     bitmap = randomBitmap(),
-                    hasNutrients = true,
+                    hasMacros = true,
                 ),
                 RecordUIModel(
                     recordId = 3L,
@@ -192,7 +192,7 @@ private fun WidgetContentPreviewCollapsed() {
                     title = "Dinner",
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     bitmap = randomBitmap(),
-                    hasNutrients = true,
+                    hasMacros = true,
                 ),
             ),
             topTemplates = emptyList(),

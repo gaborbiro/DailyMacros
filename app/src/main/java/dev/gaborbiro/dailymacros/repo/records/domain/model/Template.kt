@@ -5,7 +5,7 @@ data class Template(
     val images: List<String>,
     val name: String,
     val description: String,
-    val nutrients: Nutrients?,
+    val macros: Macros?,
 ) {
     val primaryImage: String? get() = images.firstOrNull()
 }

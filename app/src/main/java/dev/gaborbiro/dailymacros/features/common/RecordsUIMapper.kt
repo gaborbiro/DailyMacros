@@ -4,8 +4,8 @@ import android.graphics.Bitmap
 import android.util.Range
 import dev.gaborbiro.dailymacros.data.image.ImageStore
 import dev.gaborbiro.dailymacros.features.common.model.BaseListItemUIModel
-import dev.gaborbiro.dailymacros.features.common.model.NutrientProgressItem
-import dev.gaborbiro.dailymacros.features.common.model.NutrientProgressUIModel
+import dev.gaborbiro.dailymacros.features.common.model.MacroProgressUIModel
+import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.util.formatShort
@@ -16,14 +16,14 @@ import java.time.temporal.ChronoUnit
 
 internal class RecordsUIMapper(
     private val imageStore: ImageStore,
-    private val nutrientsUIMapper: NutrientsUIMapper,
+    private val macrosUIMapper: MacrosUIMapper,
 ) {
     fun map(records: List<Record>, thumbnail: Boolean): List<BaseListItemUIModel> {
         return records
             .groupBy { it.timestamp.toLocalDate() }
             .map { (day, records) ->
                 listOf(
-                    mapNutrientProgress(records, day)
+                    mapMacrosProgress(records, day)
                 ) + records.map {
                     map(it, thumbnail)
                 }
@@ -31,123 +31,143 @@ internal class RecordsUIMapper(
             .flatten()
     }
 
-    fun mapNutrientProgress(records: List<Record>, date: LocalDate): NutrientProgressUIModel {
-        val totalCalories = records.sumOf { it.template.nutrients?.calories ?: 0 }
-        val totalProtein =
-            records.sumOf {
-                it.template.nutrients?.protein?.toDouble() ?: 0.0
-            }.toInt()
-        val totalCarbs =
-            records.sumOf {
-                it.template.nutrients?.carbohydrates?.toDouble() ?: 0.0
-            }.toInt()
-        val totalSugar =
-            records.sumOf {
-                it.template.nutrients?.ofWhichSugar?.toDouble() ?: 0.0
-            }.toInt()
-        val totalFat =
-            records.sumOf {
-                it.template.nutrients?.fat?.toDouble() ?: 0.0
-            }.toInt()
-        val totalSalt =
-            records.sumOf {
-                it.template.nutrients?.salt?.toDouble() ?: 0.0
-            }.toInt()
+    fun mapMacrosProgress(records: List<Record>, date: LocalDate): MacroProgressUIModel {
+        val totalCalories = records.sumOf { it.template.macros?.calories ?: 0 }
+        val totalProtein = records.sumOf { it.template.macros?.protein?.toDouble() ?: 0.0 }
+            .toInt()
+        val totalCarbs = records.sumOf { it.template.macros?.carbohydrates?.toDouble() ?: 0.0 }
+            .toInt()
+        val totalSugar = records.sumOf { it.template.macros?.ofWhichSugar?.toDouble() ?: 0.0 }
+            .toInt()
+        val totalFat = records.sumOf { it.template.macros?.fat?.toDouble() ?: 0.0 }
+            .toInt()
+        val totalSalt = records.sumOf { it.template.macros?.salt?.toDouble() ?: 0.0 }
+            .toInt()
+        val totalFibre = records.sumOf { it.template.macros?.fibre?.toDouble() ?: 0.0 }
+            .toInt()
 
-        class NutrientProfile(
+        class MacroGoal(
             val name: String,
             val rangeLabel: String,
             val min: Float,
             val max: Float,
+            val fuzzy: Boolean,
         ) {
-            private val absoluteMax = max * 1.1f
-            private val lowRange = min / absoluteMax
-            private val highRange = max / absoluteMax
-            val range = Range(lowRange, highRange)
-            fun progress(total: Int) = total / absoluteMax
+            private val extendedMax = max * 1.1f
+            val targetRange = Range(
+                min / (if (fuzzy) extendedMax else max),
+                max / (if (fuzzy) extendedMax else 1f)
+            )
+
+            fun progress(total: Int) = total / if (fuzzy) extendedMax else max
         }
 
-        val calories = NutrientProfile(
+        val calories = MacroGoal(
             name = "Calories",
             rangeLabel = "2.1-2.2kcal",
             min = 2100f,
             max = 2200f,
+            fuzzy = true,
         )
-        val carbs = NutrientProfile(
-            name = "Carbs",
-            rangeLabel = "150-200g",
-            min = 150f,
-            max = 200f,
-        )
-        val protein = NutrientProfile(
+        val protein = MacroGoal(
             name = "Protein",
             rangeLabel = "170-190g",
             min = 170f,
             max = 190f,
+            fuzzy = true,
         )
-        val fat = NutrientProfile(
+        val fat = MacroGoal(
             name = "Fat",
             rangeLabel = "55-65g",
             min = 55f,
             max = 65f,
+            fuzzy = true,
         )
-        val sugar = NutrientProfile(
+        val carbs = MacroGoal(
+            name = "Carbs",
+            rangeLabel = "150-200g",
+            min = 150f,
+            max = 200f,
+            fuzzy = true,
+        )
+        val sugar = MacroGoal(
             name = "Sugar",
-            rangeLabel = "<40g ttl., <25g",
+            rangeLabel = "<40g ttl., <25g3",
             min = 0f,
             max = 40f,
+            fuzzy = false,
         )
-        val salt = NutrientProfile(
+        val salt = MacroGoal(
             name = "Salt",
             rangeLabel = "<5g (≈2g Na)",
             min = 0f,
             max = 5f,
+            fuzzy = false,
+        )
+        val fibre = MacroGoal(
+            // TODO Women need 21-25g
+            name = "Fibre",
+            rangeLabel = "30-38g",
+            min = 30f,
+            max = 38f,
+            fuzzy = true,
         )
 
-        return NutrientProgressUIModel(
-            date = date,
-            calories = NutrientProgressItem(
+        val macros = listOf(
+            MacroProgressItem(
                 title = calories.name,
                 progress = calories.progress(totalCalories),
-                progressLabel = nutrientsUIMapper.mapCalories(totalCalories, withLabel = false)!!,
-                range = calories.range,
+                progressLabel = macrosUIMapper.mapCalories(totalCalories, withLabel = false)!!,
+                range = calories.targetRange,
                 rangeLabel = calories.rangeLabel,
             ),
-            protein = NutrientProgressItem(
+            MacroProgressItem(
                 title = protein.name,
                 progress = protein.progress(totalProtein),
                 progressLabel = "${totalProtein}g",
-                range = protein.range,
+                range = protein.targetRange,
                 rangeLabel = protein.rangeLabel,
             ),
-            fat = NutrientProgressItem(
+            MacroProgressItem(
                 title = fat.name,
                 progress = fat.progress(totalFat),
                 progressLabel = "${totalFat}g",
-                range = fat.range,
+                range = fat.targetRange,
                 rangeLabel = fat.rangeLabel,
             ),
-            carbs = NutrientProgressItem(
+            MacroProgressItem(
                 title = carbs.name,
                 progress = carbs.progress(totalCarbs),
-                progressLabel = "${totalCarbs}g",
-                range = carbs.range,
+                progressLabel = macrosUIMapper.mapCarbohydrates(totalCarbs, null, isShort = true, withLabel = false) ?: "0g",
+                range = carbs.targetRange,
                 rangeLabel = carbs.rangeLabel,
             ),
-            sugar = NutrientProgressItem(
+            MacroProgressItem(
                 title = sugar.name,
-                progress = totalSugar.toFloat() / 40,
+                progress = sugar.progress(totalSugar),
                 progressLabel = "${totalSugar}g",
-                range = Range(.9f, 1f),
+                range = sugar.targetRange,
                 rangeLabel = sugar.rangeLabel,
             ),
-            salt = NutrientProgressItem(
-                title = "Salt",
-                progress = totalSalt.toFloat() / 5f,
+            MacroProgressItem(
+                title = salt.name,
+                progress = salt.progress(totalSalt),
                 progressLabel = "${totalSalt}g",
-                range = Range(.9f, 1f),
+                range = salt.targetRange,
                 rangeLabel = salt.rangeLabel,
             ),
+            MacroProgressItem(
+                title = fibre.name,
+                progress = fibre.progress(totalFibre),
+                progressLabel = "${totalFibre}g",
+                range = fibre.targetRange,
+                rangeLabel = fibre.rangeLabel,
+            ),
+        )
+
+        return MacroProgressUIModel(
+            date = date,
+            macros = macros,
         )
     }
 
@@ -165,8 +185,8 @@ internal class RecordsUIMapper(
 
             else -> timestamp.formatShort()
         }
-        val nutrientsStr: String? =
-            record.template.nutrients?.let { nutrientsUIMapper.map(it, isShort = true) }
+        val macrosStr: String? =
+            record.template.macros?.let { macrosUIMapper.map(it, isShort = true) }
 
         return RecordUIModel(
             recordId = record.dbId,
@@ -174,8 +194,8 @@ internal class RecordsUIMapper(
             bitmap = bitmap,
             timestamp = timestampStr,
             title = record.template.name,
-            description = nutrientsStr ?: "",
-            hasNutrients = record.template.nutrients != null,
+            description = macrosStr ?: "",
+            hasMacros = record.template.macros != null,
         )
     }
 }

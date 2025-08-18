@@ -2,9 +2,9 @@ package dev.gaborbiro.dailymacros.repo.chatgpt
 
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
-import dev.gaborbiro.dailymacros.repo.chatgpt.model.NutrientApiModel
-import dev.gaborbiro.dailymacros.repo.chatgpt.model.NutrientsRequest
-import dev.gaborbiro.dailymacros.repo.chatgpt.model.NutrientsResponse
+import dev.gaborbiro.dailymacros.repo.chatgpt.model.MacrosApiModel
+import dev.gaborbiro.dailymacros.repo.chatgpt.model.MacrosRequest
+import dev.gaborbiro.dailymacros.repo.chatgpt.model.MacrosResponse
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTRequest
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTResponse
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntry
@@ -13,7 +13,7 @@ import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContent
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.Role
 
 
-internal fun NutrientsRequest.toApiModel(): ChatGPTRequest {
+internal fun MacrosRequest.toApiModel(): ChatGPTRequest {
     return ChatGPTRequest(
         input = listOf(
             ContentEntry(
@@ -21,15 +21,15 @@ internal fun NutrientsRequest.toApiModel(): ChatGPTRequest {
                 content = listOf(
                     InputContent.Text(
                         """
-                            You are an intelligent image and text analyser for a nutrient tracker app.  
+                            You are an intelligent image and text analyser for a macronutrient tracker app.  
                             The user provides:
                             1. A photo of a meal or drink, AND/OR  
                             2. A title and optional description (often produced by a previous step in this app).  
 
-                            Your job: estimate the nutrient content.
+                            Your job: estimate the macronutrient content.
 
                             TASK:
-                            - Estimate the following nutrients:
+                            - Estimate the following macronutrients:
                               • calories (cal)  
                               • protein (g)  
                               • carbohydrate (g)  
@@ -39,15 +39,15 @@ internal fun NutrientsRequest.toApiModel(): ChatGPTRequest {
                               • salt (g)  
                               • fibre (g)  
 
-                            - Only include nutrients you can reasonably estimate.  
+                            - Only include macronutrients you can reasonably estimate.  
                             - Round all numbers to **1 decimal place**, except salt, which should have **2 decimal places**.
 
                             OUTPUT FORMAT:
                             Always return valid JSON with no trailing commas. Only return the following json formats. No breakdowns or calculations outside this format.
 
-                            If nutrients can be estimated:
+                            If macronutrients can be estimated:
                             {
-                              "nutrients": {
+                              "macros": {
                                 "calories": 350.0,
                                 "protein": 5.6,
                                 "carbohydrate": 54.2,
@@ -60,7 +60,7 @@ internal fun NutrientsRequest.toApiModel(): ChatGPTRequest {
                               "notes": "",
                             }
 
-                            If nutrients cannot be estimated:
+                            If macronutrients cannot be estimated:
                             {
                               "issues": "No clear food item visible in the image. Provide a clearer photo or detailed description."
                             }
@@ -68,21 +68,21 @@ internal fun NutrientsRequest.toApiModel(): ChatGPTRequest {
                             ACCURACY PRINCIPLE:
                             - Perfect accuracy is less important than **reliability and consistency** in estimates across different meals.  
                             - Use typical/average nutritional values for standard foods when exact packaging data is unavailable.
-                            - When exact packaging data is available but one or more nutrients are missing from it, estimate them if you can. Otherwise mention them in "notes"
+                            - When exact packaging data is available but one or more macronutrients are missing from it, estimate them if you can. Otherwise mention them in "notes"
 
                             CONFIDENCE RULES:
-                            - Output "nutrients" only if:
+                            - Output "macros" only if:
                               1. You are highly confident the photo shows real food or drink.  
-                              2. The title/description and image provide enough detail to make a reasonable nutrient estimate (e.g., type of food, preparation, ingredients).  
+                              2. The title/description and image provide enough detail to make a reasonable macronutrient estimate (e.g., type of food, preparation, ingredients).  
                             - If either condition is not met:
-                              - Omit "nutrients".
+                              - Omit "macros".
                               - Include "issues" with a short, clear sentence explaining what’s missing or unclear so the user can improve their input.
 
                             NOTES:
                             - Always use both the image and the texts provided.
-                            - If values are extremely uncertain (e.g., ambiguous dish), consider omitting `nutrients` entirely and use `issues` instead.
+                            - If values are extremely uncertain (e.g., ambiguous dish), consider omitting `macros` entirely and use `issues` instead.
                             - Any breakdowns, calculations or observations should go into the "notes" field.
-                            - Mention in the notes the top contributor ingredient for each significant nutrient.
+                            - Mention in the notes the top contributor ingredient for each significant macronutrient.
                             - Separate multiple notes by newline.
                         """.trimIndent()
                     )
@@ -102,7 +102,7 @@ internal fun NutrientsRequest.toApiModel(): ChatGPTRequest {
 
 private val gson = GsonBuilder().create()
 
-internal fun ChatGPTResponse.toNutrientsResponse(): NutrientsResponse {
+internal fun ChatGPTResponse.toMacrosResponse(): MacrosResponse {
     val resultJson: String? = this.output
         .lastOrNull {
             it.role == Role.assistant &&
@@ -115,7 +115,7 @@ internal fun ChatGPTResponse.toNutrientsResponse(): NutrientsResponse {
         }
         ?.text
 
-    class Nutrients(
+    class Macros(
         @SerializedName("calories") val calories: Number?,
         @SerializedName("protein") val protein: Number?,
         @SerializedName("carbohydrate") val carbs: Number?,
@@ -127,28 +127,28 @@ internal fun ChatGPTResponse.toNutrientsResponse(): NutrientsResponse {
     )
 
     class Response(
-        @SerializedName("nutrients") val nutrients: Nutrients?,
+        @SerializedName("macros") val macros: Macros?,
         @SerializedName("notes") val notes: String?,
         @SerializedName("issues") val issues: String?,
     )
 
     val response = gson.fromJson(resultJson, Response::class.java)
 
-    val nutrients = response.nutrients?.let {
-        // null value doesn't mean 0 for that nutrient, the AI just has no information on it.
-        NutrientApiModel(
-            calories = response.nutrients.calories?.toInt(),
-            proteinGrams = response.nutrients.protein?.toFloat(),
-            carbGrams = response.nutrients.carbs?.toFloat(),
-            ofWhichSugarGrams = response.nutrients.ofWhichSugars?.toFloat(),
-            fatGrams = response.nutrients.fats?.toFloat(),
-            ofWhichSaturatedGrams = response.nutrients.ofWhichSaturated?.toFloat(),
-            saltGrams = response.nutrients.salt?.toFloat(),
-            fibreGrams = response.nutrients.fibre?.toFloat(),
+    val macros = response.macros?.let {
+        // null value doesn't mean 0 for that macronutrient, the AI just has no information on it.
+        MacrosApiModel(
+            calories = response.macros.calories?.toInt(),
+            proteinGrams = response.macros.protein?.toFloat(),
+            carbGrams = response.macros.carbs?.toFloat(),
+            ofWhichSugarGrams = response.macros.ofWhichSugars?.toFloat(),
+            fatGrams = response.macros.fats?.toFloat(),
+            ofWhichSaturatedGrams = response.macros.ofWhichSaturated?.toFloat(),
+            saltGrams = response.macros.salt?.toFloat(),
+            fibreGrams = response.macros.fibre?.toFloat(),
         )
     }
-    return NutrientsResponse(
-        nutrients = nutrients,
+    return MacrosResponse(
+        macros = macros,
         issues = response.issues,
         notes = response.notes,
     )

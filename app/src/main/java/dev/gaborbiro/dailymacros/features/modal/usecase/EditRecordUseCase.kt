@@ -24,7 +24,7 @@ internal class EditRecordUseCase(
                 primaryImage = record.template.primaryImage,
                 name = title,
                 description = description,
-                // deleting associated nutrient information because title/description has changed
+                // deleting associated macro information because title/description has changed
             ),
         )
         repository.saveRecord(newRecord)

@@ -23,7 +23,7 @@ import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
 import dev.gaborbiro.dailymacros.design.WidgetColorScheme
-import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
+import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.widget.views.WidgetContent
@@ -67,13 +67,13 @@ class NotesWidget : GlanceAppWidget() {
             val fileStore =
                 FileStoreFactoryImpl(LocalContext.current).getStore("public", keepFiles = true)
             val imageStore = ImageStore(fileStore)
-            val nutrientsUIMapper = NutrientsUIMapper()
-            val recordsUIMapper = RecordsUIMapper(imageStore, nutrientsUIMapper)
+            val macrosUIMapper = MacrosUIMapper()
+            val recordsUIMapper = RecordsUIMapper(imageStore, macrosUIMapper)
             val recentRecords = recordsUIMapper.map(
                 records = prefs.retrieveRecentRecords(),
                 thumbnail = true,
             )
-            val widgetUIMapper = WidgetUIMapper(imageStore, nutrientsUIMapper)
+            val widgetUIMapper = WidgetUIMapper(imageStore, macrosUIMapper)
             val topTemplates = widgetUIMapper.map(
                 templates = prefs.retrieveTopTemplates(),
                 thumbnail = true,

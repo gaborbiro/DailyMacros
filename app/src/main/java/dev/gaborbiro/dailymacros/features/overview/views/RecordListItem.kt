@@ -41,7 +41,7 @@ fun RecordListItem(
     onDeleteImageMenuItemTapped: (RecordUIModel) -> Unit,
     onEditRecordMenuItemTapped: (RecordUIModel) -> Unit,
     onDeleteRecordMenuItemTapped: (RecordUIModel) -> Unit,
-    onNutrientsMenuItemTapped: (RecordUIModel) -> Unit,
+    onMacrosMenuItemTapped: (RecordUIModel) -> Unit,
     onRecordImageTapped: (RecordUIModel) -> Unit,
     onRecordBodyTapped: (RecordUIModel) -> Unit,
 ) {
@@ -75,7 +75,7 @@ fun RecordListItem(
             onDeleteImageMenuItemTapped = { onDeleteImageMenuItemTapped(record) },
             onEditRecordMenuItemTapped = { onEditRecordMenuItemTapped(record) },
             onDeleteRecordMenuItemTapped = { onDeleteRecordMenuItemTapped(record) },
-            onNutrientsMenuItemTapped = { onNutrientsMenuItemTapped(record) },
+            onMacrosMenuItemTapped = { onMacrosMenuItemTapped(record) },
         )
     }
 }
@@ -141,7 +141,7 @@ private fun OverviewListItemPreview() {
             templateId = 1L,
             bitmap = randomBitmap(),
             timestamp = "2022-01-01 00:00:00",
-            hasNutrients = true,
+            hasMacros = true,
         ),
         onRepeatMenuItemTapped = {},
         onChangeImageMenuItemTapped = {},
@@ -150,6 +150,6 @@ private fun OverviewListItemPreview() {
         onDeleteRecordMenuItemTapped = {},
         onRecordImageTapped = {},
         onRecordBodyTapped = {},
-        onNutrientsMenuItemTapped = {},
+        onMacrosMenuItemTapped = {},
     )
 }

@@ -4,12 +4,12 @@ import androidx.room.Transaction
 import dev.gaborbiro.dailymacros.data.db.RecordsDAO
 import dev.gaborbiro.dailymacros.data.db.TemplatesDAO
 import dev.gaborbiro.dailymacros.data.db.model.entity.ImageEntity
-import dev.gaborbiro.dailymacros.data.db.model.entity.NutrientsEntity
+import dev.gaborbiro.dailymacros.data.db.model.entity.MacrosEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 import dev.gaborbiro.dailymacros.data.image.ImageStore
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Nutrients
+import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.RecordToSave
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
@@ -108,9 +108,9 @@ internal class RecordsRepositoryImpl(
     }
 
     override suspend fun deleteRecord(recordId: Long): Record {
-        val recordWithTemplateAndNutrients = recordsDAO.get(recordId)
+        val recordJoined = recordsDAO.get(recordId)
         recordsDAO.delete(recordId)
-        return mapper.map(recordWithTemplateAndNutrients)
+        return mapper.map(recordJoined)
     }
 
     override suspend fun applyTemplate(templateId: Long): Long {
@@ -122,7 +122,7 @@ internal class RecordsRepositoryImpl(
         image: String?, /* = null */
         title: String?, /* = null */
         description: String?, /* = null */
-        nutrients: Nutrients?,
+        macros: Macros?,
     ) {
         val oldTemplate = templatesDAO.getTemplateById(templateId)
 
@@ -133,12 +133,12 @@ internal class RecordsRepositoryImpl(
             ).apply { id = templateId }
         )
 
-        if (nutrients == null) {
-            templatesDAO.deleteNutrientsForTemplate(templateId)
+        if (macros == null) {
+            templatesDAO.deleteMacrosForTemplate(templateId)
         } else {
-            val entity: NutrientsEntity = mapper.map(
-                nutrients = nutrients,
-                id = oldTemplate.nutrients?.id,
+            val entity: MacrosEntity = mapper.map(
+                macros = macros,
+                id = oldTemplate.macros?.id,
                 templateId = templateId
             )
             templatesDAO.insertOrUpdate(entity)

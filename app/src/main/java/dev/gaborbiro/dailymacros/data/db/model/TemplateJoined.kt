@@ -5,7 +5,7 @@ import androidx.room.Relation
 import dev.gaborbiro.dailymacros.data.db.model.entity.COLUMN_ID
 import dev.gaborbiro.dailymacros.data.db.model.entity.COLUMN_TEMPLATE_ID
 import dev.gaborbiro.dailymacros.data.db.model.entity.ImageEntity
-import dev.gaborbiro.dailymacros.data.db.model.entity.NutrientsEntity
+import dev.gaborbiro.dailymacros.data.db.model.entity.MacrosEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 
 data class TemplateJoined(
@@ -15,7 +15,7 @@ data class TemplateJoined(
         parentColumn = COLUMN_ID,
         entityColumn = COLUMN_TEMPLATE_ID
     )
-    val nutrients: NutrientsEntity?, // null = no nutrient row
+    val macros: MacrosEntity?, // null = no macros row
 
     @Relation(
         parentColumn = COLUMN_ID,

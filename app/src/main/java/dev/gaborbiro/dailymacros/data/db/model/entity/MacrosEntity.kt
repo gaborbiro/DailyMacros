@@ -6,7 +6,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 
 @Entity(
-    tableName = "nutrients",
+    tableName = "macros",
     foreignKeys = [
         ForeignKey(
             entity = TemplateEntity::class,
@@ -17,7 +17,7 @@ import androidx.room.Index
     ],
     indices = [Index(value = [COLUMN_TEMPLATE_ID], unique = true)] // enforce 1:1
 )
-data class NutrientsEntity(
+data class MacrosEntity(
     @ColumnInfo(name = COLUMN_TEMPLATE_ID) val templateId: Long,
     val calories: Int?,
     val protein: Float?,

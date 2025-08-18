@@ -16,8 +16,8 @@ internal class ValidateEditRecordUseCase(
         val templateId = template.dbId
         val records = repository.getRecordsByTemplate(templateId)
         return if (records.size < 2) {
-            val confirmNutrientDeletion = template.nutrients != null
-            EditValidationResult.Valid(confirmNutrientDeletion)
+            val confirmMacrosDeletion = template.macros != null
+            EditValidationResult.Valid(confirmMacrosDeletion)
         } else {
             EditValidationResult.ConfirmMultipleEdit(records.size)
         }
@@ -26,6 +26,6 @@ internal class ValidateEditRecordUseCase(
 
 sealed class EditValidationResult {
     data class ConfirmMultipleEdit(val count: Int) : EditValidationResult()
-    data class Valid(val showNutrientDeletionConfirmationDialog: Boolean) : EditValidationResult()
+    data class Valid(val showMacrosDeletionConfirmationDialog: Boolean) : EditValidationResult()
     data class Error(val message: String) : EditValidationResult()
 }

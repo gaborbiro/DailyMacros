@@ -1,6 +1,6 @@
 package dev.gaborbiro.dailymacros.repo.records.domain
 
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Nutrients
+import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.RecordToSave
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
@@ -52,7 +52,7 @@ internal interface RecordsRepository {
         image: String? = null,
         title: String? = null,
         description: String? = null,
-        nutrients: Nutrients? = null,
+        macros: Macros? = null,
     )
 
     suspend fun deleteImage(templateId: Long)

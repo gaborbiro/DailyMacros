@@ -24,18 +24,18 @@ import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStore
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
-import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
+import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.common.error.model.ErrorViewState
 import dev.gaborbiro.dailymacros.features.common.error.views.ErrorDialog
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
-import dev.gaborbiro.dailymacros.features.modal.model.HostViewState
+import dev.gaborbiro.dailymacros.features.modal.model.ModalViewState
 import dev.gaborbiro.dailymacros.features.modal.model.ImagePickerState
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.FetchNutrientsUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.FetchMacrosUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodPicSummaryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
@@ -212,19 +212,19 @@ class ModalActivity : AppCompatActivity() {
         )
 
         val recordsMapper = RecordsMapper()
-        val nutrientsUIMapper = NutrientsUIMapper()
+        val macrosUIMapper = MacrosUIMapper()
         val deleteRecordUseCase = DeleteRecordUseCase(recordsRepository)
 
         ModalScreenViewModel(
             imageStore = imageStore,
             recordsRepository = recordsRepository,
-            fetchNutrientsUseCase = FetchNutrientsUseCase(
+            fetchMacrosUseCase = FetchMacrosUseCase(
                 this,
                 imageStore,
                 chatGPTRepository,
                 recordsRepository,
                 recordsMapper,
-                nutrientsUIMapper,
+                macrosUIMapper,
             ),
             createRecordUseCase = CreateRecordUseCase(recordsRepository),
             editRecordUseCase = EditRecordUseCase(recordsRepository),
@@ -238,7 +238,7 @@ class ModalActivity : AppCompatActivity() {
             getRecordImageUseCase = GetRecordImageUseCase(recordsRepository, imageStore),
             getTemplateImageUseCase = GetTemplateImageUseCase(recordsRepository, imageStore),
             foodPicSummaryUseCase = FoodPicSummaryUseCase(imageStore, chatGPTRepository, recordsMapper),
-            nutrientsUIMapper = nutrientsUIMapper,
+            macrosUIMapper = macrosUIMapper,
             deleteRecordUseCase = deleteRecordUseCase,
         )
     }
@@ -291,7 +291,7 @@ class ModalActivity : AppCompatActivity() {
         }
 
         setContent {
-            val viewState: HostViewState by viewModel.viewState.collectAsStateWithLifecycle()
+            val viewState: ModalViewState by viewModel.viewState.collectAsStateWithLifecycle()
 
             DailyMacrosTheme {
                 Dialog(viewState.dialog)
@@ -310,9 +310,13 @@ class ModalActivity : AppCompatActivity() {
                     val filename = "temp.$FoodPicExt"
                     val launcher = rememberLauncherForActivityResult(
                         contract = ActivityResultContracts.TakePicture(),
-                        onResult = {
-                            val uri = cacheFileStore.getOrCreateFile(filename).toUri()
-                            viewModel.onImageAvailable(uri)
+                        onResult = { imageSaved ->
+                            if (imageSaved) {
+                                val uri = cacheFileStore.getOrCreateFile(filename).toUri()
+                                viewModel.onImageAvailable(uri)
+                            } else {
+                                viewModel.onImagePickerCanceled()
+                            }
                         }
                     )
                     SideEffect {
