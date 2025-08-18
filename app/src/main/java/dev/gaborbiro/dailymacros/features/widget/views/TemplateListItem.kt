@@ -1,11 +1,8 @@
 package dev.gaborbiro.dailymacros.features.widget.views
 
-import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceModifier
-import androidx.glance.Image
-import androidx.glance.ImageProvider
 import androidx.glance.action.Action
 import androidx.glance.action.action
 import androidx.glance.action.clickable
@@ -25,7 +22,6 @@ import androidx.glance.text.Text
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultHorizontal
 import dev.gaborbiro.dailymacros.features.widget.model.TemplateUIModel
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
-import dev.gaborbiro.dailymacros.util.randomBitmap
 
 @Composable
 internal fun TemplateListItem(
@@ -40,21 +36,21 @@ internal fun TemplateListItem(
             .padding(start = PaddingWidgetDefaultHorizontal),
         verticalAlignment = Alignment.Vertical.CenterVertically,
     ) {
-        template.bitmap
-            ?.let { image: Bitmap ->
-                Image(
+        template.images.firstOrNull()
+            ?.let {
+                LocalImage(
+                    it,
                     modifier = GlanceModifier
-                        .size(WidgetTemplateImageSize)
+                        .size(WidgetImageSize)
                         .clickable(imageTapActionProvider)
                         .cornerRadius(6.dp),
-                    provider = ImageProvider(image),
-                    contentDescription = "note image",
                     contentScale = ContentScale.Crop,
                 )
             }
             ?: run {
                 Spacer(modifier = GlanceModifier.size(WidgetTemplateImageSize))
             }
+
         Column {
             Text(
                 modifier = GlanceModifier
@@ -89,7 +85,7 @@ private fun TemplateListItemPreview() {
             template = TemplateUIModel(
                 title = "Breakfast",
                 description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
-                bitmap = randomBitmap(),
+                images = emptyList(),
                 templateId = 0L,
             ),
             imageTapActionProvider = action { },

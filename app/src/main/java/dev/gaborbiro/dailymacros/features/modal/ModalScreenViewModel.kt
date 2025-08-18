@@ -5,13 +5,13 @@ import android.util.Log
 import androidx.annotation.UiThread
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.gaborbiro.dailymacros.data.image.ImageStore
+import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.common.error.model.ErrorViewState
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
-import dev.gaborbiro.dailymacros.features.modal.model.ModalViewState
 import dev.gaborbiro.dailymacros.features.modal.model.ImagePickerState
+import dev.gaborbiro.dailymacros.features.modal.model.ModalViewState
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditImageValidationResult
@@ -149,7 +149,7 @@ internal class ModalScreenViewModel(
                 it.copy(
                     dialog = DialogState.InputDialog.RecordDetailsDialog(
                         recordId = recordId,
-                        image = record.template.primaryImage,
+                        images = record.template.images,
                         title = record.template.name,
                         description = record.template.description,
                         calories = macrosUIMapper.mapCalories(value = record.template.macros?.calories),

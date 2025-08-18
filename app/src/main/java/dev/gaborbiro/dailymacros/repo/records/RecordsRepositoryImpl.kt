@@ -7,7 +7,7 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.ImageEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.MacrosEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
-import dev.gaborbiro.dailymacros.data.image.ImageStore
+import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record

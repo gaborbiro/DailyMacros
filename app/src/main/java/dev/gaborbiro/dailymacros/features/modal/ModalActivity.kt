@@ -18,10 +18,10 @@ import androidx.core.os.bundleOf
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
-import dev.gaborbiro.dailymacros.FoodPicExt
+import dev.gaborbiro.dailymacros.DefaultFoodPicExt
 import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
-import dev.gaborbiro.dailymacros.data.image.ImageStore
+import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
@@ -167,7 +167,7 @@ class ModalActivity : AppCompatActivity() {
     private val cacheFileStore = FileStoreFactoryImpl(this).getStore("public", keepFiles = false)
 
     private val viewModel by lazy {
-        val imageStore = ImageStore(fileStore)
+        val imageStore = ImageStoreImpl(fileStore)
         val recordsRepository = RecordsRepositoryImpl(
             templatesDAO = AppDatabase.getInstance().templatesDAO(),
             recordsDAO = AppDatabase.getInstance().recordsDAO(),
@@ -307,7 +307,7 @@ class ModalActivity : AppCompatActivity() {
 
             when (viewState.imagePicker) {
                 ImagePickerState.Take -> {
-                    val filename = "temp.$FoodPicExt"
+                    val filename = "temp.$DefaultFoodPicExt"
                     val launcher = rememberLauncherForActivityResult(
                         contract = ActivityResultContracts.TakePicture(),
                         onResult = { imageSaved ->

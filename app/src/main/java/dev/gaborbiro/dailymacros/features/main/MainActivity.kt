@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.features.main
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.core.view.WindowCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -27,9 +28,10 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.FetchMacrosUseCase
 import dev.gaborbiro.dailymacros.features.overview.OverviewNavigatorImpl
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
-import dev.gaborbiro.dailymacros.data.image.ImageStore
+import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
+import dev.gaborbiro.dailymacros.features.common.view.LocalImageStore
 import okhttp3.OkHttpClient
 import okhttp3.java.net.cookiejar.JavaNetCookieJar
 import okhttp3.logging.HttpLoggingInterceptor
@@ -47,7 +49,7 @@ class MainActivity : ComponentActivity() {
 
         val navigator = OverviewNavigatorImpl(this)
         val fileStore = FileStoreFactoryImpl(this).getStore("public", keepFiles = true)
-        val imageStore = ImageStore(fileStore)
+        val imageStore = ImageStoreImpl(fileStore)
 
         val recordsRepository = RecordsRepositoryImpl(
             templatesDAO = AppDatabase.getInstance().templatesDAO(),
@@ -106,7 +108,7 @@ class MainActivity : ComponentActivity() {
         val viewModel = OverviewViewModel(
             navigator = navigator,
             repository = recordsRepository,
-            uiMapper = RecordsUIMapper(imageStore, macrosUIMapper),
+            uiMapper = RecordsUIMapper(macrosUIMapper),
             fetchMacrosUseCase = fetchMacrosUseCase,
         )
 
@@ -118,7 +120,9 @@ class MainActivity : ComponentActivity() {
                     startDestination = NoteList.route,
                 ) {
                     composable(route = NoteList.route) {
-                        OverviewScreen(viewModel)
+                        CompositionLocalProvider(LocalImageStore provides imageStore) {
+                            OverviewScreen(viewModel)
+                        }
                     }
                 }
             }

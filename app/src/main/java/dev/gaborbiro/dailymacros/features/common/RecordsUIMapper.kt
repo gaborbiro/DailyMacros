@@ -1,11 +1,9 @@
 package dev.gaborbiro.dailymacros.features.common
 
-import android.graphics.Bitmap
 import android.util.Range
-import dev.gaborbiro.dailymacros.data.image.ImageStore
 import dev.gaborbiro.dailymacros.features.common.model.BaseListItemUIModel
-import dev.gaborbiro.dailymacros.features.common.model.MacroProgressUIModel
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
+import dev.gaborbiro.dailymacros.features.common.model.MacroProgressUIModel
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.util.formatShort
@@ -15,17 +13,16 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 internal class RecordsUIMapper(
-    private val imageStore: ImageStore,
     private val macrosUIMapper: MacrosUIMapper,
 ) {
-    fun map(records: List<Record>, thumbnail: Boolean): List<BaseListItemUIModel> {
+    fun map(records: List<Record>): List<BaseListItemUIModel> {
         return records
             .groupBy { it.timestamp.toLocalDate() }
             .map { (day, records) ->
                 listOf(
                     mapMacrosProgress(records, day)
                 ) + records.map {
-                    map(it, thumbnail)
+                    map(it)
                 }
             }
             .flatten()
@@ -138,7 +135,8 @@ internal class RecordsUIMapper(
             MacroProgressItem(
                 title = carbs.name,
                 progress = carbs.progress(totalCarbs),
-                progressLabel = macrosUIMapper.mapCarbohydrates(totalCarbs, null, withLabel = false) ?: "0g",
+                progressLabel = macrosUIMapper.mapCarbohydrates(totalCarbs, null, withLabel = false)
+                    ?: "0g",
                 range = carbs.targetRange,
                 rangeLabel = carbs.rangeLabel,
             ),
@@ -171,8 +169,7 @@ internal class RecordsUIMapper(
         )
     }
 
-    private fun map(record: Record, thumbnail: Boolean): RecordUIModel {
-        val bitmap: Bitmap? = record.template.primaryImage?.let { imageStore.read(it, thumbnail) }
+    private fun map(record: Record): RecordUIModel {
         val timestamp = record.timestamp
         val timestampStr = when {
             !timestamp.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS)) -> {
@@ -191,7 +188,7 @@ internal class RecordsUIMapper(
         return RecordUIModel(
             recordId = record.dbId,
             templateId = record.template.dbId,
-            bitmap = bitmap,
+            images = record.template.images,
             timestamp = timestampStr,
             title = record.template.name,
             description = macrosStr ?: "",

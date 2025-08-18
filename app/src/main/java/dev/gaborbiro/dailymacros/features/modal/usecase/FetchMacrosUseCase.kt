@@ -1,7 +1,7 @@
 package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import android.content.Context
-import dev.gaborbiro.dailymacros.data.image.ImageStore
+import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.modal.RecordsMapper
 import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
@@ -25,7 +25,7 @@ internal class FetchMacrosUseCase(
         val record: Record = recordsRepository.getRecord(recordId)!!
         val base64Image = record.template.primaryImage
             ?.let { imageFilename: String ->
-                val inputStream = imageStore.get(imageFilename, thumbnail = false)
+                val inputStream = imageStore.open(imageFilename, thumbnail = false)
                 inputStreamToBase64(inputStream)
             }
         val response = chatGPTRepository.macros(

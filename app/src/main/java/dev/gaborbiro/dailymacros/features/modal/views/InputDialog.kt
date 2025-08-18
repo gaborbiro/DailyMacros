@@ -48,6 +48,7 @@ internal fun InputDialog(
     onDismissRequested: () -> Unit,
 ) {
     val title = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.title
+    val images = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.images ?: emptyList()
     val suggestions = (dialogState as? DialogState.InputDialog.CreateWithImageDialog)
         ?.suggestions
     val showProgressIndicator = (dialogState as? DialogState.InputDialog.CreateWithImageDialog)
@@ -83,6 +84,7 @@ internal fun InputDialog(
         content = {
             InputDialogContent(
                 onChange = onRecordDetailsUserTyping,
+                images = images,
                 titleField = titleField,
                 suggestions = suggestions,
                 showProgressIndicator = showProgressIndicator ?: false,
@@ -131,6 +133,7 @@ internal fun InputDialog(
 @Composable
 private fun ColumnScope.InputDialogContent(
     onChange: (String, String) -> Unit,
+    images: List<String>,
     titleField: MutableState<TextFieldValue>,
     suggestions: DialogState.InputDialog.SummarySuggestions?,
     showProgressIndicator: Boolean,
@@ -156,7 +159,7 @@ private fun ColumnScope.InputDialogContent(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "What did you eat or drink?",
+            text = "Describe what you ate or drank",
             color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.titleMedium,
         )
@@ -501,7 +504,7 @@ private fun NoteInputDialogContentPreviewEdit() {
         InputDialog(
             dialogState = DialogState.InputDialog.RecordDetailsDialog(
                 recordId = 1L,
-                image = null,
+                images = emptyList(),
                 titleSuggestionProgressIndicator = true,
                 titleSuggestions = emptyList(),
                 title = "This is a title",

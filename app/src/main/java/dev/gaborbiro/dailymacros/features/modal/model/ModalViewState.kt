@@ -61,7 +61,7 @@ sealed class DialogState {
 
         data class RecordDetailsDialog(
             val recordId: Long,
-            val image: String?,
+            val images: List<String>,
             val title: String,
             val description: String,
             val calories: String?,

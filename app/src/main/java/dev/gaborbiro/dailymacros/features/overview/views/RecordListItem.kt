@@ -1,8 +1,6 @@
 package dev.gaborbiro.dailymacros.features.overview.views
 
 import android.content.res.Configuration
-import android.graphics.Bitmap
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,8 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -29,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
-import dev.gaborbiro.dailymacros.util.randomBitmap
+import dev.gaborbiro.dailymacros.features.common.view.LocalImage
 
 
 @Composable
@@ -37,8 +33,8 @@ fun RecordListItem(
     modifier: Modifier = Modifier,
     record: RecordUIModel,
     onRepeatMenuItemTapped: (RecordUIModel) -> Unit,
-    onChangeImageMenuItemTapped: (RecordUIModel) -> Unit,
-    onDeleteImageMenuItemTapped: (RecordUIModel) -> Unit,
+//    onChangeImageMenuItemTapped: (RecordUIModel) -> Unit,
+//    onDeleteImageMenuItemTapped: (RecordUIModel) -> Unit,
     onEditRecordMenuItemTapped: (RecordUIModel) -> Unit,
     onDeleteRecordMenuItemTapped: (RecordUIModel) -> Unit,
     onMacrosMenuItemTapped: (RecordUIModel) -> Unit,
@@ -55,7 +51,8 @@ fun RecordListItem(
             modifier = Modifier
                 .size(64.dp)
                 .clickable(onClick = { onRecordImageTapped(record) }),
-            bitmap = record.bitmap,
+            image = record.images.firstOrNull(),
+            title = record.title,
         )
         Spacer(
             modifier = Modifier
@@ -71,8 +68,8 @@ fun RecordListItem(
         )
         PopupMenu(
             onRepeatMenuItemTapped = { onRepeatMenuItemTapped(record) },
-            onChangeImageMenuItemTapped = { onChangeImageMenuItemTapped(record) },
-            onDeleteImageMenuItemTapped = { onDeleteImageMenuItemTapped(record) },
+//            onChangeImageMenuItemTapped = { onChangeImageMenuItemTapped(record) },
+//            onDeleteImageMenuItemTapped = { onDeleteImageMenuItemTapped(record) },
             onEditRecordMenuItemTapped = { onEditRecordMenuItemTapped(record) },
             onDeleteRecordMenuItemTapped = { onDeleteRecordMenuItemTapped(record) },
             onMacrosMenuItemTapped = { onMacrosMenuItemTapped(record) },
@@ -83,15 +80,17 @@ fun RecordListItem(
 @Composable
 private fun RecordImage(
     modifier: Modifier,
-    bitmap: Bitmap?,
+    title: String,
+    image: String?,
 ) {
-    bitmap?.let {
-        Image(
+    image?.let {
+        LocalImage(
+            it,
             modifier = modifier
                 .clip(RoundedCornerShape(10.dp)),
-            painter = BitmapPainter(bitmap.asImageBitmap()),
             contentScale = ContentScale.Crop,
-            contentDescription = "note image",
+            contentDescription = "image: $title"
+
         )
     } ?: run {
         Spacer(modifier)
@@ -139,13 +138,13 @@ private fun OverviewListItemPreview() {
             title = "Title",
             description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
             templateId = 1L,
-            bitmap = randomBitmap(),
+            images = emptyList(),
             timestamp = "2022-01-01 00:00:00",
             hasMacros = true,
         ),
         onRepeatMenuItemTapped = {},
-        onChangeImageMenuItemTapped = {},
-        onDeleteImageMenuItemTapped = {},
+//        onChangeImageMenuItemTapped = {},
+//        onDeleteImageMenuItemTapped = {},
         onEditRecordMenuItemTapped = {},
         onDeleteRecordMenuItemTapped = {},
         onRecordImageTapped = {},

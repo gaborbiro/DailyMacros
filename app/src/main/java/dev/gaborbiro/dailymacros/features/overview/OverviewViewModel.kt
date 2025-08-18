@@ -36,7 +36,7 @@ internal class OverviewViewModel(
         viewModelScope.launch {
             repository.getFlowBySearchTerm(search)
                 .map {
-                    uiMapper.map(it, thumbnail = true)
+                    uiMapper.map(it)
                 }
                 .collect { records: List<BaseListItemUIModel> ->
                     _viewState.update {
@@ -53,27 +53,27 @@ internal class OverviewViewModel(
         NotesWidget.reload()
     }
 
-    fun onChangeImageMenuItemTapped(record: RecordUIModel) {
-        if (record.hasMacros) {
-            _viewState.update {
-                it.copy(dialog = DialogState.ConfirmDestructiveChangeDialog(editState = EditState.ChangeImage(record.recordId)))
-            }
-        } else {
-            updateRecordPhoto(record.recordId)
-        }
-    }
+//    fun onChangeImageMenuItemTapped(record: RecordUIModel) {
+//        if (record.hasMacros) {
+//            _viewState.update {
+//                it.copy(dialog = DialogState.ConfirmDestructiveChangeDialog(editState = EditState.ChangeImage(record.recordId)))
+//            }
+//        } else {
+//            updateRecordPhoto(record.recordId)
+//        }
+//    }
 
-    fun onDeleteImageMenuItemTapped(record: RecordUIModel) {
-        if (record.bitmap != null) {
-            if (record.hasMacros) {
-                _viewState.update {
-                    it.copy(dialog = DialogState.ConfirmDestructiveChangeDialog(editState = EditState.RemoveImage(record.templateId)))
-                }
-            } else {
-                removePhoto(record.templateId)
-            }
-        }
-    }
+//    fun onDeleteImageMenuItemTapped(record: RecordUIModel) {
+//        if (record.bitmap != null) {
+//            if (record.hasMacros) {
+//                _viewState.update {
+//                    it.copy(dialog = DialogState.ConfirmDestructiveChangeDialog(editState = EditState.RemoveImage(record.templateId)))
+//                }
+//            } else {
+//                removePhoto(record.templateId)
+//            }
+//        }
+//    }
 
     fun onDestructiveChangeConfirmed() {
         (_viewState.value.dialog as? DialogState.ConfirmDestructiveChangeDialog)?.let {

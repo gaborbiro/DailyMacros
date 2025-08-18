@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.widget
 
 import android.content.Context
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,16 +21,17 @@ import androidx.glance.layout.fillMaxSize
 import androidx.work.WorkManager
 import com.google.gson.reflect.TypeToken
 import dev.gaborbiro.dailymacros.App
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
+import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
+import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.WidgetColorScheme
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
+import dev.gaborbiro.dailymacros.features.widget.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.widget.views.WidgetContent
 import dev.gaborbiro.dailymacros.features.widget.workers.ReloadWorkRequest
-import dev.gaborbiro.dailymacros.data.image.ImageStore
-import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
+import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
 import dev.gaborbiro.dailymacros.util.gson
 
 class NotesWidget : GlanceAppWidget() {
@@ -66,33 +68,29 @@ class NotesWidget : GlanceAppWidget() {
             val prefs = currentState<Preferences>()
             val fileStore =
                 FileStoreFactoryImpl(LocalContext.current).getStore("public", keepFiles = true)
-            val imageStore = ImageStore(fileStore)
+            val imageStore = ImageStoreImpl(fileStore)
             val macrosUIMapper = MacrosUIMapper()
-            val recordsUIMapper = RecordsUIMapper(imageStore, macrosUIMapper)
-            val recentRecords = recordsUIMapper.map(
-                records = prefs.retrieveRecentRecords(),
-                thumbnail = true,
-            )
-            val widgetUIMapper = WidgetUIMapper(imageStore, macrosUIMapper)
-            val topTemplates = widgetUIMapper.map(
-                templates = prefs.retrieveTopTemplates(),
-                thumbnail = true,
-            )
+            val recordsUIMapper = RecordsUIMapper(macrosUIMapper)
+            val recentRecords = recordsUIMapper.map(records = prefs.retrieveRecentRecords())
+            val widgetUIMapper = WidgetUIMapper(macrosUIMapper)
+            val topTemplates = widgetUIMapper.map(templates = prefs.retrieveTopTemplates())
 
             var showTopTemplates by remember { mutableStateOf(false) }
 
             GlanceTheme(colors = WidgetColorScheme.colors(context)) {
-                WidgetContent(
-                    modifier = GlanceModifier
-                        .fillMaxSize(),
-                    navigator = NotesWidgetNavigatorImpl(),
-                    showTopTemplates = showTopTemplates,
-                    onTemplatesExpandButtonTapped = {
-                        showTopTemplates = showTopTemplates.not()
-                    },
-                    recentRecords = recentRecords.filterIsInstance<RecordUIModel>(),
-                    topTemplates = topTemplates,
-                )
+                CompositionLocalProvider(LocalImageStore provides imageStore) {
+                    WidgetContent(
+                        modifier = GlanceModifier
+                            .fillMaxSize(),
+                        navigator = NotesWidgetNavigatorImpl(),
+                        showTopTemplates = showTopTemplates,
+                        onTemplatesExpandButtonTapped = {
+                            showTopTemplates = showTopTemplates.not()
+                        },
+                        recentRecords = recentRecords.filterIsInstance<RecordUIModel>(),
+                        topTemplates = topTemplates,
+                    )
+                }
             }
         }
     }

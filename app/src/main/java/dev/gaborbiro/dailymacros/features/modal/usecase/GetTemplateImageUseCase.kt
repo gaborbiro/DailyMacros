@@ -1,8 +1,8 @@
 package dev.gaborbiro.dailymacros.features.modal.usecase
 
-import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
-import dev.gaborbiro.dailymacros.data.image.ImageStore
+import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 
 internal class GetTemplateImageUseCase(
     private val repository: RecordsRepository,

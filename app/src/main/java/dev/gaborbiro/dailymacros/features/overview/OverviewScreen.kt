@@ -29,8 +29,8 @@ internal fun OverviewScreen(
     OverviewList(
         viewState,
         onRepeatMenuItemTapped = viewModel::onRepeatMenuItemTapped,
-        onChangeImageMenuItemTapped = viewModel::onChangeImageMenuItemTapped,
-        onDeleteImageMenuItemTapped = viewModel::onDeleteImageMenuItemTapped,
+//        onChangeImageMenuItemTapped = viewModel::onChangeImageMenuItemTapped,
+//        onDeleteImageMenuItemTapped = viewModel::onDeleteImageMenuItemTapped,
         onEditRecordMenuItemTapped = viewModel::onEditRecordMenuItemTapped,
         onDeleteRecordMenuItemTapped = viewModel::onDeleteRecordMenuItemTapped,
         onMacrosMenuItemTapped = viewModel::onMacrosMenuItemTapped,

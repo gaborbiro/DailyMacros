@@ -25,8 +25,8 @@ import dev.gaborbiro.dailymacros.R
 @Composable
 internal fun PopupMenu(
     onRepeatMenuItemTapped: () -> Unit,
-    onChangeImageMenuItemTapped: () -> Unit,
-    onDeleteImageMenuItemTapped: () -> Unit,
+//    onChangeImageMenuItemTapped: () -> Unit,
+//    onDeleteImageMenuItemTapped: () -> Unit,
     onEditRecordMenuItemTapped: () -> Unit,
     onDeleteRecordMenuItemTapped: () -> Unit,
     onMacrosMenuItemTapped: () -> Unit,
@@ -49,16 +49,16 @@ internal fun PopupMenu(
                 onMenuItemSelected = onEditRecordMenuItemTapped,
                 hasBottomDivider = true,
             ),
-            PopUpMenuItem(
-                icon = painterResource(R.drawable.ic_add_picture),
-                label = "Change image",
-                onMenuItemSelected = onChangeImageMenuItemTapped,
-            ),
-            PopUpMenuItem(
-                icon = painterResource(R.drawable.ic_hide_image),
-                label = "Delete image",
-                onMenuItemSelected = onDeleteImageMenuItemTapped,
-            ),
+//            PopUpMenuItem(
+//                icon = painterResource(R.drawable.ic_add_picture),
+//                label = "Change image",
+//                onMenuItemSelected = onChangeImageMenuItemTapped,
+//            ),
+//            PopUpMenuItem(
+//                icon = painterResource(R.drawable.ic_hide_image),
+//                label = "Delete image",
+//                onMenuItemSelected = onDeleteImageMenuItemTapped,
+//            ),
             PopUpMenuItem(
                 icon = painterResource(R.drawable.ic_delete),
                 label = "Delete",
