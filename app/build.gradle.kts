@@ -12,7 +12,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "dev.gaborbiro.nutri"
+        applicationId = "dev.gaborbiro.dailymacros"
         minSdk = 31
         targetSdk = 35
         versionCode = 1

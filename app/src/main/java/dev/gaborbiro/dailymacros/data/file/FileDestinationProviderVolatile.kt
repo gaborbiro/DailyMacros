@@ -10,7 +10,7 @@ internal class FileDestinationProviderVolatile(
 
     /**
      * Provides the following File:
-     * /data/data/dev.gaborbiro.nutri/cache/[folder]/[filePath]
+     * /data/data/dev.gaborbiro.dailymacros/cache/[folder]/[filePath]
      *
      * Everything in the cache folder is deleted when the app is uninstalled. There is also the
      * possibility of the files being deleted in a low-storage scenario or by Clear Cache, so don't
