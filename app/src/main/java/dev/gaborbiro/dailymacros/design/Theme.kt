@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.glance.color.ColorProviders
 import androidx.glance.material3.ColorProviders
+import dev.gaborbiro.dailymacros.features.common.StatusBarOverlay
 
 
 object DailyMacrosColors {
@@ -81,7 +82,10 @@ fun DailyMacrosTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
-        content = content
+        content = {
+            content()
+            StatusBarOverlay()
+        },
     )
 }
 
