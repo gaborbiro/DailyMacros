@@ -9,26 +9,30 @@ import dev.gaborbiro.dailymacros.DefaultFoodPicQuality
 import dev.gaborbiro.dailymacros.data.file.FileStore
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTApiError
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStream
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 internal class ImageStoreImpl(
     private val fileStore: FileStore,
-    private val maxThumbnailSizePx: Int = 256, // bound for the longer edge
+    private val maxThumbnailSizePx: Int = 192, // bound for the longer edge
     private val foodPicFormat: Bitmap.CompressFormat = DefaultFoodPicFormat,
     private val foodPicQuality: Int = DefaultFoodPicQuality,
-
-    ) : ImageStore {
+) : ImageStore {
 
     private val io = Dispatchers.IO
-    private val cacheMutex = Mutex()
+    private val cacheLock = ReentrantLock()
 
-    private var fullCache: LruCache<String, Bitmap>
-    private var thumbCache: LruCache<String, Bitmap>
+    private var memCache: LruCache<String, Bitmap>
 
     companion object {
         const val THUMBNAIL_SUFFIX = "-thumb"
@@ -36,12 +40,9 @@ internal class ImageStoreImpl(
 
     init {
         val maxMemoryBytes = (Runtime.getRuntime().maxMemory()).toInt()
-        val cacheSize = maxMemoryBytes / 6 // ~16% heap: adjust if needed
-        fullCache = object : LruCache<String, Bitmap>(/* maxSize = */ cacheSize) {
-            override fun sizeOf(key: String, bitmap: Bitmap) = bitmap.byteCount
-        }
-        thumbCache = object : LruCache<String, Bitmap>(/* maxSize = */ cacheSize) {
-            override fun sizeOf(key: String, bitmap: Bitmap) = bitmap.byteCount
+        val cacheBytes = maxMemoryBytes / 6 // ~16% heap: adjust if needed
+        memCache = object : LruCache<String, Bitmap>(/* maxSize = */ cacheBytes) {
+            override fun sizeOf(key: String, value: Bitmap) = value.byteCount
         }
     }
 
@@ -54,31 +55,36 @@ internal class ImageStoreImpl(
         fileStore.read(finalFilename) // returns InputStream
     }
 
-    override suspend fun read(filename: String, thumbnail: Boolean): Bitmap? = withContext(io) {
+    private val inflight = ConcurrentHashMap<String, Deferred<Bitmap?>>()
+    private val decodeLimiter = Semaphore(permits = 2) // tune: 2–3
+
+    override suspend fun read(filename: String, thumbnail: Boolean): Bitmap? = coroutineScope {
         val key = if (thumbnail) thumbName(filename) else filename
 
         // cache hit?
-        cacheMutex.withLock {
-            (if (thumbnail) thumbCache.get(key) else fullCache.get(key))?.let { return@withContext it }
+        cacheLock.withLock {
+            memCache.get(key)?.let { return@coroutineScope it }
         }
 
-        // decode from disk (or generate thumb)
-        val bmp: Bitmap? = if (thumbnail) {
-            // Prefer existing thumb on disk
-            decodeIfExists(thumbName(filename)) ?: decodeAndCreateThumb(filename)
-        } else {
-            decodeIfExists(filename)
-        }
+        inflight.computeIfAbsent(key) {
+            async(io) {
+                decodeLimiter.withPermit {
+                    // decode from disk (or generate thumb)
+                    val bmp: Bitmap? = if (thumbnail) {
+                        // Prefer existing thumb on disk
+                        decodeIfExists(thumbName(filename)) ?: decodeAndCreateThumb(filename)
+                    } else {
+                        decodeIfExists(filename)
+                    }
 
-        // cache or purge on miss
-        cacheMutex.withLock {
-            if (bmp != null) {
-                if (thumbnail) thumbCache.put(key, bmp) else fullCache.put(key, bmp)
-            } else {
-                if (thumbnail) thumbCache.remove(key) else fullCache.remove(key)
+                    // cache or purge on miss
+                    cacheLock.withLock {
+                        if (bmp != null) memCache.put(key, bmp) else memCache.remove(key)
+                    }
+                    bmp
+                }
             }
-        }
-        bmp
+        }.await().also { inflight.remove(key) }
     }
 
     override suspend fun write(filename: String, bitmap: Bitmap): Unit = withContext(io) {
@@ -96,9 +102,9 @@ internal class ImageStoreImpl(
             fileStore.write(thumbName(filename)) { out ->
                 thumb.compress(foodPicFormat, foodPicQuality, out)
             }
-            cacheMutex.withLock {
-                thumbCache.put(thumbName(filename), thumb)
-                fullCache.put(filename, bitmap)
+            cacheLock.withLock {
+                memCache.put(thumbName(filename), thumb)
+                memCache.put(filename, bitmap)
             }
         } catch (_: Throwable) {
             // ignore thumb generation errors; full image is already written
@@ -108,26 +114,27 @@ internal class ImageStoreImpl(
     override suspend fun delete(filename: String): Unit = withContext(io) {
         fileStore.delete(filename)
         fileStore.delete(thumbName(filename))
-        cacheMutex.withLock {
-            fullCache.remove(filename)
-            thumbCache.remove(thumbName(filename))
+        cacheLock.withLock {
+            memCache.remove(filename)
+            memCache.remove(thumbName(filename))
         }
     }
 
     // ---------- Internals ----------
 
     private fun decodeIfExists(filename: String): Bitmap? {
-        val path = fileStore.resolveFilePath(filename)
-        val file = File(path)
+        val file = File(fileStore.resolveFilePath(filename))
         if (!file.exists()) return null
         val src = ImageDecoder.createSource(file)
-        return ImageDecoder.decodeBitmap(src)
+        return ImageDecoder.decodeBitmap(src) { decoder, _, _ ->
+            decoder.isMutableRequired = false
+            decoder.allocator = ImageDecoder.ALLOCATOR_HARDWARE // fast rendering
+        }
     }
 
     /** Decode full image and create/write a bounded thumbnail copy on disk. */
     private fun decodeAndCreateThumb(filename: String): Bitmap? {
-        val path = fileStore.resolveFilePath(filename)
-        val file = File(path)
+        val file = File(fileStore.resolveFilePath(filename))
         if (!file.exists()) return null
 
         // One pass decode + scale via ImageDecoder target size
@@ -138,6 +145,8 @@ internal class ImageStoreImpl(
             if (tw > 0 && th > 0 && (tw < w || th < h)) {
                 decoder.setTargetSize(tw, th)
             }
+            decoder.isMutableRequired = false
+            decoder.allocator = ImageDecoder.ALLOCATOR_HARDWARE
         }
 
         // Persist thumb

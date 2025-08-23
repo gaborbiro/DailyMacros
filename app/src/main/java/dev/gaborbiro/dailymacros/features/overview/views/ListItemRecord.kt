@@ -9,11 +9,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,26 +30,25 @@ import dev.gaborbiro.dailymacros.features.common.view.PreviewImageStoreProvider
 
 
 @Composable
-fun RecordListItem(
+fun ListItemRecord(
     modifier: Modifier = Modifier,
     record: RecordUIModel,
-    onRepeatMenuItemTapped: (RecordUIModel) -> Unit,
-    onDetailsMenuItemTapped: (RecordUIModel) -> Unit,
-    onDeleteRecordMenuItemTapped: (RecordUIModel) -> Unit,
-    onMacrosMenuItemTapped: (RecordUIModel) -> Unit,
-    onRecordImageTapped: (RecordUIModel) -> Unit,
-    onRecordBodyTapped: (RecordUIModel) -> Unit,
+    onRecordImageTapped: (id: Any) -> Unit,
+    onRecordBodyTapped: (id: Any) -> Unit,
+    rowMenu: @Composable () -> Unit,
 ) {
+    val onBodyTapped = remember(record.id) { { onRecordBodyTapped(record.id) } }
+    val onImageTapped = remember(record.id) { { onRecordImageTapped(record.id) } }
+
     Row(
         modifier = modifier
-            .padding(start = PaddingHalf)
-            .wrapContentHeight(),
+            .padding(start = PaddingHalf),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         RecordImage(
             modifier = Modifier
                 .size(64.dp)
-                .clickable(onClick = { onRecordImageTapped(record) }),
+                .clickable(onClick = onImageTapped),
             image = record.images.firstOrNull(),
             title = record.title,
         )
@@ -59,18 +58,12 @@ fun RecordListItem(
         )
         RecordTextContent(
             modifier = Modifier
-                .wrapContentHeight()
-                .clickable(onClick = { onRecordBodyTapped(record) })
+                .clickable(onClick = onBodyTapped)
                 .padding(end = PaddingHalf)
                 .weight(1f),
             record = record
         )
-        PopupMenu(
-            onRepeatMenuItemTapped = { onRepeatMenuItemTapped(record) },
-            onDetailsMenuItemTapped = { onDetailsMenuItemTapped(record) },
-            onDeleteRecordMenuItemTapped = { onDeleteRecordMenuItemTapped(record) },
-            onMacrosMenuItemTapped = { onMacrosMenuItemTapped(record) },
-        )
+        rowMenu()
     }
 }
 
@@ -82,7 +75,7 @@ private fun RecordImage(
 ) {
     image?.let {
         LocalImage(
-            it,
+            name = it,
             modifier = modifier
                 .clip(RoundedCornerShape(10.dp)),
             contentScale = ContentScale.Crop,
@@ -105,7 +98,8 @@ private fun RecordTextContent(modifier: Modifier, record: RecordUIModel) {
             text = record.title,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.bodyMedium,
         )
         Text(
             modifier = Modifier
@@ -129,7 +123,7 @@ private fun RecordTextContent(modifier: Modifier, record: RecordUIModel) {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun OverviewListItemPreview() {
     PreviewImageStoreProvider {
-        RecordListItem(
+        ListItemRecord(
             record = RecordUIModel(
                 recordId = 1L,
                 title = "Title",
@@ -139,12 +133,9 @@ private fun OverviewListItemPreview() {
                 timestamp = "2022-01-01 00:00:00",
                 hasMacros = true,
             ),
-            onRepeatMenuItemTapped = {},
-            onDetailsMenuItemTapped = {},
-            onDeleteRecordMenuItemTapped = {},
             onRecordImageTapped = {},
             onRecordBodyTapped = {},
-            onMacrosMenuItemTapped = {},
+            rowMenu = {}
         )
     }
 }

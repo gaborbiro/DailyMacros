@@ -1,14 +1,14 @@
 package dev.gaborbiro.dailymacros.features.common.model
 
 import android.util.Range
+import androidx.compose.runtime.Stable
 import java.time.LocalDate
 
+@Stable
 data class MacroProgressTableUIModel(
     val date: LocalDate,
     val macros: List<MacroProgressItem>,
-) : BaseListItemUIModel {
-    override val id = date
-}
+) : BaseListItemUIModel(date, "macroTable")
 
 data class MacroProgressItem(
     val title: String,
