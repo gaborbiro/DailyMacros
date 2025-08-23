@@ -41,7 +41,7 @@ internal class FetchMacrosUseCase(
         )
         val macrosStr = macrosUIMapper.mapAllMacrosLabel(macros)
         appContext.showSimpleNotification(
-            id = 123L,
+            id = 123000L + recordId,
             title = null,
             message = listOfNotNull(record.template.name, macrosStr, issues, macros?.notes).joinToString("\n"),
         )
