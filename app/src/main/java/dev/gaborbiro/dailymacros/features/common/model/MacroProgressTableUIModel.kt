@@ -8,7 +8,7 @@ import java.time.LocalDate
 data class MacroProgressTableUIModel(
     val date: LocalDate,
     val macros: List<MacroProgressItem>,
-) : BaseListItemUIModel(date, "macroTable")
+) : BaseListItemUIModel(id = date.toEpochDay(), contentType = "macroTable")
 
 data class MacroProgressItem(
     val title: String,

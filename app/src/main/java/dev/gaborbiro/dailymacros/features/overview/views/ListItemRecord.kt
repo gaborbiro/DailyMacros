@@ -33,8 +33,8 @@ import dev.gaborbiro.dailymacros.features.common.view.PreviewImageStoreProvider
 fun ListItemRecord(
     modifier: Modifier = Modifier,
     record: RecordUIModel,
-    onRecordImageTapped: (id: Any) -> Unit,
-    onRecordBodyTapped: (id: Any) -> Unit,
+    onRecordImageTapped: (id: Long) -> Unit,
+    onRecordBodyTapped: (id: Long) -> Unit,
     rowMenu: @Composable () -> Unit,
 ) {
     val onBodyTapped = remember(record.id) { { onRecordBodyTapped(record.id) } }

@@ -21,22 +21,19 @@ import androidx.glance.layout.wrapContentHeight
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import dev.gaborbiro.dailymacros.R
+import dev.gaborbiro.dailymacros.features.common.model.BaseListItemUIModel
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.widget.NotesWidgetNavigator
 import dev.gaborbiro.dailymacros.features.widget.NotesWidgetNavigatorImpl
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetHalfVertical
 import dev.gaborbiro.dailymacros.features.widget.model.TemplateUIModel
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
-import dev.gaborbiro.dailymacros.util.randomBitmap
 
 @Composable
 internal fun WidgetContent(
     modifier: GlanceModifier,
-    showTopTemplates: Boolean,
-    onTemplatesExpandButtonTapped: () -> Unit,
     navigator: NotesWidgetNavigator,
-    recentRecords: List<RecordUIModel>,
-    topTemplates: List<TemplateUIModel>,
+    items: List<BaseListItemUIModel>,
 ) {
     Column(
         modifier = modifier
@@ -51,14 +48,11 @@ internal fun WidgetContent(
             contentAlignment = Alignment.BottomEnd,
         ) {
             WidgetList(
-                recentRecords = recentRecords,
-                topTemplates = topTemplates,
-                showTemplates = showTopTemplates,
+                items = items,
                 recordImageTapActionProvider = { recordId -> navigator.getRecordImageTappedAction(recordId) },
                 recordBodyTapActionProvider = { recordId -> navigator.getRecordBodyTappedAction(recordId) },
                 templateImageTapActionProvider = { templateId -> navigator.getTemplateImageTappedAction(templateId) },
                 templateBodyTapActionProvider = { templateId -> navigator.getTemplateBodyTappedAction(templateId) },
-                onTemplatesExpandButtonTapped = onTemplatesExpandButtonTapped,
             )
             Box(
                 modifier = GlanceModifier
@@ -94,15 +88,13 @@ internal fun WidgetContent(
 @Preview
 @Composable
 @OptIn(ExperimentalGlancePreviewApi::class)
-private fun WidgetContentPreviewExpanded() {
+private fun WidgetContentPreview() {
     WidgetPreview {
         WidgetContent(
             modifier = GlanceModifier
                 .fillMaxSize(),
             navigator = NotesWidgetNavigatorImpl(),
-            showTopTemplates = true,
-            onTemplatesExpandButtonTapped = {},
-            recentRecords = listOf(
+            items = listOf(
                 RecordUIModel(
                     recordId = 1,
                     templateId = 1L,
@@ -112,26 +104,6 @@ private fun WidgetContentPreviewExpanded() {
                     images = listOf("", ""),
                     hasMacros = true,
                 ),
-                RecordUIModel(
-                    recordId = 2L,
-                    templateId = 1L,
-                    timestamp = "Yesterday",
-                    title = "Lunch",
-                    description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
-                    images = listOf("", ""),
-                    hasMacros = true,
-                ),
-                RecordUIModel(
-                    recordId = 3L,
-                    templateId = 1L,
-                    timestamp = "Yesterday",
-                    title = "Dinner",
-                    description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
-                    images = listOf("", ""),
-                    hasMacros = true,
-                ),
-            ),
-            topTemplates = listOf(
                 TemplateUIModel(
                     templateId = 1,
                     title = "Breakfast",
@@ -150,32 +122,6 @@ private fun WidgetContentPreviewExpanded() {
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     images = listOf("", ""),
                 ),
-            ),
-        )
-    }
-}
-
-@Preview
-@Composable
-@OptIn(ExperimentalGlancePreviewApi::class)
-private fun WidgetContentPreviewCollapsed() {
-    WidgetPreview {
-        WidgetContent(
-            modifier = GlanceModifier
-                .fillMaxSize(),
-            navigator = NotesWidgetNavigatorImpl(),
-            showTopTemplates = false,
-            onTemplatesExpandButtonTapped = {},
-            recentRecords = listOf(
-                RecordUIModel(
-                    recordId = 1,
-                    templateId = 1L,
-                    title = "Breakfast",
-                    description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
-                    timestamp = "Yesterday",
-                    images = listOf("", ""),
-                    hasMacros = true,
-                ),
                 RecordUIModel(
                     recordId = 2L,
                     templateId = 1L,
@@ -195,7 +141,6 @@ private fun WidgetContentPreviewCollapsed() {
                     hasMacros = true,
                 ),
             ),
-            topTemplates = emptyList(),
         )
     }
 }

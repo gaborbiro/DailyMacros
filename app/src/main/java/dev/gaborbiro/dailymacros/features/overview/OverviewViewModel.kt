@@ -3,9 +3,11 @@ package dev.gaborbiro.dailymacros.features.overview
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.WorkManager
+import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.model.BaseListItemUIModel
-import dev.gaborbiro.dailymacros.features.modal.usecase.FetchMacrosUseCase
+import dev.gaborbiro.dailymacros.features.common.workers.MacrosWorkRequest
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
 import dev.gaborbiro.dailymacros.features.widget.NotesWidget
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
@@ -21,7 +23,6 @@ internal class OverviewViewModel(
     private val navigator: OverviewNavigator,
     private val repository: RecordsRepository,
     private val uiMapper: RecordsUIMapper,
-    private val fetchMacrosUseCase: FetchMacrosUseCase,
 ) : ViewModel() {
 
     private val _viewState: MutableStateFlow<OverviewViewState> =
@@ -42,9 +43,9 @@ internal class OverviewViewModel(
         }
     }
 
-    fun onRepeatMenuItemTapped(id: Any) {
+    fun onRepeatMenuItemTapped(id: Long) {
         viewModelScope.launch {
-            repository.duplicateRecord(id as Long)
+            repository.duplicateRecord(id)
         }
         NotesWidget.reload()
     }
@@ -71,13 +72,13 @@ internal class OverviewViewModel(
 //        }
 //    }
 
-    fun onDetailsMenuItemTapped(id: Any) {
-        navigator.editRecord(recordId = id as Long)
+    fun onDetailsMenuItemTapped(id: Long) {
+        navigator.editRecord(recordId = id)
     }
 
-    fun onDeleteRecordMenuItemTapped(id: Any) {
+    fun onDeleteRecordMenuItemTapped(id: Long) {
         viewModelScope.launch {
-            val oldRecord = repository.deleteRecord(recordId = id as Long)
+            val oldRecord = repository.deleteRecord(recordId = id)
             _viewState.update {
                 it.copy(
                     showUndoDeleteSnackbar = true,
@@ -88,12 +89,12 @@ internal class OverviewViewModel(
         }
     }
 
-    fun onRecordImageTapped(id: Any) {
-        navigator.viewImage(id as Long)
+    fun onRecordImageTapped(id: Long) {
+        navigator.viewImage(id)
     }
 
-    fun onRecordBodyTapped(id: Any) {
-        navigator.editRecord(id as Long)
+    fun onRecordBodyTapped(id: Long) {
+        navigator.editRecord(id)
     }
 
     fun onUndoDeleteTapped() {
@@ -131,10 +132,12 @@ internal class OverviewViewModel(
         }
     }
 
-    fun onMacrosMenuItemTapped(id: Any) {
+    fun onMacrosMenuItemTapped(id: Long) {
         viewModelScope.launch {
-            fetchMacrosUseCase.execute(
-                id as Long
+            WorkManager.getInstance(App.appContext).enqueue(
+                MacrosWorkRequest.getWorkRequest(
+                    recordId = id
+                )
             )
         }
     }

@@ -37,17 +37,14 @@ import dev.gaborbiro.dailymacros.features.common.view.LocalImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.ImagePickerState
 import dev.gaborbiro.dailymacros.features.modal.model.ModalViewState
-import dev.gaborbiro.dailymacros.features.modal.usecase.AddRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.FetchMacrosUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodPicSummaryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.views.EditTargetConfirmationDialog
 import dev.gaborbiro.dailymacros.features.modal.views.ImageDialog
@@ -214,22 +211,12 @@ class ModalActivity : AppCompatActivity() {
         ModalViewModel(
             imageStore = imageStore,
             recordsRepository = recordsRepository,
-            fetchMacrosUseCase = FetchMacrosUseCase(
-                this,
-                imageStore,
-                chatGPTRepository,
-                recordsRepository,
-                recordsMapper,
-                macrosUIMapper,
-            ),
             createRecordUseCase = CreateRecordUseCase(recordsRepository),
             editRecordUseCase = EditRecordUseCase(recordsRepository),
             editTemplateUseCase = EditTemplateUseCase(recordsRepository),
             validateEditRecordUseCase = ValidateEditRecordUseCase(recordsRepository, recordsMapper),
             validateCreateRecordUseCase = ValidateCreateRecordUseCase(),
             saveImageUseCase = SaveImageUseCase(this, imageStore),
-            validateEditImageUseCase = ValidateEditImageUseCase(recordsRepository),
-            addRecordImageUseCase = AddRecordImageUseCase(recordsRepository, deleteRecordUseCase),
             getRecordImageUseCase = GetRecordImageUseCase(recordsRepository, imageStore),
             getTemplateImageUseCase = GetTemplateImageUseCase(recordsRepository, imageStore),
             foodPicSummaryUseCase = FoodPicSummaryUseCase(imageStore, chatGPTRepository, recordsMapper),

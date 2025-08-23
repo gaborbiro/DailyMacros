@@ -23,7 +23,7 @@ import dev.gaborbiro.dailymacros.features.widget.model.TemplateUIModel
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 
 @Composable
-internal fun TemplateListItem(
+internal fun ListItemTemplate(
     template: TemplateUIModel,
     imageTapActionProvider: Action,
     bodyTapActionProvider: Action,
@@ -66,7 +66,7 @@ internal fun TemplateListItem(
 @OptIn(ExperimentalGlancePreviewApi::class)
 private fun TemplateListItemPreview() {
     WidgetPreview {
-        TemplateListItem(
+        ListItemTemplate(
             template = TemplateUIModel(
                 title = "Breakfast",
                 description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",

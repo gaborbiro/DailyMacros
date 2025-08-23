@@ -24,7 +24,7 @@ import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultHorizontal
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 
 @Composable
-fun RecordListItem(
+fun ListItemRecord(
     record: RecordUIModel,
     imageTappedActionProvider: Action,
     bodyTappedActionProvider: Action,
@@ -80,7 +80,7 @@ fun RecordListItem(
 @OptIn(ExperimentalGlancePreviewApi::class)
 private fun RecordListItemPreview() {
     WidgetPreview {
-        RecordListItem(
+        ListItemRecord(
             record = RecordUIModel(
                 recordId = 1,
                 templateId = 1L,

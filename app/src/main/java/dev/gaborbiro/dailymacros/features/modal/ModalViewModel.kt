@@ -5,27 +5,27 @@ import android.util.Log
 import androidx.annotation.UiThread
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.WorkManager
+import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.common.error.model.ErrorViewState
+import dev.gaborbiro.dailymacros.features.common.workers.MacrosWorkRequest
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.ImagePickerState
-import dev.gaborbiro.dailymacros.features.modal.model.ModalViewState
 import dev.gaborbiro.dailymacros.features.modal.model.MacrosUIModel
-import dev.gaborbiro.dailymacros.features.modal.usecase.AddRecordImageUseCase
+import dev.gaborbiro.dailymacros.features.modal.model.ModalViewState
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditValidationResult
-import dev.gaborbiro.dailymacros.features.modal.usecase.FetchMacrosUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodPicSummaryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.widget.NotesWidget
 import dev.gaborbiro.dailymacros.repo.chatgpt.model.DomainError
@@ -43,14 +43,11 @@ internal class ModalViewModel(
     private val imageStore: ImageStore,
     private val recordsRepository: RecordsRepository,
     private val createRecordUseCase: CreateRecordUseCase,
-    private val fetchMacrosUseCase: FetchMacrosUseCase,
     private val editRecordUseCase: EditRecordUseCase,
     private val editTemplateUseCase: EditTemplateUseCase,
     private val validateEditRecordUseCase: ValidateEditRecordUseCase,
     private val validateCreateRecordUseCase: ValidateCreateRecordUseCase,
     private val saveImageUseCase: SaveImageUseCase,
-    private val validateEditImageUseCase: ValidateEditImageUseCase,
-    private val addRecordImageUseCase: AddRecordImageUseCase,
     private val getRecordImageUseCase: GetRecordImageUseCase,
     private val getTemplateImageUseCase: GetTemplateImageUseCase,
     private val foodPicSummaryUseCase: FoodPicSummaryUseCase,
@@ -491,7 +488,11 @@ internal class ModalViewModel(
                 val recordId =
                     createRecordUseCase.execute(images ?: emptyList(), title, description)
                 NotesWidget.reload()
-                fetchMacrosUseCase.execute(recordId)
+                WorkManager.getInstance(App.appContext).enqueue(
+                    MacrosWorkRequest.getWorkRequest(
+                        recordId = recordId
+                    )
+                )
             }
         }
     }

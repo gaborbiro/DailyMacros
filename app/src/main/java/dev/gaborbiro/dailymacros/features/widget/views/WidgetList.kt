@@ -1,121 +1,93 @@
 package dev.gaborbiro.dailymacros.features.widget.views
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceModifier
 import androidx.glance.action.Action
 import androidx.glance.action.action
 import androidx.glance.appwidget.lazy.LazyColumn
+import androidx.glance.appwidget.lazy.itemsIndexed
 import androidx.glance.layout.Column
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
-import androidx.glance.layout.size
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
-import dev.gaborbiro.dailymacros.R
+import dev.gaborbiro.dailymacros.features.common.model.BaseListItemUIModel
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultVertical
+import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDoubleVertical
 import dev.gaborbiro.dailymacros.features.widget.model.TemplateUIModel
+import dev.gaborbiro.dailymacros.features.widget.model.TemplatesEndUIModel
+import dev.gaborbiro.dailymacros.features.widget.model.TemplatesStartUIModel
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 
 @Composable
 internal fun WidgetList(
-    recentRecords: List<RecordUIModel>,
-    topTemplates: List<TemplateUIModel>,
-    showTemplates: Boolean,
+    items: List<BaseListItemUIModel>,
     recordImageTapActionProvider: @Composable (recordId: Long) -> Action,
     recordBodyTapActionProvider: @Composable (recordId: Long) -> Action,
     templateImageTapActionProvider: @Composable (templateId: Long) -> Action,
     templateBodyTapActionProvider: @Composable (templateId: Long) -> Action,
-    onTemplatesExpandButtonTapped: () -> Unit,
 ) {
-    val totalItemCount = recentRecords.size + topTemplates.size
     LazyColumn(
         modifier = GlanceModifier
-            .fillMaxSize()
+            .fillMaxSize(),
     ) {
-        items(
-            count = totalItemCount + if (totalItemCount > 0) 1 else 0,
-            itemId = {
-                val index = mapListIndex(recentRecords.size, it)
-                when {
-                    it < recentRecords.size -> {
-                        -recentRecords[index].recordId
-                    }
-
-                    it == recentRecords.size -> {
-                        0
-                    }
-
-                    else -> {
-                        topTemplates[index].templateId
-                    }
-                }
-            }
-        ) { index ->
-            val mappedIndex = mapListIndex(recentRecords.size, index)
-            when {
-                index < recentRecords.size -> {
-                    val record = recentRecords[mappedIndex]
+        itemsIndexed(
+            items = items,
+            itemId = { _, item -> item.id },
+        ) { index, item ->
+            when (item) {
+                is RecordUIModel -> {
                     Column(
                         modifier = GlanceModifier
                             .fillMaxWidth()
                     ) {
                         Spacer(modifier = GlanceModifier.height(PaddingWidgetDefaultVertical))
-                        RecordListItem(
-                            record = record,
-                            imageTappedActionProvider = recordImageTapActionProvider(record.recordId),
-                            bodyTappedActionProvider = recordBodyTapActionProvider(record.recordId),
+                        ListItemRecord(
+                            record = item,
+                            imageTappedActionProvider = recordImageTapActionProvider(item.id),
+                            bodyTappedActionProvider = recordBodyTapActionProvider(item.id),
                         )
                     }
                 }
 
-                index == recentRecords.size -> {
+                is TemplateUIModel -> {
                     Column(
                         modifier = GlanceModifier
                             .fillMaxWidth()
                     ) {
                         Spacer(modifier = GlanceModifier.height(PaddingWidgetDefaultVertical))
-                        SectionTitle(
-                            title = "Top Meals",
-                            trailingImage = if (showTemplates) R.drawable.keyboard_arrow_down else R.drawable.keyboard_arrow_right,
-                            onClick = onTemplatesExpandButtonTapped,
+                        ListItemTemplate(
+                            template = item,
+                            imageTapActionProvider = templateImageTapActionProvider(item.templateId),
+                            bodyTapActionProvider = templateBodyTapActionProvider(item.templateId),
                         )
                     }
                 }
 
-                else -> {
-                    if (showTemplates) {
-                        val template = topTemplates[mappedIndex]
-                        Column(
-                            modifier = GlanceModifier
-                                .fillMaxWidth()
-                        ) {
-                            Spacer(modifier = GlanceModifier.height(PaddingWidgetDefaultVertical))
-                            TemplateListItem(
-                                template = template,
-                                imageTapActionProvider = templateImageTapActionProvider(template.templateId),
-                                bodyTapActionProvider = templateBodyTapActionProvider(template.templateId),
-                            )
-                        }
-                    } else {
-                        Spacer(modifier = GlanceModifier.size(5.dp))
+                is TemplatesStartUIModel -> {
+                    Column(
+                        modifier = GlanceModifier
+                            .fillMaxWidth()
+                    ) {
+                        Spacer(modifier = GlanceModifier.height(PaddingWidgetDoubleVertical))
+                        SectionTitle(title = "Favorites")
+                    }
+                }
+
+                is TemplatesEndUIModel -> {
+                    Column(
+                        modifier = GlanceModifier
+                            .fillMaxWidth()
+                    ) {
+                        Spacer(modifier = GlanceModifier.height(PaddingWidgetDoubleVertical))
                     }
                 }
             }
-        }
-        item {
-            Spacer(modifier = GlanceModifier.height(64.dp))
         }
     }
-}
-
-private fun mapListIndex(recentRecordsSize: Int, index: Int) = when {
-    index < recentRecordsSize -> index
-    index == recentRecordsSize -> recentRecordsSize
-    else -> index - 1 - recentRecordsSize
 }
 
 @Preview
@@ -124,7 +96,7 @@ private fun mapListIndex(recentRecordsSize: Int, index: Int) = when {
 private fun RecordListPreviewExpanded() {
     WidgetPreview {
         WidgetList(
-            recentRecords = listOf(
+            items = listOf(
                 RecordUIModel(
                     recordId = 1,
                     templateId = 1L,
@@ -134,26 +106,6 @@ private fun RecordListPreviewExpanded() {
                     images = listOf("", ""),
                     hasMacros = true,
                 ),
-                RecordUIModel(
-                    recordId = 2L,
-                    templateId = 1L,
-                    timestamp = "Yesterday",
-                    title = "Lunch",
-                    description = "8cal, Prot 8, Carb 9, Sug 9, Fat 4, Sat 2, Sal: 0",
-                    images = listOf("", ""),
-                    hasMacros = true,
-                ),
-                RecordUIModel(
-                    recordId = 3L,
-                    templateId = 1L,
-                    timestamp = "Yesterday",
-                    title = "Dinner",
-                    description = "8cal, Prot 8, Carb 9, Sug 9, Fat 4, Sat 2, Sal: 0",
-                    images = listOf("", ""),
-                    hasMacros = true,
-                ),
-            ),
-            topTemplates = listOf(
                 TemplateUIModel(
                     templateId = 1,
                     title = "Breakfast",
@@ -172,39 +124,12 @@ private fun RecordListPreviewExpanded() {
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     images = listOf("", ""),
                 ),
-            ),
-            showTemplates = true,
-            recordImageTapActionProvider = { action {} },
-            recordBodyTapActionProvider = { action {} },
-            templateImageTapActionProvider = { action {} },
-            templateBodyTapActionProvider = { action {} },
-            onTemplatesExpandButtonTapped = { },
-        )
-    }
-}
-
-@Preview
-@Composable
-@OptIn(ExperimentalGlancePreviewApi::class)
-private fun RecordListPreviewCollapsed() {
-    WidgetPreview {
-        WidgetList(
-            recentRecords = listOf(
-                RecordUIModel(
-                    recordId = 1,
-                    templateId = 1L,
-                    title = "Breakfast",
-                    description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
-                    timestamp = "Yesterday",
-                    images = listOf("", ""),
-                    hasMacros = true,
-                ),
                 RecordUIModel(
                     recordId = 2L,
                     templateId = 1L,
                     timestamp = "Yesterday",
                     title = "Lunch",
-                    description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
+                    description = "8cal, Prot 8, Carb 9, Sug 9, Fat 4, Sat 2, Sal: 0",
                     images = listOf("", ""),
                     hasMacros = true,
                 ),
@@ -213,18 +138,15 @@ private fun RecordListPreviewCollapsed() {
                     templateId = 1L,
                     timestamp = "Yesterday",
                     title = "Dinner",
-                    description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
+                    description = "8cal, Prot 8, Carb 9, Sug 9, Fat 4, Sat 2, Sal: 0",
                     images = listOf("", ""),
                     hasMacros = true,
                 ),
             ),
-            topTemplates = emptyList(),
-            showTemplates = false,
             recordImageTapActionProvider = { action {} },
             recordBodyTapActionProvider = { action {} },
             templateImageTapActionProvider = { action {} },
             templateBodyTapActionProvider = { action {} },
-            onTemplatesExpandButtonTapped = { },
         )
     }
 }

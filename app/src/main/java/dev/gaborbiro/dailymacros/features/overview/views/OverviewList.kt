@@ -47,12 +47,12 @@ import java.time.LocalDate
 @Composable
 internal fun OverviewList(
     viewState: OverviewViewState,
-    onRepeatMenuItemTapped: (id: Any) -> Unit,
-    onDetailsMenuItemTapped: (id: Any) -> Unit,
-    onDeleteRecordMenuItemTapped: (id: Any) -> Unit,
-    onMacrosMenuItemTapped: (id: Any) -> Unit,
-    onRecordImageTapped: (id: Any) -> Unit,
-    onRecordBodyTapped: (id: Any) -> Unit,
+    onRepeatMenuItemTapped: (id: Long) -> Unit,
+    onDetailsMenuItemTapped: (id: Long) -> Unit,
+    onDeleteRecordMenuItemTapped: (id: Long) -> Unit,
+    onMacrosMenuItemTapped: (id: Long) -> Unit,
+    onRecordImageTapped: (id: Long) -> Unit,
+    onRecordBodyTapped: (id: Long) -> Unit,
     onUndoDeleteTapped: () -> Unit,
     onUndoDeleteDismissed: () -> Unit,
     onUndoDeleteSnackbarShown: () -> Unit,

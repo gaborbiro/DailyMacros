@@ -1,12 +1,8 @@
 package dev.gaborbiro.dailymacros.features.widget.views
 
-import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceModifier
-import androidx.glance.Image
-import androidx.glance.ImageProvider
-import androidx.glance.action.clickable
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.background
 import androidx.glance.layout.Alignment
@@ -17,13 +13,12 @@ import androidx.glance.layout.wrapContentHeight
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
-import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultHorizontal
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultVertical
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 
 @Composable
-fun SectionTitle(title: String, @DrawableRes trailingImage: Int? = null, onClick: () -> Unit) {
+fun SectionTitle(title: String) {
     Box(
         modifier = GlanceModifier
             .padding(horizontal = PaddingWidgetDefaultHorizontal),
@@ -35,19 +30,10 @@ fun SectionTitle(title: String, @DrawableRes trailingImage: Int? = null, onClick
                 .wrapContentHeight()
                 .fillMaxWidth()
                 .padding(horizontal = PaddingWidgetDefaultHorizontal, vertical = PaddingWidgetDefaultVertical)
-                .cornerRadius(4.dp)
-                .clickable(onClick),
+                .cornerRadius(4.dp),
             text = title,
             style = sectionTitleTextStyle,
         )
-        trailingImage?.let {
-            Image(
-                modifier = GlanceModifier
-                    .padding(end = PaddingWidgetDefaultHorizontal),
-                provider = ImageProvider(trailingImage),
-                contentDescription = "",
-            )
-        }
     }
 }
 
@@ -58,9 +44,7 @@ fun SectionTitle(title: String, @DrawableRes trailingImage: Int? = null, onClick
 private fun SectionTitlePreview() {
     WidgetPreview {
         SectionTitle(
-            title = "Top Meals",
-            trailingImage = R.drawable.keyboard_arrow_down,
-            onClick = { },
+            title = "Favorites",
         )
     }
 }

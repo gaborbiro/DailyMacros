@@ -11,4 +11,4 @@ data class RecordUIModel(
     val title: String,
     val description: String,
     val hasMacros: Boolean,
-) : BaseListItemUIModel(recordId, "record")
+) : BaseListItemUIModel(id = recordId, contentType = "record")
