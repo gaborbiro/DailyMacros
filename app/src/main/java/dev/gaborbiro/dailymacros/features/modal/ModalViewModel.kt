@@ -376,6 +376,7 @@ internal class ModalViewModel(
                     )
                     NotesWidget.reload()
                     popDialog()
+                    popDialog()
                 }
             }
     }
@@ -489,8 +490,8 @@ internal class ModalViewModel(
                 popDialog()
                 val recordId =
                     createRecordUseCase.execute(images ?: emptyList(), title, description)
-                fetchMacrosUseCase.execute(recordId)
                 NotesWidget.reload()
+                fetchMacrosUseCase.execute(recordId)
             }
         }
     }
@@ -541,8 +542,8 @@ internal class ModalViewModel(
                         title = title,
                         description = description,
                     )
-                    NotesWidget.reload()
                     popDialog()
+                    NotesWidget.reload()
                 }
             }
 
@@ -556,7 +557,7 @@ internal class ModalViewModel(
         _viewState.update {
             it.copy(
                 dialogs = it.dialogs.replaceInstances<DialogState.InputDialog> {
-                    it.withValidationError(validationError = null)
+                    it.withValidationError(validationError = message)
                 }
             )
         }

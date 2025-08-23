@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.widget
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,6 +42,7 @@ class NotesWidget : GlanceAppWidget() {
         const val PREFS_TOP_TEMPLATES = "top_templates"
 
         fun reload() {
+            Log.i("NotesWidget", "reload()")
             WorkManager.getInstance(App.appContext).enqueue(
                 ReloadWorkRequest.getWorkRequest(
                     recentRecordsPrefsKey = PREFS_RECENT_RECORDS,
