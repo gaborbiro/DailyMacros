@@ -46,7 +46,7 @@ fun RecordListItem(
                 )
             }
             ?: run {
-                Spacer(modifier = GlanceModifier.size(WidgetImageSize * .75f))
+                Spacer(modifier = GlanceModifier.size(WidgetImageSize))
             }
         Column(
             modifier = GlanceModifier
@@ -58,14 +58,14 @@ fun RecordListItem(
         ) {
             Text(
                 text = record.title,
-                maxLines = 1,
+                maxLines = 3,
                 style = titleTextStyle,
             )
-            Text(
-                text = record.description,
-                maxLines = 2,
-                style = descriptionTextStyle,
-            )
+//            Text(
+//                text = record.description,
+//                maxLines = 2,
+//                style = descriptionTextStyle,
+//            )
             Text(
                 text = record.timestamp,
                 maxLines = 1,

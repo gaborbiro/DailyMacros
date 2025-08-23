@@ -15,7 +15,7 @@ internal class WidgetUIMapper(
     }
 
     private fun map(template: Template): TemplateUIModel {
-        val description = macrosUIMapper.map(template.macros, isShort = true)
+        val description = macrosUIMapper.mapAllMacrosLabel(template.macros, isShort = true)
         return TemplateUIModel(
             templateId = template.dbId,
             images = template.images,

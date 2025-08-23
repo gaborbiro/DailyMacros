@@ -39,7 +39,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-internal class ModalScreenViewModel(
+internal class ModalViewModel(
     private val imageStore: ImageStore,
     private val recordsRepository: RecordsRepository,
     private val createRecordUseCase: CreateRecordUseCase,
@@ -133,7 +133,7 @@ internal class ModalScreenViewModel(
                         protein = macrosUIMapper.mapProtein(value = record.template.macros.protein),
                         fat = macrosUIMapper.mapFat(value = record.template.macros.fat, saturated = null),
                         ofWhichSaturated = macrosUIMapper.mapSaturated(value = record.template.macros.ofWhichSaturated),
-                        carbs = macrosUIMapper.mapCarbohydrates(value = record.template.macros.carbohydrates, sugar = null),
+                        carbs = macrosUIMapper.mapCarbs(value = record.template.macros.carbohydrates, sugar = null),
                         ofWhichSugar = macrosUIMapper.mapSugar(value = record.template.macros.ofWhichSugar),
                         salt = macrosUIMapper.mapSalt(value = record.template.macros.salt),
                         fibre = macrosUIMapper.mapFibre(value = record.template.macros.fibre),

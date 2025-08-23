@@ -23,15 +23,15 @@ internal class FetchMacrosUseCase(
 
     suspend fun execute(recordId: Long) {
         val record: Record = recordsRepository.getRecord(recordId)!!
-        val base64Image = record.template.primaryImage
-            ?.let { imageFilename: String ->
+        val base64Images = record.template.images
+            .map { imageFilename: String ->
                 val inputStream = imageStore.open(imageFilename, thumbnail = false)
                 inputStreamToBase64(inputStream)
             }
         val response = chatGPTRepository.macros(
             request = recordsMapper.mapMacrosRequest(
                 record = record,
-                base64Image = base64Image,
+                base64Images = base64Images,
             )
         )
         val (macros: Macros?, issues: String?) = recordsMapper.map(response)
@@ -39,7 +39,7 @@ internal class FetchMacrosUseCase(
             templateId = record.template.dbId,
             macros = macros,
         )
-        val macrosStr = macrosUIMapper.map(macros)
+        val macrosStr = macrosUIMapper.mapAllMacrosLabel(macros)
         appContext.showSimpleNotification(
             id = 123L,
             title = null,

@@ -30,7 +30,7 @@ import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.design.PaddingDouble
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
-import dev.gaborbiro.dailymacros.features.common.model.MacroProgressUIModel
+import dev.gaborbiro.dailymacros.features.common.model.MacroProgressTableUIModel
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.common.view.PreviewImageStoreProvider
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
@@ -89,10 +89,9 @@ internal fun OverviewList(
         containerColor = MaterialTheme.colorScheme.background,
     ) { paddingValues ->
         LazyColumn(
-            modifier = Modifier
-                .padding(top = paddingValues.calculateTopPadding()),
             verticalArrangement = Arrangement.spacedBy(PaddingHalf),
             contentPadding = PaddingValues(
+                top = paddingValues.calculateTopPadding(),
                 bottom = paddingValues.calculateBottomPadding() + 86.dp
             ),
             state = listState,
@@ -121,17 +120,9 @@ internal fun OverviewList(
                         }
                     }
 
-                    is MacroProgressUIModel -> {
-                        stickyHeader(key = item.date) {
-                            MacroProgressView(
-                                modifier = Modifier
-                                    .let {
-                                        if (index > 0) {
-                                            it.padding(top = PaddingDouble)
-                                        } else {
-                                            it
-                                        }
-                                    },
+                    is MacroProgressTableUIModel -> {
+                        item(key = item.date) {
+                            MacroProgressTable(
                                 model = item
                             )
                         }
@@ -152,7 +143,7 @@ private fun NotesListPreview() {
             OverviewList(
                 viewState = OverviewViewState(
                     list = listOf(
-                        MacroProgressUIModel(
+                        MacroProgressTableUIModel(
                             date = LocalDate.now(),
                             macros = listOf(
                                 MacroProgressItem(

@@ -211,7 +211,7 @@ class ModalActivity : AppCompatActivity() {
         val macrosUIMapper = MacrosUIMapper()
         val deleteRecordUseCase = DeleteRecordUseCase(recordsRepository)
 
-        ModalScreenViewModel(
+        ModalViewModel(
             imageStore = imageStore,
             recordsRepository = recordsRepository,
             fetchMacrosUseCase = FetchMacrosUseCase(
@@ -372,7 +372,7 @@ class ModalActivity : AppCompatActivity() {
 @Composable
 private fun NewImageUI(
     dialogState: DialogState.NewImage,
-    viewModel: ModalScreenViewModel,
+    viewModel: ModalViewModel,
     cacheFileStore: FileStore,
 ) {
     when (dialogState.imagePickerState) {

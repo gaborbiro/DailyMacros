@@ -8,7 +8,6 @@ import androidx.glance.action.action
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.layout.Alignment
-import androidx.glance.layout.Column
 import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
@@ -41,7 +40,7 @@ internal fun TemplateListItem(
                 LocalImage(
                     it,
                     modifier = GlanceModifier
-                        .size(WidgetImageSize)
+                        .size(WidgetTemplateImageSize)
                         .clickable(imageTapActionProvider)
                         .cornerRadius(6.dp),
                     contentScale = ContentScale.Crop,
@@ -51,28 +50,14 @@ internal fun TemplateListItem(
                 Spacer(modifier = GlanceModifier.size(WidgetTemplateImageSize))
             }
 
-        Column {
-            Text(
-                modifier = GlanceModifier
-                    .defaultWeight()
-                    .wrapContentHeight()
-                    .padding(horizontal = PaddingWidgetDefaultHorizontal),
-                text = template.title,
-                maxLines = 1,
-                style = titleTextStyle,
-            )
-            template.description?.let {
-                Text(
-                    modifier = GlanceModifier
-                        .defaultWeight()
-                        .wrapContentHeight()
-                        .padding(horizontal = PaddingWidgetDefaultHorizontal),
-                    text = template.description,
-                    maxLines = 2,
-                    style = descriptionTextStyle,
-                )
-            }
-        }
+        Text(
+            modifier = GlanceModifier
+                .wrapContentHeight()
+                .padding(horizontal = PaddingWidgetDefaultHorizontal),
+            text = template.title,
+            maxLines = 3,
+            style = titleTextStyle,
+        )
     }
 }
 

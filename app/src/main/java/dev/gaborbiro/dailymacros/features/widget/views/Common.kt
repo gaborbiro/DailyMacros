@@ -25,7 +25,7 @@ val sectionTitleTextStyle: TextStyle
 val titleTextStyle: TextStyle
     @Composable get() = TextStyle(
         fontWeight = FontWeight.Bold,
-        fontSize = 14.sp,
+        fontSize = 13.sp,
         textAlign = TextAlign.Start,
         color = GlanceTheme.colors.onBackground,
     )

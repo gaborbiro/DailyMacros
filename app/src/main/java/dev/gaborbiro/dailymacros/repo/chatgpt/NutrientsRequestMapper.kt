@@ -23,7 +23,7 @@ internal fun MacrosRequest.toApiModel(): ChatGPTRequest {
                         """
                             You are an intelligent image and text analyser for a macronutrient tracker app.  
                             The user provides:
-                            1. A photo of a meal or drink, AND/OR  
+                            1. Photos of a meal or drink, AND/OR  
                             2. A title and optional description (often produced by a previous step in this app).  
 
                             Your job: estimate the macronutrient content.
@@ -68,18 +68,18 @@ internal fun MacrosRequest.toApiModel(): ChatGPTRequest {
                             ACCURACY PRINCIPLE:
                             - Perfect accuracy is less important than **reliability and consistency** in estimates across different meals.  
                             - Use typical/average nutritional values for standard foods when exact packaging data is unavailable.
-                            - When exact packaging data is available but one or more macronutrients are missing from it, estimate them if you can. Otherwise mention them in "notes"
+                            - When packaging data is available but one or more macronutrients are missing from it, estimate them.
 
                             CONFIDENCE RULES:
                             - Output "macros" only if:
-                              1. You are highly confident the photo shows real food or drink.  
-                              2. The title/description and image provide enough detail to make a reasonable macronutrient estimate (e.g., type of food, preparation, ingredients).  
+                              1. You are highly confident the photos show real food or drink.  
+                              2. The title/description and photos provide enough detail to make a reasonable macronutrient estimate (e.g., type of food, preparation, ingredients).  
                             - If either condition is not met:
                               - Omit "macros".
                               - Include "issues" with a short, clear sentence explaining what’s missing or unclear so the user can improve their input.
 
                             NOTES:
-                            - Always use both the image and the texts provided.
+                            - Always use both the photos and the texts provided.
                             - If values are extremely uncertain (e.g., ambiguous dish), consider omitting `macros` entirely and use `issues` instead.
                             - Any breakdowns, calculations or observations should go into the "notes" field.
                             - Mention in the notes the top contributor ingredient for each significant macronutrient.
@@ -90,8 +90,7 @@ internal fun MacrosRequest.toApiModel(): ChatGPTRequest {
             ),
             ContentEntry(
                 role = Role.user,
-                content = listOfNotNull(
-                    base64Image?.let { InputContent.Image(base64Image) },
+                content = base64Images.map { InputContent.Image(it) } + listOf(
                     InputContent.Text(title),
                     InputContent.Text(description),
                 )

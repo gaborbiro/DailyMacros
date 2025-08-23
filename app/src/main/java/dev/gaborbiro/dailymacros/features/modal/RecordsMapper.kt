@@ -24,9 +24,9 @@ class RecordsMapper {
         )
     }
 
-    fun mapMacrosRequest(record: Record, base64Image: String? = null): MacrosRequest {
+    fun mapMacrosRequest(record: Record, base64Images: List<String>): MacrosRequest {
         return MacrosRequest(
-            base64Image = base64Image,
+            base64Images = base64Images,
             title = record.template.name,
             description = record.template.description,
         )

@@ -30,13 +30,13 @@ import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.DailyMacrosColors
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
-import dev.gaborbiro.dailymacros.features.common.model.MacroProgressUIModel
+import dev.gaborbiro.dailymacros.features.common.model.MacroProgressTableUIModel
 import java.time.LocalDate
 
 @Composable
-fun MacroProgressView(
+fun MacroProgressTable(
     modifier: Modifier = Modifier,
-    model: MacroProgressUIModel,
+    model: MacroProgressTableUIModel,
 ) {
     val cols = 3
     val chunks = remember(model.macros) { model.macros.chunked(cols) }
@@ -55,6 +55,7 @@ fun MacroProgressView(
                     .border(1.dp, color = Color.White)
                     .background(color = DailyMacrosColors.CardColorLight)
             ) {
+                // Target Range
                 Row(Modifier.fillMaxWidth()) {
                     Spacer(
                         Modifier
@@ -87,6 +88,8 @@ fun MacroProgressView(
                             )
                     )
                 }
+
+                // Progress
                 Row(Modifier.fillMaxWidth()) {
                     Spacer(
                         Modifier.weight(
@@ -96,7 +99,7 @@ fun MacroProgressView(
                     )
                     Box(
                         modifier = Modifier
-                            .width(1.dp)
+                            .width(2.dp)
                             .fillMaxHeight()
                             .background(Color.Blue.copy(alpha = .5f)),
                     )
@@ -167,8 +170,8 @@ private fun highlightSubstring(
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun MacroGoalsViewPreview() {
     DailyMacrosTheme {
-        MacroProgressView(
-            model = MacroProgressUIModel(
+        MacroProgressTable(
+            model = MacroProgressTableUIModel(
                 date = LocalDate.now(),
                 macros = listOf(
                     MacroProgressItem(

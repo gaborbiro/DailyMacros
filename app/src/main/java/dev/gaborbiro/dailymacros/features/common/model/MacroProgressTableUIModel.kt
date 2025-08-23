@@ -3,7 +3,7 @@ package dev.gaborbiro.dailymacros.features.common.model
 import android.util.Range
 import java.time.LocalDate
 
-data class MacroProgressUIModel(
+data class MacroProgressTableUIModel(
     val date: LocalDate,
     val macros: List<MacroProgressItem>,
 ) : BaseListItemUIModel {
