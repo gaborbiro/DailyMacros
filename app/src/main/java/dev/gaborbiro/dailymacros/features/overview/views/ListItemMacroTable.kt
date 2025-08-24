@@ -60,7 +60,7 @@ fun ListItemMacroTable(
             rows.forEach { row ->
                 Row(Modifier.fillMaxWidth()) {
                     row.forEach { macro ->
-                        MacroCellFast(
+                        MacroCell(
                             modifier = Modifier.requiredWidth(cellW),
                             macro = macro,
                             cardColor = cardColor,
@@ -79,7 +79,7 @@ fun ListItemMacroTable(
 }
 
 @Composable
-private fun MacroCellFast(
+private fun MacroCell(
     modifier: Modifier,
     macro: MacroProgressItem,
     cardColor: Color,

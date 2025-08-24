@@ -19,7 +19,7 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultHorizontal
-import dev.gaborbiro.dailymacros.features.widget.model.TemplateUIModel
+import dev.gaborbiro.dailymacros.features.common.model.TemplateUIModel
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 
 @Composable

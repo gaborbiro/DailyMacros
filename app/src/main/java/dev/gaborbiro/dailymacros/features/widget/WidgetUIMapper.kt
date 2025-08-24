@@ -1,7 +1,7 @@
 package dev.gaborbiro.dailymacros.features.widget
 
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
-import dev.gaborbiro.dailymacros.features.widget.model.TemplateUIModel
+import dev.gaborbiro.dailymacros.features.common.model.TemplateUIModel
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
 
 internal class WidgetUIMapper(
@@ -15,7 +15,7 @@ internal class WidgetUIMapper(
     }
 
     private fun map(template: Template): TemplateUIModel {
-        val description = macrosUIMapper.mapAllMacrosLabel(template.macros, isShort = true)
+        val description = macrosUIMapper.mapMacrosString(template.macros, isShort = true)
         return TemplateUIModel(
             templateId = template.dbId,
             images = template.images,

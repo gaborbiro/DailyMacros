@@ -25,7 +25,6 @@ internal class RecordsUIMapper(
     }
 
 
-
     private fun map(record: Record): RecordUIModel {
         val timestamp = record.timestamp
         val timestampStr = when {
@@ -39,8 +38,8 @@ internal class RecordsUIMapper(
 
             else -> timestamp.formatShort()
         }
-        val macrosStr: String? =
-            record.template.macros?.let { macrosUIMapper.mapAllMacrosLabel(it, isShort = true) }
+        val macros = record.template.macros
+            ?.let { macrosUIMapper.mapMacros(it) }
 
         return RecordUIModel(
             recordId = record.dbId,
@@ -48,8 +47,7 @@ internal class RecordsUIMapper(
             images = record.template.images,
             timestamp = timestampStr,
             title = record.template.name,
-            description = macrosStr ?: "",
-            hasMacros = record.template.macros != null,
+            macros = macros,
         )
     }
 }

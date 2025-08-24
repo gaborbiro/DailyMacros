@@ -4,6 +4,7 @@ import android.icu.text.DecimalFormat
 import android.util.Range
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressTableUIModel
+import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import java.time.LocalDate
@@ -20,6 +21,9 @@ internal class MacrosUIMapper {
             .toInt()
         val totalFat = records.sumOf { it.template.macros?.fat?.toDouble() ?: 0.0 }
             .toInt()
+        val totalSaturated =
+            records.sumOf { it.template.macros?.ofWhichSaturated?.toDouble() ?: 0.0 }
+                .toInt()
         val totalSalt = records.sumOf { it.template.macros?.salt?.toDouble() ?: 0.0 }
             .toInt()
         val totalFibre = records.sumOf { it.template.macros?.fibre?.toDouble() ?: 0.0 }
@@ -30,15 +34,16 @@ internal class MacrosUIMapper {
             val rangeLabel: String,
             val min: Float,
             val max: Float,
-            val fuzzy: Boolean,
+            val theLessTheBetter: Boolean,
         ) {
             private val extendedMax = max * 1.1f
             val targetRange = Range(
-                min / (if (fuzzy) extendedMax else max),
-                max / (if (fuzzy) extendedMax else 1f)
+                min / (if (theLessTheBetter) max else extendedMax),
+                max / (if (theLessTheBetter) 1f else extendedMax)
             )
 
-            fun progress(total: Int) = (total / if (fuzzy) extendedMax else max).coerceAtMost(1f)
+            fun progress(total: Int) =
+                (total / if (theLessTheBetter) max else extendedMax).coerceAtMost(1f)
         }
 
         val calories = MacroGoal(
@@ -46,42 +51,49 @@ internal class MacrosUIMapper {
             rangeLabel = "2.1-2.2kcal",
             min = 2100f,
             max = 2200f,
-            fuzzy = true,
+            theLessTheBetter = false,
         )
         val protein = MacroGoal(
             name = "Protein",
             rangeLabel = "170-190g",
             min = 170f,
             max = 190f,
-            fuzzy = true,
+            theLessTheBetter = false,
         )
         val fat = MacroGoal(
             name = "Fat",
             rangeLabel = "55-65g",
             min = 55f,
             max = 65f,
-            fuzzy = true,
+            theLessTheBetter = false,
         )
-        val carbs = MacroGoal(
-            name = "Carbs",
-            rangeLabel = "150-200g",
-            min = 150f,
-            max = 200f,
-            fuzzy = true,
-        )
-        val sugar = MacroGoal(
-            name = "Sugar",
-            rangeLabel = "<40g ttl., <25g3",
+        val saturated = MacroGoal(
+            name = "of which saturated",
+            rangeLabel = "< 21g",
             min = 0f,
-            max = 40f,
-            fuzzy = false,
+            max = 21f,
+            theLessTheBetter = true,
         )
         val salt = MacroGoal(
             name = "Salt",
             rangeLabel = "<5g (≈2g Na)",
             min = 0f,
             max = 5f,
-            fuzzy = false,
+            theLessTheBetter = true,
+        )
+        val carbs = MacroGoal(
+            name = "Carbs",
+            rangeLabel = "150-200g",
+            min = 150f,
+            max = 200f,
+            theLessTheBetter = false,
+        )
+        val sugar = MacroGoal(
+            name = "of which sugar",
+            rangeLabel = "<40g ttl., <25g",
+            min = 0f,
+            max = 40f,
+            theLessTheBetter = true,
         )
         val fibre = MacroGoal(
             // TODO Women need 21-25g
@@ -89,7 +101,7 @@ internal class MacrosUIMapper {
             rangeLabel = "30-38g",
             min = 30f,
             max = 38f,
-            fuzzy = true,
+            theLessTheBetter = false,
         )
 
         val macros = listOf(
@@ -108,11 +120,32 @@ internal class MacrosUIMapper {
                 rangeLabel = protein.rangeLabel,
             ),
             MacroProgressItem(
+                title = salt.name,
+                progress = salt.progress(totalSalt),
+                progressLabel = mapSalt(totalSalt, withLabel = false) ?: "0g",
+                range = salt.targetRange,
+                rangeLabel = salt.rangeLabel,
+            ),
+            MacroProgressItem(
                 title = fat.name,
                 progress = fat.progress(totalFat),
                 progressLabel = mapFat(totalFat, null, withLabel = false) ?: "0g",
                 range = fat.targetRange,
                 rangeLabel = fat.rangeLabel,
+            ),
+            MacroProgressItem(
+                title = saturated.name,
+                progress = saturated.progress(totalSaturated),
+                progressLabel = mapFat(totalSaturated, null, withLabel = false) ?: "0g",
+                range = saturated.targetRange,
+                rangeLabel = saturated.rangeLabel,
+            ),
+            MacroProgressItem(
+                title = fibre.name,
+                progress = fibre.progress(totalFibre),
+                progressLabel = mapFibre(totalFibre, withLabel = false) ?: "0g",
+                range = fibre.targetRange,
+                rangeLabel = fibre.rangeLabel,
             ),
             MacroProgressItem(
                 title = carbs.name,
@@ -129,20 +162,6 @@ internal class MacrosUIMapper {
                 range = sugar.targetRange,
                 rangeLabel = sugar.rangeLabel,
             ),
-            MacroProgressItem(
-                title = salt.name,
-                progress = salt.progress(totalSalt),
-                progressLabel = mapSalt(totalSalt, withLabel = false) ?: "0g",
-                range = salt.targetRange,
-                rangeLabel = salt.rangeLabel,
-            ),
-            MacroProgressItem(
-                title = fibre.name,
-                progress = fibre.progress(totalFibre),
-                progressLabel = mapFibre(totalFibre, withLabel = false) ?: "0g",
-                range = fibre.targetRange,
-                rangeLabel = fibre.rangeLabel,
-            ),
         )
 
         return MacroProgressTableUIModel(
@@ -151,7 +170,7 @@ internal class MacrosUIMapper {
         )
     }
 
-    fun mapAllMacrosLabel(macros: Macros?, isShort: Boolean = false): String? {
+    fun mapMacrosString(macros: Macros?, isShort: Boolean = false): String? {
         return listOfNotNull(
             macros?.calories?.let { mapCalories(it, isShort) },
             macros?.protein?.let { mapProtein(it, isShort) },
@@ -170,6 +189,17 @@ internal class MacrosUIMapper {
             .takeIf { it.isNotBlank() }
     }
 
+    fun mapMacros(macros: Macros): MacrosUIModel {
+        return MacrosUIModel(
+            calories = mapCalories(macros.calories, isShort = true, withLabel = true),
+            protein = mapProtein(macros.protein, isShort = true, withLabel = true),
+            fat = mapFat(macros.fat, macros.ofWhichSaturated, isShort = true, withLabel = true),
+            carbs = mapCarbs(macros.carbohydrates, macros.ofWhichSugar, isShort = true, withLabel = true),
+            salt = mapSalt(macros.salt, isShort = true, withLabel = true),
+            fibre = mapFibre(macros.fibre, isShort = true, withLabel = true),
+        )
+    }
+
     fun mapCalories(
         value: Number?,
         isShort: Boolean = false,
@@ -177,7 +207,7 @@ internal class MacrosUIMapper {
     ): String? {
         val smallScaleValue = false
         val (shortFormat, longFormat) = generateFormats(
-            shortLabel = "",
+            shortLabel = "",  // no short label because "cal" makes this macro recognisable enough
             longLabel = "Calories:",
             unit = "cal",
             withLabel = withLabel,
@@ -226,9 +256,9 @@ internal class MacrosUIMapper {
         isShort: Boolean = false,
         withLabel: Boolean = true,
     ): String? {
-        val smallScaleValue = true
+        val smallScaleValue = false
         val (shortFormat, longFormat) = generateFormats(
-            shortLabel = "",
+            shortLabel = "",  // no short label because in short mode sugar is displayed after carbs in parenthesis
             longLabel = "of which sugar:",
             unit = if (isShort) "" else "g",
             withLabel = withLabel,
@@ -263,7 +293,7 @@ internal class MacrosUIMapper {
     ): String? {
         val smallScaleValue = false
         val (shortFormat, longFormat) = generateFormats(
-            shortLabel = "",
+            shortLabel = "", // no short label because in short mode saturated fats are displayed after fat in parenthesis
             longLabel = "of which saturated:",
             unit = if (isShort) "" else "g",
             withLabel = withLabel,
@@ -279,7 +309,7 @@ internal class MacrosUIMapper {
     ): String? {
         val smallScaleValue = true
         val (shortFormat, longFormat) = generateFormats(
-            shortLabel = "sal",
+            shortLabel = "salt",
             longLabel = "Salt:",
             unit = if (isShort) "" else "g",
             withLabel = withLabel,
@@ -295,7 +325,7 @@ internal class MacrosUIMapper {
     ): String? {
         val smallScaleValue = false
         val (shortFormat, longFormat) = generateFormats(
-            shortLabel = "fib",
+            shortLabel = "fibr",
             longLabel = "Fibre:",
             unit = if (isShort) "" else "g",
             withLabel = withLabel,

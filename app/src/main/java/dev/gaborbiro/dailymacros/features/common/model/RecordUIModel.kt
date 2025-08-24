@@ -9,6 +9,14 @@ data class RecordUIModel(
     val images: List<String>,
     val timestamp: String,
     val title: String,
-    val description: String,
-    val hasMacros: Boolean,
+    val macros: MacrosUIModel?,
 ) : BaseListItemUIModel(id = recordId, contentType = "record")
+
+data class MacrosUIModel(
+    val calories: String?,
+    val protein: String?,
+    val fat: String?,
+    val carbs: String?,
+    val salt: String?,
+    val fibre: String?,
+)

@@ -24,8 +24,8 @@ import dev.gaborbiro.dailymacros.design.WidgetColorScheme
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
-import dev.gaborbiro.dailymacros.features.widget.model.TemplatesEndUIModel
-import dev.gaborbiro.dailymacros.features.widget.model.TemplatesStartUIModel
+import dev.gaborbiro.dailymacros.features.common.model.TemplatesEndUIModel
+import dev.gaborbiro.dailymacros.features.common.model.TemplatesStartUIModel
 import dev.gaborbiro.dailymacros.features.widget.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.widget.views.WidgetContent
 import dev.gaborbiro.dailymacros.features.widget.workers.ReloadWorkRequest

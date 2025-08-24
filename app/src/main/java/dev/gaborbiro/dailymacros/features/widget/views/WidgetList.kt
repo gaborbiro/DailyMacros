@@ -14,12 +14,13 @@ import androidx.glance.layout.height
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import dev.gaborbiro.dailymacros.features.common.model.BaseListItemUIModel
+import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultVertical
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDoubleVertical
-import dev.gaborbiro.dailymacros.features.widget.model.TemplateUIModel
-import dev.gaborbiro.dailymacros.features.widget.model.TemplatesEndUIModel
-import dev.gaborbiro.dailymacros.features.widget.model.TemplatesStartUIModel
+import dev.gaborbiro.dailymacros.features.common.model.TemplateUIModel
+import dev.gaborbiro.dailymacros.features.common.model.TemplatesEndUIModel
+import dev.gaborbiro.dailymacros.features.common.model.TemplatesStartUIModel
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 
 @Composable
@@ -101,10 +102,16 @@ private fun RecordListPreviewExpanded() {
                     recordId = 1,
                     templateId = 1L,
                     title = "Breakfast",
-                    description = "8cal, Prot 8, Carb 9, Sug 9, Fat 4, Sat 2, Sal: 0",
                     timestamp = "Yesterday",
                     images = listOf("", ""),
-                    hasMacros = true,
+                    macros = MacrosUIModel(
+                        calories = "8cal",
+                        protein = "prot 8",
+                        fat = "fat 4(2)",
+                        carbs = "carb 9(9)",
+                        salt = "sal 2",
+                        fibre = "fib 4",
+                    ),
                 ),
                 TemplateUIModel(
                     templateId = 1,
@@ -129,18 +136,30 @@ private fun RecordListPreviewExpanded() {
                     templateId = 1L,
                     timestamp = "Yesterday",
                     title = "Lunch",
-                    description = "8cal, Prot 8, Carb 9, Sug 9, Fat 4, Sat 2, Sal: 0",
                     images = listOf("", ""),
-                    hasMacros = true,
+                    macros = MacrosUIModel(
+                        calories = "8cal",
+                        protein = "prot 8",
+                        fat = "fat 4(2)",
+                        carbs = "carb 9(9)",
+                        salt = "sal 2",
+                        fibre = "fib 4",
+                    ),
                 ),
                 RecordUIModel(
                     recordId = 3L,
                     templateId = 1L,
                     timestamp = "Yesterday",
                     title = "Dinner",
-                    description = "8cal, Prot 8, Carb 9, Sug 9, Fat 4, Sat 2, Sal: 0",
                     images = listOf("", ""),
-                    hasMacros = true,
+                    macros = MacrosUIModel(
+                        calories = "8cal",
+                        protein = "prot 8",
+                        fat = "fat 4(2)",
+                        carbs = "carb 9(9)",
+                        salt = "sal 2",
+                        fibre = "fib 4",
+                    ),
                 ),
             ),
             recordImageTapActionProvider = { action {} },

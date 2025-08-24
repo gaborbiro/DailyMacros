@@ -4,12 +4,15 @@ import android.content.res.Configuration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,13 +20,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
+import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.common.view.LocalImage
 import dev.gaborbiro.dailymacros.features.common.view.PreviewImageStoreProvider
@@ -42,7 +48,7 @@ fun ListItemRecord(
 
     Row(
         modifier = modifier
-            .padding(start = PaddingHalf),
+            .padding(start = PaddingDefault),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         RecordImage(
@@ -92,28 +98,57 @@ private fun RecordTextContent(modifier: Modifier, record: RecordUIModel) {
         modifier,
         verticalArrangement = Arrangement.Center,
     ) {
+        Row {
+            Text(
+                modifier = Modifier
+                    .weight(1f),
+                text = record.title,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Text(
+                modifier = Modifier
+                    .padding(top = PaddingQuarter),
+                text = record.timestamp,
+                style = MaterialTheme.typography.labelMedium,
+            )
+        }
+        record.macros?.let {
+            FlowRow(
+                horizontalArrangement = Arrangement.Start,
+            ) {
+                MacroPill(text = it.calories, bg = Color(0xFFFFE8C9), color = Color.Black.copy(alpha = .7f))
+                MacroPill(text = it.protein, bg = Color(0xFFE7F9F0), color = Color.Black.copy(alpha = .7f))
+                MacroPill(text = it.fat, bg = Color(0xFFCEE6FF), color = Color.Black.copy(alpha = .7f))
+                MacroPill(text = it.carbs, bg = Color(0xFFFFD5D4), color = Color.Black.copy(alpha = .7f))
+                MacroPill(text = it.salt, bg = Color(0xFFE6CCF6), color = Color.Black.copy(alpha = .7f))
+                MacroPill(text = it.fibre, bg = Color(0xFFBADFE9), color = Color.Black.copy(alpha = .7f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun MacroPill(
+    text: String?,
+    bg: Color,
+    color: Color,
+) {
+    Card(
+        modifier = Modifier
+            .width(86.dp)
+            .padding(top = 4.dp)
+            .padding(end = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = if (text != null) bg else Color.Transparent),
+        shape = RoundedCornerShape(4.dp),
+    ) {
         Text(
-            modifier = Modifier
-                .fillMaxWidth(),
-            text = record.title,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.bodyMedium,
-        )
-        Text(
-            modifier = Modifier
-                .fillMaxWidth(),
-            text = record.description,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+            text = text ?: "",
+            color = color,
             style = MaterialTheme.typography.bodySmall,
-        )
-        Text(
-            text = record.timestamp,
-            style = MaterialTheme.typography.labelMedium,
-            modifier = Modifier
-                .padding(top = PaddingQuarter)
         )
     }
 }
@@ -127,11 +162,17 @@ private fun OverviewListItemPreview() {
             record = RecordUIModel(
                 recordId = 1L,
                 title = "Title",
-                description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                 templateId = 1L,
                 images = listOf("", ""),
-                timestamp = "2022-01-01 00:00:00",
-                hasMacros = true,
+                timestamp = "Tue 19 Aug, 20:49",
+                macros = MacrosUIModel(
+                    calories = "8cal",
+                    protein = "prot 8",
+                    fat = "fat 4(2)",
+                    carbs = "carb 9(9)",
+                    salt = "sal 2",
+                    fibre = "fib 4",
+                ),
             ),
             onRecordImageTapped = {},
             onRecordBodyTapped = {},

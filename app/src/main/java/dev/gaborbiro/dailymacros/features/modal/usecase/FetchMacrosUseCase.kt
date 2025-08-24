@@ -39,7 +39,7 @@ internal class FetchMacrosUseCase(
             templateId = record.template.dbId,
             macros = macros,
         )
-        val macrosStr = macrosUIMapper.mapAllMacrosLabel(macros)
+        val macrosStr = macrosUIMapper.mapMacrosString(macros)
         appContext.showSimpleNotification(
             id = 123000L + recordId,
             title = null,

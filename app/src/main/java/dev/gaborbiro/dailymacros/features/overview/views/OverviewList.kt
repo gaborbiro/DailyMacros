@@ -34,9 +34,9 @@ import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
-import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressTableUIModel
+import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.common.view.LocalImageStore
 import dev.gaborbiro.dailymacros.features.common.view.PreviewImageStoreProvider
@@ -109,7 +109,7 @@ internal fun OverviewList(
         var expandedId by remember { mutableStateOf<Any?>(null) }
 
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(PaddingHalf),
+            verticalArrangement = Arrangement.spacedBy(PaddingDefault),
             contentPadding = PaddingValues(
                 top = paddingValues.calculateTopPadding(),
                 bottom = paddingValues.calculateBottomPadding() + 86.dp
@@ -283,20 +283,32 @@ private fun NotesListPreview() {
                         RecordUIModel(
                             recordId = 1L,
                             title = "Title",
-                            description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                             templateId = 1L,
                             images = listOf("", ""),
                             timestamp = "2022-01-01 00:00:00",
-                            hasMacros = true,
+                            macros = MacrosUIModel(
+                                calories = "8cal",
+                                protein = "prot 8",
+                                fat = "fat 4(2)",
+                                carbs = "carb 9(9)",
+                                salt = "sal 2",
+                                fibre = "fib 4",
+                            ),
                         ),
                         RecordUIModel(
                             recordId = 2L,
                             title = "Title 2",
-                            description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                             templateId = 1L,
                             images = listOf("", ""),
                             timestamp = "2022-05-01 00:00:00",
-                            hasMacros = true,
+                            macros = MacrosUIModel(
+                                calories = "8cal",
+                                protein = "prot 8",
+                                fat = "fat 4(2)",
+                                carbs = "carb 9(9)",
+                                salt = "sal 2",
+                                fibre = "fib 4",
+                            ),
                         )
                     ),
                 ),

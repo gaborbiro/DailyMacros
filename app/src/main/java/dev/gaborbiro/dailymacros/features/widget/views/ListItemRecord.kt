@@ -19,6 +19,7 @@ import androidx.glance.layout.wrapContentHeight
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
+import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultHorizontal
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
@@ -85,10 +86,16 @@ private fun RecordListItemPreview() {
                 recordId = 1,
                 templateId = 1L,
                 title = "Breakfast",
-                description = "8cal, Prot 8, Fat 4, Sat 2, Carb 9, Sug 9, Sal: 0, Fibre: 1111dfdf sdf asdfasdf as df",
                 timestamp = "Yesterday",
                 images = listOf("", ""),
-                hasMacros = true,
+                macros = MacrosUIModel(
+                    calories = "8cal",
+                    protein = "prot 8",
+                    fat = "fat 4(2)",
+                    carbs = "carb 9(9)",
+                    salt = "sal 2",
+                    fibre = "fib 4",
+                ),
             ),
             imageTappedActionProvider = action {},
             bodyTappedActionProvider = action {},
