@@ -149,7 +149,7 @@ internal fun OverviewList(
                     }
 
                     is MacroProgressTableUIModel -> {
-                        ListItemMacroTable(
+                        ListItemMacroProgressTable(
                             modifier = Modifier
                                 .let {
                                     if (index > 0) {

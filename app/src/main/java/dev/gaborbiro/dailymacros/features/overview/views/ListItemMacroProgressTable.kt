@@ -34,7 +34,7 @@ import dev.gaborbiro.dailymacros.features.common.model.MacroProgressTableUIModel
 import java.time.LocalDate
 
 @Composable
-fun ListItemMacroTable(
+fun ListItemMacroProgressTable(
     modifier: Modifier = Modifier,
     model: MacroProgressTableUIModel,
 ) {
@@ -162,7 +162,7 @@ private fun MacroCell(
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun MacroGoalsViewPreview() {
     DailyMacrosTheme {
-        ListItemMacroTable(
+        ListItemMacroProgressTable(
             modifier = Modifier
                 .wrapContentHeight(),
             model = MacroProgressTableUIModel(
