@@ -32,10 +32,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.R
+import dev.gaborbiro.dailymacros.design.DailyMacrosColors
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
-import dev.gaborbiro.dailymacros.features.common.model.MacroProgressTableUIModel
+import dev.gaborbiro.dailymacros.features.common.model.MacroProgressUIModel
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
 import dev.gaborbiro.dailymacros.features.common.view.LocalImageStore
@@ -148,8 +149,8 @@ internal fun OverviewList(
                         }
                     }
 
-                    is MacroProgressTableUIModel -> {
-                        ListItemMacroProgressTable(
+                    is MacroProgressUIModel -> {
+                        ListItemMacroProgressBars(
                             modifier = Modifier
                                 .let {
                                     if (index > 0) {
@@ -226,7 +227,7 @@ private fun NotesListPreview() {
             OverviewList(
                 viewState = OverviewViewState(
                     items = listOf(
-                        MacroProgressTableUIModel(
+                        MacroProgressUIModel(
                             date = LocalDate.now(),
                             macros = listOf(
                                 MacroProgressItem(
@@ -235,6 +236,7 @@ private fun NotesListPreview() {
                                     progressLabel = "1005 cal",
                                     range = Range(.84f, .88f),
                                     rangeLabel = "2.1-2.2kcal",
+                                    color = DailyMacrosColors.calorieColor,
                                 ),
                                 MacroProgressItem(
                                     title = "Protein",
@@ -242,6 +244,7 @@ private fun NotesListPreview() {
                                     progressLabel = "110g",
                                     range = Range(.8095f, .9047f),
                                     rangeLabel = "170-190g",
+                                    color = DailyMacrosColors.proteinColor,
                                 ),
                                 MacroProgressItem(
                                     title = "Fat",
@@ -249,6 +252,7 @@ private fun NotesListPreview() {
                                     progressLabel = "30g",
                                     range = Range(.6818f, .9091f),
                                     rangeLabel = "45-60g",
+                                    color = DailyMacrosColors.fatColor,
                                 ),
                                 MacroProgressItem(
                                     title = "Carbs",
@@ -256,6 +260,7 @@ private fun NotesListPreview() {
                                     progressLabel = "105g",
                                     range = Range(.6818f, .9091f),
                                     rangeLabel = "150-200g",
+                                    color = DailyMacrosColors.carbsColor,
                                 ),
                                 MacroProgressItem(
                                     title = "Sugar",
@@ -263,6 +268,7 @@ private fun NotesListPreview() {
                                     progressLabel = "35g",
                                     range = Range(.9091f, .9091f),
                                     rangeLabel = "<40g ttl., <25g",
+                                    color = DailyMacrosColors.carbsColor,
                                 ),
                                 MacroProgressItem(
                                     title = "Salt",
@@ -270,6 +276,7 @@ private fun NotesListPreview() {
                                     progressLabel = "0g",
                                     range = Range(.9091f, .9091f),
                                     rangeLabel = "<5g (≈2g Na)",
+                                    color = DailyMacrosColors.saltColor,
                                 ),
                                 MacroProgressItem(
                                     title = "Fibre",
@@ -277,7 +284,8 @@ private fun NotesListPreview() {
                                     progressLabel = "0g",
                                     range = Range(.9091f, .9091f),
                                     rangeLabel = "30-38g",
-                                )
+                                    color = DailyMacrosColors.fibreColor,
+                                ),
                             )
                         ),
                         RecordUIModel(

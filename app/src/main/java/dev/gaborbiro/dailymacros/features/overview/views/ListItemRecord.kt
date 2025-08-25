@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.gaborbiro.dailymacros.design.DailyMacrosColors
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
@@ -119,12 +120,36 @@ private fun RecordTextContent(modifier: Modifier, record: RecordUIModel) {
             FlowRow(
                 horizontalArrangement = Arrangement.Start,
             ) {
-                MacroPill(text = it.calories, bg = Color(0xFFFFE8C9), color = Color.Black.copy(alpha = .7f))
-                MacroPill(text = it.protein, bg = Color(0xFFE7F9F0), color = Color.Black.copy(alpha = .7f))
-                MacroPill(text = it.fat, bg = Color(0xFFCEE6FF), color = Color.Black.copy(alpha = .7f))
-                MacroPill(text = it.carbs, bg = Color(0xFFFFD5D4), color = Color.Black.copy(alpha = .7f))
-                MacroPill(text = it.salt, bg = Color(0xFFE6CCF6), color = Color.Black.copy(alpha = .7f))
-                MacroPill(text = it.fibre, bg = Color(0xFFBADFE9), color = Color.Black.copy(alpha = .7f))
+                MacroPill(
+                    text = it.calories,
+                    bg = DailyMacrosColors.calorieColor,
+                    color = Color.Black.copy(alpha = .7f),
+                )
+                MacroPill(
+                    text = it.protein,
+                    bg = DailyMacrosColors.proteinColor,
+                    color = Color.Black.copy(alpha = .7f),
+                )
+                MacroPill(
+                    text = it.fat,
+                    bg = DailyMacrosColors.fatColor,
+                    color = Color.Black.copy(alpha = .7f),
+                )
+                MacroPill(
+                    text = it.carbs,
+                    bg = DailyMacrosColors.carbsColor,
+                    color = Color.Black.copy(alpha = .7f),
+                )
+                MacroPill(
+                    text = it.salt,
+                    bg = DailyMacrosColors.saltColor,
+                    color = Color.Black.copy(alpha = .7f),
+                )
+                MacroPill(
+                    text = it.fibre,
+                    bg = DailyMacrosColors.fibreColor,
+                    color = Color.Black.copy(alpha = .7f),
+                )
             }
         }
     }

@@ -2,8 +2,10 @@ package dev.gaborbiro.dailymacros.features.common
 
 import android.icu.text.DecimalFormat
 import android.util.Range
+import androidx.compose.ui.graphics.Color
+import dev.gaborbiro.dailymacros.design.DailyMacrosColors
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
-import dev.gaborbiro.dailymacros.features.common.model.MacroProgressTableUIModel
+import dev.gaborbiro.dailymacros.features.common.model.MacroProgressUIModel
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
@@ -11,7 +13,7 @@ import java.time.LocalDate
 
 internal class MacrosUIMapper {
 
-    fun mapMacroProgressTable(records: List<Record>, date: LocalDate): MacroProgressTableUIModel {
+    fun mapMacroProgressTable(records: List<Record>, date: LocalDate): MacroProgressUIModel {
         val totalCalories = records.sumOf { it.template.macros?.calories ?: 0 }
         val totalProtein = records.sumOf { it.template.macros?.protein?.toDouble() ?: 0.0 }
             .toInt()
@@ -35,6 +37,7 @@ internal class MacrosUIMapper {
             val min: Float,
             val max: Float,
             val theLessTheBetter: Boolean,
+            private val color: Color,
         ) {
             private val extendedMax = max * 1.1f
             val targetRange = Range(
@@ -44,6 +47,11 @@ internal class MacrosUIMapper {
 
             fun progress(total: Int) =
                 (total / if (theLessTheBetter) max else extendedMax).coerceAtMost(1f)
+
+            //            fun color(total: Int): Color {
+//                return if (progress(total) >= 1f) Color.Red else color
+//            }
+            fun color(blah: Int) = color
         }
 
         val calories = MacroGoal(
@@ -52,6 +60,7 @@ internal class MacrosUIMapper {
             min = 2100f,
             max = 2200f,
             theLessTheBetter = false,
+            color = DailyMacrosColors.calorieColor,
         )
         val protein = MacroGoal(
             name = "Protein",
@@ -59,20 +68,23 @@ internal class MacrosUIMapper {
             min = 170f,
             max = 190f,
             theLessTheBetter = false,
+            color = DailyMacrosColors.proteinColor,
         )
         val fat = MacroGoal(
-            name = "Fat",
+            name = "Fats",
             rangeLabel = "55-65g",
             min = 55f,
             max = 65f,
             theLessTheBetter = false,
+            color = DailyMacrosColors.fatColor,
         )
         val saturated = MacroGoal(
-            name = "of which saturated",
+            name = "saturated",
             rangeLabel = "< 21g",
             min = 0f,
             max = 21f,
             theLessTheBetter = true,
+            color = DailyMacrosColors.fatColor,
         )
         val salt = MacroGoal(
             name = "Salt",
@@ -80,6 +92,7 @@ internal class MacrosUIMapper {
             min = 0f,
             max = 5f,
             theLessTheBetter = true,
+            color = DailyMacrosColors.saltColor,
         )
         val carbs = MacroGoal(
             name = "Carbs",
@@ -87,13 +100,15 @@ internal class MacrosUIMapper {
             min = 150f,
             max = 200f,
             theLessTheBetter = false,
+            color = DailyMacrosColors.carbsColor,
         )
         val sugar = MacroGoal(
-            name = "of which sugar",
+            name = "sugar",
             rangeLabel = "<40g ttl., <25g",
             min = 0f,
             max = 40f,
             theLessTheBetter = true,
+            color = DailyMacrosColors.carbsColor,
         )
         val fibre = MacroGoal(
             // TODO Women need 21-25g
@@ -102,6 +117,7 @@ internal class MacrosUIMapper {
             min = 30f,
             max = 38f,
             theLessTheBetter = false,
+            color = DailyMacrosColors.fibreColor,
         )
 
         val macros = listOf(
@@ -111,13 +127,7 @@ internal class MacrosUIMapper {
                 progressLabel = mapCalories(totalCalories, withLabel = false)!!,
                 range = calories.targetRange,
                 rangeLabel = calories.rangeLabel,
-            ),
-            MacroProgressItem(
-                title = protein.name,
-                progress = protein.progress(totalProtein),
-                progressLabel = mapProtein(totalProtein, withLabel = false) ?: "0g",
-                range = protein.targetRange,
-                rangeLabel = protein.rangeLabel,
+                color = calories.color(totalCalories),
             ),
             MacroProgressItem(
                 title = salt.name,
@@ -125,6 +135,7 @@ internal class MacrosUIMapper {
                 progressLabel = mapSalt(totalSalt, withLabel = false) ?: "0g",
                 range = salt.targetRange,
                 rangeLabel = salt.rangeLabel,
+                color = salt.color(totalSalt),
             ),
             MacroProgressItem(
                 title = fat.name,
@@ -132,20 +143,7 @@ internal class MacrosUIMapper {
                 progressLabel = mapFat(totalFat, null, withLabel = false) ?: "0g",
                 range = fat.targetRange,
                 rangeLabel = fat.rangeLabel,
-            ),
-            MacroProgressItem(
-                title = saturated.name,
-                progress = saturated.progress(totalSaturated),
-                progressLabel = mapFat(totalSaturated, null, withLabel = false) ?: "0g",
-                range = saturated.targetRange,
-                rangeLabel = saturated.rangeLabel,
-            ),
-            MacroProgressItem(
-                title = fibre.name,
-                progress = fibre.progress(totalFibre),
-                progressLabel = mapFibre(totalFibre, withLabel = false) ?: "0g",
-                range = fibre.targetRange,
-                rangeLabel = fibre.rangeLabel,
+                color = fat.color(totalFat),
             ),
             MacroProgressItem(
                 title = carbs.name,
@@ -154,6 +152,31 @@ internal class MacrosUIMapper {
                     ?: "0g",
                 range = carbs.targetRange,
                 rangeLabel = carbs.rangeLabel,
+                color = carbs.color(totalCarbs),
+            ),
+            MacroProgressItem(
+                title = protein.name,
+                progress = protein.progress(totalProtein),
+                progressLabel = mapProtein(totalProtein, withLabel = false) ?: "0g",
+                range = protein.targetRange,
+                rangeLabel = protein.rangeLabel,
+                color = protein.color(totalProtein),
+            ),
+            MacroProgressItem(
+                title = fibre.name,
+                progress = fibre.progress(totalFibre),
+                progressLabel = mapFibre(totalFibre, withLabel = false) ?: "0g",
+                range = fibre.targetRange,
+                rangeLabel = fibre.rangeLabel,
+                color = fibre.color(totalFibre),
+            ),
+            MacroProgressItem(
+                title = saturated.name,
+                progress = saturated.progress(totalSaturated),
+                progressLabel = mapFat(totalSaturated, null, withLabel = false) ?: "0g",
+                range = saturated.targetRange,
+                rangeLabel = saturated.rangeLabel,
+                color = saturated.color(totalSaturated),
             ),
             MacroProgressItem(
                 title = sugar.name,
@@ -161,10 +184,11 @@ internal class MacrosUIMapper {
                 progressLabel = mapSugar(totalSugar, withLabel = false) ?: "0g",
                 range = sugar.targetRange,
                 rangeLabel = sugar.rangeLabel,
+                color = sugar.color(totalSugar),
             ),
         )
 
-        return MacroProgressTableUIModel(
+        return MacroProgressUIModel(
             date = date,
             macros = macros,
         )

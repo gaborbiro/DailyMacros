@@ -30,13 +30,13 @@ import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.DailyMacrosColors
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
-import dev.gaborbiro.dailymacros.features.common.model.MacroProgressTableUIModel
+import dev.gaborbiro.dailymacros.features.common.model.MacroProgressUIModel
 import java.time.LocalDate
 
 @Composable
 fun ListItemMacroProgressTable(
     modifier: Modifier = Modifier,
-    model: MacroProgressTableUIModel,
+    model: MacroProgressUIModel,
 ) {
     // Pre-split once; if model.macros identity doesn't change, this won't re-run
     val rows = remember(model.macros) { model.macros.chunked(3) }
@@ -165,7 +165,7 @@ private fun MacroGoalsViewPreview() {
         ListItemMacroProgressTable(
             modifier = Modifier
                 .wrapContentHeight(),
-            model = MacroProgressTableUIModel(
+            model = MacroProgressUIModel(
                 date = LocalDate.now(),
                 macros = listOf(
                     MacroProgressItem(
@@ -174,6 +174,7 @@ private fun MacroGoalsViewPreview() {
                         progressLabel = "1005 cal",
                         range = Range(.84f, .88f),
                         rangeLabel = "2.1-2.2kcal",
+                        color = DailyMacrosColors.calorieColor,
                     ),
                     MacroProgressItem(
                         title = "Protein",
@@ -181,6 +182,7 @@ private fun MacroGoalsViewPreview() {
                         progressLabel = "110g",
                         range = Range(.8095f, .9047f),
                         rangeLabel = "170-190g",
+                        color = DailyMacrosColors.proteinColor,
                     ),
                     MacroProgressItem(
                         title = "Fat",
@@ -188,6 +190,7 @@ private fun MacroGoalsViewPreview() {
                         progressLabel = "30g",
                         range = Range(.6818f, .9091f),
                         rangeLabel = "45-60g",
+                        color = DailyMacrosColors.fatColor,
                     ),
                     MacroProgressItem(
                         title = "Carbs",
@@ -195,6 +198,7 @@ private fun MacroGoalsViewPreview() {
                         progressLabel = "105g",
                         range = Range(.6818f, .9091f),
                         rangeLabel = "150-200g",
+                        color = DailyMacrosColors.carbsColor,
                     ),
                     MacroProgressItem(
                         title = "Sugar",
@@ -202,6 +206,7 @@ private fun MacroGoalsViewPreview() {
                         progressLabel = "35g",
                         range = Range(.9091f, .9091f),
                         rangeLabel = "<40g ttl., <25g",
+                        color = DailyMacrosColors.carbsColor,
                     ),
                     MacroProgressItem(
                         title = "Salt",
@@ -209,6 +214,7 @@ private fun MacroGoalsViewPreview() {
                         progressLabel = "0g",
                         range = Range(.9091f, .9091f),
                         rangeLabel = "<5g (≈2g Na)",
+                        color = DailyMacrosColors.saltColor,
                     ),
                     MacroProgressItem(
                         title = "Fibre",
@@ -216,7 +222,8 @@ private fun MacroGoalsViewPreview() {
                         progressLabel = "0g",
                         range = Range(.9091f, .9091f),
                         rangeLabel = "30-38g",
-                    )
+                        color = DailyMacrosColors.fibreColor,
+                    ),
                 )
             )
         )
