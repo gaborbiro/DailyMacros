@@ -84,7 +84,9 @@ internal class ImageStoreImpl(
                     bmp
                 }
             }
-        }.await().also { inflight.remove(key) }
+        }.await().also {
+            inflight.remove(key)
+        }
     }
 
     override suspend fun write(filename: String, bitmap: Bitmap): Unit = withContext(io) {

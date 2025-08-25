@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.common.error.views
+package dev.gaborbiro.dailymacros.features.common.view
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -17,10 +17,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingDouble
-import dev.gaborbiro.dailymacros.features.common.error.model.ErrorViewState
 
 @Composable
-fun ErrorDialog(error: ErrorViewState, onDismissRequested: () -> Unit) {
+fun ErrorDialog(errorMessage: String, onDismissRequested: () -> Unit) {
     Dialog(onDismissRequested) {
         Surface(
             shape = RoundedCornerShape(16.dp),
@@ -33,7 +32,7 @@ fun ErrorDialog(error: ErrorViewState, onDismissRequested: () -> Unit) {
             ) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = error.message,
+                    text = errorMessage,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.titleMedium,
                 )

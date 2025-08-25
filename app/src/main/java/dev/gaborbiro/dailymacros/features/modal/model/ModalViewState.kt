@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 
 data class ModalViewState(
     val dialogs: List<DialogState> = emptyList(),
+    val close: Boolean = false,
 )
 
 sealed class DialogState {
@@ -75,6 +76,8 @@ sealed class DialogState {
     data class SelectRecordActionDialog(val recordId: Long) : DialogState()
 
     data class SelectTemplateActionDialog(val templateId: Long) : DialogState()
+
+    data class ErrorDialog(val errorMessage: String): DialogState()
 }
 
 sealed class ImagePickerState(open val recordId: Long?) {

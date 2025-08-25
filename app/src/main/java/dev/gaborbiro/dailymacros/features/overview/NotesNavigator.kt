@@ -17,6 +17,6 @@ class OverviewNavigatorImpl(private val appContext: Context) : OverviewNavigator
     }
 
     override fun viewImage(recordId: Long) {
-        ModalActivity.launchViewRecordImage(appContext, recordId)
+        ModalActivity.launchRecordImageViewRequest(appContext, recordId)
     }
 }

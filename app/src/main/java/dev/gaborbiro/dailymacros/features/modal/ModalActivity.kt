@@ -12,11 +12,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.core.net.toUri
 import androidx.core.os.bundleOf
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -30,9 +27,8 @@ import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
-import dev.gaborbiro.dailymacros.features.common.error.model.ErrorViewState
-import dev.gaborbiro.dailymacros.features.common.error.views.ErrorDialog
 import dev.gaborbiro.dailymacros.features.common.view.ConfirmDeleteNutrientDataDialog
+import dev.gaborbiro.dailymacros.features.common.view.ErrorDialog
 import dev.gaborbiro.dailymacros.features.common.view.LocalImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.ImagePickerState
@@ -84,7 +80,7 @@ class ModalActivity : AppCompatActivity() {
         private fun getImagePickerIntent(context: Context) =
             getActionIntent(context, Action.PICK_IMAGE)
 
-        fun launchViewRecordImage(context: Context, recordId: Long) = launchActivity(
+        fun launchRecordImageViewRequest(context: Context, recordId: Long) = launchActivity(
             appContext = context,
             intent = getViewImageAction(context),
             EXTRA_RECORD_ID to recordId,
@@ -237,58 +233,48 @@ class ModalActivity : AppCompatActivity() {
         }
 
         when (action) {
-            Action.CAMERA -> viewModel.addRecordWithCamera()
-            Action.PICK_IMAGE -> viewModel.addRecordWithImagePicker()
-            Action.TEXT_ONLY -> viewModel.addRecord()
+            Action.CAMERA -> viewModel.onAddRecordWithCameraDeeplink()
+            Action.PICK_IMAGE -> viewModel.onAddRecordWithImagePickerDeeplink()
+            Action.TEXT_ONLY -> viewModel.onAddRecordDeeplink()
 
             Action.VIEW_RECORD_DETAILS -> {
                 val recordId = intent.getLongExtra(EXTRA_RECORD_ID, -1L)
-                viewModel.viewRecordDetails(recordId)
+                viewModel.onViewRecordDetailsDeeplink(recordId)
             }
 
             Action.VIEW_IMAGE -> {
                 val recordId = intent.getLongExtra(EXTRA_RECORD_ID, -1L)
                 if (recordId != -1L) {
-                    viewModel.viewRecordImage(recordId)
+                    viewModel.viewRecordImageDeeplink(recordId)
                 } else {
                     val templateId = intent.getLongExtra(EXTRA_TEMPLATE_ID, -1L)
-                    viewModel.viewTemplateImage(templateId)
+                    viewModel.onViewTemplateImageDeeplink(templateId)
                 }
             }
 
             Action.SELECT_RECORD_ACTION -> {
                 val recordId = intent.getLongExtra(EXTRA_RECORD_ID, -1L)
-                viewModel.selectRecordAction(recordId)
+                viewModel.onSelectRecordActionDeeplink(recordId)
             }
 
             Action.SELECT_TEMPLATE_ACTION -> {
                 val templateId = intent.getLongExtra(EXTRA_TEMPLATE_ID, -1L)
-                viewModel.selectTemplateAction(templateId)
+                viewModel.onSelectTemplateActionDeeplink(templateId)
             }
         }
 
         setContent {
             val viewState: ModalViewState by viewModel.viewState.collectAsStateWithLifecycle()
-            var displayHappened by remember { mutableStateOf(false) }
 
             DailyMacrosTheme {
                 CompositionLocalProvider(LocalImageStore provides imageStore) {
                     viewState.dialogs.forEach {
                         Dialog(it)
-                        displayHappened = true
                     }
                 }
             }
 
-            val error: State<ErrorViewState?> = viewModel.errorState.collectAsStateWithLifecycle()
-
-            error.value?.let {
-                DailyMacrosTheme {
-                    ErrorDialog(error = it, onDismissRequested = viewModel::onErrorDialogDismissRequested)
-                }
-            }
-
-            if (displayHappened && viewState.dialogs.isEmpty()) {
+            if (viewState.close) {
                 finish()
             }
         }
@@ -296,6 +282,13 @@ class ModalActivity : AppCompatActivity() {
 
     @Composable
     fun Dialog(dialogState: DialogState?) {
+        val onDismissRequested: () -> Unit =
+            remember(dialogState) {
+                {
+                    dialogState
+                        ?.let { viewModel.onDialogDismissRequested(it) }
+                }
+            }
         when (dialogState) {
             is DialogState.InputDialog -> InputDialog(
                 dialogState = dialogState,
@@ -304,18 +297,18 @@ class ModalActivity : AppCompatActivity() {
                 onImageTapped = viewModel::onImageTapped,
                 onAddImageViaCameraTapped = { viewModel.onAddImageViaCameraTapped(dialogState) },
                 onAddImageViaPickerTapped = { viewModel.onAddImageViaPickerTapped(dialogState) },
-                onDismissRequested = viewModel::onDialogDismissRequested,
+                onDismissRequested = onDismissRequested,
             )
 
             is DialogState.EditTargetConfirmationDialog -> EditTargetConfirmationDialog(
                 dialogState = dialogState,
                 onEditTargetConfirmed = viewModel::onEditTargetConfirmed,
-                onDismissRequested = viewModel::onDialogDismissRequested,
+                onDismissRequested = onDismissRequested,
             )
 
             is DialogState.ViewImageDialog -> ImageDialog(
                 dialogState = dialogState,
-                onDismissRequested = viewModel::onDialogDismissRequested,
+                onDismissRequested = onDismissRequested,
             )
 
             is DialogState.SelectRecordActionDialog -> SelectRecordActionDialog(
@@ -323,21 +316,21 @@ class ModalActivity : AppCompatActivity() {
                 onRepeatTapped = viewModel::onRepeatRecordTapped,
                 onDetailsTapped = viewModel::onDetailsTapped,
                 onDeleteTapped = viewModel::onDeleteTapped,
-                onDismissRequested = viewModel::onDialogDismissRequested,
+                onDismissRequested = onDismissRequested,
             )
 
             is DialogState.SelectTemplateActionDialog -> {
                 SelectTemplateActionDialog(
                     templateId = dialogState.templateId,
                     onRepeatTapped = viewModel::onRepeatTemplateTapped,
-                    onDismissRequested = viewModel::onDialogDismissRequested,
+                    onDismissRequested = onDismissRequested,
                 )
             }
 
             is DialogState.ConfirmDeleteNutrientDataDialog -> {
                 ConfirmDeleteNutrientDataDialog(
                     onConfirm = viewModel::onDeleteNutrientDataConfirmed,
-                    onDismissRequested = viewModel::onDialogDismissRequested,
+                    onDismissRequested = onDismissRequested,
                 )
             }
 
@@ -346,6 +339,13 @@ class ModalActivity : AppCompatActivity() {
                     dialogState = dialogState,
                     viewModel = viewModel,
                     cacheFileStore = cacheFileStore,
+                )
+            }
+
+            is DialogState.ErrorDialog -> {
+                ErrorDialog(
+                    errorMessage = dialogState.errorMessage,
+                    onDismissRequested = onDismissRequested,
                 )
             }
 

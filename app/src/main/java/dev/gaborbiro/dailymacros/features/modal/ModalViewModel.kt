@@ -1,7 +1,6 @@
 package dev.gaborbiro.dailymacros.features.modal
 
 import android.net.Uri
-import android.util.Log
 import androidx.annotation.UiThread
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,7 +9,6 @@ import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
-import dev.gaborbiro.dailymacros.features.common.error.model.ErrorViewState
 import dev.gaborbiro.dailymacros.features.common.workers.MacrosWorkRequest
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.ImagePickerState
@@ -64,65 +62,67 @@ internal class ModalViewModel(
     private val _viewState: MutableStateFlow<ModalViewState> = MutableStateFlow(ModalViewState())
     val viewState: StateFlow<ModalViewState> = _viewState.asStateFlow()
 
-    private val _errorState: MutableStateFlow<ErrorViewState?> = MutableStateFlow(null)
-    val errorState: StateFlow<ErrorViewState?> = _errorState.asStateFlow()
-
-
     private var imageSummaryJob: Job? = null
 
     @UiThread
-    fun addRecordWithCamera() {
-        _viewState.update {
-            it.copy(
-                dialogs = it.dialogs +
-                        DialogState.NewImage(imagePickerState = ImagePickerState.Take(recordId = null)),
-            )
+    fun onAddRecordWithCameraDeeplink() {
+        pushDialog(
+            DialogState.NewImage(imagePickerState = ImagePickerState.Take(recordId = null))
+        )
+    }
+
+    @UiThread
+    fun onAddRecordWithImagePickerDeeplink() {
+        pushDialog(
+            DialogState.NewImage(imagePickerState = ImagePickerState.Select(recordId = null))
+        )
+    }
+
+    @UiThread
+    fun onAddRecordDeeplink() {
+        pushDialog(
+            DialogState.InputDialog.CreateDialog()
+        )
+    }
+
+    fun viewRecordImageDeeplink(recordId: Long) {
+        runSafely {
+            getRecordImageUseCase.execute(recordId, thumbnail = false)
+                ?.let { imageDialog ->
+                    pushDialog(
+                        imageDialog
+                    )
+                }
+                ?: run {
+                    _viewState.update { it.copy(close = true) }
+                }
+        }
+    }
+
+    fun onViewTemplateImageDeeplink(templateId: Long) {
+        runSafely {
+            getTemplateImageUseCase.execute(templateId, thumbnail = false)
+                ?.let { imageDialog ->
+                    pushDialog(
+                        imageDialog
+                    )
+                }
+                ?: run {
+                    _viewState.update { it.copy(close = true) }
+                }
         }
     }
 
     @UiThread
-    fun addRecordWithImagePicker() {
-        _viewState.update {
-            it.copy(
-                dialogs = it.dialogs +
-                        DialogState.NewImage(imagePickerState = ImagePickerState.Select(recordId = null)),
-            )
-        }
+    fun onViewRecordDetailsDeeplink(recordId: Long) {
+        viewRecordDetails(recordId)
     }
 
-    @UiThread
-    fun addRecord() {
-        _viewState.update {
-            it.copy(
-                dialogs = it.dialogs + DialogState.InputDialog.CreateDialog(),
-            )
-        }
-    }
-
-    fun viewRecordImage(recordId: Long) {
+    private fun viewRecordDetails(recordId: Long) {
         runSafely {
-            _viewState.update {
-                it.copy(
-                    dialogs = it.dialogs + getRecordImageUseCase.execute(recordId, thumbnail = false)!!
-                )
-            }
-        }
-    }
-
-    fun viewTemplateImage(templateId: Long) {
-        runSafely {
-            _viewState.update {
-                it.copy(
-                    dialogs = it.dialogs + getTemplateImageUseCase.execute(templateId, thumbnail = false)!!
-                )
-            }
-        }
-    }
-
-    @UiThread
-    fun viewRecordDetails(recordId: Long) {
-        runSafely {
-            val record = recordsRepository.getRecord(recordId)!!
+            val record =
+                recordsRepository.getRecord(recordId)
+                    ?: throw DomainError.DisplayMessageToUser.Message("Record not found")
             val macros = record.template.macros
                 ?.let {
                     MacrosUIModel(
@@ -155,35 +155,27 @@ internal class ModalViewModel(
     }
 
     @UiThread
-    fun selectRecordAction(recordId: Long) {
-        runSafely {
-            _viewState.update {
-                it.copy(
-                    dialogs = it.dialogs + DialogState.SelectRecordActionDialog(recordId)
-                )
-            }
-        }
+    fun onSelectRecordActionDeeplink(recordId: Long) {
+        pushDialog(
+            DialogState.SelectRecordActionDialog(recordId)
+        )
     }
 
     @UiThread
-    fun selectTemplateAction(templateId: Long) {
-        runSafely {
-            _viewState.update {
-                it.copy(
-                    dialogs = it.dialogs + DialogState.SelectTemplateActionDialog(templateId)
-                )
-            }
-        }
+    fun onSelectTemplateActionDeeplink(templateId: Long) {
+        pushDialog(
+            DialogState.SelectTemplateActionDialog(templateId)
+        )
     }
 
     @UiThread
-    fun onImageSelected(uri: Uri, newImage: DialogState.NewImage) {
+    fun onImageSelected(uri: Uri, newImageDialog: DialogState.NewImage) {
         imageSummaryJob?.cancel()
         imageSummaryJob = runSafely {
             var dialogs = _viewState.value.dialogs
             val persistedFilename = saveImageUseCase.execute(uri)
 
-            dialogs = dialogs - newImage
+            dialogs = dialogs - newImageDialog
 
             dialogs = dialogs.replaceInstances<DialogState.InputDialog.CreateWithImageDialog> {
                 if (it.images.isEmpty()) {
@@ -217,92 +209,21 @@ internal class ModalViewModel(
                     dialogs = dialogs
                 )
             }
-
-//            val persistedFilename = saveImageUseCase.execute(uri)
-//            when (imagePicker) {
-//                is ImagePickerState.Take, is ImagePickerState.Select -> {
-//                    _viewState.update {
-//                        it.copy(
-//                            imagePicker = null,
-//                            dialogs = it.dialogs.replaceInstances<DialogState.InputDialog.CreateWithImageDialog> {
-//                                DialogState.InputDialog.CreateWithImageDialog(
-//                                    image = persistedFilename,
-//                                    showProgressIndicator = true,
-//                                    suggestions = null,
-//                                )
-//                            }
-//                        )
-//                    }
-//                    try {
-//                        val summary = foodPicSummaryUseCase.execute(persistedFilename)
-//                        _viewState.update { currentState ->
-//                            currentState.copy(
-//                                dialogs = currentState.dialogs.replaceInstances<DialogState.InputDialog.CreateWithImageDialog> {
-//                                    it.copy(suggestions = summary)
-//                                }
-//                            )
-//                        }
-//                    } catch (e: DomainError) {
-//                        e.printStackTrace()
-//                    } finally {
-//                        _viewState.update { currentState ->
-//                            currentState.copy(
-//                                dialogs = currentState.dialogs.replaceInstances<DialogState.InputDialog.CreateWithImageDialog> {
-//                                    it.copy(showProgressIndicator = false)
-//                                }
-//                            )
-//                        }
-//                    }
-//                }
-
-//                is ImagePickerState.ChangeImage -> {
-//                    val result = validateEditImageUseCase.execute(imagePicker.recordId)
-//                    when (result) {
-//                        is EditImageValidationResult.AskConfirmation -> {
-//                            _viewState.update {
-//                                it.copy(
-//                                    imagePicker = null,
-//                                    dialogs = it.dialogs +
-//                                            DialogState.EditImageTargetConfirmationDialog(
-//                                                recordId = imagePicker.recordId,
-//                                                count = result.count,
-//                                                image = persistedFilename,
-//                                            ),
-//                                )
-//                            }
-//                        }
-//
-//                        EditImageValidationResult.Valid -> {
-//                            NotesWidget.reload()
-//                            popScreen()
-//                            editRecordImageUseCase.execute(imagePicker.recordId, persistedFilename)
-//                        }
-//                    }
-//                }
-//            }
         }
     }
 
     private fun fetchImageSummary(image: String) {
-        viewModelScope.launch {
+        runSafely {
             try {
                 val summary = foodPicSummaryUseCase.execute(image)
-                _viewState.update { currentState ->
-                    currentState.copy(
-                        dialogs = currentState.dialogs.replaceInstances<DialogState.InputDialog.CreateWithImageDialog> {
-                            it.copy(suggestions = summary)
-                        }
-                    )
+                replaceDialogs<DialogState.InputDialog.CreateWithImageDialog> {
+                    it.copy(suggestions = summary)
                 }
             } catch (e: DomainError) {
-                e.printStackTrace()
+                throw e
             } finally {
-                _viewState.update { currentState ->
-                    currentState.copy(
-                        dialogs = currentState.dialogs.replaceInstances<DialogState.InputDialog.CreateWithImageDialog> {
-                            it.copy(showProgressIndicator = false)
-                        }
-                    )
+                replaceDialogs<DialogState.InputDialog.CreateWithImageDialog> {
+                    it.copy(showProgressIndicator = false)
                 }
             }
         }
@@ -314,7 +235,7 @@ internal class ModalViewModel(
 
     @UiThread
     fun onRepeatRecordTapped(recordId: Long) {
-        viewModelScope.launch {
+        runSafely {
             recordsRepository.duplicateRecord(recordId)
             NotesWidget.reload()
             popDialog()
@@ -323,7 +244,7 @@ internal class ModalViewModel(
 
     @UiThread
     fun onRepeatTemplateTapped(templateId: Long) {
-        viewModelScope.launch {
+        runSafely {
             recordsRepository.applyTemplate(templateId)
             NotesWidget.reload()
             popDialog()
@@ -337,7 +258,7 @@ internal class ModalViewModel(
 
     @UiThread
     fun onDeleteTapped(recordId: Long) {
-        viewModelScope.launch {
+        runSafely {
             deleteRecordUseCase.execute(recordId)
             NotesWidget.reload()
             popDialog()
@@ -345,17 +266,16 @@ internal class ModalViewModel(
     }
 
     @UiThread
-    fun onDialogDismissRequested() {
+    fun onDialogDismissRequested(dialog: DialogState) {
         imageSummaryJob?.cancel()
-        runSafely {
-            _viewState.value.dialogs.filterIsInstance<DialogState.InputDialog.CreateWithImageDialog>()
-                .forEach { dialog ->
-                    dialog.images.forEach {
-                        imageStore.delete(it)
-                    }
+        (dialog as? DialogState.InputDialog.CreateWithImageDialog)?.let {
+            runSafely {
+                dialog.images.forEach {
+                    imageStore.delete(it)
                 }
-            popDialog()
+            }
         }
+        popDialog()
     }
 
     @UiThread
@@ -380,25 +300,19 @@ internal class ModalViewModel(
 
     @UiThread
     fun onRecordDetailsUserTyping(title: String, description: String) {
-        _viewState.update {
-            it.copy(
-                dialogs = it.dialogs.replaceInstances<DialogState.InputDialog> {
-                    it.withValidationError(validationError = null)
-                }
-            )
+        replaceDialogs<DialogState.InputDialog> {
+            it.withValidationError(validationError = null)
         }
     }
 
     @UiThread
     fun onImageTapped(image: String) {
-        viewModelScope.launch {
+        runSafely {
             imageStore.read(image, thumbnail = false)
                 ?.let { bitmap ->
-                    _viewState.update {
-                        it.copy(
-                            dialogs = it.dialogs + DialogState.ViewImageDialog("", bitmap)
-                        )
-                    }
+                    pushDialog(
+                        DialogState.ViewImageDialog("", bitmap)
+                    )
                 }
         }
     }
@@ -407,21 +321,15 @@ internal class ModalViewModel(
     fun onAddImageViaCameraTapped(dialogState: DialogState.InputDialog) {
         when (dialogState) {
             is DialogState.InputDialog.CreateDialog, is DialogState.InputDialog.CreateWithImageDialog -> {
-                _viewState.update {
-                    it.copy(
-                        dialogs = it.dialogs +
-                                DialogState.NewImage(imagePickerState = ImagePickerState.Take(recordId = null)),
-                    )
-                }
+                pushDialog(
+                    DialogState.NewImage(imagePickerState = ImagePickerState.Take(recordId = null))
+                )
             }
 
             is DialogState.InputDialog.RecordDetailsDialog -> {
-                _viewState.update {
-                    it.copy(
-                        dialogs = it.dialogs +
-                                DialogState.NewImage(imagePickerState = ImagePickerState.Take(recordId = dialogState.recordId)),
-                    )
-                }
+                pushDialog(
+                    DialogState.NewImage(imagePickerState = ImagePickerState.Take(recordId = dialogState.recordId))
+                )
             }
         }
     }
@@ -430,21 +338,15 @@ internal class ModalViewModel(
     fun onAddImageViaPickerTapped(dialogState: DialogState.InputDialog) {
         when (dialogState) {
             is DialogState.InputDialog.CreateDialog, is DialogState.InputDialog.CreateWithImageDialog -> {
-                _viewState.update {
-                    it.copy(
-                        dialogs = it.dialogs +
-                                DialogState.NewImage(imagePickerState = ImagePickerState.Select(recordId = null)),
-                    )
-                }
+                pushDialog(
+                    DialogState.NewImage(imagePickerState = ImagePickerState.Select(recordId = null))
+                )
             }
 
             is DialogState.InputDialog.RecordDetailsDialog -> {
-                _viewState.update {
-                    it.copy(
-                        dialogs = it.dialogs +
-                                DialogState.NewImage(imagePickerState = ImagePickerState.Select(recordId = dialogState.recordId)),
-                    )
-                }
+                pushDialog(
+                    DialogState.NewImage(imagePickerState = ImagePickerState.Select(recordId = dialogState.recordId))
+                )
             }
         }
     }
@@ -484,7 +386,6 @@ internal class ModalViewModel(
             }
 
             is CreateValidationResult.Valid -> {
-                popDialog()
                 val recordId =
                     createRecordUseCase.execute(images ?: emptyList(), title, description)
                 NotesWidget.reload()
@@ -493,6 +394,7 @@ internal class ModalViewModel(
                         recordId = recordId
                     )
                 )
+                popDialog()
             }
         }
     }
@@ -509,33 +411,27 @@ internal class ModalViewModel(
         )
         when (result) {
             is EditValidationResult.ConfirmMultipleEdit -> {
-                _viewState.update {
-                    it.copy(
-                        dialogs = it.dialogs +
-                                DialogState.EditTargetConfirmationDialog(
-                                    recordId = dialogState.recordId,
-                                    images = dialogState.images,
-                                    count = result.count,
-                                    title = title,
-                                    description = description,
-                                ),
+                pushDialog(
+                    DialogState.EditTargetConfirmationDialog(
+                        recordId = dialogState.recordId,
+                        images = dialogState.images,
+                        count = result.count,
+                        title = title,
+                        description = description,
                     )
-                }
+                )
             }
 
             is EditValidationResult.Valid -> {
                 if (result.showMacrosDeletionConfirmationDialog) {
-                    _viewState.update {
-                        it.copy(
-                            dialogs = it.dialogs +
-                                    DialogState.ConfirmDeleteNutrientDataDialog(
-                                        recordId = dialogState.recordId,
-                                        images = dialogState.images,
-                                        title = title,
-                                        description = description,
-                                    ),
-                        )
-                    }
+                    pushDialog(
+                        DialogState.ConfirmDeleteNutrientDataDialog(
+                            recordId = dialogState.recordId,
+                            images = dialogState.images,
+                            title = title,
+                            description = description,
+                        ),
+                    )
                 } else {
                     editRecordUseCase.execute(
                         recordId = dialogState.recordId,
@@ -555,12 +451,8 @@ internal class ModalViewModel(
     }
 
     private fun applyValidationError(message: String?) {
-        _viewState.update {
-            it.copy(
-                dialogs = it.dialogs.replaceInstances<DialogState.InputDialog> {
-                    it.withValidationError(validationError = message)
-                }
-            )
+        replaceDialogs<DialogState.InputDialog> {
+            it.withValidationError(validationError = message)
         }
     }
 
@@ -600,20 +492,6 @@ internal class ModalViewModel(
         popDialog()
     }
 
-    fun onErrorDialogDismissRequested() {
-        _errorState.update {
-            null
-        }
-    }
-
-    private fun popDialog() {
-        _viewState.update {
-            it.copy(
-                dialogs = it.dialogs.dropLast(1),
-            )
-        }
-    }
-
     private fun runSafely(task: suspend () -> Unit): Job {
         return viewModelScope.launch(errorHandler) {
             task()
@@ -621,23 +499,48 @@ internal class ModalViewModel(
     }
 
     private val errorHandler = CoroutineExceptionHandler { _, exception ->
-        _errorState.update {
-            ErrorViewState(
-                "Oops. Something went wrong ${
-                    exception.message?.let {
-                        "\n\n(${
-                            it.ellipsize(
-                                300
-                            )
-                        })"
-                    } ?: ""
-                }")
-        }
-        Log.w("BaseViewModel", "Uncaught exception", exception)
+        exception.printStackTrace()
+        pushDialog(
+            DialogState.ErrorDialog(
+                exception.message?.let {
+                    "\n\n(${
+                        it.ellipsize(
+                            300
+                        )
+                    })"
+                } ?: ""
+            )
+        )
     }
 
-    inline fun <reified R : DialogState> List<DialogState>.replaceInstances(
-        noinline provider: (R) -> DialogState,
-    ): List<DialogState> = map { e -> if (e is R) provider(e) else e }
+    private fun pushDialog(dialog: DialogState) {
+        _viewState.update {
+            it.copy(
+                dialogs = it.dialogs +
+                        dialog
+            )
+        }
+    }
 
+    private fun popDialog() {
+        _viewState.update {
+            val newDialogs = it.dialogs.dropLast(1)
+            it.copy(
+                dialogs = newDialogs,
+                close = newDialogs.isEmpty(),
+            )
+        }
+    }
+
+    private inline fun <reified T : DialogState> replaceDialogs(noinline provider: (T) -> DialogState) {
+        _viewState.update {
+            it.copy(
+                dialogs = it.dialogs.replaceInstances<T>(provider)
+            )
+        }
+    }
+
+    private inline fun <reified T : DialogState> List<DialogState>.replaceInstances(
+        noinline provider: (T) -> DialogState,
+    ): List<DialogState> = map { e -> if (e is T) provider(e) else e }
 }
