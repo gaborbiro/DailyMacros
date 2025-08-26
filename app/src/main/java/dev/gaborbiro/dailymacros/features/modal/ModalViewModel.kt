@@ -216,13 +216,13 @@ internal class ModalViewModel(
         runSafely {
             try {
                 val summary = foodPicSummaryUseCase.execute(image)
-                replaceDialogs<DialogState.InputDialog.CreateWithImageDialog> {
+                updateDialogsOfType<DialogState.InputDialog.CreateWithImageDialog> {
                     it.copy(suggestions = summary)
                 }
             } catch (e: DomainError) {
                 throw e
             } finally {
-                replaceDialogs<DialogState.InputDialog.CreateWithImageDialog> {
+                updateDialogsOfType<DialogState.InputDialog.CreateWithImageDialog> {
                     it.copy(showProgressIndicator = false)
                 }
             }
@@ -300,7 +300,7 @@ internal class ModalViewModel(
 
     @UiThread
     fun onRecordDetailsUserTyping(title: String, description: String) {
-        replaceDialogs<DialogState.InputDialog> {
+        updateDialogsOfType<DialogState.InputDialog> {
             it.withValidationError(validationError = null)
         }
     }
@@ -451,7 +451,7 @@ internal class ModalViewModel(
     }
 
     private fun applyValidationError(message: String?) {
-        replaceDialogs<DialogState.InputDialog> {
+        updateDialogsOfType<DialogState.InputDialog> {
             it.withValidationError(validationError = message)
         }
     }
@@ -532,7 +532,7 @@ internal class ModalViewModel(
         }
     }
 
-    private inline fun <reified T : DialogState> replaceDialogs(noinline provider: (T) -> DialogState) {
+    private inline fun <reified T : DialogState> updateDialogsOfType(noinline provider: (T) -> DialogState) {
         _viewState.update {
             it.copy(
                 dialogs = it.dialogs.replaceInstances<T>(provider)

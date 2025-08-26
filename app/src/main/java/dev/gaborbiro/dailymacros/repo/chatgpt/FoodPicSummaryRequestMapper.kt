@@ -13,6 +13,7 @@ import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.Role
 
 internal fun FoodPicSummaryRequest.toApiModel(): ChatGPTRequest {
     return ChatGPTRequest(
+        model = "gpt-4.1-nano-2025-04-14",
         input = listOf(
             ContentEntry(
                 role = Role.system,

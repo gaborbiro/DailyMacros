@@ -132,7 +132,7 @@ private fun MacroProgressView(
         LinearProgressIndicator(
             progress = { model.progress },
             color = model.color,
-            trackColor = Color.Transparent,
+            trackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = .09f),
             strokeCap = StrokeCap.Round,
             gapSize = 0.dp,
             drawStopIndicator = {
