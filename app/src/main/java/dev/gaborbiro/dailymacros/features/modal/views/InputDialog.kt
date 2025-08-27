@@ -84,6 +84,7 @@ internal fun InputDialog(
         content = {
             InputDialogContent(
                 onChange = onRecordDetailsUserTyping,
+                showKeyboardOnOpen = dialogState.showKeyboardOnOpen,
                 images = images,
                 titleField = titleField,
                 suggestions = suggestions,
@@ -128,6 +129,7 @@ internal fun InputDialog(
 @Composable
 private fun ColumnScope.InputDialogContent(
     onChange: (String, String) -> Unit,
+    showKeyboardOnOpen: Boolean,
     images: List<String>,
     titleField: MutableState<TextFieldValue>,
     suggestions: DialogState.InputDialog.SummarySuggestions?,
@@ -162,9 +164,11 @@ private fun ColumnScope.InputDialogContent(
 
     val focusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(key1 = Unit) {
-        delay(100)
-        focusRequester.requestFocus()
+    if (showKeyboardOnOpen) {
+        LaunchedEffect(key1 = Unit) {
+            delay(100)
+            focusRequester.requestFocus()
+        }
     }
 
     TextField(

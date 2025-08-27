@@ -30,11 +30,12 @@ sealed class DialogState {
 
     sealed class InputDialog(
         open val validationError: String? = null,
+        open val showKeyboardOnOpen: Boolean,
     ) : DialogState() {
 
         data class CreateDialog(
             override val validationError: String? = null,
-        ) : InputDialog(validationError) {
+        ) : InputDialog(validationError, showKeyboardOnOpen = true) {
             override fun withValidationError(validationError: String?) =
                 copy(validationError = validationError)
         }
@@ -44,7 +45,7 @@ sealed class DialogState {
             val showProgressIndicator: Boolean = false,
             val suggestions: SummarySuggestions?,
             override val validationError: String? = null,
-        ) : InputDialog(validationError) {
+        ) : InputDialog(validationError, showKeyboardOnOpen = true) {
             override fun withValidationError(validationError: String?) =
                 copy(validationError = validationError)
         }
@@ -63,7 +64,7 @@ sealed class DialogState {
             val titleSuggestions: List<String>,
             val titleSuggestionProgressIndicator: Boolean = false,
             override val validationError: String? = null,
-        ) : InputDialog(validationError) {
+        ) : InputDialog(validationError, showKeyboardOnOpen = false) {
             override fun withValidationError(validationError: String?) =
                 copy(validationError = validationError)
         }

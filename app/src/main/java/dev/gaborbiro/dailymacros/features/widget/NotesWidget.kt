@@ -76,11 +76,15 @@ class NotesWidget : GlanceAppWidget() {
             val recentRecords = recordsUIMapper.map(records = prefs.retrieveRecentRecords())
                 .filterIsInstance<RecordUIModel>()
             val items = buildList {
-                addAll(recentRecords.take(3))
-                add(TemplatesStartUIModel())
-                addAll(topTemplates)
-                add(TemplatesEndUIModel())
-                addAll(recentRecords.drop(3))
+                if (recentRecords.isNotEmpty() || topTemplates.isNotEmpty()) {
+                    addAll(recentRecords.take(3))
+                    if (topTemplates.isNotEmpty()) {
+                        add(TemplatesStartUIModel())
+                        addAll(topTemplates)
+                        add(TemplatesEndUIModel())
+                    }
+                    addAll(recentRecords.drop(3))
+                }
             }
 
             GlanceTheme(colors = WidgetColorScheme.colors(context)) {

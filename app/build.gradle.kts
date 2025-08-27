@@ -31,6 +31,8 @@ android {
         }
     }
 
+    val localProperties = gradleLocalProperties(rootDir, providers)
+
     signingConfigs {
         getByName("debug") {
             keyAlias = "debug"
@@ -38,24 +40,41 @@ android {
             storeFile = file("../signing/keystore.jks")
             storePassword = "keystore"
         }
+        create("prod") {
+            keyAlias = localProperties.getProperty("KEY_ALIAS")
+            keyPassword = localProperties.getProperty("KEY_PASSWORD")
+            storeFile = file(localProperties.getProperty("KEY_PATH"))
+            storePassword = localProperties.getProperty("STORE_PASSWORD")
+        }
     }
 
+    val chatGptApiKeyKey = "CHATGPT_API_KEY"
+    val chatGptApiKey = System.getenv(chatGptApiKeyKey)
+        ?: localProperties.getProperty(chatGptApiKeyKey)
+        ?: "missing $chatGptApiKeyKey"
+
     buildTypes {
-        release {
+        debug {
             isMinifyEnabled = false
+            isShrinkResources = false
+            isDebuggable = true
+
+            buildConfigField("String", chatGptApiKeyKey, "\"$chatGptApiKey\"")
+
+            signingConfig = signingConfigs.getByName("debug")
+        }
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            isDebuggable = false
+
+            buildConfigField("String", chatGptApiKeyKey, "\"$chatGptApiKey\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-        }
-        debug {
-            val chatGptApiKeyKey = "CHATGPT_API_KEY"
-            val chatGptApiKey = System.getenv(chatGptApiKeyKey)
-                ?: gradleLocalProperties(rootDir, providers).getProperty(chatGptApiKeyKey)
-                ?: "missing $chatGptApiKeyKey"
-            buildConfigField("String", chatGptApiKeyKey, "\"$chatGptApiKey\"")
 
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("prod")
         }
     }
     compileOptions {

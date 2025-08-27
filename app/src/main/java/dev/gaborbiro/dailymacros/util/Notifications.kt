@@ -13,8 +13,13 @@ fun Context.createNotificationChannels() {
     val generalChannel = NotificationChannel(
         CHANNEL_ID_GENERAL,
         "General notifications",
-        NotificationManager.IMPORTANCE_DEFAULT
-    )
+        NotificationManager.IMPORTANCE_LOW
+    ).apply {
+        setSound(null, null)
+        enableVibration(false)
+        vibrationPattern = longArrayOf(0L)
+        enableLights(false)
+    }
     val foregroundChannel = NotificationChannel(
         CHANNEL_ID_FOREGROUND,
         "Background process",
@@ -37,6 +42,8 @@ fun Context.createNotificationChannels() {
 fun Context.showSimpleNotification(id: Long, title: String?, message: String?) {
     var builder = NotificationCompat.Builder(this, CHANNEL_ID_GENERAL)
         .setSmallIcon(R.drawable.ic_nutrition)
+        .setSound(null)
+        .setVibrate(null)
     message?.let {
         builder = builder.setContentText(message)
             .setStyle(

@@ -1,5 +1,7 @@
 package dev.gaborbiro.dailymacros.features.main
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -8,6 +10,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -64,6 +68,16 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
+            }
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    /* activity = */ this,
+                    /* permissions = */ arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    /* requestCode = */ 123
+                )
             }
         }
     }
