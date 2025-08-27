@@ -62,11 +62,6 @@ fun ListItemRecord(
                 maxLines = 3,
                 style = titleTextStyle,
             )
-//            Text(
-//                text = record.description,
-//                maxLines = 2,
-//                style = descriptionTextStyle,
-//            )
             Text(
                 text = record.timestamp,
                 maxLines = 1,

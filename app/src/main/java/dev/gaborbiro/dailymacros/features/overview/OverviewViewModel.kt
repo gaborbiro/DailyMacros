@@ -27,7 +27,7 @@ internal class OverviewViewModel(
 
     private val _viewState: MutableStateFlow<OverviewViewState> =
         MutableStateFlow(OverviewViewState())
-    val uiState: StateFlow<OverviewViewState> = _viewState.asStateFlow()
+    val viewState: StateFlow<OverviewViewState> = _viewState.asStateFlow()
 
     fun onSearchTermChanged(search: String?) {
         viewModelScope.launch {
@@ -37,7 +37,11 @@ internal class OverviewViewModel(
                 }
                 .collect { records: List<BaseListItemUIModel> ->
                     _viewState.update {
-                        it.copy(records)
+                        if (records.isNotEmpty()) {
+                            it.copy(records)
+                        } else {
+                            it.copy(showAddWidgetButton = true)
+                        }
                     }
                 }
         }

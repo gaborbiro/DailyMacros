@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.repo.records
 import androidx.room.Transaction
 import dev.gaborbiro.dailymacros.data.db.RecordsDAO
 import dev.gaborbiro.dailymacros.data.db.TemplatesDAO
+import dev.gaborbiro.dailymacros.data.db.model.RecordJoined
 import dev.gaborbiro.dailymacros.data.db.model.entity.ImageEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.MacrosEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
@@ -54,7 +55,7 @@ internal class RecordsRepositoryImpl(
 
     override fun getFlowBySearchTerm(search: String? /* = null */): Flow<List<Record>> {
         return try {
-            val raw = if (search.isNullOrEmpty()) {
+            val raw: Flow<List<RecordJoined>> = if (search.isNullOrEmpty()) {
                 recordsDAO.getFlow(LocalDateTime.MIN)
             } else {
                 recordsDAO.getFlowBySearchTerm(search)

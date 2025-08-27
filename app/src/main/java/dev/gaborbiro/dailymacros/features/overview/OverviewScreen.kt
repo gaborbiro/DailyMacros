@@ -12,7 +12,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.gaborbiro.dailymacros.features.overview.views.OverviewList
+import dev.gaborbiro.dailymacros.features.overview.views.OverviewView
 
 @Composable
 internal fun OverviewScreen(
@@ -22,10 +22,10 @@ internal fun OverviewScreen(
         viewModel.onSearchTermChanged(search = null)
     }
 
-    val viewState by viewModel.uiState.collectAsStateWithLifecycle()
+    val viewState by viewModel.viewState.collectAsStateWithLifecycle()
 
-    OverviewList(
-        viewState,
+    OverviewView(
+        viewState = viewState,
         onRepeatMenuItemTapped = viewModel::onRepeatMenuItemTapped,
         onDetailsMenuItemTapped = viewModel::onDetailsMenuItemTapped,
         onDeleteRecordMenuItemTapped = viewModel::onDeleteRecordMenuItemTapped,

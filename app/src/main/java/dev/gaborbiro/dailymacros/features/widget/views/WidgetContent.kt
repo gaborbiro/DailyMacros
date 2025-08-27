@@ -24,10 +24,10 @@ import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.features.common.model.BaseListItemUIModel
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
+import dev.gaborbiro.dailymacros.features.common.model.TemplateUIModel
 import dev.gaborbiro.dailymacros.features.widget.NotesWidgetNavigator
 import dev.gaborbiro.dailymacros.features.widget.NotesWidgetNavigatorImpl
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetHalfVertical
-import dev.gaborbiro.dailymacros.features.common.model.TemplateUIModel
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 
 @Composable
@@ -48,13 +48,17 @@ internal fun WidgetContent(
                 .defaultWeight(),
             contentAlignment = Alignment.BottomEnd,
         ) {
-            WidgetList(
-                items = items,
-                recordImageTapActionProvider = { recordId -> navigator.getRecordImageTappedAction(recordId) },
-                recordBodyTapActionProvider = { recordId -> navigator.getRecordBodyTappedAction(recordId) },
-                templateImageTapActionProvider = { templateId -> navigator.getTemplateImageTappedAction(templateId) },
-                templateBodyTapActionProvider = { templateId -> navigator.getTemplateBodyTappedAction(templateId) },
-            )
+            if (items.isNotEmpty()) {
+                WidgetList(
+                    items = items,
+                    recordImageTapActionProvider = { recordId -> navigator.getRecordImageTappedAction(recordId) },
+                    recordBodyTapActionProvider = { recordId -> navigator.getRecordBodyTappedAction(recordId) },
+                    templateImageTapActionProvider = { templateId -> navigator.getTemplateImageTappedAction(templateId) },
+                    templateBodyTapActionProvider = { templateId -> navigator.getTemplateBodyTappedAction(templateId) },
+                )
+            } else {
+                EmptyView()
+            }
             Box(
                 modifier = GlanceModifier
                     .size(56.dp)
@@ -160,6 +164,20 @@ private fun WidgetContentPreview() {
                     ),
                 ),
             ),
+        )
+    }
+}
+
+@Preview(widthDp = 156, heightDp = 180)
+@Composable
+@OptIn(ExperimentalGlancePreviewApi::class)
+private fun WidgetContentPreviewEmpty() {
+    WidgetPreview {
+        WidgetContent(
+            modifier = GlanceModifier
+                .fillMaxSize(),
+            navigator = NotesWidgetNavigatorImpl(),
+            items = emptyList(),
         )
     }
 }
