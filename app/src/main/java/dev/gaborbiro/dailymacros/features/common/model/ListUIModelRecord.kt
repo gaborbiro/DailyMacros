@@ -10,7 +10,7 @@ data class ListUIModelRecord(
     val timestamp: String,
     val title: String,
     val macros: MacrosUIModel?,
-) : ListUIModelBase(id = recordId, contentType = "record")
+) : ListUIModelBase(listItemId = recordId, contentType = "record")
 
 data class MacrosUIModel(
     val calories: String?,

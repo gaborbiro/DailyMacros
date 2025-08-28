@@ -3,13 +3,10 @@ package dev.gaborbiro.dailymacros.features.common
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
-import dev.gaborbiro.dailymacros.util.formatShort
-import dev.gaborbiro.dailymacros.util.formatShortTime
-import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 
 internal class RecordsUIMapper(
     private val macrosUIMapper: MacrosUIMapper,
+    private val dateUIMapper: DateUIMapper,
 ) {
     fun map(records: List<Record>): List<ListUIModelBase> {
         return records
@@ -26,18 +23,8 @@ internal class RecordsUIMapper(
 
 
     private fun map(record: Record): ListUIModelRecord {
-        val timestamp = record.timestamp
-        val timestampStr = when {
-            !timestamp.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS)) -> {
-                "Today at ${timestamp.formatShortTime()}"
-            }
+        val timestampStr = dateUIMapper.map(record.timestamp)
 
-            !timestamp.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).minusDays(1)) -> {
-                "Yesterday at ${timestamp.formatShortTime()}"
-            }
-
-            else -> timestamp.formatShort()
-        }
         val macros = record.template.macros
             ?.let { macrosUIMapper.mapMacros(it) }
 

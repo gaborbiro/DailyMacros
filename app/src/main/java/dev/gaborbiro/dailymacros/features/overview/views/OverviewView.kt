@@ -31,7 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import dev.gaborbiro.dailymacros.design.DailyMacrosColors
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroTable
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroProgress
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.view.PreviewImageStoreProvider
@@ -142,8 +142,9 @@ private fun NotesListPreview() {
             OverviewView(
                 viewState = OverviewViewState(
                     items = listOf(
-                        ListUIModelMacroTable(
-                            date = LocalDate.now(),
+                        ListUIModelMacroProgress(
+                            listItemId = 1L,
+                            dayTitle = "Yesterday",
                             macros = listOf(
                                 MacroProgressItem(
                                     title = "Calories",

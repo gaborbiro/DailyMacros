@@ -16,6 +16,7 @@ import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
+import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.modal.ModalActivity.Companion.REQUEST_TIMEOUT_IN_SECONDS
 import dev.gaborbiro.dailymacros.features.modal.RecordsMapper
@@ -92,13 +93,14 @@ class MacrosWorkRequest(
         val chatGPTRepository = ChatGPTRepositoryImpl(
             service = retrofit.create(ChatGPTService::class.java)
         )
+        val dateUIMapper = DateUIMapper()
         FetchMacrosUseCase(
             appContext = appContext,
             imageStore = imageStore,
             chatGPTRepository = chatGPTRepository,
             recordsRepository = recordsRepository,
             recordsMapper = RecordsMapper(),
-            macrosUIMapper = MacrosUIMapper(),
+            macrosUIMapper = MacrosUIMapper(dateUIMapper),
         )
     }
 

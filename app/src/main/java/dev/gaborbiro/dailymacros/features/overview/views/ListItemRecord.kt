@@ -44,8 +44,8 @@ fun ListItemRecord(
     onRecordBodyTapped: (id: Long) -> Unit,
     rowMenu: @Composable () -> Unit,
 ) {
-    val onBodyTapped = remember(record.id) { { onRecordBodyTapped(record.id) } }
-    val onImageTapped = remember(record.id) { { onRecordImageTapped(record.id) } }
+    val onBodyTapped = remember(record.listItemId) { { onRecordBodyTapped(record.listItemId) } }
+    val onImageTapped = remember(record.listItemId) { { onRecordImageTapped(record.listItemId) } }
 
     Row(
         modifier = modifier

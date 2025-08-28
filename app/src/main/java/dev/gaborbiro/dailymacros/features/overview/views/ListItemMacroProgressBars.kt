@@ -18,6 +18,7 @@ import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.ProgressIndicatorDefaults.drawStopIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -26,71 +27,81 @@ import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.DailyMacrosColors
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.design.PaddingHalf
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroProgress
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroTable
-import java.time.LocalDate
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ListItemMacroProgressBars(
     modifier: Modifier = Modifier,
-    model: ListUIModelMacroTable,
+    model: ListUIModelMacroProgress,
 ) {
-    Row(
+    Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = PaddingHalf),
     ) {
-        val rowHeight = 32.dp
-        val leftColumn = model.macros.subList(0, (model.macros.size / 2f).roundToInt())
-        val rightColumn = model.macros.subList((model.macros.size / 2), model.macros.size)
-        Column(
+        Text(
             modifier = Modifier
-                .wrapContentWidth()
+                .padding(8.dp)
+                .align(Alignment.CenterHorizontally),
+            text = model.dayTitle
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = PaddingHalf),
         ) {
-            leftColumn.forEach {
-                MacroTitleView(
-                    modifier = Modifier
-                        .height(rowHeight),
-                    model = it,
-                )
+            val rowHeight = 32.dp
+            val leftColumn = model.macros.subList(0, (model.macros.size / 2f).roundToInt())
+            val rightColumn = model.macros.subList((model.macros.size / 2), model.macros.size)
+            Column(
+                modifier = Modifier
+                    .wrapContentWidth()
+            ) {
+                leftColumn.forEach {
+                    MacroTitleView(
+                        modifier = Modifier
+                            .height(rowHeight),
+                        model = it,
+                    )
+                }
             }
-        }
-        Column(
-            modifier = Modifier
-                .weight(.5f)
-        ) {
-            leftColumn.forEach {
-                MacroProgressView(
-                    modifier = Modifier
-                        .height(rowHeight),
-                    model = it
-                )
+            Column(
+                modifier = Modifier
+                    .weight(.5f)
+            ) {
+                leftColumn.forEach {
+                    MacroProgressView(
+                        modifier = Modifier
+                            .height(rowHeight),
+                        model = it
+                    )
+                }
             }
-        }
-        Column(
-            modifier = Modifier
-                .wrapContentWidth()
-        ) {
-            rightColumn.forEach {
-                MacroTitleView(
-                    modifier = Modifier
-                        .height(rowHeight),
-                    model = it,
-                )
+            Column(
+                modifier = Modifier
+                    .wrapContentWidth()
+            ) {
+                rightColumn.forEach {
+                    MacroTitleView(
+                        modifier = Modifier
+                            .height(rowHeight),
+                        model = it,
+                    )
+                }
             }
-        }
-        Column(
-            modifier = Modifier
-                .weight(.5f)
-        ) {
-            rightColumn.forEach {
-                MacroProgressView(
-                    modifier = Modifier
-                        .height(rowHeight),
-                    model = it
-                )
+            Column(
+                modifier = Modifier
+                    .weight(.5f)
+            ) {
+                rightColumn.forEach {
+                    MacroProgressView(
+                        modifier = Modifier
+                            .height(rowHeight),
+                        model = it
+                    )
+                }
             }
         }
     }
@@ -171,8 +182,9 @@ private fun ListItemMacroProgressBarsPreview() {
         ListItemMacroProgressBars(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background),
-            model = ListUIModelMacroTable(
-                date = LocalDate.now(),
+            model = ListUIModelMacroProgress(
+                listItemId = 1L,
+                dayTitle = "Yesterday",
                 macros = listOf(
                     MacroProgressItem(
                         title = "Calories",

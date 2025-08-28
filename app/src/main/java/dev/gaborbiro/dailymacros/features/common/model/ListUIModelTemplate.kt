@@ -5,8 +5,8 @@ internal class ListUIModelTemplate(
     val images: List<String>,
     val title: String,
     val description: String?,
-) : ListUIModelBase(id = templateId, contentType = "template")
+) : ListUIModelBase(listItemId = templateId, contentType = "template")
 
-internal class ListUIModelTemplatesStart : ListUIModelBase(id = Long.MIN_VALUE, contentType = "")
+internal class ListUIModelTemplatesStart : ListUIModelBase(listItemId = Long.MIN_VALUE, contentType = "")
 
-internal class ListUIModelTemplates : ListUIModelBase(id = Long.MAX_VALUE, contentType = "")
+internal class ListUIModelTemplates : ListUIModelBase(listItemId = Long.MAX_VALUE, contentType = "")

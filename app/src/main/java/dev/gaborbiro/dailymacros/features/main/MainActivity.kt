@@ -19,6 +19,7 @@ import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
+import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.view.LocalImageStore
@@ -46,13 +47,13 @@ class MainActivity : ComponentActivity() {
             mapper = ApiMapper(),
             imageStore = imageStore,
         )
-
-        val macrosUIMapper = MacrosUIMapper()
+        val dateUIMapper = DateUIMapper()
+        val macrosUIMapper = MacrosUIMapper(dateUIMapper)
 
         val viewModel = OverviewViewModel(
             navigator = navigator,
             repository = recordsRepository,
-            uiMapper = RecordsUIMapper(macrosUIMapper),
+            uiMapper = RecordsUIMapper(macrosUIMapper, dateUIMapper),
         )
 
         setContent {

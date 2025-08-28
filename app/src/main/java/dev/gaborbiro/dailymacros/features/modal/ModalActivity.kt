@@ -25,6 +25,7 @@ import dev.gaborbiro.dailymacros.data.file.FileStore
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
+import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.common.view.ConfirmDeleteNutrientDataDialog
@@ -201,7 +202,8 @@ class ModalActivity : AppCompatActivity() {
         )
 
         val recordsMapper = RecordsMapper()
-        val macrosUIMapper = MacrosUIMapper()
+        val dateUIMapper = DateUIMapper()
+        val macrosUIMapper = MacrosUIMapper(dateUIMapper)
         val deleteRecordUseCase = DeleteRecordUseCase(recordsRepository)
 
         ModalViewModel(

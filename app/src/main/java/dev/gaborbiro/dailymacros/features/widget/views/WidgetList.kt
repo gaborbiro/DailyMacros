@@ -37,7 +37,7 @@ internal fun WidgetList(
     ) {
         itemsIndexed(
             items = items,
-            itemId = { _, item -> item.id },
+            itemId = { _, item -> item.listItemId },
         ) { index, item ->
             when (item) {
                 is ListUIModelRecord -> {
@@ -48,8 +48,8 @@ internal fun WidgetList(
                         Spacer(modifier = GlanceModifier.height(PaddingWidgetDefaultVertical))
                         ListItemRecord(
                             record = item,
-                            imageTappedActionProvider = recordImageTapActionProvider(item.id),
-                            bodyTappedActionProvider = recordBodyTapActionProvider(item.id),
+                            imageTappedActionProvider = recordImageTapActionProvider(item.listItemId),
+                            bodyTappedActionProvider = recordBodyTapActionProvider(item.listItemId),
                         )
                     }
                 }

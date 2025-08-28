@@ -19,7 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroTable
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroProgress
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.view.LocalImageStore
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
@@ -64,14 +64,14 @@ internal fun OverviewList(
     ) {
         itemsIndexed(
             items = viewState.items,
-            key = { index, item -> item.id },
+            key = { index, item -> item.listItemId },
             contentType = { index, item -> item.contentType },
         ) { index, item ->
-            val onOpen = remember(item.id) { { expandedId = item.id } }
-            val onRepeat = remember(item.id) { { onRepeatMenuItemTapped(item.id) } }
-            val onMacros = remember(item.id) { { onMacrosMenuItemTapped(item.id) } }
-            val onDetails = remember(item.id) { { onDetailsMenuItemTapped(item.id) } }
-            val onDelete = remember(item.id) { { onDeleteRecordMenuItemTapped(item.id) } }
+            val onOpen = remember(item.listItemId) { { expandedId = item.listItemId } }
+            val onRepeat = remember(item.listItemId) { { onRepeatMenuItemTapped(item.listItemId) } }
+            val onMacros = remember(item.listItemId) { { onMacrosMenuItemTapped(item.listItemId) } }
+            val onDetails = remember(item.listItemId) { { onDetailsMenuItemTapped(item.listItemId) } }
+            val onDelete = remember(item.listItemId) { { onDeleteRecordMenuItemTapped(item.listItemId) } }
             val onDismiss = remember { { expandedId = null } }
 
             when (item) {
@@ -82,7 +82,7 @@ internal fun OverviewList(
                         onRecordBodyTapped = onRecordBodyTapped,
                     ) {
                         RowMenu(
-                            expanded = expandedId == item.id,
+                            expanded = expandedId == item.listItemId,
                             onOpen = onOpen,
                             onDismiss = onDismiss,
                             icons = menuIcons,
@@ -94,7 +94,7 @@ internal fun OverviewList(
                     }
                 }
 
-                is ListUIModelMacroTable -> {
+                is ListUIModelMacroProgress -> {
                     ListItemMacroProgressBars(
                         modifier = Modifier
                             .let {

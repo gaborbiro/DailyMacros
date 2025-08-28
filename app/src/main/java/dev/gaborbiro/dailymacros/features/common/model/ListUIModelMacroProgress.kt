@@ -3,13 +3,13 @@ package dev.gaborbiro.dailymacros.features.common.model
 import android.util.Range
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
-import java.time.LocalDate
 
 @Stable
-data class ListUIModelMacroTable(
-    val date: LocalDate,
+data class ListUIModelMacroProgress(
+    override val listItemId: Long,
+    val dayTitle: String,
     val macros: List<MacroProgressItem>,
-) : ListUIModelBase(id = date.toEpochDay(), contentType = "macroTable")
+) : ListUIModelBase(listItemId = listItemId, contentType = "macroTable")
 
 data class MacroProgressItem(
     val title: String,
