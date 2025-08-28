@@ -41,7 +41,7 @@ internal fun EmptyView() {
             Text(
                 modifier = GlanceModifier
                     .fillMaxWidth(),
-                text = "Tap on one of these buttons\nto record your first meal",
+                text = "Tap one of these buttons\nto record your first meal",
                 style = TextStyle(
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,

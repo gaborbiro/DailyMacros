@@ -79,12 +79,20 @@ internal fun InputDialog(
         )
     }
 
+    val showKeyboardOnOpen = remember(dialogState) {
+        when(dialogState) {
+            is DialogState.InputDialog.CreateDialog -> true
+            is DialogState.InputDialog.CreateWithImageDialog -> true
+            is DialogState.InputDialog.RecordDetailsDialog -> false
+        }
+    }
+
     ScrollableContentDialog(
         onDismissRequested = onDismissRequested,
         content = {
             InputDialogContent(
                 onChange = onRecordDetailsUserTyping,
-                showKeyboardOnOpen = dialogState.showKeyboardOnOpen,
+                showKeyboardOnOpen = showKeyboardOnOpen,
                 images = images,
                 titleField = titleField,
                 suggestions = suggestions,

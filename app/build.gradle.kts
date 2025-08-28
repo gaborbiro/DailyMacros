@@ -1,4 +1,5 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import com.android.build.gradle.tasks.PackageAndroidArtifact
 
 plugins {
     id("com.android.application")
@@ -16,7 +17,7 @@ android {
         minSdk = 31
         targetSdk = 35
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -152,4 +153,29 @@ dependencies {
 
     debugImplementation("androidx.compose.ui:ui-tooling:$composeVersion")
     debugImplementation("androidx.compose.ui:ui-test-manifest:$composeVersion")
+}
+
+tasks.matching { it.name.startsWith("bundle") }.configureEach {
+    doLast {
+        val taskName = name // e.g., "bundleDebug", "bundleRelease"
+        val buildType = taskName.removePrefix("bundle").lowercase()
+        val versionName = android.defaultConfig.versionName ?: "unknown"
+        val versionCode = android.defaultConfig.versionCode
+
+        val outputDir = File(buildDir, "outputs/bundle/$buildType")
+        val original = File(outputDir, "app-$buildType.aab")
+        if (!original.exists()) {
+            println("⚠️ AAB not found: ${original.absolutePath}")
+            return@doLast
+        }
+
+        val newName = "DailyMacros-v${versionName}(${versionCode})-$buildType.aab"
+        val renamed = File(outputDir, newName)
+
+        if (original.renameTo(renamed)) {
+            println("✅ Renamed ${original.name} → ${renamed.name}")
+        } else {
+            println("❌ Failed to rename ${original.name}")
+        }
+    }
 }
