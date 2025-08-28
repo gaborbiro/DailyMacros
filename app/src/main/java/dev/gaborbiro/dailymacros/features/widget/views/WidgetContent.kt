@@ -21,10 +21,10 @@ import androidx.glance.layout.wrapContentHeight
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import dev.gaborbiro.dailymacros.R
-import dev.gaborbiro.dailymacros.features.common.model.BaseListItemUIModel
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
-import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
-import dev.gaborbiro.dailymacros.features.common.model.TemplateUIModel
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelTemplate
 import dev.gaborbiro.dailymacros.features.widget.NotesWidgetNavigator
 import dev.gaborbiro.dailymacros.features.widget.NotesWidgetNavigatorImpl
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetHalfVertical
@@ -34,7 +34,7 @@ import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 internal fun WidgetContent(
     modifier: GlanceModifier,
     navigator: NotesWidgetNavigator,
-    items: List<BaseListItemUIModel>,
+    items: List<ListUIModelBase>,
 ) {
     Column(
         modifier = modifier
@@ -100,7 +100,7 @@ private fun WidgetContentPreview() {
                 .fillMaxSize(),
             navigator = NotesWidgetNavigatorImpl(),
             items = listOf(
-                RecordUIModel(
+                ListUIModelRecord(
                     recordId = 1,
                     templateId = 1L,
                     title = "Breakfast",
@@ -115,25 +115,25 @@ private fun WidgetContentPreview() {
                         fibre = "fib 4",
                     ),
                 ),
-                TemplateUIModel(
+                ListUIModelTemplate(
                     templateId = 1,
                     title = "Breakfast",
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     images = listOf("", ""),
                 ),
-                TemplateUIModel(
+                ListUIModelTemplate(
                     templateId = 2,
                     title = "Lunch",
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     images = listOf("", ""),
                 ),
-                TemplateUIModel(
+                ListUIModelTemplate(
                     templateId = 3,
                     title = "Dinner",
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     images = listOf("", ""),
                 ),
-                RecordUIModel(
+                ListUIModelRecord(
                     recordId = 2L,
                     templateId = 1L,
                     timestamp = "Yesterday",
@@ -148,7 +148,7 @@ private fun WidgetContentPreview() {
                         fibre = "fib 4",
                     ),
                 ),
-                RecordUIModel(
+                ListUIModelRecord(
                     recordId = 3L,
                     templateId = 1L,
                     timestamp = "Yesterday",

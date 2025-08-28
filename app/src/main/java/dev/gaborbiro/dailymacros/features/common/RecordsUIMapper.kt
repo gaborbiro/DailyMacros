@@ -1,7 +1,7 @@
 package dev.gaborbiro.dailymacros.features.common
 
-import dev.gaborbiro.dailymacros.features.common.model.BaseListItemUIModel
-import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.util.formatShort
 import dev.gaborbiro.dailymacros.util.formatShortTime
@@ -11,7 +11,7 @@ import java.time.temporal.ChronoUnit
 internal class RecordsUIMapper(
     private val macrosUIMapper: MacrosUIMapper,
 ) {
-    fun map(records: List<Record>): List<BaseListItemUIModel> {
+    fun map(records: List<Record>): List<ListUIModelBase> {
         return records
             .groupBy { it.timestamp.toLocalDate() }
             .map { (day, records) ->
@@ -25,7 +25,7 @@ internal class RecordsUIMapper(
     }
 
 
-    private fun map(record: Record): RecordUIModel {
+    private fun map(record: Record): ListUIModelRecord {
         val timestamp = record.timestamp
         val timestampStr = when {
             !timestamp.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS)) -> {
@@ -41,7 +41,7 @@ internal class RecordsUIMapper(
         val macros = record.template.macros
             ?.let { macrosUIMapper.mapMacros(it) }
 
-        return RecordUIModel(
+        return ListUIModelRecord(
             recordId = record.dbId,
             templateId = record.template.dbId,
             images = record.template.images,

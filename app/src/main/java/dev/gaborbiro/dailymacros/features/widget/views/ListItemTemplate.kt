@@ -19,12 +19,12 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultHorizontal
-import dev.gaborbiro.dailymacros.features.common.model.TemplateUIModel
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelTemplate
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 
 @Composable
 internal fun ListItemTemplate(
-    template: TemplateUIModel,
+    template: ListUIModelTemplate,
     imageTapActionProvider: Action,
     bodyTapActionProvider: Action,
 ) {
@@ -67,7 +67,7 @@ internal fun ListItemTemplate(
 private fun TemplateListItemPreview() {
     WidgetPreview {
         ListItemTemplate(
-            template = TemplateUIModel(
+            template = ListUIModelTemplate(
                 title = "Breakfast",
                 description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                 images = listOf("", ""),

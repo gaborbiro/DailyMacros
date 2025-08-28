@@ -23,9 +23,9 @@ import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.WidgetColorScheme
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
-import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
-import dev.gaborbiro.dailymacros.features.common.model.TemplatesEndUIModel
-import dev.gaborbiro.dailymacros.features.common.model.TemplatesStartUIModel
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelTemplates
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelTemplatesStart
 import dev.gaborbiro.dailymacros.features.widget.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.widget.views.WidgetContent
 import dev.gaborbiro.dailymacros.features.widget.workers.ReloadWorkRequest
@@ -74,14 +74,14 @@ class NotesWidget : GlanceAppWidget() {
             val widgetUIMapper = WidgetUIMapper(macrosUIMapper)
             val topTemplates = widgetUIMapper.map(templates = prefs.retrieveTopTemplates())
             val recentRecords = recordsUIMapper.map(records = prefs.retrieveRecentRecords())
-                .filterIsInstance<RecordUIModel>()
+                .filterIsInstance<ListUIModelRecord>()
             val items = buildList {
                 if (recentRecords.isNotEmpty() || topTemplates.isNotEmpty()) {
                     addAll(recentRecords.take(3))
                     if (topTemplates.isNotEmpty()) {
-                        add(TemplatesStartUIModel())
+                        add(ListUIModelTemplatesStart())
                         addAll(topTemplates)
-                        add(TemplatesEndUIModel())
+                        add(ListUIModelTemplates())
                     }
                     addAll(recentRecords.drop(3))
                 }

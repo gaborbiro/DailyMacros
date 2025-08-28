@@ -13,19 +13,19 @@ import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
-import dev.gaborbiro.dailymacros.features.common.model.BaseListItemUIModel
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
-import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultVertical
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDoubleVertical
-import dev.gaborbiro.dailymacros.features.common.model.TemplateUIModel
-import dev.gaborbiro.dailymacros.features.common.model.TemplatesEndUIModel
-import dev.gaborbiro.dailymacros.features.common.model.TemplatesStartUIModel
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelTemplate
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelTemplates
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelTemplatesStart
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 
 @Composable
 internal fun WidgetList(
-    items: List<BaseListItemUIModel>,
+    items: List<ListUIModelBase>,
     recordImageTapActionProvider: @Composable (recordId: Long) -> Action,
     recordBodyTapActionProvider: @Composable (recordId: Long) -> Action,
     templateImageTapActionProvider: @Composable (templateId: Long) -> Action,
@@ -40,7 +40,7 @@ internal fun WidgetList(
             itemId = { _, item -> item.id },
         ) { index, item ->
             when (item) {
-                is RecordUIModel -> {
+                is ListUIModelRecord -> {
                     Column(
                         modifier = GlanceModifier
                             .fillMaxWidth()
@@ -54,7 +54,7 @@ internal fun WidgetList(
                     }
                 }
 
-                is TemplateUIModel -> {
+                is ListUIModelTemplate -> {
                     Column(
                         modifier = GlanceModifier
                             .fillMaxWidth()
@@ -68,7 +68,7 @@ internal fun WidgetList(
                     }
                 }
 
-                is TemplatesStartUIModel -> {
+                is ListUIModelTemplatesStart -> {
                     Column(
                         modifier = GlanceModifier
                             .fillMaxWidth()
@@ -78,7 +78,7 @@ internal fun WidgetList(
                     }
                 }
 
-                is TemplatesEndUIModel -> {
+                is ListUIModelTemplates -> {
                     Column(
                         modifier = GlanceModifier
                             .fillMaxWidth()
@@ -98,7 +98,7 @@ private fun RecordListPreviewExpanded() {
     WidgetPreview {
         WidgetList(
             items = listOf(
-                RecordUIModel(
+                ListUIModelRecord(
                     recordId = 1,
                     templateId = 1L,
                     title = "Breakfast",
@@ -113,25 +113,25 @@ private fun RecordListPreviewExpanded() {
                         fibre = "fib 4",
                     ),
                 ),
-                TemplateUIModel(
+                ListUIModelTemplate(
                     templateId = 1,
                     title = "Breakfast",
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     images = listOf("", ""),
                 ),
-                TemplateUIModel(
+                ListUIModelTemplate(
                     templateId = 2,
                     title = "Lunch",
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     images = listOf("", ""),
                 ),
-                TemplateUIModel(
+                ListUIModelTemplate(
                     templateId = 3,
                     title = "Dinner",
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     images = listOf("", ""),
                 ),
-                RecordUIModel(
+                ListUIModelRecord(
                     recordId = 2L,
                     templateId = 1L,
                     timestamp = "Yesterday",
@@ -146,7 +146,7 @@ private fun RecordListPreviewExpanded() {
                         fibre = "fib 4",
                     ),
                 ),
-                RecordUIModel(
+                ListUIModelRecord(
                     recordId = 3L,
                     templateId = 1L,
                     timestamp = "Yesterday",

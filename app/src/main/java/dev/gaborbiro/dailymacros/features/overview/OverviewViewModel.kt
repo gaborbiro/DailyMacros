@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
 import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
-import dev.gaborbiro.dailymacros.features.common.model.BaseListItemUIModel
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
 import dev.gaborbiro.dailymacros.features.common.workers.MacrosWorkRequest
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
 import dev.gaborbiro.dailymacros.features.widget.NotesWidget
@@ -35,7 +35,7 @@ internal class OverviewViewModel(
                 .map {
                     uiMapper.map(it)
                 }
-                .collect { records: List<BaseListItemUIModel> ->
+                .collect { records: List<ListUIModelBase> ->
                     _viewState.update {
                         if (records.isNotEmpty()) {
                             it.copy(records)

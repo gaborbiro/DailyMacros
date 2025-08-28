@@ -6,10 +6,10 @@ import androidx.compose.ui.graphics.Color
 import java.time.LocalDate
 
 @Stable
-data class MacroProgressUIModel(
+data class ListUIModelMacroTable(
     val date: LocalDate,
     val macros: List<MacroProgressItem>,
-) : BaseListItemUIModel(id = date.toEpochDay(), contentType = "macroTable")
+) : ListUIModelBase(id = date.toEpochDay(), contentType = "macroTable")
 
 data class MacroProgressItem(
     val title: String,

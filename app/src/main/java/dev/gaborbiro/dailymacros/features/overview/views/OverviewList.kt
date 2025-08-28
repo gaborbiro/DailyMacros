@@ -19,8 +19,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
-import dev.gaborbiro.dailymacros.features.common.model.MacroProgressUIModel
-import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroTable
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.view.LocalImageStore
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
 import kotlinx.coroutines.launch
@@ -75,7 +75,7 @@ internal fun OverviewList(
             val onDismiss = remember { { expandedId = null } }
 
             when (item) {
-                is RecordUIModel -> {
+                is ListUIModelRecord -> {
                     ListItemRecord(
                         record = item,
                         onRecordImageTapped = onRecordImageTapped,
@@ -94,7 +94,7 @@ internal fun OverviewList(
                     }
                 }
 
-                is MacroProgressUIModel -> {
+                is ListUIModelMacroTable -> {
                     ListItemMacroProgressBars(
                         modifier = Modifier
                             .let {
@@ -147,7 +147,7 @@ private fun PrefetchRecordThumbnails(
                 val aheadStart = (last + 1).coerceAtLeast(0)
                 val aheadEnd = (last + ahead).coerceAtMost(items.lastIndex)
                 for (i in aheadStart..aheadEnd) {
-                    val name = (items[i] as? RecordUIModel)?.images?.firstOrNull() ?: continue
+                    val name = (items[i] as? ListUIModelRecord)?.images?.firstOrNull() ?: continue
                     if (seen.addIfNew(name)) launch { store.read(name, thumbnail = true) }
                 }
 
@@ -155,7 +155,7 @@ private fun PrefetchRecordThumbnails(
                 val behindStart = (first - behind).coerceAtLeast(0)
                 val behindEnd = (first - 1).coerceAtLeast(-1)
                 for (i in behindStart..behindEnd) {
-                    val name = (items[i] as? RecordUIModel)?.images?.firstOrNull() ?: continue
+                    val name = (items[i] as? ListUIModelRecord)?.images?.firstOrNull() ?: continue
                     if (seen.addIfNew(name)) launch { store.read(name, thumbnail = true) }
                 }
             }

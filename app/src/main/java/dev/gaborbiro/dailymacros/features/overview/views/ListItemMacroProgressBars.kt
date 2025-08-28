@@ -27,7 +27,7 @@ import dev.gaborbiro.dailymacros.design.DailyMacrosColors
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
-import dev.gaborbiro.dailymacros.features.common.model.MacroProgressUIModel
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroTable
 import java.time.LocalDate
 import kotlin.math.roundToInt
 
@@ -35,7 +35,7 @@ import kotlin.math.roundToInt
 @Composable
 internal fun ListItemMacroProgressBars(
     modifier: Modifier = Modifier,
-    model: MacroProgressUIModel,
+    model: ListUIModelMacroTable,
 ) {
     Row(
         modifier = modifier
@@ -171,7 +171,7 @@ private fun ListItemMacroProgressBarsPreview() {
         ListItemMacroProgressBars(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background),
-            model = MacroProgressUIModel(
+            model = ListUIModelMacroTable(
                 date = LocalDate.now(),
                 macros = listOf(
                     MacroProgressItem(

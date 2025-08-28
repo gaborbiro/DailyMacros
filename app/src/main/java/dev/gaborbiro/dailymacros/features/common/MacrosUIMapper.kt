@@ -5,7 +5,7 @@ import android.util.Range
 import androidx.compose.ui.graphics.Color
 import dev.gaborbiro.dailymacros.design.DailyMacrosColors
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
-import dev.gaborbiro.dailymacros.features.common.model.MacroProgressUIModel
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroTable
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
@@ -13,7 +13,7 @@ import java.time.LocalDate
 
 internal class MacrosUIMapper {
 
-    fun mapMacroProgressTable(records: List<Record>, date: LocalDate): MacroProgressUIModel {
+    fun mapMacroProgressTable(records: List<Record>, date: LocalDate): ListUIModelMacroTable {
         val totalCalories = records.sumOf { it.template.macros?.calories ?: 0 }
         val totalProtein = records.sumOf { it.template.macros?.protein?.toDouble() ?: 0.0 }
             .toInt()
@@ -188,7 +188,7 @@ internal class MacrosUIMapper {
             ),
         )
 
-        return MacroProgressUIModel(
+        return ListUIModelMacroTable(
             date = date,
             macros = macros,
         )

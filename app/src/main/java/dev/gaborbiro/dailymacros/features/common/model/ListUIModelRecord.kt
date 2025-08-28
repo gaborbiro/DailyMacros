@@ -3,14 +3,14 @@ package dev.gaborbiro.dailymacros.features.common.model
 import androidx.compose.runtime.Stable
 
 @Stable
-data class RecordUIModel(
+data class ListUIModelRecord(
     val recordId: Long,
     val templateId: Long,
     val images: List<String>,
     val timestamp: String,
     val title: String,
     val macros: MacrosUIModel?,
-) : BaseListItemUIModel(id = recordId, contentType = "record")
+) : ListUIModelBase(id = recordId, contentType = "record")
 
 data class MacrosUIModel(
     val calories: String?,

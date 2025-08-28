@@ -31,9 +31,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import dev.gaborbiro.dailymacros.design.DailyMacrosColors
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
-import dev.gaborbiro.dailymacros.features.common.model.MacroProgressUIModel
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroTable
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
-import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.view.PreviewImageStoreProvider
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
 import dev.gaborbiro.dailymacros.features.widget.NotesWidgetReceiver
@@ -142,7 +142,7 @@ private fun NotesListPreview() {
             OverviewView(
                 viewState = OverviewViewState(
                     items = listOf(
-                        MacroProgressUIModel(
+                        ListUIModelMacroTable(
                             date = LocalDate.now(),
                             macros = listOf(
                                 MacroProgressItem(
@@ -203,7 +203,7 @@ private fun NotesListPreview() {
                                 ),
                             )
                         ),
-                        RecordUIModel(
+                        ListUIModelRecord(
                             recordId = 1L,
                             title = "Title",
                             templateId = 1L,
@@ -218,7 +218,7 @@ private fun NotesListPreview() {
                                 fibre = "fib 4",
                             ),
                         ),
-                        RecordUIModel(
+                        ListUIModelRecord(
                             recordId = 2L,
                             title = "Title 2",
                             templateId = 1L,

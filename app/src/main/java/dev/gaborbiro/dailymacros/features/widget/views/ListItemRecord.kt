@@ -14,21 +14,19 @@ import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxSize
-import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
-import androidx.glance.layout.wrapContentHeight
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
-import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultHorizontal
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 
 @Composable
 fun ListItemRecord(
-    record: RecordUIModel,
+    record: ListUIModelRecord,
     imageTappedActionProvider: Action,
     bodyTappedActionProvider: Action,
 ) {
@@ -79,7 +77,7 @@ fun ListItemRecord(
 private fun RecordListItemPreview() {
     WidgetPreview {
         ListItemRecord(
-            record = RecordUIModel(
+            record = ListUIModelRecord(
                 recordId = 1,
                 templateId = 1L,
                 title = "Breakfast",

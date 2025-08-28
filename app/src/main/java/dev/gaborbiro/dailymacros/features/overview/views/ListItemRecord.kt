@@ -31,7 +31,7 @@ import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
-import dev.gaborbiro.dailymacros.features.common.model.RecordUIModel
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.view.LocalImage
 import dev.gaborbiro.dailymacros.features.common.view.PreviewImageStoreProvider
 
@@ -39,7 +39,7 @@ import dev.gaborbiro.dailymacros.features.common.view.PreviewImageStoreProvider
 @Composable
 fun ListItemRecord(
     modifier: Modifier = Modifier,
-    record: RecordUIModel,
+    record: ListUIModelRecord,
     onRecordImageTapped: (id: Long) -> Unit,
     onRecordBodyTapped: (id: Long) -> Unit,
     rowMenu: @Composable () -> Unit,
@@ -94,7 +94,7 @@ private fun RecordImage(
 }
 
 @Composable
-private fun RecordTextContent(modifier: Modifier, record: RecordUIModel) {
+private fun RecordTextContent(modifier: Modifier, record: ListUIModelRecord) {
     Column(
         modifier,
         verticalArrangement = Arrangement.Center,
@@ -184,7 +184,7 @@ private fun MacroPill(
 private fun OverviewListItemPreview() {
     PreviewImageStoreProvider {
         ListItemRecord(
-            record = RecordUIModel(
+            record = ListUIModelRecord(
                 recordId = 1L,
                 title = "Title",
                 templateId = 1L,
