@@ -4,8 +4,8 @@ import android.icu.text.DecimalFormat
 import android.util.Range
 import androidx.compose.ui.graphics.Color
 import dev.gaborbiro.dailymacros.design.DailyMacrosColors
-import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroProgress
+import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
@@ -16,24 +16,20 @@ internal class MacrosUIMapper(
 ) {
 
     fun mapMacroProgressTable(records: List<Record>, date: LocalDate): ListUIModelMacroProgress {
-        val totalCalories = records.sumOf { it.template.macros?.calories ?: 0 }
-        val totalProtein = records.sumOf { it.template.macros?.protein?.toDouble() ?: 0.0 }
-            .toInt()
-        val totalCarbs = records.sumOf { it.template.macros?.carbohydrates?.toDouble() ?: 0.0 }
-            .toInt()
-        val totalSugar = records.sumOf { it.template.macros?.ofWhichSugar?.toDouble() ?: 0.0 }
-            .toInt()
-        val totalFat = records.sumOf { it.template.macros?.fat?.toDouble() ?: 0.0 }
-            .toInt()
+        val totalCalories = records.sumOf { it.template.macros?.calories ?: 0 }.toFloat()
+        val totalProtein =
+            records.sumOf { it.template.macros?.protein?.toDouble() ?: 0.0 }.toFloat()
+        val totalCarbs =
+            records.sumOf { it.template.macros?.carbohydrates?.toDouble() ?: 0.0 }.toFloat()
+        val totalSugar =
+            records.sumOf { it.template.macros?.ofWhichSugar?.toDouble() ?: 0.0 }.toFloat()
+        val totalFat = records.sumOf { it.template.macros?.fat?.toDouble() ?: 0.0 }.toFloat()
         val totalSaturated =
-            records.sumOf { it.template.macros?.ofWhichSaturated?.toDouble() ?: 0.0 }
-                .toInt()
-        val totalSalt = records.sumOf { it.template.macros?.salt?.toDouble() ?: 0.0 }
-            .toInt()
-        val totalFibre = records.sumOf { it.template.macros?.fibre?.toDouble() ?: 0.0 }
-            .toInt()
+            records.sumOf { it.template.macros?.ofWhichSaturated?.toDouble() ?: 0.0 }.toFloat()
+        val totalSalt = records.sumOf { it.template.macros?.salt?.toDouble() ?: 0.0 }.toFloat()
+        val totalFibre = records.sumOf { it.template.macros?.fibre?.toDouble() ?: 0.0 }.toFloat()
 
-        class MacroGoal(
+        data class MacroGoal(
             val name: String,
             val rangeLabel: String,
             val min: Float,
@@ -47,13 +43,13 @@ internal class MacrosUIMapper(
                 max / (if (theLessTheBetter) 1f else extendedMax)
             )
 
-            fun progress(total: Int) =
+            fun progress(total: Float) =
                 (total / if (theLessTheBetter) max else extendedMax).coerceAtMost(1f)
 
             //            fun color(total: Int): Color {
 //                return if (progress(total) >= 1f) Color.Red else color
 //            }
-            fun color(blah: Int) = color
+            fun color(blah: Float) = color
         }
 
         val calories = MacroGoal(
@@ -66,9 +62,9 @@ internal class MacrosUIMapper(
         )
         val protein = MacroGoal(
             name = "Protein",
-            rangeLabel = "170-190g",
-            min = 170f,
-            max = 190f,
+            rangeLabel = "60-105g",
+            min = 60f,
+            max = 105f,
             theLessTheBetter = false,
             color = DailyMacrosColors.proteinColor,
         )
@@ -134,7 +130,7 @@ internal class MacrosUIMapper(
             MacroProgressItem(
                 title = salt.name,
                 progress = salt.progress(totalSalt),
-                progressLabel = mapSalt(totalSalt, withLabel = false) ?: "0g",
+                progressLabel = mapSalt(totalSalt, withLabel = false) ?: "0.0g",
                 range = salt.targetRange,
                 rangeLabel = salt.rangeLabel,
                 color = salt.color(totalSalt),
@@ -238,7 +234,7 @@ internal class MacrosUIMapper(
             longLabel = "Calories:",
             unit = "cal",
             withLabel = withLabel,
-            forceDecimal = smallScaleValue,
+            smallScaleValue = smallScaleValue,
         )
         return map(value, shortFormat, longFormat, isShort, forceDecimal = smallScaleValue)
     }
@@ -254,7 +250,7 @@ internal class MacrosUIMapper(
             longLabel = "Protein:",
             unit = if (isShort) "" else "g",
             withLabel = withLabel,
-            forceDecimal = smallScaleValue,
+            smallScaleValue = smallScaleValue,
         )
         return map(value, shortFormat, longFormat, isShort, forceDecimal = smallScaleValue)
     }
@@ -271,7 +267,7 @@ internal class MacrosUIMapper(
             longLabel = "Carbs:",
             unit = if (isShort) "" else "g",
             withLabel = withLabel,
-            forceDecimal = smallScaleValue,
+            smallScaleValue = smallScaleValue,
         )
         return map(value, shortFormat, longFormat, isShort, forceDecimal = smallScaleValue) {
             mapSugar(sugar, isShort, withLabel = false)
@@ -289,7 +285,7 @@ internal class MacrosUIMapper(
             longLabel = "of which sugar:",
             unit = if (isShort) "" else "g",
             withLabel = withLabel,
-            forceDecimal = smallScaleValue,
+            smallScaleValue = smallScaleValue,
         )
         return map(value, shortFormat, longFormat, isShort, forceDecimal = smallScaleValue)
     }
@@ -306,7 +302,7 @@ internal class MacrosUIMapper(
             longLabel = "Fat:",
             unit = if (isShort) "" else "g",
             withLabel = withLabel,
-            forceDecimal = smallScaleValue,
+            smallScaleValue = smallScaleValue,
         )
         return map(value, shortFormat, longFormat, isShort, forceDecimal = smallScaleValue) {
             mapSaturated(saturated, isShort, withLabel = false)
@@ -324,7 +320,7 @@ internal class MacrosUIMapper(
             longLabel = "of which saturated:",
             unit = if (isShort) "" else "g",
             withLabel = withLabel,
-            forceDecimal = smallScaleValue,
+            smallScaleValue = smallScaleValue,
         )
         return map(value, shortFormat, longFormat, isShort, forceDecimal = smallScaleValue)
     }
@@ -340,7 +336,7 @@ internal class MacrosUIMapper(
             longLabel = "Salt:",
             unit = if (isShort) "" else "g",
             withLabel = withLabel,
-            forceDecimal = smallScaleValue,
+            smallScaleValue = smallScaleValue,
         )
         return map(value, shortFormat, longFormat, isShort, forceDecimal = smallScaleValue)
     }
@@ -356,7 +352,7 @@ internal class MacrosUIMapper(
             longLabel = "Fibre:",
             unit = if (isShort) "" else "g",
             withLabel = withLabel,
-            forceDecimal = smallScaleValue,
+            smallScaleValue = smallScaleValue,
         )
         return map(value, shortFormat, longFormat, isShort, forceDecimal = smallScaleValue)
     }
@@ -389,16 +385,30 @@ internal class MacrosUIMapper(
             }
     }
 
+    private fun decimalFormat(decimals: Int, fixed: Boolean = false): String {
+        require(decimals >= 0)
+        val pattern = buildString {
+            append("0")
+            if (decimals > 0) {
+                append('.')
+                val ch = if (fixed) '0' else '#'
+                repeat(decimals) { append(ch) }
+            }
+        }
+        return pattern
+    }
+
     private fun generateFormats(
         shortLabel: String,
         longLabel: String,
         unit: String,
         withLabel: Boolean,
-        forceDecimal: Boolean,
+        smallScaleValue: Boolean,
     ): Pair<SafeNumberFormatter, SafeNumberFormatter> {
         val unitLiteral = unit.literal()
-        val longDecimalFormat = "0.##$unitLiteral"
-        val shortDecimalFormat = if (forceDecimal) longDecimalFormat else "#$unitLiteral"
+        val decimals = if (smallScaleValue) 1 else 0
+        val longDecimalFormat = "${decimalFormat(decimals)}$unitLiteral"
+        val shortDecimalFormat = if (smallScaleValue) longDecimalFormat else "#$unitLiteral"
         val shortLabelLiteral = "$shortLabel ".literal()
         val longLabelLiteral = "$longLabel ".literal()
         val shortFormat = if (withLabel) {

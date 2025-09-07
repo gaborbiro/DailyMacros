@@ -228,8 +228,8 @@ private fun ListItemMacroProgressBarsPreview() {
                     ),
                     MacroProgressItem(
                         title = "Salt",
-                        progress = .0f,
-                        progressLabel = "0g",
+                        progress = 6.2f,
+                        progressLabel = "6g",
                         range = Range(.9091f, .9091f),
                         rangeLabel = "<5g (≈2g Na)",
                         color = DailyMacrosColors.saltColor,
