@@ -8,22 +8,22 @@ internal class RecordsUIMapper(
     private val macrosUIMapper: MacrosUIMapper,
     private val dateUIMapper: DateUIMapper,
 ) {
-    fun map(records: List<Record>): List<ListUIModelBase> {
+    fun map(records: List<Record>, showDay: Boolean): List<ListUIModelBase> {
         return records
             .groupBy { it.timestamp.toLocalDate() }
             .map { (day, records) ->
                 listOf(
                     macrosUIMapper.mapMacroProgressTable(records, day)
                 ) + records.map {
-                    map(it)
+                    map(it, showDay)
                 }
             }
             .flatten()
     }
 
 
-    private fun map(record: Record): ListUIModelRecord {
-        val timestampStr = dateUIMapper.map(record.timestamp)
+    private fun map(record: Record, forceDay: Boolean): ListUIModelRecord {
+        val timestampStr = dateUIMapper.map(record.timestamp, forceDay)
 
         val macros = record.template.macros
             ?.let { macrosUIMapper.mapMacros(it) }

@@ -239,7 +239,7 @@ internal class MacrosUIMapper(
     ): String? {
         val smallScaleValue = false
         val (shortFormat, longFormat) = generateFormats(
-            shortLabel = "prot",
+            shortLabel = "protein",
             longLabel = "Protein:",
             unit = if (isShort) "" else "g",
             withLabel = withLabel,
@@ -256,7 +256,7 @@ internal class MacrosUIMapper(
     ): String? {
         val smallScaleValue = false
         val (shortFormat, longFormat) = generateFormats(
-            shortLabel = "carb",
+            shortLabel = "carbs",
             longLabel = "Carbs:",
             unit = if (isShort) "" else "g",
             withLabel = withLabel,
@@ -341,7 +341,7 @@ internal class MacrosUIMapper(
     ): String? {
         val smallScaleValue = false
         val (shortFormat, longFormat) = generateFormats(
-            shortLabel = "fibr",
+            shortLabel = "fibre",
             longLabel = "Fibre:",
             unit = if (isShort) "" else "g",
             withLabel = withLabel,

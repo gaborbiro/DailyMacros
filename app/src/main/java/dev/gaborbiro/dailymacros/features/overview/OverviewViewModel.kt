@@ -33,7 +33,7 @@ internal class OverviewViewModel(
         viewModelScope.launch {
             repository.getFlowBySearchTerm(search)
                 .map {
-                    uiMapper.map(it)
+                    uiMapper.map(it, showDay = false)
                 }
                 .collect { records: List<ListUIModelBase> ->
                     _viewState.update {

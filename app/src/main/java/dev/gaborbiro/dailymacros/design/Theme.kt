@@ -33,12 +33,12 @@ object DailyMacrosColors {
     val surfaceVariantLight = Color(0xFFFFFFFF)
     val surfaceVariantDark = Color(0xFF1C1C1E)
 
-    val calorieColor = Color(0xFFFFE8C9)
-    val proteinColor = Color(0xFFE7F9F0)
-    val fatColor = Color(0xFFCEE6FF)
-    val carbsColor = Color(0xFFFFD5D4)
-    val saltColor = Color(0xFFE6CCF6)
-    val fibreColor = Color(0xFFBADFE9)
+    val calorieColor = Color(0xFFFFB74D)
+    val proteinColor = Color(0xFF4CAF50)
+    val fatColor = Color(0xFF42A5F5)
+    val carbsColor = Color(0xFFFDD835)
+    val saltColor = Color(0xFFA4ACB2)
+    val fibreColor = Color(0xFF26A69A)
 }
 
 private val DarkColorScheme = darkColorScheme(

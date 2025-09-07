@@ -66,11 +66,13 @@ internal fun ListItemMacroProgressBars(
                 modifier = Modifier
                     .weight(.5f)
             ) {
-                leftColumn.forEach {
+                leftColumn.forEachIndexed { index, item ->
                     MacroProgressView(
                         modifier = Modifier
                             .height(rowHeight),
-                        model = it
+                        model = item,
+                        rowIndex = index,
+                        totalRowCount = leftColumn.size,
                     )
                 }
             }
@@ -90,11 +92,13 @@ internal fun ListItemMacroProgressBars(
                 modifier = Modifier
                     .weight(.5f)
             ) {
-                rightColumn.forEach {
+                rightColumn.forEachIndexed { index, item ->
                     MacroProgressView(
                         modifier = Modifier
                             .height(rowHeight),
-                        model = it
+                        model = item,
+                        rowIndex = index,
+                        totalRowCount = rightColumn.size,
                     )
                 }
             }

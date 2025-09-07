@@ -4,12 +4,12 @@ import android.content.res.Configuration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -30,8 +31,8 @@ import dev.gaborbiro.dailymacros.design.DailyMacrosColors
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
-import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
+import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.common.view.LocalImage
 import dev.gaborbiro.dailymacros.features.common.view.PreviewImageStoreProvider
 
@@ -49,8 +50,8 @@ fun ListItemRecord(
 
     Row(
         modifier = modifier
-            .padding(start = PaddingDefault),
-        verticalAlignment = Alignment.CenterVertically,
+            .padding(start = PaddingHalf),
+        verticalAlignment = Alignment.Top,
     ) {
         RecordImage(
             modifier = Modifier
@@ -113,43 +114,27 @@ private fun RecordTextContent(modifier: Modifier, record: ListUIModelRecord) {
                 modifier = Modifier
                     .padding(top = PaddingQuarter),
                 text = record.timestamp,
+                textAlign = TextAlign.End,
                 style = MaterialTheme.typography.labelMedium,
             )
         }
         record.macros?.let {
-            FlowRow(
-                horizontalArrangement = Arrangement.Start,
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                MacroPill(
-                    text = it.calories,
-                    bg = DailyMacrosColors.calorieColor,
-                    color = Color.Black.copy(alpha = .7f),
-                )
-                MacroPill(
-                    text = it.protein,
-                    bg = DailyMacrosColors.proteinColor,
-                    color = Color.Black.copy(alpha = .7f),
-                )
-                MacroPill(
-                    text = it.fat,
-                    bg = DailyMacrosColors.fatColor,
-                    color = Color.Black.copy(alpha = .7f),
-                )
-                MacroPill(
-                    text = it.carbs,
-                    bg = DailyMacrosColors.carbsColor,
-                    color = Color.Black.copy(alpha = .7f),
-                )
-                MacroPill(
-                    text = it.salt,
-                    bg = DailyMacrosColors.saltColor,
-                    color = Color.Black.copy(alpha = .7f),
-                )
-                MacroPill(
-                    text = it.fibre,
-                    bg = DailyMacrosColors.fibreColor,
-                    color = Color.Black.copy(alpha = .7f),
-                )
+                MacroPill(Modifier.weight(1f), it.calories, DailyMacrosColors.calorieColor)
+                MacroPill(Modifier.weight(1f), it.protein, DailyMacrosColors.proteinColor)
+                MacroPill(Modifier.weight(1f), it.fat, DailyMacrosColors.fatColor)
+            }
+            Spacer(Modifier.height(4.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                MacroPill(Modifier.weight(1f), it.carbs, DailyMacrosColors.carbsColor)
+                MacroPill(Modifier.weight(1f), it.salt, DailyMacrosColors.saltColor)
+                MacroPill(Modifier.weight(1f), it.fibre, DailyMacrosColors.fibreColor)
             }
         }
     }
@@ -157,15 +142,13 @@ private fun RecordTextContent(modifier: Modifier, record: ListUIModelRecord) {
 
 @Composable
 private fun MacroPill(
+    modifier: Modifier,
     text: String?,
     bg: Color,
-    color: Color,
+    color: Color = Color.Black,
 ) {
     Card(
-        modifier = Modifier
-            .width(86.dp)
-            .padding(top = 4.dp)
-            .padding(end = 4.dp),
+        modifier = modifier,
         colors = CardDefaults.cardColors(containerColor = if (text != null) bg else Color.Transparent),
         shape = RoundedCornerShape(4.dp),
     ) {
@@ -180,7 +163,7 @@ private fun MacroPill(
 
 @Preview
 @Composable
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, widthDp = 200)
 private fun OverviewListItemPreview() {
     PreviewImageStoreProvider {
         ListItemRecord(
@@ -191,12 +174,12 @@ private fun OverviewListItemPreview() {
                 images = listOf("", ""),
                 timestamp = "Tue 19 Aug, 20:49",
                 macros = MacrosUIModel(
-                    calories = "8cal",
-                    protein = "prot 8",
+                    calories = "1008cal",
+                    protein = "protein 8",
                     fat = "fat 4(2)",
-                    carbs = "carb 9(9)",
-                    salt = "sal 2",
-                    fibre = "fib 4",
+                    carbs = "carbs 9(9)",
+                    salt = "salt 2",
+                    fibre = "fibre 4",
                 ),
             ),
             onRecordImageTapped = {},

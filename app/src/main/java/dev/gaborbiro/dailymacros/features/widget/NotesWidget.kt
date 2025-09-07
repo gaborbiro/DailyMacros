@@ -75,7 +75,7 @@ class NotesWidget : GlanceAppWidget() {
             val recordsUIMapper = RecordsUIMapper(macrosUIMapper, dateUIMapper)
             val widgetUIMapper = WidgetUIMapper(macrosUIMapper)
             val topTemplates = widgetUIMapper.map(templates = prefs.retrieveTopTemplates())
-            val recentRecords = recordsUIMapper.map(records = prefs.retrieveRecentRecords())
+            val recentRecords = recordsUIMapper.map(records = prefs.retrieveRecentRecords(), showDay = true)
                 .filterIsInstance<ListUIModelRecord>()
             val items = buildList {
                 if (recentRecords.isNotEmpty() || topTemplates.isNotEmpty()) {

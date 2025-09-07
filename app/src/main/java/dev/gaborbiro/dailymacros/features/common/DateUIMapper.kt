@@ -7,17 +7,31 @@ import java.time.temporal.ChronoUnit
 
 internal class DateUIMapper {
 
-    fun map(localDateTime: LocalDateTime): String {
+    fun map(localDateTime: LocalDateTime, forceDay: Boolean): String {
         return when {
             !localDateTime.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS)) -> {
-                "Today at ${localDateTime.formatShortTime()}"
+                if (forceDay) {
+                    "Today at ${localDateTime.formatShortTimeOnly()}"
+                } else {
+                    localDateTime.formatShortTimeOnly()
+                }
             }
 
             !localDateTime.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).minusDays(1)) -> {
-                "Yesterday at ${localDateTime.formatShortTime()}"
+                if (forceDay) {
+                    "Yesterday at ${localDateTime.formatShortTimeOnly()}"
+                } else {
+                    localDateTime.formatShortTimeOnly()
+                }
             }
 
-            else -> localDateTime.formatShort()
+            else -> {
+                if (forceDay) {
+                    localDateTime.formatShort()
+                } else {
+                    localDateTime.formatShortTimeOnly()
+                }
+            }
         }
     }
 
@@ -35,7 +49,7 @@ internal class DateUIMapper {
         }
     }
 
-    fun LocalDateTime.formatShort() = format(DateTimeFormatter.ofPattern("E dd MMM, H:mm"))
-    fun LocalDateTime.formatShortTime() = format(DateTimeFormatter.ofPattern("H:mm"))
-    fun LocalDate.formatShort() = format(DateTimeFormatter.ofPattern("E dd MMM"))
+    fun LocalDateTime.formatShort() = format(DateTimeFormatter.ofPattern("E, dd MMM, H:mm"))
+    fun LocalDateTime.formatShortTimeOnly() = format(DateTimeFormatter.ofPattern("H:mm"))
+    fun LocalDate.formatShort() = format(DateTimeFormatter.ofPattern("E, dd MMM"))
 }

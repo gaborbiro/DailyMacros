@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.features.overview.views
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -28,17 +29,15 @@ fun RowMenu(
     onDetails: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    val interaction = remember { MutableInteractionSource() }
 
     Box {
         Icon(
             painter = painterResource(R.drawable.ic_more_vert), // or your 3-dots painter hoisted too
             contentDescription = "More Menu",
             modifier = Modifier
-                .size(24.dp)
+                .size(36.dp)
+                .padding(end = 8.dp)
                 .clickable(
-                    interactionSource = interaction,
-                    indication = null,
                     onClick = onOpen,
                 )
         )
