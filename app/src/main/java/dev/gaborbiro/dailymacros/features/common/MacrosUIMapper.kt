@@ -35,21 +35,14 @@ internal class MacrosUIMapper(
             val min: Float,
             val max: Float,
             val theLessTheBetter: Boolean,
-            private val color: Color,
+            val color: Color,
         ) {
-            private val extendedMax = max * 1.1f
-            val targetRange = Range(
-                min / (if (theLessTheBetter) max else extendedMax),
-                max / (if (theLessTheBetter) 1f else extendedMax)
+            val targetRange0to1 = Range(
+                if (theLessTheBetter) 0f else min / max,
+                1f,
             )
 
-            fun progress(total: Float) =
-                (total / if (theLessTheBetter) max else extendedMax).coerceAtMost(1f)
-
-            //            fun color(total: Int): Color {
-//                return if (progress(total) >= 1f) Color.Red else color
-//            }
-            fun color(blah: Float) = color
+            fun progress(total: Float) = total / max
         }
 
         val calories = MacroGoal(
@@ -102,7 +95,7 @@ internal class MacrosUIMapper(
         )
         val sugar = MacroGoal(
             name = "sugar",
-            rangeLabel = "<40g ttl., <25g",
+            rangeLabel = "<40g/<25g added",
             min = 0f,
             max = 40f,
             theLessTheBetter = true,
@@ -121,68 +114,68 @@ internal class MacrosUIMapper(
         val macros = listOf(
             MacroProgressItem(
                 title = calories.name,
-                progress = calories.progress(totalCalories),
+                progress0to1 = calories.progress(totalCalories),
                 progressLabel = mapCalories(totalCalories, withLabel = false)!!,
-                range = calories.targetRange,
+                targetRange0to1 = calories.targetRange0to1,
                 rangeLabel = calories.rangeLabel,
-                color = calories.color(totalCalories),
+                color = calories.color,
             ),
             MacroProgressItem(
                 title = salt.name,
-                progress = salt.progress(totalSalt),
+                progress0to1 = salt.progress(totalSalt),
                 progressLabel = mapSalt(totalSalt, withLabel = false) ?: "0.0g",
-                range = salt.targetRange,
+                targetRange0to1 = salt.targetRange0to1,
                 rangeLabel = salt.rangeLabel,
-                color = salt.color(totalSalt),
+                color = salt.color,
             ),
             MacroProgressItem(
                 title = fat.name,
-                progress = fat.progress(totalFat),
+                progress0to1 = fat.progress(totalFat),
                 progressLabel = mapFat(totalFat, null, withLabel = false) ?: "0g",
-                range = fat.targetRange,
+                targetRange0to1 = fat.targetRange0to1,
                 rangeLabel = fat.rangeLabel,
-                color = fat.color(totalFat),
+                color = fat.color,
             ),
             MacroProgressItem(
                 title = carbs.name,
-                progress = carbs.progress(totalCarbs),
+                progress0to1 = carbs.progress(totalCarbs),
                 progressLabel = mapCarbs(totalCarbs, null, withLabel = false)
                     ?: "0g",
-                range = carbs.targetRange,
+                targetRange0to1 = carbs.targetRange0to1,
                 rangeLabel = carbs.rangeLabel,
-                color = carbs.color(totalCarbs),
+                color = carbs.color,
             ),
             MacroProgressItem(
                 title = protein.name,
-                progress = protein.progress(totalProtein),
+                progress0to1 = protein.progress(totalProtein),
                 progressLabel = mapProtein(totalProtein, withLabel = false) ?: "0g",
-                range = protein.targetRange,
+                targetRange0to1 = protein.targetRange0to1,
                 rangeLabel = protein.rangeLabel,
-                color = protein.color(totalProtein),
+                color = protein.color,
             ),
             MacroProgressItem(
                 title = fibre.name,
-                progress = fibre.progress(totalFibre),
+                progress0to1 = fibre.progress(totalFibre),
                 progressLabel = mapFibre(totalFibre, withLabel = false) ?: "0g",
-                range = fibre.targetRange,
+                targetRange0to1 = fibre.targetRange0to1,
                 rangeLabel = fibre.rangeLabel,
-                color = fibre.color(totalFibre),
+                color = fibre.color,
             ),
             MacroProgressItem(
                 title = saturated.name,
-                progress = saturated.progress(totalSaturated),
+                progress0to1 = saturated.progress(totalSaturated),
                 progressLabel = mapFat(totalSaturated, null, withLabel = false) ?: "0g",
-                range = saturated.targetRange,
+                targetRange0to1 = saturated.targetRange0to1,
                 rangeLabel = saturated.rangeLabel,
-                color = saturated.color(totalSaturated),
+                color = saturated.color,
             ),
             MacroProgressItem(
                 title = sugar.name,
-                progress = sugar.progress(totalSugar),
+                progress0to1 = sugar.progress(totalSugar),
                 progressLabel = mapSugar(totalSugar, withLabel = false) ?: "0g",
-                range = sugar.targetRange,
+                targetRange0to1 = sugar.targetRange0to1,
                 rangeLabel = sugar.rangeLabel,
-                color = sugar.color(totalSugar),
+                color = sugar.color,
             ),
         )
 

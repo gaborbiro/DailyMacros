@@ -13,9 +13,9 @@ data class ListUIModelMacroProgress(
 
 data class MacroProgressItem(
     val title: String,
-    val progress: Float,
+    val progress0to1: Float,
     val progressLabel: String,
-    val range: Range<Float>,
+    val targetRange0to1: Range<Float>,
     val rangeLabel: String,
     val color: Color,
 )

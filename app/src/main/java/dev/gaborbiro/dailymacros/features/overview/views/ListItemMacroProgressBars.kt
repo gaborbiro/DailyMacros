@@ -12,16 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ProgressIndicatorDefaults
-import androidx.compose.material3.ProgressIndicatorDefaults.drawStopIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.DailyMacrosColors
@@ -109,7 +104,7 @@ internal fun ListItemMacroProgressBars(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun MacroTitleView(
+fun MacroTitleView(
     modifier: Modifier,
     model: MacroProgressItem,
 ) {
@@ -128,52 +123,6 @@ private fun MacroTitleView(
     }
 }
 
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun MacroProgressView(
-    modifier: Modifier,
-    model: MacroProgressItem,
-) {
-    Column(
-        modifier = modifier
-            .padding(horizontal = PaddingHalf)
-            .padding(vertical = 7.dp),
-    ) {
-        LinearProgressIndicator(
-            progress = { model.progress },
-            color = model.color,
-            trackColor = MaterialTheme.colorScheme.onBackground.copy(alpha = .09f),
-            strokeCap = StrokeCap.Round,
-            gapSize = 0.dp,
-            drawStopIndicator = {
-                if (model.progress >= 1f) {
-                    drawStopIndicator(
-                        drawScope = this,
-                        stopSize = ProgressIndicatorDefaults.LinearTrackStopIndicatorSize,
-                        color = Color.Red,
-                        strokeCap = StrokeCap.Square,
-                    )
-                }
-            }
-        )
-        Row {
-            Text(
-                modifier = Modifier
-                    .weight(1f),
-                text = model.progressLabel,
-                style = MaterialTheme.typography.labelSmall,
-                color = if (model.progress >= 1f) Color.Red else Color.Unspecified,
-            )
-            Text(
-                modifier = Modifier,
-                text = model.rangeLabel,
-                style = MaterialTheme.typography.labelSmall,
-            )
-        }
-    }
-}
-
 @Preview
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
@@ -188,57 +137,57 @@ private fun ListItemMacroProgressBarsPreview() {
                 macros = listOf(
                     MacroProgressItem(
                         title = "Calories",
-                        progress = .15f,
+                        progress0to1 = .15f,
                         progressLabel = "1005 cal",
-                        range = Range(.84f, .88f),
+                        targetRange0to1 = Range(.84f, .88f),
                         rangeLabel = "2.1-2.2kcal",
                         color = DailyMacrosColors.calorieColor,
                     ),
                     MacroProgressItem(
                         title = "Protein",
-                        progress = .0809f,
+                        progress0to1 = .0809f,
                         progressLabel = "110g",
-                        range = Range(.8095f, .9047f),
+                        targetRange0to1 = Range(.8095f, .9047f),
                         rangeLabel = "170-190g",
                         color = DailyMacrosColors.proteinColor,
                     ),
                     MacroProgressItem(
                         title = "Fat",
-                        progress = .2121f,
+                        progress0to1 = .2121f,
                         progressLabel = "30g",
-                        range = Range(.6818f, .9091f),
+                        targetRange0to1 = Range(.6818f, .9091f),
                         rangeLabel = "45-60g",
                         color = DailyMacrosColors.fatColor,
                     ),
                     MacroProgressItem(
                         title = "Carbs",
-                        progress = .1818f,
+                        progress0to1 = .4818f,
                         progressLabel = "105g",
-                        range = Range(.6818f, .9091f),
+                        targetRange0to1 = Range(.6818f, .9091f),
                         rangeLabel = "150-200g",
                         color = DailyMacrosColors.carbsColor,
                     ),
                     MacroProgressItem(
                         title = "Sugar",
-                        progress = .2955f,
+                        progress0to1 = .2955f,
                         progressLabel = "35g",
-                        range = Range(.9091f, .9091f),
-                        rangeLabel = "<40g ttl., <25g",
+                        targetRange0to1 = Range(.9091f, .9091f),
+                        rangeLabel = "<40g/<25g added",
                         color = DailyMacrosColors.carbsColor,
                     ),
                     MacroProgressItem(
                         title = "Salt",
-                        progress = 6.2f,
+                        progress0to1 = 1.2f,
                         progressLabel = "6g",
-                        range = Range(.9091f, .9091f),
+                        targetRange0to1 = Range(.9091f, .9091f),
                         rangeLabel = "<5g (≈2g Na)",
                         color = DailyMacrosColors.saltColor,
                     ),
                     MacroProgressItem(
                         title = "Fibre",
-                        progress = .0f,
+                        progress0to1 = .0f,
                         progressLabel = "0g",
-                        range = Range(.9091f, .9091f),
+                        targetRange0to1 = Range(.9091f, .9091f),
                         rangeLabel = "30-38g",
                         color = DailyMacrosColors.fibreColor,
                     ),
