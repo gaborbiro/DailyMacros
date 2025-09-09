@@ -7,7 +7,7 @@ internal data class SettingsUIModel(
 
 internal data class TargetUIModel(
     val enabled: Boolean = true,
-    val min: Int,  // calories in cal, others in g
-    val max: Int,
+    val min: Int?,  // calories in cal, others in g
+    val max: Int?,
     val theoreticalMax: Int,
 )

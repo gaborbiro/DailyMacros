@@ -25,6 +25,7 @@ import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.view.LocalImageStore
+import dev.gaborbiro.dailymacros.features.common.viewModelFactory
 import dev.gaborbiro.dailymacros.features.overview.OverviewNavigatorImpl
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
@@ -68,7 +69,7 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
-                val overviewViewModel = remember {
+                val overviewViewModel = viewModelFactory {
                     OverviewViewModel(
                         navigator = overviewNavigator,
                         repository = recordsRepository,
@@ -78,7 +79,9 @@ class MainActivity : ComponentActivity() {
                 }
 
                 val settingsNavigator = remember { SettingsNavigatorImpl(navController) }
-                val settingsViewModel = SettingsViewModel(settingsNavigator, settingsRepository)
+                val settingsViewModel = viewModelFactory {
+                    SettingsViewModel(settingsNavigator, settingsRepository)
+                }
 
                 NavHost(
                     navController = navController,

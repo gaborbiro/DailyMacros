@@ -14,6 +14,9 @@ internal fun SettingsScreen(
         viewState = viewState,
         onBackClick = viewModel::onBackClick,
         onMacroTargetChange = viewModel::onMacroTargetChange,
-        onReset = viewModel::reset
+        onReset = viewModel::reset,
+        onSave = viewModel::save,
+        onDiscardExit = viewModel::discardAndExit,
+        onDismissExitDialog = viewModel::dismissExitDialog,
     )
 }
