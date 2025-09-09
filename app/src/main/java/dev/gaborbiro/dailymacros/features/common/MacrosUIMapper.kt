@@ -2,20 +2,25 @@ package dev.gaborbiro.dailymacros.features.common
 
 import android.icu.text.DecimalFormat
 import android.util.Range
-import androidx.compose.ui.graphics.Color
 import dev.gaborbiro.dailymacros.design.DailyMacrosColors
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroProgress
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repo.settings.model.Target
+import dev.gaborbiro.dailymacros.repo.settings.model.Targets
 import java.time.LocalDate
 
 internal class MacrosUIMapper(
     private val dateUIMapper: DateUIMapper,
 ) {
 
-    fun mapMacroProgressTable(records: List<Record>, date: LocalDate): ListUIModelMacroProgress {
+    fun mapMacroProgressTable(
+        records: List<Record>,
+        targets: Targets,
+        date: LocalDate,
+    ): ListUIModelMacroProgress {
         val totalCalories = records.sumOf { it.template.macros?.calories ?: 0 }.toFloat()
         val totalProtein =
             records.sumOf { it.template.macros?.protein?.toDouble() ?: 0.0 }.toFloat()
@@ -29,160 +34,123 @@ internal class MacrosUIMapper(
         val totalSalt = records.sumOf { it.template.macros?.salt?.toDouble() ?: 0.0 }.toFloat()
         val totalFibre = records.sumOf { it.template.macros?.fibre?.toDouble() ?: 0.0 }.toFloat()
 
-        data class MacroGoal(
-            val name: String,
-            val rangeLabel: String,
-            val min: Float,
-            val max: Float,
-            val theLessTheBetter: Boolean,
-            val color: Color,
-        ) {
-            val targetRange0to1 = Range(
-                if (theLessTheBetter) 0f else min / max,
+        fun progress(target: Target, total: Float) = total / target.max
+
+        fun targetRange(target: Target): Range<Float> {
+            return Range(
+                target.min.toFloat() / target.max.toFloat(),
                 1f,
             )
-
-            fun progress(total: Float) = total / max
         }
 
-        val calories = MacroGoal(
-            name = "Calories",
-            rangeLabel = "2.1-2.2kcal",
-            min = 2100f,
-            max = 2200f,
-            theLessTheBetter = false,
-            color = DailyMacrosColors.calorieColor,
-        )
-        val protein = MacroGoal(
-            name = "Protein",
-            rangeLabel = "60-105g",
-            min = 60f,
-            max = 105f,
-            theLessTheBetter = false,
-            color = DailyMacrosColors.proteinColor,
-        )
-        val fat = MacroGoal(
-            name = "Fats",
-            rangeLabel = "55-65g",
-            min = 55f,
-            max = 65f,
-            theLessTheBetter = false,
-            color = DailyMacrosColors.fatColor,
-        )
-        val saturated = MacroGoal(
-            name = "saturated",
-            rangeLabel = "< 21g",
-            min = 0f,
-            max = 21f,
-            theLessTheBetter = true,
-            color = DailyMacrosColors.fatColor,
-        )
-        val salt = MacroGoal(
-            name = "Salt",
-            rangeLabel = "<5g (≈2g Na)",
-            min = 0f,
-            max = 5f,
-            theLessTheBetter = true,
-            color = DailyMacrosColors.saltColor,
-        )
-        val carbs = MacroGoal(
-            name = "Carbs",
-            rangeLabel = "150-200g",
-            min = 150f,
-            max = 200f,
-            theLessTheBetter = false,
-            color = DailyMacrosColors.carbsColor,
-        )
-        val sugar = MacroGoal(
-            name = "sugar",
-            rangeLabel = "<40g/<25g added",
-            min = 0f,
-            max = 40f,
-            theLessTheBetter = true,
-            color = DailyMacrosColors.carbsColor,
-        )
-        val fibre = MacroGoal(
-            // TODO Women need 21-25g
-            name = "Fibre",
-            rangeLabel = "30-38g",
-            min = 30f,
-            max = 38f,
-            theLessTheBetter = false,
-            color = DailyMacrosColors.fibreColor,
-        )
-
-        val macros = listOf(
-            MacroProgressItem(
-                title = calories.name,
-                progress0to1 = calories.progress(totalCalories),
-                progressLabel = mapCalories(totalCalories, withLabel = false)!!,
-                targetRange0to1 = calories.targetRange0to1,
-                rangeLabel = calories.rangeLabel,
-                color = calories.color,
-            ),
-            MacroProgressItem(
-                title = salt.name,
-                progress0to1 = salt.progress(totalSalt),
-                progressLabel = mapSalt(totalSalt, withLabel = false) ?: "0.0g",
-                targetRange0to1 = salt.targetRange0to1,
-                rangeLabel = salt.rangeLabel,
-                color = salt.color,
-            ),
-            MacroProgressItem(
-                title = fat.name,
-                progress0to1 = fat.progress(totalFat),
-                progressLabel = mapFat(totalFat, null, withLabel = false) ?: "0g",
-                targetRange0to1 = fat.targetRange0to1,
-                rangeLabel = fat.rangeLabel,
-                color = fat.color,
-            ),
-            MacroProgressItem(
-                title = carbs.name,
-                progress0to1 = carbs.progress(totalCarbs),
-                progressLabel = mapCarbs(totalCarbs, null, withLabel = false)
-                    ?: "0g",
-                targetRange0to1 = carbs.targetRange0to1,
-                rangeLabel = carbs.rangeLabel,
-                color = carbs.color,
-            ),
-            MacroProgressItem(
-                title = protein.name,
-                progress0to1 = protein.progress(totalProtein),
-                progressLabel = mapProtein(totalProtein, withLabel = false) ?: "0g",
-                targetRange0to1 = protein.targetRange0to1,
-                rangeLabel = protein.rangeLabel,
-                color = protein.color,
-            ),
-            MacroProgressItem(
-                title = fibre.name,
-                progress0to1 = fibre.progress(totalFibre),
-                progressLabel = mapFibre(totalFibre, withLabel = false) ?: "0g",
-                targetRange0to1 = fibre.targetRange0to1,
-                rangeLabel = fibre.rangeLabel,
-                color = fibre.color,
-            ),
-            MacroProgressItem(
-                title = saturated.name,
-                progress0to1 = saturated.progress(totalSaturated),
-                progressLabel = mapFat(totalSaturated, null, withLabel = false) ?: "0g",
-                targetRange0to1 = saturated.targetRange0to1,
-                rangeLabel = saturated.rangeLabel,
-                color = saturated.color,
-            ),
-            MacroProgressItem(
-                title = sugar.name,
-                progress0to1 = sugar.progress(totalSugar),
-                progressLabel = mapSugar(totalSugar, withLabel = false) ?: "0g",
-                targetRange0to1 = sugar.targetRange0to1,
-                rangeLabel = sugar.rangeLabel,
-                color = sugar.color,
-            ),
-        )
+        val progress = buildList {
+            targets.calories.takeIf { it.enabled }?.let {
+                val min = DecimalFormat("#.#").format(it.min / 1000f)
+                val max = DecimalFormat("#.#").format(it.max / 1000f)
+                val rangeLabel = "$min-${max}kcal"
+                add(
+                    MacroProgressItem(
+                        title = "Calories",
+                        progress0to1 = progress(it, totalCalories),
+                        progressLabel = mapCalories(totalCalories, withLabel = false)!!,
+                        targetRange0to1 = targetRange(it),
+                        rangeLabel = rangeLabel,
+                        color = DailyMacrosColors.calorieColor,
+                    )
+                )
+            }
+            targets.protein.takeIf { it.enabled }?.let {
+                add(
+                    MacroProgressItem(
+                        title = "Protein",
+                        progress0to1 = progress(it, totalProtein),
+                        progressLabel = mapCalories(totalProtein, withLabel = false) ?: "0g",
+                        targetRange0to1 = targetRange(it),
+                        rangeLabel = "${it.min}-${it.max}g",
+                        color = DailyMacrosColors.proteinColor,
+                    )
+                )
+            }
+            targets.salt.takeIf { it.enabled }?.let {
+                add(
+                    MacroProgressItem(
+                        title = "Salt",
+                        progress0to1 = progress(it, totalSalt),
+                        progressLabel = mapSalt(totalSalt, withLabel = false) ?: "0.0g",
+                        targetRange0to1 = targetRange(it),
+                        rangeLabel = "${it.min}-${it.max}g",
+                        color = DailyMacrosColors.saltColor,
+                    )
+                )
+            }
+            targets.fibre.takeIf { it.enabled }?.let {
+                add(
+                    MacroProgressItem(
+                        title = "Fibre",
+                        progress0to1 = progress(it, totalFibre),
+                        progressLabel = mapFibre(totalFibre, withLabel = false) ?: "0g",
+                        targetRange0to1 = targetRange(it),
+                        rangeLabel = "${it.min}-${it.max}g",
+                        color = DailyMacrosColors.fibreColor,
+                    )
+                )
+            }
+            targets.carbs.takeIf { it.enabled }?.let {
+                add(
+                    MacroProgressItem(
+                        title = "Carbs",
+                        progress0to1 = progress(it, totalCarbs),
+                        progressLabel = mapCarbs(totalCarbs, sugar = null, withLabel = false)
+                            ?: "0g",
+                        targetRange0to1 = targetRange(it),
+                        rangeLabel = "${it.min}-${it.max}g",
+                        color = DailyMacrosColors.carbsColor,
+                    )
+                )
+            }
+            targets.ofWhichSugar.takeIf { it.enabled }?.let {
+                add(
+                    MacroProgressItem(
+                        title = "sugar",
+                        progress0to1 = progress(it, totalSugar),
+                        progressLabel = mapSugar(totalSugar, withLabel = false) ?: "0g",
+                        targetRange0to1 = targetRange(it),
+                        rangeLabel = "${it.min}-${it.max}g",
+                        color = DailyMacrosColors.carbsColor,
+                    )
+                )
+            }
+            targets.fat.takeIf { it.enabled }?.let {
+                add(
+                    MacroProgressItem(
+                        title = "Fat",
+                        progress0to1 = progress(it, totalFat),
+                        progressLabel = mapFat(totalFat, saturated = null, withLabel = false)
+                            ?: "0g",
+                        targetRange0to1 = targetRange(it),
+                        rangeLabel = "${it.min}-${it.max}g",
+                        color = DailyMacrosColors.fatColor,
+                    )
+                )
+            }
+            targets.ofWhichSaturated.takeIf { it.enabled }?.let {
+                add(
+                    MacroProgressItem(
+                        title = "saturated",
+                        progress0to1 = progress(it, totalSaturated),
+                        progressLabel = mapSaturated(totalSaturated, withLabel = false) ?: "0g",
+                        targetRange0to1 = targetRange(it),
+                        rangeLabel = "${it.min}-${it.max}g",
+                        color = DailyMacrosColors.fatColor,
+                    )
+                )
+            }
+        }
 
         return ListUIModelMacroProgress(
             listItemId = date.toEpochDay(),
             dayTitle = dateUIMapper.map(date),
-            macros = macros,
+            progress = progress,
         )
     }
 
@@ -239,7 +207,7 @@ internal class MacrosUIMapper(
     ): String? {
         val smallScaleValue = false
         val (shortFormat, longFormat) = generateFormats(
-            shortLabel = "protein",
+            shortLabel = "Protein",
             longLabel = "Protein:",
             unit = if (isShort) "" else "g",
             withLabel = withLabel,
@@ -256,7 +224,7 @@ internal class MacrosUIMapper(
     ): String? {
         val smallScaleValue = false
         val (shortFormat, longFormat) = generateFormats(
-            shortLabel = "carbs",
+            shortLabel = "Carbs",
             longLabel = "Carbs:",
             unit = if (isShort) "" else "g",
             withLabel = withLabel,
@@ -291,7 +259,7 @@ internal class MacrosUIMapper(
     ): String? {
         val smallScaleValue = false
         val (shortFormat, longFormat) = generateFormats(
-            shortLabel = "fat",
+            shortLabel = "Fat",
             longLabel = "Fat:",
             unit = if (isShort) "" else "g",
             withLabel = withLabel,
@@ -325,7 +293,7 @@ internal class MacrosUIMapper(
     ): String? {
         val smallScaleValue = true
         val (shortFormat, longFormat) = generateFormats(
-            shortLabel = "salt",
+            shortLabel = "Salt",
             longLabel = "Salt:",
             unit = if (isShort) "" else "g",
             withLabel = withLabel,
@@ -341,7 +309,7 @@ internal class MacrosUIMapper(
     ): String? {
         val smallScaleValue = false
         val (shortFormat, longFormat) = generateFormats(
-            shortLabel = "fibre",
+            shortLabel = "Fibre",
             longLabel = "Fibre:",
             unit = if (isShort) "" else "g",
             withLabel = withLabel,

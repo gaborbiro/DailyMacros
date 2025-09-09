@@ -11,10 +11,15 @@ import dev.gaborbiro.dailymacros.features.common.workers.MacrosWorkRequest
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
 import dev.gaborbiro.dailymacros.features.widget.NotesWidget
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repo.settings.SettingsRepository
+import dev.gaborbiro.dailymacros.repo.settings.model.Targets
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -23,6 +28,7 @@ internal class OverviewViewModel(
     private val navigator: OverviewNavigator,
     private val repository: RecordsRepository,
     private val uiMapper: RecordsUIMapper,
+    private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
     private val _viewState: MutableStateFlow<OverviewViewState> =
@@ -32,13 +38,16 @@ internal class OverviewViewModel(
     fun onSearchTermChanged(search: String?) {
         viewModelScope.launch {
             repository.getFlowBySearchTerm(search)
-                .map {
-                    uiMapper.map(it, showDay = false)
+                .combine(flowOf(settingsRepository.loadTargets())) { a, b ->
+                    a to b
+                }
+                .map { (records: List<Record>, targets: Targets) ->
+                    uiMapper.map(records, targets, showDay = false)
                 }
                 .collect { records: List<ListUIModelBase> ->
                     _viewState.update {
                         if (records.isNotEmpty()) {
-                            it.copy(records)
+                            it.copy(items = records)
                         } else {
                             it.copy(showAddWidgetButton = true)
                         }
@@ -120,6 +129,10 @@ internal class OverviewViewModel(
                 recordToUndelete = null,
             )
         }
+    }
+
+    fun onSettingsButtonTapped() {
+        navigator.openSettingsScreen()
     }
 
     private fun deleteTemplate(templateId: Long) {

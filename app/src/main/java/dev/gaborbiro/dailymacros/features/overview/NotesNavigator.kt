@@ -1,6 +1,8 @@
 package dev.gaborbiro.dailymacros.features.overview
 
 import android.content.Context
+import androidx.navigation.NavHostController
+import dev.gaborbiro.dailymacros.features.main.SETTINGS_ROUTE
 import dev.gaborbiro.dailymacros.features.modal.ModalActivity
 
 interface OverviewNavigator {
@@ -8,9 +10,14 @@ interface OverviewNavigator {
     fun editRecord(recordId: Long)
 
     fun viewImage(recordId: Long)
+
+    fun openSettingsScreen()
 }
 
-class OverviewNavigatorImpl(private val appContext: Context) : OverviewNavigator {
+class OverviewNavigatorImpl(
+    private val appContext: Context,
+    private val navController: NavHostController,
+) : OverviewNavigator {
 
     override fun editRecord(recordId: Long) {
         ModalActivity.launchViewRecordDetails(appContext, recordId)
@@ -18,5 +25,9 @@ class OverviewNavigatorImpl(private val appContext: Context) : OverviewNavigator
 
     override fun viewImage(recordId: Long) {
         ModalActivity.launchRecordImageViewRequest(appContext, recordId)
+    }
+
+    override fun openSettingsScreen() {
+        navController.navigate(SETTINGS_ROUTE)
     }
 }

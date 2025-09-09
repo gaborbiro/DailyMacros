@@ -8,10 +8,12 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -26,8 +28,13 @@ import dev.gaborbiro.dailymacros.features.common.view.LocalImageStore
 import dev.gaborbiro.dailymacros.features.overview.OverviewNavigatorImpl
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
+import dev.gaborbiro.dailymacros.features.settings.SettingsNavigatorImpl
+import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
+import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
 import dev.gaborbiro.dailymacros.repo.records.ApiMapper
 import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
+import dev.gaborbiro.dailymacros.repo.settings.SettingsMapper
+import dev.gaborbiro.dailymacros.repo.settings.SettingsRepository
 
 class MainActivity : ComponentActivity() {
 
@@ -37,7 +44,6 @@ class MainActivity : ComponentActivity() {
         )
         super.onCreate(savedInstanceState)
 
-        val navigator = OverviewNavigatorImpl(this)
         val fileStore = FileStoreFactoryImpl(this).getStore("public", keepFiles = true)
         val imageStore = ImageStoreImpl(fileStore)
 
@@ -50,23 +56,41 @@ class MainActivity : ComponentActivity() {
         val dateUIMapper = DateUIMapper()
         val macrosUIMapper = MacrosUIMapper(dateUIMapper)
 
-        val viewModel = OverviewViewModel(
-            navigator = navigator,
-            repository = recordsRepository,
-            uiMapper = RecordsUIMapper(macrosUIMapper, dateUIMapper),
-        )
+        val settingsRepository = SettingsRepository(this@MainActivity, SettingsMapper())
 
         setContent {
             DailyMacrosTheme {
-                val navController = rememberNavController()
+                val navController: NavHostController = rememberNavController()
+                val overviewNavigator = remember {
+                    OverviewNavigatorImpl(
+                        appContext = this@MainActivity,
+                        navController = navController,
+                    )
+                }
+
+                val overviewViewModel = remember {
+                    OverviewViewModel(
+                        navigator = overviewNavigator,
+                        repository = recordsRepository,
+                        uiMapper = RecordsUIMapper(macrosUIMapper, dateUIMapper),
+                        settingsRepository = settingsRepository,
+                    )
+                }
+
+                val settingsNavigator = remember { SettingsNavigatorImpl(navController) }
+                val settingsViewModel = SettingsViewModel(settingsNavigator, settingsRepository)
+
                 NavHost(
                     navController = navController,
-                    startDestination = NoteList.route,
+                    startDestination = OVERVIEW_ROUTE,
                 ) {
-                    composable(route = NoteList.route) {
+                    composable(route = OVERVIEW_ROUTE) {
                         CompositionLocalProvider(LocalImageStore provides imageStore) {
-                            OverviewScreen(viewModel)
+                            OverviewScreen(overviewViewModel)
                         }
+                    }
+                    composable(route = SETTINGS_ROUTE) {
+                        SettingsScreen(settingsViewModel)
                     }
                 }
             }

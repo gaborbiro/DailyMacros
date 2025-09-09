@@ -35,8 +35,8 @@ internal fun MacrosRequest.toApiModel(): ChatGPTRequest {
                               • protein (g)  
                               • carbohydrate (g)  
                               • ofWhichSugars (g)  
-                              • fats (g)  
-                              • ofWhichSaturatedFats (g)  
+                              • fat (g)  
+                              • ofWhichSaturated (g)  
                               • salt (g)  
                               • fibre (g)  
 
@@ -51,8 +51,8 @@ internal fun MacrosRequest.toApiModel(): ChatGPTRequest {
                               "macros": {
                                 "calories": 350.0,
                                 "protein": 5.6,
-                                "fats": 12.8,
-                                "ofWhichSaturatedFats": 12.8,
+                                "fat": 12.8,
+                                "ofWhichSaturated": 12.8,
                                 "carbohydrate": 54.2,
                                 "ofWhichSugars": 20.7,
                                 "salt": 5.4,
@@ -118,8 +118,8 @@ internal fun ChatGPTResponse.toMacrosResponse(): MacrosResponse {
     class Macros(
         @SerializedName("calories") val calories: Number?,
         @SerializedName("protein") val protein: Number?,
-        @SerializedName("fats") val fats: Number?,
-        @SerializedName("ofWhichSaturatedFats") val ofWhichSaturated: Number?,
+        @SerializedName("fat") val fat: Number?,
+        @SerializedName("ofWhichSaturated") val ofWhichSaturated: Number?,
         @SerializedName("carbohydrate") val carbs: Number?,
         @SerializedName("ofWhichSugars") val ofWhichSugars: Number?,
         @SerializedName("salt") val salt: Number?,
@@ -139,7 +139,7 @@ internal fun ChatGPTResponse.toMacrosResponse(): MacrosResponse {
         MacrosApiModel(
             calories = response.macros.calories?.toInt(),
             proteinGrams = response.macros.protein?.toFloat(),
-            fatGrams = response.macros.fats?.toFloat(),
+            fatGrams = response.macros.fat?.toFloat(),
             ofWhichSaturatedGrams = response.macros.ofWhichSaturated?.toFloat(),
             carbGrams = response.macros.carbs?.toFloat(),
             ofWhichSugarGrams = response.macros.ofWhichSugars?.toFloat(),

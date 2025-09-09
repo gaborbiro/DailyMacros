@@ -3,20 +3,20 @@ package dev.gaborbiro.dailymacros.features.overview.views
 import android.content.res.Configuration
 import android.util.Range
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.DailyMacrosColors
@@ -24,7 +24,6 @@ import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroProgress
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
-import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,21 +37,21 @@ internal fun ListItemMacroProgressBars(
     ) {
         Text(
             modifier = Modifier
-                .padding(8.dp)
+                .padding(PaddingHalf)
                 .align(Alignment.CenterHorizontally),
-            text = model.dayTitle
+            text = model.dayTitle,
+            style = MaterialTheme.typography.titleMedium,
         )
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = PaddingHalf),
+                .padding(horizontal = PaddingHalf, vertical = PaddingHalf),
         ) {
             val rowHeight = 32.dp
-            val leftColumn = model.macros.subList(0, (model.macros.size / 2f).roundToInt())
-            val rightColumn = model.macros.subList((model.macros.size / 2), model.macros.size)
+            val leftColumn = model.progress.filterIndexed { index, _ -> index % 2 == 0 }
+            val rightColumn = model.progress.filterIndexed { index, _ -> index % 2 == 1 }
             Column(
-                modifier = Modifier
-                    .wrapContentWidth()
+                horizontalAlignment = Alignment.End,
             ) {
                 leftColumn.forEach {
                     MacroTitleView(
@@ -67,7 +66,7 @@ internal fun ListItemMacroProgressBars(
                     .weight(.5f)
             ) {
                 leftColumn.forEachIndexed { index, item ->
-                    MacroProgressView(
+                    MacroProgressBar(
                         modifier = Modifier
                             .height(rowHeight),
                         model = item,
@@ -77,8 +76,7 @@ internal fun ListItemMacroProgressBars(
                 }
             }
             Column(
-                modifier = Modifier
-                    .wrapContentWidth()
+                horizontalAlignment = Alignment.End,
             ) {
                 rightColumn.forEach {
                     MacroTitleView(
@@ -93,7 +91,7 @@ internal fun ListItemMacroProgressBars(
                     .weight(.5f)
             ) {
                 rightColumn.forEachIndexed { index, item ->
-                    MacroProgressView(
+                    MacroProgressBar(
                         modifier = Modifier
                             .height(rowHeight),
                         model = item,
@@ -112,19 +110,15 @@ fun MacroTitleView(
     modifier: Modifier,
     model: MacroProgressItem,
 ) {
-    Column(
-        modifier,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            modifier = modifier
-                .padding(start = PaddingHalf)
-                .wrapContentHeight(),
-            text = model.title,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onBackground,
-        )
-    }
+    Text(
+        modifier = modifier
+            .padding(start = PaddingHalf)
+            .wrapContentHeight(),
+        text = model.title,
+        textAlign = TextAlign.End,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onBackground,
+    )
 }
 
 @Preview
@@ -138,7 +132,7 @@ private fun ListItemMacroProgressBarsPreview() {
             model = ListUIModelMacroProgress(
                 listItemId = 1L,
                 dayTitle = "Yesterday",
-                macros = listOf(
+                progress = listOf(
                     MacroProgressItem(
                         title = "Calories",
                         progress0to1 = .15f,

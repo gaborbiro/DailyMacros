@@ -153,7 +153,7 @@ private fun MacroPill(
         shape = RoundedCornerShape(4.dp),
     ) {
         Text(
-            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+            modifier = Modifier.padding(horizontal = PaddingQuarter, vertical = 2.dp),
             text = text ?: "",
             color = color,
             style = MaterialTheme.typography.bodySmall,

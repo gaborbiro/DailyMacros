@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.PaddingDefault
+import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.features.modal.model.MacrosUIModel
 
 @Composable
@@ -23,7 +24,7 @@ internal fun MacroTable(
         PillLabel(
             modifier = Modifier.Companion
                 .padding(horizontal = PaddingDefault)
-                .padding(top = 4.dp),
+                .padding(top = PaddingQuarter),
             text = it,
             contentColor = MaterialTheme.colorScheme.onSurface,
             backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
@@ -36,7 +37,7 @@ internal fun MacroTable(
         PillLabel(
             modifier = Modifier.Companion
                 .padding(horizontal = PaddingDefault)
-                .padding(top = 4.dp),
+                .padding(top = PaddingQuarter),
             text = it,
             contentColor = MaterialTheme.colorScheme.onSurface,
             backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
@@ -49,7 +50,7 @@ internal fun MacroTable(
         PillLabel(
             modifier = Modifier.Companion
                 .padding(horizontal = PaddingDefault)
-                .padding(top = 4.dp),
+                .padding(top = PaddingQuarter),
             text = it,
             contentColor = MaterialTheme.colorScheme.onSurface,
             backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
@@ -62,7 +63,7 @@ internal fun MacroTable(
         PillLabel(
             modifier = Modifier.Companion
                 .padding(horizontal = PaddingDefault)
-                .padding(start = 16.dp, top = 4.dp),
+                .padding(start = PaddingDefault, top = PaddingQuarter),
             text = it,
             contentColor = MaterialTheme.colorScheme.onSurface,
             backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
@@ -75,7 +76,7 @@ internal fun MacroTable(
         PillLabel(
             modifier = Modifier.Companion
                 .padding(horizontal = PaddingDefault)
-                .padding(top = 4.dp),
+                .padding(top = PaddingQuarter),
             text = it,
             contentColor = MaterialTheme.colorScheme.onSurface,
             backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
@@ -88,7 +89,7 @@ internal fun MacroTable(
         PillLabel(
             modifier = Modifier.Companion
                 .padding(horizontal = PaddingDefault)
-                .padding(start = 16.dp, top = 4.dp),
+                .padding(start = PaddingDefault, top = PaddingQuarter),
             text = it,
             contentColor = MaterialTheme.colorScheme.onSurface,
             backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
@@ -101,7 +102,7 @@ internal fun MacroTable(
         PillLabel(
             modifier = Modifier.Companion
                 .padding(horizontal = PaddingDefault)
-                .padding(top = 4.dp),
+                .padding(top = PaddingQuarter),
             text = it,
             contentColor = MaterialTheme.colorScheme.onSurface,
             backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
@@ -114,7 +115,7 @@ internal fun MacroTable(
         PillLabel(
             modifier = Modifier.Companion
                 .padding(horizontal = PaddingDefault)
-                .padding(top = 4.dp),
+                .padding(top = PaddingQuarter),
             text = it,
             contentColor = MaterialTheme.colorScheme.onSurface,
             backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
@@ -127,7 +128,7 @@ internal fun MacroTable(
         PillLabel(
             modifier = Modifier.Companion
                 .padding(horizontal = PaddingDefault)
-                .padding(top = 4.dp),
+                .padding(top = PaddingQuarter),
             text = it,
             contentColor = MaterialTheme.colorScheme.onSurface,
             backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),

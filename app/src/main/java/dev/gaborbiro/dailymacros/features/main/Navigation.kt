@@ -1,12 +1,9 @@
 package dev.gaborbiro.dailymacros.features.main
 
-interface NavDestination {
-    val route: String
-}
 
-object NoteList : NavDestination {
-    override val route = "notes"
-}
+const val OVERVIEW_ROUTE = "overview"
+const val SETTINGS_ROUTE = "settings"
+
 
 //object AddNoteViaCamera : NotesIntentDestination {
 //    override val route = "camera"

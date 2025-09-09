@@ -30,10 +30,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import dev.gaborbiro.dailymacros.design.DailyMacrosColors
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
-import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroProgress
-import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
+import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
+import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.common.view.PreviewImageStoreProvider
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
 import dev.gaborbiro.dailymacros.features.widget.NotesWidgetReceiver
@@ -51,6 +51,7 @@ internal fun OverviewView(
     onUndoDeleteDismissed: () -> Unit,
     onUndoDeleteSnackbarShown: () -> Unit,
     onSearchTermChanged: (String?) -> Unit,
+    onSettingsButtonTapped: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -97,8 +98,9 @@ internal fun OverviewView(
                 onMacrosMenuItemTapped = onMacrosMenuItemTapped,
                 onRecordImageTapped = onRecordImageTapped,
                 onRecordBodyTapped = onRecordBodyTapped,
+                onSettingsButtonTapped = onSettingsButtonTapped,
             )
-        } else {
+        } else if (viewState.showAddWidgetButton) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -144,7 +146,7 @@ private fun NotesListPreview() {
                         ListUIModelMacroProgress(
                             listItemId = 1L,
                             dayTitle = "Yesterday",
-                            macros = listOf(
+                            progress = listOf(
                                 MacroProgressItem(
                                     title = "Calories",
                                     progress0to1 = .15f,
@@ -208,7 +210,7 @@ private fun NotesListPreview() {
                             title = "Title",
                             templateId = 2L,
                             images = listOf("", ""),
-                            timestamp = "2022-01-01 00:00:00",
+                            timestamp = "17:00",
                             macros = MacrosUIModel(
                                 calories = "8cal",
                                 protein = "prot 8",
@@ -223,7 +225,7 @@ private fun NotesListPreview() {
                             title = "Title 2",
                             templateId = 4L,
                             images = listOf("", ""),
-                            timestamp = "2022-05-01 00:00:00",
+                            timestamp = "15:38",
                             macros = MacrosUIModel(
                                 calories = "8cal",
                                 protein = "prot 8",
@@ -245,6 +247,7 @@ private fun NotesListPreview() {
                 onUndoDeleteSnackbarShown = {},
                 onSearchTermChanged = {},
                 onMacrosMenuItemTapped = {},
+                onSettingsButtonTapped = {},
             )
         }
     }

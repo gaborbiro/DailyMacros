@@ -32,7 +32,7 @@ import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
 import kotlinx.coroutines.delay
 
 @Composable
-fun MacroProgressView(
+fun MacroProgressBar(
     modifier: Modifier,
     model: MacroProgressItem,
     rowIndex: Int,
@@ -88,7 +88,10 @@ fun MacroProgressView(
             onBackground = onBackground
         )
 
-        Row {
+        Row(
+            modifier = Modifier
+                .padding(top = 2.dp)
+        ) {
             Text(
                 modifier = Modifier.weight(1f),
                 text = model.progressLabel,
@@ -199,7 +202,7 @@ private fun MacroProgressViewPreview() {
         color = DailyMacrosColors.calorieColor,
     )
     val macro2 = MacroProgressItem(
-        title = "Protein",
+        title = "Salt",
         progress0to1 = 1.5f,
         progressLabel = "110g",
         targetRange0to1 = Range(.8095f, 1f),
@@ -227,7 +230,7 @@ private fun MacroProgressViewPreview() {
                 modifier = Modifier
                     .weight(.5f)
             ) {
-                MacroProgressView(
+                MacroProgressBar(
                     modifier = Modifier
                         .height(rowHeight),
                     model = macro1,
@@ -249,7 +252,7 @@ private fun MacroProgressViewPreview() {
                 modifier = Modifier
                     .weight(.5f)
             ) {
-                MacroProgressView(
+                MacroProgressBar(
                     modifier = Modifier
                         .height(rowHeight),
                     model = macro2,

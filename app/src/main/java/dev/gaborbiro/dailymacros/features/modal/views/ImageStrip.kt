@@ -23,6 +23,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.R
+import dev.gaborbiro.dailymacros.design.PaddingDefault
+import dev.gaborbiro.dailymacros.design.PaddingHalf
+import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.features.common.view.LocalImage
 
 
@@ -34,15 +37,15 @@ fun ImageStrip(
     onAddImageViaPickerTapped: () -> Unit,
     modifier: Modifier = Modifier,
     tileSize: Dp = 64.dp,
-    horizontalPadding: Dp = 16.dp,
-    itemSpacing: Dp = 8.dp,
+    horizontalPadding: Dp = PaddingDefault,
+    itemSpacing: Dp = PaddingHalf,
 ) {
     val shape = RoundedCornerShape(12.dp)
 
     LazyRow(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(itemSpacing),
-        contentPadding = PaddingValues(horizontal = horizontalPadding, vertical = 4.dp)
+        contentPadding = PaddingValues(horizontal = horizontalPadding, vertical = PaddingQuarter)
     ) {
         items(items = images, key = { it }) { name ->
             Box(

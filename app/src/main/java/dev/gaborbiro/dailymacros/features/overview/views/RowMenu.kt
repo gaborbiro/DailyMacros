@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.R
+import dev.gaborbiro.dailymacros.design.PaddingHalf
 
 @Composable
 fun RowMenu(
@@ -36,7 +37,7 @@ fun RowMenu(
             contentDescription = "More Menu",
             modifier = Modifier
                 .size(36.dp)
-                .padding(end = 8.dp)
+                .padding(end = PaddingHalf)
                 .clickable(
                     onClick = onOpen,
                 )

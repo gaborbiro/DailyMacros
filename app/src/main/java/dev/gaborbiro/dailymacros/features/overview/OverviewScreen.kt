@@ -1,9 +1,5 @@
-@file:OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
-
 package dev.gaborbiro.dailymacros.features.overview
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -36,6 +32,7 @@ internal fun OverviewScreen(
         onUndoDeleteDismissed = viewModel::onUndoDeleteDismissed,
         onUndoDeleteSnackbarShown = viewModel::onUndoDeleteSnackbarShown,
         onSearchTermChanged = viewModel::onSearchTermChanged,
+        onSettingsButtonTapped = viewModel::onSettingsButtonTapped,
     )
 
     val lifecycleOwner = LocalLifecycleOwner.current
