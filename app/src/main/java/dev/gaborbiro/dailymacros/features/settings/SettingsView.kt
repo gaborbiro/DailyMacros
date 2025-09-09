@@ -46,13 +46,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.gaborbiro.dailymacros.BuildConfig
 import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
-import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.features.settings.model.FieldErrors
 import dev.gaborbiro.dailymacros.features.settings.model.MacroType
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUIModel
@@ -96,6 +97,15 @@ internal fun SettingsView(
                         enabled = viewState.canSave
                     ) { Text("Save") }
                 }
+            )
+        },
+        bottomBar = {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+                text = "v${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE})",
+                textAlign = TextAlign.Center,
             )
         },
         containerColor = MaterialTheme.colorScheme.background,
