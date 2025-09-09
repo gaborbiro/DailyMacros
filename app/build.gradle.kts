@@ -1,5 +1,4 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
-import com.android.build.gradle.tasks.PackageAndroidArtifact
 
 plugins {
     id("com.android.application")
@@ -16,8 +15,8 @@ android {
         applicationId = "dev.gaborbiro.dailymacros"
         minSdk = 31
         targetSdk = 35
-        versionCode = 3
-        versionName = "1.1.0"
+        versionCode = 4
+        versionName = "1.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -102,30 +101,30 @@ android {
 dependencies {
     implementation("androidx.core:core-ktx:1.17.0")
 
-    val composeVersion = "1.9.0"
-    implementation("androidx.compose.ui:ui:$composeVersion")
-    implementation("androidx.compose.ui:ui-graphics:$composeVersion")
-    implementation("androidx.compose.ui:ui-tooling-preview:$composeVersion")
-    implementation("androidx.compose.runtime:runtime-livedata:$composeVersion")
-    implementation("androidx.compose.ui:ui-tooling:$composeVersion")
-    implementation("androidx.compose.material:material-icons-extended:1.7.8")
-    implementation("androidx.compose.material3:material3:1.3.2")
+    implementation(platform("androidx.compose:compose-bom:2025.08.01"))
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-graphics")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.runtime:runtime-livedata")
+    implementation("androidx.compose.ui:ui-tooling")
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation("androidx.compose.material3:material3")
     implementation("androidx.activity:activity-compose:1.10.1")
-    implementation(platform("androidx.compose:compose-bom:2025.08.00"))
 
 
     implementation("androidx.appcompat:appcompat:1.7.1")
     implementation("androidx.work:work-runtime-ktx:2.10.3")
 
-    val lifecycleVersion = "2.9.2"
+    val lifecycleVersion = "2.9.3"
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVersion")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:$lifecycleVersion")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycleVersion")
 
-    implementation("androidx.glance:glance-appwidget:1.2.0-alpha01")
-    implementation("androidx.glance:glance-appwidget-preview:1.2.0-alpha01")
-    implementation("androidx.glance:glance-preview:1.2.0-alpha01")
-    implementation("androidx.glance:glance-material3:1.2.0-alpha01")
+    val glanceVersion = "1.2.0-beta01"
+    implementation("androidx.glance:glance-appwidget:$glanceVersion")
+    implementation("androidx.glance:glance-appwidget-preview:$glanceVersion")
+    implementation("androidx.glance:glance-preview:$glanceVersion")
+    implementation("androidx.glance:glance-material3:$glanceVersion")
 
     // Navigation
     val navVersion = "2.9.3"
@@ -151,8 +150,8 @@ dependencies {
     implementation("com.google.mlkit:image-labeling:17.0.9")
 
 
-    debugImplementation("androidx.compose.ui:ui-tooling:$composeVersion")
-    debugImplementation("androidx.compose.ui:ui-test-manifest:$composeVersion")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
 
 tasks.matching { it.name.startsWith("bundle") }.configureEach {

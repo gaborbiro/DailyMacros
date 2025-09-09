@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
@@ -118,6 +119,7 @@ internal fun SettingsView(
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
+                .imePadding()
         ) {
             Text(
                 text = "Your daily macro targets",
