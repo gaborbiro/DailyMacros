@@ -8,8 +8,11 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyListState
@@ -30,16 +33,19 @@ fun ScrollToTopView(listState: LazyListState) {
     val coroutineScope = rememberCoroutineScope()
     val showButton = remember {
         derivedStateOf {
-            listState.firstVisibleItemIndex > 0
+            listState.firstVisibleItemIndex > 20
         }
     }
 
     Column(
-        modifier = Modifier.fillMaxHeight(),
+        modifier = Modifier
+            .fillMaxHeight()
+            .padding(WindowInsets.navigationBars.asPaddingValues()),
         verticalArrangement = Arrangement.Bottom,
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
         ) {
             AnimatedVisibility(
@@ -49,8 +55,7 @@ fun ScrollToTopView(listState: LazyListState) {
             ) {
                 Button(
                     modifier = Modifier
-                        .wrapContentSize()
-                        .padding(all = PaddingDefault),
+                        .wrapContentSize(),
                     onClick = {
                         coroutineScope.launch {
                             listState.animateScrollToItem(0)

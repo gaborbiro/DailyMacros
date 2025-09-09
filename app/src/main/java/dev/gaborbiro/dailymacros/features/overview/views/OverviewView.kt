@@ -86,7 +86,6 @@ internal fun OverviewView(
                 hostState = snackbarHostState,
             )
         },
-        containerColor = MaterialTheme.colorScheme.background,
     ) { paddingValues ->
         if (viewState.items.isNotEmpty()) {
             OverviewList(
