@@ -13,6 +13,6 @@ data class Targets(
 
 data class Target(
     val enabled: Boolean = true,
-    val min: Int,
-    val max: Int,
+    val min: Int? = null,
+    val max: Int? = null,
 )

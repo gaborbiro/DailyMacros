@@ -34,24 +34,28 @@ internal class MacrosUIMapper(
         val totalSalt = records.sumOf { it.template.macros?.salt?.toDouble() ?: 0.0 }.toFloat()
         val totalFibre = records.sumOf { it.template.macros?.fibre?.toDouble() ?: 0.0 }.toFloat()
 
-        fun progress(target: Target, total: Float) = total / target.max
+        fun progress(target: Target, total: Float) = target.max?.let { total / it }
 
         fun targetRange(target: Target): Range<Float> {
             return Range(
-                target.min.toFloat() / target.max.toFloat(),
+                if (target.min != null && target.max != null) target.min.toFloat() / target.max.toFloat() else 0f,
                 1f,
             )
         }
 
+        fun gramRangeLabel(target: Target): String {
+            return "${target.min ?: "?"}-${target.max ?: "?"}g"
+        }
+
         val progress = buildList {
             targets.calories.takeIf { it.enabled }?.let {
-                val min = DecimalFormat("#.#").format(it.min / 1000f)
-                val max = DecimalFormat("#.#").format(it.max / 1000f)
+                val min = if (it.min != null) DecimalFormat("#.#").format(it.min / 1000f) else "?"
+                val max = if (it.max != null) DecimalFormat("#.#").format(it.max / 1000f) else "?"
                 val rangeLabel = "$min-${max}kcal"
                 add(
                     MacroProgressItem(
                         title = "Calories",
-                        progress0to1 = progress(it, totalCalories),
+                        progress0to1 = progress(it, totalCalories) ?: 0f,
                         progressLabel = mapCalories(totalCalories, withLabel = false)!!,
                         targetRange0to1 = targetRange(it),
                         rangeLabel = rangeLabel,
@@ -63,10 +67,10 @@ internal class MacrosUIMapper(
                 add(
                     MacroProgressItem(
                         title = "Protein",
-                        progress0to1 = progress(it, totalProtein),
+                        progress0to1 = progress(it, totalProtein) ?: 0f,
                         progressLabel = mapCalories(totalProtein, withLabel = false) ?: "0g",
                         targetRange0to1 = targetRange(it),
-                        rangeLabel = "${it.min}-${it.max}g",
+                        rangeLabel = gramRangeLabel(it),
                         color = DailyMacrosColors.proteinColor,
                     )
                 )
@@ -75,10 +79,10 @@ internal class MacrosUIMapper(
                 add(
                     MacroProgressItem(
                         title = "Salt",
-                        progress0to1 = progress(it, totalSalt),
+                        progress0to1 = progress(it, totalSalt) ?: 0f,
                         progressLabel = mapSalt(totalSalt, withLabel = false) ?: "0.0g",
                         targetRange0to1 = targetRange(it),
-                        rangeLabel = "${it.min}-${it.max}g",
+                        rangeLabel = gramRangeLabel(it),
                         color = DailyMacrosColors.saltColor,
                     )
                 )
@@ -87,10 +91,10 @@ internal class MacrosUIMapper(
                 add(
                     MacroProgressItem(
                         title = "Fibre",
-                        progress0to1 = progress(it, totalFibre),
+                        progress0to1 = progress(it, totalFibre) ?: 0f,
                         progressLabel = mapFibre(totalFibre, withLabel = false) ?: "0g",
                         targetRange0to1 = targetRange(it),
-                        rangeLabel = "${it.min}-${it.max}g",
+                        rangeLabel = gramRangeLabel(it),
                         color = DailyMacrosColors.fibreColor,
                     )
                 )
@@ -99,11 +103,11 @@ internal class MacrosUIMapper(
                 add(
                     MacroProgressItem(
                         title = "Carbs",
-                        progress0to1 = progress(it, totalCarbs),
+                        progress0to1 = progress(it, totalCarbs) ?: 0f,
                         progressLabel = mapCarbs(totalCarbs, sugar = null, withLabel = false)
                             ?: "0g",
                         targetRange0to1 = targetRange(it),
-                        rangeLabel = "${it.min}-${it.max}g",
+                        rangeLabel = gramRangeLabel(it),
                         color = DailyMacrosColors.carbsColor,
                     )
                 )
@@ -112,10 +116,10 @@ internal class MacrosUIMapper(
                 add(
                     MacroProgressItem(
                         title = "sugar",
-                        progress0to1 = progress(it, totalSugar),
+                        progress0to1 = progress(it, totalSugar) ?: 0f,
                         progressLabel = mapSugar(totalSugar, withLabel = false) ?: "0g",
                         targetRange0to1 = targetRange(it),
-                        rangeLabel = "${it.min}-${it.max}g",
+                        rangeLabel = gramRangeLabel(it),
                         color = DailyMacrosColors.carbsColor,
                     )
                 )
@@ -124,11 +128,11 @@ internal class MacrosUIMapper(
                 add(
                     MacroProgressItem(
                         title = "Fat",
-                        progress0to1 = progress(it, totalFat),
+                        progress0to1 = progress(it, totalFat) ?: 0f,
                         progressLabel = mapFat(totalFat, saturated = null, withLabel = false)
                             ?: "0g",
                         targetRange0to1 = targetRange(it),
-                        rangeLabel = "${it.min}-${it.max}g",
+                        rangeLabel = gramRangeLabel(it),
                         color = DailyMacrosColors.fatColor,
                     )
                 )
@@ -137,10 +141,10 @@ internal class MacrosUIMapper(
                 add(
                     MacroProgressItem(
                         title = "saturated",
-                        progress0to1 = progress(it, totalSaturated),
+                        progress0to1 = progress(it, totalSaturated) ?: 0f,
                         progressLabel = mapSaturated(totalSaturated, withLabel = false) ?: "0g",
                         targetRange0to1 = targetRange(it),
-                        rangeLabel = "${it.min}-${it.max}g",
+                        rangeLabel = gramRangeLabel(it),
                         color = DailyMacrosColors.fatColor,
                     )
                 )
