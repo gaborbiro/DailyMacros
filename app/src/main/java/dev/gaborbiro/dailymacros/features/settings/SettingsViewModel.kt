@@ -115,6 +115,7 @@ internal class SettingsViewModel(
     }
 
     fun discardAndExit() {
+        reset()
         navigator.navigateBack()
     }
 
