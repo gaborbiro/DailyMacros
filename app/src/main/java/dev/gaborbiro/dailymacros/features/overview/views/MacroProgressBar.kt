@@ -25,8 +25,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.design.DailyMacrosColors
-import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
+import dev.gaborbiro.dailymacros.design.ExtraColors
+import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
 import kotlinx.coroutines.delay
@@ -200,7 +200,7 @@ private fun MacroProgressViewPreview() {
         progressLabel = "1005kcal",
         targetRange0to1 = Range(.84f, 1f),
         rangeLabel = "2.1-2.2k",
-        color = DailyMacrosColors.calorieColor,
+        color = ExtraColors.calorieColor,
     )
     val macro2 = MacroProgressItem(
         title = "Salt",
@@ -208,9 +208,9 @@ private fun MacroProgressViewPreview() {
         progressLabel = "110g",
         targetRange0to1 = Range(.8095f, 1f),
         rangeLabel = "170-190g",
-        color = DailyMacrosColors.proteinColor,
+        color = ExtraColors.proteinColor,
     )
-    DailyMacrosTheme {
+    AppTheme {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

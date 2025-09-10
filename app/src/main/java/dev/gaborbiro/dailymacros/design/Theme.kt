@@ -15,65 +15,37 @@ import androidx.glance.material3.ColorProviders
 import dev.gaborbiro.dailymacros.features.common.StatusBarOverlay
 
 
-object DailyMacrosColors {
-    val BackgroundWhite = Color(0xFFE6E4F1)
-    val BackgroundDark = Color(0xFF464646)
-
-    val CardColorLight = Color(0xFFEEEEF0)
-    val SurfaceDark = Color(0xFF212222)
-
-    val DailyMacros80 = Color(0xFFBDF6FF)
-    val DailyMacrosGrey80 = Color(0xFFC1D8DB) // 188 deg
-    val DailyMacrosHi80 = Color(0xFFB8EFDF) //163 deg
-
-    val DailyMacros40 = Color(0xFF5098A3)
-    val NDailyMacrosGrey40 = Color(0xFF5B6D70)
-    val DailyMacrosHi40 = Color(0xFF527D71)
-
-    val surfaceVariantLight = Color(0xFFFFFFFF)
-    val surfaceVariantDark = Color(0xFF1C1C1E)
-
-    val calorieColor = Color(0xFFFFB74D)
-    val proteinColor = Color(0xFF4CAF50)
-    val fatColor = Color(0xFF42A5F5)
-    val carbsColor = Color(0xFFFDD835)
-    val saltColor = Color(0xFFA4ACB2)
-    val fibreColor = Color(0xFF26A69A)
-}
-
-private val DarkColorScheme = darkColorScheme(
-    primary = DailyMacrosColors.DailyMacros80,
-    secondary = DailyMacrosColors.DailyMacrosGrey80,
-    tertiary = DailyMacrosColors.DailyMacrosHi80,
-    surfaceVariant = DailyMacrosColors.surfaceVariantDark,
-
-    background = DailyMacrosColors.BackgroundDark,
-
-    surface = DailyMacrosColors.SurfaceDark,
-
-    onSecondaryContainer = Color.White, // tab bar icon
-    secondaryContainer = DailyMacrosColors.BackgroundDark, // tab bar button container
+val DarkColors = darkColorScheme(
+    primary = Color(0xFFFFB74D),    // Softer orange (resonates with your calorieColor)
+    secondary = Color(0xFFCE93D8),  // Muted purple for dark mode
+    tertiary = Color(0xFF4DD0E1),   // Brighter cyan
+    background = Color(0xFF121212), // Standard dark background
+    surface = Color(0xFF1E1E1E),    // Slightly lighter surface
+    onPrimary = Color.Black,
+    onSecondary = Color.Black,
+    onTertiary = Color.Black,
+    onBackground = Color(0xFFECECEC),
+    onSurface = Color(0xFFECECEC),
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = DailyMacrosColors.DailyMacros40,
-    secondary = DailyMacrosColors.NDailyMacrosGrey40,
-    tertiary = DailyMacrosColors.DailyMacrosHi40,
-
-    surfaceVariant = DailyMacrosColors.surfaceVariantLight,
-
-    background = DailyMacrosColors.BackgroundWhite,
-
-    surface = DailyMacrosColors.CardColorLight,
-
-    onSecondaryContainer = Color.White, // tab bar icon
-    secondaryContainer = DailyMacrosColors.BackgroundWhite, // tab bar button container
+val LightColors = lightColorScheme(
+    primary = Color(0xFFFB8C00),    // Vibrant orange → energetic, active
+    secondary = Color(0xFF7B1FA2),  // Purple → contrast, playful accent
+    tertiary = Color(0xFF00ACC1),   // Cyan → lively highlight
+    background = Color(0xFFFDFDFD), // Very light neutral
+    surface = Color(0xFFFFFFFF),    // Crisp white
+    onPrimary = Color.White,
+    onSecondary = Color.White,
+    onTertiary = Color.White,
+    onBackground = Color(0xFF1A1A1A),
+    onSurface = Color(0xFF1A1A1A),
 )
+
 
 @Composable
-fun DailyMacrosTheme(
+fun AppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val colorScheme = when {
@@ -82,8 +54,8 @@ fun DailyMacrosTheme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        darkTheme -> DarkColors
+        else -> LightColors
     }
 
     MaterialTheme(
@@ -101,7 +73,7 @@ object WidgetColorScheme {
     @Composable
     fun colors(
         context: Context? = null,
-        dynamicColor: Boolean = true,
+        dynamicColor: Boolean = false,
     ): ColorProviders {
         val (light, dark) = when {
             dynamicColor -> {
@@ -110,11 +82,11 @@ object WidgetColorScheme {
                         dynamicLightColorScheme(context) to dynamicDarkColorScheme(context)
                     }
                     ?: run {
-                        LightColorScheme to DarkColorScheme
+                        LightColors to DarkColors
                     }
             }
 
-            else -> LightColorScheme to DarkColorScheme
+            else -> LightColors to DarkColors
         }
 
         return ColorProviders(

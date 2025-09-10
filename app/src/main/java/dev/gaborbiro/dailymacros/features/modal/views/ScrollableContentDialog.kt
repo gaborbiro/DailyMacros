@@ -77,7 +77,7 @@ internal fun ScrollableContentDialog(
                         .heightIn(max = max)
                         .padding(PaddingDefault),
                     shape = MaterialTheme.shapes.medium,
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+//                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
                     shadowElevation = 6.dp,
                 ) {
                     Column {
@@ -97,8 +97,7 @@ internal fun ScrollableContentDialog(
                             }
 
                             val shadowHeight: Dp = 12.dp
-                            val fadeDistance: Dp =
-                                32.dp          // px range over which the shadow ramps up/down
+                            val fadeDistance: Dp = 32.dp // px range over which the shadow ramps up/down
                             val maxShadowAlpha = 0.16f
                             val fadePx = with(LocalDensity.current) { fadeDistance.toPx() }
 

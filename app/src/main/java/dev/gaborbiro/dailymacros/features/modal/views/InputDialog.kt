@@ -33,7 +33,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
+import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.view.PreviewImageStoreProvider
@@ -323,7 +323,7 @@ private fun ColumnScope.InputDialogContent(
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreviewEdit() {
-    DailyMacrosTheme {
+    AppTheme {
         PreviewImageStoreProvider {
             InputDialog(
                 dialogState = DialogState.InputDialog.RecordDetailsDialog(
@@ -360,7 +360,7 @@ private fun NoteInputDialogContentPreviewEdit() {
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreview() {
-    DailyMacrosTheme {
+    AppTheme {
         InputDialog(
             dialogState = DialogState.InputDialog.CreateWithImageDialog(
                 images = listOf("1", "2"),
@@ -382,7 +382,7 @@ private fun NoteInputDialogContentPreview() {
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreviewSuggestion() {
-    DailyMacrosTheme {
+    AppTheme {
         PreviewImageStoreProvider {
             InputDialog(
                 dialogState = DialogState.InputDialog.CreateWithImageDialog(
@@ -407,7 +407,7 @@ private fun NoteInputDialogContentPreviewSuggestion() {
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreviewError() {
-    DailyMacrosTheme {
+    AppTheme {
         InputDialog(
             dialogState = DialogState.InputDialog.CreateWithImageDialog(
                 images = listOf("1", "2"),

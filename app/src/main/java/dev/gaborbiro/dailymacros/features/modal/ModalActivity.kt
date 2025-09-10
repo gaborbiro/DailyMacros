@@ -24,7 +24,7 @@ import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStore
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
-import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
+import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
@@ -268,7 +268,7 @@ class ModalActivity : AppCompatActivity() {
         setContent {
             val viewState: ModalViewState by viewModel.viewState.collectAsStateWithLifecycle()
 
-            DailyMacrosTheme {
+            AppTheme {
                 CompositionLocalProvider(LocalImageStore provides imageStore) {
                     viewState.dialogs.forEach {
                         Dialog(it)

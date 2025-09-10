@@ -27,8 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.design.DailyMacrosColors
-import dev.gaborbiro.dailymacros.design.PaddingDefault
+import dev.gaborbiro.dailymacros.design.ExtraColors
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
@@ -123,18 +122,18 @@ private fun RecordTextContent(modifier: Modifier, record: ListUIModelRecord) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                MacroPill(Modifier.weight(1f), it.calories, DailyMacrosColors.calorieColor)
-                MacroPill(Modifier.weight(1f), it.protein, DailyMacrosColors.proteinColor)
-                MacroPill(Modifier.weight(1f), it.fat, DailyMacrosColors.fatColor)
+                MacroPill(Modifier.weight(1f), it.calories, ExtraColors.calorieColor)
+                MacroPill(Modifier.weight(1f), it.protein, ExtraColors.proteinColor)
+                MacroPill(Modifier.weight(1f), it.fat, ExtraColors.fatColor)
             }
             Spacer(Modifier.height(4.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                MacroPill(Modifier.weight(1f), it.carbs, DailyMacrosColors.carbsColor)
-                MacroPill(Modifier.weight(1f), it.salt, DailyMacrosColors.saltColor)
-                MacroPill(Modifier.weight(1f), it.fibre, DailyMacrosColors.fibreColor)
+                MacroPill(Modifier.weight(1f), it.carbs, ExtraColors.carbsColor)
+                MacroPill(Modifier.weight(1f), it.salt, ExtraColors.saltColor)
+                MacroPill(Modifier.weight(1f), it.fibre, ExtraColors.fibreColor)
             }
         }
     }

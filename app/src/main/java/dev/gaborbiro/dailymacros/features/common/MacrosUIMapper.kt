@@ -2,7 +2,7 @@ package dev.gaborbiro.dailymacros.features.common
 
 import android.icu.text.DecimalFormat
 import android.util.Range
-import dev.gaborbiro.dailymacros.design.DailyMacrosColors
+import dev.gaborbiro.dailymacros.design.ExtraColors
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroProgress
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
@@ -75,7 +75,7 @@ internal class MacrosUIMapper(
                         progressLabel = mapCalories(totalCalories, withLabel = false)!!,
                         targetRange0to1 = targetRange(it),
                         rangeLabel = rangeLabel,
-                        color = DailyMacrosColors.calorieColor,
+                        color = ExtraColors.calorieColor,
                     )
                 )
             }
@@ -87,7 +87,7 @@ internal class MacrosUIMapper(
                         progressLabel = mapProtein(totalProtein, withLabel = false) ?: "0g",
                         targetRange0to1 = targetRange(it),
                         rangeLabel = gramRangeLabel(it),
-                        color = DailyMacrosColors.proteinColor,
+                        color = ExtraColors.proteinColor,
                     )
                 )
             }
@@ -99,7 +99,7 @@ internal class MacrosUIMapper(
                         progressLabel = mapSalt(totalSalt, withLabel = false) ?: "0.0g",
                         targetRange0to1 = targetRange(it),
                         rangeLabel = gramRangeLabel(it),
-                        color = DailyMacrosColors.saltColor,
+                        color = ExtraColors.saltColor,
                     )
                 )
             }
@@ -111,7 +111,7 @@ internal class MacrosUIMapper(
                         progressLabel = mapFibre(totalFibre, withLabel = false) ?: "0g",
                         targetRange0to1 = targetRange(it),
                         rangeLabel = gramRangeLabel(it),
-                        color = DailyMacrosColors.fibreColor,
+                        color = ExtraColors.fibreColor,
                     )
                 )
             }
@@ -124,7 +124,7 @@ internal class MacrosUIMapper(
                             ?: "0g",
                         targetRange0to1 = targetRange(it),
                         rangeLabel = gramRangeLabel(it),
-                        color = DailyMacrosColors.carbsColor,
+                        color = ExtraColors.carbsColor,
                     )
                 )
             }
@@ -136,7 +136,7 @@ internal class MacrosUIMapper(
                         progressLabel = mapSugar(totalSugar, withLabel = false) ?: "0g",
                         targetRange0to1 = targetRange(it),
                         rangeLabel = gramRangeLabel(it),
-                        color = DailyMacrosColors.carbsColor,
+                        color = ExtraColors.carbsColor,
                     )
                 )
             }
@@ -149,7 +149,7 @@ internal class MacrosUIMapper(
                             ?: "0g",
                         targetRange0to1 = targetRange(it),
                         rangeLabel = gramRangeLabel(it),
-                        color = DailyMacrosColors.fatColor,
+                        color = ExtraColors.fatColor,
                     )
                 )
             }
@@ -161,7 +161,7 @@ internal class MacrosUIMapper(
                         progressLabel = mapSaturated(totalSaturated, withLabel = false) ?: "0g",
                         targetRange0to1 = targetRange(it),
                         rangeLabel = gramRangeLabel(it),
-                        color = DailyMacrosColors.fatColor,
+                        color = ExtraColors.fatColor,
                     )
                 )
             }

@@ -18,7 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
+import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingDouble
 
@@ -68,7 +68,7 @@ fun ConfirmDeleteNutrientDataDialog(
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun ConfirmDestructiveChangeDialogPreview() {
-    DailyMacrosTheme {
+    AppTheme {
         ConfirmDeleteNutrientDataDialog(
             onConfirm = {},
             onDismissRequested = {},

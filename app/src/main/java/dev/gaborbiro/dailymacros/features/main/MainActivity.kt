@@ -20,7 +20,7 @@ import androidx.navigation.compose.rememberNavController
 import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
-import dev.gaborbiro.dailymacros.design.DailyMacrosTheme
+import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
@@ -60,7 +60,7 @@ class MainActivity : ComponentActivity() {
         val settingsRepository = SettingsRepository(this@MainActivity, SettingsMapper())
 
         setContent {
-            DailyMacrosTheme {
+            AppTheme {
                 val navController: NavHostController = rememberNavController()
                 val overviewNavigator = remember {
                     OverviewNavigatorImpl(
