@@ -136,9 +136,9 @@ private fun ListItemMacroProgressBarsPreview() {
                     MacroProgressItem(
                         title = "Calories",
                         progress0to1 = .15f,
-                        progressLabel = "1005 cal",
+                        progressLabel = "1005kcal",
                         targetRange0to1 = Range(.84f, .88f),
-                        rangeLabel = "2.1-2.2kcal",
+                        rangeLabel = "2.1-2.2",
                         color = DailyMacrosColors.calorieColor,
                     ),
                     MacroProgressItem(

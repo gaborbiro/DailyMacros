@@ -45,7 +45,8 @@ fun MacroProgressBar(
     val baseDuration = 400 // ms for the last row's animation
 
     // Total time for the whole wave (pause + stagger + last row anim)
-    val totalAnimDuration = initialPause + baseDuration + (totalRowCount - 1) * stagger
+    val totalAnimDuration =
+        remember(totalRowCount) { initialPause + baseDuration + (totalRowCount - 1) * stagger }
 
     LaunchedEffect(model.progress0to1, totalRowCount) {
         // Delay for this row = pause + rowIndex * stagger
@@ -96,7 +97,7 @@ fun MacroProgressBar(
                 modifier = Modifier.weight(1f),
                 text = model.progressLabel,
                 style = MaterialTheme.typography.labelSmall,
-                color = if (model.progress0to1 >= 1f) Color.Red else Color.Unspecified,
+                color = if (model.progress0to1 > 1f) Color.Red else Color.Unspecified,
             )
             Text(
                 text = model.rangeLabel,
@@ -129,7 +130,7 @@ private fun MacroProgressBar(
         )
 
         // Target range highlight (only on first coat)
-        if (progress0to1 <= 1f) {
+        if (progress0to1 < 1f) {
             val start = min0to1 * size.width
             val end = max0to1 * size.width
             drawRoundRect(
@@ -141,7 +142,7 @@ private fun MacroProgressBar(
         }
 
         // Progress fill
-        val fraction = (progress0to1 % 1f).coerceIn(0f, 1f)
+        val fraction = progress0to1 % 1f
         val progressWidth = fraction * size.width
         drawRoundRect(
             color = progressColor,
@@ -196,9 +197,9 @@ private fun MacroProgressViewPreview() {
     val macro1 = MacroProgressItem(
         title = "Calories",
         progress0to1 = .15f,
-        progressLabel = "1005 cal",
+        progressLabel = "1005kcal",
         targetRange0to1 = Range(.84f, 1f),
-        rangeLabel = "2.1-2.2kcal",
+        rangeLabel = "2.1-2.2k",
         color = DailyMacrosColors.calorieColor,
     )
     val macro2 = MacroProgressItem(

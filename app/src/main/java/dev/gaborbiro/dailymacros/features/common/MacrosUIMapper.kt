@@ -49,9 +49,25 @@ internal class MacrosUIMapper(
 
         val progress = buildList {
             targets.calories.takeIf { it.enabled }?.let {
-                val min = if (it.min != null) DecimalFormat("#.#").format(it.min / 1000f) else "?"
-                val max = if (it.max != null) DecimalFormat("#.#").format(it.max / 1000f) else "?"
-                val rangeLabel = "$min-${max}kcal"
+                val min = if (it.min != null) {
+                    if (it.min < 1000) {
+                        it.min.toString()
+                    } else {
+                        DecimalFormat("#.#").format(it.min / 1000f)
+                    }
+                } else {
+                    "?"
+                }
+                val max = if (it.max != null) {
+                    if (it.max < 1000) {
+                        it.max.toString()
+                    } else {
+                        DecimalFormat("#.#").format(it.max / 1000f)
+                    }
+                } else {
+                    "?"
+                }
+                val rangeLabel = "$min-${max}k"
                 add(
                     MacroProgressItem(
                         title = "Calories",
@@ -68,7 +84,7 @@ internal class MacrosUIMapper(
                     MacroProgressItem(
                         title = "Protein",
                         progress0to1 = progress(it, totalProtein) ?: 0f,
-                        progressLabel = mapCalories(totalProtein, withLabel = false) ?: "0g",
+                        progressLabel = mapProtein(totalProtein, withLabel = false) ?: "0g",
                         targetRange0to1 = targetRange(it),
                         rangeLabel = gramRangeLabel(it),
                         color = DailyMacrosColors.proteinColor,
@@ -197,7 +213,7 @@ internal class MacrosUIMapper(
         val (shortFormat, longFormat) = generateFormats(
             shortLabel = "",  // no short label because "cal" makes this macro recognisable enough
             longLabel = "Calories:",
-            unit = "cal",
+            unit = "kcal",
             withLabel = withLabel,
             smallScaleValue = smallScaleValue,
         )

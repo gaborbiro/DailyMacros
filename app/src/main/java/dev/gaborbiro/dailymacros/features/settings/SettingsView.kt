@@ -128,7 +128,7 @@ internal fun SettingsView(
             )
 
             val ordered = listOf(
-                Triple(MacroType.CALORIES, "Calories", "cal"),
+                Triple(MacroType.CALORIES, "Calories", "kcal"),
                 Triple(MacroType.PROTEIN, "Protein", "g"),
                 Triple(MacroType.SALT, "Salt", "g"),
                 Triple(MacroType.FIBRE, "Fibre", "g"),
@@ -198,7 +198,7 @@ private fun MacroRow(
                 text = label,
                 style = style
             )
-            Text("${target.min ?: "?"}–${target.max ?: "?"} $unit")
+            Text("${target.min ?: "?"}–${target.max ?: "?"}$unit")
             Spacer(modifier = Modifier.width(8.dp))
             Icon(
                 imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
