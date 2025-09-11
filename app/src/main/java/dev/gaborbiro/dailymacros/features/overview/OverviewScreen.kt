@@ -33,6 +33,7 @@ internal fun OverviewScreen(
         onUndoDeleteSnackbarShown = viewModel::onUndoDeleteSnackbarShown,
         onSearchTermChanged = viewModel::onSearchTermChanged,
         onSettingsButtonTapped = viewModel::onSettingsButtonTapped,
+        onCoachMarkDismissed = viewModel::onCoachMarkDismissed,
     )
 
     val lifecycleOwner = LocalLifecycleOwner.current

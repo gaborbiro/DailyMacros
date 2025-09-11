@@ -7,6 +7,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
@@ -23,6 +27,7 @@ import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
+import dev.gaborbiro.dailymacros.features.common.PreferencesManager
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.view.LocalImageStore
 import dev.gaborbiro.dailymacros.features.common.viewModelFactory
@@ -58,6 +63,7 @@ class MainActivity : ComponentActivity() {
         val macrosUIMapper = MacrosUIMapper(dateUIMapper)
 
         val settingsRepository = SettingsRepository(this@MainActivity, SettingsMapper())
+        val preferencesManager = PreferencesManager(this@MainActivity)
 
         setContent {
             AppTheme {
@@ -75,6 +81,7 @@ class MainActivity : ComponentActivity() {
                         repository = recordsRepository,
                         uiMapper = RecordsUIMapper(macrosUIMapper, dateUIMapper),
                         settingsRepository = settingsRepository,
+                        preferencesManager = preferencesManager,
                     )
                 }
 
@@ -87,12 +94,30 @@ class MainActivity : ComponentActivity() {
                     navController = navController,
                     startDestination = OVERVIEW_ROUTE,
                 ) {
-                    composable(route = OVERVIEW_ROUTE) {
+                    composable(
+                        route = OVERVIEW_ROUTE,
+                    ) {
                         CompositionLocalProvider(LocalImageStore provides imageStore) {
                             OverviewScreen(overviewViewModel)
                         }
                     }
-                    composable(route = SETTINGS_ROUTE) {
+                    composable(
+                        route = SETTINGS_ROUTE,
+                        enterTransition = {
+                            // Slide in from right
+                            slideInHorizontally(
+                                initialOffsetX = { fullWidth -> fullWidth },
+                                animationSpec = tween(600, easing = FastOutSlowInEasing)
+                            )
+                        },
+                        exitTransition = {
+                            // Slide out to right
+                            slideOutHorizontally(
+                                targetOffsetX = { fullWidth -> fullWidth },
+                                animationSpec = tween(600, easing = FastOutSlowInEasing)
+                            )
+                        },
+                    ) {
                         SettingsScreen(settingsViewModel)
                     }
                 }

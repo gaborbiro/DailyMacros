@@ -51,6 +51,7 @@ internal fun OverviewView(
     onUndoDeleteSnackbarShown: () -> Unit,
     onSearchTermChanged: (String?) -> Unit,
     onSettingsButtonTapped: () -> Unit,
+    onCoachMarkDismissed: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -97,6 +98,7 @@ internal fun OverviewView(
                 onRecordImageTapped = onRecordImageTapped,
                 onRecordBodyTapped = onRecordBodyTapped,
                 onSettingsButtonTapped = onSettingsButtonTapped,
+                onCoachMarkDismissed = onCoachMarkDismissed,
             )
         } else if (viewState.showAddWidgetButton) {
             Box(
@@ -128,7 +130,7 @@ fun AddWidgetButton() {
             }
         }
     ) {
-        Text("Tap here to add Widget to Home Screen")
+        Text("Tap here to add a widget to your desktop")
     }
 }
 
@@ -246,6 +248,7 @@ private fun NotesListPreview() {
                 onSearchTermChanged = {},
                 onMacrosMenuItemTapped = {},
                 onSettingsButtonTapped = {},
+                onCoachMarkDismissed = {},
             )
         }
     }

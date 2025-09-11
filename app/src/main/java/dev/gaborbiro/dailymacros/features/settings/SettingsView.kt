@@ -56,6 +56,7 @@ import dev.gaborbiro.dailymacros.BuildConfig
 import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
+import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.features.settings.model.FieldErrors
 import dev.gaborbiro.dailymacros.features.settings.model.MacroType
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUIModel
@@ -123,7 +124,13 @@ internal fun SettingsView(
             Text(
                 text = "Your daily macro targets",
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(vertical = PaddingHalf)
+                modifier = Modifier.padding(top = PaddingHalf)
+            )
+
+            Text(
+                text = "Feel free to disable the ones you don't care about",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(top = PaddingQuarter, bottom = PaddingHalf)
             )
 
             val ordered = listOf(

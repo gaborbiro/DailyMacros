@@ -132,6 +132,8 @@ dependencies {
     implementation("androidx.navigation:navigation-ui-ktx:$navVersion")
     implementation("androidx.navigation:navigation-compose:$navVersion")
 
+    implementation("com.google.accompanist:accompanist-navigation-animation:0.36.0")
+
     implementation("com.google.code.gson:gson:2.13.1")
 
     // Android ROOM - Data Persistence
@@ -146,7 +148,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp-java-net-cookiejar:5.1.0")
     implementation("com.squareup.okhttp3:okhttp:5.1.0")
     implementation("com.google.code.gson:gson:2.13.1")
-
+    implementation("androidx.datastore:datastore-preferences:1.1.7")
     implementation("com.google.mlkit:image-labeling:17.0.9")
 
 

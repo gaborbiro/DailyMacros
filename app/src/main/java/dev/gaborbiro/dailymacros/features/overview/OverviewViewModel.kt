@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
 import dev.gaborbiro.dailymacros.App
+import dev.gaborbiro.dailymacros.features.common.PreferencesManager
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
 import dev.gaborbiro.dailymacros.features.common.workers.MacrosWorkRequest
@@ -15,6 +16,7 @@ import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.settings.SettingsRepository
 import dev.gaborbiro.dailymacros.repo.settings.model.Targets
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,12 +25,14 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.seconds
 
 internal class OverviewViewModel(
     private val navigator: OverviewNavigator,
     private val repository: RecordsRepository,
     private val uiMapper: RecordsUIMapper,
     private val settingsRepository: SettingsRepository,
+    private val preferencesManager: PreferencesManager,
 ) : ViewModel() {
 
     private val _viewState: MutableStateFlow<OverviewViewState> =
@@ -42,14 +46,29 @@ internal class OverviewViewModel(
                     a to b
                 }
                 .map { (records: List<Record>, targets: Targets) ->
-                    uiMapper.map(records, targets, showDay = false)
+                    if (search.isNullOrBlank()) {
+                        uiMapper.map(records, targets, showDay = false)
+                    } else {
+                        uiMapper.map(records, showDay = true)
+                    }
                 }
                 .collect { records: List<ListUIModelBase> ->
                     _viewState.update {
                         if (records.isNotEmpty()) {
-                            it.copy(items = records)
+                            it.copy(
+                                items = records
+                            )
                         } else {
                             it.copy(showAddWidgetButton = true)
+                        }
+                    }
+                    if (records.size == 2 && preferencesManager.showCoachMark) {
+                        preferencesManager.showCoachMark = false
+                        delay(2.seconds)
+                        _viewState.update {
+                            it.copy(
+                                showCoachMark = true
+                            )
                         }
                     }
                 }
@@ -61,6 +80,14 @@ internal class OverviewViewModel(
             repository.duplicateRecord(id)
         }
         NotesWidget.reload()
+    }
+
+    fun onCoachMarkDismissed() {
+        _viewState.update {
+            it.copy(
+                showCoachMark = false
+            )
+        }
     }
 
 //    fun onChangeImageMenuItemTapped(record: RecordUIModel) {
@@ -133,6 +160,11 @@ internal class OverviewViewModel(
 
     fun onSettingsButtonTapped() {
         navigator.openSettingsScreen()
+        _viewState.update {
+            it.copy(
+                showCoachMark = false
+            )
+        }
     }
 
     private fun deleteTemplate(templateId: Long) {
