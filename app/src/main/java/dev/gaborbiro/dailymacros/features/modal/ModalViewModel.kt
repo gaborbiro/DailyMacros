@@ -183,13 +183,24 @@ internal class ModalViewModel(
             dialogs = dialogs - newImageDialog
 
             dialogs = dialogs.replaceInstances<DialogState.InputDialog.CreateWithImageDialog> {
-                if (it.images.isEmpty()) {
+                if (it.images.isEmpty()) { // only fetch summary for the first image
                     fetchImageSummary(persistedFilename)
                 }
                 it.copy(
                     images = it.images + persistedFilename,
                     showProgressIndicator = it.images.isEmpty(),
                     titleSelectTooltipEnabled = appPrefs.selectTitleTooltipEnabled,
+                )
+            }
+
+            dialogs = dialogs.replaceInstances<DialogState.InputDialog.CreateDialog> {
+                fetchImageSummary(persistedFilename)
+                DialogState.InputDialog.CreateWithImageDialog(
+                    images = listOf(persistedFilename),
+                    showProgressIndicator = true,
+                    suggestions = null,
+                    titleSelectTooltipEnabled = false,
+                    checkAIPhotoDescriptionTooltipEnabled = false,
                 )
             }
 
@@ -226,6 +237,14 @@ internal class ModalViewModel(
                 val summary = foodPicSummaryUseCase.execute(image)
                 updateDialogsOfType<DialogState.InputDialog.CreateWithImageDialog> {
                     it.copy(
+                        suggestions = summary,
+                        titleSelectTooltipEnabled = summary.titles.isNotEmpty() && appPrefs.selectTitleTooltipEnabled,
+                        checkAIPhotoDescriptionTooltipEnabled = summary.description.isNullOrEmpty().not() && appPrefs.checkAIPhotoDescriptionTooltipEnabled,
+                    )
+                }
+                updateDialogsOfType<DialogState.InputDialog.CreateDialog> {
+                    DialogState.InputDialog.CreateWithImageDialog(
+                        images = listOf(image),
                         suggestions = summary,
                         titleSelectTooltipEnabled = summary.titles.isNotEmpty() && appPrefs.selectTitleTooltipEnabled,
                         checkAIPhotoDescriptionTooltipEnabled = summary.description.isNullOrEmpty().not() && appPrefs.checkAIPhotoDescriptionTooltipEnabled,
