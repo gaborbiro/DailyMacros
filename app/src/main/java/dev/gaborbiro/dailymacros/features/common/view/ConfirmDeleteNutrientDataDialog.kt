@@ -39,7 +39,7 @@ fun ConfirmDeleteNutrientDataDialog(
             ) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = "This will delete macronutrient information. You can re-query it from the app, with the \"\uD83C\uDF4ENutrients\" menu item.",
+                    text = "This will delete macronutrient information. You can re-query it in the app, with the \"\uD83C\uDF4EMacros (AI)\" menu item.",
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.titleMedium,
                 )

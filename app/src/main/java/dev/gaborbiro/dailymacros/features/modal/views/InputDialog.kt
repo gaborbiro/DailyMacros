@@ -265,7 +265,7 @@ private fun ColumnScope.InputDialogContent(
 
             if (titleSelectTooltipEnabled) {
                 Tooltip(
-                    text = "☝\uFE0FSelect an AI suggested title or write your own",
+                    text = "☝\uFE0FSelect an AI suggested title or write your own.\nNote: feel free to add additional photos (for example nutrient label) but keep things focused: one food/dish.",
                     onDismiss = onTitleSelectTooltipDismissed,
                 )
             }

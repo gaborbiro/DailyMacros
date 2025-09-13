@@ -32,11 +32,12 @@ internal fun FoodPicSummaryRequest.toApiModel(): ChatGPTRequest {
                                - Focus on items that significantly affect the nutritional profile.  
                                - Do NOT try to name every small garnish or decorative element.  
                                - Include packaging size only if it is a standard, recognisable variant (e.g., “250g ready meal”, “500ml kefir bottle”).  
-                               - Ignore whether the item is partially consumed.  
+                               - Ignore whether the item is partially consumed.
+                               - Describe only the food and drink, don't include any other context like "a hand holding..." or "...on a plate".
 
                             LANGUAGE RULES:
                             - Write in English by default.  
-                            - If a label is in another language, include it in `titles` alongside the English version.  
+                            - If the food label is in another language, include it in `titles` alongside the English version.  
                             - Use correct spelling and capitalisation for product names and proper nouns.  
 
                             CONFIDENCE RULES:
