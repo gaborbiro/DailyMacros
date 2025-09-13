@@ -238,9 +238,9 @@ class ModalActivity : AppCompatActivity() {
         }
 
         when (action) {
-            Action.CAMERA -> viewModel.onAddRecordWithCameraDeeplink()
-            Action.PICK_IMAGE -> viewModel.onAddRecordWithImagePickerDeeplink()
-            Action.TEXT_ONLY -> viewModel.onAddRecordJustTextDeeplink()
+            Action.CAMERA -> viewModel.onCreateRecordWithCameraDeeplink()
+            Action.PICK_IMAGE -> viewModel.onCreateRecordWithImagePickerDeeplink()
+            Action.TEXT_ONLY -> viewModel.onCreateRecordDeeplink()
 
             Action.VIEW_RECORD_DETAILS -> {
                 val recordId = intent.getLongExtra(EXTRA_RECORD_ID, -1L)

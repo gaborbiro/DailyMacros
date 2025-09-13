@@ -94,7 +94,7 @@ internal fun WidgetView(
                 .wrapContentHeight(),
             launchNoteViaCameraAction = { actionProvider.createRecordWithCamera() },
             launchNewNoteViaImagePickerActionProvider = { actionProvider.createRecordWithImagePicker() },
-            launchNewNoteViaTextOnlyActionProvider = { actionProvider.createRecordWithJustText() },
+            launchNewNoteViaTextOnlyActionProvider = { actionProvider.createRecord() },
             reloadActionProvider = { actionProvider.reload() },
         )
     }

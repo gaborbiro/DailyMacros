@@ -24,7 +24,7 @@ internal interface WidgetActionProvider {
 
     fun createRecordWithImagePicker(): Action
 
-    fun createRecordWithJustText(): Action
+    fun createRecord(): Action
 
     fun recordImageTapped(recordId: Long): Action
 
@@ -51,8 +51,8 @@ internal class WidgetActionProviderImpl : WidgetActionProvider {
         return actionRunCallback<CreateRecordWithImagePickerAction>()
     }
 
-    override fun createRecordWithJustText(): Action {
-        return actionRunCallback<CreateRecordWithJustTextAction>()
+    override fun createRecord(): Action {
+        return actionRunCallback<CreateRecordAction>()
     }
 
     override fun recordImageTapped(recordId: Long): Action {
@@ -121,7 +121,7 @@ class CreateRecordWithImagePickerAction : ActionCallback {
     }
 }
 
-class CreateRecordWithJustTextAction : ActionCallback {
+class CreateRecordAction : ActionCallback {
     override suspend fun onAction(
         context: Context,
         glanceId: GlanceId,

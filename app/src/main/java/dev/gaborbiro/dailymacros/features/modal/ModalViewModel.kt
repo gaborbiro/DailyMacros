@@ -67,21 +67,21 @@ internal class ModalViewModel(
     private var imageSummaryJob: Job? = null
 
     @UiThread
-    fun onAddRecordWithCameraDeeplink() {
+    fun onCreateRecordWithCameraDeeplink() {
         pushDialog(
             DialogState.NewImage(imagePickerState = ImagePickerState.Take(recordId = null))
         )
     }
 
     @UiThread
-    fun onAddRecordWithImagePickerDeeplink() {
+    fun onCreateRecordWithImagePickerDeeplink() {
         pushDialog(
             DialogState.NewImage(imagePickerState = ImagePickerState.Select(recordId = null))
         )
     }
 
     @UiThread
-    fun onAddRecordJustTextDeeplink() {
+    fun onCreateRecordDeeplink() {
         pushDialog(
             DialogState.InputDialog.CreateDialog(
                 titleSelectTooltipEnabled = false,
