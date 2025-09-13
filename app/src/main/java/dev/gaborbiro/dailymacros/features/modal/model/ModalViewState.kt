@@ -30,11 +30,19 @@ sealed class DialogState {
 
     sealed class InputDialog(
         open val validationError: String? = null,
+        open val titleSelectTooltipEnabled: Boolean,
+        open val checkAIPhotoDescriptionTooltipEnabled: Boolean,
     ) : DialogState() {
 
         data class CreateDialog(
             override val validationError: String? = null,
-        ) : InputDialog(validationError) {
+            override val titleSelectTooltipEnabled: Boolean,
+            override val checkAIPhotoDescriptionTooltipEnabled: Boolean,
+        ) : InputDialog(
+            validationError = validationError,
+            titleSelectTooltipEnabled = titleSelectTooltipEnabled,
+            checkAIPhotoDescriptionTooltipEnabled = checkAIPhotoDescriptionTooltipEnabled,
+        ) {
             override fun withValidationError(validationError: String?) =
                 copy(validationError = validationError)
         }
@@ -44,7 +52,13 @@ sealed class DialogState {
             val showProgressIndicator: Boolean = false,
             val suggestions: SummarySuggestions?,
             override val validationError: String? = null,
-        ) : InputDialog(validationError) {
+            override val titleSelectTooltipEnabled: Boolean,
+            override val checkAIPhotoDescriptionTooltipEnabled: Boolean,
+        ) : InputDialog(
+            validationError = validationError,
+            titleSelectTooltipEnabled = titleSelectTooltipEnabled,
+            checkAIPhotoDescriptionTooltipEnabled = checkAIPhotoDescriptionTooltipEnabled,
+        ) {
             override fun withValidationError(validationError: String?) =
                 copy(validationError = validationError)
         }
@@ -63,7 +77,11 @@ sealed class DialogState {
             val titleSuggestions: List<String>,
             val titleSuggestionProgressIndicator: Boolean = false,
             override val validationError: String? = null,
-        ) : InputDialog(validationError) {
+        ) : InputDialog(
+            validationError = validationError,
+            titleSelectTooltipEnabled = false,
+            checkAIPhotoDescriptionTooltipEnabled = false,
+        ) {
             override fun withValidationError(validationError: String?) =
                 copy(validationError = validationError)
         }
@@ -77,7 +95,7 @@ sealed class DialogState {
 
     data class SelectTemplateActionDialog(val templateId: Long) : DialogState()
 
-    data class ErrorDialog(val errorMessage: String): DialogState()
+    data class ErrorDialog(val errorMessage: String) : DialogState()
 }
 
 sealed class ImagePickerState(open val recordId: Long?) {

@@ -17,6 +17,14 @@ internal class AppPrefs(context: Context) {
         get() = prefs.getBoolean("showTooltipQuickAdd", true)
         set(value) = prefs.edit { putBoolean("showTooltipQuickAdd", value) }
 
+    var selectTitleTooltipEnabled: Boolean
+        get() = prefs.getBoolean("selectTitleTooltipEnabled", true)
+        set(value) = prefs.edit { putBoolean("selectTitleTooltipEnabled", value) }
+
+    var checkAIPhotoDescriptionTooltipEnabled: Boolean
+        get() = prefs.getBoolean("checkAIPhotoDescriptionTooltipEnabled", true)
+        set(value) = prefs.edit { putBoolean("checkAIPhotoDescriptionTooltipEnabled", value) }
+
 //    // String
 //    var username: String?
 //        get() = prefs.getString("username", null)

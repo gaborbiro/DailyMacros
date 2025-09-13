@@ -25,6 +25,7 @@ import dev.gaborbiro.dailymacros.data.file.FileStore
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.AppTheme
+import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
@@ -205,6 +206,7 @@ class ModalActivity : AppCompatActivity() {
         val dateUIMapper = DateUIMapper()
         val macrosUIMapper = MacrosUIMapper(dateUIMapper)
         val deleteRecordUseCase = DeleteRecordUseCase(recordsRepository)
+        val appPrefs = AppPrefs(this@ModalActivity)
 
         ModalViewModel(
             imageStore = imageStore,
@@ -220,6 +222,7 @@ class ModalActivity : AppCompatActivity() {
             foodPicSummaryUseCase = FoodPicSummaryUseCase(imageStore, chatGPTRepository, recordsMapper),
             macrosUIMapper = macrosUIMapper,
             deleteRecordUseCase = deleteRecordUseCase,
+            appPrefs = appPrefs,
         )
     }
 
@@ -237,7 +240,7 @@ class ModalActivity : AppCompatActivity() {
         when (action) {
             Action.CAMERA -> viewModel.onAddRecordWithCameraDeeplink()
             Action.PICK_IMAGE -> viewModel.onAddRecordWithImagePickerDeeplink()
-            Action.TEXT_ONLY -> viewModel.onAddRecordDeeplink()
+            Action.TEXT_ONLY -> viewModel.onAddRecordJustTextDeeplink()
 
             Action.VIEW_RECORD_DETAILS -> {
                 val recordId = intent.getLongExtra(EXTRA_RECORD_ID, -1L)
@@ -300,6 +303,8 @@ class ModalActivity : AppCompatActivity() {
                 onAddImageViaCameraTapped = { viewModel.onAddImageViaCameraTapped(dialogState) },
                 onAddImageViaPickerTapped = { viewModel.onAddImageViaPickerTapped(dialogState) },
                 onDismissRequested = onDismissRequested,
+                onTitleSelectTooltipDismissed = viewModel::onTitleSelectTooltipDismissed,
+                onCheckAITooltipDismissed = viewModel::onCheckAIPhotoDescriptionTooltipDismissed,
             )
 
             is DialogState.EditTargetConfirmationDialog -> EditTargetConfirmationDialog(

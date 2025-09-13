@@ -51,7 +51,6 @@ fun ListItemTop10(
             text = "Top 10",
             style = sectionTitleTextStyle,
         )
-        println("showQuickAddTooltip: $showQuickAddTooltip")
         if (showQuickAddTooltip) {
             Row(
                 modifier = GlanceModifier

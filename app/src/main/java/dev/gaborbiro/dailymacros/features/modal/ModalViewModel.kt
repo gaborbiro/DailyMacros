@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
 import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
+import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.common.workers.MacrosWorkRequest
@@ -51,6 +52,7 @@ internal class ModalViewModel(
     private val foodPicSummaryUseCase: FoodPicSummaryUseCase,
     private val deleteRecordUseCase: DeleteRecordUseCase,
     private val macrosUIMapper: MacrosUIMapper,
+    private val appPrefs: AppPrefs,
 ) : ViewModel() {
 
     companion object {
@@ -79,9 +81,12 @@ internal class ModalViewModel(
     }
 
     @UiThread
-    fun onAddRecordDeeplink() {
+    fun onAddRecordJustTextDeeplink() {
         pushDialog(
-            DialogState.InputDialog.CreateDialog()
+            DialogState.InputDialog.CreateDialog(
+                titleSelectTooltipEnabled = false,
+                checkAIPhotoDescriptionTooltipEnabled = false,
+            )
         )
     }
 
@@ -184,6 +189,7 @@ internal class ModalViewModel(
                 it.copy(
                     images = it.images + persistedFilename,
                     showProgressIndicator = it.images.isEmpty(),
+                    titleSelectTooltipEnabled = appPrefs.selectTitleTooltipEnabled,
                 )
             }
 
@@ -200,6 +206,8 @@ internal class ModalViewModel(
                         images = listOf(persistedFilename),
                         showProgressIndicator = true,
                         suggestions = null,
+                        titleSelectTooltipEnabled = false,
+                        checkAIPhotoDescriptionTooltipEnabled = false,
                     )
                 )
             }
@@ -217,7 +225,11 @@ internal class ModalViewModel(
             try {
                 val summary = foodPicSummaryUseCase.execute(image)
                 updateDialogsOfType<DialogState.InputDialog.CreateWithImageDialog> {
-                    it.copy(suggestions = summary)
+                    it.copy(
+                        suggestions = summary,
+                        titleSelectTooltipEnabled = summary.titles.isNotEmpty() && appPrefs.selectTitleTooltipEnabled,
+                        checkAIPhotoDescriptionTooltipEnabled = summary.description.isNullOrEmpty().not() && appPrefs.checkAIPhotoDescriptionTooltipEnabled,
+                    )
                 }
             } catch (e: DomainError) {
                 throw e
@@ -369,6 +381,20 @@ internal class ModalViewModel(
                     }
                 }
             }
+    }
+
+    fun onTitleSelectTooltipDismissed() {
+        appPrefs.selectTitleTooltipEnabled = false
+        updateDialogsOfType<DialogState.InputDialog.CreateWithImageDialog> {
+            it.copy(titleSelectTooltipEnabled = false)
+        }
+    }
+
+    fun onCheckAIPhotoDescriptionTooltipDismissed() {
+        appPrefs.checkAIPhotoDescriptionTooltipEnabled = false
+        updateDialogsOfType<DialogState.InputDialog.CreateWithImageDialog> {
+            it.copy(checkAIPhotoDescriptionTooltipEnabled = false)
+        }
     }
 
     private suspend fun handleCreateRecordDetailsSubmitted(

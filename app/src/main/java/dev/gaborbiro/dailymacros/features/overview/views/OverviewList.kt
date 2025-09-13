@@ -2,34 +2,23 @@ package dev.gaborbiro.dailymacros.features.overview.views
 
 import android.content.res.Configuration
 import android.util.Range
-import android.view.MotionEvent
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -39,20 +28,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathFillType
-import androidx.compose.ui.input.pointer.pointerInteropFilter
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.AppTheme
@@ -64,12 +42,12 @@ import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroProgress
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
+import dev.gaborbiro.dailymacros.features.common.view.CoachMarkOverlay
 import dev.gaborbiro.dailymacros.features.common.view.LocalImageStore
 import dev.gaborbiro.dailymacros.features.common.view.PreviewImageStoreProvider
+import dev.gaborbiro.dailymacros.features.common.view.coachMarkOverlayAnchor
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
 import kotlinx.coroutines.launch
-import kotlin.math.hypot
-import kotlin.math.max
 
 @Composable
 internal fun OverviewList(
@@ -174,16 +152,8 @@ internal fun OverviewList(
                 modifier = Modifier
                     .padding(PaddingHalf)
                     .align(Alignment.TopEnd)
-                    .onGloballyPositioned { coords ->
-                        val pos = coords.positionInRoot()
-                        val size = coords.size
-                        targetBounds = Rect(
-                            offset = pos,
-                            size = Size(
-                                size.width.toFloat(),
-                                size.height.toFloat()
-                            )
-                        )
+                    .coachMarkOverlayAnchor {
+                        targetBounds = it
                     },
                 colors = IconButtonDefaults.filledIconButtonColors(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -270,103 +240,6 @@ private fun PrefetchRecordThumbnails(
                     if (seen.addIfNew(name)) launch { store.read(name, thumbnail = true) }
                 }
             }
-    }
-}
-
-@Composable
-internal fun CoachMarkOverlay(
-    targetRect: Rect?,
-    text: String,
-    scrimColor: Color = Color.Black.copy(alpha = 0.6f),
-    bubbleMaxWidth: Dp = 220.dp,
-    spotlightPadding: Dp = 12.dp,
-    onDismiss: () -> Unit,
-) {
-    if (targetRect == null) return
-
-    val density = LocalDensity.current
-    val configuration = LocalConfiguration.current
-    val screenWidthPx = with(density) { configuration.screenWidthDp.dp.toPx() }
-    val screenHeightPx = with(density) { configuration.screenHeightDp.dp.toPx() }
-    val paddingPx = with(density) { spotlightPadding.toPx() }
-
-    val buttonCenter = targetRect.center
-    val maxRadius = listOf(
-        hypot(buttonCenter.x, buttonCenter.y),
-        hypot(screenWidthPx - buttonCenter.x, buttonCenter.y),
-        hypot(buttonCenter.x, screenHeightPx - buttonCenter.y),
-        hypot(screenWidthPx - buttonCenter.x, screenHeightPx - buttonCenter.y)
-    ).max()
-    val targetRadius = max(targetRect.width, targetRect.height) / 2f + paddingPx
-
-    val radius = remember { Animatable(maxRadius) }
-    var animationFinished by remember { mutableStateOf(false) }
-
-    LaunchedEffect(targetRect) {
-        radius.animateTo(
-            targetValue = targetRadius,
-            animationSpec = tween(800, easing = LinearOutSlowInEasing)
-        )
-        animationFinished = true
-    }
-
-    Box(
-        Modifier
-            .fillMaxSize()
-            .pointerInteropFilter { motionEvent ->
-                val dx = motionEvent.x - buttonCenter.x
-                val dy = motionEvent.y - buttonCenter.y
-                val distance = hypot(dx, dy)
-
-                if (distance <= radius.value) {
-                    // Inside spotlight
-                    if (motionEvent.action == MotionEvent.ACTION_UP) {
-                        onDismiss() // dismiss after button got the click
-                    }
-                    false // let the event fall through to the button
-                } else {
-                    // Outside spotlight
-                    if (motionEvent.action == MotionEvent.ACTION_DOWN) {
-                        onDismiss()
-                    }
-                    true // consume so outside taps don't leak through
-                }
-            }
-    ) {
-        // Scrim drawing
-        Canvas(Modifier.matchParentSize()) {
-            val path = Path().apply {
-                addRect(Rect(0f, 0f, size.width, size.height))
-                addOval(
-                    Rect(
-                        left = buttonCenter.x - radius.value,
-                        top = buttonCenter.y - radius.value,
-                        right = buttonCenter.x + radius.value,
-                        bottom = buttonCenter.y + radius.value
-                    )
-                )
-                fillType = PathFillType.EvenOdd
-            }
-            drawPath(path, scrimColor)
-        }
-
-        if (animationFinished) {
-            val bubbleY = with(density) { targetRect.bottom.toDp() + 12.dp }
-            val bubbleX = with(density) {
-                (targetRect.right.toDp() - bubbleMaxWidth).coerceAtLeast(8.dp)
-            }
-
-            Column(
-                Modifier
-                    .offset(x = bubbleX, y = bubbleY)
-                    .widthIn(max = bubbleMaxWidth)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color.White)
-                    .padding(12.dp)
-            ) {
-                Text(text, color = Color.Black, style = MaterialTheme.typography.bodyMedium)
-            }
-        }
     }
 }
 
