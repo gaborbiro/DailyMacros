@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:description="@string/app_name"
+    android:description="@string/widget_name"
+    android:initialLayout="@layout/widget_loading"
     android:minWidth="180dp"
     android:minHeight="156dp"
     android:minResizeWidth="180dp"
     android:minResizeHeight="156dp"
-    android:updatePeriodMillis="0"
-    android:configure="dev.gaborbiro.dailymacros.features.widget.NotesWidgetConfigurationActivity"
-    android:initialLayout="@layout/notes_widget_loading"
-    android:previewLayout="@layout/notes_widget_preview"
     android:resizeMode="horizontal|vertical"
+    android:previewImage="@drawable/widget_preview"
     android:targetCellWidth="3"
     android:targetCellHeight="3"
-    android:widgetCategory="home_screen"
-    />
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen" />

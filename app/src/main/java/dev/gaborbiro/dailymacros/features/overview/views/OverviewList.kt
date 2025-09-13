@@ -274,7 +274,7 @@ private fun PrefetchRecordThumbnails(
 }
 
 @Composable
-fun CoachMarkOverlay(
+internal fun CoachMarkOverlay(
     targetRect: Rect?,
     text: String,
     scrimColor: Color = Color.Black.copy(alpha = 0.6f),
@@ -374,7 +374,7 @@ fun CoachMarkOverlay(
 @Preview
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-private fun NotesListPreview() {
+private fun OverviewListPreview() {
     AppTheme {
         PreviewImageStoreProvider {
             OverviewList(

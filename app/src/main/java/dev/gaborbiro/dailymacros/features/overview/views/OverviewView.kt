@@ -137,7 +137,7 @@ fun AddWidgetButton() {
 @Preview
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-private fun NotesListPreview() {
+private fun OverviewListPreview() {
     AppTheme {
         PreviewImageStoreProvider {
             OverviewView(

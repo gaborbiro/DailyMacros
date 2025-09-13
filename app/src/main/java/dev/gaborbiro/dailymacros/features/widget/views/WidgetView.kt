@@ -15,6 +15,7 @@ import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
+import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import androidx.glance.layout.wrapContentHeight
@@ -25,9 +26,9 @@ import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelTemplate
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
+import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetHalfVertical
 import dev.gaborbiro.dailymacros.features.widget.WidgetActionProvider
 import dev.gaborbiro.dailymacros.features.widget.WidgetActionProviderImpl
-import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetHalfVertical
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 
 @Composable
@@ -60,6 +61,14 @@ internal fun WidgetView(
             } else {
                 EmptyView()
             }
+            Box(
+                modifier = GlanceModifier
+                    .fillMaxWidth()
+                    .height(4.dp)
+                    .background(
+                        ImageProvider(R.drawable.widget_shadow)
+                    )
+            ) {}
             Box(
                 modifier = GlanceModifier
                     .size(56.dp)
