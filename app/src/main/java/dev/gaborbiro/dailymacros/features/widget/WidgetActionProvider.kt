@@ -8,45 +8,54 @@ import androidx.glance.action.actionParametersOf
 import androidx.glance.action.actionStartActivity
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
+import androidx.glance.appwidget.state.updateAppWidgetState
+import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.main.MainActivity
 import dev.gaborbiro.dailymacros.features.modal.ModalActivity
 
-interface NotesWidgetNavigator {
 
-    fun getLaunchNewNoteViaCameraAction(): Action
+private const val PREFS_KEY_RECORD = "recordId"
+private const val PREFS_KEY_TEMPLATE = "templateId"
 
-    fun getLaunchNewNoteViaImagePickerAction(): Action
 
-    fun getLaunchNewNoteViaTextOnlyAction(): Action
+internal interface WidgetActionProvider {
 
-    fun getRecordImageTappedAction(recordId: Long): Action
+    fun createRecordWithCamera(): Action
 
-    fun getRecordBodyTappedAction(recordId: Long): Action
+    fun createRecordWithImagePicker(): Action
 
-    fun getTemplateImageTappedAction(templateId: Long): Action
+    fun createRecordWithJustText(): Action
 
-    fun getTemplateBodyTappedAction(templateId: Long): Action
+    fun recordImageTapped(recordId: Long): Action
 
-    fun getReloadAction(): Action
+    fun recordBodyTapped(recordId: Long): Action
 
-    fun getOpenAppAction(): Action
+    fun templateImageTapped(templateId: Long): Action
+
+    fun templateBodyTapped(templateId: Long): Action
+
+    fun reload(): Action
+
+    fun openApp(): Action
+
+    fun dismissQuickAddTooltip(): Action
 }
 
-class NotesWidgetNavigatorImpl : NotesWidgetNavigator {
+internal class WidgetActionProviderImpl : WidgetActionProvider {
 
-    override fun getLaunchNewNoteViaCameraAction(): Action {
-        return actionRunCallback<AddNoteWithCameraAction>()
+    override fun createRecordWithCamera(): Action {
+        return actionRunCallback<CreateRecordWithCameraAction>()
     }
 
-    override fun getLaunchNewNoteViaImagePickerAction(): Action {
-        return actionRunCallback<AddNoteWithImageAction>()
+    override fun createRecordWithImagePicker(): Action {
+        return actionRunCallback<CreateRecordWithImagePickerAction>()
     }
 
-    override fun getLaunchNewNoteViaTextOnlyAction(): Action {
-        return actionRunCallback<AddNoteAction>()
+    override fun createRecordWithJustText(): Action {
+        return actionRunCallback<CreateRecordWithJustTextAction>()
     }
 
-    override fun getRecordImageTappedAction(recordId: Long): Action {
+    override fun recordImageTapped(recordId: Long): Action {
         return actionRunCallback<RecordImageTappedAction>(
             actionParametersOf(
                 ActionParameters.Key<Long>(PREFS_KEY_RECORD) to recordId
@@ -54,7 +63,7 @@ class NotesWidgetNavigatorImpl : NotesWidgetNavigator {
         )
     }
 
-    override fun getRecordBodyTappedAction(recordId: Long): Action {
+    override fun recordBodyTapped(recordId: Long): Action {
         return actionRunCallback<RecordBodyTappedAction>(
             actionParametersOf(
                 ActionParameters.Key<Long>(PREFS_KEY_RECORD) to recordId
@@ -62,7 +71,7 @@ class NotesWidgetNavigatorImpl : NotesWidgetNavigator {
         )
     }
 
-    override fun getTemplateImageTappedAction(templateId: Long): Action {
+    override fun templateImageTapped(templateId: Long): Action {
         return actionRunCallback<TemplateImageTappedAction>(
             actionParametersOf(
                 ActionParameters.Key<Long>(PREFS_KEY_TEMPLATE) to templateId
@@ -70,7 +79,7 @@ class NotesWidgetNavigatorImpl : NotesWidgetNavigator {
         )
     }
 
-    override fun getTemplateBodyTappedAction(templateId: Long): Action {
+    override fun templateBodyTapped(templateId: Long): Action {
         return actionRunCallback<TemplateBodyTappedAction>(
             actionParametersOf(
                 ActionParameters.Key<Long>(PREFS_KEY_TEMPLATE) to templateId
@@ -78,16 +87,20 @@ class NotesWidgetNavigatorImpl : NotesWidgetNavigator {
         )
     }
 
-    override fun getReloadAction(): Action {
+    override fun dismissQuickAddTooltip(): Action {
+        return actionRunCallback<DismissQuickAddTooltipAction>()
+    }
+
+    override fun reload(): Action {
         return actionRunCallback<RefreshAction>()
     }
 
-    override fun getOpenAppAction(): Action {
+    override fun openApp(): Action {
         return actionStartActivity<MainActivity>()
     }
 }
 
-class AddNoteWithCameraAction : ActionCallback {
+class CreateRecordWithCameraAction : ActionCallback {
 
     override suspend fun onAction(
         context: Context,
@@ -98,7 +111,7 @@ class AddNoteWithCameraAction : ActionCallback {
     }
 }
 
-class AddNoteWithImageAction : ActionCallback {
+class CreateRecordWithImagePickerAction : ActionCallback {
     override suspend fun onAction(
         context: Context,
         glanceId: GlanceId,
@@ -108,7 +121,7 @@ class AddNoteWithImageAction : ActionCallback {
     }
 }
 
-class AddNoteAction : ActionCallback {
+class CreateRecordWithJustTextAction : ActionCallback {
     override suspend fun onAction(
         context: Context,
         glanceId: GlanceId,
@@ -151,25 +164,6 @@ class RecordBodyTappedAction : ActionCallback {
     }
 }
 
-//class ApplyTemplateAction : ActionCallback {
-//
-//    override suspend fun onAction(
-//        context: Context,
-//        glanceId: GlanceId,
-//        parameters: ActionParameters,
-//    ) {
-//        val fileStore = FileStoreFactoryImpl(context).getStore("public", keepFiles = true)
-//        val templateId = parameters[ActionParameters.Key<Long>(PREFS_KEY_TEMPLATE)]!!
-//        val recordsRepository = RecordsRepositoryImpl(
-//            templatesDAO = AppDatabase.getInstance().templatesDAO(),
-//            recordsDAO = AppDatabase.getInstance().recordsDAO(),
-//            dBMapper = DBMapper(),
-//            bitmapStore = BitmapStore(fileStore),
-//        )
-//        recordsRepository.applyTemplate(templateId)
-//    }
-//}
-
 class TemplateBodyTappedAction : ActionCallback {
 
     override suspend fun onAction(
@@ -189,9 +183,22 @@ class RefreshAction : ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters,
     ) {
-        NotesWidget.reload()
+        DailyMacrosWidgetScreen.reload()
     }
 }
 
-private const val PREFS_KEY_RECORD = "recordId"
-private const val PREFS_KEY_TEMPLATE = "templateId"
+class DismissQuickAddTooltipAction : ActionCallback {
+    override suspend fun onAction(
+        context: Context,
+        glanceId: GlanceId,
+        parameters: ActionParameters,
+    ) {
+        println("DismissQuickAddTooltipAction")
+        AppPrefs(context).showTooltipQuickAdd = false
+        updateAppWidgetState(context, glanceId) { prefs ->
+            prefs[DailyMacrosWidgetScreen.Companion.PREFS_SHOW_QUICK_ADD_TOOLTIP] = false
+            prefs
+        }
+        DailyMacrosWidgetScreen().update(context, glanceId) // trigger recompose
+    }
+}

@@ -6,21 +6,24 @@ import androidx.glance.action.Action
 import androidx.glance.action.action
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.lazy.itemsIndexed
+import androidx.glance.background
 import androidx.glance.layout.Column
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
+import androidx.glance.layout.padding
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
-import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
-import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultVertical
-import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDoubleVertical
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelTemplate
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelTemplates
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelTemplatesStart
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelTop10SectionEnd
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelTop10SectionStart
+import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
+import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultHorizontal
+import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultVertical
+import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetHalfVertical
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 
 @Composable
@@ -30,6 +33,7 @@ internal fun WidgetList(
     recordBodyTapActionProvider: @Composable (recordId: Long) -> Action,
     templateImageTapActionProvider: @Composable (templateId: Long) -> Action,
     templateBodyTapActionProvider: @Composable (templateId: Long) -> Action,
+    dismissQuickAddTooltipActionProvider: @Composable () -> Action,
 ) {
     LazyColumn(
         modifier = GlanceModifier
@@ -45,11 +49,30 @@ internal fun WidgetList(
                         modifier = GlanceModifier
                             .fillMaxWidth()
                     ) {
-                        Spacer(modifier = GlanceModifier.height(PaddingWidgetDefaultVertical))
+                        Spacer(
+                            modifier = GlanceModifier
+                                .height(PaddingWidgetDefaultVertical)
+                        )
                         ListItemRecord(
                             record = item,
                             imageTappedActionProvider = recordImageTapActionProvider(item.listItemId),
                             bodyTappedActionProvider = recordBodyTapActionProvider(item.listItemId),
+                        )
+                    }
+                }
+
+                is ListUIModelTop10SectionStart -> {
+                    Column(
+                        modifier = GlanceModifier
+                            .fillMaxWidth()
+                    ) {
+                        Spacer(
+                            modifier = GlanceModifier
+                                .height(PaddingWidgetDefaultVertical)
+                        )
+                        ListItemTop10(
+                            showQuickAddTooltip = item.showQuickAddTooltip,
+                            dismissAction = dismissQuickAddTooltipActionProvider(),
                         )
                     }
                 }
@@ -59,8 +82,9 @@ internal fun WidgetList(
                         modifier = GlanceModifier
                             .fillMaxWidth()
                     ) {
-                        Spacer(modifier = GlanceModifier.height(PaddingWidgetDefaultVertical))
                         ListItemTemplate(
+                            modifier = GlanceModifier
+                                .padding(horizontal = PaddingWidgetDefaultHorizontal, vertical = PaddingWidgetHalfVertical),
                             template = item,
                             imageTapActionProvider = templateImageTapActionProvider(item.templateId),
                             bodyTapActionProvider = templateBodyTapActionProvider(item.templateId),
@@ -68,22 +92,16 @@ internal fun WidgetList(
                     }
                 }
 
-                is ListUIModelTemplatesStart -> {
+                is ListUIModelTop10SectionEnd -> {
                     Column(
                         modifier = GlanceModifier
                             .fillMaxWidth()
                     ) {
-                        Spacer(modifier = GlanceModifier.height(PaddingWidgetDoubleVertical))
-                        SectionTitle(title = "Favorites")
-                    }
-                }
-
-                is ListUIModelTemplates -> {
-                    Column(
-                        modifier = GlanceModifier
-                            .fillMaxWidth()
-                    ) {
-                        Spacer(modifier = GlanceModifier.height(PaddingWidgetDoubleVertical))
+                        Spacer(
+                            modifier = GlanceModifier
+                                .background(sectionTitleBackground)
+                                .height(PaddingWidgetHalfVertical)
+                        )
                     }
                 }
             }
@@ -113,6 +131,7 @@ private fun RecordListPreviewExpanded() {
                         fibre = "fib 4",
                     ),
                 ),
+                ListUIModelTop10SectionStart(showQuickAddTooltip = true),
                 ListUIModelTemplate(
                     templateId = 1,
                     title = "Breakfast",
@@ -131,6 +150,7 @@ private fun RecordListPreviewExpanded() {
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     images = listOf("", ""),
                 ),
+                ListUIModelTop10SectionEnd(),
                 ListUIModelRecord(
                     recordId = 2L,
                     templateId = 1L,
@@ -166,6 +186,7 @@ private fun RecordListPreviewExpanded() {
             recordBodyTapActionProvider = { action {} },
             templateImageTapActionProvider = { action {} },
             templateBodyTapActionProvider = { action {} },
+            dismissQuickAddTooltipActionProvider = { action {} }
         )
     }
 }

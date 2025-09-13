@@ -22,18 +22,18 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
-import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelTemplate
-import dev.gaborbiro.dailymacros.features.widget.NotesWidgetNavigator
-import dev.gaborbiro.dailymacros.features.widget.NotesWidgetNavigatorImpl
+import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
+import dev.gaborbiro.dailymacros.features.widget.WidgetActionProvider
+import dev.gaborbiro.dailymacros.features.widget.WidgetActionProviderImpl
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetHalfVertical
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 
 @Composable
-internal fun WidgetContent(
+internal fun WidgetView(
     modifier: GlanceModifier,
-    navigator: NotesWidgetNavigator,
+    actionProvider: WidgetActionProvider,
     items: List<ListUIModelBase>,
 ) {
     Column(
@@ -51,10 +51,11 @@ internal fun WidgetContent(
             if (items.isNotEmpty()) {
                 WidgetList(
                     items = items,
-                    recordImageTapActionProvider = { recordId -> navigator.getRecordImageTappedAction(recordId) },
-                    recordBodyTapActionProvider = { recordId -> navigator.getRecordBodyTappedAction(recordId) },
-                    templateImageTapActionProvider = { templateId -> navigator.getTemplateImageTappedAction(templateId) },
-                    templateBodyTapActionProvider = { templateId -> navigator.getTemplateBodyTappedAction(templateId) },
+                    recordImageTapActionProvider = { recordId -> actionProvider.recordImageTapped(recordId) },
+                    recordBodyTapActionProvider = { recordId -> actionProvider.recordBodyTapped(recordId) },
+                    templateImageTapActionProvider = { templateId -> actionProvider.templateImageTapped(templateId) },
+                    templateBodyTapActionProvider = { templateId -> actionProvider.templateBodyTapped(templateId) },
+                    dismissQuickAddTooltipActionProvider = { actionProvider.dismissQuickAddTooltip() }
                 )
             } else {
                 EmptyView()
@@ -70,7 +71,7 @@ internal fun WidgetContent(
                         .cornerRadius(16.dp)
                         .background(GlanceTheme.colors.tertiaryContainer)
                         .padding(12.dp)
-                        .clickable(navigator.getOpenAppAction())
+                        .clickable(actionProvider.openApp())
                         .fillMaxSize(),
                     colorFilter = ColorFilter.tint(GlanceTheme.colors.onTertiaryContainer),
                     provider = ImageProvider(R.drawable.ic_open_in_new),
@@ -82,10 +83,10 @@ internal fun WidgetContent(
             modifier = GlanceModifier
                 .fillMaxWidth()
                 .wrapContentHeight(),
-            launchNoteViaCameraAction = { navigator.getLaunchNewNoteViaCameraAction() },
-            launchNewNoteViaImagePickerActionProvider = { navigator.getLaunchNewNoteViaImagePickerAction() },
-            launchNewNoteViaTextOnlyActionProvider = { navigator.getLaunchNewNoteViaTextOnlyAction() },
-            reloadActionProvider = { navigator.getReloadAction() },
+            launchNoteViaCameraAction = { actionProvider.createRecordWithCamera() },
+            launchNewNoteViaImagePickerActionProvider = { actionProvider.createRecordWithImagePicker() },
+            launchNewNoteViaTextOnlyActionProvider = { actionProvider.createRecordWithJustText() },
+            reloadActionProvider = { actionProvider.reload() },
         )
     }
 }
@@ -93,12 +94,12 @@ internal fun WidgetContent(
 @Preview
 @Composable
 @OptIn(ExperimentalGlancePreviewApi::class)
-private fun WidgetContentPreview() {
+private fun WidgetViewPreview() {
     WidgetPreview {
-        WidgetContent(
+        WidgetView(
             modifier = GlanceModifier
                 .fillMaxSize(),
-            navigator = NotesWidgetNavigatorImpl(),
+            actionProvider = WidgetActionProviderImpl(),
             items = listOf(
                 ListUIModelRecord(
                     recordId = 1,
@@ -171,12 +172,12 @@ private fun WidgetContentPreview() {
 @Preview(widthDp = 156, heightDp = 180)
 @Composable
 @OptIn(ExperimentalGlancePreviewApi::class)
-private fun WidgetContentPreviewEmpty() {
+private fun WidgetViewPreviewEmpty() {
     WidgetPreview {
-        WidgetContent(
+        WidgetView(
             modifier = GlanceModifier
                 .fillMaxSize(),
-            navigator = NotesWidgetNavigatorImpl(),
+            actionProvider = WidgetActionProviderImpl(),
             items = emptyList(),
         )
     }

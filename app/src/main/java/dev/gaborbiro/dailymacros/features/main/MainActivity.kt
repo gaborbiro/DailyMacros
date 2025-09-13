@@ -27,7 +27,7 @@ import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
-import dev.gaborbiro.dailymacros.features.common.PreferencesManager
+import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.view.LocalImageStore
 import dev.gaborbiro.dailymacros.features.common.viewModelFactory
@@ -63,7 +63,7 @@ class MainActivity : ComponentActivity() {
         val macrosUIMapper = MacrosUIMapper(dateUIMapper)
 
         val settingsRepository = SettingsRepository(this@MainActivity, SettingsMapper())
-        val preferencesManager = PreferencesManager(this@MainActivity)
+        val appPrefs = AppPrefs(this@MainActivity)
 
         setContent {
             AppTheme {
@@ -81,7 +81,7 @@ class MainActivity : ComponentActivity() {
                         repository = recordsRepository,
                         uiMapper = RecordsUIMapper(macrosUIMapper, dateUIMapper),
                         settingsRepository = settingsRepository,
-                        preferencesManager = preferencesManager,
+                        appPrefs = appPrefs,
                     )
                 }
 

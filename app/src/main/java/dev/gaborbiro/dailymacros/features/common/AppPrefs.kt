@@ -4,15 +4,18 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 
-class PreferencesManager(context: Context) {
+internal class AppPrefs(context: Context) {
 
     private val prefs: SharedPreferences =
         context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
 
-    // Boolean
     var showCoachMark: Boolean
         get() = prefs.getBoolean("show_coach_mark", true)
         set(value) = prefs.edit { putBoolean("show_coach_mark", value) }
+
+    var showTooltipQuickAdd: Boolean
+        get() = prefs.getBoolean("showTooltipQuickAdd", true)
+        set(value) = prefs.edit { putBoolean("showTooltipQuickAdd", value) }
 
 //    // String
 //    var username: String?
@@ -31,11 +34,11 @@ class PreferencesManager(context: Context) {
 
     // Remove value
     fun clear(key: String) {
-        prefs.edit().remove(key).apply()
+        prefs.edit { remove(key) }
     }
 
     // Clear all
     fun clearAll() {
-        prefs.edit().clear().apply()
+        prefs.edit { clear() }
     }
 }

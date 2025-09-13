@@ -7,7 +7,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import androidx.glance.state.GlanceStateDefinition
 import java.io.File
 
-object NotesWidgetPreferences : GlanceStateDefinition<Preferences> {
+object WidgetPreferences : GlanceStateDefinition<Preferences> {
 
     private const val filename = "notes"
 

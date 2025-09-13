@@ -34,6 +34,7 @@ import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.common.view.LocalImage
 import dev.gaborbiro.dailymacros.features.common.view.PreviewImageStoreProvider
+import dev.gaborbiro.dailymacros.features.widget.views.ListItemImageCornerRadius
 
 
 @Composable
@@ -84,7 +85,7 @@ private fun RecordImage(
         LocalImage(
             name = it,
             modifier = modifier
-                .clip(RoundedCornerShape(10.dp)),
+                .clip(RoundedCornerShape(ListItemImageCornerRadius)),
             contentScale = ContentScale.Crop,
             contentDescription = "image of $title"
         )

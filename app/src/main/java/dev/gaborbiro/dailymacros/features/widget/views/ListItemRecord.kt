@@ -42,7 +42,7 @@ fun ListItemRecord(
                     modifier = GlanceModifier
                         .size(WidgetImageSize)
                         .clickable(imageTappedActionProvider)
-                        .cornerRadius(6.dp),
+                        .cornerRadius(ListItemImageCornerRadius),
                     contentScale = ContentScale.Crop,
                 )
             }

@@ -25,7 +25,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
-import dev.gaborbiro.dailymacros.features.widget.NotesWidget
+import dev.gaborbiro.dailymacros.features.widget.DailyMacrosWidgetScreen
 import dev.gaborbiro.dailymacros.repo.chatgpt.model.DomainError
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import ellipsize
@@ -237,7 +237,7 @@ internal class ModalViewModel(
     fun onRepeatRecordTapped(recordId: Long) {
         runSafely {
             recordsRepository.duplicateRecord(recordId)
-            NotesWidget.reload()
+            DailyMacrosWidgetScreen.reload()
             popDialog()
         }
     }
@@ -246,7 +246,7 @@ internal class ModalViewModel(
     fun onRepeatTemplateTapped(templateId: Long) {
         runSafely {
             recordsRepository.applyTemplate(templateId)
-            NotesWidget.reload()
+            DailyMacrosWidgetScreen.reload()
             popDialog()
         }
     }
@@ -260,7 +260,7 @@ internal class ModalViewModel(
     fun onDeleteTapped(recordId: Long) {
         runSafely {
             deleteRecordUseCase.execute(recordId)
-            NotesWidget.reload()
+            DailyMacrosWidgetScreen.reload()
             popDialog()
         }
     }
@@ -291,7 +291,7 @@ internal class ModalViewModel(
                         title = dialogState.title,
                         description = dialogState.description,
                     )
-                    NotesWidget.reload()
+                    DailyMacrosWidgetScreen.reload()
                     popDialog()
                     popDialog()
                 }
@@ -388,7 +388,7 @@ internal class ModalViewModel(
             is CreateValidationResult.Valid -> {
                 val recordId =
                     createRecordUseCase.execute(images ?: emptyList(), title, description)
-                NotesWidget.reload()
+                DailyMacrosWidgetScreen.reload()
                 WorkManager.getInstance(App.appContext).enqueue(
                     MacrosWorkRequest.getWorkRequest(
                         recordId = recordId
@@ -440,7 +440,7 @@ internal class ModalViewModel(
                         description = description,
                     )
                     popDialog()
-                    NotesWidget.reload()
+                    DailyMacrosWidgetScreen.reload()
                 }
             }
 
@@ -488,7 +488,7 @@ internal class ModalViewModel(
                     }
                 }
             }
-        NotesWidget.reload()
+        DailyMacrosWidgetScreen.reload()
         popDialog()
     }
 

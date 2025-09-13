@@ -5,12 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
 import dev.gaborbiro.dailymacros.App
-import dev.gaborbiro.dailymacros.features.common.PreferencesManager
+import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
 import dev.gaborbiro.dailymacros.features.common.workers.MacrosWorkRequest
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
-import dev.gaborbiro.dailymacros.features.widget.NotesWidget
+import dev.gaborbiro.dailymacros.features.widget.DailyMacrosWidgetScreen
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.settings.SettingsRepository
@@ -32,7 +32,7 @@ internal class OverviewViewModel(
     private val repository: RecordsRepository,
     private val uiMapper: RecordsUIMapper,
     private val settingsRepository: SettingsRepository,
-    private val preferencesManager: PreferencesManager,
+    private val appPrefs: AppPrefs,
 ) : ViewModel() {
 
     private val _viewState: MutableStateFlow<OverviewViewState> =
@@ -62,8 +62,8 @@ internal class OverviewViewModel(
                             it.copy(showAddWidgetButton = true)
                         }
                     }
-                    if (records.size == 2 && preferencesManager.showCoachMark) {
-                        preferencesManager.showCoachMark = false
+                    if (records.size == 2 && appPrefs.showCoachMark) {
+                        appPrefs.showCoachMark = false
                         delay(2.seconds)
                         _viewState.update {
                             it.copy(
@@ -79,7 +79,7 @@ internal class OverviewViewModel(
         viewModelScope.launch {
             repository.duplicateRecord(id)
         }
-        NotesWidget.reload()
+        DailyMacrosWidgetScreen.reload()
     }
 
     fun onCoachMarkDismissed() {
@@ -125,7 +125,7 @@ internal class OverviewViewModel(
                     recordToUndelete = oldRecord,
                 )
             }
-            NotesWidget.reload()
+            DailyMacrosWidgetScreen.reload()
         }
     }
 
@@ -146,7 +146,7 @@ internal class OverviewViewModel(
                 recordToUndelete = null,
             )
         }
-        NotesWidget.reload()
+        DailyMacrosWidgetScreen.reload()
     }
 
     fun onUndoDeleteDismissed() {
@@ -177,7 +177,7 @@ internal class OverviewViewModel(
                 "Notes",
                 "template deleted: $templateDeleted, image deleted: $imageDeleted"
             )
-            NotesWidget.reload()
+            DailyMacrosWidgetScreen.reload()
         }
     }
 

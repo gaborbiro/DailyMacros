@@ -1,12 +1,13 @@
 package dev.gaborbiro.dailymacros.features.widget.views
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.remember
 import androidx.glance.GlanceModifier
 import androidx.glance.action.Action
 import androidx.glance.action.action
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.cornerRadius
+import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
@@ -18,21 +19,27 @@ import androidx.glance.layout.wrapContentHeight
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
-import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultHorizontal
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelTemplate
+import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultHorizontal
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 
 @Composable
 internal fun ListItemTemplate(
+    modifier: GlanceModifier = GlanceModifier,
     template: ListUIModelTemplate,
     imageTapActionProvider: Action,
     bodyTapActionProvider: Action,
 ) {
+    val extraPadding = remember { (WidgetImageSize - WidgetTemplateImageSize) / 2 }
     Row(
-        modifier = GlanceModifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable(bodyTapActionProvider)
-            .padding(start = PaddingWidgetDefaultHorizontal),
+            .background(sectionTitleBackground)
+            .then(
+                GlanceModifier
+                    .padding(start = extraPadding)
+            ),
         verticalAlignment = Alignment.Vertical.CenterVertically,
     ) {
         template.images.firstOrNull()
@@ -42,7 +49,7 @@ internal fun ListItemTemplate(
                     modifier = GlanceModifier
                         .size(WidgetTemplateImageSize)
                         .clickable(imageTapActionProvider)
-                        .cornerRadius(6.dp),
+                        .cornerRadius(ListItemImageCornerRadius),
                     contentScale = ContentScale.Crop,
                 )
             }
@@ -53,7 +60,7 @@ internal fun ListItemTemplate(
         Text(
             modifier = GlanceModifier
                 .wrapContentHeight()
-                .padding(horizontal = PaddingWidgetDefaultHorizontal),
+                .padding(start = PaddingWidgetDefaultHorizontal + extraPadding, end = PaddingWidgetDefaultHorizontal),
             text = template.title,
             maxLines = 3,
             style = titleTextStyle,

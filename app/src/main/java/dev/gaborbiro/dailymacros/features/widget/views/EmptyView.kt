@@ -62,7 +62,7 @@ internal fun EmptyView() {
                         .height(70.dp)
                         .wrapContentWidth()
                         .padding(vertical = PaddingHalf),
-                    provider = ImageProvider(R.drawable.arrow),
+                    provider = ImageProvider(R.drawable.ic_arrow),
                     contentDescription = "Arrow to bottom-left",
                     contentScale = ContentScale.Fit,
                     colorFilter = ColorFilter.tint(GlanceTheme.colors.onBackground),

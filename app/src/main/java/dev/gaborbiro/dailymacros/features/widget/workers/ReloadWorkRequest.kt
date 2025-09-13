@@ -14,7 +14,7 @@ import dev.gaborbiro.dailymacros.repo.records.ApiMapper
 import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
-import dev.gaborbiro.dailymacros.features.widget.NotesWidget
+import dev.gaborbiro.dailymacros.features.widget.DailyMacrosWidgetScreen
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
@@ -95,16 +95,16 @@ internal class ReloadWorkRequest(
             stringPreferencesKey(workerParameters.inputData.getString(PREFS_TOP_TEMPLATES_KEY)!!)
 
         val glanceIds = GlanceAppWidgetManager(context)
-            .getGlanceIds(NotesWidget::class.java)
+            .getGlanceIds(DailyMacrosWidgetScreen::class.java)
         val recordsJson = gson.toJson(recentRecords)
         val templatesJson = gson.toJson(topTemplates)
         glanceIds.forEach { glanceId ->
-            updateAppWidgetState(context, glanceId) { prefs ->
-                prefs[recentRecordsPrefsKey] = recordsJson
-                prefs[topTemplatesPrefsKey] = templatesJson
+            updateAppWidgetState(context, glanceId) { widgetPrefs ->
+                widgetPrefs[recentRecordsPrefsKey] = recordsJson
+                widgetPrefs[topTemplatesPrefsKey] = templatesJson
             }
         }
-        NotesWidget().updateAll(context)
+        DailyMacrosWidgetScreen().updateAll(context)
     }
 }
 

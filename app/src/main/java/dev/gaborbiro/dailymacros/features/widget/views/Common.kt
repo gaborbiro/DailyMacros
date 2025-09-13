@@ -9,7 +9,10 @@ import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 
 val WidgetImageSize = 64.dp
+
 val WidgetTemplateImageSize = 48.dp
+
+val ListItemImageCornerRadius = 6.dp
 
 val sectionTitleBackground
     @Composable get() = GlanceTheme.colors.secondaryContainer
@@ -17,7 +20,7 @@ val sectionTitleBackground
 val sectionTitleTextStyle: TextStyle
     @Composable get() = TextStyle(
         fontWeight = FontWeight.Bold,
-        fontSize = 12.sp,
+        fontSize = 14.sp,
         textAlign = TextAlign.Center,
         color = GlanceTheme.colors.onSecondaryContainer
     )

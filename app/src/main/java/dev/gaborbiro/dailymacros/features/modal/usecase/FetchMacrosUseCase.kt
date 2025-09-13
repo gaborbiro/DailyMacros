@@ -5,7 +5,7 @@ import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.modal.RecordsMapper
 import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
-import dev.gaborbiro.dailymacros.features.widget.NotesWidget
+import dev.gaborbiro.dailymacros.features.widget.DailyMacrosWidgetScreen
 import dev.gaborbiro.dailymacros.repo.chatgpt.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
@@ -45,6 +45,6 @@ internal class FetchMacrosUseCase(
             title = null,
             message = listOfNotNull(record.template.name, macrosStr, issues, macros?.notes).joinToString("\n"),
         )
-        NotesWidget.reload()
+        DailyMacrosWidgetScreen.reload()
     }
 }
