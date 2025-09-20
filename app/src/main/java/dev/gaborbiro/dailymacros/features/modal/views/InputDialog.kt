@@ -70,6 +70,7 @@ internal fun InputDialog(
     val description =
         (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.description
     val macros = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.macros
+    val allowEdit = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.allowEdit ?: true
 
     val titleField: MutableState<TextFieldValue> = remember {
         mutableStateOf(TextFieldValue(title ?: ""))
@@ -111,33 +112,43 @@ internal fun InputDialog(
                 onAddImageViaPickerTapped = onAddImageViaPickerTapped,
                 onImagesInfoButtonTapped = onImagesInfoButtonTapped,
             )
+        },
+        buttons = {
             Row(
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .padding(PaddingDefault),
                 horizontalArrangement = Arrangement.End,
             ) {
-                TextButton(onDismissRequested) {
+                if (allowEdit) {
+                    TextButton(onDismissRequested) {
+                        Text(
+                            modifier = Modifier
+                                .padding(horizontal = PaddingDefault),
+                            color = MaterialTheme.colorScheme.primary,
+                            text = "Cancel",
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                    }
+                    TextButton(onDone) {
+                        Text(
+                            modifier = Modifier
+                                .padding(horizontal = PaddingDefault),
+                            color = MaterialTheme.colorScheme.primary,
+                            text = "Save",
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                    }
+                } else {
                     Text(
                         modifier = Modifier
                             .padding(horizontal = PaddingDefault),
                         color = MaterialTheme.colorScheme.primary,
-                        text = "Cancel",
-                        style = MaterialTheme.typography.labelLarge,
-                    )
-                }
-                TextButton(onDone) {
-                    Text(
-                        modifier = Modifier
-                            .padding(horizontal = PaddingDefault),
-                        color = MaterialTheme.colorScheme.primary,
-                        text = "Save",
+                        text = "Close",
                         style = MaterialTheme.typography.labelLarge,
                     )
                 }
             }
-        },
-        buttons = {
-
         }
     )
 }
@@ -246,7 +257,7 @@ private fun ColumnScope.InputDialogContent(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault, vertical = PaddingHalf)
                 .fillMaxWidth(),
-            text = "Analyzing image…",
+            text = "Analyzing images…",
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
         )
@@ -342,6 +353,7 @@ private fun NoteInputDialogContentPreviewEdit() {
                     title = null,
                     titleHint = "Describe your meal (or pick a suggestion from below)",
                     description = null,
+                    allowEdit = true,
                     macros = MacrosUIModel(
                         calories = "Calories: 2100 cal",
                         protein = "Protein: 150g",
@@ -352,7 +364,7 @@ private fun NoteInputDialogContentPreviewEdit() {
                         salt = "Salt: 5g",
                         fibre = "Fibre: 4.5g",
                         notes = "Notes: This is a note",
-                    )
+                    ),
                 ),
                 onRecordDetailsSubmitRequested = { _, _ -> },
                 onRecordDetailsUserTyping = { _, _ -> },

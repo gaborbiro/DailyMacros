@@ -116,10 +116,10 @@ internal class ModalViewModel(
 
     @UiThread
     fun onViewRecordDetailsDeeplink(recordId: Long) {
-        viewRecordDetails(recordId)
+        viewRecordDetails(recordId, edit = true)
     }
 
-    private fun viewRecordDetails(recordId: Long) {
+    private fun viewRecordDetails(recordId: Long, edit: Boolean) {
         runSafely {
             val record =
                 recordsRepository.getRecord(recordId)
@@ -144,6 +144,7 @@ internal class ModalViewModel(
                 title = record.template.name,
                 description = record.template.description,
                 macros = macros,
+                allowEdit = edit,
                 titleSuggestions = emptyList(),
                 titleHint = "Describe your meal",
                 validationError = null,
@@ -257,7 +258,7 @@ internal class ModalViewModel(
     }
 
     @UiThread
-    fun onRepeatRecordTapped(recordId: Long) {
+    fun onRepeatRecordButtonTapped(recordId: Long) {
         runSafely {
             recordsRepository.duplicateRecord(recordId)
             DailyMacrosWidgetScreen.reload()
@@ -266,7 +267,7 @@ internal class ModalViewModel(
     }
 
     @UiThread
-    fun onRepeatTemplateTapped(templateId: Long) {
+    fun onRepeatTemplateButtonTapped(templateId: Long) {
         runSafely {
             recordsRepository.applyTemplate(templateId)
             DailyMacrosWidgetScreen.reload()
@@ -275,8 +276,18 @@ internal class ModalViewModel(
     }
 
     @UiThread
-    fun onDetailsTapped(recordId: Long) {
-        viewRecordDetails(recordId)
+    fun onRecordDetailsButtonTapped(recordId: Long) {
+        viewRecordDetails(recordId, edit = true)
+    }
+
+    @UiThread
+    fun onTemplateDetailsButtonTapped(templateId: Long) {
+        runSafely {
+            recordsRepository.getRecordsByTemplate(templateId).firstOrNull()
+                ?.let {
+                    viewRecordDetails(it.dbId, edit = false)
+                }
+        }
     }
 
     @UiThread

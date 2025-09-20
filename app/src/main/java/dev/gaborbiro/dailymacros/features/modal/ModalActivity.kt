@@ -71,24 +71,24 @@ class ModalActivity : AppCompatActivity() {
 
     companion object {
 
-        fun launchAddRecordWithCamera(context: Context) =
+        fun launchToAddRecordWithCamera(context: Context) =
             launchActivity(context, getCameraIntent(context))
 
         private fun getCameraIntent(context: Context) = getActionIntent(context, Action.CAMERA)
 
-        fun launchAddRecordWithImagePicker(context: Context) =
+        fun launchToAddRecordWithImagePicker(context: Context) =
             launchActivity(context, getImagePickerIntent(context))
 
         private fun getImagePickerIntent(context: Context) =
             getActionIntent(context, Action.PICK_IMAGE)
 
-        fun launchRecordImageViewRequest(context: Context, recordId: Long) = launchActivity(
+        fun launchToShowRecordImage(context: Context, recordId: Long) = launchActivity(
             appContext = context,
             intent = getViewImageAction(context),
             EXTRA_RECORD_ID to recordId,
         )
 
-        fun launchViewTemplateImage(context: Context, templateId: Long) = launchActivity(
+        fun launchToShowTemplateImage(context: Context, templateId: Long) = launchActivity(
             appContext = context,
             intent = getViewImageAction(context),
             EXTRA_TEMPLATE_ID to templateId,
@@ -97,7 +97,7 @@ class ModalActivity : AppCompatActivity() {
         private fun getViewImageAction(context: Context) =
             getActionIntent(context, Action.VIEW_IMAGE)
 
-        fun launchAddRecord(context: Context) = launchActivity(context, getTextOnlyIntent(context))
+        fun launchToAddRecord(context: Context) = launchActivity(context, getTextOnlyIntent(context))
 
         private fun getTextOnlyIntent(context: Context) = getActionIntent(context, Action.TEXT_ONLY)
 
@@ -109,7 +109,7 @@ class ModalActivity : AppCompatActivity() {
             )
         }
 
-        fun launchSelectRecordAction(context: Context, recordId: Long) {
+        fun launchToSelectRecordAction(context: Context, recordId: Long) {
             launchActivity(
                 appContext = context,
                 intent = getActionIntent(context, Action.SELECT_RECORD_ACTION),
@@ -117,7 +117,7 @@ class ModalActivity : AppCompatActivity() {
             )
         }
 
-        fun launchSelectTemplateAction(context: Context, templateId: Long) {
+        fun launchToSelectTemplateAction(context: Context, templateId: Long) {
             launchActivity(
                 appContext = context,
                 intent = getActionIntent(context, Action.SELECT_TEMPLATE_ACTION),
@@ -317,8 +317,8 @@ class ModalActivity : AppCompatActivity() {
 
             is DialogState.SelectRecordActionDialog -> SelectRecordActionDialog(
                 recordId = dialogState.recordId,
-                onRepeatTapped = viewModel::onRepeatRecordTapped,
-                onDetailsTapped = viewModel::onDetailsTapped,
+                onRepeatTapped = viewModel::onRepeatRecordButtonTapped,
+                onDetailsTapped = viewModel::onRecordDetailsButtonTapped,
                 onDeleteTapped = viewModel::onDeleteTapped,
                 onDismissRequested = onDismissRequested,
             )
@@ -326,7 +326,8 @@ class ModalActivity : AppCompatActivity() {
             is DialogState.SelectTemplateActionDialog -> {
                 SelectTemplateActionDialog(
                     templateId = dialogState.templateId,
-                    onRepeatTapped = viewModel::onRepeatTemplateTapped,
+                    onRepeatButtonTapped = viewModel::onRepeatTemplateButtonTapped,
+                    onDetailsButtonTapped = viewModel::onTemplateDetailsButtonTapped,
                     onDismissRequested = onDismissRequested,
                 )
             }

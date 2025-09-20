@@ -22,13 +22,12 @@ import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.WidgetColorScheme
-import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPickFooter
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPickHeader
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelTop10SectionEnd
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelTop10SectionStart
 import dev.gaborbiro.dailymacros.features.widget.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.widget.views.WidgetView
 import dev.gaborbiro.dailymacros.features.widget.workers.ReloadWorkRequest
@@ -41,7 +40,6 @@ class DailyMacrosWidgetScreen : GlanceAppWidget() {
     companion object {
         const val PREFS_RECENT_RECORDS = "recent_records"
         const val PREFS_TOP_TEMPLATES = "top_templates"
-        val PREFS_SHOW_QUICK_ADD_TOOLTIP = booleanPreferencesKey("show_quick_add_tooltip")
 
         fun reload() {
             Log.i("NotesWidget", "reload()")
@@ -68,7 +66,6 @@ class DailyMacrosWidgetScreen : GlanceAppWidget() {
     override val stateDefinition = WidgetPreferences
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val appPrefs = AppPrefs(context)
         provideContent {
             val widgetPrefs = currentState<Preferences>()
             val fileStore =
@@ -86,9 +83,9 @@ class DailyMacrosWidgetScreen : GlanceAppWidget() {
                 if (recentRecords.isNotEmpty() || topTemplates.isNotEmpty()) {
                     addAll(recentRecords.take(3))
                     if (topTemplates.isNotEmpty()) {
-                        add(ListUIModelTop10SectionStart(widgetPrefs.showQuickAddTooltip(default = appPrefs.showTooltipQuickAdd)))
+                        add(ListUIModelQuickPickHeader)
                         addAll(topTemplates)
-                        add(ListUIModelTop10SectionEnd())
+                        add(ListUIModelQuickPickFooter)
                     }
                     addAll(recentRecords.drop(3))
                 }
@@ -131,9 +128,6 @@ fun Preferences.retrieveTopTemplates(): List<Template> {
         }
         ?: emptyList()
 }
-
-fun Preferences.showQuickAddTooltip(default: Boolean): Boolean =
-    this[DailyMacrosWidgetScreen.PREFS_SHOW_QUICK_ADD_TOOLTIP] ?: default
 
 class NotesWidgetReceiver : GlanceAppWidgetReceiver() {
 

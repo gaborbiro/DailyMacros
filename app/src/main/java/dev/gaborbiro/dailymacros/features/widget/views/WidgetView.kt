@@ -24,7 +24,7 @@ import androidx.glance.preview.Preview
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelTemplate
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPick
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetHalfVertical
 import dev.gaborbiro.dailymacros.features.widget.WidgetActionProvider
@@ -54,9 +54,8 @@ internal fun WidgetView(
                     items = items,
                     recordImageTapActionProvider = { recordId -> actionProvider.recordImageTapped(recordId) },
                     recordBodyTapActionProvider = { recordId -> actionProvider.recordBodyTapped(recordId) },
-                    templateImageTapActionProvider = { templateId -> actionProvider.templateImageTapped(templateId) },
-                    templateBodyTapActionProvider = { templateId -> actionProvider.templateBodyTapped(templateId) },
-                    dismissQuickAddTooltipActionProvider = { actionProvider.dismissQuickAddTooltip() }
+                    quickPickImageTapActionProvider = { templateId -> actionProvider.quickPickImageTapped(templateId) },
+                    quickPickBodyTapActionProvider = { templateId -> actionProvider.quickPickBodyTapped(templateId) },
                 )
             } else {
                 EmptyView()
@@ -125,19 +124,19 @@ private fun WidgetViewPreview() {
                         fibre = "fib 4",
                     ),
                 ),
-                ListUIModelTemplate(
+                ListUIModelQuickPick(
                     templateId = 1,
                     title = "Breakfast",
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     images = listOf("", ""),
                 ),
-                ListUIModelTemplate(
+                ListUIModelQuickPick(
                     templateId = 2,
                     title = "Lunch",
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     images = listOf("", ""),
                 ),
-                ListUIModelTemplate(
+                ListUIModelQuickPick(
                     templateId = 3,
                     title = "Dinner",
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",

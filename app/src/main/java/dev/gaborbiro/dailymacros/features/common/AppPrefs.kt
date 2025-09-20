@@ -13,10 +13,6 @@ internal class AppPrefs(context: Context) {
         get() = prefs.getBoolean("show_coach_mark", true)
         set(value) = prefs.edit { putBoolean("show_coach_mark", value) }
 
-    var showTooltipQuickAdd: Boolean
-        get() = prefs.getBoolean("showTooltipQuickAdd", true)
-        set(value) = prefs.edit { putBoolean("showTooltipQuickAdd", value) }
-
 //    // String
 //    var username: String?
 //        get() = prefs.getString("username", null)

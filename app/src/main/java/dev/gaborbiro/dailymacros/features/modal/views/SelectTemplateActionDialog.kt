@@ -25,7 +25,8 @@ import dev.gaborbiro.dailymacros.design.PaddingDefault
 @Composable
 fun SelectTemplateActionDialog(
     templateId: Long,
-    onRepeatTapped: (templateId: Long) -> Unit,
+    onRepeatButtonTapped: (templateId: Long) -> Unit,
+    onDetailsButtonTapped: (templateId: Long) -> Unit,
     onDismissRequested: () -> Unit,
 ) {
     Dialog(onDismissRequest = onDismissRequested) {
@@ -36,11 +37,27 @@ fun SelectTemplateActionDialog(
         ) {
             Column(modifier = Modifier.padding(PaddingDefault)) {
                 Button(
-                    onClick = { onRepeatTapped(templateId) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer
-                    ),
+                    onClick = { onDetailsButtonTapped(templateId) },
+                    colors = normalButtonColors,
+                    shape = RoundedCornerShape(50.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_topic),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(text = "Details")
+                }
+
+                Spacer(modifier = Modifier.height(PaddingDefault))
+
+                Button(
+                    onClick = { onRepeatButtonTapped(templateId) },
+                    colors = normalButtonColors,
                     shape = RoundedCornerShape(50.dp),
                     modifier = Modifier
                         .fillMaxWidth()

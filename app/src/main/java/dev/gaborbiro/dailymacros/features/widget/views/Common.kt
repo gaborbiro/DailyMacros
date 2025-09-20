@@ -14,8 +14,8 @@ val WidgetTemplateImageSize = 48.dp
 
 val ListItemImageCornerRadius = 6.dp
 
-val sectionTitleBackground
-    @Composable get() = GlanceTheme.colors.secondaryContainer
+val quickPickBackground
+    @Composable get() = GlanceTheme.colors.primaryContainer
 
 val sectionTitleTextStyle: TextStyle
     @Composable get() = TextStyle(

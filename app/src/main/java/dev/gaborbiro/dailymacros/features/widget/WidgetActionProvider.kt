@@ -8,8 +8,6 @@ import androidx.glance.action.actionParametersOf
 import androidx.glance.action.actionStartActivity
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
-import androidx.glance.appwidget.state.updateAppWidgetState
-import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.main.MainActivity
 import dev.gaborbiro.dailymacros.features.modal.ModalActivity
 
@@ -30,15 +28,13 @@ internal interface WidgetActionProvider {
 
     fun recordBodyTapped(recordId: Long): Action
 
-    fun templateImageTapped(templateId: Long): Action
+    fun quickPickImageTapped(templateId: Long): Action
 
-    fun templateBodyTapped(templateId: Long): Action
+    fun quickPickBodyTapped(templateId: Long): Action
 
     fun reload(): Action
 
     fun openApp(): Action
-
-    fun dismissQuickAddTooltip(): Action
 }
 
 internal class WidgetActionProviderImpl : WidgetActionProvider {
@@ -71,24 +67,20 @@ internal class WidgetActionProviderImpl : WidgetActionProvider {
         )
     }
 
-    override fun templateImageTapped(templateId: Long): Action {
-        return actionRunCallback<TemplateImageTappedAction>(
+    override fun quickPickImageTapped(templateId: Long): Action {
+        return actionRunCallback<QuickPickImageTappedAction>(
             actionParametersOf(
                 ActionParameters.Key<Long>(PREFS_KEY_TEMPLATE) to templateId
             )
         )
     }
 
-    override fun templateBodyTapped(templateId: Long): Action {
-        return actionRunCallback<TemplateBodyTappedAction>(
+    override fun quickPickBodyTapped(templateId: Long): Action {
+        return actionRunCallback<QuickPickBodyTappedAction>(
             actionParametersOf(
                 ActionParameters.Key<Long>(PREFS_KEY_TEMPLATE) to templateId
             )
         )
-    }
-
-    override fun dismissQuickAddTooltip(): Action {
-        return actionRunCallback<DismissQuickAddTooltipAction>()
     }
 
     override fun reload(): Action {
@@ -107,7 +99,7 @@ class CreateRecordWithCameraAction : ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters,
     ) {
-        ModalActivity.launchAddRecordWithCamera(context)
+        ModalActivity.launchToAddRecordWithCamera(context)
     }
 }
 
@@ -117,7 +109,7 @@ class CreateRecordWithImagePickerAction : ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters,
     ) {
-        ModalActivity.launchAddRecordWithImagePicker(context)
+        ModalActivity.launchToAddRecordWithImagePicker(context)
     }
 }
 
@@ -127,7 +119,7 @@ class CreateRecordAction : ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters,
     ) {
-        ModalActivity.launchAddRecord(context)
+        ModalActivity.launchToAddRecord(context)
     }
 }
 
@@ -138,18 +130,18 @@ class RecordImageTappedAction : ActionCallback {
         parameters: ActionParameters,
     ) {
         val recordId = parameters[ActionParameters.Key<Long>(PREFS_KEY_RECORD)]!!
-        ModalActivity.launchRecordImageViewRequest(context, recordId)
+        ModalActivity.launchToShowRecordImage(context, recordId)
     }
 }
 
-class TemplateImageTappedAction : ActionCallback {
+class QuickPickImageTappedAction : ActionCallback {
     override suspend fun onAction(
         context: Context,
         glanceId: GlanceId,
         parameters: ActionParameters,
     ) {
         val templateId = parameters[ActionParameters.Key<Long>(PREFS_KEY_TEMPLATE)]!!
-        ModalActivity.launchViewTemplateImage(context, templateId)
+        ModalActivity.launchToShowTemplateImage(context, templateId)
     }
 }
 
@@ -160,11 +152,11 @@ class RecordBodyTappedAction : ActionCallback {
         parameters: ActionParameters,
     ) {
         val recordId = parameters[ActionParameters.Key<Long>(PREFS_KEY_RECORD)]!!
-        ModalActivity.launchSelectRecordAction(context, recordId)
+        ModalActivity.launchToSelectRecordAction(context, recordId)
     }
 }
 
-class TemplateBodyTappedAction : ActionCallback {
+class QuickPickBodyTappedAction : ActionCallback {
 
     override suspend fun onAction(
         context: Context,
@@ -172,7 +164,7 @@ class TemplateBodyTappedAction : ActionCallback {
         parameters: ActionParameters,
     ) {
         val templateId = parameters[ActionParameters.Key<Long>(PREFS_KEY_TEMPLATE)]!!
-        ModalActivity.launchSelectTemplateAction(context, templateId)
+        ModalActivity.launchToSelectTemplateAction(context, templateId)
     }
 }
 
@@ -184,21 +176,5 @@ class RefreshAction : ActionCallback {
         parameters: ActionParameters,
     ) {
         DailyMacrosWidgetScreen.reload()
-    }
-}
-
-class DismissQuickAddTooltipAction : ActionCallback {
-    override suspend fun onAction(
-        context: Context,
-        glanceId: GlanceId,
-        parameters: ActionParameters,
-    ) {
-        println("DismissQuickAddTooltipAction")
-        AppPrefs(context).showTooltipQuickAdd = false
-        updateAppWidgetState(context, glanceId) { prefs ->
-            prefs[DailyMacrosWidgetScreen.Companion.PREFS_SHOW_QUICK_ADD_TOOLTIP] = false
-            prefs
-        }
-        DailyMacrosWidgetScreen().update(context, glanceId) // trigger recompose
     }
 }

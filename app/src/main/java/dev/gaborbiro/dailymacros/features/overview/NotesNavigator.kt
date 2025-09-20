@@ -24,7 +24,7 @@ class OverviewNavigatorImpl(
     }
 
     override fun viewImage(recordId: Long) {
-        ModalActivity.launchRecordImageViewRequest(appContext, recordId)
+        ModalActivity.launchToShowRecordImage(appContext, recordId)
     }
 
     override fun openSettingsScreen() {

@@ -70,6 +70,7 @@ sealed class DialogState {
             val description: String?,
             val macros: MacrosUIModel?,
             val titleSuggestions: List<String>,
+            val allowEdit: Boolean,
             override val titleHint: String,
             override val validationError: String? = null,
         ) : InputDialog(

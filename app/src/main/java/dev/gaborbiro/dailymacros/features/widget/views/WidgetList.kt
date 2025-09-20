@@ -17,9 +17,9 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelTemplate
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelTop10SectionEnd
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelTop10SectionStart
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPick
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPickFooter
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPickHeader
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultHorizontal
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultVertical
@@ -31,9 +31,8 @@ internal fun WidgetList(
     items: List<ListUIModelBase>,
     recordImageTapActionProvider: @Composable (recordId: Long) -> Action,
     recordBodyTapActionProvider: @Composable (recordId: Long) -> Action,
-    templateImageTapActionProvider: @Composable (templateId: Long) -> Action,
-    templateBodyTapActionProvider: @Composable (templateId: Long) -> Action,
-    dismissQuickAddTooltipActionProvider: @Composable () -> Action,
+    quickPickImageTapActionProvider: @Composable (templateId: Long) -> Action,
+    quickPickBodyTapActionProvider: @Composable (templateId: Long) -> Action,
 ) {
     LazyColumn(
         modifier = GlanceModifier
@@ -61,7 +60,7 @@ internal fun WidgetList(
                     }
                 }
 
-                is ListUIModelTop10SectionStart -> {
+                is ListUIModelQuickPickHeader -> {
                     Column(
                         modifier = GlanceModifier
                             .fillMaxWidth()
@@ -70,36 +69,33 @@ internal fun WidgetList(
                             modifier = GlanceModifier
                                 .height(PaddingWidgetDefaultVertical)
                         )
-                        ListItemTop10(
-                            showQuickAddTooltip = item.showQuickAddTooltip,
-                            dismissAction = dismissQuickAddTooltipActionProvider(),
-                        )
+                        ListItemQuickPickHeader()
                     }
                 }
 
-                is ListUIModelTemplate -> {
+                is ListUIModelQuickPick -> {
                     Column(
                         modifier = GlanceModifier
                             .fillMaxWidth()
                     ) {
-                        ListItemTemplate(
+                        ListItemQuickPick(
                             modifier = GlanceModifier
                                 .padding(horizontal = PaddingWidgetDefaultHorizontal, vertical = PaddingWidgetHalfVertical),
-                            template = item,
-                            imageTapActionProvider = templateImageTapActionProvider(item.templateId),
-                            bodyTapActionProvider = templateBodyTapActionProvider(item.templateId),
+                            quickPickEntry = item,
+                            imageTapActionProvider = quickPickImageTapActionProvider(item.templateId),
+                            bodyTapActionProvider = quickPickBodyTapActionProvider(item.templateId),
                         )
                     }
                 }
 
-                is ListUIModelTop10SectionEnd -> {
+                is ListUIModelQuickPickFooter -> {
                     Column(
                         modifier = GlanceModifier
                             .fillMaxWidth()
                     ) {
                         Spacer(
                             modifier = GlanceModifier
-                                .background(sectionTitleBackground)
+                                .background(quickPickBackground)
                                 .height(PaddingWidgetHalfVertical)
                         )
                     }
@@ -112,7 +108,7 @@ internal fun WidgetList(
 @Preview
 @Composable
 @OptIn(ExperimentalGlancePreviewApi::class)
-private fun RecordListPreviewExpanded() {
+private fun WidgetListPreview() {
     WidgetPreview {
         WidgetList(
             items = listOf(
@@ -131,26 +127,26 @@ private fun RecordListPreviewExpanded() {
                         fibre = "fib 4",
                     ),
                 ),
-                ListUIModelTop10SectionStart(showQuickAddTooltip = true),
-                ListUIModelTemplate(
+                ListUIModelQuickPickHeader,
+                ListUIModelQuickPick(
                     templateId = 1,
                     title = "Breakfast",
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     images = listOf("", ""),
                 ),
-                ListUIModelTemplate(
+                ListUIModelQuickPick(
                     templateId = 2,
                     title = "Lunch",
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     images = listOf("", ""),
                 ),
-                ListUIModelTemplate(
+                ListUIModelQuickPick(
                     templateId = 3,
                     title = "Dinner",
                     description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     images = listOf("", ""),
                 ),
-                ListUIModelTop10SectionEnd(),
+                ListUIModelQuickPickFooter,
                 ListUIModelRecord(
                     recordId = 2L,
                     templateId = 1L,
@@ -184,9 +180,8 @@ private fun RecordListPreviewExpanded() {
             ),
             recordImageTapActionProvider = { action {} },
             recordBodyTapActionProvider = { action {} },
-            templateImageTapActionProvider = { action {} },
-            templateBodyTapActionProvider = { action {} },
-            dismissQuickAddTooltipActionProvider = { action {} }
+            quickPickImageTapActionProvider = { action {} },
+            quickPickBodyTapActionProvider = { action {} },
         )
     }
 }

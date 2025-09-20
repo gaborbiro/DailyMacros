@@ -19,14 +19,14 @@ import androidx.glance.layout.wrapContentHeight
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelTemplate
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPick
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultHorizontal
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 
 @Composable
-internal fun ListItemTemplate(
+internal fun ListItemQuickPick(
     modifier: GlanceModifier = GlanceModifier,
-    template: ListUIModelTemplate,
+    quickPickEntry: ListUIModelQuickPick,
     imageTapActionProvider: Action,
     bodyTapActionProvider: Action,
 ) {
@@ -35,14 +35,14 @@ internal fun ListItemTemplate(
         modifier = modifier
             .fillMaxWidth()
             .clickable(bodyTapActionProvider)
-            .background(sectionTitleBackground)
+            .background(quickPickBackground)
             .then(
                 GlanceModifier
                     .padding(start = extraPadding)
             ),
         verticalAlignment = Alignment.Vertical.CenterVertically,
     ) {
-        template.images.firstOrNull()
+        quickPickEntry.images.firstOrNull()
             ?.let {
                 LocalImage(
                     it,
@@ -61,7 +61,7 @@ internal fun ListItemTemplate(
             modifier = GlanceModifier
                 .wrapContentHeight()
                 .padding(start = PaddingWidgetDefaultHorizontal + extraPadding, end = PaddingWidgetDefaultHorizontal),
-            text = template.title,
+            text = quickPickEntry.title,
             maxLines = 3,
             style = titleTextStyle,
         )
@@ -71,10 +71,10 @@ internal fun ListItemTemplate(
 @Preview
 @Composable
 @OptIn(ExperimentalGlancePreviewApi::class)
-private fun TemplateListItemPreview() {
+private fun ListItemQuickPickPreview() {
     WidgetPreview {
-        ListItemTemplate(
-            template = ListUIModelTemplate(
+        ListItemQuickPick(
+            quickPickEntry = ListUIModelQuickPick(
                 title = "Breakfast",
                 description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                 images = listOf("", ""),
