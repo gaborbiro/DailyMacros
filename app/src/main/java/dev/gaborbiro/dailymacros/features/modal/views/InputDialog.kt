@@ -1,8 +1,6 @@
 package dev.gaborbiro.dailymacros.features.modal.views
 
 import android.content.res.Configuration
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
@@ -12,12 +10,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -29,12 +24,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -42,10 +35,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
+import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.features.common.view.PreviewImageStoreProvider
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.MacrosUIModel
@@ -61,10 +54,10 @@ internal fun InputDialog(
     onAddImageViaCameraTapped: () -> Unit,
     onAddImageViaPickerTapped: () -> Unit,
     onDismissRequested: () -> Unit,
-    onTitleSelectTooltipDismissed: () -> Unit,
-    onCheckAITooltipDismissed: () -> Unit,
+    onImagesInfoButtonTapped: () -> Unit,
 ) {
     val title = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.title
+    val titleHint = dialogState.titleHint
     val images: List<String> =
         (dialogState as? DialogState.InputDialog.RecordDetailsDialog)
             ?.images
@@ -107,18 +100,16 @@ internal fun InputDialog(
                 showKeyboardOnOpen = showKeyboardOnOpen,
                 images = images,
                 titleField = titleField,
+                titleHint = titleHint,
                 suggestions = suggestions,
                 showProgressIndicator = showProgressIndicator ?: false,
                 descriptionField = descriptionField,
                 error = dialogState.validationError,
                 macros = macros,
-                titleSelectTooltipEnabled = dialogState.titleSelectTooltipEnabled,
-                checkAITooltipEnabled = dialogState.checkAIPhotoDescriptionTooltipEnabled,
                 onImageTapped = onImageTapped,
                 onAddImageViaCameraTapped = onAddImageViaCameraTapped,
                 onAddImageViaPickerTapped = onAddImageViaPickerTapped,
-                onTitleSelectTooltipDismissed = onTitleSelectTooltipDismissed,
-                onCheckAITooltipDismissed = onCheckAITooltipDismissed,
+                onImagesInfoButtonTapped = onImagesInfoButtonTapped,
             )
             Row(
                 modifier = Modifier
@@ -157,40 +148,17 @@ private fun ColumnScope.InputDialogContent(
     showKeyboardOnOpen: Boolean,
     images: List<String>,
     titleField: MutableState<TextFieldValue>,
+    titleHint: String,
     suggestions: DialogState.InputDialog.SummarySuggestions?,
     showProgressIndicator: Boolean,
     descriptionField: MutableState<TextFieldValue>,
     error: String?,
     macros: MacrosUIModel?,
-    titleSelectTooltipEnabled: Boolean,
-    checkAITooltipEnabled: Boolean,
     onImageTapped: (String) -> Unit,
     onAddImageViaCameraTapped: () -> Unit,
     onAddImageViaPickerTapped: () -> Unit,
-    onTitleSelectTooltipDismissed: () -> Unit,
-    onCheckAITooltipDismissed: () -> Unit,
+    onImagesInfoButtonTapped: () -> Unit,
 ) {
-    Row(
-        modifier = Modifier
-            .padding(horizontal = PaddingDefault)
-            .fillMaxWidth()
-            .padding(top = PaddingDefault)
-            .wrapContentHeight(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "Describe your meal or drink",
-            color = MaterialTheme.colorScheme.onSurface,
-            style = MaterialTheme.typography.titleMedium,
-        )
-    }
-
-    Spacer(
-        modifier = Modifier
-            .height(PaddingDefault)
-    )
-
     val focusRequester = remember { FocusRequester() }
 
     if (showKeyboardOnOpen) {
@@ -202,6 +170,7 @@ private fun ColumnScope.InputDialogContent(
 
     TextField(
         modifier = Modifier
+            .padding(top = PaddingDefault)
             .padding(horizontal = PaddingDefault)
             .fillMaxWidth()
             .wrapContentHeight()
@@ -210,7 +179,7 @@ private fun ColumnScope.InputDialogContent(
         textStyle = MaterialTheme.typography.bodyMedium,
         placeholder = {
             Text(
-                text = "Title",
+                text = titleHint,
                 style = MaterialTheme.typography.bodyMedium,
             )
         },
@@ -247,7 +216,8 @@ private fun ColumnScope.InputDialogContent(
 
             FlowRow(
                 modifier = Modifier
-                    .padding(horizontal = PaddingDefault)
+                    .padding(horizontal = PaddingDefault),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 it.forEach {
                     PillLabel(
@@ -263,18 +233,27 @@ private fun ColumnScope.InputDialogContent(
                 }
             }
 
-            if (titleSelectTooltipEnabled) {
-                Tooltip(
-                    text = "☝\uFE0FSelect an AI suggested title or write your own.\nNote: feel free to add additional photos (for example nutrient label) but keep things focused: one food/dish.",
-                    onDismiss = onTitleSelectTooltipDismissed,
-                )
-            }
+//            if (titleSelectTooltipEnabled) {
+//                Tooltip(
+//                    text = "☝\uFE0FSelect an AI suggested title or write your own.\nNote: feel free to add additional photos (for example nutrient label) but keep things focused: one food/dish.",
+//                    onDismiss = onTitleSelectTooltipDismissed,
+//                )
+//            }
         }
 
     if (showProgressIndicator) {
+        Text(
+            modifier = Modifier
+                .padding(horizontal = PaddingDefault, vertical = PaddingHalf)
+                .fillMaxWidth(),
+            text = "Analyzing image…",
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+        )
+
         CircularProgressIndicator(
             modifier = Modifier
-                .padding(vertical = PaddingDefault)
+                .padding(8.dp)
                 .size(25.dp)
                 .align(Alignment.CenterHorizontally)
         )
@@ -293,7 +272,33 @@ private fun ColumnScope.InputDialogContent(
         onImageTapped = onImageTapped,
         onAddImageViaCameraTapped = onAddImageViaCameraTapped,
         onAddImageViaPickerTapped = onAddImageViaPickerTapped,
+        onInfoButtonTapped = onImagesInfoButtonTapped,
     )
+
+    suggestions
+        ?.description
+        ?.takeIf { it.isNotBlank() }
+        ?.let { descriptionSuggestion ->
+            Text(
+                modifier = Modifier
+                    .padding(top = PaddingDefault, bottom = PaddingQuarter)
+                    .padding(horizontal = PaddingDefault),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Normal,
+                text = "Verify that the AI can understand your photo:"
+            )
+            PillLabel(
+                modifier = Modifier
+                    .padding(horizontal = PaddingDefault)
+                    .padding(bottom = PaddingHalf),
+                text = descriptionSuggestion,
+                onClick = {
+                    descriptionField.value =
+                        descriptionField.value.copy(text = descriptionSuggestion, selection = TextRange(descriptionSuggestion.length))
+                    onChange(titleField.value.text, descriptionField.value.text)
+                },
+            )
+        }
 
     TextField(
         modifier = Modifier
@@ -303,7 +308,7 @@ private fun ColumnScope.InputDialogContent(
         textStyle = MaterialTheme.typography.bodyMedium,
         placeholder = {
             Text(
-                text = "Description",
+                text = "Mention unclear components, quantities or other instructions for the AI (for ex. \"I only ate half of it\")",
                 style = MaterialTheme.typography.bodyMedium,
             )
         },
@@ -318,94 +323,8 @@ private fun ColumnScope.InputDialogContent(
         },
     )
 
-    suggestions
-        ?.description
-        ?.takeIf { it.isNotBlank() }
-        ?.let { descriptionSuggestion ->
-            if (checkAITooltipEnabled) {
-                Spacer(
-                    modifier = Modifier
-                        .height(PaddingHalf)
-                )
-                Tooltip(
-                    text = "\uD83D\uDC47Verify that the AI didn't miss anything below. It's almost as good at estimating portions/ingredients as an average person would be, given the same photos/title/description and not other context. Feel free to add extra description." +
-                            "\nNote: Even if the photo has half a burrito and an empty coffee cup, the AI will estimate the nutrients of the full meal. However if you write \"I only ate half of that\" it will respect it.",
-                    onDismiss = onCheckAITooltipDismissed,
-                )
-            }
-            Spacer(
-                modifier = Modifier
-                    .height(PaddingHalf)
-            )
-            FlowRow(
-                modifier = Modifier
-                    .padding(horizontal = PaddingDefault)
-            ) {
-                PillLabel(
-                    modifier = Modifier
-                        .padding(bottom = 4.dp),
-                    text = descriptionSuggestion,
-                    onClick = {
-                        descriptionField.value =
-                            descriptionField.value.copy(text = descriptionSuggestion, selection = TextRange(descriptionSuggestion.length))
-                        onChange(titleField.value.text, descriptionField.value.text)
-                    },
-                )
-            }
-        }
-
     macros?.let {
         MacroTable(macros = macros)
-    }
-}
-
-@Composable
-private fun Tooltip(
-    text: String,
-    onDismiss: () -> Unit,
-) {
-    val background = MaterialTheme.colorScheme.tertiary
-    val content = MaterialTheme.colorScheme.onTertiary
-    Row(
-        modifier = Modifier
-            .padding(horizontal = PaddingDefault, vertical = PaddingHalf)
-            .clip(RoundedCornerShape(12.dp))
-            .background(background),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Spacer(Modifier.width(PaddingDefault))
-
-        Icon(
-            modifier = Modifier
-                .size(22.dp),
-            painter = painterResource(R.drawable.ic_info),
-            contentDescription = "Info",
-            tint = Color.Blue,
-        )
-
-        Spacer(Modifier.width(PaddingDefault))
-
-        Text(
-            modifier = Modifier
-                .weight(1f)
-                .padding(vertical = PaddingHalf),
-            text = text,
-            style = MaterialTheme.typography.labelLarge,
-            color = content,
-            textAlign = TextAlign.Start,
-        )
-
-        Spacer(Modifier.width(PaddingDefault))
-
-        Icon(
-            modifier = Modifier
-                .size(48.dp)
-                .padding(12.dp)
-                .clickable(onClick = onDismiss),
-            painter = painterResource(R.drawable.ic_close),
-            contentDescription = "Dismiss",
-            tint = content,
-        )
     }
 }
 
@@ -419,10 +338,10 @@ private fun NoteInputDialogContentPreviewEdit() {
                 dialogState = DialogState.InputDialog.RecordDetailsDialog(
                     recordId = 1L,
                     images = listOf("1", "2"),
-                    titleSuggestionProgressIndicator = true,
                     titleSuggestions = emptyList(),
-                    title = "This is a title",
-                    description = "This is a description",
+                    title = null,
+                    titleHint = "Describe your meal (or pick a suggestion from below)",
+                    description = null,
                     macros = MacrosUIModel(
                         calories = "Calories: 2100 cal",
                         protein = "Protein: 150g",
@@ -441,8 +360,7 @@ private fun NoteInputDialogContentPreviewEdit() {
                 onAddImageViaCameraTapped = {},
                 onAddImageViaPickerTapped = {},
                 onDismissRequested = {},
-                onTitleSelectTooltipDismissed = {},
-                onCheckAITooltipDismissed = {},
+                onImagesInfoButtonTapped = {},
             )
         }
     }
@@ -458,8 +376,7 @@ private fun NoteInputDialogContentPreview() {
                 images = listOf("1", "2"),
                 showProgressIndicator = true,
                 suggestions = null,
-                titleSelectTooltipEnabled = true,
-                checkAIPhotoDescriptionTooltipEnabled = true,
+                titleHint = "Describe your meal (or pick a suggestion from below)",
             ),
             onRecordDetailsSubmitRequested = { _, _ -> },
             onRecordDetailsUserTyping = { _, _ -> },
@@ -467,8 +384,7 @@ private fun NoteInputDialogContentPreview() {
             onAddImageViaCameraTapped = {},
             onAddImageViaPickerTapped = {},
             onDismissRequested = {},
-            onTitleSelectTooltipDismissed = {},
-            onCheckAITooltipDismissed = {},
+            onImagesInfoButtonTapped = {},
         )
     }
 }
@@ -487,8 +403,7 @@ private fun NoteInputDialogContentPreviewSuggestion() {
                         titles = listOf("This is a title suggestion", "This is another title suggestion"),
                         description = "",
                     ),
-                    titleSelectTooltipEnabled = true,
-                    checkAIPhotoDescriptionTooltipEnabled = true,
+                    titleHint = "Describe your meal",
                 ),
                 onRecordDetailsSubmitRequested = { _, _ -> },
                 onRecordDetailsUserTyping = { _, _ -> },
@@ -496,8 +411,7 @@ private fun NoteInputDialogContentPreviewSuggestion() {
                 onAddImageViaCameraTapped = {},
                 onAddImageViaPickerTapped = {},
                 onDismissRequested = {},
-                onTitleSelectTooltipDismissed = {},
-                onCheckAITooltipDismissed = {},
+                onImagesInfoButtonTapped = {},
             )
         }
     }
@@ -515,9 +429,8 @@ private fun NoteInputDialogContentPreviewError() {
                     titles = listOf("This is a title suggestion", "This is another title suggestion"),
                     description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
                 ),
+                titleHint = "Describe your meal",
                 validationError = "error",
-                titleSelectTooltipEnabled = true,
-                checkAIPhotoDescriptionTooltipEnabled = true,
             ),
             onRecordDetailsSubmitRequested = { _, _ -> },
             onRecordDetailsUserTyping = { _, _ -> },
@@ -525,8 +438,7 @@ private fun NoteInputDialogContentPreviewError() {
             onAddImageViaCameraTapped = {},
             onAddImageViaPickerTapped = {},
             onDismissRequested = {},
-            onTitleSelectTooltipDismissed = {},
-            onCheckAITooltipDismissed = {},
+            onImagesInfoButtonTapped = {},
         )
     }
 }

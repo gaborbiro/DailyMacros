@@ -21,35 +21,42 @@ internal fun FoodPicSummaryRequest.toApiModel(): ChatGPTRequest {
                     InputContent.Text(
                         """
                             You are an intelligent image and text analyser for a macronutrient tracker app.  
-                            The user uploads a photo of what they ate or drank.  
-                            Your job: suggest concise, accurate summaries of the food/drink in the image.  
+                            The user uploads photos of what they ate or drank.  
+                            Your job: suggest concise, accurate summaries of the food/drink in the images or a funny error message.
 
                             TASKS:
                             1. Suggest one or more short titles (max 3–4 words each) that identify the food/drink.  
                                - Keep them brief but informative.  
-                               - If the food/drink is packaged and the packaging label is visible, include one title exactly as printed on the label (original language), and one translated to English if necessary.  
-                            2. Provide one descriptive sentence that lists the major macronutrient-relevant components you see.  
+                               - If the food/drink is packaged and the packaging label is visible, include one title exactly as printed on the label (original language), and one translated to English if necessary. Otherwise return your one best guess for title.  
+                            2. Also provide one descriptive sentence that lists the major macronutrient-relevant components you see.  
                                - Focus on items that significantly affect the nutritional profile.  
                                - Do NOT try to name every small garnish or decorative element.  
                                - Include packaging size only if it is a standard, recognisable variant (e.g., “250g ready meal”, “500ml kefir bottle”).  
                                - Ignore whether the item is partially consumed.
-                               - Describe only the food and drink, don't include any other context like "a hand holding..." or "...on a plate".
+                               - Describe only the food and drink, don't include any other context like "a hand holding…" or "…on a plate".
 
                             LANGUAGE RULES:
                             - Write in English by default.  
                             - If the food label is in another language, include it in `titles` alongside the English version.  
                             - Use correct spelling and capitalisation for product names and proper nouns.  
 
-                            CONFIDENCE RULES:
-                            - Only output a result if you are highly confident the image contains real food or drink.  
-                            - If unsure, output `{ }` exactly.  
-
                             OUTPUT FORMAT:
-                            Always return a valid JSON object in this structure:  
+                            Always return a valid JSON object in these structures.
+                            Success response:
                             {
-                                "titles": ["<short English title>", "<short title from packaging if in another language>"],
+                                "titles": ["<short English title>", "<short title from packaging if in a non-English language (omit if not)>"],
                                 "description": "<1-sentence description listing the main macronutrient-relevant items>"
                             }
+                            Error response:
+                            {
+                                "error": "<what the issue is with the photo>"
+                            }
+
+                            CONFIDENCE RULES:
+                            - If the photos are not primarily of food/drink but indirectly implies/references something edible (for ex a photo of an ice-cream van) then instead of taking the photo at face value just focus the a usual variant and portion of the implied/referenced food or drink (1 scoop of vanilla ice-cream in the previous example).
+                            - Only return the success response if you are highly confident the images contains food or drink.
+                            - Only return the success response if you are highly confident the images refer to one meal.
+                            - Otherwise, tell the user what's wrong with the photos and why you cannot discern food or drink from it. Be funny/whimsical about it. Use this error response.
 
                             EXAMPLES:
                             Example 1 — photo of packaged meal with visible label:
@@ -64,17 +71,24 @@ internal fun FoodPicSummaryRequest.toApiModel(): ChatGPTRequest {
                                 "description": "A serving of red wine in a stemmed glass."
                             }
 
-                            Example 3 — image is unclear or not food/drink:
-                            {}
+                            Example 3 — photo is unclear or not food/drink:
+                            {
+                                "error": "Erm... surely you didn't eat a puppy."
+                            }
+                            
+                            Example 4 — there are multiple photos but they are unrelated:
+                            {
+                                "error": "Please focus on one meal at a time."
+                            }
                         """.trimIndent()
                     )
                 ),
             ),
             ContentEntry(
                 role = Role.user,
-                content = listOf(
-                    InputContent.Image(base64Image)
-                )
+                content = base64Images.map {
+                    InputContent.Image(it)
+                }
             )
         )
     )
@@ -98,13 +112,14 @@ internal fun ChatGPTResponse.toFoodPicSummaryResponse(): FoodPicSummaryResponse 
     class Summary(
         @SerializedName("titles") val titles: List<String>?,
         @SerializedName("description") val description: String?,
+        @SerializedName("error") val error: String?,
     )
     return resultJson
         ?.let {
             val summary = gson.fromJson(resultJson, Summary::class.java)
             FoodPicSummaryResponse(
                 titles = summary.titles ?: emptyList(),
-                description = summary.description,
+                description = summary.description ?: summary.error,
             )
         }
         ?: FoodPicSummaryResponse(

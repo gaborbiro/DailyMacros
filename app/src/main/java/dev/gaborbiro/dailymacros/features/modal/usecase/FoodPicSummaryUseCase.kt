@@ -14,12 +14,15 @@ internal class FoodPicSummaryUseCase(
     private val mapper: RecordsMapper,
 ) {
 
-    suspend fun execute(filename: String): DialogState.InputDialog.SummarySuggestions {
+    suspend fun execute(images: List<String>): DialogState.InputDialog.SummarySuggestions {
         val response = try {
-            val inputStream = imageStore.open(filename, thumbnail = false)
+            val base64Images = images.map {
+                val inputStream = imageStore.open(it, thumbnail = false)
+                inputStreamToBase64(inputStream)
+            }
             chatGPTRepository.summarizeFoodPic(
                 request = mapper.mapFoodPicsSummaryRequest(
-                    base64Image = inputStreamToBase64(inputStream)
+                    base64Images = base64Images,
                 )
             )
         } catch (apiError: ChatGPTApiError) {

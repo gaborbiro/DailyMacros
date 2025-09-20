@@ -63,7 +63,7 @@ internal fun MacrosRequest.toApiModel(): ChatGPTRequest {
 
                             If macronutrients cannot be estimated:
                             {
-                              "issues": "No clear food item visible in the image. Provide a clearer photo or detailed description."
+                              "error": "<describe what the issue is with the photo>"
                             }
                             
                             ACCURACY PRINCIPLE:
@@ -75,13 +75,14 @@ internal fun MacrosRequest.toApiModel(): ChatGPTRequest {
                             - Output "macros" only if:
                               1. You are highly confident the photos show real food or drink.  
                               2. The title/description and photos provide enough detail to make a reasonable macronutrient estimate (e.g., type of food, preparation, ingredients).  
-                            - If either condition is not met:
+                              3. If the photo is not primarily of food/drink but indirectly implies/references something edible (for ex a photo of an ice-cream van) then focus on the implied/referenced food/drink and one usual portion of it.
+                            - If any of the above condition are not met:
                               - Omit "macros".
-                              - Include "issues" with a short, clear sentence explaining what’s missing or unclear so the user can improve their input.
+                              - Include "error" with a short, clear sentence explaining what’s missing or unclear so the user can improve their input.
 
                             NOTES:
                             - Always use both the photos and the texts provided.
-                            - If values are extremely uncertain (e.g., ambiguous dish), consider omitting `macros` entirely and use `issues` instead.
+                            - If values are extremely uncertain (e.g., ambiguous dish), consider omitting `macros` entirely and use `error` instead.
                             - Any breakdowns, calculations or observations should go into the "notes" field.
                             - Mention in the notes the top contributor ingredient for each significant macronutrient.
                             - Separate multiple notes by newline.
@@ -129,7 +130,7 @@ internal fun ChatGPTResponse.toMacrosResponse(): MacrosResponse {
     class Response(
         @SerializedName("macros") val macros: Macros?,
         @SerializedName("notes") val notes: String?,
-        @SerializedName("issues") val issues: String?,
+        @SerializedName("error") val error: String?,
     )
 
     val response = gson.fromJson(resultJson, Response::class.java)
@@ -149,7 +150,7 @@ internal fun ChatGPTResponse.toMacrosResponse(): MacrosResponse {
     }
     return MacrosResponse(
         macros = macros,
-        issues = response.issues,
+        issues = response.error,
         notes = response.notes,
     )
 }

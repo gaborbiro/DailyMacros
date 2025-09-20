@@ -14,12 +14,7 @@ fun Context.createNotificationChannels() {
         CHANNEL_ID_GENERAL,
         "General notifications",
         NotificationManager.IMPORTANCE_LOW
-    ).apply {
-        setSound(null, null)
-        enableVibration(false)
-        vibrationPattern = longArrayOf(0L)
-        enableLights(false)
-    }
+    )
     val foregroundChannel = NotificationChannel(
         CHANNEL_ID_FOREGROUND,
         "Background process",

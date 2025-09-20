@@ -142,7 +142,7 @@ class MacrosWorkRequest(
     private fun createForegroundInfo(): ForegroundInfo {
         val notification =
             NotificationCompat.Builder(applicationContext, CHANNEL_ID_FOREGROUND)
-                .setContentTitle("Fetching macros...")
+                .setContentTitle("Fetching macros…")
                 .setSmallIcon(R.drawable.ic_nutrition)
                 .setOngoing(true)
                 .build()

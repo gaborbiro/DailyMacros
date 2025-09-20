@@ -7,9 +7,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
 import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
-import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
+import dev.gaborbiro.dailymacros.features.common.message
 import dev.gaborbiro.dailymacros.features.common.workers.MacrosWorkRequest
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.ImagePickerState
@@ -52,7 +52,6 @@ internal class ModalViewModel(
     private val foodPicSummaryUseCase: FoodPicSummaryUseCase,
     private val deleteRecordUseCase: DeleteRecordUseCase,
     private val macrosUIMapper: MacrosUIMapper,
-    private val appPrefs: AppPrefs,
 ) : ViewModel() {
 
     companion object {
@@ -83,10 +82,7 @@ internal class ModalViewModel(
     @UiThread
     fun onCreateRecordDeeplink() {
         pushDialog(
-            DialogState.InputDialog.CreateDialog(
-                titleSelectTooltipEnabled = false,
-                checkAIPhotoDescriptionTooltipEnabled = false,
-            )
+            DialogState.InputDialog.CreateDialog(titleHint = "Describe your meal (or snap a photo)")
         )
     }
 
@@ -149,6 +145,7 @@ internal class ModalViewModel(
                 description = record.template.description,
                 macros = macros,
                 titleSuggestions = emptyList(),
+                titleHint = "Describe your meal",
                 validationError = null,
             )
             _viewState.update {
@@ -183,24 +180,19 @@ internal class ModalViewModel(
             dialogs = dialogs - newImageDialog
 
             dialogs = dialogs.replaceInstances<DialogState.InputDialog.CreateWithImageDialog> {
-                if (it.images.isEmpty()) { // only fetch summary for the first image
-                    fetchImageSummary(persistedFilename)
-                }
                 it.copy(
                     images = it.images + persistedFilename,
-                    showProgressIndicator = it.images.isEmpty(),
-                    titleSelectTooltipEnabled = appPrefs.selectTitleTooltipEnabled,
+                    suggestions = null,
+                    showProgressIndicator = true,
                 )
             }
 
             dialogs = dialogs.replaceInstances<DialogState.InputDialog.CreateDialog> {
-                fetchImageSummary(persistedFilename)
                 DialogState.InputDialog.CreateWithImageDialog(
                     images = listOf(persistedFilename),
-                    showProgressIndicator = true,
                     suggestions = null,
-                    titleSelectTooltipEnabled = false,
-                    checkAIPhotoDescriptionTooltipEnabled = false,
+                    showProgressIndicator = true,
+                    titleHint = "Describe your meal (or tap one of the AI suggestions)",
                 )
             }
 
@@ -211,17 +203,20 @@ internal class ModalViewModel(
             }
 
             if (dialogs.isEmpty()) {
-                fetchImageSummary(persistedFilename)
                 dialogs = listOf(
                     DialogState.InputDialog.CreateWithImageDialog(
                         images = listOf(persistedFilename),
-                        showProgressIndicator = true,
                         suggestions = null,
-                        titleSelectTooltipEnabled = false,
-                        checkAIPhotoDescriptionTooltipEnabled = false,
+                        showProgressIndicator = true,
+                        titleHint = "Describe your meal (or tap one of the AI suggestions)",
                     )
                 )
             }
+
+            dialogs.filterIsInstance<DialogState.InputDialog.CreateWithImageDialog>().firstOrNull()
+                ?.let {
+                    fetchSummary(it.images)
+                }
 
             _viewState.update { currentState ->
                 currentState.copy(
@@ -231,25 +226,22 @@ internal class ModalViewModel(
         }
     }
 
-    private fun fetchImageSummary(image: String) {
+    private fun fetchSummary(images: List<String>) {
         runSafely {
             try {
-                val summary = foodPicSummaryUseCase.execute(image)
+                val summary = foodPicSummaryUseCase.execute(images)
                 updateDialogsOfType<DialogState.InputDialog.CreateWithImageDialog> {
                     it.copy(
                         suggestions = summary,
-                        titleSelectTooltipEnabled = summary.titles.isNotEmpty() && appPrefs.selectTitleTooltipEnabled,
-                        checkAIPhotoDescriptionTooltipEnabled = summary.description.isNullOrEmpty().not() && appPrefs.checkAIPhotoDescriptionTooltipEnabled,
                     )
                 }
-                updateDialogsOfType<DialogState.InputDialog.CreateDialog> {
-                    DialogState.InputDialog.CreateWithImageDialog(
-                        images = listOf(image),
-                        suggestions = summary,
-                        titleSelectTooltipEnabled = summary.titles.isNotEmpty() && appPrefs.selectTitleTooltipEnabled,
-                        checkAIPhotoDescriptionTooltipEnabled = summary.description.isNullOrEmpty().not() && appPrefs.checkAIPhotoDescriptionTooltipEnabled,
-                    )
-                }
+//                updateDialogsOfType<DialogState.InputDialog.CreateDialog> {
+//                    DialogState.InputDialog.CreateWithImageDialog(
+//                        images = images,
+//                        suggestions = summary,
+//                        titleHint = "Describe your meal (or tap one of the AI suggestions)",
+//                    )
+//                }
             } catch (e: DomainError) {
                 throw e
             } finally {
@@ -402,18 +394,8 @@ internal class ModalViewModel(
             }
     }
 
-    fun onTitleSelectTooltipDismissed() {
-        appPrefs.selectTitleTooltipEnabled = false
-        updateDialogsOfType<DialogState.InputDialog.CreateWithImageDialog> {
-            it.copy(titleSelectTooltipEnabled = false)
-        }
-    }
-
-    fun onCheckAIPhotoDescriptionTooltipDismissed() {
-        appPrefs.checkAIPhotoDescriptionTooltipEnabled = false
-        updateDialogsOfType<DialogState.InputDialog.CreateWithImageDialog> {
-            it.copy(checkAIPhotoDescriptionTooltipEnabled = false)
-        }
+    fun onImagesInfoButtonTapped() {
+        pushDialog(DialogState.InfoDialog("You can add as many images as you like. Nutritional labels are particularly useful. You can also add more photos or update things later, don't worry about gathering all info right away."))
     }
 
     private suspend fun handleCreateRecordDetailsSubmitted(
@@ -545,15 +527,16 @@ internal class ModalViewModel(
 
     private val errorHandler = CoroutineExceptionHandler { _, exception ->
         exception.printStackTrace()
+        val message = when {
+            exception is DomainError -> exception.message()
+            else -> exception.message ?: exception.cause?.message
+        }
         pushDialog(
             DialogState.ErrorDialog(
-                exception.message?.let {
-                    "\n\n(${
-                        it.ellipsize(
-                            300
-                        )
-                    })"
-                } ?: ""
+                message?.ellipsize(
+                    300
+                )
+                    ?: "Oops. Something went wrong. The issue has been logged and our engineers are looking into it."
             )
         )
     }

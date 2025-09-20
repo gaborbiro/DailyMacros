@@ -19,9 +19,4 @@ sealed class DomainError(message: String?, cause: Throwable? = null) : Exception
         data class CheckInternetConnection(override val cause: Throwable? = null) :
             DisplayMessageToUser(message = null, cause)
     }
-
-    data class GoToSignInScreen(
-        override val message: String? = null,
-        override val cause: Throwable? = null,
-    ) : DomainError(message, cause)
 }

@@ -25,12 +25,12 @@ import dev.gaborbiro.dailymacros.data.file.FileStore
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.AppTheme
-import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.common.view.ConfirmDeleteNutrientDataDialog
 import dev.gaborbiro.dailymacros.features.common.view.ErrorDialog
+import dev.gaborbiro.dailymacros.features.common.view.InfoDialog
 import dev.gaborbiro.dailymacros.features.common.view.LocalImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.ImagePickerState
@@ -206,7 +206,6 @@ class ModalActivity : AppCompatActivity() {
         val dateUIMapper = DateUIMapper()
         val macrosUIMapper = MacrosUIMapper(dateUIMapper)
         val deleteRecordUseCase = DeleteRecordUseCase(recordsRepository)
-        val appPrefs = AppPrefs(this@ModalActivity)
 
         ModalViewModel(
             imageStore = imageStore,
@@ -222,7 +221,6 @@ class ModalActivity : AppCompatActivity() {
             foodPicSummaryUseCase = FoodPicSummaryUseCase(imageStore, chatGPTRepository, recordsMapper),
             macrosUIMapper = macrosUIMapper,
             deleteRecordUseCase = deleteRecordUseCase,
-            appPrefs = appPrefs,
         )
     }
 
@@ -303,8 +301,7 @@ class ModalActivity : AppCompatActivity() {
                 onAddImageViaCameraTapped = { viewModel.onAddImageViaCameraTapped(dialogState) },
                 onAddImageViaPickerTapped = { viewModel.onAddImageViaPickerTapped(dialogState) },
                 onDismissRequested = onDismissRequested,
-                onTitleSelectTooltipDismissed = viewModel::onTitleSelectTooltipDismissed,
-                onCheckAITooltipDismissed = viewModel::onCheckAIPhotoDescriptionTooltipDismissed,
+                onImagesInfoButtonTapped = viewModel::onImagesInfoButtonTapped,
             )
 
             is DialogState.EditTargetConfirmationDialog -> EditTargetConfirmationDialog(
@@ -352,6 +349,13 @@ class ModalActivity : AppCompatActivity() {
             is DialogState.ErrorDialog -> {
                 ErrorDialog(
                     errorMessage = dialogState.errorMessage,
+                    onDismissRequested = onDismissRequested,
+                )
+            }
+
+            is DialogState.InfoDialog -> {
+                InfoDialog(
+                    message = dialogState.message,
                     onDismissRequested = onDismissRequested,
                 )
             }

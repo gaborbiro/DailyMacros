@@ -11,15 +11,15 @@ import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 
 class RecordsMapper {
 
-    fun mapFoodPicsSummaryRequest(base64Image: String): FoodPicSummaryRequest {
+    fun mapFoodPicsSummaryRequest(base64Images: List<String>): FoodPicSummaryRequest {
         return FoodPicSummaryRequest(
-            base64Image = base64Image,
+            base64Images = base64Images,
         )
     }
 
     fun map(response: FoodPicSummaryResponse): DialogState.InputDialog.SummarySuggestions {
         return DialogState.InputDialog.SummarySuggestions(
-            titles = response.titles,
+            titles = response.titles.distinct(),
             description = response.description
         )
     }
