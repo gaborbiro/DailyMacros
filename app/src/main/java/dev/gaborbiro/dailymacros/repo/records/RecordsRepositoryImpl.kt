@@ -34,8 +34,8 @@ internal class RecordsRepositoryImpl(
         .filter { it.entity.timestamp >= since }
         .map(mapper::map)
 
-    override suspend fun getTop10(): List<Template> = templatesDAO
-        .getTop10()
+    override suspend fun getQuickPicks(count: Int): List<Template> = templatesDAO
+        .getQuickPicks(count)
         .map(mapper::map)
 
     override suspend fun getRecordsByTemplate(templateId: Long): List<Record> = recordsDAO

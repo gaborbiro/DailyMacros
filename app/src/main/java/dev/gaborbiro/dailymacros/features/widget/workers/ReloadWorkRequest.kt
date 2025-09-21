@@ -80,11 +80,11 @@ internal class ReloadWorkRequest(
                 )
             val templateCount =
                 workerParameters.inputData.getInt(PREFS_QUICK_PICK_COUNT, QUICK_PICK_COUNT_DEFAULT)
-            val recentRecords =
-                recordsRepository.getRecords(LocalDateTime.now().minusDays(recordDaysToDisplay.toLong()))
-            val topTemplates = recordsRepository.getTop10().take(templateCount)
+            val since = LocalDateTime.now().minusDays(recordDaysToDisplay.toLong()).toLocalDate().atStartOfDay()
+            val recentRecords = recordsRepository.getRecords(since)
+            val quickPicks = recordsRepository.getQuickPicks(templateCount)
 
-            sendToWidgets(applicationContext, recentRecords, topTemplates)
+            sendToWidgets(applicationContext, recentRecords, quickPicks)
             Result.success()
         } catch (t: Throwable) {
             t.printStackTrace()

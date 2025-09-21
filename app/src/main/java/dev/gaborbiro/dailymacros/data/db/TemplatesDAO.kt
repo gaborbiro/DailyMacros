@@ -37,10 +37,10 @@ interface TemplatesDAO {
         GROUP BY T._id
         HAVING COUNT(R._id) > 1
         ORDER BY COUNT(R._id) DESC
-        LIMIT 10
+        LIMIT :count
     """
     )
-    suspend fun getTop10(): List<TemplateJoined>
+    suspend fun getQuickPicks(count: Int): List<TemplateJoined>
 
     // ---- IMAGES ----
 
