@@ -1,6 +1,6 @@
 package dev.gaborbiro.dailymacros.features.common
 
-import dev.gaborbiro.dailymacros.repo.chatgpt.model.DomainError
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.DomainError
 
 
 internal fun DomainError.message() = when (this) {

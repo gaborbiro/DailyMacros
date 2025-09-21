@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.design.ExtraColors
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
@@ -118,23 +119,32 @@ private fun RecordTextContent(modifier: Modifier, record: ListUIModelRecord) {
                 style = MaterialTheme.typography.labelMedium,
             )
         }
-        record.macros?.let {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                MacroPill(Modifier.weight(1f), it.calories, ExtraColors.calorieColor)
-                MacroPill(Modifier.weight(1f), it.protein, ExtraColors.proteinColor)
-                MacroPill(Modifier.weight(1f), it.fat, ExtraColors.fatColor)
-            }
-            Spacer(Modifier.height(4.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                MacroPill(Modifier.weight(1f), it.carbs, ExtraColors.carbsColor)
-                MacroPill(Modifier.weight(1f), it.salt, ExtraColors.saltColor)
-                MacroPill(Modifier.weight(1f), it.fibre, ExtraColors.fibreColor)
+        if (record.showLoadingIndicator) {
+            Text(
+                text = "Analyzing…",
+                maxLines = 1,
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        } else {
+            record.macros?.let {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    MacroPill(Modifier.weight(1f), it.calories, ExtraColors.calorieColor)
+                    MacroPill(Modifier.weight(1f), it.protein, ExtraColors.proteinColor)
+                    MacroPill(Modifier.weight(1f), it.fat, ExtraColors.fatColor)
+                }
+                Spacer(Modifier.height(4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    MacroPill(Modifier.weight(1f), it.carbs, ExtraColors.carbsColor)
+                    MacroPill(Modifier.weight(1f), it.salt, ExtraColors.saltColor)
+                    MacroPill(Modifier.weight(1f), it.fibre, ExtraColors.fibreColor)
+                }
             }
         }
     }
@@ -165,26 +175,59 @@ private fun MacroPill(
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, widthDp = 200)
 private fun OverviewListItemPreview() {
-    PreviewImageStoreProvider {
-        ListItemRecord(
-            record = ListUIModelRecord(
-                recordId = 1L,
-                title = "Title",
-                templateId = 1L,
-                images = listOf("", ""),
-                timestamp = "Tue 19 Aug, 20:49",
-                macros = MacrosUIModel(
-                    calories = "1008cal",
-                    protein = "protein 8",
-                    fat = "fat 4(2)",
-                    carbs = "carbs 9(9)",
-                    salt = "salt 2",
-                    fibre = "fibre 4",
+    AppTheme {
+        PreviewImageStoreProvider {
+            ListItemRecord(
+                record = ListUIModelRecord(
+                    recordId = 1L,
+                    title = "Title",
+                    templateId = 1L,
+                    images = listOf("", ""),
+                    timestamp = "Tue 19 Aug, 20:49",
+                    macros = MacrosUIModel(
+                        calories = "1008cal",
+                        protein = "protein 8",
+                        fat = "fat 4(2)",
+                        carbs = "carbs 9(9)",
+                        salt = "salt 2",
+                        fibre = "fibre 4",
+                    ),
                 ),
-            ),
-            onRecordImageTapped = {},
-            onRecordBodyTapped = {},
-            rowMenu = {}
-        )
+                onRecordImageTapped = {},
+                onRecordBodyTapped = {},
+                rowMenu = {}
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+private fun OverviewListItemPreviewLoading() {
+    AppTheme {
+        PreviewImageStoreProvider {
+            ListItemRecord(
+                record = ListUIModelRecord(
+                    recordId = 1L,
+                    title = "Title",
+                    templateId = 1L,
+                    images = listOf("", ""),
+                    timestamp = "Tue 19 Aug, 20:49",
+                    macros = MacrosUIModel(
+                        calories = "1008cal",
+                        protein = "protein 8",
+                        fat = "fat 4(2)",
+                        carbs = "carbs 9(9)",
+                        salt = "salt 2",
+                        fibre = "fibre 4",
+                    ),
+                    showLoadingIndicator = true,
+                ),
+                onRecordImageTapped = {},
+                onRecordBodyTapped = {},
+                rowMenu = {}
+            )
+        }
     }
 }

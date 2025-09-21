@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.repo.chatgpt.model
+package dev.gaborbiro.dailymacros.repo.chatgpt.domain.model
 
 
 sealed class DomainError(message: String?, cause: Throwable? = null) : Exception(message, cause) {

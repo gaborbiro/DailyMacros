@@ -1,11 +1,11 @@
 package dev.gaborbiro.dailymacros.features.modal
 
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
-import dev.gaborbiro.dailymacros.repo.chatgpt.model.FoodPicSummaryRequest
-import dev.gaborbiro.dailymacros.repo.chatgpt.model.FoodPicSummaryResponse
-import dev.gaborbiro.dailymacros.repo.chatgpt.model.MacrosApiModel
-import dev.gaborbiro.dailymacros.repo.chatgpt.model.MacrosRequest
-import dev.gaborbiro.dailymacros.repo.chatgpt.model.MacrosResponse
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodPicSummaryRequest
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodPicSummaryResponse
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.MacrosApiModel
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.MacrosRequest
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.MacrosResponse
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 

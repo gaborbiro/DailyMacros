@@ -11,11 +11,6 @@ internal interface RecordsRepository {
 
     suspend fun getRecords(since: LocalDateTime): List<Record>
 
-    suspend fun getRecordsFlow(
-        since: LocalDateTime,
-        until: LocalDateTime? = null,
-    ): Flow<List<Record>>
-
     suspend fun getTop10(): List<Template>
 
     suspend fun getRecordsByTemplate(templateId: Long): List<Record>

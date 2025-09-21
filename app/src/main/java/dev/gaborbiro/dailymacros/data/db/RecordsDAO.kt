@@ -33,7 +33,7 @@ interface RecordsDAO {
         SELECT * FROM records
         WHERE timestamp >= :since AND timestamp < :until
         ORDER BY timestamp DESC
-    """
+        """
     )
     fun getFlow(
         since: LocalDateTime?,
@@ -51,7 +51,7 @@ interface RecordsDAO {
                OR T.description LIKE '%' || :search || '%'
         )
         ORDER BY R.timestamp DESC
-    """
+        """
     )
     fun getFlowBySearchTerm(search: String): Flow<List<RecordJoined>>
 

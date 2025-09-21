@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.repo.chatgpt.model
+package dev.gaborbiro.dailymacros.repo.chatgpt.domain.model
 
 data class MacrosRequest(
     val base64Images: List<String>,

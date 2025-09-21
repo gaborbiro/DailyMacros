@@ -2,9 +2,9 @@ package dev.gaborbiro.dailymacros.repo.chatgpt
 
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
-import dev.gaborbiro.dailymacros.repo.chatgpt.model.MacrosApiModel
-import dev.gaborbiro.dailymacros.repo.chatgpt.model.MacrosRequest
-import dev.gaborbiro.dailymacros.repo.chatgpt.model.MacrosResponse
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.MacrosApiModel
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.MacrosRequest
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.MacrosResponse
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTRequest
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTResponse
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntry

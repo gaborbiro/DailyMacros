@@ -84,19 +84,7 @@ internal class ReloadWorkRequest(
                 recordsRepository.getRecords(LocalDateTime.now().minusDays(recordDaysToDisplay.toLong()))
             val topTemplates = recordsRepository.getTop10().take(templateCount)
 
-            val requestStatuses = requestStatusRepository.getAll()
-            val updatedRecords = recentRecords
-                .map { record ->
-                    val requestStatus =
-                        requestStatuses.firstOrNull { it.templateId == record.template.dbId }
-                    record.copy(
-                        template = record.template.copy(
-                            isPending = requestStatus?.isPending == true,
-                        )
-                    )
-                }
-
-            sendToWidgets(applicationContext, updatedRecords, topTemplates)
+            sendToWidgets(applicationContext, recentRecords, topTemplates)
             Result.success()
         } catch (t: Throwable) {
             t.printStackTrace()

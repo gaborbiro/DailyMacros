@@ -85,7 +85,7 @@ class MainActivity : ComponentActivity() {
                 val overviewViewModel = viewModelFactory {
                     OverviewViewModel(
                         navigator = overviewNavigator,
-                        repository = recordsRepository,
+                        recordsRepository = recordsRepository,
                         uiMapper = RecordsUIMapper(macrosUIMapper, dateUIMapper),
                         settingsRepository = settingsRepository,
                         appPrefs = appPrefs,

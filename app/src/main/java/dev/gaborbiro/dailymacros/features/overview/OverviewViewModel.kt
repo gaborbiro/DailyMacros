@@ -29,7 +29,7 @@ import kotlin.time.Duration.Companion.seconds
 
 internal class OverviewViewModel(
     private val navigator: OverviewNavigator,
-    private val repository: RecordsRepository,
+    private val recordsRepository: RecordsRepository,
     private val uiMapper: RecordsUIMapper,
     private val settingsRepository: SettingsRepository,
     private val appPrefs: AppPrefs,
@@ -41,7 +41,7 @@ internal class OverviewViewModel(
 
     fun onSearchTermChanged(search: String?) {
         viewModelScope.launch {
-            repository.getFlowBySearchTerm(search)
+            recordsRepository.getFlowBySearchTerm(search)
                 .combine(flowOf(settingsRepository.loadTargets())) { a, b ->
                     a to b
                 }
@@ -77,7 +77,7 @@ internal class OverviewViewModel(
 
     fun onRepeatMenuItemTapped(id: Long) {
         viewModelScope.launch {
-            repository.duplicateRecord(id)
+            recordsRepository.duplicateRecord(id)
         }
         DailyMacrosWidgetScreen.reload()
     }
@@ -118,7 +118,7 @@ internal class OverviewViewModel(
 
     fun onDeleteRecordMenuItemTapped(id: Long) {
         viewModelScope.launch {
-            val oldRecord = repository.deleteRecord(recordId = id)
+            val oldRecord = recordsRepository.deleteRecord(recordId = id)
             _viewState.update {
                 it.copy(
                     showUndoDeleteSnackbar = true,
@@ -139,7 +139,7 @@ internal class OverviewViewModel(
 
     fun onUndoDeleteTapped() {
         viewModelScope.launch {
-            repository.updateRecord(_viewState.value.recordToUndelete!!)
+            recordsRepository.updateRecord(_viewState.value.recordToUndelete!!)
         }
         _viewState.update {
             it.copy(
@@ -169,7 +169,7 @@ internal class OverviewViewModel(
 
     private fun deleteTemplate(templateId: Long) {
         GlobalScope.launch {
-            val (templateDeleted, imageDeleted) = repository.deleteTemplateIfUnused(
+            val (templateDeleted, imageDeleted) = recordsRepository.deleteTemplateIfUnused(
                 templateId = templateId,
                 imageToo = true,
             )

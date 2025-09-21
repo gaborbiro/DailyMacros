@@ -1,9 +1,10 @@
 package dev.gaborbiro.dailymacros.repo.chatgpt
 
-import dev.gaborbiro.dailymacros.repo.chatgpt.model.FoodPicSummaryRequest
-import dev.gaborbiro.dailymacros.repo.chatgpt.model.FoodPicSummaryResponse
-import dev.gaborbiro.dailymacros.repo.chatgpt.model.MacrosRequest
-import dev.gaborbiro.dailymacros.repo.chatgpt.model.MacrosResponse
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.ChatGPTRepository
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodPicSummaryRequest
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodPicSummaryResponse
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.MacrosRequest
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.MacrosResponse
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.ChatGPTService
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repo.chatgpt.util.parse

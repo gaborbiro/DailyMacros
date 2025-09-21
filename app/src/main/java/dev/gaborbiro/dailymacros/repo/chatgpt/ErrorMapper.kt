@@ -1,6 +1,6 @@
 package dev.gaborbiro.dailymacros.repo.chatgpt
 
-import dev.gaborbiro.dailymacros.repo.chatgpt.model.DomainError
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.DomainError
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTApiError
 
 

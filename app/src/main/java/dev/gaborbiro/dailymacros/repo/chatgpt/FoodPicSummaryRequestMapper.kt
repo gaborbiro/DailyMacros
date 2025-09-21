@@ -2,8 +2,8 @@ package dev.gaborbiro.dailymacros.repo.chatgpt
 
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
-import dev.gaborbiro.dailymacros.repo.chatgpt.model.FoodPicSummaryRequest
-import dev.gaborbiro.dailymacros.repo.chatgpt.model.FoodPicSummaryResponse
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodPicSummaryRequest
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodPicSummaryResponse
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTRequest
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTResponse
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntry

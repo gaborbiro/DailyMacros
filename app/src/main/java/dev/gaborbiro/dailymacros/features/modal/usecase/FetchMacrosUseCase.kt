@@ -6,7 +6,7 @@ import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.modal.RecordsMapper
 import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
 import dev.gaborbiro.dailymacros.features.widget.DailyMacrosWidgetScreen
-import dev.gaborbiro.dailymacros.repo.chatgpt.ChatGPTRepository
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record

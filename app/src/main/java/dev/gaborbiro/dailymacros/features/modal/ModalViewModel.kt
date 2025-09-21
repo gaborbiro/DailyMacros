@@ -27,7 +27,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.widget.DailyMacrosWidgetScreen
-import dev.gaborbiro.dailymacros.repo.chatgpt.model.DomainError
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.DomainError
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import ellipsize
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -386,7 +386,7 @@ internal class ModalViewModel(
     }
 
     fun onImagesInfoButtonTapped() {
-        pushDialog(DialogState.InfoDialog("You can add as many images as you like. Nutritional labels are particularly useful. You can also add more photos or update things later, don't worry about gathering all info right away."))
+        pushDialog(DialogState.InfoDialog("You can add as many images as you like. Nutritional labels are particularly useful to the AI. You can also add more photos or update things later, don't worry about gathering all info right away."))
     }
 
     private suspend fun handleCreateRecordDetailsSubmitted(

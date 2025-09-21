@@ -4,6 +4,7 @@ import dev.gaborbiro.dailymacros.data.db.model.RecordJoined
 import dev.gaborbiro.dailymacros.data.db.model.TemplateJoined
 import dev.gaborbiro.dailymacros.data.db.model.entity.MacrosEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
+import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatus
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
@@ -24,7 +25,7 @@ internal class ApiMapper {
             name = template.entity.name,
             description = template.entity.description,
             macros = template.macros?.let(::map),
-            isPending = false,
+            isPending = template.requestStatus?.status == RequestStatus.PENDING,
         )
     }
 

@@ -6,6 +6,7 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.COLUMN_ID
 import dev.gaborbiro.dailymacros.data.db.model.entity.COLUMN_TEMPLATE_ID
 import dev.gaborbiro.dailymacros.data.db.model.entity.ImageEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.MacrosEntity
+import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatusEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 
 data class TemplateJoined(
@@ -22,5 +23,12 @@ data class TemplateJoined(
         entityColumn = COLUMN_TEMPLATE_ID,
         entity = ImageEntity::class
     )
-    val images: List<ImageEntity>
+    val images: List<ImageEntity>,
+
+    @Relation(
+        parentColumn = COLUMN_ID,
+        entityColumn = COLUMN_TEMPLATE_ID,
+        entity = RequestStatusEntity::class
+    )
+    val requestStatus: RequestStatusEntity?,
 )

@@ -34,17 +34,6 @@ internal class RecordsRepositoryImpl(
         .filter { it.entity.timestamp >= since }
         .map(mapper::map)
 
-    override suspend fun getRecordsFlow(
-        since: LocalDateTime,
-        until: LocalDateTime?,
-    ): Flow<List<Record>> = recordsDAO
-        .let { dao ->
-            until
-                ?.let { dao.getFlow(since, until) }
-                ?: dao.getFlow(since)
-        }
-        .map(mapper::map)
-
     override suspend fun getTop10(): List<Template> = templatesDAO
         .getTop10()
         .map(mapper::map)
