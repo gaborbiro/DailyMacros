@@ -64,13 +64,12 @@ internal class SettingsViewModel(
             FieldErrors(minError = minErr, maxError = maxErr)
         }
 
-        val valid = errors.values.all { it.minError == null && it.maxError == null }
         val dirty = updated != savedSettings
 
         _viewState.value = SettingsViewState(
             settings = updated,
             canReset = dirty,
-            canSave = dirty && valid,
+            canSave = dirty,
             showExitDialog = _viewState.value.showExitDialog,
             errors = errors
         )

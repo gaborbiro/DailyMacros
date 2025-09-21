@@ -28,14 +28,14 @@ internal class SettingsRepository(
     }
 
     private val defaultTargets = Targets(
-        calories = Target(),
-        protein = Target(true),
-        salt = Target(true),
-        fibre = Target(true),
-        fat = Target(true),
-        ofWhichSaturated = Target(true),
-        carbs = Target(true),
-        ofWhichSugar = Target(true)
+        calories = Target(enabled = false),
+        protein = Target(enabled = false),
+        salt = Target(enabled = false),
+        fibre = Target(enabled = false),
+        fat = Target(enabled = false),
+        ofWhichSaturated = Target(enabled = false),
+        carbs = Target(enabled = false),
+        ofWhichSugar = Target(enabled = false)
     )
 
     fun loadTargets(): Targets {

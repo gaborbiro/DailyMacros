@@ -12,7 +12,7 @@ data class Targets(
 )
 
 data class Target(
-    val enabled: Boolean = true,
+    val enabled: Boolean,
     val min: Int? = null,
     val max: Int? = null,
 )

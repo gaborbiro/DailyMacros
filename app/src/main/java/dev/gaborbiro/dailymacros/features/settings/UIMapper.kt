@@ -72,8 +72,8 @@ internal class UIMapper {
     private fun map(uiTarget: TargetUIModel): Target {
         return Target(
             enabled = uiTarget.enabled,
-            min = uiTarget.min!!,
-            max = uiTarget.max!!,
+            min = uiTarget.min,
+            max = uiTarget.max,
         )
     }
 }
