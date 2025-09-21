@@ -78,12 +78,15 @@ internal fun InputDialog(
     val descriptionField: MutableState<TextFieldValue> = remember {
         mutableStateOf(TextFieldValue(description ?: ""))
     }
-    val onDone: () -> Unit = {
+    val onSubmit: () -> Unit = {
         onRecordDetailsSubmitRequested(
             /* title = */ titleField.value.text.trim(),
             /* description = */ descriptionField.value.text.trim(),
         )
     }
+
+    val saveButtonText =
+        if (dialogState is DialogState.InputDialog.RecordDetailsDialog) "Update and Analyze" else "Add and Analyze"
 
     val showKeyboardOnOpen = remember(dialogState) {
         when (dialogState) {
@@ -106,6 +109,7 @@ internal fun InputDialog(
                 showProgressIndicator = showProgressIndicator ?: false,
                 descriptionField = descriptionField,
                 error = dialogState.validationError,
+                allowEdit = allowEdit,
                 macros = macros,
                 onImageTapped = onImageTapped,
                 onAddImageViaCameraTapped = onAddImageViaCameraTapped,
@@ -130,23 +134,25 @@ internal fun InputDialog(
                             style = MaterialTheme.typography.labelLarge,
                         )
                     }
-                    TextButton(onDone) {
+                    TextButton(onSubmit) {
                         Text(
                             modifier = Modifier
                                 .padding(horizontal = PaddingDefault),
                             color = MaterialTheme.colorScheme.primary,
-                            text = "Save",
+                            text = saveButtonText,
                             style = MaterialTheme.typography.labelLarge,
                         )
                     }
                 } else {
-                    Text(
-                        modifier = Modifier
-                            .padding(horizontal = PaddingDefault),
-                        color = MaterialTheme.colorScheme.primary,
-                        text = "Close",
-                        style = MaterialTheme.typography.labelLarge,
-                    )
+                    TextButton(onDismissRequested) {
+                        Text(
+                            modifier = Modifier
+                                .padding(horizontal = PaddingDefault),
+                            color = MaterialTheme.colorScheme.primary,
+                            text = "Close",
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                    }
                 }
             }
         }
@@ -164,6 +170,7 @@ private fun ColumnScope.InputDialogContent(
     showProgressIndicator: Boolean,
     descriptionField: MutableState<TextFieldValue>,
     error: String?,
+    allowEdit: Boolean,
     macros: MacrosUIModel?,
     onImageTapped: (String) -> Unit,
     onAddImageViaCameraTapped: () -> Unit,
@@ -186,13 +193,16 @@ private fun ColumnScope.InputDialogContent(
             .fillMaxWidth()
             .wrapContentHeight()
             .focusRequester(focusRequester),
+        enabled = allowEdit,
         isError = error.isNullOrBlank().not(),
         textStyle = MaterialTheme.typography.bodyMedium,
         placeholder = {
-            Text(
-                text = titleHint,
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            if (allowEdit) {
+                Text(
+                    text = titleHint,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
         },
         value = titleField.value,
         keyboardOptions = KeyboardOptions(
@@ -243,13 +253,6 @@ private fun ColumnScope.InputDialogContent(
                     )
                 }
             }
-
-//            if (titleSelectTooltipEnabled) {
-//                Tooltip(
-//                    text = "☝\uFE0FSelect an AI suggested title or write your own.\nNote: feel free to add additional photos (for example nutrient label) but keep things focused: one food/dish.",
-//                    onDismiss = onTitleSelectTooltipDismissed,
-//                )
-//            }
         }
 
     if (showProgressIndicator) {
@@ -279,6 +282,7 @@ private fun ColumnScope.InputDialogContent(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = PaddingDefault),
+        showAddPhotoButtons = allowEdit,
         images = images,
         onImageTapped = onImageTapped,
         onAddImageViaCameraTapped = onAddImageViaCameraTapped,
@@ -315,13 +319,22 @@ private fun ColumnScope.InputDialogContent(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = PaddingDefault)
-            .height(96.dp),
+            .let {
+                if (allowEdit) {
+                    it.height(96.dp)
+                } else {
+                    it.wrapContentHeight()
+                }
+            },
+        enabled = allowEdit,
         textStyle = MaterialTheme.typography.bodyMedium,
         placeholder = {
-            Text(
-                text = "Mention unclear components, quantities or other instructions for the AI (for ex. \"I only ate half of it\")",
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            if (allowEdit) {
+                Text(
+                    text = "Mention unclear components, quantities or other instructions for the AI (for ex. \"I only ate half of it\")",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
         },
         value = descriptionField.value,
         keyboardOptions = KeyboardOptions(

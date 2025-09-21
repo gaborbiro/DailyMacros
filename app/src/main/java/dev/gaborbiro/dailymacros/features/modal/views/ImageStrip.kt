@@ -39,6 +39,7 @@ import dev.gaborbiro.dailymacros.features.common.views.PreviewImageStoreProvider
 @Composable
 fun ImageStrip(
     images: List<String>,
+    showAddPhotoButtons: Boolean,
     onImageTapped: (String) -> Unit,
     onAddImageViaCameraTapped: () -> Unit,
     onAddImageViaPickerTapped: () -> Unit,
@@ -72,48 +73,49 @@ fun ImageStrip(
                 )
             }
         }
-
-        item("add_camera") {
-            Box(
-                modifier = Modifier
-                    .size(tileSize)
-                    .clip(shape)
-                    .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f), shape)
-                    .clickable(onClick = onAddImageViaCameraTapped)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f), shape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_add_photo),
-                    contentDescription = "Take photo",
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
+        if (showAddPhotoButtons) {
+            item("add_camera") {
+                Box(
+                    modifier = Modifier
+                        .size(tileSize)
+                        .clip(shape)
+                        .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f), shape)
+                        .clickable(onClick = onAddImageViaCameraTapped)
+                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f), shape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_add_photo),
+                        contentDescription = "Take photo",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
-        }
 
-        item("add_picker") {
-            Box(
-                modifier = Modifier
-                    .size(tileSize)
-                    .clip(shape)
-                    .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f), shape)
-                    .clickable(onClick = onAddImageViaPickerTapped)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f), shape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_add_picture),
-                    contentDescription = "Image picker",
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
+            item("add_picker") {
+                Box(
+                    modifier = Modifier
+                        .size(tileSize)
+                        .clip(shape)
+                        .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f), shape)
+                        .clickable(onClick = onAddImageViaPickerTapped)
+                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f), shape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_add_picture),
+                        contentDescription = "Image picker",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
-        }
-        item {
-            IconButton(onClick = onInfoButtonTapped) {
-                Icon(
-                    imageVector = Icons.Outlined.Info,
-                    contentDescription = "Info"
-                )
+            item {
+                IconButton(onClick = onInfoButtonTapped) {
+                    Icon(
+                        imageVector = Icons.Outlined.Info,
+                        contentDescription = "Info"
+                    )
+                }
             }
         }
     }
@@ -127,6 +129,25 @@ private fun ImageStripPreview() {
         PreviewImageStoreProvider {
             ImageStrip(
                 images = listOf("1", "2"),
+                showAddPhotoButtons = true,
+                onImageTapped = {},
+                onAddImageViaCameraTapped = {},
+                onAddImageViaPickerTapped = {},
+                onInfoButtonTapped = {},
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+private fun ImageStripPreviewViewOnly() {
+    AppTheme {
+        PreviewImageStoreProvider {
+            ImageStrip(
+                images = listOf("1", "2"),
+                showAddPhotoButtons = false,
                 onImageTapped = {},
                 onAddImageViaCameraTapped = {},
                 onAddImageViaPickerTapped = {},

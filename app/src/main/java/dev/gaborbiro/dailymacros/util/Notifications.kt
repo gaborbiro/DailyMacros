@@ -13,12 +13,12 @@ fun Context.createNotificationChannels() {
     val generalChannel = NotificationChannel(
         CHANNEL_ID_GENERAL,
         "General notifications",
-        NotificationManager.IMPORTANCE_LOW
+        NotificationManager.IMPORTANCE_DEFAULT
     )
     val foregroundChannel = NotificationChannel(
         CHANNEL_ID_FOREGROUND,
         "Background process",
-        NotificationManager.IMPORTANCE_LOW
+        NotificationManager.IMPORTANCE_DEFAULT
     )
         .apply {
             description =
