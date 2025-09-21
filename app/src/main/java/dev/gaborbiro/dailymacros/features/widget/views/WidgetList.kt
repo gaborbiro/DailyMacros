@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.widget.views
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceModifier
 import androidx.glance.action.Action
 import androidx.glance.action.action
@@ -103,6 +104,12 @@ internal fun WidgetList(
                     }
                 }
             }
+        }
+        item {
+            Spacer(
+                modifier = GlanceModifier
+                    .height(56.dp)
+            )
         }
     }
 }
