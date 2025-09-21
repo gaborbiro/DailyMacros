@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.material3.Button
 import androidx.compose.material3.FabPosition
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -27,8 +28,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import dev.gaborbiro.dailymacros.design.ExtraColors
 import dev.gaborbiro.dailymacros.design.AppTheme
+import dev.gaborbiro.dailymacros.design.ExtraColors
+import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroProgress
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
@@ -118,6 +120,8 @@ fun AddWidgetButton() {
     val context = LocalContext.current
 
     Button(
+        modifier = Modifier
+            .padding(PaddingDefault),
         onClick = {
             val appWidgetManager = AppWidgetManager.getInstance(context)
 
@@ -130,7 +134,9 @@ fun AddWidgetButton() {
             }
         }
     ) {
-        Text("Tap here to add a widget to your desktop")
+        Text(
+            text = "Tap here to add a widget to your desktop"
+        )
     }
 }
 
@@ -236,6 +242,34 @@ private fun OverviewListPreview() {
                             ),
                         )
                     ),
+                ),
+                onRepeatMenuItemTapped = {},
+                onDetailsMenuItemTapped = {},
+                onDeleteRecordMenuItemTapped = {},
+                onRecordImageTapped = {},
+                onRecordBodyTapped = {},
+                onUndoDeleteTapped = {},
+                onUndoDeleteDismissed = {},
+                onUndoDeleteSnackbarShown = {},
+                onSearchTermChanged = {},
+                onMacrosMenuItemTapped = {},
+                onSettingsButtonTapped = {},
+                onCoachMarkDismissed = {},
+            )
+        }
+    }
+}
+
+@Preview(widthDp = 300)
+@Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+private fun OverviewListPreviewEmpty() {
+    AppTheme {
+        PreviewImageStoreProvider {
+            OverviewView(
+                viewState = OverviewViewState(
+                    items = emptyList(),
+                    showAddWidgetButton = true,
                 ),
                 onRepeatMenuItemTapped = {},
                 onDetailsMenuItemTapped = {},
