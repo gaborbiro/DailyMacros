@@ -1,7 +1,6 @@
 package dev.gaborbiro.dailymacros.features.widget.views
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceModifier
 import androidx.glance.action.Action
 import androidx.glance.action.action
@@ -19,8 +18,8 @@ import androidx.glance.layout.size
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
-import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
+import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultHorizontal
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 
@@ -59,19 +58,28 @@ fun ListItemRecord(
         ) {
             Text(
                 text = record.title,
-                maxLines = 3,
+                maxLines = if (record.showLoadingIndicator) 2 else 3,
                 style = titleTextStyle,
             )
-            Text(
-                text = record.timestamp,
-                maxLines = 1,
-                style = dateTextStyle,
-            )
+            if (record.showLoadingIndicator) {
+                Text(
+                    text = "Analyzing…",
+                    maxLines = 1,
+                    style = loadingTextStyle,
+                )
+            } else {
+                val nutrient = record.macros?.calories?.let { " ($it)" }
+                Text(
+                    text = record.timestamp + nutrient,
+                    maxLines = 1,
+                    style = dateTextStyle,
+                )
+            }
         }
     }
 }
 
-@Preview
+@Preview(widthDp = 300)
 @Composable
 @OptIn(ExperimentalGlancePreviewApi::class)
 private fun RecordListItemPreview() {
@@ -80,9 +88,9 @@ private fun RecordListItemPreview() {
             record = ListUIModelRecord(
                 recordId = 1,
                 templateId = 1L,
-                title = "Breakfast",
+                title = "Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast ",
                 timestamp = "Yesterday",
-                images = listOf("", ""),
+                images = listOf("1", "2"),
                 macros = MacrosUIModel(
                     calories = "8cal",
                     protein = "prot 8",
@@ -91,6 +99,34 @@ private fun RecordListItemPreview() {
                     salt = "sal 2",
                     fibre = "fib 4",
                 ),
+            ),
+            imageTappedActionProvider = action {},
+            bodyTappedActionProvider = action {},
+        )
+    }
+}
+
+@Preview(widthDp = 300)
+@Composable
+@OptIn(ExperimentalGlancePreviewApi::class)
+private fun RecordListItemPreviewLoading() {
+    WidgetPreview {
+        ListItemRecord(
+            record = ListUIModelRecord(
+                recordId = 1,
+                templateId = 1L,
+                title = "Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast ",
+                timestamp = "Yesterday",
+                images = listOf("1", "2"),
+                macros = MacrosUIModel(
+                    calories = "8cal",
+                    protein = "prot 8",
+                    fat = "fat 4(2)",
+                    carbs = "carb 9(9)",
+                    salt = "sal 2",
+                    fibre = "fib 4",
+                ),
+                showLoadingIndicator = true,
             ),
             imageTappedActionProvider = action {},
             bodyTappedActionProvider = action {},

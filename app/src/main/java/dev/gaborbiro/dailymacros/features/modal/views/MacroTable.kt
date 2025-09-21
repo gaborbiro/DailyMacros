@@ -15,11 +15,6 @@ import dev.gaborbiro.dailymacros.features.modal.model.MacrosUIModel
 internal fun MacroTable(
     macros: MacrosUIModel,
 ) {
-    Spacer(
-        modifier = Modifier.Companion
-            .height(PaddingDefault)
-    )
-
     macros.calories?.let {
         PillLabel(
             modifier = Modifier.Companion
@@ -136,9 +131,4 @@ internal fun MacroTable(
             elevation = 0.dp,
         )
     }
-
-    Spacer(
-        modifier = Modifier.Companion
-            .height(PaddingDefault)
-    )
 }

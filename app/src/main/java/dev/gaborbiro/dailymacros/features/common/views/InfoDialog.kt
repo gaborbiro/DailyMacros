@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.common.view
+package dev.gaborbiro.dailymacros.features.common.views
 
 import android.content.res.Configuration
 import androidx.compose.material3.AlertDialog

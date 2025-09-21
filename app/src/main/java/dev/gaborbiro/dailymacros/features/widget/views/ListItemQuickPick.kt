@@ -9,6 +9,7 @@ import androidx.glance.action.clickable
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.background
 import androidx.glance.layout.Alignment
+import androidx.glance.layout.Column
 import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
@@ -20,6 +21,7 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPick
+import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultHorizontal
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
 
@@ -56,15 +58,27 @@ internal fun ListItemQuickPick(
             ?: run {
                 Spacer(modifier = GlanceModifier.size(WidgetTemplateImageSize))
             }
-
-        Text(
-            modifier = GlanceModifier
-                .wrapContentHeight()
-                .padding(start = PaddingWidgetDefaultHorizontal + extraPadding, end = PaddingWidgetDefaultHorizontal),
-            text = quickPickEntry.title,
-            maxLines = 3,
-            style = titleTextStyle,
-        )
+        Column {
+            Text(
+                modifier = GlanceModifier
+                    .wrapContentHeight()
+                    .padding(start = PaddingWidgetDefaultHorizontal + extraPadding, end = PaddingWidgetDefaultHorizontal),
+                text = quickPickEntry.title,
+                maxLines = 3,
+                style = titleTextStyle,
+            )
+            quickPickEntry.macros?.calories
+                ?.let {
+                    Text(
+                        modifier = GlanceModifier
+                            .wrapContentHeight()
+                            .padding(start = PaddingWidgetDefaultHorizontal + extraPadding, end = PaddingWidgetDefaultHorizontal),
+                        text = it,
+                        maxLines = 1,
+                        style = descriptionTextStyle,
+                    )
+                }
+        }
     }
 }
 
@@ -76,9 +90,16 @@ private fun ListItemQuickPickPreview() {
         ListItemQuickPick(
             quickPickEntry = ListUIModelQuickPick(
                 title = "Breakfast",
-                description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                 images = listOf("", ""),
                 templateId = 0L,
+                macros = MacrosUIModel(
+                    calories = "1008cal",
+                    protein = "protein 8",
+                    fat = "fat 4(2)",
+                    carbs = "carbs 9(9)",
+                    salt = "salt 2",
+                    fibre = "fibre 4",
+                ),
             ),
             imageTapActionProvider = action { },
             bodyTapActionProvider = action { },

@@ -17,8 +17,8 @@ import androidx.glance.layout.Box
 import androidx.glance.layout.ContentScale
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 
-val LocalImageStore = staticCompositionLocalOf<ImageStore> {
-    error("LocalImageStore not provided")
+val LocalImageStoreWidget = staticCompositionLocalOf<ImageStore> {
+    error("LocalImageStoreWidget not provided")
 }
 
 @Composable
@@ -29,7 +29,7 @@ fun LocalImage(
     placeholder: @Composable () -> Unit = { Box(modifier.background(Color.LightGray.copy(alpha = 0.15f))) {} },
     error: @Composable () -> Unit = { Box(modifier.background(Color.Red.copy(alpha = 0.08f))) {} },
 ) {
-    val store = LocalImageStore.current
+    val store = LocalImageStoreWidget.current
     var bmp by remember(name, store) { mutableStateOf<Bitmap?>(null) }
     var failed by remember(name, store) { mutableStateOf(false) }
 

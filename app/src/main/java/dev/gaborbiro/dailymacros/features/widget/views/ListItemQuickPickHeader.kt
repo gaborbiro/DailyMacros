@@ -26,7 +26,6 @@ fun ListItemQuickPickHeader(
 ) {
     Row(
         modifier = modifier
-            .background(quickPickBackground)
             .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalAlignment = Alignment.CenterVertically,

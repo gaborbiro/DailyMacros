@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.common.view
+package dev.gaborbiro.dailymacros.features.common.views
 
 import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
@@ -9,7 +9,7 @@ import java.io.ByteArrayInputStream
 import java.io.InputStream
 
 
-private object PreviewImageStore : ImageStore {
+internal object PreviewImageStore : ImageStore {
     override suspend fun read(filename: String, thumbnail: Boolean): Bitmap? =
         randomBitmap(if (thumbnail) 256 else 1024, if (thumbnail) 256 else 1024)
 

@@ -32,8 +32,8 @@ import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
-import dev.gaborbiro.dailymacros.features.common.view.LocalImage
-import dev.gaborbiro.dailymacros.features.common.view.PreviewImageStoreProvider
+import dev.gaborbiro.dailymacros.features.common.views.LocalImage
+import dev.gaborbiro.dailymacros.features.common.views.PreviewImageStoreProvider
 
 
 @Composable

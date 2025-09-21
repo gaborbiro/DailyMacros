@@ -4,7 +4,7 @@ internal class ListUIModelQuickPick(
     val templateId: Long,
     val images: List<String>,
     val title: String,
-    val description: String?,
+    val macros: MacrosUIModel?,
 ) : ListUIModelBase(listItemId = templateId, contentType = "quick pick")
 
 internal data object ListUIModelQuickPickHeader : ListUIModelBase(listItemId = Long.MIN_VALUE, contentType = "")

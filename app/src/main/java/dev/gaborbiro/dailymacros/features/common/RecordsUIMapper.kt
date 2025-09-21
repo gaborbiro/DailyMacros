@@ -54,6 +54,7 @@ internal class RecordsUIMapper(
             timestamp = timestampStr,
             title = record.template.name,
             macros = macros,
+            showLoadingIndicator = record.template.isPending,
         )
     }
 }

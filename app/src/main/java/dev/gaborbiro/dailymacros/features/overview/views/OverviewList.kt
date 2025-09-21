@@ -42,10 +42,10 @@ import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroProgress
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
-import dev.gaborbiro.dailymacros.features.common.view.CoachMarkOverlay
-import dev.gaborbiro.dailymacros.features.common.view.LocalImageStore
-import dev.gaborbiro.dailymacros.features.common.view.PreviewImageStoreProvider
-import dev.gaborbiro.dailymacros.features.common.view.coachMarkOverlayAnchor
+import dev.gaborbiro.dailymacros.features.common.views.CoachMarkOverlay
+import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
+import dev.gaborbiro.dailymacros.features.common.views.PreviewImageStoreProvider
+import dev.gaborbiro.dailymacros.features.common.views.coachMarkOverlayAnchor
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
 import kotlinx.coroutines.launch
 

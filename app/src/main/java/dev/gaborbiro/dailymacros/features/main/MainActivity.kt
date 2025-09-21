@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -25,12 +26,12 @@ import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.AppTheme
+import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
-import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
-import dev.gaborbiro.dailymacros.features.common.view.LocalImageStore
 import dev.gaborbiro.dailymacros.features.common.viewModelFactory
+import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.overview.OverviewNavigatorImpl
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
@@ -39,8 +40,10 @@ import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
 import dev.gaborbiro.dailymacros.repo.records.ApiMapper
 import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
+import dev.gaborbiro.dailymacros.repo.requestStatus.RequestStatusRepositoryImpl
 import dev.gaborbiro.dailymacros.repo.settings.SettingsMapper
 import dev.gaborbiro.dailymacros.repo.settings.SettingsRepository
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -52,10 +55,10 @@ class MainActivity : ComponentActivity() {
 
         val fileStore = FileStoreFactoryImpl(this).getStore("public", keepFiles = true)
         val imageStore = ImageStoreImpl(fileStore)
-
+        val db = AppDatabase.getInstance()
         val recordsRepository = RecordsRepositoryImpl(
-            templatesDAO = AppDatabase.getInstance().templatesDAO(),
-            recordsDAO = AppDatabase.getInstance().recordsDAO(),
+            templatesDAO = db.templatesDAO(),
+            recordsDAO = db.recordsDAO(),
             mapper = ApiMapper(),
             imageStore = imageStore,
         )
@@ -64,6 +67,10 @@ class MainActivity : ComponentActivity() {
 
         val settingsRepository = SettingsRepository(this@MainActivity, SettingsMapper())
         val appPrefs = AppPrefs(this@MainActivity)
+
+        lifecycleScope.launch {
+            RequestStatusRepositoryImpl(db.requestStatusDAO()).deleteStale()
+        }
 
         setContent {
             AppTheme {

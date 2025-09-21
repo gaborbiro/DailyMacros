@@ -10,14 +10,15 @@ import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkRequest
 import androidx.work.WorkerParameters
+import dev.gaborbiro.dailymacros.data.db.AppDatabase
+import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
+import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
+import dev.gaborbiro.dailymacros.features.widget.DailyMacrosWidgetScreen
 import dev.gaborbiro.dailymacros.repo.records.ApiMapper
 import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
-import dev.gaborbiro.dailymacros.features.widget.DailyMacrosWidgetScreen
-import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
-import dev.gaborbiro.dailymacros.data.db.AppDatabase
-import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
+import dev.gaborbiro.dailymacros.repo.requestStatus.RequestStatusRepositoryImpl
 import dev.gaborbiro.dailymacros.util.gson
 import java.time.LocalDateTime
 
@@ -26,38 +27,42 @@ internal class ReloadWorkRequest(
     private val workerParameters: WorkerParameters,
 ) : CoroutineWorker(appContext, workerParameters) {
 
+    private val database by lazy { AppDatabase.getInstance() }
     private val fileStore by lazy { FileStoreFactoryImpl(appContext).getStore("public", keepFiles = true) }
     private val recordsRepository by lazy {
         RecordsRepositoryImpl(
-            templatesDAO = AppDatabase.getInstance().templatesDAO(),
-            recordsDAO = AppDatabase.getInstance().recordsDAO(),
+            templatesDAO = database.templatesDAO(),
+            recordsDAO = database.recordsDAO(),
             mapper = ApiMapper(),
             imageStore = ImageStoreImpl(fileStore),
         )
     }
+    private val requestStatusRepository by lazy {
+        RequestStatusRepositoryImpl(database.requestStatusDAO())
+    }
 
     companion object {
         private const val RECORD_DAYS_TO_DISPLAY_DEFAULT = 7
-        private const val TEMPLATE_COUNT_DEFAULT = 30
+        private const val QUICK_PICK_COUNT_DEFAULT = 30
 
         private const val PREFS_RECENT_RECORDS_KEY = "recent_records_key"
-        private const val PREFS_TOP_TEMPLATES_KEY = "top_templates_key"
+        private const val PREFS_QUICK_PICKS_KEY = "quick_picks_key"
         private const val PREFS_RECORD_DAYS_TO_DISPLAY = "record_days_to_display"
-        private const val PREFS_TEMPLATE_COUNT = "template_count"
+        private const val PREFS_QUICK_PICK_COUNT = "quick_picks_count"
 
         fun getWorkRequest(
             recentRecordsPrefsKey: String,
-            topTemplatesPrefsKey: String,
+            quickPicksPrefsKey: String,
             recordDaysToDisplay: Int = RECORD_DAYS_TO_DISPLAY_DEFAULT,
-            templateCount: Int = TEMPLATE_COUNT_DEFAULT,
+            quickPickCount: Int = QUICK_PICK_COUNT_DEFAULT,
         ): WorkRequest {
             return OneTimeWorkRequestBuilder<ReloadWorkRequest>()
                 .setInputData(
                     Data.Builder()
                         .putString(PREFS_RECENT_RECORDS_KEY, recentRecordsPrefsKey)
-                        .putString(PREFS_TOP_TEMPLATES_KEY, topTemplatesPrefsKey)
+                        .putString(PREFS_QUICK_PICKS_KEY, quickPicksPrefsKey)
                         .putInt(PREFS_RECORD_DAYS_TO_DISPLAY, recordDaysToDisplay)
-                        .putInt(PREFS_TEMPLATE_COUNT, templateCount)
+                        .putInt(PREFS_QUICK_PICK_COUNT, quickPickCount)
                         .build()
                 )
                 .build()
@@ -66,17 +71,32 @@ internal class ReloadWorkRequest(
 
     override suspend fun doWork(): Result {
         return try {
+            requestStatusRepository.deleteStale()
+
             val recordDaysToDisplay =
                 workerParameters.inputData.getInt(
                     PREFS_RECORD_DAYS_TO_DISPLAY,
                     RECORD_DAYS_TO_DISPLAY_DEFAULT
                 )
             val templateCount =
-                workerParameters.inputData.getInt(PREFS_TEMPLATE_COUNT, TEMPLATE_COUNT_DEFAULT)
+                workerParameters.inputData.getInt(PREFS_QUICK_PICK_COUNT, QUICK_PICK_COUNT_DEFAULT)
             val recentRecords =
                 recordsRepository.getRecords(LocalDateTime.now().minusDays(recordDaysToDisplay.toLong()))
             val topTemplates = recordsRepository.getTop10().take(templateCount)
-            sendToWidgets(applicationContext, recentRecords, topTemplates)
+
+            val requestStatuses = requestStatusRepository.getAll()
+            val updatedRecords = recentRecords
+                .map { record ->
+                    val requestStatus =
+                        requestStatuses.firstOrNull { it.templateId == record.template.dbId }
+                    record.copy(
+                        template = record.template.copy(
+                            isPending = requestStatus?.isPending == true,
+                        )
+                    )
+                }
+
+            sendToWidgets(applicationContext, updatedRecords, topTemplates)
             Result.success()
         } catch (t: Throwable) {
             t.printStackTrace()
@@ -86,18 +106,18 @@ internal class ReloadWorkRequest(
 
     private suspend fun sendToWidgets(
         context: Context,
-        recentRecords: List<Record>,
-        topTemplates: List<Template>,
+        records: List<Record>,
+        quickPicks: List<Template>,
     ) {
         val recentRecordsPrefsKey =
             stringPreferencesKey(workerParameters.inputData.getString(PREFS_RECENT_RECORDS_KEY)!!)
         val topTemplatesPrefsKey =
-            stringPreferencesKey(workerParameters.inputData.getString(PREFS_TOP_TEMPLATES_KEY)!!)
+            stringPreferencesKey(workerParameters.inputData.getString(PREFS_QUICK_PICKS_KEY)!!)
 
         val glanceIds = GlanceAppWidgetManager(context)
             .getGlanceIds(DailyMacrosWidgetScreen::class.java)
-        val recordsJson = gson.toJson(recentRecords)
-        val templatesJson = gson.toJson(topTemplates)
+        val recordsJson = gson.toJson(records)
+        val templatesJson = gson.toJson(quickPicks)
         glanceIds.forEach { glanceId ->
             updateAppWidgetState(context, glanceId) { widgetPrefs ->
                 widgetPrefs[recentRecordsPrefsKey] = recordsJson

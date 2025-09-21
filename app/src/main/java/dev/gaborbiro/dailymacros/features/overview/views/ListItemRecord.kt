@@ -32,8 +32,8 @@ import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
-import dev.gaborbiro.dailymacros.features.common.view.LocalImage
-import dev.gaborbiro.dailymacros.features.common.view.PreviewImageStoreProvider
+import dev.gaborbiro.dailymacros.features.common.views.LocalImage
+import dev.gaborbiro.dailymacros.features.common.views.PreviewImageStoreProvider
 import dev.gaborbiro.dailymacros.features.widget.views.ListItemImageCornerRadius
 
 

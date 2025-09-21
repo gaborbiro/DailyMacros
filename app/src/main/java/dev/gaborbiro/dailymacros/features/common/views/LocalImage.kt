@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.common.view
+package dev.gaborbiro.dailymacros.features.common.views
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image

@@ -23,7 +23,8 @@ internal class ApiMapper {
             images = orderedImages,
             name = template.entity.name,
             description = template.entity.description,
-            macros = template.macros?.let(::map)
+            macros = template.macros?.let(::map),
+            isPending = false,
         )
     }
 

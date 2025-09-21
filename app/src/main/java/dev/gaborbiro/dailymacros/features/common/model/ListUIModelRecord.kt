@@ -10,6 +10,7 @@ data class ListUIModelRecord(
     val timestamp: String,
     val title: String,
     val macros: MacrosUIModel?,
+    val showLoadingIndicator: Boolean = false,
 ) : ListUIModelBase(listItemId = recordId, contentType = "record")
 
 data class MacrosUIModel(

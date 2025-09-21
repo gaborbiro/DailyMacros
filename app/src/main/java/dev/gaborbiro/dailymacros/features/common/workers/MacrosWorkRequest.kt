@@ -30,6 +30,7 @@ import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContent
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContentDeserializer
 import dev.gaborbiro.dailymacros.repo.records.ApiMapper
 import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
+import dev.gaborbiro.dailymacros.repo.requestStatus.RequestStatusRepositoryImpl
 import dev.gaborbiro.dailymacros.util.CHANNEL_ID_FOREGROUND
 import okhttp3.OkHttpClient
 import okhttp3.java.net.cookiejar.JavaNetCookieJar
@@ -44,18 +45,23 @@ class MacrosWorkRequest(
     private val workerParameters: WorkerParameters,
 ) : CoroutineWorker(appContext, workerParameters) {
 
+
     private val imageStore: ImageStore by lazy {
         val fileStore = FileStoreFactoryImpl(appContext).getStore("public", keepFiles = true)
         ImageStoreImpl(fileStore)
     }
 
+    private val database by lazy { AppDatabase.getInstance() }
     private val recordsRepository by lazy {
         RecordsRepositoryImpl(
-            templatesDAO = AppDatabase.getInstance().templatesDAO(),
-            recordsDAO = AppDatabase.getInstance().recordsDAO(),
+            templatesDAO = database.templatesDAO(),
+            recordsDAO = database.recordsDAO(),
             mapper = ApiMapper(),
             imageStore = imageStore,
         )
+    }
+    private val requestStatusRepository by lazy {
+        RequestStatusRepositoryImpl(database.requestStatusDAO())
     }
 
     private val fetchMacrosUseCase: FetchMacrosUseCase by lazy {
@@ -101,6 +107,7 @@ class MacrosWorkRequest(
             recordsRepository = recordsRepository,
             recordsMapper = RecordsMapper(),
             macrosUIMapper = MacrosUIMapper(dateUIMapper),
+            requestStatusRepository = requestStatusRepository,
         )
     }
 

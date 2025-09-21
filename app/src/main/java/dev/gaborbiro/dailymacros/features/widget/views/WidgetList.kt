@@ -16,10 +16,10 @@ import androidx.glance.layout.padding
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPick
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPickFooter
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPickHeader
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultHorizontal
 import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultVertical
@@ -47,6 +47,7 @@ internal fun WidgetList(
                     Column(
                         modifier = GlanceModifier
                             .fillMaxWidth()
+                            .background(recordBackground)
                     ) {
                         Spacer(
                             modifier = GlanceModifier
@@ -64,6 +65,7 @@ internal fun WidgetList(
                     Column(
                         modifier = GlanceModifier
                             .fillMaxWidth()
+                            .background(quickPickBackground)
                     ) {
                         Spacer(
                             modifier = GlanceModifier
@@ -92,10 +94,10 @@ internal fun WidgetList(
                     Column(
                         modifier = GlanceModifier
                             .fillMaxWidth()
+                            .background(quickPickBackground)
                     ) {
                         Spacer(
                             modifier = GlanceModifier
-                                .background(quickPickBackground)
                                 .height(PaddingWidgetHalfVertical)
                         )
                     }
@@ -131,20 +133,41 @@ private fun WidgetListPreview() {
                 ListUIModelQuickPick(
                     templateId = 1,
                     title = "Breakfast",
-                    description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     images = listOf("", ""),
+                    macros = MacrosUIModel(
+                        calories = "1008cal",
+                        protein = "protein 8",
+                        fat = "fat 4(2)",
+                        carbs = "carbs 9(9)",
+                        salt = "salt 2",
+                        fibre = "fibre 4",
+                    ),
                 ),
                 ListUIModelQuickPick(
                     templateId = 2,
                     title = "Lunch",
-                    description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     images = listOf("", ""),
+                    macros = MacrosUIModel(
+                        calories = "1008cal",
+                        protein = "protein 8",
+                        fat = "fat 4(2)",
+                        carbs = "carbs 9(9)",
+                        salt = "salt 2",
+                        fibre = "fibre 4",
+                    ),
                 ),
                 ListUIModelQuickPick(
                     templateId = 3,
                     title = "Dinner",
-                    description = "8cal, Prot 8, Carb 9, Suga 9, Fat 4, Sat 2, Sal: 0",
                     images = listOf("", ""),
+                    macros = MacrosUIModel(
+                        calories = "1008cal",
+                        protein = "protein 8",
+                        fat = "fat 4(2)",
+                        carbs = "carbs 9(9)",
+                        salt = "salt 2",
+                        fibre = "fibre 4",
+                    ),
                 ),
                 ListUIModelQuickPickFooter,
                 ListUIModelRecord(

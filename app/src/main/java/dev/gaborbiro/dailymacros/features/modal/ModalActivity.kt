@@ -28,10 +28,10 @@ import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
-import dev.gaborbiro.dailymacros.features.common.view.ConfirmDeleteNutrientDataDialog
-import dev.gaborbiro.dailymacros.features.common.view.ErrorDialog
-import dev.gaborbiro.dailymacros.features.common.view.InfoDialog
-import dev.gaborbiro.dailymacros.features.common.view.LocalImageStore
+import dev.gaborbiro.dailymacros.features.common.views.ConfirmDeleteNutrientDataDialog
+import dev.gaborbiro.dailymacros.features.common.views.ErrorDialog
+import dev.gaborbiro.dailymacros.features.common.views.InfoDialog
+import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.ImagePickerState
 import dev.gaborbiro.dailymacros.features.modal.model.ModalViewState

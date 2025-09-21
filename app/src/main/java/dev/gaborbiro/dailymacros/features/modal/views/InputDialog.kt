@@ -39,7 +39,7 @@ import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
-import dev.gaborbiro.dailymacros.features.common.view.PreviewImageStoreProvider
+import dev.gaborbiro.dailymacros.features.common.views.PreviewImageStoreProvider
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.MacrosUIModel
 import kotlinx.coroutines.delay
@@ -264,7 +264,7 @@ private fun ColumnScope.InputDialogContent(
 
         CircularProgressIndicator(
             modifier = Modifier
-                .padding(8.dp)
+                .padding(bottom = PaddingDefault)
                 .size(25.dp)
                 .align(Alignment.CenterHorizontally)
         )
@@ -335,6 +335,10 @@ private fun ColumnScope.InputDialogContent(
     )
 
     macros?.let {
+        Spacer(
+            modifier = Modifier.Companion
+                .height(PaddingDefault)
+        )
         MacroTable(macros = macros)
     }
 }

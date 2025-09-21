@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
@@ -28,7 +27,6 @@ import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPickFooter
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPickHeader
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
-import dev.gaborbiro.dailymacros.features.widget.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.widget.views.WidgetView
 import dev.gaborbiro.dailymacros.features.widget.workers.ReloadWorkRequest
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
@@ -39,16 +37,16 @@ class DailyMacrosWidgetScreen : GlanceAppWidget() {
 
     companion object {
         const val PREFS_RECENT_RECORDS = "recent_records"
-        const val PREFS_TOP_TEMPLATES = "top_templates"
+        const val PREFS_QUICK_PICKS = "quick_pics"
 
         fun reload() {
             Log.i("NotesWidget", "reload()")
             WorkManager.getInstance(App.appContext).enqueue(
                 ReloadWorkRequest.getWorkRequest(
                     recentRecordsPrefsKey = PREFS_RECENT_RECORDS,
-                    topTemplatesPrefsKey = PREFS_TOP_TEMPLATES,
+                    quickPicksPrefsKey = PREFS_QUICK_PICKS,
                     recordDaysToDisplay = 3,
-                    templateCount = 15,
+                    quickPickCount = 15,
                 )
             )
         }
@@ -92,7 +90,7 @@ class DailyMacrosWidgetScreen : GlanceAppWidget() {
             }
             println("recompose")
             GlanceTheme(colors = WidgetColorScheme.colors(context)) {
-                CompositionLocalProvider(LocalImageStore provides imageStore) {
+                CompositionLocalProvider(dev.gaborbiro.dailymacros.features.widget.views.LocalImageStoreWidget provides imageStore) {
                     WidgetView(
                         modifier = GlanceModifier
                             .fillMaxSize(),
@@ -120,7 +118,7 @@ fun Preferences.retrieveRecentRecords(): List<Record> {
 }
 
 fun Preferences.retrieveTopTemplates(): List<Template> {
-    val recordsJSON = this[stringPreferencesKey(DailyMacrosWidgetScreen.PREFS_TOP_TEMPLATES)]
+    val recordsJSON = this[stringPreferencesKey(DailyMacrosWidgetScreen.PREFS_QUICK_PICKS)]
     return recordsJSON
         ?.let {
             val itemType = object : TypeToken<List<Template>>() {}.type

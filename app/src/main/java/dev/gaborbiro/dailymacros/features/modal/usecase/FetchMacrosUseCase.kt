@@ -10,6 +10,7 @@ import dev.gaborbiro.dailymacros.repo.chatgpt.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repo.requestStatus.domain.RequestStatusRepository
 import dev.gaborbiro.dailymacros.util.showSimpleNotification
 
 internal class FetchMacrosUseCase(
@@ -19,6 +20,7 @@ internal class FetchMacrosUseCase(
     private val recordsRepository: RecordsRepository,
     private val recordsMapper: RecordsMapper,
     private val macrosUIMapper: MacrosUIMapper,
+    private val requestStatusRepository: RequestStatusRepository,
 ) {
 
     suspend fun execute(recordId: Long) {
@@ -28,23 +30,29 @@ internal class FetchMacrosUseCase(
                 val inputStream = imageStore.open(imageFilename, thumbnail = false)
                 inputStreamToBase64(inputStream)
             }
-        val response = chatGPTRepository.macros(
-            request = recordsMapper.mapMacrosRequest(
-                record = record,
-                base64Images = base64Images,
+        requestStatusRepository.markAsPending(record.template.dbId)
+        DailyMacrosWidgetScreen.reload()
+        try {
+            val response = chatGPTRepository.macros(
+                request = recordsMapper.mapMacrosRequest(
+                    record = record,
+                    base64Images = base64Images,
+                )
             )
-        )
-        val (macros: Macros?, issues: String?) = recordsMapper.map(response)
-        recordsRepository.updateTemplate(
-            templateId = record.template.dbId,
-            macros = macros,
-        )
-        val macrosStr = macrosUIMapper.mapMacrosString(macros)
-        appContext.showSimpleNotification(
-            id = 123000L + recordId,
-            title = null,
-            message = listOfNotNull(record.template.name, macrosStr, issues, macros?.notes).joinToString("\n"),
-        )
+            val (macros: Macros?, issues: String?) = recordsMapper.map(response)
+            recordsRepository.updateTemplate(
+                templateId = record.template.dbId,
+                macros = macros,
+            )
+            val macrosStr = macrosUIMapper.mapMacrosString(macros)
+            appContext.showSimpleNotification(
+                id = 123000L + recordId,
+                title = null,
+                message = listOfNotNull(record.template.name, macrosStr, issues, macros?.notes).joinToString("\n"),
+            )
+        } finally {
+            requestStatusRepository.unmark(record.template.dbId)
+        }
         DailyMacrosWidgetScreen.reload()
     }
 }
