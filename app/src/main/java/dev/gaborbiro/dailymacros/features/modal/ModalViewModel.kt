@@ -313,26 +313,6 @@ internal class ModalViewModel(
     }
 
     @UiThread
-    fun onDeleteNutrientDataConfirmed() {
-        _viewState.value.dialogs
-            .filterIsInstance<DialogState.ConfirmDeleteNutrientDataDialog>()
-            .firstOrNull()
-            ?.let { dialogState ->
-                viewModelScope.launch {
-                    editRecordUseCase.execute(
-                        recordId = dialogState.recordId,
-                        images = dialogState.images,
-                        title = dialogState.title,
-                        description = dialogState.description,
-                    )
-                    DailyMacrosWidgetScreen.reload()
-                    popDialog()
-                    popDialog()
-                }
-            }
-    }
-
-    @UiThread
     fun onRecordDetailsUserTyping(title: String, description: String) {
         updateDialogsOfType<DialogState.InputDialog> {
             it.withValidationError(validationError = null)
@@ -386,7 +366,7 @@ internal class ModalViewModel(
     }
 
     @UiThread
-    fun onRecordDetailsSubmitRequested(title: String, description: String) {
+    fun onSubmitRequested(title: String, description: String) {
         _viewState.value.dialogs
             .filterIsInstance<DialogState.InputDialog>()
             .firstOrNull()
@@ -424,15 +404,18 @@ internal class ModalViewModel(
             }
 
             is CreateValidationResult.Valid -> {
-                val recordId =
-                    createRecordUseCase.execute(images ?: emptyList(), title, description)
+                val recordId = createRecordUseCase.execute(
+                    images = images ?: emptyList(),
+                    title = title,
+                    description = description,
+                )
                 DailyMacrosWidgetScreen.reload()
+                popDialog()
                 WorkManager.getInstance(App.appContext).enqueue(
                     MacrosWorkRequest.getWorkRequest(
                         recordId = recordId
                     )
                 )
-                popDialog()
             }
         }
     }
@@ -461,25 +444,13 @@ internal class ModalViewModel(
             }
 
             is EditValidationResult.Valid -> {
-                if (result.showMacrosDeletionConfirmationDialog) {
-                    pushDialog(
-                        DialogState.ConfirmDeleteNutrientDataDialog(
-                            recordId = dialogState.recordId,
-                            images = dialogState.images,
-                            title = title,
-                            description = description,
-                        ),
-                    )
-                } else {
-                    editRecordUseCase.execute(
-                        recordId = dialogState.recordId,
-                        images = dialogState.images,
-                        title = title,
-                        description = description,
-                    )
-                    popDialog()
-                    DailyMacrosWidgetScreen.reload()
-                }
+                editRecordUseCase.execute(
+                    recordId = dialogState.recordId,
+                    images = dialogState.images,
+                    title = title,
+                    description = description,
+                )
+                popDialog()
             }
 
             is EditValidationResult.Error -> {

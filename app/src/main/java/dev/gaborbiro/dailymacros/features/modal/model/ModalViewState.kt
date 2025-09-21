@@ -16,13 +16,6 @@ sealed class DialogState {
         val description: String,
     ) : DialogState()
 
-    data class ConfirmDeleteNutrientDataDialog(
-        val recordId: Long,
-        val images: List<String>,
-        val title: String,
-        val description: String,
-    ) : DialogState()
-
     data class ViewImageDialog(
         val title: String,
         val bitmap: Bitmap,

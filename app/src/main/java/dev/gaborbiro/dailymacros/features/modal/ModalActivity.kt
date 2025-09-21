@@ -28,7 +28,6 @@ import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
-import dev.gaborbiro.dailymacros.features.common.views.ConfirmDeleteNutrientDataDialog
 import dev.gaborbiro.dailymacros.features.common.views.ErrorDialog
 import dev.gaborbiro.dailymacros.features.common.views.InfoDialog
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
@@ -213,7 +212,7 @@ class ModalActivity : AppCompatActivity() {
             createRecordUseCase = CreateRecordUseCase(recordsRepository),
             editRecordUseCase = EditRecordUseCase(recordsRepository),
             editTemplateUseCase = EditTemplateUseCase(recordsRepository),
-            validateEditRecordUseCase = ValidateEditRecordUseCase(recordsRepository, recordsMapper),
+            validateEditRecordUseCase = ValidateEditRecordUseCase(recordsRepository),
             validateCreateRecordUseCase = ValidateCreateRecordUseCase(),
             saveImageUseCase = SaveImageUseCase(this, imageStore),
             getRecordImageUseCase = GetRecordImageUseCase(recordsRepository, imageStore),
@@ -295,7 +294,7 @@ class ModalActivity : AppCompatActivity() {
         when (dialogState) {
             is DialogState.InputDialog -> InputDialog(
                 dialogState = dialogState,
-                onRecordDetailsSubmitRequested = viewModel::onRecordDetailsSubmitRequested,
+                onSubmitRequested = viewModel::onSubmitRequested,
                 onRecordDetailsUserTyping = viewModel::onRecordDetailsUserTyping,
                 onImageTapped = viewModel::onImageTapped,
                 onAddImageViaCameraTapped = { viewModel.onAddImageViaCameraTapped(dialogState) },
@@ -328,13 +327,6 @@ class ModalActivity : AppCompatActivity() {
                     templateId = dialogState.templateId,
                     onRepeatButtonTapped = viewModel::onRepeatTemplateButtonTapped,
                     onDetailsButtonTapped = viewModel::onTemplateDetailsButtonTapped,
-                    onDismissRequested = onDismissRequested,
-                )
-            }
-
-            is DialogState.ConfirmDeleteNutrientDataDialog -> {
-                ConfirmDeleteNutrientDataDialog(
-                    onConfirm = viewModel::onDeleteNutrientDataConfirmed,
                     onDismissRequested = onDismissRequested,
                 )
             }

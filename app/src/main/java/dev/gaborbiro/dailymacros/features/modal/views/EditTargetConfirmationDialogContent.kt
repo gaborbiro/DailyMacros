@@ -34,7 +34,7 @@ fun EditTargetConfirmationDialogContent(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
-                text = "There are multiple notes using this template. Update all of them? (choosing no will create a new template)",
+                text = "Update the whole series ($count) or just this one?",
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier
@@ -67,7 +67,7 @@ fun EditTargetConfirmationDialogContent(
                 .fillMaxWidth()
                 .height(50.dp)
         ) {
-            Text(text = "This note only")
+            Text(text = "Update single record")
         }
 
         Spacer(modifier = Modifier.height(PaddingDefault))
@@ -83,7 +83,7 @@ fun EditTargetConfirmationDialogContent(
                 .fillMaxWidth()
                 .height(50.dp)
         ) {
-            Text(text = "All $count notes")
+            Text(text = "Update series")
         }
     }
 }

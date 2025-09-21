@@ -19,7 +19,7 @@ internal class ApiMapper {
     fun map(template: TemplateJoined): Template {
         val orderedImages = template.images.sortedBy { it.sortOrder }.map { it.image }
         return Template(
-            dbId = requireNotNull(template.entity.id),
+            dbId = requireNotNull(template.entity.id) { "Template db id null" },
             images = orderedImages,
             name = template.entity.name,
             description = template.entity.description,

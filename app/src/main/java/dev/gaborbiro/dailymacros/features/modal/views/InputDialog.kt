@@ -26,7 +26,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -48,7 +50,7 @@ import kotlinx.coroutines.delay
 @Composable
 internal fun InputDialog(
     dialogState: DialogState.InputDialog,
-    onRecordDetailsSubmitRequested: (title: String, description: String) -> Unit,
+    onSubmitRequested: (title: String, description: String) -> Unit,
     onRecordDetailsUserTyping: (title: String, description: String) -> Unit,
     onImageTapped: (String) -> Unit,
     onAddImageViaCameraTapped: () -> Unit,
@@ -79,7 +81,7 @@ internal fun InputDialog(
         mutableStateOf(TextFieldValue(description ?: ""))
     }
     val onSubmit: () -> Unit = {
-        onRecordDetailsSubmitRequested(
+        onSubmitRequested(
             /* title = */ titleField.value.text.trim(),
             /* description = */ descriptionField.value.text.trim(),
         )
@@ -200,7 +202,9 @@ private fun ColumnScope.InputDialogContent(
             if (allowEdit) {
                 Text(
                     text = titleHint,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontStyle = FontStyle.Italic,
+                    color = Color.Gray,
                 )
             }
         },
@@ -332,7 +336,9 @@ private fun ColumnScope.InputDialogContent(
             if (allowEdit) {
                 Text(
                     text = "Mention unclear components, quantities or other instructions for the AI (for ex. \"I only ate half of it\")",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontStyle = FontStyle.Italic,
+                    color = Color.Gray,
                 )
             }
         },
@@ -383,7 +389,7 @@ private fun NoteInputDialogContentPreviewEdit() {
                         notes = "Notes: This is a note",
                     ),
                 ),
-                onRecordDetailsSubmitRequested = { _, _ -> },
+                onSubmitRequested = { _, _ -> },
                 onRecordDetailsUserTyping = { _, _ -> },
                 onImageTapped = {},
                 onAddImageViaCameraTapped = {},
@@ -407,7 +413,7 @@ private fun NoteInputDialogContentPreview() {
                 suggestions = null,
                 titleHint = "Describe your meal (or pick a suggestion from below)",
             ),
-            onRecordDetailsSubmitRequested = { _, _ -> },
+            onSubmitRequested = { _, _ -> },
             onRecordDetailsUserTyping = { _, _ -> },
             onImageTapped = {},
             onAddImageViaCameraTapped = {},
@@ -434,7 +440,7 @@ private fun NoteInputDialogContentPreviewSuggestion() {
                     ),
                     titleHint = "Describe your meal",
                 ),
-                onRecordDetailsSubmitRequested = { _, _ -> },
+                onSubmitRequested = { _, _ -> },
                 onRecordDetailsUserTyping = { _, _ -> },
                 onImageTapped = {},
                 onAddImageViaCameraTapped = {},
@@ -461,7 +467,7 @@ private fun NoteInputDialogContentPreviewError() {
                 titleHint = "Describe your meal",
                 validationError = "error",
             ),
-            onRecordDetailsSubmitRequested = { _, _ -> },
+            onSubmitRequested = { _, _ -> },
             onRecordDetailsUserTyping = { _, _ -> },
             onImageTapped = {},
             onAddImageViaCameraTapped = {},

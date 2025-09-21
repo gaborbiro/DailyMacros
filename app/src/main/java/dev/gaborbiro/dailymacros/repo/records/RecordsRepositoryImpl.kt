@@ -84,7 +84,7 @@ internal class RecordsRepositoryImpl(
         val template = mapper.map(record.templateToSave)
         val rowId = templatesDAO.insertOrUpdate(template)
         val templateId = if (rowId == -1L) {
-            requireNotNull(template.id) { "Template id must be set when updating" }
+            requireNotNull(template.id) { "Template id null (while saving ${record})" }
         } else rowId
         templatesDAO.deleteAllImagesForTemplate(templateId)
         record.templateToSave.images.forEachIndexed { index, image ->
