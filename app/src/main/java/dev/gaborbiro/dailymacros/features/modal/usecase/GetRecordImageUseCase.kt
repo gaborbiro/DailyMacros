@@ -10,7 +10,7 @@ internal class GetRecordImageUseCase(
 ) {
 
     suspend fun execute(recordId: Long, thumbnail: Boolean): DialogState.ViewImageDialog? {
-        val template = repository.getRecord(recordId)!!.template
+        val template = repository.get(recordId)!!.template
         return template
             .primaryImage
             ?.let {

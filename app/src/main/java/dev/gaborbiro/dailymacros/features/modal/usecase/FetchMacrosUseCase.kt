@@ -24,7 +24,7 @@ internal class FetchMacrosUseCase(
 ) {
 
     suspend fun execute(recordId: Long) {
-        val record: Record = recordsRepository.getRecord(recordId)!!
+        val record: Record = recordsRepository.get(recordId)!!
         val base64Images = record.template.images
             .map { imageFilename: String ->
                 val inputStream = imageStore.open(imageFilename, thumbnail = false)

@@ -17,7 +17,9 @@ internal interface RecordsRepository {
 
     fun getFlowBySearchTerm(search: String? = null): Flow<List<Record>>
 
-    suspend fun getRecord(recordId: Long): Record?
+    suspend fun get(recordId: Long): Record?
+
+    fun observe(recordId: Long): Flow<Record>
 
     suspend fun getTemplate(templateId: Long): Template?
 

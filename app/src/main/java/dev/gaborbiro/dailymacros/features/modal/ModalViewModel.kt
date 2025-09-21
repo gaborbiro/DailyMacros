@@ -121,39 +121,39 @@ internal class ModalViewModel(
 
     private fun viewRecordDetails(recordId: Long, edit: Boolean) {
         runSafely {
-            val record =
-                recordsRepository.getRecord(recordId)
-                    ?: throw DomainError.DisplayMessageToUser.Message("Record not found")
-            val macros = record.template.macros
-                ?.let {
-                    MacrosUIModel(
-                        calories = macrosUIMapper.mapCalories(value = record.template.macros.calories),
-                        protein = macrosUIMapper.mapProtein(value = record.template.macros.protein),
-                        fat = macrosUIMapper.mapFat(value = record.template.macros.fat, saturated = null),
-                        ofWhichSaturated = macrosUIMapper.mapSaturated(value = record.template.macros.ofWhichSaturated),
-                        carbs = macrosUIMapper.mapCarbs(value = record.template.macros.carbohydrates, sugar = null),
-                        ofWhichSugar = macrosUIMapper.mapSugar(value = record.template.macros.ofWhichSugar),
-                        salt = macrosUIMapper.mapSalt(value = record.template.macros.salt),
-                        fibre = macrosUIMapper.mapFibre(value = record.template.macros.fibre),
-                        notes = record.template.macros.notes,
+            recordsRepository.observe(recordId)
+                .collect { record ->
+                    val macros = record.template.macros
+                        ?.let {
+                            MacrosUIModel(
+                                calories = macrosUIMapper.mapCalories(value = record.template.macros.calories),
+                                protein = macrosUIMapper.mapProtein(value = record.template.macros.protein),
+                                fat = macrosUIMapper.mapFat(value = record.template.macros.fat, saturated = null),
+                                ofWhichSaturated = macrosUIMapper.mapSaturated(value = record.template.macros.ofWhichSaturated),
+                                carbs = macrosUIMapper.mapCarbs(value = record.template.macros.carbohydrates, sugar = null),
+                                ofWhichSugar = macrosUIMapper.mapSugar(value = record.template.macros.ofWhichSugar),
+                                salt = macrosUIMapper.mapSalt(value = record.template.macros.salt),
+                                fibre = macrosUIMapper.mapFibre(value = record.template.macros.fibre),
+                                notes = record.template.macros.notes,
+                            )
+                        }
+                    val dialog = DialogState.InputDialog.RecordDetailsDialog(
+                        recordId = recordId,
+                        images = record.template.images,
+                        title = record.template.name,
+                        description = record.template.description,
+                        macros = macros,
+                        allowEdit = edit,
+                        titleSuggestions = emptyList(),
+                        titleHint = "Describe your meal",
+                        validationError = null,
+                    )
+                    _viewState.emit(
+                        ModalViewState(
+                            dialogs = listOf(dialog), // cancel any other dialogs
+                        )
                     )
                 }
-            val dialog = DialogState.InputDialog.RecordDetailsDialog(
-                recordId = recordId,
-                images = record.template.images,
-                title = record.template.name,
-                description = record.template.description,
-                macros = macros,
-                allowEdit = edit,
-                titleSuggestions = emptyList(),
-                titleHint = "Describe your meal",
-                validationError = null,
-            )
-            _viewState.emit(
-                ModalViewState(
-                    dialogs = listOf(dialog), // cancel any other dialogs
-                )
-            )
         }
     }
 

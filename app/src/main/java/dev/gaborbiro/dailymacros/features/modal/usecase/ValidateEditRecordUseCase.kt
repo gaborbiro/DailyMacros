@@ -10,7 +10,7 @@ internal class ValidateEditRecordUseCase(
         if (title.isBlank()) {
             return EditValidationResult.Error("Title cannot be empty")
         }
-        val template = repository.getRecord(recordId)!!.template
+        val template = repository.get(recordId)!!.template
         val templateId = template.dbId
         val records = repository.getRecordsByTemplate(templateId)
         return if (records.size < 2) {

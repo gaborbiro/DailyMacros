@@ -57,7 +57,11 @@ interface RecordsDAO {
 
     @Transaction
     @Query("SELECT * FROM records WHERE _id=:id")
-    suspend fun get(id: Long): RecordJoined
+    suspend fun get(id: Long): RecordJoined?
+
+    @Transaction
+    @Query("SELECT * FROM records WHERE _id=:id")
+    fun observe(id: Long): Flow<RecordJoined>
 
     @Transaction
     @Query("DELETE FROM records WHERE _id = :id")

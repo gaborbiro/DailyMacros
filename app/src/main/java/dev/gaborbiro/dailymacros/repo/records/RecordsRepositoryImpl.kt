@@ -59,8 +59,13 @@ internal class RecordsRepositoryImpl(
     }
 
     @Transaction
-    override suspend fun getRecord(recordId: Long): Record {
-        return recordsDAO.get(recordId).let(mapper::map)
+    override suspend fun get(recordId: Long): Record? {
+        return recordsDAO.get(recordId)?.let(mapper::map)
+    }
+
+    @Transaction
+    override fun observe(recordId: Long): Flow<Record> {
+        return recordsDAO.observe(recordId).map(mapper::map)
     }
 
     override suspend fun getTemplate(templateId: Long): Template? = templatesDAO
@@ -100,12 +105,12 @@ internal class RecordsRepositoryImpl(
     }
 
     override suspend fun duplicateRecord(recordId: Long): Long {
-        val record = getRecord(recordId)
+        val record = get(recordId)!!
         return recordsDAO.insertOrUpdate(mapper.map(record, LocalDateTime.now()))
     }
 
     override suspend fun deleteRecord(recordId: Long): Record {
-        val recordJoined = recordsDAO.get(recordId)
+        val recordJoined = recordsDAO.get(recordId)!!
         recordsDAO.delete(recordId)
         return mapper.map(recordJoined)
     }

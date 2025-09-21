@@ -11,7 +11,7 @@ internal class AddRecordImageUseCase(
 ) {
 
     suspend fun execute(recordId: Long, filename: String) {
-        val record = repository.getRecord(recordId)!!
+        val record = repository.get(recordId)!!
         val newRecord = RecordToSave(
             timestamp = record.timestamp,
             templateToSave = TemplateToSave(

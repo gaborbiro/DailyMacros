@@ -15,7 +15,7 @@ internal class EditRecordUseCase(
 
     @UiThread
     suspend fun execute(recordId: Long, images: List<String>, title: String, description: String) {
-        val record = repository.getRecord(recordId)!!
+        val record = repository.get(recordId)!!
         repository.deleteRecord(recordId)
         // note: image shouldn't be deleted
         val (templateDeleted, imageDeleted) =
