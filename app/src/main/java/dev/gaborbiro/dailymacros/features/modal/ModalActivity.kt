@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.features.modal
 
+import android.app.ComponentCaller
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -15,7 +16,6 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.core.net.toUri
-import androidx.core.os.bundleOf
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
@@ -33,7 +33,6 @@ import dev.gaborbiro.dailymacros.features.common.views.InfoDialog
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.ImagePickerState
-import dev.gaborbiro.dailymacros.features.modal.model.ModalViewState
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
@@ -69,86 +68,34 @@ import java.util.concurrent.TimeUnit.SECONDS
 class ModalActivity : AppCompatActivity() {
 
     companion object {
-
         fun launchToAddRecordWithCamera(context: Context) =
-            launchActivity(context, getCameraIntent(context))
-
-        private fun getCameraIntent(context: Context) = getActionIntent(context, Action.CAMERA)
+            context.launchActivity(Context::getCameraIntent)
 
         fun launchToAddRecordWithImagePicker(context: Context) =
-            launchActivity(context, getImagePickerIntent(context))
+            context.launchActivity(Context::getImagePickerIntent)
 
-        private fun getImagePickerIntent(context: Context) =
-            getActionIntent(context, Action.PICK_IMAGE)
+        fun launchToShowRecordImage(context: Context, recordId: Long) =
+            context.launchActivity { it.getShowRecordImageIntent(recordId) }
 
-        fun launchToShowRecordImage(context: Context, recordId: Long) = launchActivity(
-            appContext = context,
-            intent = getViewImageAction(context),
-            EXTRA_RECORD_ID to recordId,
-        )
+        fun launchToShowTemplateImage(context: Context, templateId: Long) =
+            context.launchActivity { it.getShowTemplateImageIntent(templateId) }
 
-        fun launchToShowTemplateImage(context: Context, templateId: Long) = launchActivity(
-            appContext = context,
-            intent = getViewImageAction(context),
-            EXTRA_TEMPLATE_ID to templateId,
-        )
-
-        private fun getViewImageAction(context: Context) =
-            getActionIntent(context, Action.VIEW_IMAGE)
-
-        fun launchToAddRecord(context: Context) = launchActivity(context, getTextOnlyIntent(context))
-
-        private fun getTextOnlyIntent(context: Context) = getActionIntent(context, Action.TEXT_ONLY)
+        fun launchToAddRecord(context: Context) =
+            context.launchActivity {
+                context.getTextOnlyIntent()
+            }
 
         fun launchViewRecordDetails(context: Context, recordId: Long) {
-            launchActivity(
-                appContext = context,
-                intent = getActionIntent(context, Action.VIEW_RECORD_DETAILS),
-                EXTRA_RECORD_ID to recordId
-            )
+            context.launchActivity { it.getViewRecordDetailsIntent(recordId) }
         }
 
         fun launchToSelectRecordAction(context: Context, recordId: Long) {
-            launchActivity(
-                appContext = context,
-                intent = getActionIntent(context, Action.SELECT_RECORD_ACTION),
-                EXTRA_RECORD_ID to recordId
-            )
+            context.launchActivity { it.getSelectRecordIntent(recordId) }
         }
 
         fun launchToSelectTemplateAction(context: Context, templateId: Long) {
-            launchActivity(
-                appContext = context,
-                intent = getActionIntent(context, Action.SELECT_TEMPLATE_ACTION),
-                EXTRA_TEMPLATE_ID to templateId
-            )
+            context.launchActivity { it.getSelectTemplateIntent(templateId) }
         }
-
-        private fun launchActivity(
-            appContext: Context,
-            intent: Intent,
-            vararg extras: Pair<String, Any>,
-        ) {
-            appContext.startActivity(intent.apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                putExtras(bundleOf(*extras))
-            })
-        }
-
-        private fun getActionIntent(context: Context, action: Action) =
-            Intent(context, ModalActivity::class.java).also {
-                it.putExtra(EXTRA_ACTION, action.name)
-                it.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
-            }
-
-        private const val EXTRA_ACTION = "extra_action"
-
-        private enum class Action {
-            CAMERA, PICK_IMAGE, TEXT_ONLY, VIEW_RECORD_DETAILS, VIEW_IMAGE, SELECT_RECORD_ACTION, SELECT_TEMPLATE_ACTION
-        }
-
-        private const val EXTRA_RECORD_ID = "record_id"
-        private const val EXTRA_TEMPLATE_ID = "template_id"
 
         const val REQUEST_TIMEOUT_IN_SECONDS = 90L
     }
@@ -225,15 +172,47 @@ class ModalActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        getActionFromIntent()
+            ?.let(::handleAction)
+            ?: run {
+                finish()
+                return
+            }
+
+        setContent {
+            val viewState by viewModel.viewState.collectAsStateWithLifecycle()
+
+            AppTheme {
+                CompositionLocalProvider(LocalImageStore provides imageStore) {
+                    viewState.dialogs.forEach {
+                        Dialog(it)
+                    }
+                }
+            }
+
+            if (viewState.close) {
+                finish()
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent, caller: ComponentCaller) {
+        super.onNewIntent(intent, caller)
+        val action = getActionFromIntent(intent)
+        action?.let {
+            handleAction(action)
+        }
+    }
+
+    private fun getActionFromIntent(intent: Intent = this.intent): Action? {
         val action = intent.getStringExtra(EXTRA_ACTION)
             ?.let { Action.valueOf(it) }
         intent.removeExtra(EXTRA_ACTION) // consume intent
+        return action
+    }
 
-        if (action == null) {
-            finish()
-            return
-        }
-
+    private fun handleAction(action: Action) {
         when (action) {
             Action.CAMERA -> viewModel.onCreateRecordWithCameraDeeplink()
             Action.PICK_IMAGE -> viewModel.onCreateRecordWithImagePickerDeeplink()
@@ -262,22 +241,6 @@ class ModalActivity : AppCompatActivity() {
             Action.SELECT_TEMPLATE_ACTION -> {
                 val templateId = intent.getLongExtra(EXTRA_TEMPLATE_ID, -1L)
                 viewModel.onSelectTemplateActionDeeplink(templateId)
-            }
-        }
-
-        setContent {
-            val viewState: ModalViewState by viewModel.viewState.collectAsStateWithLifecycle()
-
-            AppTheme {
-                CompositionLocalProvider(LocalImageStore provides imageStore) {
-                    viewState.dialogs.forEach {
-                        Dialog(it)
-                    }
-                }
-            }
-
-            if (viewState.close) {
-                finish()
             }
         }
     }

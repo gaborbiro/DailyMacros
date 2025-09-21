@@ -116,7 +116,7 @@ internal class ModalViewModel(
 
     @UiThread
     fun onViewRecordDetailsDeeplink(recordId: Long) {
-        viewRecordDetails(recordId, edit = true)
+        runSafely { viewRecordDetails(recordId, edit = true) }
     }
 
     private fun viewRecordDetails(recordId: Long, edit: Boolean) {
@@ -149,11 +149,11 @@ internal class ModalViewModel(
                 titleHint = "Describe your meal",
                 validationError = null,
             )
-            _viewState.update {
-                it.copy(
+            _viewState.emit(
+                ModalViewState(
                     dialogs = listOf(dialog), // cancel any other dialogs
                 )
-            }
+            )
         }
     }
 
@@ -219,11 +219,11 @@ internal class ModalViewModel(
                     fetchSummary(it.images)
                 }
 
-            _viewState.update { currentState ->
-                currentState.copy(
-                    dialogs = dialogs
+            _viewState.emit(
+                ModalViewState(
+                    dialogs = dialogs, // cancel any other dialogs
                 )
-            }
+            )
         }
     }
 
@@ -277,7 +277,7 @@ internal class ModalViewModel(
 
     @UiThread
     fun onRecordDetailsButtonTapped(recordId: Long) {
-        viewRecordDetails(recordId, edit = true)
+        runSafely { viewRecordDetails(recordId, edit = true) }
     }
 
     @UiThread

@@ -55,7 +55,7 @@ fun RowMenu(
                 )
                 DropdownMenuItem(
                     leadingIcon = { Icon(icons.macros, null) },
-                    text = { Text("Macros (AI)") },
+                    text = { Text("Analyse Macros") },
                     onClick = { onDismiss(); onMacros() }
                 )
                 DropdownMenuItem(

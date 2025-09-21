@@ -21,8 +21,8 @@
         <activity
             android:name=".features.main.MainActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:theme="@style/Theme.Notes"
-            android:taskAffinity="dev.gabor.dailymacros.main"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -34,9 +34,9 @@
         <activity
             android:name=".features.modal.ModalActivity"
             android:configChanges="orientation|screenSize"
-            android:taskAffinity="dev.gabor.dailymacros.modal"
             android:exported="true"
-            android:launchMode="singleInstance"
+            android:launchMode="singleTask"
+            android:parentActivityName=".features.main.MainActivity"
             android:theme="@style/Theme.Transparent"
             android:windowSoftInputMode="adjustResize" />
 

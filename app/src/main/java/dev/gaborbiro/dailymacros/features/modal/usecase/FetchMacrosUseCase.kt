@@ -11,7 +11,7 @@ import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.requestStatus.domain.RequestStatusRepository
-import dev.gaborbiro.dailymacros.util.showSimpleNotification
+import dev.gaborbiro.dailymacros.util.showMacroResultsNotification
 
 internal class FetchMacrosUseCase(
     private val appContext: Context,
@@ -45,8 +45,9 @@ internal class FetchMacrosUseCase(
                 macros = macros,
             )
             val macrosStr = macrosUIMapper.mapMacrosString(macros)
-            appContext.showSimpleNotification(
+            appContext.showMacroResultsNotification(
                 id = 123000L + recordId,
+                recordId = recordId,
                 title = null,
                 message = listOfNotNull(record.template.name, macrosStr, issues, macros?.notes).joinToString("\n"),
             )

@@ -2,9 +2,13 @@ package dev.gaborbiro.dailymacros.util
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import androidx.core.app.NotificationCompat
 import dev.gaborbiro.dailymacros.R
+import dev.gaborbiro.dailymacros.features.main.MainActivity
+import dev.gaborbiro.dailymacros.features.modal.getViewRecordDetailsIntent
 
 private const val CHANNEL_ID_GENERAL = "general"
 const val CHANNEL_ID_FOREGROUND = "foreground"
@@ -34,11 +38,16 @@ fun Context.createNotificationChannels() {
     )
 }
 
-fun Context.showSimpleNotification(id: Long, title: String?, message: String?) {
+fun Context.showMacroResultsNotification(
+    id: Long,
+    recordId: Long,
+    title: String?,
+    message: String?,
+) {
     var builder = NotificationCompat.Builder(this, CHANNEL_ID_GENERAL)
         .setSmallIcon(R.drawable.ic_nutrition)
-        .setSound(null)
-        .setVibrate(null)
+        .setContentIntent(openRecordDetailsIntent(recordId))
+        .setAutoCancel(true)
     message?.let {
         builder = builder.setContentText(message)
             .setStyle(
@@ -50,5 +59,21 @@ fun Context.showSimpleNotification(id: Long, title: String?, message: String?) {
     getSystemService(NotificationManager::class.java).notify(
         id.toInt(),
         builder.build()
+    )
+}
+
+private fun Context.openRecordDetailsIntent(recordId: Long): PendingIntent? {
+    val mainIntent = Intent(this, MainActivity::class.java).apply {
+        flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+    }
+    val modalIntent = getViewRecordDetailsIntent(recordId).apply {
+        flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+    }
+
+    return PendingIntent.getActivities(
+        this,
+        0,
+        arrayOf(mainIntent, modalIntent),
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
 }
