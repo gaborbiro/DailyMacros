@@ -259,19 +259,19 @@ internal class ModalViewModel(
 
     @UiThread
     fun onRepeatRecordButtonTapped(recordId: Long) {
+        popDialog()
         runSafely {
             recordsRepository.duplicateRecord(recordId)
             DailyMacrosWidgetScreen.reload()
-            popDialog()
         }
     }
 
     @UiThread
     fun onRepeatTemplateButtonTapped(templateId: Long) {
+        popDialog()
         runSafely {
             recordsRepository.applyTemplate(templateId)
             DailyMacrosWidgetScreen.reload()
-            popDialog()
         }
     }
 
@@ -292,15 +292,16 @@ internal class ModalViewModel(
 
     @UiThread
     fun onDeleteTapped(recordId: Long) {
+            popDialog()
         runSafely {
             deleteRecordUseCase.execute(recordId)
             DailyMacrosWidgetScreen.reload()
-            popDialog()
         }
     }
 
     @UiThread
     fun onDialogDismissRequested(dialog: DialogState) {
+        popDialog()
         imageSummaryJob?.cancel()
         (dialog as? DialogState.InputDialog.CreateWithImageDialog)?.let {
             runSafely {
@@ -309,7 +310,6 @@ internal class ModalViewModel(
                 }
             }
         }
-        popDialog()
     }
 
     @UiThread
@@ -404,13 +404,13 @@ internal class ModalViewModel(
             }
 
             is CreateValidationResult.Valid -> {
+                popDialog()
                 val recordId = createRecordUseCase.execute(
                     images = images ?: emptyList(),
                     title = title,
                     description = description,
                 )
                 DailyMacrosWidgetScreen.reload()
-                popDialog()
                 WorkManager.getInstance(App.appContext).enqueue(
                     MacrosWorkRequest.getWorkRequest(
                         recordId = recordId
@@ -444,13 +444,13 @@ internal class ModalViewModel(
             }
 
             is EditValidationResult.Valid -> {
+                popDialog()
                 editRecordUseCase.execute(
                     recordId = dialogState.recordId,
                     images = dialogState.images,
                     title = title,
                     description = description,
                 )
-                popDialog()
             }
 
             is EditValidationResult.Error -> {
@@ -467,6 +467,7 @@ internal class ModalViewModel(
 
     @UiThread
     fun onEditTargetConfirmed(target: ChangeImagesTarget) {
+        popDialog()
         _viewState.value.dialogs
             .filterIsInstance<DialogState.EditTargetConfirmationDialog>()
             .firstOrNull()
@@ -498,7 +499,6 @@ internal class ModalViewModel(
                 }
             }
         DailyMacrosWidgetScreen.reload()
-        popDialog()
     }
 
     private fun runSafely(task: suspend () -> Unit): Job {
