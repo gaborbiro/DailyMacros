@@ -22,6 +22,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import dev.gaborbiro.dailymacros.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
@@ -67,7 +68,7 @@ class MainActivity : ComponentActivity() {
 
         val settingsRepository = SettingsRepository(this@MainActivity, SettingsMapper())
         val appPrefs = AppPrefs(this@MainActivity)
-
+        AnalyticsLogger().setUserId(appPrefs.userUUID)
         lifecycleScope.launch {
             RequestStatusRepositoryImpl(db.requestStatusDAO()).deleteStale()
         }

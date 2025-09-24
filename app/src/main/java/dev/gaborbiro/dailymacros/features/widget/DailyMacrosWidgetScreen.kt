@@ -3,30 +3,40 @@ package dev.gaborbiro.dailymacros.features.widget
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.graphics.Color
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
-import androidx.glance.LocalContext
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.provideContent
+import androidx.glance.background
 import androidx.glance.currentState
+import androidx.glance.layout.Alignment
+import androidx.glance.layout.Box
 import androidx.glance.layout.fillMaxSize
+import androidx.glance.text.Text
+import androidx.glance.text.TextStyle
+import androidx.glance.unit.ColorProvider
 import androidx.work.WorkManager
 import com.google.gson.reflect.TypeToken
+import dev.gaborbiro.dailymacros.AnalyticsLogger
 import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
+import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.design.WidgetColorScheme
 import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPickFooter
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPickHeader
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
+import dev.gaborbiro.dailymacros.features.widget.views.LocalImageStoreWidget
 import dev.gaborbiro.dailymacros.features.widget.views.WidgetView
 import dev.gaborbiro.dailymacros.features.widget.workers.ReloadWorkRequest
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
@@ -62,45 +72,80 @@ class DailyMacrosWidgetScreen : GlanceAppWidget() {
     }
 
     override val stateDefinition = WidgetPreferences
+    private val analyticsLogger = AnalyticsLogger()
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
-            val widgetPrefs = currentState<Preferences>()
-            val fileStore =
-                FileStoreFactoryImpl(LocalContext.current).getStore("public", keepFiles = true)
-            val imageStore = ImageStoreImpl(fileStore)
-            val dateUIMapper = DateUIMapper()
-            val macrosUIMapper = MacrosUIMapper(dateUIMapper)
-            val recordsUIMapper = RecordsUIMapper(macrosUIMapper, dateUIMapper)
-            val widgetUIMapper = WidgetUIMapper(macrosUIMapper)
-            val topTemplates = widgetUIMapper.map(templates = widgetPrefs.retrieveTopTemplates())
-            val recentRecords =
-                recordsUIMapper.map(records = widgetPrefs.retrieveRecentRecords(), showDay = true)
-                    .filterIsInstance<ListUIModelRecord>()
-            val items = buildList {
-                if (recentRecords.isNotEmpty() || topTemplates.isNotEmpty()) {
-                    addAll(recentRecords.take(3))
-                    if (topTemplates.isNotEmpty()) {
-                        add(ListUIModelQuickPickHeader)
-                        addAll(topTemplates)
-                        add(ListUIModelQuickPickFooter)
-                    }
-                    addAll(recentRecords.drop(3))
-                }
-            }
-            println("recompose")
             GlanceTheme(colors = WidgetColorScheme.colors(context)) {
-                CompositionLocalProvider(dev.gaborbiro.dailymacros.features.widget.views.LocalImageStoreWidget provides imageStore) {
-                    WidgetView(
-                        modifier = GlanceModifier
-                            .fillMaxSize(),
-                        actionProvider = WidgetActionProviderImpl(),
-                        items = items.toList(),
-                    )
+                val widgetPrefs = currentState<Preferences>()
+
+                val state = try {
+                    val fileStore =
+                        FileStoreFactoryImpl(context).getStore("public", keepFiles = true)
+                    val imageStore: ImageStore = ImageStoreImpl(fileStore)
+                    val dateUIMapper = DateUIMapper()
+                    val macrosUIMapper = MacrosUIMapper(dateUIMapper)
+                    val recordsUIMapper = RecordsUIMapper(macrosUIMapper, dateUIMapper)
+                    val widgetUIMapper = WidgetUIMapper(macrosUIMapper)
+
+                    val topTemplates = widgetUIMapper.map(widgetPrefs.retrieveTopTemplates())
+                    val recentRecords = recordsUIMapper
+                        .map(widgetPrefs.retrieveRecentRecords(), showDay = true)
+                        .filterIsInstance<ListUIModelRecord>()
+
+                    val items = buildList {
+                        if (recentRecords.isNotEmpty() || topTemplates.isNotEmpty()) {
+                            addAll(recentRecords.take(3))
+                            if (topTemplates.isNotEmpty()) {
+                                add(ListUIModelQuickPickHeader)
+                                addAll(topTemplates)
+                                add(ListUIModelQuickPickFooter)
+                            }
+                            addAll(recentRecords.drop(3))
+                        }
+                    }
+                    WidgetUiState.Success(items, imageStore)
+                } catch (t: Throwable) {
+                    analyticsLogger.logError(t)
+                    WidgetUiState.Error
+                }
+
+                when (state) {
+                    is WidgetUiState.Success -> {
+                        CompositionLocalProvider(LocalImageStoreWidget provides state.imageStore) {
+                            WidgetView(
+                                modifier = GlanceModifier.fillMaxSize(),
+                                actionProvider = WidgetActionProviderImpl(),
+                                items = state.items
+                            )
+                        }
+                    }
+
+                    WidgetUiState.Error -> {
+                        Box(
+                            modifier = GlanceModifier
+                                .fillMaxSize()
+                                .background(GlanceTheme.colors.widgetBackground),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                text = "Widget error",
+                                style = TextStyle(color = ColorProvider(Color.Red))
+                            )
+                        }
+                    }
                 }
             }
         }
     }
+
+    sealed interface WidgetUiState {
+        data class Success(val items: List<ListUIModelBase>, val imageStore: ImageStore) :
+            WidgetUiState
+
+        object Error : WidgetUiState
+    }
+
 
     override suspend fun onDelete(context: Context, glanceId: GlanceId) {
         cleanup(context)

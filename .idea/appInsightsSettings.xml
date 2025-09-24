@@ -22,10 +22,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="dev.gaborbiro.dailymacros" />
+                  <option name="mobileSdkAppId" value="1:951157077632:android:67a0978dabc117bb719865" />
+                  <option name="projectId" value="dailymacros-9fab8" />
+                  <option name="projectNumber" value="951157077632" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

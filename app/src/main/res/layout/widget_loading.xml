@@ -10,5 +10,5 @@
         android:layout_gravity="center"
         style="@style/TextAppearance.AppCompat.Title"
         android:textColor="?android:attr/textColorPrimary"
-        android:text="Loading" />
+        android:text="Loading…" />
 </FrameLayout>

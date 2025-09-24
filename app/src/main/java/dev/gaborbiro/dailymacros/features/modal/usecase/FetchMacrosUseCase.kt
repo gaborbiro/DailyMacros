@@ -7,6 +7,8 @@ import dev.gaborbiro.dailymacros.features.modal.RecordsMapper
 import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
 import dev.gaborbiro.dailymacros.features.widget.DailyMacrosWidgetScreen
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.ChatGPTRepository
+import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTApiError
+import dev.gaborbiro.dailymacros.repo.chatgpt.toDomainModel
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
@@ -25,14 +27,14 @@ internal class FetchMacrosUseCase(
 
     suspend fun execute(recordId: Long) {
         val record: Record = recordsRepository.get(recordId)!!
-        val base64Images = record.template.images
-            .map { imageFilename: String ->
-                val inputStream = imageStore.open(imageFilename, thumbnail = false)
-                inputStreamToBase64(inputStream)
-            }
-        requestStatusRepository.markAsPending(record.template.dbId)
-        DailyMacrosWidgetScreen.reload()
         try {
+            val base64Images = record.template.images
+                .map { imageFilename: String ->
+                    val inputStream = imageStore.open(imageFilename, thumbnail = false)
+                    inputStreamToBase64(inputStream)
+                }
+            requestStatusRepository.markAsPending(record.template.dbId)
+            DailyMacrosWidgetScreen.reload()
             val response = chatGPTRepository.macros(
                 request = recordsMapper.mapMacrosRequest(
                     record = record,
@@ -51,6 +53,11 @@ internal class FetchMacrosUseCase(
                 title = null,
                 message = listOfNotNull(record.template.name, macrosStr, issues, macros?.notes).joinToString("\n"),
             )
+        } catch (apiError: ChatGPTApiError) {
+            throw apiError
+                .toDomainModel()
+        } catch (t: Throwable) {
+            throw t
         } finally {
             requestStatusRepository.unmark(record.template.dbId)
         }

@@ -10,6 +10,7 @@ import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkRequest
 import androidx.work.WorkerParameters
+import dev.gaborbiro.dailymacros.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
@@ -40,6 +41,7 @@ internal class ReloadWorkRequest(
     private val requestStatusRepository by lazy {
         RequestStatusRepositoryImpl(database.requestStatusDAO())
     }
+    private val analyticsLogger = AnalyticsLogger()
 
     companion object {
         private const val RECORD_DAYS_TO_DISPLAY_DEFAULT = 7
@@ -87,7 +89,7 @@ internal class ReloadWorkRequest(
             sendToWidgets(applicationContext, recentRecords, quickPicks)
             Result.success()
         } catch (t: Throwable) {
-            t.printStackTrace()
+            analyticsLogger.logError(t)
             Result.failure()
         }
     }
@@ -115,20 +117,3 @@ internal class ReloadWorkRequest(
         DailyMacrosWidgetScreen().updateAll(context)
     }
 }
-
-//        suspend fun startUpdate(context: Context) {
-//            val widgetCount =
-//                GlanceAppWidgetManager(context).getGlanceIds(NotesWidget::class.java).size
-//            println("NotesWidget startUpdate $widgetCount")
-//            if (widgetCount > 0) {
-//                val request = PeriodicWorkRequest
-//                    .Builder(NotesWidgetsUpdater::class.java, 15, TimeUnit.MINUTES)
-//                    .build()
-//
-//                WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-//                    UNIQUE_WORK_NAME,
-//                    ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
-//                    request,
-//                )
-//            }
-//        }

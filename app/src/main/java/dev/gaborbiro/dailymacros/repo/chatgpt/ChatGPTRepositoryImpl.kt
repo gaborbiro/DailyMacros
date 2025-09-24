@@ -6,7 +6,6 @@ import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodPicSummaryRespons
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.MacrosRequest
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.MacrosResponse
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.ChatGPTService
-import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repo.chatgpt.util.parse
 import dev.gaborbiro.dailymacros.repo.chatgpt.util.runCatching
 
@@ -16,32 +15,22 @@ internal class ChatGPTRepositoryImpl(
 ) : ChatGPTRepository {
 
     override suspend fun summarizeFoodPic(request: FoodPicSummaryRequest): FoodPicSummaryResponse {
-        try {
-            return runCatching(logTag = "summarizeFoodPic") {
-                val response = service.callResponses(
-                    request = request.toApiModel(),
-                )
-                return@runCatching parse(response)
-                    .toFoodPicSummaryResponse()
-            }
-        } catch (apiError: ChatGPTApiError) {
-            throw apiError
-                .toDomainModel()
+        return runCatching(logTag = "summarizeFoodPic") {
+            val response = service.callResponses(
+                request = request.toApiModel(),
+            )
+            return@runCatching parse(response)
+                .toFoodPicSummaryResponse()
         }
     }
 
     override suspend fun macros(request: MacrosRequest): MacrosResponse {
-        try {
-            return runCatching(logTag = "macros") {
-                val response = service.callResponses(
-                    request = request.toApiModel(),
-                )
-                return@runCatching parse(response)
-                    .toMacrosResponse()
-            }
-        } catch (apiError: ChatGPTApiError) {
-            throw apiError
-                .toDomainModel()
+        return runCatching(logTag = "macros") {
+            val response = service.callResponses(
+                request = request.toApiModel(),
+            )
+            return@runCatching parse(response)
+                .toMacrosResponse()
         }
     }
 }

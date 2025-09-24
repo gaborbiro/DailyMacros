@@ -243,8 +243,8 @@ internal class ModalViewModel(
 //                        titleHint = "Describe your meal (or tap one of the AI suggestions)",
 //                    )
 //                }
-            } catch (e: DomainError) {
-                throw e
+            } catch (t: Throwable) {
+                throw t
             } finally {
                 updateDialogsOfType<DialogState.InputDialog.CreateWithImageDialog> {
                     it.copy(showProgressIndicator = false)
@@ -508,7 +508,6 @@ internal class ModalViewModel(
     }
 
     private val errorHandler = CoroutineExceptionHandler { _, exception ->
-        exception.printStackTrace()
         val message = when {
             exception is DomainError -> exception.message()
             else -> exception.message ?: exception.cause?.message

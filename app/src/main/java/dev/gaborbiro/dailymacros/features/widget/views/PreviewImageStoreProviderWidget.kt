@@ -5,7 +5,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import dev.gaborbiro.dailymacros.features.common.views.PreviewImageStore
 
 @Composable
-fun PreviewImageStoreWidgetProvider(content: @Composable () -> Unit) {
+fun PreviewImageStoreProviderWidget(content: @Composable () -> Unit) {
     CompositionLocalProvider(LocalImageStoreWidget provides PreviewImageStore) {
         content()
     }

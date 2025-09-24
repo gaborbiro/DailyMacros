@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "951157077632",
+    "project_id": "dailymacros-9fab8",
+    "storage_bucket": "dailymacros-9fab8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:951157077632:android:67a0978dabc117bb719865",
+        "android_client_info": {
+          "package_name": "dev.gaborbiro.dailymacros"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJ2PpITioXD7pqiidwEAmv6-cYD8dYzi8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

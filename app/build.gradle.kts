@@ -5,6 +5,8 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -15,8 +17,8 @@ android {
         applicationId = "dev.gaborbiro.dailymacros"
         minSdk = 31
         targetSdk = 35
-        versionCode = 10
-        versionName = "1.3.1"
+        versionCode = 11
+        versionName = "1.4.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -103,7 +105,7 @@ android {
 dependencies {
     implementation("androidx.core:core-ktx:1.17.0")
 
-    implementation(platform("androidx.compose:compose-bom:2025.09.00"))
+    implementation(platform("androidx.compose:compose-bom:2025.09.01"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
@@ -115,7 +117,7 @@ dependencies {
 
 
     implementation("androidx.appcompat:appcompat:1.7.1")
-    implementation("androidx.work:work-runtime-ktx:2.10.4")
+    implementation("androidx.work:work-runtime-ktx:2.10.5")
 
     val lifecycleVersion = "2.9.4"
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVersion")
@@ -129,7 +131,7 @@ dependencies {
     implementation("androidx.glance:glance-material3:$glanceVersion")
 
     // Navigation
-    val navVersion = "2.9.4"
+    val navVersion = "2.9.5"
     implementation("androidx.navigation:navigation-fragment-ktx:$navVersion")
     implementation("androidx.navigation:navigation-ui-ktx:$navVersion")
     implementation("androidx.navigation:navigation-compose:$navVersion")
@@ -139,7 +141,7 @@ dependencies {
     implementation("com.google.code.gson:gson:2.13.2")
 
     // Android ROOM - Data Persistence
-    val roomVersion = "2.8.0"
+    val roomVersion = "2.8.1"
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
     kapt("androidx.room:room-compiler:$roomVersion") // Annotation processor for ROOM
@@ -152,6 +154,11 @@ dependencies {
     implementation("com.google.code.gson:gson:2.13.2")
     implementation("androidx.datastore:datastore-preferences:1.1.7")
     implementation("com.google.mlkit:image-labeling:17.0.9")
+
+    val firebaseBom = "34.3.0"
+    implementation(platform("com.google.firebase:firebase-bom:$firebaseBom"))
+    implementation("com.google.firebase:firebase-crashlytics")
+    implementation("com.google.firebase:firebase-analytics")
 
 
     debugImplementation("androidx.compose.ui:ui-tooling")

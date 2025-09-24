@@ -90,28 +90,6 @@ internal class OverviewViewModel(
         }
     }
 
-//    fun onChangeImageMenuItemTapped(record: RecordUIModel) {
-//        if (record.hasMacros) {
-//            _viewState.update {
-//                it.copy(dialog = DialogState.ConfirmDestructiveChangeDialog(editState = EditState.ChangeImage(record.recordId)))
-//            }
-//        } else {
-//            updateRecordPhoto(record.recordId)
-//        }
-//    }
-
-//    fun onDeleteImageMenuItemTapped(record: RecordUIModel) {
-//        if (record.bitmap != null) {
-//            if (record.hasMacros) {
-//                _viewState.update {
-//                    it.copy(dialog = DialogState.ConfirmDestructiveChangeDialog(editState = EditState.RemoveImage(record.templateId)))
-//                }
-//            } else {
-//                removePhoto(record.templateId)
-//            }
-//        }
-//    }
-
     fun onDetailsMenuItemTapped(id: Long) {
         navigator.editRecord(recordId = id)
     }
