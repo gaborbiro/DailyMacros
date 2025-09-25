@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.material3.Button
 import androidx.compose.material3.FabPosition
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -37,7 +36,7 @@ import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.common.views.PreviewImageStoreProvider
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
-import dev.gaborbiro.dailymacros.features.widget.NotesWidgetReceiver
+import dev.gaborbiro.dailymacros.features.widgetDiary.DiaryWidgetReceiver
 
 @Composable
 internal fun OverviewView(
@@ -125,7 +124,7 @@ fun AddWidgetButton() {
         onClick = {
             val appWidgetManager = AppWidgetManager.getInstance(context)
 
-            val widgetProvider = ComponentName(context, NotesWidgetReceiver::class.java)
+            val widgetProvider = ComponentName(context, DiaryWidgetReceiver::class.java)
 
             if (appWidgetManager.isRequestPinAppWidgetSupported) {
                 appWidgetManager.requestPinAppWidget(widgetProvider, null, null)

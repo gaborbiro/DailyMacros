@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.data.file
 
 import android.content.Context
 import android.net.Uri
+import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -46,6 +47,10 @@ internal class FileStoreImpl(
 
     override fun resolveFilePath(filename: String): String {
         return destinationProvider.getFile(filename).path
+    }
+
+    override fun resolveFile(filename: String): File {
+        return destinationProvider.getFile(filename)
     }
 
     override fun write(filename: String, onStream: OutputStream.() -> Unit): String {

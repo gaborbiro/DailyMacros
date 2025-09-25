@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widget.views
+package dev.gaborbiro.dailymacros.features.widgetDiary.views
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -22,8 +22,8 @@ import androidx.glance.preview.Preview
 import androidx.glance.text.Text
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPick
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
-import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultHorizontal
-import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
+import dev.gaborbiro.dailymacros.features.widgetDiary.PaddingWidgetDefaultHorizontal
+import dev.gaborbiro.dailymacros.features.widgetDiary.util.WidgetPreview
 
 @Composable
 internal fun ListItemQuickPick(

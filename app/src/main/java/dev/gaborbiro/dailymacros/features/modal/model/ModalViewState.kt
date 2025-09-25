@@ -77,7 +77,7 @@ sealed class DialogState {
         abstract fun withValidationError(validationError: String?): InputDialog
     }
 
-    data class NewImage(val imagePickerState: ImagePickerState) : DialogState()
+    data class ImageInput(val type: ImageInputType) : DialogState()
 
     data class SelectRecordActionDialog(val recordId: Long) : DialogState()
 
@@ -88,9 +88,10 @@ sealed class DialogState {
     data class InfoDialog(val message: String) : DialogState()
 }
 
-sealed class ImagePickerState(open val recordId: Long?) {
-    data class Select(override val recordId: Long?) : ImagePickerState(recordId)
-    data class Take(override val recordId: Long?) : ImagePickerState(recordId)
+sealed class ImageInputType {
+    data object Browse : ImageInputType()
+    data object QuickPhoto : ImageInputType()
+    data object TakePhoto : ImageInputType()
 }
 
 data class MacrosUIModel(

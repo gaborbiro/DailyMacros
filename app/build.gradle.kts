@@ -17,8 +17,8 @@ android {
         applicationId = "dev.gaborbiro.dailymacros"
         minSdk = 31
         targetSdk = 35
-        versionCode = 12
-        versionName = "1.4.1"
+        versionCode = 13
+        versionName = "1.4.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -115,9 +115,16 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.activity:activity-compose:1.11.0")
 
-
     implementation("androidx.appcompat:appcompat:1.7.1")
     implementation("androidx.work:work-runtime-ktx:2.10.5")
+    implementation("androidx.window:window:1.5.0")
+
+    val cameraxVersion = "1.5.0"
+    implementation("androidx.camera:camera-core:$cameraxVersion")
+    implementation("androidx.camera:camera-camera2:$cameraxVersion")
+    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
+    implementation("androidx.camera:camera-view:$cameraxVersion")
+    implementation("androidx.camera:camera-extensions:$cameraxVersion") // optional
 
     val lifecycleVersion = "2.9.4"
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVersion")
@@ -130,7 +137,6 @@ dependencies {
     implementation("androidx.glance:glance-preview:$glanceVersion")
     implementation("androidx.glance:glance-material3:$glanceVersion")
 
-    // Navigation
     val navVersion = "2.9.5"
     implementation("androidx.navigation:navigation-fragment-ktx:$navVersion")
     implementation("androidx.navigation:navigation-ui-ktx:$navVersion")
@@ -140,7 +146,6 @@ dependencies {
 
     implementation("com.google.code.gson:gson:2.13.2")
 
-    // Android ROOM - Data Persistence
     val roomVersion = "2.8.1"
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")

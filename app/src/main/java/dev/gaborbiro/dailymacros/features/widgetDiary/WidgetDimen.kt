@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widget
+package dev.gaborbiro.dailymacros.features.widgetDiary
 
 import androidx.compose.ui.unit.dp
 

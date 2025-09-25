@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_add"
+        android:shortcutId="text_only"
+        android:shortcutLongLabel="@string/shortcut_text_name"
+        android:shortcutShortLabel="@string/shortcut_text_name">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="dev.gaborbiro.dailymacros.features.modal.ModalActivity"
+            android:targetPackage="dev.gaborbiro.dailymacros">
+            <extra
+                android:name="extra_action"
+                android:value="TEXT_ONLY" />
+        </intent>
+    </shortcut>
+
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_add_picture"
+        android:shortcutId="pick_photo"
+        android:shortcutLongLabel="@string/shortcut_image_name"
+        android:shortcutShortLabel="@string/shortcut_image_name">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="dev.gaborbiro.dailymacros.features.modal.ModalActivity"
+            android:targetPackage="dev.gaborbiro.dailymacros">
+            <extra
+                android:name="extra_action"
+                android:value="PICK_PHOTO" />
+        </intent>
+    </shortcut>
+
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_add_photo"
+        android:shortcutId="quick_capture"
+        android:shortcutLongLabel="@string/shortcut_camera_name"
+        android:shortcutShortLabel="@string/shortcut_camera_name">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="dev.gaborbiro.dailymacros.features.modal.ModalActivity"
+            android:targetPackage="dev.gaborbiro.dailymacros">
+            <extra
+                android:name="extra_action"
+                android:value="CAMERA" />
+        </intent>
+    </shortcut>
+</shortcuts>

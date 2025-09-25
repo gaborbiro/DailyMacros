@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.data.file
 
 import android.net.Uri
+import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -28,6 +29,8 @@ internal interface FileStore {
      * @return local file path on the device
      */
     fun resolveFilePath(filename: String): String
+
+    fun resolveFile(filename: String): File
 
     /**
      * @return android.net.Uri but in a String format. Use android.net.Uri.parse(this) or androidx.core.net.toUri() to convert it to Uri.

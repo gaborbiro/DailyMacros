@@ -1,9 +1,9 @@
-package dev.gaborbiro.dailymacros.features.widget.util
+package dev.gaborbiro.dailymacros.features.widgetDiary.util
 
 import androidx.compose.runtime.Composable
 import androidx.glance.GlanceTheme
 import dev.gaborbiro.dailymacros.design.WidgetColorScheme
-import dev.gaborbiro.dailymacros.features.widget.views.PreviewImageStoreProviderWidget
+import dev.gaborbiro.dailymacros.features.widgetDiary.views.PreviewImageStoreProviderWidget
 
 @Composable
 internal fun WidgetPreview(

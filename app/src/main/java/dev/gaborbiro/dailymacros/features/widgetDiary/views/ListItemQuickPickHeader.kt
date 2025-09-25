@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widget.views
+package dev.gaborbiro.dailymacros.features.widgetDiary.views
 
 import androidx.compose.runtime.Composable
 import androidx.glance.ColorFilter
@@ -6,7 +6,6 @@ import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
-import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
@@ -17,8 +16,8 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
 import dev.gaborbiro.dailymacros.R
-import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultVertical
-import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
+import dev.gaborbiro.dailymacros.features.widgetDiary.PaddingWidgetDefaultVertical
+import dev.gaborbiro.dailymacros.features.widgetDiary.util.WidgetPreview
 
 @Composable
 fun ListItemQuickPickHeader(

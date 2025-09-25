@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widget
+package dev.gaborbiro.dailymacros.features.widgetDiary
 
 import android.content.Context
 import androidx.glance.GlanceId
@@ -175,6 +175,6 @@ class RefreshAction : ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters,
     ) {
-        DailyMacrosWidgetScreen.reload()
+        DiaryWidgetScreen.reload()
     }
 }

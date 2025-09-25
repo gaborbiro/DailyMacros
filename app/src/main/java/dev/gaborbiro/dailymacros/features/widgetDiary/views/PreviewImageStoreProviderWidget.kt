@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widget.views
+package dev.gaborbiro.dailymacros.features.widgetDiary.views
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider

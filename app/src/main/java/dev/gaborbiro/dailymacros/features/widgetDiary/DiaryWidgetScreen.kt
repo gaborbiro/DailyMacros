@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widget
+package dev.gaborbiro.dailymacros.features.widgetDiary
 
 import android.content.Context
 import android.util.Log
@@ -12,7 +12,6 @@ import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
-import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.currentState
@@ -37,21 +36,21 @@ import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPickFooter
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPickHeader
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
-import dev.gaborbiro.dailymacros.features.widget.views.LocalImageStoreWidget
-import dev.gaborbiro.dailymacros.features.widget.views.WidgetView
-import dev.gaborbiro.dailymacros.features.widget.workers.ReloadWorkRequest
+import dev.gaborbiro.dailymacros.features.widgetDiary.views.LocalImageStoreWidget
+import dev.gaborbiro.dailymacros.features.widgetDiary.views.DiaryWidgetView
+import dev.gaborbiro.dailymacros.features.widgetDiary.workers.ReloadWorkRequest
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
 import dev.gaborbiro.dailymacros.util.gson
 
-class DailyMacrosWidgetScreen : GlanceAppWidget() {
+class DiaryWidgetScreen : GlanceAppWidget() {
 
     companion object {
         const val PREFS_RECENT_RECORDS = "recent_records"
         const val PREFS_QUICK_PICKS = "quick_pics"
 
         fun reload() {
-            Log.i("NotesWidget", "reload()")
+            Log.i("DiaryWidgetScreen", "reload()")
             WorkManager.getInstance(App.appContext).enqueue(
                 ReloadWorkRequest.getWorkRequest(
                     recentRecordsPrefsKey = PREFS_RECENT_RECORDS,
@@ -64,7 +63,7 @@ class DailyMacrosWidgetScreen : GlanceAppWidget() {
 
         suspend fun cleanup(context: Context) {
             val widgetCount = GlanceAppWidgetManager(context)
-                .getGlanceIds(DailyMacrosWidgetScreen::class.java)
+                .getGlanceIds(DiaryWidgetScreen::class.java)
                 .size
             if (widgetCount == 0) {
                 WorkManager.getInstance(context).cancelAllWork()
@@ -116,7 +115,7 @@ class DailyMacrosWidgetScreen : GlanceAppWidget() {
                     when (state) {
                         is WidgetUiState.Success -> {
                             CompositionLocalProvider(LocalImageStoreWidget provides state.imageStore) {
-                                WidgetView(
+                                DiaryWidgetView(
                                     modifier = GlanceModifier.fillMaxSize(),
                                     actionProvider = WidgetActionProviderImpl(),
                                     items = state.items
@@ -166,8 +165,8 @@ class DailyMacrosWidgetScreen : GlanceAppWidget() {
     }
 }
 
-fun Preferences.retrieveRecentRecords(): List<Record> {
-    val recordsJSON = this[stringPreferencesKey(DailyMacrosWidgetScreen.PREFS_RECENT_RECORDS)]
+private fun Preferences.retrieveRecentRecords(): List<Record> {
+    val recordsJSON = this[stringPreferencesKey(DiaryWidgetScreen.PREFS_RECENT_RECORDS)]
     return recordsJSON
         ?.let {
             val itemType = object : TypeToken<List<Record>>() {}.type
@@ -176,17 +175,12 @@ fun Preferences.retrieveRecentRecords(): List<Record> {
         ?: emptyList()
 }
 
-fun Preferences.retrieveTopTemplates(): List<Template> {
-    val recordsJSON = this[stringPreferencesKey(DailyMacrosWidgetScreen.PREFS_QUICK_PICKS)]
+private fun Preferences.retrieveTopTemplates(): List<Template> {
+    val recordsJSON = this[stringPreferencesKey(DiaryWidgetScreen.PREFS_QUICK_PICKS)]
     return recordsJSON
         ?.let {
             val itemType = object : TypeToken<List<Template>>() {}.type
             gson.fromJson(recordsJSON, itemType)
         }
         ?: emptyList()
-}
-
-class NotesWidgetReceiver : GlanceAppWidgetReceiver() {
-
-    override val glanceAppWidget: GlanceAppWidget = DailyMacrosWidgetScreen()
 }

@@ -10,7 +10,7 @@ import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
 import dev.gaborbiro.dailymacros.features.common.workers.MacrosWorkRequest
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
-import dev.gaborbiro.dailymacros.features.widget.DailyMacrosWidgetScreen
+import dev.gaborbiro.dailymacros.features.widgetDiary.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.settings.SettingsRepository
@@ -79,7 +79,7 @@ internal class OverviewViewModel(
         viewModelScope.launch {
             recordsRepository.duplicateRecord(id)
         }
-        DailyMacrosWidgetScreen.reload()
+        DiaryWidgetScreen.reload()
     }
 
     fun onCoachMarkDismissed() {
@@ -103,7 +103,7 @@ internal class OverviewViewModel(
                     recordToUndelete = oldRecord,
                 )
             }
-            DailyMacrosWidgetScreen.reload()
+            DiaryWidgetScreen.reload()
         }
     }
 
@@ -124,7 +124,7 @@ internal class OverviewViewModel(
                 recordToUndelete = null,
             )
         }
-        DailyMacrosWidgetScreen.reload()
+        DiaryWidgetScreen.reload()
     }
 
     fun onUndoDeleteDismissed() {
@@ -155,7 +155,7 @@ internal class OverviewViewModel(
                 "Notes",
                 "template deleted: $templateDeleted, image deleted: $imageDeleted"
             )
-            DailyMacrosWidgetScreen.reload()
+            DiaryWidgetScreen.reload()
         }
     }
 

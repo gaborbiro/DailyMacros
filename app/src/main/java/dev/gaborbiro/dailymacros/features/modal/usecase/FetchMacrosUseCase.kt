@@ -5,7 +5,7 @@ import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.modal.RecordsMapper
 import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
-import dev.gaborbiro.dailymacros.features.widget.DailyMacrosWidgetScreen
+import dev.gaborbiro.dailymacros.features.widgetDiary.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repo.chatgpt.toDomainModel
@@ -34,7 +34,7 @@ internal class FetchMacrosUseCase(
                     inputStreamToBase64(inputStream)
                 }
             requestStatusRepository.markAsPending(record.template.dbId)
-            DailyMacrosWidgetScreen.reload()
+            DiaryWidgetScreen.reload()
             val response = chatGPTRepository.macros(
                 request = recordsMapper.mapMacrosRequest(
                     record = record,
@@ -61,6 +61,6 @@ internal class FetchMacrosUseCase(
         } finally {
             requestStatusRepository.unmark(record.template.dbId)
         }
-        DailyMacrosWidgetScreen.reload()
+        DiaryWidgetScreen.reload()
     }
 }

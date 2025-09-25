@@ -24,7 +24,7 @@ private fun Context.getViewImageIntent(vararg extras: Pair<String, Any>) =
 
 fun Context.getCameraIntent() = getModalIntent(Action.CAMERA)
 
-fun Context.getImagePickerIntent() = getModalIntent(Action.PICK_IMAGE)
+fun Context.getImagePickerIntent() = getModalIntent(Action.PICK_PHOTO)
 
 fun Context.getTextOnlyIntent() = getModalIntent(Action.TEXT_ONLY)
 
@@ -48,7 +48,7 @@ fun Context.launchActivity(constructIntent: (Context) -> Intent) {
 const val EXTRA_ACTION = "extra_action"
 
 enum class Action {
-    CAMERA, PICK_IMAGE, TEXT_ONLY, VIEW_RECORD_DETAILS, VIEW_IMAGE, SELECT_RECORD_ACTION, SELECT_TEMPLATE_ACTION
+    CAMERA, QUICK_CAMERA, PICK_PHOTO, TEXT_ONLY, VIEW_RECORD_DETAILS, VIEW_IMAGE, SELECT_RECORD_ACTION, SELECT_TEMPLATE_ACTION
 }
 
 const val EXTRA_RECORD_ID = "record_id"

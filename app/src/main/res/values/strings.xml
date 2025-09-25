@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Macros</string>
-    <string name="widget_name">Control Panel</string>
+    <string name="widget_diary_name">Food Diary</string>
+    <string name="shortcut_camera_name">Snap food</string>
+    <string name="shortcut_image_name">Pick photo</string>
+    <string name="shortcut_text_name">Add meal</string>
 </resources>

@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widget
+package dev.gaborbiro.dailymacros.features.widgetDiary
 
 import android.content.Context
 import androidx.datastore.core.DataStore

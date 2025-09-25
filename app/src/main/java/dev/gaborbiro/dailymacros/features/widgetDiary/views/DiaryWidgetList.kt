@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widget.views
+package dev.gaborbiro.dailymacros.features.widgetDiary.views
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
@@ -22,13 +22,13 @@ import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPickFoote
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPickHeader
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
-import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultHorizontal
-import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetDefaultVertical
-import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetHalfVertical
-import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
+import dev.gaborbiro.dailymacros.features.widgetDiary.PaddingWidgetDefaultHorizontal
+import dev.gaborbiro.dailymacros.features.widgetDiary.PaddingWidgetDefaultVertical
+import dev.gaborbiro.dailymacros.features.widgetDiary.PaddingWidgetHalfVertical
+import dev.gaborbiro.dailymacros.features.widgetDiary.util.WidgetPreview
 
 @Composable
-internal fun WidgetList(
+internal fun DiaryWidgetList(
     items: List<ListUIModelBase>,
     recordImageTapActionProvider: @Composable (recordId: Long) -> Action,
     recordBodyTapActionProvider: @Composable (recordId: Long) -> Action,
@@ -119,7 +119,7 @@ internal fun WidgetList(
 @OptIn(ExperimentalGlancePreviewApi::class)
 private fun WidgetListPreview() {
     WidgetPreview {
-        WidgetList(
+        DiaryWidgetList(
             items = listOf(
                 ListUIModelRecord(
                     recordId = 1,

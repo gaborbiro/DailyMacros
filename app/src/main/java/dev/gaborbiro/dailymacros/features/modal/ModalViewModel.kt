@@ -12,7 +12,7 @@ import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.common.message
 import dev.gaborbiro.dailymacros.features.common.workers.MacrosWorkRequest
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
-import dev.gaborbiro.dailymacros.features.modal.model.ImagePickerState
+import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.modal.model.ModalViewState
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordUseCase
@@ -26,7 +26,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
-import dev.gaborbiro.dailymacros.features.widget.DailyMacrosWidgetScreen
+import dev.gaborbiro.dailymacros.features.widgetDiary.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.DomainError
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import ellipsize
@@ -68,14 +68,21 @@ internal class ModalViewModel(
     @UiThread
     fun onCreateRecordWithCameraDeeplink() {
         pushDialog(
-            DialogState.NewImage(imagePickerState = ImagePickerState.Take(recordId = null))
+            DialogState.ImageInput(type = ImageInputType.TakePhoto)
+        )
+    }
+
+    @UiThread
+    fun onCreateRecordWithQuickCameraDeeplink() {
+        pushDialog(
+            DialogState.ImageInput(type = ImageInputType.QuickPhoto)
         )
     }
 
     @UiThread
     fun onCreateRecordWithImagePickerDeeplink() {
         pushDialog(
-            DialogState.NewImage(imagePickerState = ImagePickerState.Select(recordId = null))
+            DialogState.ImageInput(type = ImageInputType.Browse)
         )
     }
 
@@ -172,13 +179,13 @@ internal class ModalViewModel(
     }
 
     @UiThread
-    fun onImageSelected(uri: Uri, newImageDialog: DialogState.NewImage) {
+    fun onImageSelected(uri: Uri, imageInputDialog: DialogState.ImageInput) {
         imageSummaryJob?.cancel()
         imageSummaryJob = runSafely {
             var dialogs = _viewState.value.dialogs
             val persistedFilename = saveImageUseCase.execute(uri)
 
-            dialogs = dialogs - newImageDialog
+            dialogs = dialogs - imageInputDialog
 
             dialogs = dialogs.replaceInstances<DialogState.InputDialog.CreateWithImageDialog> {
                 it.copy(
@@ -262,7 +269,7 @@ internal class ModalViewModel(
         popDialog()
         runSafely {
             recordsRepository.duplicateRecord(recordId)
-            DailyMacrosWidgetScreen.reload()
+            DiaryWidgetScreen.reload()
         }
     }
 
@@ -271,7 +278,7 @@ internal class ModalViewModel(
         popDialog()
         runSafely {
             recordsRepository.applyTemplate(templateId)
-            DailyMacrosWidgetScreen.reload()
+            DiaryWidgetScreen.reload()
         }
     }
 
@@ -292,10 +299,10 @@ internal class ModalViewModel(
 
     @UiThread
     fun onDeleteTapped(recordId: Long) {
-            popDialog()
+        popDialog()
         runSafely {
             deleteRecordUseCase.execute(recordId)
-            DailyMacrosWidgetScreen.reload()
+            DiaryWidgetScreen.reload()
         }
     }
 
@@ -336,13 +343,13 @@ internal class ModalViewModel(
         when (dialogState) {
             is DialogState.InputDialog.CreateDialog, is DialogState.InputDialog.CreateWithImageDialog -> {
                 pushDialog(
-                    DialogState.NewImage(imagePickerState = ImagePickerState.Take(recordId = null))
+                    DialogState.ImageInput(type = ImageInputType.TakePhoto)
                 )
             }
 
             is DialogState.InputDialog.RecordDetailsDialog -> {
                 pushDialog(
-                    DialogState.NewImage(imagePickerState = ImagePickerState.Take(recordId = dialogState.recordId))
+                    DialogState.ImageInput(type = ImageInputType.TakePhoto)
                 )
             }
         }
@@ -353,13 +360,13 @@ internal class ModalViewModel(
         when (dialogState) {
             is DialogState.InputDialog.CreateDialog, is DialogState.InputDialog.CreateWithImageDialog -> {
                 pushDialog(
-                    DialogState.NewImage(imagePickerState = ImagePickerState.Select(recordId = null))
+                    DialogState.ImageInput(type = ImageInputType.Browse)
                 )
             }
 
             is DialogState.InputDialog.RecordDetailsDialog -> {
                 pushDialog(
-                    DialogState.NewImage(imagePickerState = ImagePickerState.Select(recordId = dialogState.recordId))
+                    DialogState.ImageInput(type = ImageInputType.Browse)
                 )
             }
         }
@@ -410,7 +417,7 @@ internal class ModalViewModel(
                     title = title,
                     description = description,
                 )
-                DailyMacrosWidgetScreen.reload()
+                DiaryWidgetScreen.reload()
                 WorkManager.getInstance(App.appContext).enqueue(
                     MacrosWorkRequest.getWorkRequest(
                         recordId = recordId
@@ -498,7 +505,7 @@ internal class ModalViewModel(
                     }
                 }
             }
-        DailyMacrosWidgetScreen.reload()
+        DiaryWidgetScreen.reload()
     }
 
     private fun runSafely(task: suspend () -> Unit): Job {

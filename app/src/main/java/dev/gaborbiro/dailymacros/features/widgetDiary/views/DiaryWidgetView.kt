@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widget.views
+package dev.gaborbiro.dailymacros.features.widgetDiary.views
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
@@ -26,13 +26,13 @@ import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPick
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
-import dev.gaborbiro.dailymacros.features.widget.PaddingWidgetHalfVertical
-import dev.gaborbiro.dailymacros.features.widget.WidgetActionProvider
-import dev.gaborbiro.dailymacros.features.widget.WidgetActionProviderImpl
-import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreview
+import dev.gaborbiro.dailymacros.features.widgetDiary.PaddingWidgetHalfVertical
+import dev.gaborbiro.dailymacros.features.widgetDiary.WidgetActionProvider
+import dev.gaborbiro.dailymacros.features.widgetDiary.WidgetActionProviderImpl
+import dev.gaborbiro.dailymacros.features.widgetDiary.util.WidgetPreview
 
 @Composable
-internal fun WidgetView(
+internal fun DiaryWidgetView(
     modifier: GlanceModifier,
     actionProvider: WidgetActionProvider,
     items: List<ListUIModelBase>,
@@ -50,7 +50,7 @@ internal fun WidgetView(
             contentAlignment = Alignment.BottomEnd,
         ) {
             if (items.isNotEmpty()) {
-                WidgetList(
+                DiaryWidgetList(
                     items = items,
                     recordImageTapActionProvider = { recordId -> actionProvider.recordImageTapped(recordId) },
                     recordBodyTapActionProvider = { recordId -> actionProvider.recordBodyTapped(recordId) },
@@ -104,7 +104,7 @@ internal fun WidgetView(
 @OptIn(ExperimentalGlancePreviewApi::class)
 private fun WidgetViewPreview() {
     WidgetPreview {
-        WidgetView(
+        DiaryWidgetView(
             modifier = GlanceModifier
                 .fillMaxSize(),
             actionProvider = WidgetActionProviderImpl(),
@@ -203,7 +203,7 @@ private fun WidgetViewPreview() {
 @OptIn(ExperimentalGlancePreviewApi::class)
 private fun WidgetViewPreviewEmpty() {
     WidgetPreview {
-        WidgetView(
+        DiaryWidgetView(
             modifier = GlanceModifier
                 .fillMaxSize(),
             actionProvider = WidgetActionProviderImpl(),

@@ -73,7 +73,7 @@ private fun Context.openRecordDetailsIntent(recordId: Long): PendingIntent? {
     return PendingIntent.getActivities(
         this,
         0,
-        arrayOf(mainIntent, modalIntent),
+        arrayOf(modalIntent),
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
 }

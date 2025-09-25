@@ -35,7 +35,7 @@ import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.common.views.LocalImage
 import dev.gaborbiro.dailymacros.features.common.views.PreviewImageStoreProvider
-import dev.gaborbiro.dailymacros.features.widget.views.ListItemImageCornerRadius
+import dev.gaborbiro.dailymacros.features.widgetDiary.views.ListItemImageCornerRadius
 
 
 @Composable

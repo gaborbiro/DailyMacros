@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widget.workers
+package dev.gaborbiro.dailymacros.features.widgetDiary.workers
 
 import android.content.Context
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -14,7 +14,7 @@ import dev.gaborbiro.dailymacros.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
-import dev.gaborbiro.dailymacros.features.widget.DailyMacrosWidgetScreen
+import dev.gaborbiro.dailymacros.features.widgetDiary.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repo.records.ApiMapper
 import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
@@ -105,7 +105,7 @@ internal class ReloadWorkRequest(
             stringPreferencesKey(workerParameters.inputData.getString(PREFS_QUICK_PICKS_KEY)!!)
 
         val glanceIds = GlanceAppWidgetManager(context)
-            .getGlanceIds(DailyMacrosWidgetScreen::class.java)
+            .getGlanceIds(DiaryWidgetScreen::class.java)
         val recordsJson = gson.toJson(records)
         val templatesJson = gson.toJson(quickPicks)
         glanceIds.forEach { glanceId ->
@@ -114,6 +114,6 @@ internal class ReloadWorkRequest(
                 widgetPrefs[topTemplatesPrefsKey] = templatesJson
             }
         }
-        DailyMacrosWidgetScreen().updateAll(context)
+        DiaryWidgetScreen().updateAll(context)
     }
 }
