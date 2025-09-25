@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.features.widget
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.datastore.preferences.core.Preferences
@@ -75,66 +76,65 @@ class DailyMacrosWidgetScreen : GlanceAppWidget() {
     private val analyticsLogger = AnalyticsLogger()
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        provideContent {
-            GlanceTheme(colors = WidgetColorScheme.colors(context)) {
-                val widgetPrefs = currentState<Preferences>()
+        try {
+            provideContent {
+                GlanceTheme(colors = WidgetColorScheme.colors(context)) {
+                    val widgetPrefs = currentState<Preferences>()
 
-                val state = try {
-                    val fileStore =
-                        FileStoreFactoryImpl(context).getStore("public", keepFiles = true)
-                    val imageStore: ImageStore = ImageStoreImpl(fileStore)
-                    val dateUIMapper = DateUIMapper()
-                    val macrosUIMapper = MacrosUIMapper(dateUIMapper)
-                    val recordsUIMapper = RecordsUIMapper(macrosUIMapper, dateUIMapper)
-                    val widgetUIMapper = WidgetUIMapper(macrosUIMapper)
+                    val state = try {
+                        val fileStore =
+                            FileStoreFactoryImpl(context).getStore("public", keepFiles = true)
+                        val imageStore: ImageStore = ImageStoreImpl(fileStore)
+                        val dateUIMapper = DateUIMapper()
+                        val macrosUIMapper = MacrosUIMapper(dateUIMapper)
+                        val recordsUIMapper = RecordsUIMapper(macrosUIMapper, dateUIMapper)
+                        val widgetUIMapper = WidgetUIMapper(macrosUIMapper)
 
-                    val topTemplates = widgetUIMapper.map(widgetPrefs.retrieveTopTemplates())
-                    val recentRecords = recordsUIMapper
-                        .map(widgetPrefs.retrieveRecentRecords(), showDay = true)
-                        .filterIsInstance<ListUIModelRecord>()
+                        val topTemplates = widgetUIMapper.map(widgetPrefs.retrieveTopTemplates())
+                        val recentRecords = recordsUIMapper
+                            .map(widgetPrefs.retrieveRecentRecords(), showDay = true)
+                            .filterIsInstance<ListUIModelRecord>()
 
-                    val items = buildList {
-                        if (recentRecords.isNotEmpty() || topTemplates.isNotEmpty()) {
-                            addAll(recentRecords.take(3))
-                            if (topTemplates.isNotEmpty()) {
-                                add(ListUIModelQuickPickHeader)
-                                addAll(topTemplates)
-                                add(ListUIModelQuickPickFooter)
+                        val items = buildList {
+                            if (recentRecords.isNotEmpty() || topTemplates.isNotEmpty()) {
+                                addAll(recentRecords.take(3))
+                                if (topTemplates.isNotEmpty()) {
+                                    add(ListUIModelQuickPickHeader)
+                                    addAll(topTemplates)
+                                    add(ListUIModelQuickPickFooter)
+                                }
+                                addAll(recentRecords.drop(3))
                             }
-                            addAll(recentRecords.drop(3))
                         }
-                    }
-                    WidgetUiState.Success(items, imageStore)
-                } catch (t: Throwable) {
-                    analyticsLogger.logError(t)
-                    WidgetUiState.Error
-                }
-
-                when (state) {
-                    is WidgetUiState.Success -> {
-                        CompositionLocalProvider(LocalImageStoreWidget provides state.imageStore) {
-                            WidgetView(
-                                modifier = GlanceModifier.fillMaxSize(),
-                                actionProvider = WidgetActionProviderImpl(),
-                                items = state.items
-                            )
-                        }
+                        WidgetUiState.Success(items, imageStore)
+                    } catch (t: Throwable) {
+                        analyticsLogger.setCustomDataForNextReport("source", "inside provideGlance.provideContent")
+                        analyticsLogger.logError(t)
+                        WidgetUiState.Error
                     }
 
-                    WidgetUiState.Error -> {
-                        Box(
-                            modifier = GlanceModifier
-                                .fillMaxSize()
-                                .background(GlanceTheme.colors.widgetBackground),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(
-                                text = "Widget error",
-                                style = TextStyle(color = ColorProvider(Color.Red))
-                            )
+                    when (state) {
+                        is WidgetUiState.Success -> {
+                            CompositionLocalProvider(LocalImageStoreWidget provides state.imageStore) {
+                                WidgetView(
+                                    modifier = GlanceModifier.fillMaxSize(),
+                                    actionProvider = WidgetActionProviderImpl(),
+                                    items = state.items
+                                )
+                            }
+                        }
+
+                        WidgetUiState.Error -> {
+                            ErrorView()
                         }
                     }
                 }
+            }
+        } catch (t: Throwable) {
+            analyticsLogger.setCustomDataForNextReport("source", "outside provideGlance.provideContent")
+            analyticsLogger.logError(t)
+            provideContent {
+                ErrorView()
             }
         }
     }
@@ -146,6 +146,20 @@ class DailyMacrosWidgetScreen : GlanceAppWidget() {
         object Error : WidgetUiState
     }
 
+    @Composable
+    private fun ErrorView() {
+        Box(
+            modifier = GlanceModifier
+                .fillMaxSize()
+                .background(GlanceTheme.colors.widgetBackground),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = "Widget error",
+                style = TextStyle(color = ColorProvider(Color.Red))
+            )
+        }
+    }
 
     override suspend fun onDelete(context: Context, glanceId: GlanceId) {
         cleanup(context)

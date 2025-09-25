@@ -95,7 +95,11 @@ class MainActivity : ComponentActivity() {
 
                 val settingsNavigator = remember { SettingsNavigatorImpl(navController) }
                 val settingsViewModel = viewModelFactory {
-                    SettingsViewModel(settingsNavigator, settingsRepository)
+                    SettingsViewModel(
+                        navigator = settingsNavigator,
+                        repo = settingsRepository,
+                        appPrefs = appPrefs
+                    )
                 }
 
                 NavHost(

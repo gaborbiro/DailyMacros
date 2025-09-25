@@ -5,7 +5,8 @@ internal data class SettingsViewState(
     val canReset: Boolean = false,
     val canSave: Boolean = false,
     val showExitDialog: Boolean = false,
-    val errors: Map<MacroType, FieldErrors> = emptyMap()
+    val errors: Map<MacroType, FieldErrors> = emptyMap(),
+    val bottomLabel: String,
 )
 
 data class FieldErrors(

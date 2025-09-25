@@ -108,7 +108,7 @@ internal fun SettingsView(
                     .fillMaxWidth()
                     .padding(bottom = 8.dp)
                     .padding(WindowInsets.navigationBars.asPaddingValues()),
-                text = "v${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE})",
+                text = viewState.bottomLabel,
                 textAlign = TextAlign.Center,
             )
         },
@@ -339,7 +339,8 @@ private fun SettingsViewPreview_Default() {
                 settings = SettingsUIModel(targets = dummyTargets()),
                 canReset = false,
                 canSave = false,
-                showExitDialog = false
+                showExitDialog = false,
+                bottomLabel = "v${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE})",
             ),
             onBackClick = {},
             onMacroTargetChange = { _, _ -> },
@@ -361,7 +362,8 @@ private fun SettingsViewPreview_DirtyValid() {
                 settings = SettingsUIModel(targets = dummyTargets(calories = 1800 to 2000, protein = 60 to 120)),
                 canReset = true,
                 canSave = true,
-                showExitDialog = false
+                showExitDialog = false,
+                bottomLabel = "v${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE})",
             ),
             onBackClick = {},
             onMacroTargetChange = { _, _ -> },
@@ -383,7 +385,8 @@ private fun SettingsViewPreview_DirtyInvalid() {
                 settings = SettingsUIModel(targets = dummyTargets(calories = 2200 to 2000)), // min > max
                 canReset = true,
                 canSave = false,
-                showExitDialog = false
+                showExitDialog = false,
+                bottomLabel = "v${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE})",
             ),
             onBackClick = {},
             onMacroTargetChange = { _, _ -> },

@@ -1,13 +1,15 @@
 package dev.gaborbiro.dailymacros.features.settings
 
 import androidx.lifecycle.ViewModel
+import dev.gaborbiro.dailymacros.BuildConfig
+import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.settings.model.FieldErrors
-import dev.gaborbiro.dailymacros.features.settings.model.TargetUIModel
+import dev.gaborbiro.dailymacros.features.settings.model.MacroType
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUIModel
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsViewState
-import dev.gaborbiro.dailymacros.repo.settings.SettingsRepository
-import dev.gaborbiro.dailymacros.features.settings.model.MacroType
+import dev.gaborbiro.dailymacros.features.settings.model.TargetUIModel
 import dev.gaborbiro.dailymacros.features.settings.model.ValidationError
+import dev.gaborbiro.dailymacros.repo.settings.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,11 +17,15 @@ import kotlinx.coroutines.flow.asStateFlow
 internal class SettingsViewModel(
     private val navigator: SettingsNavigator,
     private val repo: SettingsRepository,
-    private val mapper: UIMapper = UIMapper(),
+    private val mapper: SettingsUIMapper = SettingsUIMapper(),
+    private val appPrefs: AppPrefs,
 ) : ViewModel() {
 
     private val _viewState = MutableStateFlow(
-        SettingsViewState(settings = SettingsUIModel(targets = emptyMap()))
+        SettingsViewState(
+            settings = SettingsUIModel(targets = emptyMap()),
+            bottomLabel = bottomLabel,
+        )
     )
     val viewState: StateFlow<SettingsViewState> = _viewState.asStateFlow()
 
@@ -36,7 +42,8 @@ internal class SettingsViewModel(
         _viewState.value = SettingsViewState(
             settings = uiModel,
             canReset = false,
-            canSave = false
+            canSave = false,
+            bottomLabel = bottomLabel,
         )
     }
 
@@ -71,7 +78,8 @@ internal class SettingsViewModel(
             canReset = dirty,
             canSave = dirty,
             showExitDialog = _viewState.value.showExitDialog,
-            errors = errors
+            errors = errors,
+            bottomLabel = bottomLabel,
         )
     }
 
@@ -100,7 +108,8 @@ internal class SettingsViewModel(
         _viewState.value = SettingsViewState(
             settings = saved,
             canReset = false,
-            canSave = false
+            canSave = false,
+            bottomLabel = bottomLabel,
         )
     }
 
@@ -121,4 +130,9 @@ internal class SettingsViewModel(
     fun dismissExitDialog() {
         _viewState.value = _viewState.value.copy(showExitDialog = false)
     }
+
+    private val bottomLabel: String
+        get() {
+            return "v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})  |  UserID: ${appPrefs.userUUID}"
+        }
 }

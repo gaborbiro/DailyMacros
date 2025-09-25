@@ -18,11 +18,11 @@ internal class AppPrefs(context: Context) {
     @OptIn(ExperimentalUuidApi::class)
     val userUUID: String
         get() {
-            val existing = prefs.getString("user_uuid", null)
+            val existing = prefs.getString("user_uuid_3", null)
             if (existing != null) return existing
 
-            val newUuid = Uuid.random().toString()
-            prefs.edit { putString("user_uuid", newUuid) }
+            val newUuid = ThreeWordId.random()
+            prefs.edit { putString("user_uuid_3", newUuid) }
             return newUuid
         }
 

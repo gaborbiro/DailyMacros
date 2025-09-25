@@ -18,7 +18,7 @@ class AnalyticsLogger {
         crashlytics.setUserId(userId ?: "")
     }
 
-    fun setCustomDataForNextCrash(key: String, value: String) {
+    fun setCustomDataForNextReport(key: String, value: String) {
         crashlytics.setCustomKey(key, value)
     }
 

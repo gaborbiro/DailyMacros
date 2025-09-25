@@ -14,7 +14,7 @@ import dev.gaborbiro.dailymacros.repo.settings.model.THEORETICAL_SUGAR_MAX
 import dev.gaborbiro.dailymacros.repo.settings.model.Target
 import dev.gaborbiro.dailymacros.repo.settings.model.Targets
 
-internal class UIMapper {
+internal class SettingsUIMapper {
 
     fun map(targets: Targets): SettingsUIModel {
         return SettingsUIModel(
