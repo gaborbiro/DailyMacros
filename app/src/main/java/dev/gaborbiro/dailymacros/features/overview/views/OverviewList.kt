@@ -6,6 +6,8 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -36,7 +38,6 @@ import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.design.ExtraColors
 import dev.gaborbiro.dailymacros.design.PaddingDefault
-import dev.gaborbiro.dailymacros.design.PaddingDouble
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroProgress
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
@@ -83,9 +84,11 @@ internal fun OverviewList(
         var expandedId by remember { mutableStateOf<Any?>(null) }
 
         LazyColumn(
+            modifier = Modifier
+                .consumeWindowInsets(WindowInsets(0)),
             verticalArrangement = Arrangement.spacedBy(PaddingDefault),
             contentPadding = PaddingValues(
-                top = paddingValues.calculateTopPadding() + 24.dp,
+                top = paddingValues.calculateTopPadding() + 16.dp,
                 bottom = paddingValues.calculateBottomPadding() + 86.dp
             ),
             state = listState,
@@ -113,7 +116,7 @@ internal fun OverviewList(
                             onRecordImageTapped = onRecordImageTapped,
                             onRecordBodyTapped = onRecordBodyTapped,
                         ) {
-                            RowMenu(
+                            RowDropdownMenu(
                                 expanded = expandedId == item.listItemId,
                                 onOpen = onOpen,
                                 onDismiss = onDismiss,
@@ -128,14 +131,6 @@ internal fun OverviewList(
 
                     is ListUIModelMacroProgress -> {
                         ListItemMacroProgressBars(
-                            modifier = Modifier
-                                .let {
-                                    if (expandedId != null) {
-                                        it.padding(top = PaddingDouble)
-                                    } else {
-                                        it
-                                    }
-                                },
                             model = item
                         )
                     }
@@ -143,28 +138,30 @@ internal fun OverviewList(
             }
         }
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = paddingValues.calculateTopPadding())
-        ) {
-            IconButton(
+        if (viewState.showSettingsButton) {
+            Box(
                 modifier = Modifier
-                    .padding(PaddingHalf)
-                    .align(Alignment.TopEnd)
-                    .coachMarkOverlayAnchor {
-                        targetBounds = it
-                    },
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                ),
-                onClick = onSettingsButtonTapped,
+                    .fillMaxWidth()
+                    .padding(top = paddingValues.calculateTopPadding())
             ) {
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = "Settings Button",
-                )
+                IconButton(
+                    modifier = Modifier
+                        .padding(PaddingHalf)
+                        .align(Alignment.TopEnd)
+                        .coachMarkOverlayAnchor {
+                            targetBounds = it
+                        },
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    ),
+                    onClick = onSettingsButtonTapped,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Settings Button",
+                    )
+                }
             }
         }
 

@@ -56,10 +56,15 @@ internal class OverviewViewModel(
                     _viewState.update {
                         if (records.isNotEmpty()) {
                             it.copy(
-                                items = records
+                                items = records,
+                                showSettingsButton = search.isNullOrBlank(),
                             )
                         } else {
-                            it.copy(showAddWidgetButton = true)
+                            it.copy(
+                                items = records,
+                                showAddWidgetButton = search.isNullOrBlank(),
+                                showSettingsButton = search.isNullOrBlank(),
+                            )
                         }
                     }
                     if (records.size == 2 && appPrefs.showCoachMark) {
@@ -67,7 +72,8 @@ internal class OverviewViewModel(
                         delay(2.seconds)
                         _viewState.update {
                             it.copy(
-                                showCoachMark = true
+                                showCoachMark = true,
+                                showSettingsButton = search.isNullOrBlank(),
                             )
                         }
                     }

@@ -1,7 +1,6 @@
 package dev.gaborbiro.dailymacros.features.overview.views
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -11,16 +10,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 
 @Composable
-fun RowMenu(
+fun RowDropdownMenu(
     expanded: Boolean,
     onOpen: () -> Unit,
     onDismiss: () -> Unit,
@@ -33,20 +32,21 @@ fun RowMenu(
 
     Box {
         Icon(
-            painter = painterResource(R.drawable.ic_more_vert), // or your 3-dots painter hoisted too
-            contentDescription = "More Menu",
             modifier = Modifier
                 .size(36.dp)
                 .padding(end = PaddingHalf)
                 .clickable(
                     onClick = onOpen,
-                )
+                ),
+            painter = painterResource(R.drawable.ic_more_vert), // or your 3-dots painter hoisted too
+            contentDescription = "More Menu",
         )
 
         if (expanded) {
             DropdownMenu(
                 expanded = true,
-                onDismissRequest = onDismiss
+                onDismissRequest = onDismiss,
+                offset = DpOffset(0.dp, 0.dp)
             ) {
                 DropdownMenuItem(
                     leadingIcon = { Icon(icons.repeat, null) },

@@ -75,7 +75,7 @@ internal fun OverviewView(
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
         floatingActionButton = {
-            if (viewState.items.isNotEmpty()) {
+            if (!viewState.showAddWidgetButton) {
                 SearchFAB {
                     onSearchTermChanged(it)
                 }
