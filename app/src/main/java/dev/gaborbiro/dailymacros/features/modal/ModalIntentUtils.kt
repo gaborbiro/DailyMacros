@@ -13,10 +13,10 @@ fun Context.getShowTemplateImageIntent(templateId: Long) =
 fun Context.getViewRecordDetailsIntent(recordId: Long) =
     getModalIntent(Action.VIEW_RECORD_DETAILS, EXTRA_RECORD_ID to recordId)
 
-fun Context.getSelectRecordIntent(recordId: Long) =
+fun Context.getSelectRecordActionIntent(recordId: Long) =
     getModalIntent(Action.SELECT_RECORD_ACTION, EXTRA_RECORD_ID to recordId)
 
-fun Context.getSelectTemplateIntent(templateId: Long) =
+fun Context.getSelectTemplateActionIntent(templateId: Long) =
     getModalIntent(Action.SELECT_TEMPLATE_ACTION, EXTRA_TEMPLATE_ID to templateId)
 
 private fun Context.getViewImageIntent(vararg extras: Pair<String, Any>) =
@@ -39,11 +39,16 @@ private fun Context.getModalIntent(
     }
 }
 
-fun Context.launchActivity(constructIntent: (Context) -> Intent) {
+fun Context.launchActivityInNewStack(constructIntent: (Context) -> Intent) {
     startActivity(constructIntent(this).apply {
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
     })
 }
+
+fun Context.launchActivity(constructIntent: (Context) -> Intent) {
+    startActivity(constructIntent(this))
+}
+
 
 const val EXTRA_ACTION = "extra_action"
 

@@ -104,10 +104,10 @@ class ModalActivity : AppCompatActivity() {
 
     companion object {
         fun launchToAddRecordWithCamera(context: Context) =
-            context.launchActivity(Context::getCameraIntent)
+            context.launchActivityInNewStack(Context::getCameraIntent)
 
         fun launchToAddRecordWithImagePicker(context: Context) =
-            context.launchActivity(Context::getImagePickerIntent)
+            context.launchActivityInNewStack(Context::getImagePickerIntent)
 
         fun launchToShowRecordImage(context: Context, recordId: Long) =
             context.launchActivity { it.getShowRecordImageIntent(recordId) }
@@ -116,7 +116,7 @@ class ModalActivity : AppCompatActivity() {
             context.launchActivity { it.getShowTemplateImageIntent(templateId) }
 
         fun launchToAddRecord(context: Context) =
-            context.launchActivity {
+            context.launchActivityInNewStack {
                 context.getTextOnlyIntent()
             }
 
@@ -125,11 +125,11 @@ class ModalActivity : AppCompatActivity() {
         }
 
         fun launchToSelectRecordAction(context: Context, recordId: Long) {
-            context.launchActivity { it.getSelectRecordIntent(recordId) }
+            context.launchActivityInNewStack { it.getSelectRecordActionIntent(recordId) }
         }
 
         fun launchToSelectTemplateAction(context: Context, templateId: Long) {
-            context.launchActivity { it.getSelectTemplateIntent(templateId) }
+            context.launchActivityInNewStack { it.getSelectTemplateActionIntent(templateId) }
         }
 
         const val REQUEST_TIMEOUT_IN_SECONDS = 90L
@@ -244,7 +244,7 @@ class ModalActivity : AppCompatActivity() {
         super.onNewIntent(intent, caller)
         val action = getActionFromIntent(intent)
         action?.let {
-            handleAction(action)
+            handleAction(action, intent)
         }
     }
 
@@ -255,7 +255,7 @@ class ModalActivity : AppCompatActivity() {
         return action
     }
 
-    private fun handleAction(action: Action) {
+    private fun handleAction(action: Action, intent: Intent = this.intent) {
         when (action) {
             Action.CAMERA -> viewModel.onCreateRecordWithCameraDeeplink()
             Action.QUICK_CAMERA -> viewModel.onCreateRecordWithQuickCameraDeeplink()

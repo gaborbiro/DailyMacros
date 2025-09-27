@@ -18,13 +18,16 @@ fun Context.createNotificationChannels() {
         CHANNEL_ID_GENERAL,
         "General notifications",
         NotificationManager.IMPORTANCE_DEFAULT
-    )
+    ).also {
+        it.setShowBadge(false)
+    }
     val foregroundChannel = NotificationChannel(
         CHANNEL_ID_FOREGROUND,
         "Background process",
         NotificationManager.IMPORTANCE_DEFAULT
     )
         .apply {
+            setShowBadge(false)
             description =
                 "Notifications required for the app to be able to work when not visible (for example fetching macro-nutrient information after adding a meal via the widget)"
         }
@@ -47,7 +50,7 @@ fun Context.showMacroResultsNotification(
     var builder = NotificationCompat.Builder(this, CHANNEL_ID_GENERAL)
         .setSmallIcon(R.drawable.ic_nutrition)
         .setContentIntent(openRecordDetailsIntent(recordId))
-        .setAutoCancel(true)
+//        .setAutoCancel(true)
     message?.let {
         builder = builder.setContentText(message)
             .setStyle(
@@ -63,16 +66,12 @@ fun Context.showMacroResultsNotification(
 }
 
 private fun Context.openRecordDetailsIntent(recordId: Long): PendingIntent? {
-    val mainIntent = Intent(this, MainActivity::class.java).apply {
-        flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
-    }
-    val modalIntent = getViewRecordDetailsIntent(recordId).apply {
-        flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
-    }
+    val modalIntent = getViewRecordDetailsIntent(recordId)
+    modalIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
 
     return PendingIntent.getActivities(
         this,
-        0,
+        recordId.toInt(),
         arrayOf(modalIntent),
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )

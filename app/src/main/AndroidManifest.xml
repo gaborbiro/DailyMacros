@@ -44,8 +44,7 @@
             android:name=".features.modal.ModalActivity"
             android:configChanges="orientation|screenSize"
             android:exported="true"
-            android:launchMode="singleTask"
-            android:parentActivityName=".features.main.MainActivity"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.Transparent"
             android:windowSoftInputMode="adjustResize" />
 
