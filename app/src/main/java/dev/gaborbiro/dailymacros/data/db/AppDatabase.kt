@@ -6,11 +6,14 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import dev.gaborbiro.dailymacros.data.db.model.entity.ImageEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.MacrosEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatusEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
+import java.time.ZoneId
 
 @Database(
     entities = [
@@ -20,7 +23,7 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
         ImageEntity::class,
         RequestStatusEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2)
@@ -50,7 +53,18 @@ abstract class AppDatabase : RoomDatabase() {
                 AppDatabase::class.java,
                 "daily_macros_db"
             )
+                .addMigrations(MIGRATION_2_3)
                 .build()
         }
+    }
+}
+val MIGRATION_2_3 = object : Migration(2, 3) {
+
+    override fun migrate(database: SupportSQLiteDatabase) {
+        val zoneIdString: String = ZoneId.systemDefault().id
+
+        database.execSQL(
+            "ALTER TABLE records ADD COLUMN zoneId TEXT NOT NULL DEFAULT '$zoneIdString'"
+        )
     }
 }

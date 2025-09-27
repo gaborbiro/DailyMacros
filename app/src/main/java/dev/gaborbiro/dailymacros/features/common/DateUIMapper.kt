@@ -1,35 +1,35 @@
 package dev.gaborbiro.dailymacros.features.common
 
 import java.time.LocalDate
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
 internal class DateUIMapper {
 
-    fun map(localDateTime: LocalDateTime, forceDay: Boolean): String {
+    fun map(timestamp: ZonedDateTime, forceDay: Boolean): String {
         return when {
-            !localDateTime.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS)) -> {
+            !timestamp.isBefore(ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS)) -> {
                 if (forceDay) {
-                    "Today at ${localDateTime.formatShortTimeOnly()}"
+                    "Today at ${timestamp.formatShortTimeOnly()}"
                 } else {
-                    localDateTime.formatShortTimeOnly()
+                    timestamp.formatShortTimeOnly()
                 }
             }
 
-            !localDateTime.isBefore(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS).minusDays(1)) -> {
+            !timestamp.isBefore(ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS).minusDays(1)) -> {
                 if (forceDay) {
-                    "Yesterday at ${localDateTime.formatShortTimeOnly()}"
+                    "Yesterday at ${timestamp.formatShortTimeOnly()}"
                 } else {
-                    localDateTime.formatShortTimeOnly()
+                    timestamp.formatShortTimeOnly()
                 }
             }
 
             else -> {
                 if (forceDay) {
-                    localDateTime.formatShort()
+                    timestamp.formatShort()
                 } else {
-                    localDateTime.formatShortTimeOnly()
+                    timestamp.formatShortTimeOnly()
                 }
             }
         }
@@ -49,7 +49,7 @@ internal class DateUIMapper {
         }
     }
 
-    fun LocalDateTime.formatShort() = format(DateTimeFormatter.ofPattern("E, dd MMM, H:mm"))
-    fun LocalDateTime.formatShortTimeOnly() = format(DateTimeFormatter.ofPattern("H:mm"))
+    fun ZonedDateTime.formatShort() = format(DateTimeFormatter.ofPattern("E, dd MMM, H:mm"))
+    fun ZonedDateTime.formatShortTimeOnly() = format(DateTimeFormatter.ofPattern("H:mm"))
     fun LocalDate.formatShort() = format(DateTimeFormatter.ofPattern("E, dd MMM"))
 }

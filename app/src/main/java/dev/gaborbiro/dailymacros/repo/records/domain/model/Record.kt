@@ -1,9 +1,9 @@
 package dev.gaborbiro.dailymacros.repo.records.domain.model
 
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 data class Record(
     val dbId: Long,
-    val timestamp: LocalDateTime,
+    val timestamp: ZonedDateTime,
     val template: Template,
 )

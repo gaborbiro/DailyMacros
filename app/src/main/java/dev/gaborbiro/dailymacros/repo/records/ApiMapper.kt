@@ -12,6 +12,8 @@ import dev.gaborbiro.dailymacros.repo.records.domain.model.RecordToSave
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateToSave
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 internal class ApiMapper {
 
@@ -54,7 +56,7 @@ internal class ApiMapper {
     fun map(record: RecordJoined): Record {
         return Record(
             dbId = record.entity.id!!,
-            timestamp = record.entity.timestamp,
+            timestamp = record.entity.timestamp.atZone(ZoneId.of(record.entity.zoneId)),
             template = map(record.template),
         )
     }
@@ -63,7 +65,8 @@ internal class ApiMapper {
 
     fun map(record: RecordToSave, templateId: Long): RecordEntity {
         return RecordEntity(
-            timestamp = record.timestamp,
+            timestamp = record.timestamp.toLocalDateTime(),
+            zoneId = record.timestamp.zone.id,
             templateId = templateId,
         )
     }
@@ -75,9 +78,11 @@ internal class ApiMapper {
         )
     }
 
-    fun map(record: Record, dateTime: LocalDateTime?): RecordEntity {
+    fun map(record: Record, dateTime: ZonedDateTime?): RecordEntity {
+        val finalTime = dateTime ?: record.timestamp
         return RecordEntity(
-            timestamp = dateTime ?: record.timestamp,
+            timestamp = finalTime.toLocalDateTime(),
+            zoneId = finalTime.zone.id,
             templateId = record.template.dbId
         )
     }

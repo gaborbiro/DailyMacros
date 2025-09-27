@@ -4,7 +4,7 @@ import androidx.annotation.UiThread
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repo.records.domain.model.RecordToSave
 import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateToSave
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 internal class CreateRecordUseCase(
     private val recordsRepository: RecordsRepository,
@@ -17,7 +17,7 @@ internal class CreateRecordUseCase(
         description: String,
     ): Long {
         val record = RecordToSave(
-            timestamp = LocalDateTime.now(),
+            timestamp = ZonedDateTime.now(),
             templateToSave = TemplateToSave(
                 images = images,
                 name = title,

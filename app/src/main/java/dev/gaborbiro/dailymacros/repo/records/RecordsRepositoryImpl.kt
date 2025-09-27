@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 internal class RecordsRepositoryImpl(
     private val templatesDAO: TemplatesDAO,
@@ -96,7 +97,8 @@ internal class RecordsRepositoryImpl(
     override suspend fun updateRecord(record: Record) {
         recordsDAO.insertOrUpdate(
             RecordEntity(
-                timestamp = record.timestamp,
+                timestamp = record.timestamp.toLocalDateTime(),
+                zoneId = record.timestamp.zone.id,
                 templateId = record.template.dbId,
             ).apply {
                 id = record.dbId
@@ -106,7 +108,7 @@ internal class RecordsRepositoryImpl(
 
     override suspend fun duplicateRecord(recordId: Long): Long {
         val record = get(recordId)!!
-        return recordsDAO.insertOrUpdate(mapper.map(record, LocalDateTime.now()))
+        return recordsDAO.insertOrUpdate(mapper.map(record, ZonedDateTime.now()))
     }
 
     override suspend fun deleteRecord(recordId: Long): Record {
@@ -116,7 +118,8 @@ internal class RecordsRepositoryImpl(
     }
 
     override suspend fun applyTemplate(templateId: Long): Long {
-        return recordsDAO.insertOrUpdate(RecordEntity(LocalDateTime.now(), templateId))
+        val now = ZonedDateTime.now()
+        return recordsDAO.insertOrUpdate(RecordEntity(now.toLocalDateTime(), now.zone.id, templateId))
     }
 
     override suspend fun updateTemplate(

@@ -92,7 +92,7 @@ internal class WidgetActionProviderImpl : WidgetActionProvider {
     }
 }
 
-class CreateRecordWithCameraAction : ActionCallback {
+internal class CreateRecordWithCameraAction : ActionCallback {
 
     override suspend fun onAction(
         context: Context,
@@ -103,7 +103,7 @@ class CreateRecordWithCameraAction : ActionCallback {
     }
 }
 
-class CreateRecordWithImagePickerAction : ActionCallback {
+internal class CreateRecordWithImagePickerAction : ActionCallback {
     override suspend fun onAction(
         context: Context,
         glanceId: GlanceId,
@@ -113,7 +113,7 @@ class CreateRecordWithImagePickerAction : ActionCallback {
     }
 }
 
-class CreateRecordAction : ActionCallback {
+internal class CreateRecordAction : ActionCallback {
     override suspend fun onAction(
         context: Context,
         glanceId: GlanceId,
@@ -123,7 +123,7 @@ class CreateRecordAction : ActionCallback {
     }
 }
 
-class RecordImageTappedAction : ActionCallback {
+internal class RecordImageTappedAction : ActionCallback {
     override suspend fun onAction(
         context: Context,
         glanceId: GlanceId,
@@ -134,7 +134,7 @@ class RecordImageTappedAction : ActionCallback {
     }
 }
 
-class QuickPickImageTappedAction : ActionCallback {
+internal class QuickPickImageTappedAction : ActionCallback {
     override suspend fun onAction(
         context: Context,
         glanceId: GlanceId,
@@ -145,7 +145,7 @@ class QuickPickImageTappedAction : ActionCallback {
     }
 }
 
-class RecordBodyTappedAction : ActionCallback {
+internal class RecordBodyTappedAction : ActionCallback {
     override suspend fun onAction(
         context: Context,
         glanceId: GlanceId,
@@ -156,7 +156,7 @@ class RecordBodyTappedAction : ActionCallback {
     }
 }
 
-class QuickPickBodyTappedAction : ActionCallback {
+internal class QuickPickBodyTappedAction : ActionCallback {
 
     override suspend fun onAction(
         context: Context,
@@ -168,7 +168,7 @@ class QuickPickBodyTappedAction : ActionCallback {
     }
 }
 
-class RefreshAction : ActionCallback {
+internal class RefreshAction : ActionCallback {
 
     override suspend fun onAction(
         context: Context,
