@@ -67,6 +67,7 @@ internal class ApiMapper {
         return RecordEntity(
             timestamp = record.timestamp.toLocalDateTime(),
             zoneId = record.timestamp.zone.id,
+            epochMillis = record.timestamp.toInstant().toEpochMilli(),
             templateId = templateId,
         )
     }
@@ -83,6 +84,7 @@ internal class ApiMapper {
         return RecordEntity(
             timestamp = finalTime.toLocalDateTime(),
             zoneId = finalTime.zone.id,
+            epochMillis = finalTime.toInstant().toEpochMilli(),
             templateId = record.template.dbId
         )
     }

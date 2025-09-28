@@ -99,6 +99,7 @@ internal class RecordsRepositoryImpl(
             RecordEntity(
                 timestamp = record.timestamp.toLocalDateTime(),
                 zoneId = record.timestamp.zone.id,
+                epochMillis = record.timestamp.toInstant().toEpochMilli(),
                 templateId = record.template.dbId,
             ).apply {
                 id = record.dbId
@@ -119,7 +120,13 @@ internal class RecordsRepositoryImpl(
 
     override suspend fun applyTemplate(templateId: Long): Long {
         val now = ZonedDateTime.now()
-        return recordsDAO.insertOrUpdate(RecordEntity(now.toLocalDateTime(), now.zone.id, templateId))
+        val entity = RecordEntity(
+            timestamp = now.toLocalDateTime(),
+            zoneId = now.zone.id,
+            epochMillis = now.toInstant().toEpochMilli(),
+            templateId = templateId,
+        )
+        return recordsDAO.insertOrUpdate(entity)
     }
 
     override suspend fun updateTemplate(

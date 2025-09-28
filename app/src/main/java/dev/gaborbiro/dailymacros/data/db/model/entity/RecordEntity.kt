@@ -21,5 +21,6 @@ const val COLUMN_TEMPLATE_ID = "templateId"
 data class RecordEntity(
     val timestamp: LocalDateTime,
     val zoneId: String,
+    val epochMillis: Long,
     @ColumnInfo(name = COLUMN_TEMPLATE_ID) val templateId: Long,
 ) : BaseEntity()

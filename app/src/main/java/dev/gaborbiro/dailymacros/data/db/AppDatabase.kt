@@ -13,6 +13,7 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.MacrosEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatusEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
+import java.time.LocalDateTime
 import java.time.ZoneId
 
 @Database(
@@ -23,7 +24,7 @@ import java.time.ZoneId
         ImageEntity::class,
         RequestStatusEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2)
@@ -54,10 +55,12 @@ abstract class AppDatabase : RoomDatabase() {
                 "daily_macros_db"
             )
                 .addMigrations(MIGRATION_2_3)
+                .addMigrations(MIGRATION_3_4)
                 .build()
         }
     }
 }
+
 val MIGRATION_2_3 = object : Migration(2, 3) {
 
     override fun migrate(database: SupportSQLiteDatabase) {
@@ -66,5 +69,30 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
         database.execSQL(
             "ALTER TABLE records ADD COLUMN zoneId TEXT NOT NULL DEFAULT '$zoneIdString'"
         )
+    }
+}
+
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL(
+            "ALTER TABLE records ADD COLUMN epochMillis INTEGER NOT NULL DEFAULT 0"
+        )
+
+        val cursor = database.query("SELECT _id, timestamp, zoneId FROM records")
+        while (cursor.moveToNext()) {
+            val id = cursor.getLong(0)
+            val localDateTimeStr = cursor.getString(1)
+            val zoneIdStr = cursor.getString(2)
+
+            val ldt = LocalDateTime.parse(localDateTimeStr)
+            val zone = ZoneId.of(zoneIdStr)
+            val epochMillis = ldt.atZone(zone).toInstant().toEpochMilli()
+
+            database.execSQL(
+                "UPDATE records SET epochMillis = ? WHERE _id = ?",
+                arrayOf(epochMillis, id)
+            )
+        }
+        cursor.close()
     }
 }
