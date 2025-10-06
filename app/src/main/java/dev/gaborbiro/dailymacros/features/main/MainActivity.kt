@@ -28,9 +28,11 @@ import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.features.common.AppPrefs
+import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
+import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.viewModelFactory
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.overview.OverviewNavigatorImpl
@@ -72,6 +74,11 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             RequestStatusRepositoryImpl(db.requestStatusDAO()).deleteStale()
         }
+        val createRecordFromTemplateUseCase = CreateRecordFromTemplateUseCase(recordsRepository)
+        val repeatRecordUseCase = RepeatRecordUseCase(
+            recordsRepository = recordsRepository,
+            createRecordFromTemplateUseCase = createRecordFromTemplateUseCase,
+        )
 
         setContent {
             AppTheme {
@@ -87,6 +94,7 @@ class MainActivity : ComponentActivity() {
                     OverviewViewModel(
                         navigator = overviewNavigator,
                         recordsRepository = recordsRepository,
+                        repeatRecordUseCase = repeatRecordUseCase,
                         uiMapper = RecordsUIMapper(macrosUIMapper, dateUIMapper),
                         settingsRepository = settingsRepository,
                         appPrefs = appPrefs,

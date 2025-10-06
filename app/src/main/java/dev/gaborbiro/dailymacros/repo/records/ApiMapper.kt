@@ -8,10 +8,9 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatus
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
-import dev.gaborbiro.dailymacros.repo.records.domain.model.RecordToSave
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateToSave
-import java.time.LocalDateTime
+import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
@@ -54,20 +53,22 @@ internal class ApiMapper {
     }
 
     fun map(record: RecordJoined): Record {
+        val epochMillis = record.entity.epochMillis
+        val zoneId = ZoneId.of(record.entity.zoneId)
         return Record(
-            dbId = record.entity.id!!,
-            timestamp = record.entity.timestamp.atZone(ZoneId.of(record.entity.zoneId)),
+            recordId = record.entity.id!!,
+            timestamp = Instant.ofEpochMilli(epochMillis).atZone(zoneId),
             template = map(record.template),
         )
     }
 
     // -------- DB <— Domain: write helpers --------
 
-    fun map(record: RecordToSave, templateId: Long): RecordEntity {
+    fun map(templateId: Long, timestamp: ZonedDateTime): RecordEntity {
         return RecordEntity(
-            timestamp = record.timestamp.toLocalDateTime(),
-            zoneId = record.timestamp.zone.id,
-            epochMillis = record.timestamp.toInstant().toEpochMilli(),
+            timestamp = timestamp.toLocalDateTime(),
+            zoneId = timestamp.zone.id,
+            epochMillis = timestamp.toInstant().toEpochMilli(),
             templateId = templateId,
         )
     }
@@ -76,16 +77,6 @@ internal class ApiMapper {
         return TemplateEntity(
             name = template.name,
             description = template.description,
-        )
-    }
-
-    fun map(record: Record, dateTime: ZonedDateTime?): RecordEntity {
-        val finalTime = dateTime ?: record.timestamp
-        return RecordEntity(
-            timestamp = finalTime.toLocalDateTime(),
-            zoneId = finalTime.zone.id,
-            epochMillis = finalTime.toInstant().toEpochMilli(),
-            templateId = record.template.dbId
         )
     }
 

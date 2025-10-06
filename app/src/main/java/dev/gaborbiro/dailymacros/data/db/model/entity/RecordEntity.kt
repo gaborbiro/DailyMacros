@@ -19,6 +19,7 @@ const val COLUMN_TEMPLATE_ID = "templateId"
     ]
 )
 data class RecordEntity(
+    @Deprecated("Use epochMillis and zoneId instead to calculate the wall clock time")
     val timestamp: LocalDateTime,
     val zoneId: String,
     val epochMillis: Long,

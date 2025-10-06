@@ -4,10 +4,9 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
-import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
 import dev.gaborbiro.dailymacros.data.db.model.RecordJoined
+import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
 import kotlinx.coroutines.flow.Flow
-import java.time.LocalDateTime
 
 @Dao
 interface RecordsDAO {
@@ -16,28 +15,32 @@ interface RecordsDAO {
     suspend fun insertOrUpdate(record: RecordEntity): Long
 
     @Transaction
-    @Query("SELECT * FROM records ORDER BY timestamp DESC")
-    suspend fun get(): List<RecordJoined>
+    @Query("SELECT * FROM records WHERE epochMillis>=:sinceEpochMillis ORDER BY epochMillis DESC")
+    suspend fun get(sinceEpochMillis: Long): List<RecordJoined>
 
     @Transaction
-    @Query("SELECT * FROM records WHERE templateId=:templateId ORDER BY timestamp DESC")
+    @Query("SELECT * FROM records ORDER BY epochMillis DESC LIMIT 1")
+    fun getMostRecentRecord(): RecordJoined?
+
+    @Transaction
+    @Query("SELECT * FROM records WHERE templateId=:templateId ORDER BY epochMillis DESC")
     suspend fun getByTemplate(templateId: Long): List<RecordJoined>
 
     @Transaction
-    @Query("SELECT * FROM records WHERE timestamp >= :since ORDER BY timestamp DESC")
-    fun getFlow(since: LocalDateTime?): Flow<List<RecordJoined>>
+    @Query("SELECT * FROM records WHERE epochMillis>=:sinceEpochMillis ORDER BY epochMillis")
+    fun getFlow(sinceEpochMillis: Long?): Flow<List<RecordJoined>>
 
     @Transaction
     @Query(
         """
         SELECT * FROM records
-        WHERE timestamp >= :since AND timestamp < :until
-        ORDER BY timestamp DESC
+        WHERE epochMillis>=:sinceEpochMillis AND epochMillis<:untilEpochMillis
+        ORDER BY epochMillis DESC
         """
     )
     fun getFlow(
-        since: LocalDateTime?,
-        until: LocalDateTime,
+        sinceEpochMillis: Long?,
+        untilEpochMillis: Long,
     ): Flow<List<RecordJoined>>
 
     @Transaction
@@ -50,14 +53,14 @@ interface RecordsDAO {
             WHERE T.name LIKE '%' || :search || '%'
                OR T.description LIKE '%' || :search || '%'
         )
-        ORDER BY R.timestamp DESC
+        ORDER BY R.epochMillis
         """
     )
     fun getFlowBySearchTerm(search: String): Flow<List<RecordJoined>>
 
     @Transaction
     @Query("SELECT * FROM records WHERE _id=:id")
-    suspend fun get(id: Long): RecordJoined?
+    suspend fun getById(id: Long): RecordJoined?
 
     @Transaction
     @Query("SELECT * FROM records WHERE _id=:id")

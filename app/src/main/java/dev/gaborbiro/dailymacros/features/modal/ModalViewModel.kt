@@ -7,17 +7,19 @@ import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
 import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
+import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
+import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.message
 import dev.gaborbiro.dailymacros.features.common.workers.MacrosWorkRequest
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.modal.model.ModalViewState
-import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateValidationResult
-import dev.gaborbiro.dailymacros.features.modal.usecase.EditRecordUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodPicSummaryUseCase
@@ -41,9 +43,11 @@ import kotlinx.coroutines.launch
 internal class ModalViewModel(
     private val imageStore: ImageStore,
     private val recordsRepository: RecordsRepository,
-    private val createRecordUseCase: CreateRecordUseCase,
-    private val editRecordUseCase: EditRecordUseCase,
+    private val createRecordFromTemplateUseCase: CreateRecordFromTemplateUseCase,
+    private val createRecordWithNewTemplateUseCase: CreateRecordWithNewTemplateUseCase,
+    private val updateRecordWithNewTemplateUseCase: UpdateRecordWithNewTemplateUseCase,
     private val editTemplateUseCase: EditTemplateUseCase,
+    private val repeatRecordUseCase: RepeatRecordUseCase,
     private val validateEditRecordUseCase: ValidateEditRecordUseCase,
     private val validateCreateRecordUseCase: ValidateCreateRecordUseCase,
     private val saveImageUseCase: SaveImageUseCase,
@@ -268,7 +272,7 @@ internal class ModalViewModel(
     fun onRepeatRecordButtonTapped(recordId: Long) {
         popDialog()
         runSafely {
-            recordsRepository.duplicateRecord(recordId)
+            repeatRecordUseCase.execute(recordId)
             DiaryWidgetScreen.reload()
         }
     }
@@ -277,7 +281,7 @@ internal class ModalViewModel(
     fun onRepeatTemplateButtonTapped(templateId: Long) {
         popDialog()
         runSafely {
-            recordsRepository.applyTemplate(templateId)
+            createRecordFromTemplateUseCase.execute(templateId)
             DiaryWidgetScreen.reload()
         }
     }
@@ -292,7 +296,7 @@ internal class ModalViewModel(
         runSafely {
             recordsRepository.getRecordsByTemplate(templateId).firstOrNull()
                 ?.let {
-                    viewRecordDetails(it.dbId, edit = false)
+                    viewRecordDetails(it.recordId, edit = false)
                 }
         }
     }
@@ -412,7 +416,7 @@ internal class ModalViewModel(
 
             is CreateValidationResult.Valid -> {
                 popDialog()
-                val recordId = createRecordUseCase.execute(
+                val recordId = createRecordWithNewTemplateUseCase.execute(
                     images = images ?: emptyList(),
                     title = title,
                     description = description,
@@ -452,7 +456,7 @@ internal class ModalViewModel(
 
             is EditValidationResult.Valid -> {
                 popDialog()
-                editRecordUseCase.execute(
+                updateRecordWithNewTemplateUseCase.execute(
                     recordId = dialogState.recordId,
                     images = dialogState.images,
                     title = title,
@@ -486,7 +490,7 @@ internal class ModalViewModel(
                 runSafely {
                     when (target) {
                         ChangeImagesTarget.RECORD -> {
-                            editRecordUseCase.execute(
+                            updateRecordWithNewTemplateUseCase.execute(
                                 recordId = recordId,
                                 images = images,
                                 title = title,
@@ -495,14 +499,20 @@ internal class ModalViewModel(
                         }
 
                         ChangeImagesTarget.TEMPLATE -> {
+                            val templateId = recordsRepository.get(recordId)!!.template.dbId
                             editTemplateUseCase.execute(
-                                recordId = recordId,
+                                templateId = templateId,
                                 images = images,
                                 title = title,
                                 description = description,
                             )
                         }
                     }
+                    WorkManager.getInstance(App.appContext).enqueue(
+                        MacrosWorkRequest.getWorkRequest(
+                            recordId = recordId
+                        )
+                    )
                 }
             }
         DiaryWidgetScreen.reload()

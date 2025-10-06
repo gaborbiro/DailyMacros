@@ -12,7 +12,7 @@ import dev.gaborbiro.dailymacros.repo.requestStatus.domain.model.RequestStatus a
 
 class RequestStatusRepositoryImpl(
     private val requestStatusDAO: RequestStatusDAO,
-    private val clock: Clock = Clock.systemUTC(),
+    private val clock: Clock = Clock.systemDefaultZone(),
 ) : RequestStatusRepository {
 
     companion object {

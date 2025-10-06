@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.Color
 data class ListUIModelMacroProgress(
     override val listItemId: Long,
     val dayTitle: String,
+    val infoMessage: String? = null,
     val progress: List<MacroProgressItem>,
 ) : ListUIModelBase(listItemId = listItemId, contentType = "macroTable")
 

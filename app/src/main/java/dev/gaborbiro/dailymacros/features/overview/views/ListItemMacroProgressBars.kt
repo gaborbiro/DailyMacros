@@ -18,8 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.design.ExtraColors
 import dev.gaborbiro.dailymacros.design.AppTheme
+import dev.gaborbiro.dailymacros.design.ExtraColors
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroProgress
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
@@ -36,11 +36,21 @@ internal fun ListItemMacroProgressBars(
     ) {
         Text(
             modifier = Modifier
-                .padding(PaddingHalf)
+                .padding(horizontal = PaddingHalf)
+                .padding(top = PaddingHalf)
                 .align(Alignment.CenterHorizontally),
             text = model.dayTitle,
             style = MaterialTheme.typography.titleMedium,
         )
+        model.infoMessage?.let {
+            Text(
+                modifier = Modifier
+                    .padding(PaddingHalf)
+                    .align(Alignment.CenterHorizontally),
+                text = it,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -131,6 +141,7 @@ private fun ListItemMacroProgressBarsPreview() {
             model = ListUIModelMacroProgress(
                 listItemId = 1L,
                 dayTitle = "Yesterday",
+                infoMessage = "\uD83D\uDCA1Due to timezone change, you now have 6 hours left of this day. To help your stomach adjust, consider smaller meals, spread out evenly.",
                 progress = listOf(
                     MacroProgressItem(
                         title = "Calories",

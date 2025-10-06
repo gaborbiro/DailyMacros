@@ -59,16 +59,19 @@ import dev.gaborbiro.dailymacros.data.file.FileStore
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.AppTheme
+import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
+import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.views.ErrorDialog
 import dev.gaborbiro.dailymacros.features.common.views.InfoDialog
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
-import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.EditRecordUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.CreateTemplateUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodPicSummaryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
@@ -187,13 +190,19 @@ class ModalActivity : AppCompatActivity() {
         val dateUIMapper = DateUIMapper()
         val macrosUIMapper = MacrosUIMapper(dateUIMapper)
         val deleteRecordUseCase = DeleteRecordUseCase(recordsRepository)
+        val createRecordFromTemplateUseCase = CreateRecordFromTemplateUseCase(recordsRepository)
+        val createTemplateUseCase = CreateTemplateUseCase(recordsRepository)
+        val repeatRecordUseCase =
+            RepeatRecordUseCase(recordsRepository, createRecordFromTemplateUseCase)
 
         ModalViewModel(
             imageStore = imageStore,
             recordsRepository = recordsRepository,
-            createRecordUseCase = CreateRecordUseCase(recordsRepository),
-            editRecordUseCase = EditRecordUseCase(recordsRepository),
+            createRecordFromTemplateUseCase = createRecordFromTemplateUseCase,
+            createRecordWithNewTemplateUseCase = CreateRecordWithNewTemplateUseCase(createTemplateUseCase, createRecordFromTemplateUseCase),
+            updateRecordWithNewTemplateUseCase = UpdateRecordWithNewTemplateUseCase(recordsRepository, createTemplateUseCase),
             editTemplateUseCase = EditTemplateUseCase(recordsRepository),
+            repeatRecordUseCase = repeatRecordUseCase,
             validateEditRecordUseCase = ValidateEditRecordUseCase(recordsRepository),
             validateCreateRecordUseCase = ValidateCreateRecordUseCase(),
             saveImageUseCase = SaveImageUseCase(this, imageStore),

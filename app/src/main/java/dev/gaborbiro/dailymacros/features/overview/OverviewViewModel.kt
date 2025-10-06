@@ -7,6 +7,7 @@ import androidx.work.WorkManager
 import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
+import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
 import dev.gaborbiro.dailymacros.features.common.workers.MacrosWorkRequest
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
@@ -30,6 +31,7 @@ import kotlin.time.Duration.Companion.seconds
 internal class OverviewViewModel(
     private val navigator: OverviewNavigator,
     private val recordsRepository: RecordsRepository,
+    private val repeatRecordUseCase: RepeatRecordUseCase,
     private val uiMapper: RecordsUIMapper,
     private val settingsRepository: SettingsRepository,
     private val appPrefs: AppPrefs,
@@ -38,6 +40,12 @@ internal class OverviewViewModel(
     private val _viewState: MutableStateFlow<OverviewViewState> =
         MutableStateFlow(OverviewViewState())
     val viewState: StateFlow<OverviewViewState> = _viewState.asStateFlow()
+
+//    init {
+//        viewModelScope.launch {
+//            recordsRepository.getRecords()
+//        }
+//    }
 
     fun onSearchTermChanged(search: String?) {
         viewModelScope.launch {
@@ -81,9 +89,9 @@ internal class OverviewViewModel(
         }
     }
 
-    fun onRepeatMenuItemTapped(id: Long) {
+    fun onRepeatRecordMenuItemTapped(id: Long) {
         viewModelScope.launch {
-            recordsRepository.duplicateRecord(id)
+            repeatRecordUseCase.execute(recordId = id)
         }
         DiaryWidgetScreen.reload()
     }

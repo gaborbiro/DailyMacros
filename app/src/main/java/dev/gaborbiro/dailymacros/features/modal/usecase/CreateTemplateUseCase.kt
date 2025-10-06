@@ -2,11 +2,9 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import androidx.annotation.UiThread
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
-import dev.gaborbiro.dailymacros.repo.records.domain.model.RecordToSave
 import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateToSave
-import java.time.ZonedDateTime
 
-internal class CreateRecordUseCase(
+internal class CreateTemplateUseCase(
     private val recordsRepository: RecordsRepository,
 ) {
 
@@ -16,14 +14,11 @@ internal class CreateRecordUseCase(
         title: String,
         description: String,
     ): Long {
-        val record = RecordToSave(
-            timestamp = ZonedDateTime.now(),
-            templateToSave = TemplateToSave(
-                images = images,
-                name = title,
-                description = description,
-            ),
+        val template = TemplateToSave(
+            images = images,
+            name = title,
+            description = description,
         )
-        return recordsRepository.saveRecord(record)
+        return recordsRepository.saveTemplate(template)
     }
 }

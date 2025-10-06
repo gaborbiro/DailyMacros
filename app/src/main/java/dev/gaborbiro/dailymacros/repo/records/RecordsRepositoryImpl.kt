@@ -12,13 +12,12 @@ import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
-import dev.gaborbiro.dailymacros.repo.records.domain.model.RecordToSave
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
+import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateToSave
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
 internal class RecordsRepositoryImpl(
@@ -30,10 +29,14 @@ internal class RecordsRepositoryImpl(
 
     // -------- Reads --------
 
-    override suspend fun getRecords(since: LocalDateTime): List<Record> = recordsDAO
-        .get()
-        .filter { it.entity.timestamp >= since }
+    override suspend fun getRecords(since: ZonedDateTime): List<Record> = recordsDAO
+        .get(since.toInstant().toEpochMilli())
         .map(mapper::map)
+
+    override fun getMostRecentRecord(): Record? {
+        return recordsDAO.getMostRecentRecord()
+            ?.let(mapper::map)
+    }
 
     override suspend fun getQuickPicks(count: Int): List<Template> = templatesDAO
         .getQuickPicks(count)
@@ -46,7 +49,7 @@ internal class RecordsRepositoryImpl(
     override fun getFlowBySearchTerm(search: String? /* = null */): Flow<List<Record>> {
         return try {
             val raw: Flow<List<RecordJoined>> = if (search.isNullOrEmpty()) {
-                recordsDAO.getFlow(LocalDateTime.MIN)
+                recordsDAO.getFlow(0)
             } else {
                 recordsDAO.getFlowBySearchTerm(search)
             }
@@ -61,7 +64,7 @@ internal class RecordsRepositoryImpl(
 
     @Transaction
     override suspend fun get(recordId: Long): Record? {
-        return recordsDAO.get(recordId)?.let(mapper::map)
+        return recordsDAO.getById(recordId)?.let(mapper::map)
     }
 
     @Transaction
@@ -75,14 +78,11 @@ internal class RecordsRepositoryImpl(
 
     // -------- Writes --------
 
-    override suspend fun saveRecord(record: RecordToSave): Long {
-        val template = mapper.map(record.templateToSave)
-        val rowId = templatesDAO.insertOrUpdate(template)
-        val templateId = if (rowId == -1L) {
-            requireNotNull(template.id) { "Template id null (while saving ${record})" }
-        } else rowId
+    override suspend fun saveTemplate(templateToSave: TemplateToSave): Long {
+        val template = mapper.map(templateToSave)
+        val templateId = templatesDAO.insertOrUpdate(template)
         templatesDAO.deleteAllImagesForTemplate(templateId)
-        record.templateToSave.images.forEachIndexed { index, image ->
+        templateToSave.images.forEachIndexed { index, image ->
             templatesDAO.upsertImage(
                 ImageEntity(
                     templateId = templateId,
@@ -91,7 +91,11 @@ internal class RecordsRepositoryImpl(
                 )
             )
         }
-        return recordsDAO.insertOrUpdate(mapper.map(record, templateId))
+        return templateId
+    }
+
+    override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
+        return recordsDAO.insertOrUpdate(mapper.map(templateId, timestamp))
     }
 
     override suspend fun updateRecord(record: Record) {
@@ -102,31 +106,15 @@ internal class RecordsRepositoryImpl(
                 epochMillis = record.timestamp.toInstant().toEpochMilli(),
                 templateId = record.template.dbId,
             ).apply {
-                id = record.dbId
+                id = record.recordId
             }
         )
     }
 
-    override suspend fun duplicateRecord(recordId: Long): Long {
-        val record = get(recordId)!!
-        return recordsDAO.insertOrUpdate(mapper.map(record, ZonedDateTime.now()))
-    }
-
     override suspend fun deleteRecord(recordId: Long): Record {
-        val recordJoined = recordsDAO.get(recordId)!!
+        val recordJoined = recordsDAO.getById(recordId)!!
         recordsDAO.delete(recordId)
         return mapper.map(recordJoined)
-    }
-
-    override suspend fun applyTemplate(templateId: Long): Long {
-        val now = ZonedDateTime.now()
-        val entity = RecordEntity(
-            timestamp = now.toLocalDateTime(),
-            zoneId = now.zone.id,
-            epochMillis = now.toInstant().toEpochMilli(),
-            templateId = templateId,
-        )
-        return recordsDAO.insertOrUpdate(entity)
     }
 
     override suspend fun updateTemplate(

@@ -22,7 +22,7 @@ internal fun OverviewScreen(
 
     OverviewView(
         viewState = viewState,
-        onRepeatMenuItemTapped = viewModel::onRepeatMenuItemTapped,
+        onRepeatMenuItemTapped = viewModel::onRepeatRecordMenuItemTapped,
         onDetailsMenuItemTapped = viewModel::onDetailsMenuItemTapped,
         onDeleteRecordMenuItemTapped = viewModel::onDeleteRecordMenuItemTapped,
         onMacrosMenuItemTapped = viewModel::onMacrosMenuItemTapped,

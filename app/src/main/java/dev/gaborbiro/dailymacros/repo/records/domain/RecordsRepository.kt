@@ -2,14 +2,16 @@ package dev.gaborbiro.dailymacros.repo.records.domain
 
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
-import dev.gaborbiro.dailymacros.repo.records.domain.model.RecordToSave
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
+import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateToSave
 import kotlinx.coroutines.flow.Flow
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 internal interface RecordsRepository {
 
-    suspend fun getRecords(since: LocalDateTime): List<Record>
+    suspend fun getRecords(since: ZonedDateTime): List<Record>
+
+    fun getMostRecentRecord(): Record?
 
     suspend fun getQuickPicks(count: Int): List<Template>
 
@@ -23,13 +25,11 @@ internal interface RecordsRepository {
 
     suspend fun getTemplate(templateId: Long): Template?
 
-    suspend fun saveRecord(record: RecordToSave): Long
+    suspend fun saveTemplate(templateToSave: TemplateToSave): Long
+
+    suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long
 
     suspend fun updateRecord(record: Record)
-
-    suspend fun duplicateRecord(recordId: Long): Long
-
-    suspend fun applyTemplate(templateId: Long): Long
 
     suspend fun deleteRecord(recordId: Long): Record
 

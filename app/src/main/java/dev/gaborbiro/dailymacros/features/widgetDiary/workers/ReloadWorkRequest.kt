@@ -22,6 +22,8 @@ import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repo.requestStatus.RequestStatusRepositoryImpl
 import dev.gaborbiro.dailymacros.util.gson
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 internal class ReloadWorkRequest(
     appContext: Context,
@@ -82,7 +84,7 @@ internal class ReloadWorkRequest(
                 )
             val templateCount =
                 workerParameters.inputData.getInt(PREFS_QUICK_PICK_COUNT, QUICK_PICK_COUNT_DEFAULT)
-            val since = LocalDateTime.now().minusDays(recordDaysToDisplay.toLong()).toLocalDate().atStartOfDay()
+            val since = ZonedDateTime.now().minusDays(recordDaysToDisplay.toLong())
             val recentRecords = recordsRepository.getRecords(since)
             val quickPicks = recordsRepository.getQuickPicks(templateCount)
 

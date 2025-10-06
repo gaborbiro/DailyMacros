@@ -7,20 +7,20 @@ import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroProgress
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.settings.model.Target
 import dev.gaborbiro.dailymacros.repo.settings.model.Targets
-import java.time.LocalDate
+import java.time.Duration
+import kotlin.math.absoluteValue
 
 internal class MacrosUIMapper(
     private val dateUIMapper: DateUIMapper,
 ) {
 
     fun mapMacroProgressTable(
-        records: List<Record>,
+        day: TravelDay,
         targets: Targets,
-        date: LocalDate,
     ): ListUIModelMacroProgress {
+        val records = day.records
         val totalCalories = records.sumOf { it.template.macros?.calories ?: 0 }.toFloat()
         val totalProtein =
             records.sumOf { it.template.macros?.protein?.toDouble() ?: 0.0 }.toFloat()
@@ -47,8 +47,21 @@ internal class MacrosUIMapper(
             return "${target.min ?: "?"}-${target.max ?: "?"}g"
         }
 
+        val dayLength = Duration.between(
+            day.day.atStartOfDay(day.start),
+            day.day.atStartOfDay(day.end).plusDays(1),
+        ).toHours().toInt()
+        val lengthChangeFraction = (dayLength - 24).toFloat() / 24f
+        val goalAdjustment = 1 + lengthChangeFraction
+
+        fun Target.adjust(multiplier: Float) = Target(
+            enabled = enabled,
+            min = min?.let { it * multiplier }?.toInt(),
+            max = max?.let { it * multiplier }?.toInt(),
+        )
+
         val progress = buildList {
-            targets.calories.takeIf { it.enabled }?.let {
+            targets.calories.takeIf { it.enabled }?.adjust(goalAdjustment)?.let {
                 val min = if (it.min != null) {
                     if (it.min < 1000) {
                         it.min.toString()
@@ -79,7 +92,7 @@ internal class MacrosUIMapper(
                     )
                 )
             }
-            targets.protein.takeIf { it.enabled }?.let {
+            targets.protein.takeIf { it.enabled }?.adjust(goalAdjustment)?.let {
                 add(
                     MacroProgressItem(
                         title = "Protein",
@@ -91,7 +104,7 @@ internal class MacrosUIMapper(
                     )
                 )
             }
-            targets.salt.takeIf { it.enabled }?.let {
+            targets.salt.takeIf { it.enabled }?.adjust(goalAdjustment)?.let {
                 add(
                     MacroProgressItem(
                         title = "Salt",
@@ -103,7 +116,7 @@ internal class MacrosUIMapper(
                     )
                 )
             }
-            targets.fibre.takeIf { it.enabled }?.let {
+            targets.fibre.takeIf { it.enabled }?.adjust(goalAdjustment)?.let {
                 add(
                     MacroProgressItem(
                         title = "Fibre",
@@ -115,7 +128,7 @@ internal class MacrosUIMapper(
                     )
                 )
             }
-            targets.carbs.takeIf { it.enabled }?.let {
+            targets.carbs.takeIf { it.enabled }?.adjust(goalAdjustment)?.let {
                 add(
                     MacroProgressItem(
                         title = "Carbs",
@@ -128,7 +141,7 @@ internal class MacrosUIMapper(
                     )
                 )
             }
-            targets.ofWhichSugar.takeIf { it.enabled }?.let {
+            targets.ofWhichSugar.takeIf { it.enabled }?.adjust(goalAdjustment)?.let {
                 add(
                     MacroProgressItem(
                         title = "sugar",
@@ -140,7 +153,7 @@ internal class MacrosUIMapper(
                     )
                 )
             }
-            targets.fat.takeIf { it.enabled }?.let {
+            targets.fat.takeIf { it.enabled }?.adjust(goalAdjustment)?.let {
                 add(
                     MacroProgressItem(
                         title = "Fat",
@@ -153,7 +166,7 @@ internal class MacrosUIMapper(
                     )
                 )
             }
-            targets.ofWhichSaturated.takeIf { it.enabled }?.let {
+            targets.ofWhichSaturated.takeIf { it.enabled }?.adjust(goalAdjustment)?.let {
                 add(
                     MacroProgressItem(
                         title = "saturated",
@@ -167,9 +180,40 @@ internal class MacrosUIMapper(
             }
         }
 
+        val infoMessage = if (day.start != day.end) {
+            val delta = dayLength - 24
+            val hoursChangeText = delta.let {
+                if (it > 0) {
+                    "$it hrs longer"
+                } else {
+                    "${it.absoluteValue} hrs shorter"
+                }
+            }
+            val percentChange = (lengthChangeFraction * 100).toInt()
+            if (delta.absoluteValue > 2) {
+                val deltaInfo =
+                    "\uD83D\uDCA1 Due to timezone change this day is $hoursChangeText (${percentChange}%). Or more if you have more to fly."
+                val advice = if (delta > 0) {
+                    "This means the day's events are pushed back (end of the day, your bedtime, meals...). " +
+                            "Try to go to bed later, when locals do (but don't drink coffee after 5pm local time)." +
+                            "\nAlso, it is normal if you eat ${percentChange}% more today (your goals have been adjusted). " +
+                            "Try to follow local meal-times. Don't skip local dinner, just because " +
+                            "you already had dinner on the airplane. Restaurants might be closed for " +
+                            "the night. Try to have smaller meals leading up to your arrival, to prevent over-eating."
+                } else {
+                    "This means the day's events get brought up (end of the day, your bedtime, meals...). " +
+                            " You should eat ${percentChange}% less today (your goals have been adjusted). Try to go to bed earlier, when locals do. If the difference is extreme, expect a few days of adjustment. For example in case of an 8 hour jet lag, on the first day go to bed 6 hours after locals do, then 4 hours, then 2..."
+                }
+                deltaInfo + "\n" + advice
+            } else {
+                null
+            }
+        } else null
+
         return ListUIModelMacroProgress(
-            listItemId = date.toEpochDay(),
-            dayTitle = dateUIMapper.map(date),
+            listItemId = day.day.toEpochDay(),
+            dayTitle = dateUIMapper.map(day.day),
+            infoMessage = infoMessage,
             progress = progress,
         )
     }
