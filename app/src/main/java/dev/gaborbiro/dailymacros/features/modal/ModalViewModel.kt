@@ -16,16 +16,17 @@ import dev.gaborbiro.dailymacros.features.common.workers.MacrosWorkRequest
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.MacrosUIModel
+import dev.gaborbiro.dailymacros.features.modal.model.ModalUIUpdates
 import dev.gaborbiro.dailymacros.features.modal.model.ModalViewState
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateValidationResult
-import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodPicSummaryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.widgetDiary.DiaryWidgetScreen
@@ -34,9 +35,12 @@ import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import ellipsize
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -66,6 +70,9 @@ internal class ModalViewModel(
 
     private val _viewState: MutableStateFlow<ModalViewState> = MutableStateFlow(ModalViewState())
     val viewState: StateFlow<ModalViewState> = _viewState.asStateFlow()
+
+    private val _uiUpdates = Channel<ModalUIUpdates>(Channel.BUFFERED)
+    val uiUpdates: Flow<ModalUIUpdates> = _uiUpdates.receiveAsFlow()
 
     private var imageSummaryJob: Job? = null
 
@@ -529,14 +536,16 @@ internal class ModalViewModel(
             exception is DomainError -> exception.message()
             else -> exception.message ?: exception.cause?.message
         }
-        pushDialog(
-            DialogState.ErrorDialog(
-                message?.ellipsize(
-                    300
+        viewModelScope.launch {
+            _uiUpdates.send(
+                ModalUIUpdates.Error(
+                    message?.ellipsize(
+                        300
+                    )
+                        ?: "Oops. Something went wrong. The issue has been logged and our engineers are looking into it."
                 )
-                    ?: "Oops. Something went wrong. The issue has been logged and our engineers are looking into it."
             )
-        )
+        }
     }
 
     private fun pushDialog(dialog: DialogState) {

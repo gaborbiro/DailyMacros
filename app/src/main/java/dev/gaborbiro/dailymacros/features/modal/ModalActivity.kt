@@ -64,19 +64,19 @@ import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
-import dev.gaborbiro.dailymacros.features.common.views.ErrorDialog
 import dev.gaborbiro.dailymacros.features.common.views.InfoDialog
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
+import dev.gaborbiro.dailymacros.features.modal.model.ModalUIUpdates
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateTemplateUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodPicSummaryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.views.EditTargetConfirmationDialog
@@ -93,6 +93,9 @@ import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContent
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContentDeserializer
 import dev.gaborbiro.dailymacros.repo.records.RecordsApiMapper
 import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.map
 import okhttp3.OkHttpClient
 import okhttp3.java.net.cookiejar.JavaNetCookieJar
 import okhttp3.logging.HttpLoggingInterceptor
@@ -238,7 +241,14 @@ class ModalActivity : AppCompatActivity() {
             AppTheme {
                 CompositionLocalProvider(LocalImageStore provides imageStore) {
                     viewState.dialogs.forEach {
-                        Dialog(it)
+                        Dialog(
+                            dialogState = it,
+                            errorMessages = viewModel.uiUpdates
+                                .filterIsInstance<ModalUIUpdates.Error>()
+                                .map {
+                                    it.message
+                                }
+                        )
                     }
                 }
             }
@@ -299,7 +309,10 @@ class ModalActivity : AppCompatActivity() {
     }
 
     @Composable
-    fun Dialog(dialogState: DialogState?) {
+    fun Dialog(
+        dialogState: DialogState?,
+        errorMessages: Flow<String>,
+    ) {
         val onDismissRequested: () -> Unit =
             remember(dialogState) {
                 {
@@ -310,6 +323,7 @@ class ModalActivity : AppCompatActivity() {
         when (dialogState) {
             is DialogState.InputDialog -> InputDialog(
                 dialogState = dialogState,
+                errorMessages = errorMessages,
                 onSubmitRequested = viewModel::onSubmitRequested,
                 onRecordDetailsUserTyping = viewModel::onRecordDetailsUserTyping,
                 onImageTapped = viewModel::onImageTapped,
@@ -352,13 +366,6 @@ class ModalActivity : AppCompatActivity() {
                     imageInput = dialogState,
                     viewModel = viewModel,
                     cacheFileStore = cacheFileStore,
-                )
-            }
-
-            is DialogState.ErrorDialog -> {
-                ErrorDialog(
-                    errorMessage = dialogState.errorMessage,
-                    onDismissRequested = onDismissRequested,
                 )
             }
 

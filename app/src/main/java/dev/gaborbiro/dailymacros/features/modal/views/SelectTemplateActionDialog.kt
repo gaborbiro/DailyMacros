@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -37,25 +36,6 @@ fun SelectTemplateActionDialog(
         ) {
             Column(modifier = Modifier.padding(PaddingDefault)) {
                 Button(
-                    onClick = { onDetailsButtonTapped(templateId) },
-                    colors = normalButtonColors,
-                    shape = RoundedCornerShape(50.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_topic),
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(text = "Details")
-                }
-
-                Spacer(modifier = Modifier.height(PaddingDefault))
-
-                Button(
                     onClick = { onRepeatButtonTapped(templateId) },
                     colors = normalButtonColors,
                     shape = RoundedCornerShape(50.dp),
@@ -70,6 +50,25 @@ fun SelectTemplateActionDialog(
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(text = "Repeat")
+                }
+
+                Spacer(modifier = Modifier.height(PaddingDefault))
+
+                Button(
+                    onClick = { onDetailsButtonTapped(templateId) },
+                    colors = normalButtonColors,
+                    shape = RoundedCornerShape(50.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_topic),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(text = "Details")
                 }
             }
         }

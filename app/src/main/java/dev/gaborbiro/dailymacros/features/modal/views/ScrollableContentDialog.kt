@@ -15,11 +15,15 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -35,6 +39,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.common.verticalScrollWithBar
+import kotlinx.coroutines.flow.Flow
 import kotlin.math.min
 
 
@@ -43,6 +48,7 @@ internal fun ScrollableContentDialog(
     onDismissRequested: () -> Unit,
     content: @Composable ColumnScope.() -> Unit,
     buttons: @Composable () -> Unit,
+    errorMessages: Flow<String>,
 ) {
     Dialog(
         onDismissRequest = onDismissRequested,
@@ -53,14 +59,33 @@ internal fun ScrollableContentDialog(
             decorFitsSystemWindows = false,
         )
     ) {
-        Box(
+        val snackbarHostState = remember { SnackbarHostState() }
+
+        LaunchedEffect(Unit) {
+            errorMessages.collect {
+                snackbarHostState.showSnackbar(
+                    message = it,
+                    withDismissAction = true,
+                    duration = SnackbarDuration.Short,
+                )
+            }
+        }
+
+        Scaffold(
             modifier = Modifier
-                .fillMaxSize()
-        ) {
+                .fillMaxSize(),
+            containerColor = Color.Transparent,
+            contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
+            snackbarHost = {
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                )
+            },
+        ) { paddingValues ->
             // Scrim/outside area: only dismiss on TAP (no drag)
             Box(
                 Modifier
-                    .matchParentSize()
+                    .fillMaxSize()
                     .pointerInput(Unit) {
                         detectTapGestures(onTap = { onDismissRequested() })
                     }
@@ -68,7 +93,7 @@ internal fun ScrollableContentDialog(
             BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxSize()
-                    .windowInsetsPadding(WindowInsets.systemBars.union(WindowInsets.ime))
+                    .padding(paddingValues)
             ) {
                 val max = this.maxHeight
                 Surface(
@@ -77,7 +102,6 @@ internal fun ScrollableContentDialog(
                         .heightIn(max = max)
                         .padding(PaddingDefault),
                     shape = MaterialTheme.shapes.medium,
-//                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
                     shadowElevation = 6.dp,
                 ) {
                     Column {
@@ -97,7 +121,8 @@ internal fun ScrollableContentDialog(
                             }
 
                             val shadowHeight: Dp = 12.dp
-                            val fadeDistance: Dp = 32.dp // px range over which the shadow ramps up/down
+                            val fadeDistance: Dp =
+                                32.dp // px range over which the shadow ramps up/down
                             val maxShadowAlpha = 0.16f
                             val fadePx = with(LocalDensity.current) { fadeDistance.toPx() }
 

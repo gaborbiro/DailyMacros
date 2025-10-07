@@ -45,11 +45,14 @@ import dev.gaborbiro.dailymacros.features.common.views.PreviewImageStoreProvider
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.MacrosUIModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 
 @Composable
 internal fun InputDialog(
     dialogState: DialogState.InputDialog,
+    errorMessages: Flow<String>,
     onSubmitRequested: (title: String, description: String) -> Unit,
     onRecordDetailsUserTyping: (title: String, description: String) -> Unit,
     onImageTapped: (String) -> Unit,
@@ -119,6 +122,7 @@ internal fun InputDialog(
                 onImagesInfoButtonTapped = onImagesInfoButtonTapped,
             )
         },
+        errorMessages = errorMessages,
         buttons = {
             Row(
                 modifier = Modifier
@@ -389,6 +393,7 @@ private fun NoteInputDialogContentPreviewEdit() {
                         notes = "Notes: This is a note",
                     ),
                 ),
+                errorMessages = emptyFlow(),
                 onSubmitRequested = { _, _ -> },
                 onRecordDetailsUserTyping = { _, _ -> },
                 onImageTapped = {},
@@ -413,6 +418,7 @@ private fun NoteInputDialogContentPreview() {
                 suggestions = null,
                 titleHint = "Describe your meal (or pick a suggestion from below)",
             ),
+            errorMessages = emptyFlow(),
             onSubmitRequested = { _, _ -> },
             onRecordDetailsUserTyping = { _, _ -> },
             onImageTapped = {},
@@ -440,6 +446,7 @@ private fun NoteInputDialogContentPreviewSuggestion() {
                     ),
                     titleHint = "Describe your meal",
                 ),
+                errorMessages = emptyFlow(),
                 onSubmitRequested = { _, _ -> },
                 onRecordDetailsUserTyping = { _, _ -> },
                 onImageTapped = {},
@@ -467,6 +474,7 @@ private fun NoteInputDialogContentPreviewError() {
                 titleHint = "Describe your meal",
                 validationError = "error",
             ),
+            errorMessages = emptyFlow(),
             onSubmitRequested = { _, _ -> },
             onRecordDetailsUserTyping = { _, _ -> },
             onImageTapped = {},

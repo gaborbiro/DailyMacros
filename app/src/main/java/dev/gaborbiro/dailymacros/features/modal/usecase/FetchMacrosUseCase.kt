@@ -57,10 +57,10 @@ internal class FetchMacrosUseCase(
             throw apiError
                 .toDomainModel()
         } catch (t: Throwable) {
-            throw t
+            throw t // not necessary, but
         } finally {
             requestStatusRepository.unmark(record.template.dbId)
+            DiaryWidgetScreen.reload()
         }
-        DiaryWidgetScreen.reload()
     }
 }

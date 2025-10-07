@@ -83,8 +83,6 @@ sealed class DialogState {
 
     data class SelectTemplateActionDialog(val templateId: Long) : DialogState()
 
-    data class ErrorDialog(val errorMessage: String) : DialogState()
-
     data class InfoDialog(val message: String) : DialogState()
 }
 
