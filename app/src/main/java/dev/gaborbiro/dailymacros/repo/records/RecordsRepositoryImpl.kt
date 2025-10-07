@@ -23,7 +23,7 @@ import java.time.ZonedDateTime
 internal class RecordsRepositoryImpl(
     private val templatesDAO: TemplatesDAO,
     private val recordsDAO: RecordsDAO,
-    private val mapper: ApiMapper,
+    private val mapper: RecordsApiMapper,
     private val imageStore: ImageStore,
 ) : RecordsRepository {
 

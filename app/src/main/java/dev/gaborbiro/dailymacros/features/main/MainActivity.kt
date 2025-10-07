@@ -41,7 +41,7 @@ import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
 import dev.gaborbiro.dailymacros.features.settings.SettingsNavigatorImpl
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
-import dev.gaborbiro.dailymacros.repo.records.ApiMapper
+import dev.gaborbiro.dailymacros.repo.records.RecordsApiMapper
 import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.repo.requestStatus.RequestStatusRepositoryImpl
 import dev.gaborbiro.dailymacros.repo.settings.SettingsMapper
@@ -62,7 +62,7 @@ class MainActivity : ComponentActivity() {
         val recordsRepository = RecordsRepositoryImpl(
             templatesDAO = db.templatesDAO(),
             recordsDAO = db.recordsDAO(),
-            mapper = ApiMapper(),
+            mapper = RecordsApiMapper(),
             imageStore = imageStore,
         )
         val dateUIMapper = DateUIMapper()

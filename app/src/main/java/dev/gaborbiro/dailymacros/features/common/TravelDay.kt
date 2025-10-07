@@ -7,6 +7,6 @@ import java.time.ZoneId
 data class TravelDay(
     val records: List<Record>,
     val day: LocalDate,
-    val start: ZoneId,
-    val end: ZoneId,
+    val startZone: ZoneId,
+    val endZone: ZoneId,
 )

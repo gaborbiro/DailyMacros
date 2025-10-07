@@ -4,7 +4,6 @@ import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.settings.model.Targets
-import java.time.LocalDate
 
 internal class RecordsUIMapper(
     private val macrosUIMapper: MacrosUIMapper,
@@ -16,15 +15,15 @@ internal class RecordsUIMapper(
         showDay: Boolean,
     ): List<ListUIModelBase> {
         return records
-            .groupByTravelDay()
+            .groupByWallClockDay()
             .reversed()
-            .map { stomachDay ->
+            .map { travelDay ->
                 listOf(
                     macrosUIMapper.mapMacroProgressTable(
-                        day = stomachDay,
+                        day = travelDay,
                         targets = targets,
                     )
-                ) + stomachDay.records.reversed().map {
+                ) + travelDay.records.reversed().map {
                     map(it, showDay)
                 }
             }
@@ -58,12 +57,11 @@ internal class RecordsUIMapper(
         )
     }
 
-    private fun List<Record>.groupByTravelDay(): List<TravelDay> {
-        val sorted = sortedBy { it.timestamp.toInstant() }
-        val v: MutableMap<LocalDate, MutableList<Record>> = sortedMapOf()
-        return sorted
+    private fun List<Record>.groupByWallClockDay(): List<TravelDay> {
+        return this
+            .sortedBy { it.timestamp.toInstant() }
             .groupByTo(
-                v,
+                destination = sortedMapOf(),
                 keySelector = { it.timestamp.toLocalDate() },
                 valueTransform = { it }
             )
@@ -73,8 +71,8 @@ internal class RecordsUIMapper(
                 TravelDay(
                     records = records.toList(),
                     day = day,
-                    start = start,
-                    end = end,
+                    startZone = start,
+                    endZone = end,
                 )
             }
     }

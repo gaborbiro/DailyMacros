@@ -15,14 +15,12 @@ import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.features.widgetDiary.DiaryWidgetScreen
-import dev.gaborbiro.dailymacros.repo.records.ApiMapper
+import dev.gaborbiro.dailymacros.repo.records.RecordsApiMapper
 import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repo.requestStatus.RequestStatusRepositoryImpl
 import dev.gaborbiro.dailymacros.util.gson
-import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.ZonedDateTime
 
 internal class ReloadWorkRequest(
@@ -36,7 +34,7 @@ internal class ReloadWorkRequest(
         RecordsRepositoryImpl(
             templatesDAO = database.templatesDAO(),
             recordsDAO = database.recordsDAO(),
-            mapper = ApiMapper(),
+            mapper = RecordsApiMapper(),
             imageStore = ImageStoreImpl(fileStore),
         )
     }

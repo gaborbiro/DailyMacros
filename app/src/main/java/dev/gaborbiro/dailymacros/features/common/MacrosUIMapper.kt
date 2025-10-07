@@ -48,8 +48,8 @@ internal class MacrosUIMapper(
         }
 
         val dayLength = Duration.between(
-            day.day.atStartOfDay(day.start),
-            day.day.atStartOfDay(day.end).plusDays(1),
+            day.day.atStartOfDay(day.startZone),
+            day.day.atStartOfDay(day.endZone).plusDays(1),
         ).toHours().toInt()
         val lengthChangeFraction = (dayLength - 24).toFloat() / 24f
         val goalAdjustment = 1 + lengthChangeFraction
@@ -180,7 +180,7 @@ internal class MacrosUIMapper(
             }
         }
 
-        val infoMessage = if (day.start != day.end) {
+        val infoMessage = if (day.startZone != day.endZone) {
             val delta = dayLength - 24
             val hoursChangeText = delta.let {
                 if (it > 0) {
@@ -202,7 +202,10 @@ internal class MacrosUIMapper(
                             "the night. Try to have smaller meals leading up to your arrival, to prevent over-eating."
                 } else {
                     "This means the day's events get brought up (end of the day, your bedtime, meals...). " +
-                            " You should eat ${percentChange}% less today (your goals have been adjusted). Try to go to bed earlier, when locals do. If the difference is extreme, expect a few days of adjustment. For example in case of an 8 hour jet lag, on the first day go to bed 6 hours after locals do, then 4 hours, then 2..."
+                            " You should eat ${percentChange}% less today (your goals have been adjusted). " +
+                            "Try to go to bed earlier, when locals do. If the difference is extreme, " +
+                            "expect a few days of adjustment. For example in case of an 8 hour jet " +
+                            "lag, on the first day go to bed 6 hours after locals do, then 4 hours, then 2..."
                 }
                 deltaInfo + "\n" + advice
             } else {

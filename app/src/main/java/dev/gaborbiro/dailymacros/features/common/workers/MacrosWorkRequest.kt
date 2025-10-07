@@ -28,7 +28,7 @@ import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntry
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntryOutputContentDeserializer
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContent
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContentDeserializer
-import dev.gaborbiro.dailymacros.repo.records.ApiMapper
+import dev.gaborbiro.dailymacros.repo.records.RecordsApiMapper
 import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.repo.requestStatus.RequestStatusRepositoryImpl
 import dev.gaborbiro.dailymacros.util.CHANNEL_ID_FOREGROUND
@@ -56,7 +56,7 @@ class MacrosWorkRequest(
         RecordsRepositoryImpl(
             templatesDAO = database.templatesDAO(),
             recordsDAO = database.recordsDAO(),
-            mapper = ApiMapper(),
+            mapper = RecordsApiMapper(),
             imageStore = imageStore,
         )
     }

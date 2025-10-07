@@ -14,7 +14,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
-internal class ApiMapper {
+internal class RecordsApiMapper {
 
     // -------- Domain <— DB: Template --------
 

@@ -91,7 +91,7 @@ import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntry
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntryOutputContentDeserializer
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContent
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContentDeserializer
-import dev.gaborbiro.dailymacros.repo.records.ApiMapper
+import dev.gaborbiro.dailymacros.repo.records.RecordsApiMapper
 import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
 import okhttp3.OkHttpClient
 import okhttp3.java.net.cookiejar.JavaNetCookieJar
@@ -146,7 +146,7 @@ class ModalActivity : AppCompatActivity() {
         val recordsRepository = RecordsRepositoryImpl(
             templatesDAO = AppDatabase.getInstance().templatesDAO(),
             recordsDAO = AppDatabase.getInstance().recordsDAO(),
-            mapper = ApiMapper(),
+            mapper = RecordsApiMapper(),
             imageStore = imageStore,
         )
 
