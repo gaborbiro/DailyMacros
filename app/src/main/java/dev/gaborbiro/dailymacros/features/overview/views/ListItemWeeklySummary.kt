@@ -14,19 +14,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.design.ExtraColors
 import dev.gaborbiro.dailymacros.design.PaddingHalf
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroProgress
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelWeeklyReport
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun ListItemMacroProgressBars(
+internal fun ListItemWeeklySummary(
     modifier: Modifier = Modifier,
-    model: ListUIModelMacroProgress,
+    model: ListUIModelWeeklyReport,
 ) {
     Column(
         modifier = modifier
@@ -37,26 +38,25 @@ internal fun ListItemMacroProgressBars(
                 .padding(horizontal = PaddingHalf)
                 .padding(top = PaddingHalf)
                 .align(Alignment.CenterHorizontally),
-            text = model.dayTitle,
+            text = "Weekly summary:",
+            style = MaterialTheme.typography.titleLarge.copy(textDecoration = TextDecoration.Underline),
+        )
+        Text(
+            modifier = Modifier
+                .padding(horizontal = PaddingHalf)
+                .padding(top = PaddingHalf)
+                .align(Alignment.CenterHorizontally),
+            text = "Adherence: ${model.averageAdherence100Percentage}%",
             style = MaterialTheme.typography.titleMedium,
         )
-        model.infoMessage?.let {
-            Text(
-                modifier = Modifier
-                    .padding(PaddingHalf)
-                    .align(Alignment.CenterHorizontally),
-                text = it,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = PaddingHalf, vertical = PaddingHalf),
         ) {
             val rowHeight = 32.dp
-            val leftColumn = model.progress.filterIndexed { index, _ -> index % 2 == 0 }
-            val rightColumn = model.progress.filterIndexed { index, _ -> index % 2 == 1 }
+            val leftColumn = model.weeklyProgress.filterIndexed { index, _ -> index % 2 == 0 }
+            val rightColumn = model.weeklyProgress.filterIndexed { index, _ -> index % 2 == 1 }
             Column(
                 horizontalAlignment = Alignment.End,
             ) {
@@ -114,16 +114,14 @@ internal fun ListItemMacroProgressBars(
 @Preview
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-private fun ListItemMacroProgressBarsPreview() {
+private fun ListItemWeeklySummaryPreview() {
     AppTheme {
-        ListItemMacroProgressBars(
+        ListItemWeeklySummary(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background),
-            model = ListUIModelMacroProgress(
+            model = ListUIModelWeeklyReport(
                 listItemId = 1L,
-                dayTitle = "Yesterday",
-                infoMessage = "\uD83D\uDCA1Due to timezone change, you now have 6 hours left of this day. To help your stomach adjust, consider smaller meals, spread out evenly.",
-                progress = listOf(
+                weeklyProgress = listOf(
                     MacroProgressItem(
                         title = "Calories",
                         progress0to1 = .15f,
@@ -180,7 +178,8 @@ private fun ListItemMacroProgressBarsPreview() {
                         targetRangeLabel = "30-38g",
                         color = ExtraColors.fibreColor,
                     ),
-                )
+                ),
+                averageAdherence100Percentage = 86,
             ),
         )
     }

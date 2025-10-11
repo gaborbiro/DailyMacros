@@ -52,7 +52,7 @@ class DiaryWidgetScreen : GlanceAppWidget() {
         fun reload() {
             Log.i("DiaryWidgetScreen", "reload()")
             WorkManager.getInstance(App.appContext).enqueue(
-                ReloadWorker.getWorkRequest(
+                ReloadWorker.getReloadWorkRequest(
                     recentRecordsPrefsKey = PREFS_RECENT_RECORDS,
                     quickPicksPrefsKey = PREFS_QUICK_PICKS,
                     recordDaysToDisplay = 3,

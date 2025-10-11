@@ -52,7 +52,7 @@ internal class ReloadWorker(
         private const val PREFS_RECORD_DAYS_TO_DISPLAY = "record_days_to_display"
         private const val PREFS_QUICK_PICK_COUNT = "quick_picks_count"
 
-        fun getWorkRequest(
+        fun getReloadWorkRequest(
             recentRecordsPrefsKey: String,
             quickPicksPrefsKey: String,
             recordDaysToDisplay: Int = RECORD_DAYS_TO_DISPLAY_DEFAULT,

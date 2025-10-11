@@ -25,14 +25,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.design.ExtraColors
 import dev.gaborbiro.dailymacros.design.AppTheme
+import dev.gaborbiro.dailymacros.design.ExtraColors
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
 import kotlinx.coroutines.delay
 
 @Composable
-fun MacroProgressBar(
+internal fun MacroProgressBar(
     modifier: Modifier,
     model: MacroProgressItem,
     rowIndex: Int,
@@ -41,7 +41,7 @@ fun MacroProgressBar(
     val animated = remember { Animatable(0f) }
 
     val initialPause = 500 // ms before first row
-    val stagger = 200 // ms per row
+    val stagger = 300 // ms per row
     val baseDuration = 400 // ms for the last row's animation
 
     // Total time for the whole wave (pause + stagger + last row anim)
@@ -68,10 +68,10 @@ fun MacroProgressBar(
     }
 
     val progress = animated.value
-
     val onBackground = MaterialTheme.colorScheme.onBackground
-    val (barColor, trackColor) = remember(progress, onBackground) {
-        layeredColors(model.color, progress, onBackground)
+
+    val (barColor, trackColor) = remember(progress) {
+        layeredColors(progress0to1 = progress, base = model.color, onBackground = onBackground)
     }
 
     Column(
@@ -86,7 +86,6 @@ fun MacroProgressBar(
             max0to1 = model.targetRange0to1.upper,
             progressColor = barColor,
             trackColor = trackColor,
-            onBackground = onBackground
         )
 
         Row(
@@ -100,7 +99,7 @@ fun MacroProgressBar(
                 color = if (model.progress0to1 > 1f) Color.Red else Color.Unspecified,
             )
             Text(
-                text = model.rangeLabel,
+                text = model.targetRangeLabel,
                 style = MaterialTheme.typography.labelSmall,
             )
         }
@@ -115,7 +114,6 @@ private fun MacroProgressBar(
     max0to1: Float,
     progressColor: Color,
     trackColor: Color,
-    onBackground: Color,
     barHeight: Dp = 6.dp,
 ) {
     Canvas(modifier = modifier.height(barHeight)) {
@@ -129,17 +127,31 @@ private fun MacroProgressBar(
             size = size
         )
 
-        // Target range highlight (only on first coat)
-        if (progress0to1 < 1f) {
+        // Target range start highlight (only on first coat)
+        if (progress0to1 < min0to1) {
             val start = min0to1 * size.width
-            val end = max0to1 * size.width
-            drawRoundRect(
-                color = onBackground.copy(alpha = 0.15f),
-                topLeft = Offset(start, 0f),
-                size = Size(end - start, size.height),
-                cornerRadius = cornerRadius
+            drawArc(
+                color = progressColor,
+                startAngle = 90f,
+                sweepAngle = 180f,
+                useCenter = true,
+                topLeft = Offset(start - radius, (size.height / 2) - radius),
+                size = Size(radius * 2, radius * 2)
             )
         }
+
+        // Target range end highlight (only on first coat)
+//        if (progress0to1 < 1f) {
+//            val end = max0to1 * size.width
+//            drawArc(
+//                color = progressColor,
+//                startAngle = 270f,
+//                sweepAngle = 180f,
+//                useCenter = true,
+//                topLeft = Offset(end - radius, (size.height / 2) - radius),
+//                size = Size(radius * 2, radius * 2)
+//            )
+//        }
 
         // Progress fill
         val fraction = progress0to1 % 1f
@@ -154,8 +166,8 @@ private fun MacroProgressBar(
 }
 
 private fun layeredColors(
-    base: Color,
     progress0to1: Float,
+    base: Color,
     onBackground: Color,
 ): Pair<Color, Color> {
     return when {
@@ -199,7 +211,7 @@ private fun MacroProgressViewPreview() {
         progress0to1 = .15f,
         progressLabel = "1005kcal",
         targetRange0to1 = Range(.84f, 1f),
-        rangeLabel = "2.1-2.2k",
+        targetRangeLabel = "2.1-2.2k",
         color = ExtraColors.calorieColor,
     )
     val macro2 = MacroProgressItem(
@@ -207,7 +219,7 @@ private fun MacroProgressViewPreview() {
         progress0to1 = 1.5f,
         progressLabel = "110g",
         targetRange0to1 = Range(.8095f, 1f),
-        rangeLabel = "170-190g",
+        targetRangeLabel = "170-190g",
         color = ExtraColors.proteinColor,
     )
     AppTheme {

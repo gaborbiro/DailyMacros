@@ -9,7 +9,6 @@ import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
 import dev.gaborbiro.dailymacros.repo.settings.model.Target
 import dev.gaborbiro.dailymacros.repo.settings.model.Targets
-import java.time.Duration
 import kotlin.math.absoluteValue
 
 internal class MacrosUIMapper(
@@ -21,7 +20,7 @@ internal class MacrosUIMapper(
         targets: Targets,
     ): ListUIModelMacroProgress {
         val records = day.records
-        val totalCalories = records.sumOf { it.template.macros?.calories ?: 0 }.toFloat()
+        val totalCalories = records.sumOf { it.template.macros?.calories ?: 0 }
         val totalProtein =
             records.sumOf { it.template.macros?.protein?.toDouble() ?: 0.0 }.toFloat()
         val totalCarbs =
@@ -34,191 +33,188 @@ internal class MacrosUIMapper(
         val totalSalt = records.sumOf { it.template.macros?.salt?.toDouble() ?: 0.0 }.toFloat()
         val totalFibre = records.sumOf { it.template.macros?.fibre?.toDouble() ?: 0.0 }.toFloat()
 
-        fun progress(target: Target, total: Float) = target.max?.let { total / it }
-
-        fun targetRange(target: Target): Range<Float> {
-            return Range(
-                if (target.min != null && target.max != null) target.min.toFloat() / target.max.toFloat() else 0f,
-                1f,
-            )
-        }
-
-        fun gramRangeLabel(target: Target): String {
-            return "${target.min ?: "?"}-${target.max ?: "?"}g"
-        }
-
-        val dayLength = Duration.between(
-            day.day.atStartOfDay(day.startZone),
-            day.day.atStartOfDay(day.endZone).plusDays(1),
-        ).toHours().toInt()
-        val lengthChangeFraction = (dayLength - 24).toFloat() / 24f
-        val goalAdjustment = 1 + lengthChangeFraction
-
-        fun Target.adjust(multiplier: Float) = Target(
-            enabled = enabled,
-            min = min?.let { it * multiplier }?.toInt(),
-            max = max?.let { it * multiplier }?.toInt(),
+        val totalMacros = Macros(
+            calories = totalCalories,
+            protein = totalProtein,
+            fat = totalFat,
+            ofWhichSaturated = totalSaturated,
+            carbohydrates = totalCarbs,
+            ofWhichSugar = totalSugar,
+            salt = totalSalt,
+            fibre = totalFibre,
+            notes = null,
         )
 
-        val progress = buildList {
-            targets.calories.takeIf { it.enabled }?.adjust(goalAdjustment)?.let {
-                val min = if (it.min != null) {
-                    if (it.min < 1000) {
-                        it.min.toString()
-                    } else {
-                        DecimalFormat("#.#").format(it.min / 1000f)
-                    }
-                } else {
-                    "?"
-                }
-                val max = if (it.max != null) {
-                    if (it.max < 1000) {
-                        it.max.toString()
-                    } else {
-                        DecimalFormat("#.#").format(it.max / 1000f)
-                    }
-                } else {
-                    "?"
-                }
-                val rangeLabel = "$min-${max}k"
-                add(
-                    MacroProgressItem(
-                        title = "Calories",
-                        progress0to1 = progress(it, totalCalories) ?: 0f,
-                        progressLabel = mapCalories(totalCalories, withLabel = false)!!,
-                        targetRange0to1 = targetRange(it),
-                        rangeLabel = rangeLabel,
-                        color = ExtraColors.calorieColor,
-                    )
-                )
-            }
-            targets.protein.takeIf { it.enabled }?.adjust(goalAdjustment)?.let {
-                add(
-                    MacroProgressItem(
-                        title = "Protein",
-                        progress0to1 = progress(it, totalProtein) ?: 0f,
-                        progressLabel = mapProtein(totalProtein, withLabel = false) ?: "0g",
-                        targetRange0to1 = targetRange(it),
-                        rangeLabel = gramRangeLabel(it),
-                        color = ExtraColors.proteinColor,
-                    )
-                )
-            }
-            targets.salt.takeIf { it.enabled }?.adjust(goalAdjustment)?.let {
-                add(
-                    MacroProgressItem(
-                        title = "Salt",
-                        progress0to1 = progress(it, totalSalt) ?: 0f,
-                        progressLabel = mapSalt(totalSalt, withLabel = false) ?: "0.0g",
-                        targetRange0to1 = targetRange(it),
-                        rangeLabel = gramRangeLabel(it),
-                        color = ExtraColors.saltColor,
-                    )
-                )
-            }
-            targets.fibre.takeIf { it.enabled }?.adjust(goalAdjustment)?.let {
-                add(
-                    MacroProgressItem(
-                        title = "Fibre",
-                        progress0to1 = progress(it, totalFibre) ?: 0f,
-                        progressLabel = mapFibre(totalFibre, withLabel = false) ?: "0g",
-                        targetRange0to1 = targetRange(it),
-                        rangeLabel = gramRangeLabel(it),
-                        color = ExtraColors.fibreColor,
-                    )
-                )
-            }
-            targets.carbs.takeIf { it.enabled }?.adjust(goalAdjustment)?.let {
-                add(
-                    MacroProgressItem(
-                        title = "Carbs",
-                        progress0to1 = progress(it, totalCarbs) ?: 0f,
-                        progressLabel = mapCarbs(totalCarbs, sugar = null, withLabel = false)
-                            ?: "0g",
-                        targetRange0to1 = targetRange(it),
-                        rangeLabel = gramRangeLabel(it),
-                        color = ExtraColors.carbsColor,
-                    )
-                )
-            }
-            targets.ofWhichSugar.takeIf { it.enabled }?.adjust(goalAdjustment)?.let {
-                add(
-                    MacroProgressItem(
-                        title = "sugar",
-                        progress0to1 = progress(it, totalSugar) ?: 0f,
-                        progressLabel = mapSugar(totalSugar, withLabel = false) ?: "0g",
-                        targetRange0to1 = targetRange(it),
-                        rangeLabel = gramRangeLabel(it),
-                        color = ExtraColors.carbsColor,
-                    )
-                )
-            }
-            targets.fat.takeIf { it.enabled }?.adjust(goalAdjustment)?.let {
-                add(
-                    MacroProgressItem(
-                        title = "Fat",
-                        progress0to1 = progress(it, totalFat) ?: 0f,
-                        progressLabel = mapFat(totalFat, saturated = null, withLabel = false)
-                            ?: "0g",
-                        targetRange0to1 = targetRange(it),
-                        rangeLabel = gramRangeLabel(it),
-                        color = ExtraColors.fatColor,
-                    )
-                )
-            }
-            targets.ofWhichSaturated.takeIf { it.enabled }?.adjust(goalAdjustment)?.let {
-                add(
-                    MacroProgressItem(
-                        title = "saturated",
-                        progress0to1 = progress(it, totalSaturated) ?: 0f,
-                        progressLabel = mapSaturated(totalSaturated, withLabel = false) ?: "0g",
-                        targetRange0to1 = targetRange(it),
-                        rangeLabel = gramRangeLabel(it),
-                        color = ExtraColors.fatColor,
-                    )
-                )
-            }
-        }
+        val progressItems = buildMacroProgressItems(totalMacros, targets)
 
-        val infoMessage = if (day.startZone != day.endZone) {
-            val delta = dayLength - 24
-            val hoursChangeText = delta.let {
-                if (it > 0) {
-                    "$it hrs longer"
-                } else {
-                    "${it.absoluteValue} hrs shorter"
-                }
-            }
-            val percentChange = (lengthChangeFraction * 100).toInt()
-            if (delta.absoluteValue > 2) {
-                val deltaInfo =
-                    "\uD83D\uDCA1 Due to timezone change this day is $hoursChangeText (${percentChange}%). Or more if you have more to fly."
-                val advice = if (delta > 0) {
-                    "This means the day's events are pushed back (end of the day, your bedtime, meals...). " +
-                            "Try to go to bed later, when locals do (but don't drink coffee after 5pm local time)." +
-                            "\nAlso, it is normal if you eat ${percentChange}% more today (your goals have been adjusted). " +
-                            "Try to follow local meal-times. Don't skip local dinner, just because " +
-                            "you already had dinner on the airplane. Restaurants might be closed for " +
-                            "the night. Try to have smaller meals leading up to your arrival, to prevent over-eating."
-                } else {
-                    "This means the day's events get brought up (end of the day, your bedtime, meals...). " +
-                            " You should eat ${percentChange}% less today (your goals have been adjusted). " +
-                            "Try to go to bed earlier, when locals do. If the difference is extreme, " +
-                            "expect a few days of adjustment. For example in case of an 8 hour jet " +
-                            "lag, on the first day go to bed 6 hours after locals do, then 4 hours, then 2..."
-                }
-                deltaInfo + "\n" + advice
-            } else {
-                null
-            }
-        } else null
+        val infoMessage = buildTimezoneInfo(day)
 
         return ListUIModelMacroProgress(
             listItemId = day.day.toEpochDay(),
             dayTitle = dateUIMapper.map(day.day),
             infoMessage = infoMessage,
-            progress = progress,
+            progress = progressItems,
         )
+    }
+
+    fun buildMacroProgressItems(
+        macros: Macros,
+        targets: Targets,
+    ): List<MacroProgressItem> {
+        fun progress(target: Target, total: Float) = target.max?.let { total / it }
+
+        fun targetRange(target: Target): Range<Float> =
+            Range(
+                if (target.min != null && target.max != null)
+                    target.min.toFloat() / target.max.toFloat()
+                else 0f,
+                1f
+            )
+
+        fun gramRangeLabel(target: Target): String =
+            "${target.min ?: "?"}-${target.max ?: "?"}"
+
+        return buildList {
+            targets.calories.takeIf { it.enabled }?.let {
+                val min = if (it.min != null) {
+                    DecimalFormat(".#").format(it.min / 1000f)
+                } else {
+                    "?"
+                }
+                val max = if (it.max != null) {
+                    DecimalFormat(".#").format(it.max / 1000f)
+                } else {
+                    "?"
+                }
+                val rangeLabel = "${min}k-${max}k"
+                add(
+                    MacroProgressItem(
+                        title = "Calories",
+                        progress0to1 = progress(it, macros.calories?.toFloat() ?: 0f) ?: 0f,
+                        progressLabel = mapCalories(macros.calories, withLabel = false) ?: "0",
+                        targetRange0to1 = targetRange(it),
+                        targetRangeLabel = rangeLabel,
+                        color = ExtraColors.calorieColor,
+                    )
+                )
+            }
+            targets.protein.takeIf { it.enabled }?.let {
+                add(
+                    MacroProgressItem(
+                        title = "Protein",
+                        progress0to1 = progress(it, macros.protein ?: 0f) ?: 0f,
+                        progressLabel = mapProtein(macros.protein, withLabel = false) ?: "0g",
+                        targetRange0to1 = targetRange(it),
+                        targetRangeLabel = gramRangeLabel(it),
+                        color = ExtraColors.proteinColor,
+                    )
+                )
+            }
+            targets.salt.takeIf { it.enabled }?.let {
+                add(
+                    MacroProgressItem(
+                        title = "Salt",
+                        progress0to1 = progress(it, macros.salt ?: 0f) ?: 0f,
+                        progressLabel = mapSalt(macros.salt, withLabel = false) ?: "0.0g",
+                        targetRange0to1 = targetRange(it),
+                        targetRangeLabel = gramRangeLabel(it),
+                        color = ExtraColors.saltColor,
+                    )
+                )
+            }
+            targets.fibre.takeIf { it.enabled }?.let {
+                add(
+                    MacroProgressItem(
+                        title = "Fibre",
+                        progress0to1 = progress(it, macros.fibre ?: 0f) ?: 0f,
+                        progressLabel = mapFibre(macros.fibre, withLabel = false) ?: "0g",
+                        targetRange0to1 = targetRange(it),
+                        targetRangeLabel = gramRangeLabel(it),
+                        color = ExtraColors.fibreColor,
+                    )
+                )
+            }
+            targets.carbs.takeIf { it.enabled }?.let {
+                add(
+                    MacroProgressItem(
+                        title = "Carbs",
+                        progress0to1 = progress(it, macros.carbohydrates ?: 0f) ?: 0f,
+                        progressLabel = mapCarbs(macros.carbohydrates, sugar = null, withLabel = false)
+                            ?: "0g",
+                        targetRange0to1 = targetRange(it),
+                        targetRangeLabel = gramRangeLabel(it),
+                        color = ExtraColors.carbsColor,
+                    )
+                )
+            }
+            targets.ofWhichSugar.takeIf { it.enabled }?.let {
+                add(
+                    MacroProgressItem(
+                        title = "sugar",
+                        progress0to1 = progress(it, macros.ofWhichSugar ?: 0f) ?: 0f,
+                        progressLabel = mapSugar(macros.ofWhichSugar, withLabel = false) ?: "0g",
+                        targetRange0to1 = targetRange(it),
+                        targetRangeLabel = gramRangeLabel(it),
+                        color = ExtraColors.carbsColor,
+                    )
+                )
+            }
+            targets.fat.takeIf { it.enabled }?.let {
+                add(
+                    MacroProgressItem(
+                        title = "Fat",
+                        progress0to1 = progress(it, macros.fat ?: 0f) ?: 0f,
+                        progressLabel = mapFat(macros.fat, saturated = null, withLabel = false)
+                            ?: "0g",
+                        targetRange0to1 = targetRange(it),
+                        targetRangeLabel = gramRangeLabel(it),
+                        color = ExtraColors.fatColor,
+                    )
+                )
+            }
+            targets.ofWhichSaturated.takeIf { it.enabled }?.let {
+                add(
+                    MacroProgressItem(
+                        title = "saturated",
+                        progress0to1 = progress(it, macros.ofWhichSaturated ?: 0f) ?: 0f,
+                        progressLabel = mapSaturated(macros.ofWhichSaturated, withLabel = false) ?: "0g",
+                        targetRange0to1 = targetRange(it),
+                        targetRangeLabel = gramRangeLabel(it),
+                        color = ExtraColors.fatColor,
+                    )
+                )
+            }
+        }
+    }
+
+    private fun buildTimezoneInfo(day: TravelDay): String? {
+        val startZone = day.startZone
+        val endZone = day.endZone
+        if (startZone == endZone) return null
+
+        val deltaHours = day.duration.toHours() - 24
+        val percent = (deltaHours / 24f * 100).toInt()
+
+        if (deltaHours.absoluteValue <= 2) return null
+
+        val direction = if (deltaHours > 0) "longer" else "shorter"
+        val advice = if (deltaHours > 0) {
+            "This means the day's events are pushed back (end of the day, your bedtime, meals...). " +
+                    "Try to go to bed later, when locals do (but don't drink coffee after 5pm local time)." +
+                    "Try to follow local meal-times. Don't skip local dinner, just because " +
+                    "you already had dinner on the airplane. Restaurants might be closed for " +
+                    "the night. Try to have smaller meals leading up to your arrival, to prevent over-eating."
+        } else {
+            "This means the day's events get brought up (end of the day, your bedtime, meals...). " +
+                    "Try to go to bed earlier, when locals do. If the difference is extreme, " +
+                    "expect a few days of adjustment. For example in case of an 8 hour jet " +
+                    "lag, on the first day go to bed 6 hours after locals do, then 4 hours, then 2..."
+        }
+
+        return buildString {
+            append("\uD83D\uDCA1 Due to timezone change this day is $deltaHours hrs $direction ($percent%).\n")
+            append(advice)
+        }
     }
 
     fun mapMacrosString(macros: Macros?, isShort: Boolean = false): String? {

@@ -41,6 +41,7 @@ import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroProgress
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelWeeklyReport
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.common.views.CoachMarkOverlay
@@ -131,6 +132,12 @@ internal fun OverviewList(
 
                     is ListUIModelMacroProgress -> {
                         ListItemMacroProgressBars(
+                            model = item
+                        )
+                    }
+
+                    is ListUIModelWeeklyReport -> {
+                        ListItemWeeklySummary(
                             model = item
                         )
                     }
@@ -260,7 +267,7 @@ private fun OverviewListPreview() {
                                     progress0to1 = .15f,
                                     progressLabel = "1005kcal",
                                     targetRange0to1 = Range(.84f, .88f),
-                                    rangeLabel = "2.1-2.2k",
+                                    targetRangeLabel = "2.1-2.2k",
                                     color = ExtraColors.calorieColor,
                                 ),
                                 MacroProgressItem(
@@ -268,7 +275,7 @@ private fun OverviewListPreview() {
                                     progress0to1 = .0809f,
                                     progressLabel = "110g",
                                     targetRange0to1 = Range(.8095f, .9047f),
-                                    rangeLabel = "170-190g",
+                                    targetRangeLabel = "170-190g",
                                     color = ExtraColors.proteinColor,
                                 ),
                                 MacroProgressItem(
@@ -276,7 +283,7 @@ private fun OverviewListPreview() {
                                     progress0to1 = .2121f,
                                     progressLabel = "30g",
                                     targetRange0to1 = Range(.6818f, .9091f),
-                                    rangeLabel = "45-60g",
+                                    targetRangeLabel = "45-60g",
                                     color = ExtraColors.fatColor,
                                 ),
                                 MacroProgressItem(
@@ -284,7 +291,7 @@ private fun OverviewListPreview() {
                                     progress0to1 = .1818f,
                                     progressLabel = "105g",
                                     targetRange0to1 = Range(.6818f, .9091f),
-                                    rangeLabel = "150-200g",
+                                    targetRangeLabel = "150-200g",
                                     color = ExtraColors.carbsColor,
                                 ),
                                 MacroProgressItem(
@@ -292,7 +299,7 @@ private fun OverviewListPreview() {
                                     progress0to1 = .2955f,
                                     progressLabel = "35g",
                                     targetRange0to1 = Range(.9091f, .9091f),
-                                    rangeLabel = "<40g/<25g added",
+                                    targetRangeLabel = "<40g/<25g added",
                                     color = ExtraColors.carbsColor,
                                 ),
                                 MacroProgressItem(
@@ -300,7 +307,7 @@ private fun OverviewListPreview() {
                                     progress0to1 = .0f,
                                     progressLabel = "0g",
                                     targetRange0to1 = Range(.9091f, .9091f),
-                                    rangeLabel = "<5g (≈2g Na)",
+                                    targetRangeLabel = "<5g (≈2g Na)",
                                     color = ExtraColors.saltColor,
                                 ),
                                 MacroProgressItem(
@@ -308,7 +315,7 @@ private fun OverviewListPreview() {
                                     progress0to1 = .0f,
                                     progressLabel = "0g",
                                     targetRange0to1 = Range(.9091f, .9091f),
-                                    rangeLabel = "30-38g",
+                                    targetRangeLabel = "30-38g",
                                     color = ExtraColors.fibreColor,
                                 ),
                             )
