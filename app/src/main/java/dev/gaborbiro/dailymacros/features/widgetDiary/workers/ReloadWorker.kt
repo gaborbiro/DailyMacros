@@ -23,7 +23,7 @@ import dev.gaborbiro.dailymacros.repo.requestStatus.RequestStatusRepositoryImpl
 import dev.gaborbiro.dailymacros.util.gson
 import java.time.ZonedDateTime
 
-internal class ReloadWorkRequest(
+internal class ReloadWorker(
     appContext: Context,
     private val workerParameters: WorkerParameters,
 ) : CoroutineWorker(appContext, workerParameters) {
@@ -58,7 +58,7 @@ internal class ReloadWorkRequest(
             recordDaysToDisplay: Int = RECORD_DAYS_TO_DISPLAY_DEFAULT,
             quickPickCount: Int = QUICK_PICK_COUNT_DEFAULT,
         ): WorkRequest {
-            return OneTimeWorkRequestBuilder<ReloadWorkRequest>()
+            return OneTimeWorkRequestBuilder<ReloadWorker>()
                 .setInputData(
                     Data.Builder()
                         .putString(PREFS_RECENT_RECORDS_KEY, recentRecordsPrefsKey)

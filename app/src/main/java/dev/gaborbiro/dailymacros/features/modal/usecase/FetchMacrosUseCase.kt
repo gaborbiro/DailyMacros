@@ -1,8 +1,10 @@
 package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import android.content.Context
+import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
+import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.features.modal.RecordsMapper
 import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
 import dev.gaborbiro.dailymacros.features.widgetDiary.DiaryWidgetScreen
@@ -25,7 +27,9 @@ internal class FetchMacrosUseCase(
     private val requestStatusRepository: RequestStatusRepository,
 ) {
 
-    suspend fun execute(recordId: Long) {
+    suspend fun execute(
+        recordId: Long,
+    ) {
         val record: Record = recordsRepository.get(recordId)!!
         try {
             val base64Images = record.template.images
@@ -35,29 +39,47 @@ internal class FetchMacrosUseCase(
                 }
             requestStatusRepository.markAsPending(record.template.dbId)
             DiaryWidgetScreen.reload()
-            val response = chatGPTRepository.macros(
-                request = recordsMapper.mapMacrosRequest(
-                    record = record,
-                    base64Images = base64Images,
+            val getMacrosResult = runCatching {
+                chatGPTRepository.getMacros(
+                    request = recordsMapper.mapMacrosRequest(
+                        record = record,
+                        base64Images = base64Images,
+                    )
                 )
-            )
-            val (macros: Macros?, issues: String?) = recordsMapper.map(response)
-            recordsRepository.updateTemplate(
-                templateId = record.template.dbId,
-                macros = macros,
-            )
-            val macrosStr = macrosUIMapper.mapMacrosString(macros)
-            appContext.showMacroResultsNotification(
-                id = 123000L + recordId,
-                recordId = recordId,
-                title = null,
-                message = listOfNotNull(record.template.name, macrosStr, issues, macros?.notes).joinToString("\n"),
-            )
+            }
+
+            getMacrosResult
+                .exceptionOrNull()
+                ?.let {
+                    if (it is ChatGPTApiError.InternetApiError) {
+                        GetMacrosWorker.setWorkRequest(
+                            appContext = App.appContext,
+                            recordId = recordId,
+                            force = false,
+                        )
+                    }
+                    throw it
+                }
+
+            getMacrosResult.getOrNull()?.let {
+                val (macros: Macros?, issues: String?) = recordsMapper.map(it)
+                recordsRepository.updateTemplate(
+                    templateId = record.template.dbId,
+                    macros = macros,
+                )
+                val macrosStr = macrosUIMapper.mapMacrosString(macros)
+                appContext.showMacroResultsNotification(
+                    id = 123000L + recordId,
+                    recordId = recordId,
+                    title = null,
+                    message = listOfNotNull(record.template.name, macrosStr, issues, macros?.notes).joinToString("\n"),
+                )
+            }
         } catch (apiError: ChatGPTApiError) {
             throw apiError
                 .toDomainModel()
         } catch (t: Throwable) {
-            throw t // not necessary, but
+            throw t
         } finally {
             requestStatusRepository.unmark(record.template.dbId)
             DiaryWidgetScreen.reload()

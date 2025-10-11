@@ -9,5 +9,5 @@ interface ChatGPTRepository {
 
     suspend fun summarizeFoodPic(request: FoodPicSummaryRequest): FoodPicSummaryResponse
 
-    suspend fun macros(request: MacrosRequest): MacrosResponse
+    suspend fun getMacros(request: MacrosRequest): MacrosResponse
 }

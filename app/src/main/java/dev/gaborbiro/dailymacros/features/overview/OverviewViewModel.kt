@@ -3,13 +3,12 @@ package dev.gaborbiro.dailymacros.features.overview
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.work.WorkManager
 import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
-import dev.gaborbiro.dailymacros.features.common.workers.MacrosWorkRequest
+import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
 import dev.gaborbiro.dailymacros.features.widgetDiary.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
@@ -118,6 +117,10 @@ internal class OverviewViewModel(
                 )
             }
             DiaryWidgetScreen.reload()
+            GetMacrosWorker.cancelWorkRequest(
+                appContext = App.appContext,
+                recordId = id,
+            )
         }
     }
 
@@ -175,10 +178,14 @@ internal class OverviewViewModel(
 
     fun onMacrosMenuItemTapped(id: Long) {
         viewModelScope.launch {
-            WorkManager.getInstance(App.appContext).enqueue(
-                MacrosWorkRequest.getWorkRequest(
-                    recordId = id
-                )
+            GetMacrosWorker.cancelWorkRequest(
+                appContext = App.appContext,
+                recordId = id,
+            )
+            GetMacrosWorker.setWorkRequest(
+                appContext = App.appContext,
+                recordId = id,
+                force = true,
             )
         }
     }

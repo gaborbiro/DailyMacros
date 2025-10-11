@@ -3,11 +3,14 @@ package dev.gaborbiro.dailymacros.features.common.workers
 import android.content.Context
 import android.content.pm.ServiceInfo
 import androidx.core.app.NotificationCompat
+import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.Data
 import androidx.work.ForegroundInfo
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkRequest
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
@@ -32,6 +35,8 @@ import dev.gaborbiro.dailymacros.repo.records.RecordsApiMapper
 import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.repo.requestStatus.RequestStatusRepositoryImpl
 import dev.gaborbiro.dailymacros.util.CHANNEL_ID_FOREGROUND
+import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.time.delay
 import okhttp3.OkHttpClient
 import okhttp3.java.net.cookiejar.JavaNetCookieJar
 import okhttp3.logging.HttpLoggingInterceptor
@@ -39,12 +44,14 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.net.CookieManager
 import java.util.concurrent.TimeUnit.SECONDS
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 
-class MacrosWorkRequest(
+class GetMacrosWorker(
     appContext: Context,
     private val workerParameters: WorkerParameters,
 ) : CoroutineWorker(appContext, workerParameters) {
-
 
     private val imageStore: ImageStore by lazy {
         val fileStore = FileStoreFactoryImpl(appContext).getStore("public", keepFiles = true)
@@ -112,32 +119,66 @@ class MacrosWorkRequest(
     }
 
     companion object {
-        private const val PREFS_RECORD_ID_KEY = "record_id"
+        private const val ARGS_RECORD_ID = "record_id"
 
-        fun getWorkRequest(
+        suspend fun setWorkRequest(
+            appContext: Context,
             recordId: Long,
-        ): WorkRequest {
-            return OneTimeWorkRequestBuilder<MacrosWorkRequest>()
-                .setInputData(
-                    Data.Builder()
-                        .putLong(PREFS_RECORD_ID_KEY, recordId)
-                        .build()
+            force: Boolean,
+        ) {
+            if (force) {
+                cancelWorkRequest(
+                    appContext = appContext,
+                    recordId = recordId,
                 )
-                .build()
+            }
+            val works = WorkManager.getInstance(appContext)
+                .getWorkInfosByTag(getTag(recordId)).await()
+            if (works.none { it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.RUNNING }) {
+                val workRequest = PeriodicWorkRequestBuilder<GetMacrosWorker>(
+                    repeatInterval = 15.minutes.toJavaDuration()
+                )
+                    .setConstraints(
+                        Constraints.Builder()
+                            .setRequiredNetworkType(NetworkType.CONNECTED)
+                            .build()
+                    )
+                    .setInputData(
+                        Data.Builder()
+                            .putLong(ARGS_RECORD_ID, recordId)
+                            .build()
+                    )
+                    .addTag(getTag(recordId))
+                    .build()
+                WorkManager.getInstance(appContext).enqueue(workRequest)
+            }
+        }
+
+        fun cancelWorkRequest(appContext: Context, recordId: Long) {
+            WorkManager.getInstance(appContext).cancelAllWorkByTag(getTag(recordId))
+        }
+
+        private fun getTag(recordId: Long): String {
+            return "fetch_$recordId"
         }
     }
 
     override suspend fun doWork(): Result {
         return try {
-            setForeground(createForegroundInfo())
-            val recordId =
-                workerParameters.inputData.getLong(
-                    PREFS_RECORD_ID_KEY, -1L
-                )
+            delay(.5.seconds.toJavaDuration())
+            setForegroundAsync(createForegroundInfo()).await()
+            val recordId = workerParameters.inputData
+                .getLong(ARGS_RECORD_ID, -1L)
             if (recordId == -1L) {
                 Result.failure()
             } else {
-                fetchMacrosUseCase.execute(recordId)
+                fetchMacrosUseCase.execute(
+                    recordId = recordId,
+                )
+                cancelWorkRequest(
+                    appContext = applicationContext,
+                    recordId = recordId,
+                )
                 Result.success()
             }
         } catch (t: Throwable) {

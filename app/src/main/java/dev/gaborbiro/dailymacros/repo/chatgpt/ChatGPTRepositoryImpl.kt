@@ -24,8 +24,8 @@ internal class ChatGPTRepositoryImpl(
         }
     }
 
-    override suspend fun macros(request: MacrosRequest): MacrosResponse {
-        return runCatching(logTag = "macros") {
+    override suspend fun getMacros(request: MacrosRequest): MacrosResponse {
+        return runCatching(logTag = "getMacros") {
             val response = service.callResponses(
                 request = request.toApiModel(),
             )

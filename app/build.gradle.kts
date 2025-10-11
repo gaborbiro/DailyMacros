@@ -160,6 +160,9 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.1.7")
     implementation("com.google.mlkit:image-labeling:17.0.9")
 
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.10.2")
+    implementation("com.google.guava:guava:33.4.8-android")
+
     val firebaseBom = "34.3.0"
     implementation(platform("com.google.firebase:firebase-bom:$firebaseBom"))
     implementation("com.google.firebase:firebase-crashlytics")

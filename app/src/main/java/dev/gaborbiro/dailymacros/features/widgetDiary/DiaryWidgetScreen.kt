@@ -38,7 +38,7 @@ import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPickHeade
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.widgetDiary.views.LocalImageStoreWidget
 import dev.gaborbiro.dailymacros.features.widgetDiary.views.DiaryWidgetView
-import dev.gaborbiro.dailymacros.features.widgetDiary.workers.ReloadWorkRequest
+import dev.gaborbiro.dailymacros.features.widgetDiary.workers.ReloadWorker
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
 import dev.gaborbiro.dailymacros.util.gson
@@ -52,7 +52,7 @@ class DiaryWidgetScreen : GlanceAppWidget() {
         fun reload() {
             Log.i("DiaryWidgetScreen", "reload()")
             WorkManager.getInstance(App.appContext).enqueue(
-                ReloadWorkRequest.getWorkRequest(
+                ReloadWorker.getWorkRequest(
                     recentRecordsPrefsKey = PREFS_RECENT_RECORDS,
                     quickPicksPrefsKey = PREFS_QUICK_PICKS,
                     recordDaysToDisplay = 3,

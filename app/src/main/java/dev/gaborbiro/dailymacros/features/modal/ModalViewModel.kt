@@ -4,7 +4,6 @@ import android.net.Uri
 import androidx.annotation.UiThread
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.work.WorkManager
 import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
@@ -12,7 +11,7 @@ import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.message
-import dev.gaborbiro.dailymacros.features.common.workers.MacrosWorkRequest
+import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.MacrosUIModel
@@ -314,6 +313,10 @@ internal class ModalViewModel(
         runSafely {
             deleteRecordUseCase.execute(recordId)
             DiaryWidgetScreen.reload()
+            GetMacrosWorker.cancelWorkRequest(
+                appContext = App.appContext,
+                recordId = recordId,
+            )
         }
     }
 
@@ -429,10 +432,10 @@ internal class ModalViewModel(
                     description = description,
                 )
                 DiaryWidgetScreen.reload()
-                WorkManager.getInstance(App.appContext).enqueue(
-                    MacrosWorkRequest.getWorkRequest(
-                        recordId = recordId
-                    )
+                GetMacrosWorker.setWorkRequest(
+                    appContext = App.appContext,
+                    recordId = recordId,
+                    force = true,
                 )
             }
         }
@@ -515,10 +518,10 @@ internal class ModalViewModel(
                             )
                         }
                     }
-                    WorkManager.getInstance(App.appContext).enqueue(
-                        MacrosWorkRequest.getWorkRequest(
-                            recordId = recordId
-                        )
+                    GetMacrosWorker.setWorkRequest(
+                        appContext = App.appContext,
+                        recordId = recordId,
+                        force = true,
                     )
                 }
             }
