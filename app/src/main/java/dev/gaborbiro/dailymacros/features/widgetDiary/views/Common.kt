@@ -9,7 +9,6 @@ import androidx.glance.color.ColorProvider
 import androidx.glance.text.FontWeight
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
-import dev.gaborbiro.dailymacros.design.ExtraColors
 
 val WidgetImageSize = 64.dp
 
@@ -60,5 +59,5 @@ val loadingTextStyle: TextStyle
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         textAlign = TextAlign.Start,
-        color = ColorProvider(day = Color(0xFFFF5722), night = ExtraColors.calorieColor),
+        color = ColorProvider(day = Color(0xFFFF5722), night = Color(0xFFCDE9FF)),
     )

@@ -28,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import dev.gaborbiro.dailymacros.design.AppTheme
-import dev.gaborbiro.dailymacros.design.ExtraColors
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroProgress
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
@@ -158,7 +157,7 @@ private fun OverviewListPreview() {
                                     progressLabel = "1005kcal",
                                     targetRange0to1 = Range(.84f, .88f),
                                     targetRangeLabel = "2.1-2.2k",
-                                    color = ExtraColors.calorieColor,
+                                    color = { it.calorieColor },
                                 ),
                                 MacroProgressItem(
                                     title = "Protein",
@@ -166,7 +165,7 @@ private fun OverviewListPreview() {
                                     progressLabel = "110g",
                                     targetRange0to1 = Range(.8095f, .9047f),
                                     targetRangeLabel = "170-190g",
-                                    color = ExtraColors.proteinColor,
+                                    color = { it.proteinColor },
                                 ),
                                 MacroProgressItem(
                                     title = "Fat",
@@ -174,7 +173,7 @@ private fun OverviewListPreview() {
                                     progressLabel = "30g",
                                     targetRange0to1 = Range(.6818f, .9091f),
                                     targetRangeLabel = "45-60g",
-                                    color = ExtraColors.fatColor,
+                                    color = { it.fatColor },
                                 ),
                                 MacroProgressItem(
                                     title = "Carbs",
@@ -182,7 +181,7 @@ private fun OverviewListPreview() {
                                     progressLabel = "105g",
                                     targetRange0to1 = Range(.6818f, .9091f),
                                     targetRangeLabel = "150-200g",
-                                    color = ExtraColors.carbsColor,
+                                    color = { it.carbsColor },
                                 ),
                                 MacroProgressItem(
                                     title = "Sugar",
@@ -190,7 +189,7 @@ private fun OverviewListPreview() {
                                     progressLabel = "35g",
                                     targetRange0to1 = Range(.9091f, .9091f),
                                     targetRangeLabel = "<40g/<25g added",
-                                    color = ExtraColors.carbsColor,
+                                    color = { it.carbsColor },
                                 ),
                                 MacroProgressItem(
                                     title = "Salt",
@@ -198,7 +197,7 @@ private fun OverviewListPreview() {
                                     progressLabel = "0g",
                                     targetRange0to1 = Range(.9091f, .9091f),
                                     targetRangeLabel = "<5g (≈2g Na)",
-                                    color = ExtraColors.saltColor,
+                                    color = { it.saltColor },
                                 ),
                                 MacroProgressItem(
                                     title = "Fibre",
@@ -206,7 +205,7 @@ private fun OverviewListPreview() {
                                     progressLabel = "0g",
                                     targetRange0to1 = Range(.9091f, .9091f),
                                     targetRangeLabel = "30-38g",
-                                    color = ExtraColors.fibreColor,
+                                    color = { it.fibreColor },
                                 ),
                             )
                         ),

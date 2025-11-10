@@ -18,7 +18,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.AppTheme
-import dev.gaborbiro.dailymacros.design.ExtraColors
+import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelWeeklyReport
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
@@ -32,13 +32,14 @@ internal fun ListItemWeeklySummary(
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
     ) {
         Text(
             modifier = Modifier
                 .padding(horizontal = PaddingHalf)
-                .padding(top = PaddingHalf)
+                .padding(top = PaddingDefault)
                 .align(Alignment.CenterHorizontally),
-            text = "Weekly summary:",
+            text = "Summary for your week below",
             style = MaterialTheme.typography.titleLarge.copy(textDecoration = TextDecoration.Underline),
         )
         Text(
@@ -46,7 +47,15 @@ internal fun ListItemWeeklySummary(
                 .padding(horizontal = PaddingHalf)
                 .padding(top = PaddingHalf)
                 .align(Alignment.CenterHorizontally),
-            text = "Adherence: ${model.averageAdherence100Percentage}%",
+            text = "Adherence score: ${model.averageAdherence100Percentage}%",
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Text(
+            modifier = Modifier
+                .padding(horizontal = PaddingHalf)
+                .padding(top = PaddingHalf)
+                .align(Alignment.Start),
+            text = "Averages:",
             style = MaterialTheme.typography.titleMedium,
         )
         Row(
@@ -128,7 +137,7 @@ private fun ListItemWeeklySummaryPreview() {
                         progressLabel = "1005kcal",
                         targetRange0to1 = Range(.84f, .88f),
                         targetRangeLabel = "2.1-2.2",
-                        color = ExtraColors.calorieColor,
+                        color = { it.calorieColor },
                     ),
                     MacroProgressItem(
                         title = "Protein",
@@ -136,7 +145,7 @@ private fun ListItemWeeklySummaryPreview() {
                         progressLabel = "110g",
                         targetRange0to1 = Range(.8095f, .9047f),
                         targetRangeLabel = "170-190g",
-                        color = ExtraColors.proteinColor,
+                        color = { it.proteinColor },
                     ),
                     MacroProgressItem(
                         title = "Fat",
@@ -144,7 +153,7 @@ private fun ListItemWeeklySummaryPreview() {
                         progressLabel = "30g",
                         targetRange0to1 = Range(.6818f, .9091f),
                         targetRangeLabel = "45-60g",
-                        color = ExtraColors.fatColor,
+                        color = { it.fatColor },
                     ),
                     MacroProgressItem(
                         title = "Carbs",
@@ -152,7 +161,7 @@ private fun ListItemWeeklySummaryPreview() {
                         progressLabel = "105g",
                         targetRange0to1 = Range(.6818f, .9091f),
                         targetRangeLabel = "150-200g",
-                        color = ExtraColors.carbsColor,
+                        color = { it.carbsColor },
                     ),
                     MacroProgressItem(
                         title = "Sugar",
@@ -160,7 +169,7 @@ private fun ListItemWeeklySummaryPreview() {
                         progressLabel = "35g",
                         targetRange0to1 = Range(.9091f, .9091f),
                         targetRangeLabel = "<40g/<25g added",
-                        color = ExtraColors.carbsColor,
+                        color = { it.carbsColor },
                     ),
                     MacroProgressItem(
                         title = "Salt",
@@ -168,7 +177,7 @@ private fun ListItemWeeklySummaryPreview() {
                         progressLabel = "6g",
                         targetRange0to1 = Range(.9091f, .9091f),
                         targetRangeLabel = "<5g (≈2g Na)",
-                        color = ExtraColors.saltColor,
+                        color = { it.saltColor },
                     ),
                     MacroProgressItem(
                         title = "Fibre",
@@ -176,7 +185,7 @@ private fun ListItemWeeklySummaryPreview() {
                         progressLabel = "0g",
                         targetRange0to1 = Range(.9091f, .9091f),
                         targetRangeLabel = "30-38g",
-                        color = ExtraColors.fibreColor,
+                        color = { it.fibreColor },
                     ),
                 ),
                 averageAdherence100Percentage = 86,

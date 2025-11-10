@@ -28,9 +28,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.AppTheme
-import dev.gaborbiro.dailymacros.design.ExtraColors
+import dev.gaborbiro.dailymacros.design.LocalExtraColorScheme
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
+import dev.gaborbiro.dailymacros.design.darkExtraColorScheme
+import dev.gaborbiro.dailymacros.design.lightExtraColorScheme
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.common.views.LocalImage
@@ -132,18 +134,18 @@ private fun RecordTextContent(modifier: Modifier, record: ListUIModelRecord) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    MacroPill(Modifier.weight(1f), it.calories, ExtraColors.calorieColor)
-                    MacroPill(Modifier.weight(1f), it.protein, ExtraColors.proteinColor)
-                    MacroPill(Modifier.weight(1f), it.fat, ExtraColors.fatColor)
+                    MacroPill(Modifier.weight(1f), it.calories, darkExtraColorScheme.calorieColor)
+                    MacroPill(Modifier.weight(1f), it.protein, darkExtraColorScheme.proteinColor)
+                    MacroPill(Modifier.weight(1f), it.fat, darkExtraColorScheme.fatColor)
                 }
                 Spacer(Modifier.height(4.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    MacroPill(Modifier.weight(1f), it.carbs, ExtraColors.carbsColor)
-                    MacroPill(Modifier.weight(1f), it.salt, ExtraColors.saltColor)
-                    MacroPill(Modifier.weight(1f), it.fibre, ExtraColors.fibreColor)
+                    MacroPill(Modifier.weight(1f), it.carbs, darkExtraColorScheme.carbsColor)
+                    MacroPill(Modifier.weight(1f), it.salt, darkExtraColorScheme.saltColor)
+                    MacroPill(Modifier.weight(1f), it.fibre, darkExtraColorScheme.fibreColor)
                 }
             }
         }

@@ -26,7 +26,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.AppTheme
-import dev.gaborbiro.dailymacros.design.ExtraColors
+import dev.gaborbiro.dailymacros.design.ExtraColorScheme
+import dev.gaborbiro.dailymacros.design.LocalExtraColorScheme
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
 import kotlinx.coroutines.delay
@@ -69,9 +70,10 @@ internal fun MacroProgressBar(
 
     val progress = animated.value
     val onBackground = MaterialTheme.colorScheme.onBackground
+    val extraColors = LocalExtraColorScheme.current
 
     val (barColor, trackColor) = remember(progress) {
-        layeredColors(progress0to1 = progress, base = model.color, onBackground = onBackground)
+        layeredColors(progress0to1 = progress, base = model.color(extraColors), onBackground = onBackground)
     }
 
     Column(
@@ -212,7 +214,7 @@ private fun MacroProgressViewPreview() {
         progressLabel = "1005kcal",
         targetRange0to1 = Range(.84f, 1f),
         targetRangeLabel = "2.1-2.2k",
-        color = ExtraColors.calorieColor,
+        color = { it.calorieColor },
     )
     val macro2 = MacroProgressItem(
         title = "Salt",
@@ -220,7 +222,7 @@ private fun MacroProgressViewPreview() {
         progressLabel = "110g",
         targetRange0to1 = Range(.8095f, 1f),
         targetRangeLabel = "170-190g",
-        color = ExtraColors.proteinColor,
+        color = { it.proteinColor },
     )
     AppTheme {
         Row(
