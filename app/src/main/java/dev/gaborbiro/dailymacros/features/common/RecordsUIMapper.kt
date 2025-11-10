@@ -193,7 +193,7 @@ internal class RecordsUIMapper(
     }
 
     private fun map(record: Record, forceDay: Boolean): ListUIModelRecord {
-        val timestampStr = dateUIMapper.map(record.timestamp, forceDay)
+        val timestampStr = dateUIMapper.mapRecordTimestamp(record.timestamp, forceDay)
 
         val macros = record.template.macros
             ?.let { macrosUIMapper.mapMacros(it) }

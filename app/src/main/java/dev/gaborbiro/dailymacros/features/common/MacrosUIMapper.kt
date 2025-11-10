@@ -50,7 +50,7 @@ internal class MacrosUIMapper(
 
         return ListUIModelMacroProgress(
             listItemId = day.day.toEpochDay(),
-            dayTitle = dateUIMapper.map(day.day),
+            dayTitle = dateUIMapper.mapDayTitleTimestamp(day.day),
             infoMessage = infoMessage,
             progress = progressItems,
         )

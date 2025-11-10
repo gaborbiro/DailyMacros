@@ -3,11 +3,10 @@ package dev.gaborbiro.dailymacros.features.common
 import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 
 internal class DateUIMapper {
 
-    fun map(timestamp: ZonedDateTime, forceDay: Boolean): String {
+    fun mapRecordTimestamp(timestamp: ZonedDateTime, forceDay: Boolean): String {
 //        return when {
 //            !timestamp.isBefore(ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS)) -> {
 //                if (forceDay) {
@@ -33,10 +32,14 @@ internal class DateUIMapper {
 //                }
 //            }
 //        }
-        return timestamp.formatShort()
+        return if (forceDay) {
+            timestamp.formatShort()
+        } else {
+            timestamp.formatShortTimeOnly()
+        }
     }
 
-    fun map(localDate: LocalDate): String {
+    fun mapDayTitleTimestamp(localDate: LocalDate): String {
 //        return when {
 //            !localDate.isBefore(LocalDate.now()) -> {
 //                "Today"
@@ -51,7 +54,9 @@ internal class DateUIMapper {
         return localDate.formatShort()
     }
 
-    fun ZonedDateTime.formatShort(): String = format(DateTimeFormatter.ofPattern("dd MMM, H:mm O"))
-    fun ZonedDateTime.formatShortTimeOnly(): String = format(DateTimeFormatter.ofPattern("H:mm O"))
+    //    fun ZonedDateTime.formatShort(): String = format(DateTimeFormatter.ofPattern("dd MMM, H:mm O"))
+//    fun ZonedDateTime.formatShortTimeOnly(): String = format(DateTimeFormatter.ofPattern("H:mm O"))
+    fun ZonedDateTime.formatShort(): String = format(DateTimeFormatter.ofPattern("dd MMM, H:mm"))
+    fun ZonedDateTime.formatShortTimeOnly(): String = format(DateTimeFormatter.ofPattern("H:mm"))
     fun LocalDate.formatShort(): String = format(DateTimeFormatter.ofPattern("E, dd MMM"))
 }
