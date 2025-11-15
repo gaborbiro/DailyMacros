@@ -61,7 +61,8 @@ internal fun ListItemWeeklySummary(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = PaddingHalf, vertical = PaddingHalf),
+                .padding(horizontal = PaddingHalf)
+                .padding(top = PaddingHalf, bottom = PaddingDefault),
         ) {
             val rowHeight = 32.dp
             val leftColumn = model.weeklyProgress.filterIndexed { index, _ -> index % 2 == 0 }

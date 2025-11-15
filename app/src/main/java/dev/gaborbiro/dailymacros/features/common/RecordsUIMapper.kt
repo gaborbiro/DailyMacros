@@ -37,11 +37,11 @@ internal class RecordsUIMapper(
 
             val lookAhead = grouped.getOrNull(index + 1)
             val weekEnded =
-                // Case 1: current record is end of its calendar week
-                travelDay.day.dayOfWeek == firstDayOfWeek.minus(1) ||
-                        // Case 2: next record is in a *different* week
+                // Case 1: the travel day is the last day of its week AND it’s fully past today
+                (travelDay.day.dayOfWeek == firstDayOfWeek.minus(1) && travelDay.day.isBefore(today)) ||
+                        // Case 2: next record belongs to a new week
                         (lookAhead != null && lookAhead.day.get(weekFields.weekOfWeekBasedYear()) != travelDay.day.get(weekFields.weekOfWeekBasedYear())) ||
-                        // Case 3: this is the last record, and it’s from a *past* week
+                        // Case 3: last record, and that week has ended (not current ongoing week)
                         (lookAhead == null && travelDay.day.isBefore(today.with(firstDayOfWeek)))
 
             if (weekEnded) {
@@ -110,8 +110,6 @@ internal class RecordsUIMapper(
             return if (totalHours > 0) weightedSum / totalHours else null
         }
 
-        val hours = dailyTotals.sumOf { it.duration.toHours() }
-        println(hours)
         // 3. Compute weekly weighted averages
         val avgMacros = Macros(
             calories = weightedAvg { it.calories }?.toInt(),
