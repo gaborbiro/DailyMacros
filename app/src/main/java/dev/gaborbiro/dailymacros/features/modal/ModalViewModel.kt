@@ -143,14 +143,14 @@ internal class ModalViewModel(
                     val macros = record.template.macros
                         ?.let {
                             MacrosUIModel(
-                                calories = macrosUIMapper.formatCalories(value = record.template.macros.calories),
-                                protein = macrosUIMapper.formatProtein(value = record.template.macros.protein),
-                                fat = macrosUIMapper.formatFat(value = record.template.macros.fat, saturated = null),
-                                ofWhichSaturated = macrosUIMapper.formatSaturatedFat(value = record.template.macros.ofWhichSaturated),
-                                carbs = macrosUIMapper.formatCarbs(value = record.template.macros.carbohydrates, sugar = null),
-                                ofWhichSugar = macrosUIMapper.formatSugar(value = record.template.macros.ofWhichSugar),
-                                salt = macrosUIMapper.formatSalt(value = record.template.macros.salt),
-                                fibre = macrosUIMapper.formatFibre(value = record.template.macros.fibre),
+                                calories = macrosUIMapper.formatCalories(value = record.template.macros.calories, isShort = false, withLabel = true),
+                                protein = macrosUIMapper.formatProtein(value = record.template.macros.protein, isShort = false, withLabel = true),
+                                fat = macrosUIMapper.formatFat(value = record.template.macros.fat, saturated = null, isShort = false, withLabel = true),
+                                ofWhichSaturated = macrosUIMapper.formatSaturatedFat(value = record.template.macros.ofWhichSaturated, isShort = false, withLabel = true),
+                                carbs = macrosUIMapper.formatCarbs(value = record.template.macros.carbs, sugar = null, isShort = false, withLabel = true),
+                                ofWhichSugar = macrosUIMapper.formatSugar(value = record.template.macros.ofWhichSugar, isShort = false, withLabel = true),
+                                salt = macrosUIMapper.formatSalt(value = record.template.macros.salt, isShort = false, withLabel = true),
+                                fibre = macrosUIMapper.formatFibre(value = record.template.macros.fibre, isShort = false, withLabel = true),
                                 notes = record.template.macros.notes,
                             )
                         }

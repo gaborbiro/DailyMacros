@@ -33,6 +33,7 @@ internal class OverviewUIMapper(
         val firstDayOfWeek = weekFields.firstDayOfWeek
         val result = mutableListOf<ListUIModelBase>()
         val currentWeek = mutableListOf<TravelDay>()
+        var previousWeek: List<TravelDay>? = null
         val today = LocalDate.now()
 
         val grouped = records.groupByWallClockDay()
@@ -52,7 +53,12 @@ internal class OverviewUIMapper(
                         (lookAhead == null && travelDay.day.isBefore(today.with(firstDayOfWeek)))
 
             if (weekEnded) {
-                mapWeeklySummary(currentWeek, targets)?.let { result += it }
+                mapWeeklySummary(
+                    week = currentWeek,
+                    previousWeek = previousWeek,
+                    targets = targets,
+                )?.let { result += it }
+                previousWeek = currentWeek.toList()
                 currentWeek.clear()
             }
         }
@@ -61,42 +67,47 @@ internal class OverviewUIMapper(
     }
 
     private fun mapWeeklySummary(
-        days: List<TravelDay>,
+        week: List<TravelDay>,
+        previousWeek: List<TravelDay>?,
         targets: Targets,
     ): ListUIModelWeeklyReport? {
-        if (days.isEmpty()) return null
+        if (week.isEmpty()) return null
 
-        // 1. Compute total macros per day
+        // 1. Compute total macros per day for a given week
         data class DayTotal(
             val macros: Macros,
             val duration: Duration,
         )
 
-        val dailyTotals = days.mapNotNull { day ->
-            val dayMacros = day.records.mapNotNull { it.template.macros }
-            if (dayMacros.isEmpty()) return@mapNotNull null
+        fun computeDailyTotals(days: List<TravelDay>): List<DayTotal> {
+            return days.mapNotNull { day ->
+                val dayMacros = day.records.mapNotNull { it.template.macros }
+                if (dayMacros.isEmpty()) return@mapNotNull null
 
-            val sum = dayMacros.reduce { acc, m ->
-                Macros(
-                    calories = (acc.calories ?: 0) + (m.calories ?: 0),
-                    protein = (acc.protein ?: 0f) + (m.protein ?: 0f),
-                    fat = (acc.fat ?: 0f) + (m.fat ?: 0f),
-                    ofWhichSaturated = (acc.ofWhichSaturated ?: 0f) + (m.ofWhichSaturated ?: 0f),
-                    carbohydrates = (acc.carbohydrates ?: 0f) + (m.carbohydrates ?: 0f),
-                    ofWhichSugar = (acc.ofWhichSugar ?: 0f) + (m.ofWhichSugar ?: 0f),
-                    salt = (acc.salt ?: 0f) + (m.salt ?: 0f),
-                    fibre = (acc.fibre ?: 0f) + (m.fibre ?: 0f),
-                    notes = null,
-                )
+                val sum = dayMacros.reduce { acc, m ->
+                    Macros(
+                        calories = (acc.calories ?: 0) + (m.calories ?: 0),
+                        protein = (acc.protein ?: 0f) + (m.protein ?: 0f),
+                        fat = (acc.fat ?: 0f) + (m.fat ?: 0f),
+                        ofWhichSaturated = (acc.ofWhichSaturated ?: 0f) + (m.ofWhichSaturated ?: 0f),
+                        carbs = (acc.carbs ?: 0f) + (m.carbs ?: 0f),
+                        ofWhichSugar = (acc.ofWhichSugar ?: 0f) + (m.ofWhichSugar ?: 0f),
+                        salt = (acc.salt ?: 0f) + (m.salt ?: 0f),
+                        fibre = (acc.fibre ?: 0f) + (m.fibre ?: 0f),
+                        notes = null,
+                    )
+                }
+
+                DayTotal(sum, day.duration)
             }
-
-            DayTotal(sum, day.duration)
         }
+
+        val dailyTotals = computeDailyTotals(week)
 
         if (dailyTotals.isEmpty()) return null
 
         // 2. Weighted average helper (by TravelDay duration — long travel days contribute more)
-        fun weightedAvg(selector: (Macros) -> Number?): Number? {
+        fun weightedAvg(dailyTotals: List<DayTotal>, selector: (Macros) -> Number?): Number? {
             var weightedSum = 0.0
             var totalHours = 0.0
             for (day in dailyTotals) {
@@ -108,39 +119,48 @@ internal class OverviewUIMapper(
             return if (totalHours > 0) weightedSum / totalHours else null
         }
 
-        // 3. Compute weekly weighted averages
-        val avgMacros = Macros(
-            calories = weightedAvg { it.calories }?.toInt(),
-            protein = weightedAvg { it.protein }?.toFloat(),
-            fat = weightedAvg { it.fat }?.toFloat(),
-            ofWhichSaturated = weightedAvg { it.ofWhichSaturated }?.toFloat(),
-            carbohydrates = weightedAvg { it.carbohydrates }?.toFloat(),
-            ofWhichSugar = weightedAvg { it.ofWhichSugar }?.toFloat(),
-            salt = weightedAvg { it.salt }?.toFloat(),
-            fibre = weightedAvg { it.fibre }?.toFloat(),
-            notes = null,
-        )
+        fun computeWeeklyAverages(dailyTotals: List<DayTotal>): Macros {
+            return Macros(
+                calories = weightedAvg(dailyTotals) { it.calories }?.toInt(),
+                protein = weightedAvg(dailyTotals) { it.protein }?.toFloat(),
+                fat = weightedAvg(dailyTotals) { it.fat }?.toFloat(),
+                ofWhichSaturated = weightedAvg(dailyTotals) { it.ofWhichSaturated }?.toFloat(),
+                carbs = weightedAvg(dailyTotals) { it.carbs }?.toFloat(),
+                ofWhichSugar = weightedAvg(dailyTotals) { it.ofWhichSugar }?.toFloat(),
+                salt = weightedAvg(dailyTotals) { it.salt }?.toFloat(),
+                fibre = weightedAvg(dailyTotals) { it.fibre }?.toFloat(),
+                notes = null,
+            )
+        }
 
-        // 4. Compare weekly averages against daily targets (no scaling)
+        // 3. Compute weekly weighted averages for current week
+        val avgMacros = computeWeeklyAverages(dailyTotals)
+
+        // 4. Compute previous week's weighted averages if available
+        val previousWeekMacros = previousWeek
+            ?.let { prev -> computeDailyTotals(prev) }
+            ?.takeIf { it.isNotEmpty() }
+            ?.let { computeWeeklyAverages(it) }
+
+        // 5. Compare weekly averages against daily targets (no scaling) for adherence
         val avgAdherence = calculateAdherence(
             macros = avgMacros,
             targets = targets,
             duration = Duration.ofHours(24) // baseline: daily target
         )
 
-        val weekStart = days.minOf { it.day }
+        val weekStart = week.minOf { it.day }
 
         return ListUIModelWeeklyReport(
             listItemId = weekStart.toEpochDay(),
-            weeklyProgress = buildWeeklySummaryMacroItems(avgMacros, targets),
+            weeklyProgress = buildWeeklySummaryMacroItems(avgMacros, targets, previousWeekMacros),
             averageAdherence100Percentage = (avgAdherence * 100).roundToInt()
         )
     }
 
     /**
      * Builds weekly summary macro items with change indicators.
-     * Change is calculated relative to target (showing deviation from target range).
-     * Can be extended to support week-over-week comparison by adding previousWeekMacros parameter.
+     * Change is calculated relative to previous week (showing week-over-week change).
      */
     private fun buildWeeklySummaryMacroItems(
         macros: Macros,
@@ -148,42 +168,32 @@ internal class OverviewUIMapper(
         previousWeekMacros: Macros? = null,
     ): List<WeeklySummaryMacroProgressItem> {
         /**
-         * Calculates change indicator based on deviation from target.
-         * Positive change = above target (for things like calories, carbs where more is worse)
-         * Negative change = below target (for things like protein, fibre where more is better)
-         * Can be extended to calculate week-over-week change if previousWeekMacros is provided.
+         * Calculates change indicator based on week-over-week comparison.
+         * Compares current week macros to previous week macros.
          */
         fun calculateChangeIndicator(
             current: Float?,
-            target: Target,
-            isMoreBetter: Boolean = false, // true for protein/fibre (more is better), false for calories/carbs/salt (less is better)
+            previous: Float?,
         ): ChangeIndicator {
             if (current == null || current == 0f) {
-                return ChangeIndicator(ChangeDirection.NEUTRAL, "0%")
+                return ChangeIndicator(ChangeDirection.NEUTRAL, "")
             }
 
-            // Calculate deviation from target midpoint
-            val targetMid = when {
-                target.min != null && target.max != null -> (target.min + target.max) / 2f
-                target.max != null -> target.max.toFloat()
-                target.min != null -> target.min.toFloat()
-                else -> return ChangeIndicator(ChangeDirection.NEUTRAL, "—")
+            if (previous == null || previous == 0f) {
+                return ChangeIndicator(ChangeDirection.NEUTRAL, "")
             }
 
-            val deviation = current - targetMid
-            val percentChange = if (targetMid > 0) (deviation / targetMid * 100f) else 0f
-
-            // For "more is better" macros (protein, fibre), flip the logic
-            val adjustedChange = if (isMoreBetter) -percentChange else percentChange
+            val deviation = current - previous
+            val percentChange = (deviation / previous * 100f)
 
             val direction = when {
-                adjustedChange > 2f -> ChangeDirection.UP
-                adjustedChange < -2f -> ChangeDirection.DOWN
+                percentChange > 2f -> ChangeDirection.UP
+                percentChange < -2f -> ChangeDirection.DOWN
                 else -> ChangeDirection.NEUTRAL
             }
 
-            val sign = if (adjustedChange > 0) "+" else ""
-            val formattedValue = DecimalFormat("#.#").format(adjustedChange.absoluteValue)
+            val sign = if (percentChange > 0) "+" else ""
+            val formattedValue = DecimalFormat("#.#").format(percentChange.absoluteValue)
             return ChangeIndicator(direction, "$sign$formattedValue%")
         }
 
@@ -193,12 +203,11 @@ internal class OverviewUIMapper(
                     WeeklySummaryMacroProgressItem(
                         title = "Calories",
                         progress0to1 = macrosUIMapper.targetProgress(it, macros.calories?.toFloat() ?: 0f) ?: 0f,
-                        progressLabel = macrosUIMapper.formatCalories(macros.calories, withLabel = false) ?: "0",
+                        progressLabel = macrosUIMapper.formatCalories(macros.calories, isShort = false, withLabel = false) ?: "0",
                         targetRange0to1 = macrosUIMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
                             current = macros.calories?.toFloat(),
-                            target = it,
-                            isMoreBetter = false
+                            previous = previousWeekMacros?.calories?.toFloat(),
                         ),
                         color = { it.calorieColor },
                     )
@@ -209,12 +218,11 @@ internal class OverviewUIMapper(
                     WeeklySummaryMacroProgressItem(
                         title = "Protein",
                         progress0to1 = macrosUIMapper.targetProgress(it, macros.protein ?: 0f) ?: 0f,
-                        progressLabel = macrosUIMapper.formatProtein(macros.protein, withLabel = false) ?: "0g",
+                        progressLabel = macrosUIMapper.formatProtein(macros.protein, isShort = false, withLabel = false) ?: "0g",
                         targetRange0to1 = macrosUIMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
                             current = macros.protein,
-                            target = it,
-                            isMoreBetter = true
+                            previous = previousWeekMacros?.protein,
                         ),
                         color = { it.proteinColor },
                     )
@@ -225,12 +233,11 @@ internal class OverviewUIMapper(
                     WeeklySummaryMacroProgressItem(
                         title = "Salt",
                         progress0to1 = macrosUIMapper.targetProgress(it, macros.salt ?: 0f) ?: 0f,
-                        progressLabel = macrosUIMapper.formatSalt(macros.salt, withLabel = false) ?: "0.0g",
+                        progressLabel = macrosUIMapper.formatSalt(macros.salt, isShort = false, withLabel = false) ?: "0.0g",
                         targetRange0to1 = macrosUIMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
                             current = macros.salt,
-                            target = it,
-                            isMoreBetter = false
+                            previous = previousWeekMacros?.salt,
                         ),
                         color = { it.saltColor },
                     )
@@ -241,12 +248,11 @@ internal class OverviewUIMapper(
                     WeeklySummaryMacroProgressItem(
                         title = "Fibre",
                         progress0to1 = macrosUIMapper.targetProgress(it, macros.fibre ?: 0f) ?: 0f,
-                        progressLabel = macrosUIMapper.formatFibre(macros.fibre, withLabel = false) ?: "0g",
+                        progressLabel = macrosUIMapper.formatFibre(macros.fibre, isShort = false, withLabel = false) ?: "0g",
                         targetRange0to1 = macrosUIMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
                             current = macros.fibre,
-                            target = it,
-                            isMoreBetter = true
+                            previous = previousWeekMacros?.fibre,
                         ),
                         color = { it.fibreColor },
                     )
@@ -256,14 +262,13 @@ internal class OverviewUIMapper(
                 add(
                     WeeklySummaryMacroProgressItem(
                         title = "Carbs",
-                        progress0to1 = macrosUIMapper.targetProgress(it, macros.carbohydrates ?: 0f) ?: 0f,
-                        progressLabel = macrosUIMapper.formatCarbs(macros.carbohydrates, sugar = null, withLabel = false)
+                        progress0to1 = macrosUIMapper.targetProgress(it, macros.carbs ?: 0f) ?: 0f,
+                        progressLabel = macrosUIMapper.formatCarbs(macros.carbs, sugar = null, isShort = false, withLabel = false)
                             ?: "0g",
                         targetRange0to1 = macrosUIMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
-                            current = macros.carbohydrates,
-                            target = it,
-                            isMoreBetter = false
+                            current = macros.carbs,
+                            previous = previousWeekMacros?.carbs,
                         ),
                         color = { it.carbsColor },
                     )
@@ -274,12 +279,11 @@ internal class OverviewUIMapper(
                     WeeklySummaryMacroProgressItem(
                         title = "sugar",
                         progress0to1 = macrosUIMapper.targetProgress(it, macros.ofWhichSugar ?: 0f) ?: 0f,
-                        progressLabel = macrosUIMapper.formatSugar(macros.ofWhichSugar, withLabel = false) ?: "0g",
+                        progressLabel = macrosUIMapper.formatSugar(macros.ofWhichSugar, isShort = false, withLabel = false) ?: "0g",
                         targetRange0to1 = macrosUIMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
                             current = macros.ofWhichSugar,
-                            target = it,
-                            isMoreBetter = false
+                            previous = previousWeekMacros?.ofWhichSugar,
                         ),
                         color = { it.carbsColor },
                     )
@@ -290,13 +294,12 @@ internal class OverviewUIMapper(
                     WeeklySummaryMacroProgressItem(
                         title = "Fat",
                         progress0to1 = macrosUIMapper.targetProgress(it, macros.fat ?: 0f) ?: 0f,
-                        progressLabel = macrosUIMapper.formatFat(macros.fat, saturated = null, withLabel = false)
+                        progressLabel = macrosUIMapper.formatFat(macros.fat, saturated = null, isShort = false, withLabel = false)
                             ?: "0g",
                         targetRange0to1 = macrosUIMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
                             current = macros.fat,
-                            target = it,
-                            isMoreBetter = false
+                            previous = previousWeekMacros?.fat,
                         ),
                         color = { it.fatColor },
                     )
@@ -307,12 +310,11 @@ internal class OverviewUIMapper(
                     WeeklySummaryMacroProgressItem(
                         title = "saturated",
                         progress0to1 = macrosUIMapper.targetProgress(it, macros.ofWhichSaturated ?: 0f) ?: 0f,
-                        progressLabel = macrosUIMapper.formatSaturatedFat(macros.ofWhichSaturated, withLabel = false) ?: "0g",
+                        progressLabel = macrosUIMapper.formatSaturatedFat(macros.ofWhichSaturated, isShort = false, withLabel = false) ?: "0g",
                         targetRange0to1 = macrosUIMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
                             current = macros.ofWhichSaturated,
-                            target = it,
-                            isMoreBetter = false
+                            previous = previousWeekMacros?.ofWhichSaturated,
                         ),
                         color = { it.fatColor },
                     )
@@ -363,7 +365,7 @@ internal class OverviewUIMapper(
         macros.calories?.toFloat()?.let { score(it, targets.calories)?.let(scores::add) }
         macros.protein?.let { score(it, targets.protein)?.let(scores::add) }
         macros.fat?.let { score(it, targets.fat)?.let(scores::add) }
-        macros.carbohydrates?.let { score(it, targets.carbs)?.let(scores::add) }
+        macros.carbs?.let { score(it, targets.carbs)?.let(scores::add) }
         macros.ofWhichSaturated?.let { score(it, targets.ofWhichSaturated)?.let(scores::add) }
         macros.ofWhichSugar?.let { score(it, targets.ofWhichSugar)?.let(scores::add) }
         macros.salt?.let { score(it, targets.salt)?.let(scores::add) }

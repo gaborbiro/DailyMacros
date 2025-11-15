@@ -112,27 +112,27 @@ internal fun WeeklyMacroSummaryBarView(
 
 @Composable
 private fun ChangeIndicatorView(
-    changeIndicator: dev.gaborbiro.dailymacros.features.common.model.ChangeIndicator,
+    changeIndicator: ChangeIndicator,
 ) {
-    val (icon, color) = when (changeIndicator.direction) {
-        ChangeDirection.UP -> Icons.Default.ArrowUpward to Color(0xFF4CAF50) // Green for up
-        ChangeDirection.DOWN -> Icons.Default.ArrowDownward to Color(0xFFE53935) // Red for down
-        ChangeDirection.NEUTRAL -> Icons.Default.Remove to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+    val icon = when (changeIndicator.direction) {
+        ChangeDirection.UP -> Icons.Default.ArrowUpward
+        ChangeDirection.DOWN -> Icons.Default.ArrowDownward
+        ChangeDirection.NEUTRAL -> null
     }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(14.dp),
-            tint = color,
-        )
+        icon?.let {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+            )
+        }
         Text(
             text = changeIndicator.value,
             style = MaterialTheme.typography.labelSmall,
-            color = color,
         )
     }
 }

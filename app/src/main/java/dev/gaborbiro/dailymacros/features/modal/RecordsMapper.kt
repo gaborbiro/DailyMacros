@@ -42,7 +42,7 @@ class RecordsMapper {
             protein = macrosApiModel.proteinGrams,
             fat = macrosApiModel.fatGrams,
             ofWhichSaturated = macrosApiModel.ofWhichSaturatedGrams,
-            carbohydrates = macrosApiModel.carbGrams,
+            carbs = macrosApiModel.carbGrams,
             ofWhichSugar = macrosApiModel.ofWhichSugarGrams,
             salt = macrosApiModel.saltGrams,
             fibre = macrosApiModel.fibreGrams,

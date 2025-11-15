@@ -8,7 +8,7 @@ data class Macros(
     val protein: Float?,
     val fat: Float?,
     val ofWhichSaturated: Float?,
-    val carbohydrates: Float?,
+    val carbs: Float?,
     val ofWhichSugar: Float?,
     val salt: Float?,
     val fibre: Float?,
