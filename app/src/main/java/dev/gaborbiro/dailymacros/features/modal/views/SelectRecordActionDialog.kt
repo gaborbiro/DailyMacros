@@ -21,8 +21,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import dev.gaborbiro.dailymacros.R
-import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
+import dev.gaborbiro.dailymacros.design.ViewPreviewContext
 
 @Composable
 fun SelectRecordActionDialog(
@@ -102,7 +102,7 @@ fun SelectRecordActionDialog(
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun SelectRecordActionDialogPreview() {
-    AppTheme {
+    ViewPreviewContext {
         SelectRecordActionDialog(
             recordId = 1,
             onRepeatTapped = {},

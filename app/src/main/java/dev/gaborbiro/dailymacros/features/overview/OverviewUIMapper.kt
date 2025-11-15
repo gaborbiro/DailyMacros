@@ -149,12 +149,21 @@ internal class OverviewUIMapper(
             duration = Duration.ofHours(24) // baseline: daily target
         )
 
+        val prevWeekAvgAdherence = previousWeekMacros?.let {
+            calculateAdherence(
+                macros = previousWeekMacros,
+                targets = targets,
+                duration = Duration.ofHours(24) // baseline: daily target
+            )
+        }
+
         val weekStart = week.minOf { it.day }
 
         return ListUIModelWeeklyReport(
             listItemId = weekStart.toEpochDay(),
             weeklyProgress = buildWeeklySummaryMacroItems(avgMacros, targets, previousWeekMacros),
-            averageAdherence100Percentage = (avgAdherence * 100).roundToInt()
+            averageAdherence100Percentage = (avgAdherence * 100).roundToInt(),
+            adherenceChange = calculateChangeIndicator(avgAdherence, prevWeekAvgAdherence),
         )
     }
 
@@ -167,36 +176,6 @@ internal class OverviewUIMapper(
         targets: Targets,
         previousWeekMacros: Macros? = null,
     ): List<WeeklySummaryMacroProgressItem> {
-        /**
-         * Calculates change indicator based on week-over-week comparison.
-         * Compares current week macros to previous week macros.
-         */
-        fun calculateChangeIndicator(
-            current: Float?,
-            previous: Float?,
-        ): ChangeIndicator {
-            if (current == null || current == 0f) {
-                return ChangeIndicator(ChangeDirection.NEUTRAL, "")
-            }
-
-            if (previous == null || previous == 0f) {
-                return ChangeIndicator(ChangeDirection.NEUTRAL, "")
-            }
-
-            val deviation = current - previous
-            val percentChange = (deviation / previous * 100f)
-
-            val direction = when {
-                percentChange > 2f -> ChangeDirection.UP
-                percentChange < -2f -> ChangeDirection.DOWN
-                else -> ChangeDirection.NEUTRAL
-            }
-
-            val sign = if (percentChange > 0) "+" else ""
-            val formattedValue = DecimalFormat("#.#").format(percentChange.absoluteValue)
-            return ChangeIndicator(direction, "$sign$formattedValue%")
-        }
-
         return buildList {
             targets.calories.takeIf { it.enabled }?.let {
                 add(
@@ -321,6 +300,36 @@ internal class OverviewUIMapper(
                 )
             }
         }
+    }
+
+    /**
+     * Calculates change indicator based on week-over-week comparison.
+     * Compares current week macros to previous week macros.
+     */
+    private fun calculateChangeIndicator(
+        current: Float?,
+        previous: Float?,
+    ): ChangeIndicator {
+        if (current == null || current == 0f) {
+            return ChangeIndicator(ChangeDirection.NEUTRAL, "")
+        }
+
+        if (previous == null || previous == 0f) {
+            return ChangeIndicator(ChangeDirection.NEUTRAL, "")
+        }
+
+        val deviation = current - previous
+        val percentChange = (deviation / previous * 100f)
+
+        val direction = when {
+            percentChange > 2f -> ChangeDirection.UP
+            percentChange < -2f -> ChangeDirection.DOWN
+            else -> ChangeDirection.NEUTRAL
+        }
+
+        val sign = if (percentChange > 0) "+" else ""
+        val formattedValue = DecimalFormat("#.#").format(percentChange.absoluteValue)
+        return ChangeIndicator(direction, "$sign$formattedValue%")
     }
 
     private fun calculateAdherence(

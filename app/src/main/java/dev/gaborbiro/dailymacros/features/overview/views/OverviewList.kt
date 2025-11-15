@@ -35,13 +35,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.R
-import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
+import dev.gaborbiro.dailymacros.design.ViewPreviewContext
+import dev.gaborbiro.dailymacros.features.common.model.DailyMacroProgressItem
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelDailyMacroProgress
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelWeeklyReport
-import dev.gaborbiro.dailymacros.features.common.model.DailyMacroProgressItem
 import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
 import dev.gaborbiro.dailymacros.features.common.views.CoachMarkOverlay
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
@@ -251,7 +251,7 @@ private fun PrefetchRecordThumbnails(
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun OverviewListPreview() {
-    AppTheme {
+    ViewPreviewContext {
         PreviewImageStoreProvider {
             OverviewList(
                 paddingValues = PaddingValues(),

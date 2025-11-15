@@ -37,10 +37,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
+import dev.gaborbiro.dailymacros.design.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.common.views.PreviewImageStoreProvider
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.MacrosUIModel
@@ -370,7 +370,7 @@ private fun ColumnScope.InputDialogContent(
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreviewEdit() {
-    AppTheme {
+    ViewPreviewContext {
         PreviewImageStoreProvider {
             InputDialog(
                 dialogState = DialogState.InputDialog.RecordDetailsDialog(
@@ -410,7 +410,7 @@ private fun NoteInputDialogContentPreviewEdit() {
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreview() {
-    AppTheme {
+    ViewPreviewContext {
         InputDialog(
             dialogState = DialogState.InputDialog.CreateWithImageDialog(
                 images = listOf("1", "2"),
@@ -435,7 +435,7 @@ private fun NoteInputDialogContentPreview() {
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreviewSuggestion() {
-    AppTheme {
+    ViewPreviewContext {
         PreviewImageStoreProvider {
             InputDialog(
                 dialogState = DialogState.InputDialog.CreateWithImageDialog(
@@ -463,7 +463,7 @@ private fun NoteInputDialogContentPreviewSuggestion() {
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreviewError() {
-    AppTheme {
+    ViewPreviewContext {
         InputDialog(
             dialogState = DialogState.InputDialog.CreateWithImageDialog(
                 images = listOf("1", "2"),

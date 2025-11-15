@@ -27,11 +27,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
+import dev.gaborbiro.dailymacros.design.PreviewContext
+import dev.gaborbiro.dailymacros.features.common.model.DailyMacroProgressItem
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelDailyMacroProgress
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
-import dev.gaborbiro.dailymacros.features.common.model.DailyMacroProgressItem
 import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
 import dev.gaborbiro.dailymacros.features.common.views.PreviewImageStoreProvider
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
@@ -142,7 +142,7 @@ fun AddWidgetButton() {
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun OverviewListPreview() {
-    AppTheme {
+    PreviewContext {
         PreviewImageStoreProvider {
             OverviewView(
                 viewState = OverviewViewState(
@@ -262,7 +262,7 @@ private fun OverviewListPreview() {
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun OverviewListPreviewEmpty() {
-    AppTheme {
+    PreviewContext {
         PreviewImageStoreProvider {
             OverviewView(
                 viewState = OverviewViewState(

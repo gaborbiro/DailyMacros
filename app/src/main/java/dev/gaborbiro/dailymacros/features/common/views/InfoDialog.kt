@@ -6,7 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import dev.gaborbiro.dailymacros.design.AppTheme
+import dev.gaborbiro.dailymacros.design.ViewPreviewContext
 
 val dismissivePositiveButtons = arrayOf(
     "Fine",
@@ -44,7 +44,7 @@ fun InfoDialog(message: String, onDismissRequested: () -> Unit) {
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun InfoDialogPreview() {
-    AppTheme {
+    ViewPreviewContext {
         InfoDialog("You can add as many images as you like. Nutritional labels are particularly useful. You can also add more pics later, don't worry about gathering all info right away.") { }
     }
 }

@@ -17,9 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
+import dev.gaborbiro.dailymacros.design.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.common.model.ChangeDirection
 import dev.gaborbiro.dailymacros.features.common.model.ChangeIndicator
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelWeeklyReport
@@ -44,14 +44,26 @@ internal fun ListItemWeeklySummary(
             text = "Summary for your week below",
             style = MaterialTheme.typography.titleLarge.copy(textDecoration = TextDecoration.Underline),
         )
-        Text(
+        Row(
             modifier = Modifier
-                .padding(horizontal = PaddingHalf)
                 .padding(top = PaddingHalf)
                 .align(Alignment.CenterHorizontally),
-            text = "Adherence score: ${model.averageAdherence100Percentage}%",
-            style = MaterialTheme.typography.titleMedium,
-        )
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                modifier = Modifier
+                    .padding(horizontal = PaddingHalf),
+                text = "Adherence score: ${model.averageAdherence100Percentage}%",
+                style = MaterialTheme.typography.titleMedium,
+            )
+            model.adherenceChange?.let {
+                ChangeIndicatorView(
+                    changeIndicator = it,
+                    showColor = true,
+                    textStyle = MaterialTheme.typography.titleSmall,
+                )
+            }
+        }
         Text(
             modifier = Modifier
                 .padding(horizontal = PaddingHalf)
@@ -127,7 +139,7 @@ internal fun ListItemWeeklySummary(
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun ListItemWeeklySummaryPreview() {
-    AppTheme {
+    ViewPreviewContext {
         ListItemWeeklySummary(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background),
@@ -192,6 +204,7 @@ private fun ListItemWeeklySummaryPreview() {
                     ),
                 ),
                 averageAdherence100Percentage = 86,
+                adherenceChange = ChangeIndicator(ChangeDirection.UP, "+1.5%"),
             ),
         )
     }

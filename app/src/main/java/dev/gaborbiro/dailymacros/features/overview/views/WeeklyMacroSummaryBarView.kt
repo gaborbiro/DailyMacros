@@ -9,13 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,9 +20,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.design.LocalExtraColorScheme
 import dev.gaborbiro.dailymacros.design.PaddingHalf
+import dev.gaborbiro.dailymacros.design.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.common.model.ChangeDirection
 import dev.gaborbiro.dailymacros.features.common.model.ChangeIndicator
 import dev.gaborbiro.dailymacros.features.common.model.WeeklySummaryMacroProgressItem
@@ -105,38 +99,12 @@ internal fun WeeklyMacroSummaryBarView(
             )
             ChangeIndicatorView(
                 changeIndicator = model.changeIndicator,
+                showColor = false,
+                textStyle = MaterialTheme.typography.labelSmall,
             )
         }
     }
 }
-
-@Composable
-private fun ChangeIndicatorView(
-    changeIndicator: ChangeIndicator,
-) {
-    val icon = when (changeIndicator.direction) {
-        ChangeDirection.UP -> Icons.Default.ArrowUpward
-        ChangeDirection.DOWN -> Icons.Default.ArrowDownward
-        ChangeDirection.NEUTRAL -> null
-    }
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        icon?.let {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(14.dp),
-            )
-        }
-        Text(
-            text = changeIndicator.value,
-            style = MaterialTheme.typography.labelSmall,
-        )
-    }
-}
-
 
 @Preview
 @Composable
@@ -164,7 +132,7 @@ private fun WeeklyMacroSummaryBarViewPreview() {
         ),
         color = { it.proteinColor },
     )
-    AppTheme {
+    ViewPreviewContext {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

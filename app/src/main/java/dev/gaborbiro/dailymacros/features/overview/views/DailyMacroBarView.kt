@@ -19,9 +19,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.design.LocalExtraColorScheme
 import dev.gaborbiro.dailymacros.design.PaddingHalf
+import dev.gaborbiro.dailymacros.design.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.common.model.DailyMacroProgressItem
 import kotlinx.coroutines.delay
 
@@ -121,7 +121,7 @@ private fun DailyDailyMacroBarViewPreview() {
         targetRangeLabel = "170-190g",
         color = { it.proteinColor },
     )
-    AppTheme {
+    ViewPreviewContext {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

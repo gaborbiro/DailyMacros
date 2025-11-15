@@ -27,9 +27,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
+import dev.gaborbiro.dailymacros.design.ViewPreviewContext
 import dev.gaborbiro.dailymacros.design.darkExtraColorScheme
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
@@ -175,7 +175,7 @@ private fun MacroPill(
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, widthDp = 200)
 private fun OverviewListItemPreview() {
-    AppTheme {
+    ViewPreviewContext {
         PreviewImageStoreProvider {
             ListItemRecord(
                 record = ListUIModelRecord(
@@ -205,7 +205,7 @@ private fun OverviewListItemPreview() {
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun OverviewListItemPreviewLoading() {
-    AppTheme {
+    ViewPreviewContext {
         PreviewImageStoreProvider {
             ListItemRecord(
                 record = ListUIModelRecord(

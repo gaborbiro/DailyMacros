@@ -16,10 +16,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.design.PaddingHalf
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelDailyMacroProgress
+import dev.gaborbiro.dailymacros.design.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.common.model.DailyMacroProgressItem
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelDailyMacroProgress
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -114,7 +114,7 @@ internal fun ListItemDailyMacros(
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun ListItemDailyMacrosPreview() {
-    AppTheme {
+    ViewPreviewContext {
         ListItemDailyMacros(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background),

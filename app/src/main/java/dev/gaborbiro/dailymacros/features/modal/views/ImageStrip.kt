@@ -28,10 +28,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.R
-import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
+import dev.gaborbiro.dailymacros.design.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.common.views.LocalImage
 import dev.gaborbiro.dailymacros.features.common.views.PreviewImageStoreProvider
 
@@ -125,7 +125,7 @@ fun ImageStrip(
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun ImageStripPreview() {
-    AppTheme {
+    ViewPreviewContext {
         PreviewImageStoreProvider {
             ImageStrip(
                 images = listOf("1", "2"),
@@ -143,7 +143,7 @@ private fun ImageStripPreview() {
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun ImageStripPreviewViewOnly() {
-    AppTheme {
+    ViewPreviewContext {
         PreviewImageStoreProvider {
             ImageStrip(
                 images = listOf("1", "2"),

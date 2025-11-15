@@ -53,10 +53,11 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.BuildConfig
-import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
+import dev.gaborbiro.dailymacros.design.PreviewContext
+import dev.gaborbiro.dailymacros.design.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.settings.model.FieldErrors
 import dev.gaborbiro.dailymacros.features.settings.model.MacroType
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUIModel
@@ -333,7 +334,7 @@ private fun ExitConfirmationDialog(
 @Preview(name = "Default - Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun SettingsViewPreview_Default() {
-    AppTheme {
+    PreviewContext {
         SettingsView(
             viewState = SettingsViewState(
                 settings = SettingsUIModel(targets = dummyTargets()),
@@ -356,7 +357,7 @@ private fun SettingsViewPreview_Default() {
 @Preview(name = "Dirty Valid - Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun SettingsViewPreview_DirtyValid() {
-    AppTheme {
+    PreviewContext {
         SettingsView(
             viewState = SettingsViewState(
                 settings = SettingsUIModel(targets = dummyTargets(calories = 1800 to 2000, protein = 60 to 120)),
@@ -379,7 +380,7 @@ private fun SettingsViewPreview_DirtyValid() {
 @Preview(name = "Dirty Invalid - Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun SettingsViewPreview_DirtyInvalid() {
-    AppTheme {
+    PreviewContext {
         SettingsView(
             viewState = SettingsViewState(
                 settings = SettingsUIModel(targets = dummyTargets(calories = 2200 to 2000)), // min > max
@@ -402,7 +403,7 @@ private fun SettingsViewPreview_DirtyInvalid() {
 @Preview(name = "Exit Dialog Valid - Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun ExitDialogPreview_Valid() {
-    AppTheme {
+    ViewPreviewContext {
         ExitConfirmationDialog(
             canSave = true,
             onSave = {},
@@ -416,7 +417,7 @@ private fun ExitDialogPreview_Valid() {
 @Preview(name = "Exit Dialog Invalid - Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun ExitDialogPreview_Invalid() {
-    AppTheme {
+    ViewPreviewContext {
         ExitConfirmationDialog(
             canSave = false,
             onSave = {},
