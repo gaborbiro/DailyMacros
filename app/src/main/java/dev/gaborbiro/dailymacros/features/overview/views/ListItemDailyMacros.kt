@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.gaborbiro.dailymacros.design.PaddingDouble
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.common.model.DailyMacroProgressItem
@@ -26,6 +27,7 @@ import dev.gaborbiro.dailymacros.features.common.model.ListUIModelDailyMacroProg
 internal fun ListItemDailyMacros(
     modifier: Modifier = Modifier,
     model: ListUIModelDailyMacroProgress,
+    showTopPadding: Boolean,
 ) {
     Column(
         modifier = modifier
@@ -34,7 +36,13 @@ internal fun ListItemDailyMacros(
         Text(
             modifier = Modifier
                 .padding(horizontal = PaddingHalf)
-                .padding(top = PaddingHalf)
+                .let {
+                    if (showTopPadding) {
+                        it.padding(top = PaddingDouble)
+                    } else {
+                        it
+                    }
+                }
                 .align(Alignment.CenterHorizontally),
             text = model.dayTitle,
             style = MaterialTheme.typography.titleMedium,
@@ -179,8 +187,9 @@ private fun ListItemDailyMacrosPreview() {
                         targetRangeLabel = "30-38g",
                         color = { it.fibreColor },
                     ),
-                )
+                ),
             ),
+            showTopPadding = false,
         )
     }
 }

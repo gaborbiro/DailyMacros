@@ -5,7 +5,7 @@ package dev.gaborbiro.dailymacros.features.common.model
  */
 internal data class ChangeIndicator(
     val direction: ChangeDirection,
-    val value: String, // e.g., "+5.2%", "-3.1%", "0%"
+    val value: String, // e.g., "+5%", "-3%", "0%"
 )
 
 /**

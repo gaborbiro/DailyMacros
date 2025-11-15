@@ -18,6 +18,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.PaddingDefault
+import dev.gaborbiro.dailymacros.design.PaddingDouble
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.common.model.ChangeDirection
@@ -33,13 +34,14 @@ internal fun ListItemWeeklySummary(
 ) {
     Column(
         modifier = modifier
+            .padding(top = PaddingDouble)
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
     ) {
         Text(
             modifier = Modifier
                 .padding(horizontal = PaddingHalf)
-                .padding(top = PaddingDefault)
+                .padding(top = PaddingHalf)
                 .align(Alignment.CenterHorizontally),
             text = "Summary for your week below",
             style = MaterialTheme.typography.titleLarge.copy(textDecoration = TextDecoration.Underline),

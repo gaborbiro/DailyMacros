@@ -97,7 +97,7 @@ internal fun OverviewList(
                 items = viewState.items,
                 key = { _, item -> item.listItemId },
                 contentType = { _, item -> item.contentType },
-            ) { _, item ->
+            ) { index, item ->
                 when (item) {
                     is ListUIModelRecord -> {
                         val onOpen = remember(item.listItemId) { { expandedId = item.listItemId } }
@@ -131,7 +131,8 @@ internal fun OverviewList(
 
                     is ListUIModelDailyMacroProgress -> {
                         ListItemDailyMacros(
-                            model = item
+                            model = item,
+                            showTopPadding = index > 0,
                         )
                     }
 

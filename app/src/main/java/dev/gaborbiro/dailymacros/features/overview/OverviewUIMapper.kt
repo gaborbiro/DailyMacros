@@ -17,7 +17,6 @@ import java.time.Duration
 import java.time.LocalDate
 import java.time.temporal.WeekFields
 import java.util.Locale
-import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 
 internal class OverviewUIMapper(
@@ -319,17 +318,16 @@ internal class OverviewUIMapper(
         }
 
         val deviation = current - previous
-        val percentChange = (deviation / previous * 100f)
+        val percentChange = deviation / previous
 
         val direction = when {
-            percentChange > 2f -> ChangeDirection.UP
-            percentChange < -2f -> ChangeDirection.DOWN
+            percentChange * 100 > 2f -> ChangeDirection.UP
+            percentChange * 100 < -2f -> ChangeDirection.DOWN
             else -> ChangeDirection.NEUTRAL
         }
 
-        val sign = if (percentChange > 0) "+" else ""
-        val formattedValue = DecimalFormat("#.#").format(percentChange.absoluteValue)
-        return ChangeIndicator(direction, "$sign$formattedValue%")
+        val formattedValue = DecimalFormat("+#%;-#%").format(percentChange)
+        return ChangeIndicator(direction, formattedValue)
     }
 
     private fun calculateAdherence(
