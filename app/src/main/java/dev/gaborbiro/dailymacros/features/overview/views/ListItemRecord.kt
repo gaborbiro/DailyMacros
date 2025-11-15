@@ -28,13 +28,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.AppTheme
-import dev.gaborbiro.dailymacros.design.LocalExtraColorScheme
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.design.darkExtraColorScheme
-import dev.gaborbiro.dailymacros.design.lightExtraColorScheme
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
-import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
+import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
 import dev.gaborbiro.dailymacros.features.common.views.LocalImage
 import dev.gaborbiro.dailymacros.features.common.views.PreviewImageStoreProvider
 import dev.gaborbiro.dailymacros.features.widgetDiary.views.ListItemImageCornerRadius
@@ -129,7 +127,7 @@ private fun RecordTextContent(modifier: Modifier, record: ListUIModelRecord) {
                 style = MaterialTheme.typography.bodyLarge,
             )
         } else {
-            record.macros?.let {
+            record.macrosAmounts?.let {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -186,7 +184,7 @@ private fun OverviewListItemPreview() {
                     templateId = 1L,
                     images = listOf("", ""),
                     timestamp = "Tue 19 Aug, 20:49",
-                    macros = MacrosUIModel(
+                    macrosAmounts = MacrosAmountsUIModel(
                         calories = "1008cal",
                         protein = "protein 8",
                         fat = "fat 4(2)",
@@ -216,7 +214,7 @@ private fun OverviewListItemPreviewLoading() {
                     templateId = 1L,
                     images = listOf("", ""),
                     timestamp = "Tue 19 Aug, 20:49",
-                    macros = MacrosUIModel(
+                    macrosAmounts = MacrosAmountsUIModel(
                         calories = "1008cal",
                         protein = "protein 8",
                         fat = "fat 4(2)",

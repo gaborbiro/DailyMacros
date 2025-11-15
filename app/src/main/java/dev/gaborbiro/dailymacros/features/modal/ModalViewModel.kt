@@ -143,14 +143,14 @@ internal class ModalViewModel(
                     val macros = record.template.macros
                         ?.let {
                             MacrosUIModel(
-                                calories = macrosUIMapper.mapCalories(value = record.template.macros.calories),
-                                protein = macrosUIMapper.mapProtein(value = record.template.macros.protein),
-                                fat = macrosUIMapper.mapFat(value = record.template.macros.fat, saturated = null),
-                                ofWhichSaturated = macrosUIMapper.mapSaturated(value = record.template.macros.ofWhichSaturated),
-                                carbs = macrosUIMapper.mapCarbs(value = record.template.macros.carbohydrates, sugar = null),
-                                ofWhichSugar = macrosUIMapper.mapSugar(value = record.template.macros.ofWhichSugar),
-                                salt = macrosUIMapper.mapSalt(value = record.template.macros.salt),
-                                fibre = macrosUIMapper.mapFibre(value = record.template.macros.fibre),
+                                calories = macrosUIMapper.formatCalories(value = record.template.macros.calories),
+                                protein = macrosUIMapper.formatProtein(value = record.template.macros.protein),
+                                fat = macrosUIMapper.formatFat(value = record.template.macros.fat, saturated = null),
+                                ofWhichSaturated = macrosUIMapper.formatSaturatedFat(value = record.template.macros.ofWhichSaturated),
+                                carbs = macrosUIMapper.formatCarbs(value = record.template.macros.carbohydrates, sugar = null),
+                                ofWhichSugar = macrosUIMapper.formatSugar(value = record.template.macros.ofWhichSugar),
+                                salt = macrosUIMapper.formatSalt(value = record.template.macros.salt),
+                                fibre = macrosUIMapper.formatFibre(value = record.template.macros.fibre),
                                 notes = record.template.macros.notes,
                             )
                         }

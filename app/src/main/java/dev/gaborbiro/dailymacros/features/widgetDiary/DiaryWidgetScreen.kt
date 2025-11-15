@@ -35,7 +35,6 @@ import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPickFooter
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPickHeader
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.widgetDiary.views.LocalImageStoreWidget
 import dev.gaborbiro.dailymacros.features.widgetDiary.views.DiaryWidgetView
 import dev.gaborbiro.dailymacros.features.widgetDiary.workers.ReloadWorker
@@ -90,9 +89,10 @@ class DiaryWidgetScreen : GlanceAppWidget() {
                         val widgetUIMapper = WidgetUIMapper(macrosUIMapper)
 
                         val topTemplates = widgetUIMapper.map(widgetPrefs.retrieveTopTemplates())
-                        val recentRecords = recordsUIMapper
-                            .map(widgetPrefs.retrieveRecentRecords(), showDay = true)
-                            .filterIsInstance<ListUIModelRecord>()
+
+                        val recentRecords = widgetPrefs.retrieveRecentRecords().map {
+                            recordsUIMapper.map(it, forceDay = true)
+                        }
 
                         val items = buildList {
                             if (recentRecords.isNotEmpty() || topTemplates.isNotEmpty()) {

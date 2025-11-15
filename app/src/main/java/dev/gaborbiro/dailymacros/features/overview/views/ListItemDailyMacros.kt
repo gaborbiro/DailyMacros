@@ -18,14 +18,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.design.PaddingHalf
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelMacroProgress
-import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelDailyMacroProgress
+import dev.gaborbiro.dailymacros.features.common.model.DailyMacroProgressItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun ListItemMacroProgressBars(
+internal fun ListItemDailyMacros(
     modifier: Modifier = Modifier,
-    model: ListUIModelMacroProgress,
+    model: ListUIModelDailyMacroProgress,
 ) {
     Column(
         modifier = modifier
@@ -60,7 +60,7 @@ internal fun ListItemMacroProgressBars(
                 horizontalAlignment = Alignment.End,
             ) {
                 leftColumn.forEach {
-                    MacroTitleView(
+                    DailyMacroTitleView(
                         modifier = Modifier
                             .height(rowHeight),
                         model = it,
@@ -72,7 +72,7 @@ internal fun ListItemMacroProgressBars(
                     .weight(.5f)
             ) {
                 leftColumn.forEachIndexed { index, item ->
-                    MacroProgressBar(
+                    DailyMacroBarView(
                         modifier = Modifier
                             .height(rowHeight),
                         model = item,
@@ -85,7 +85,7 @@ internal fun ListItemMacroProgressBars(
                 horizontalAlignment = Alignment.End,
             ) {
                 rightColumn.forEach {
-                    MacroTitleView(
+                    DailyMacroTitleView(
                         modifier = Modifier
                             .height(rowHeight),
                         model = it,
@@ -97,7 +97,7 @@ internal fun ListItemMacroProgressBars(
                     .weight(.5f)
             ) {
                 rightColumn.forEachIndexed { index, item ->
-                    MacroProgressBar(
+                    DailyMacroBarView(
                         modifier = Modifier
                             .height(rowHeight),
                         model = item,
@@ -113,17 +113,17 @@ internal fun ListItemMacroProgressBars(
 @Preview
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-private fun ListItemMacroProgressBarsPreview() {
+private fun ListItemDailyMacrosPreview() {
     AppTheme {
-        ListItemMacroProgressBars(
+        ListItemDailyMacros(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background),
-            model = ListUIModelMacroProgress(
+            model = ListUIModelDailyMacroProgress(
                 listItemId = 1L,
                 dayTitle = "Yesterday",
                 infoMessage = "\uD83D\uDCA1Due to timezone change, you now have 6 hours left of this day. To help your stomach adjust, consider smaller meals, spread out evenly.",
                 progress = listOf(
-                    MacroProgressItem(
+                    DailyMacroProgressItem(
                         title = "Calories",
                         progress0to1 = .15f,
                         progressLabel = "1005kcal",
@@ -131,7 +131,7 @@ private fun ListItemMacroProgressBarsPreview() {
                         targetRangeLabel = "2.1-2.2",
                         color = { it.calorieColor },
                     ),
-                    MacroProgressItem(
+                    DailyMacroProgressItem(
                         title = "Protein",
                         progress0to1 = .0809f,
                         progressLabel = "110g",
@@ -139,7 +139,7 @@ private fun ListItemMacroProgressBarsPreview() {
                         targetRangeLabel = "170-190g",
                         color = { it.proteinColor },
                     ),
-                    MacroProgressItem(
+                    DailyMacroProgressItem(
                         title = "Fat",
                         progress0to1 = .2121f,
                         progressLabel = "30g",
@@ -147,7 +147,7 @@ private fun ListItemMacroProgressBarsPreview() {
                         targetRangeLabel = "45-60g",
                         color = { it.fatColor },
                     ),
-                    MacroProgressItem(
+                    DailyMacroProgressItem(
                         title = "Carbs",
                         progress0to1 = .4818f,
                         progressLabel = "105g",
@@ -155,7 +155,7 @@ private fun ListItemMacroProgressBarsPreview() {
                         targetRangeLabel = "150-200g",
                         color = { it.carbsColor },
                     ),
-                    MacroProgressItem(
+                    DailyMacroProgressItem(
                         title = "Sugar",
                         progress0to1 = .2955f,
                         progressLabel = "35g",
@@ -163,7 +163,7 @@ private fun ListItemMacroProgressBarsPreview() {
                         targetRangeLabel = "<40g/<25g added",
                         color = { it.carbsColor },
                     ),
-                    MacroProgressItem(
+                    DailyMacroProgressItem(
                         title = "Salt",
                         progress0to1 = 1.2f,
                         progressLabel = "6g",
@@ -171,7 +171,7 @@ private fun ListItemMacroProgressBarsPreview() {
                         targetRangeLabel = "<5g (≈2g Na)",
                         color = { it.saltColor },
                     ),
-                    MacroProgressItem(
+                    DailyMacroProgressItem(
                         title = "Fibre",
                         progress0to1 = .0f,
                         progressLabel = "0g",

@@ -67,7 +67,7 @@ internal class FetchMacrosUseCase(
                     templateId = record.template.dbId,
                     macros = macros,
                 )
-                val macrosStr = macrosUIMapper.mapMacrosString(macros)
+                val macrosStr = macrosUIMapper.mapMacrosPrintout(macros)
                 appContext.showMacroResultsNotification(
                     id = 123000L + recordId,
                     recordId = recordId,

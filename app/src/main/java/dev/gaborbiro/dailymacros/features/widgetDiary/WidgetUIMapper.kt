@@ -15,7 +15,7 @@ internal class WidgetUIMapper(
     }
 
     private fun map(template: Template): ListUIModelQuickPick {
-        val macros = template.macros?.let(macrosUIMapper::mapMacros)
+        val macros = template.macros?.let(macrosUIMapper::mapMacroAmounts)
         return ListUIModelQuickPick(
             templateId = template.dbId,
             images = template.images,

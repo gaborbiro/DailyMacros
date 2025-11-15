@@ -20,8 +20,10 @@ import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
+import dev.gaborbiro.dailymacros.features.common.model.ChangeDirection
+import dev.gaborbiro.dailymacros.features.common.model.ChangeIndicator
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelWeeklyReport
-import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
+import dev.gaborbiro.dailymacros.features.common.model.WeeklySummaryMacroProgressItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,7 +73,7 @@ internal fun ListItemWeeklySummary(
                 horizontalAlignment = Alignment.End,
             ) {
                 leftColumn.forEach {
-                    MacroTitleView(
+                    WeeklySummaryTitleView(
                         modifier = Modifier
                             .height(rowHeight),
                         model = it,
@@ -83,7 +85,7 @@ internal fun ListItemWeeklySummary(
                     .weight(.5f)
             ) {
                 leftColumn.forEachIndexed { index, item ->
-                    MacroProgressBar(
+                    WeeklyMacroSummaryBarView(
                         modifier = Modifier
                             .height(rowHeight),
                         model = item,
@@ -96,7 +98,7 @@ internal fun ListItemWeeklySummary(
                 horizontalAlignment = Alignment.End,
             ) {
                 rightColumn.forEach {
-                    MacroTitleView(
+                    WeeklySummaryTitleView(
                         modifier = Modifier
                             .height(rowHeight),
                         model = it,
@@ -108,7 +110,7 @@ internal fun ListItemWeeklySummary(
                     .weight(.5f)
             ) {
                 rightColumn.forEachIndexed { index, item ->
-                    MacroProgressBar(
+                    WeeklyMacroSummaryBarView(
                         modifier = Modifier
                             .height(rowHeight),
                         model = item,
@@ -132,60 +134,60 @@ private fun ListItemWeeklySummaryPreview() {
             model = ListUIModelWeeklyReport(
                 listItemId = 1L,
                 weeklyProgress = listOf(
-                    MacroProgressItem(
+                    WeeklySummaryMacroProgressItem(
                         title = "Calories",
                         progress0to1 = .15f,
                         progressLabel = "1005kcal",
                         targetRange0to1 = Range(.84f, .88f),
-                        targetRangeLabel = "2.1-2.2",
+                        changeIndicator = ChangeIndicator(ChangeDirection.UP, "+5.2%"),
                         color = { it.calorieColor },
                     ),
-                    MacroProgressItem(
+                    WeeklySummaryMacroProgressItem(
                         title = "Protein",
                         progress0to1 = .0809f,
                         progressLabel = "110g",
                         targetRange0to1 = Range(.8095f, .9047f),
-                        targetRangeLabel = "170-190g",
+                        changeIndicator = ChangeIndicator(ChangeDirection.DOWN, "-3.1%"),
                         color = { it.proteinColor },
                     ),
-                    MacroProgressItem(
+                    WeeklySummaryMacroProgressItem(
                         title = "Fat",
                         progress0to1 = .2121f,
                         progressLabel = "30g",
                         targetRange0to1 = Range(.6818f, .9091f),
-                        targetRangeLabel = "45-60g",
+                        changeIndicator = ChangeIndicator(ChangeDirection.NEUTRAL, "0%"),
                         color = { it.fatColor },
                     ),
-                    MacroProgressItem(
+                    WeeklySummaryMacroProgressItem(
                         title = "Carbs",
                         progress0to1 = .4818f,
                         progressLabel = "105g",
                         targetRange0to1 = Range(.6818f, .9091f),
-                        targetRangeLabel = "150-200g",
+                        changeIndicator = ChangeIndicator(ChangeDirection.UP, "+2.5%"),
                         color = { it.carbsColor },
                     ),
-                    MacroProgressItem(
+                    WeeklySummaryMacroProgressItem(
                         title = "Sugar",
                         progress0to1 = .2955f,
                         progressLabel = "35g",
                         targetRange0to1 = Range(.9091f, .9091f),
-                        targetRangeLabel = "<40g/<25g added",
+                        changeIndicator = ChangeIndicator(ChangeDirection.DOWN, "-1.8%"),
                         color = { it.carbsColor },
                     ),
-                    MacroProgressItem(
+                    WeeklySummaryMacroProgressItem(
                         title = "Salt",
                         progress0to1 = 1.2f,
                         progressLabel = "6g",
                         targetRange0to1 = Range(.9091f, .9091f),
-                        targetRangeLabel = "<5g (≈2g Na)",
+                        changeIndicator = ChangeIndicator(ChangeDirection.UP, "+8.3%"),
                         color = { it.saltColor },
                     ),
-                    MacroProgressItem(
+                    WeeklySummaryMacroProgressItem(
                         title = "Fibre",
                         progress0to1 = .0f,
                         progressLabel = "0g",
                         targetRange0to1 = Range(.9091f, .9091f),
-                        targetRangeLabel = "30-38g",
+                        changeIndicator = ChangeIndicator(ChangeDirection.DOWN, "-12.5%"),
                         color = { it.fibreColor },
                     ),
                 ),

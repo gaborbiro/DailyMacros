@@ -3,39 +3,41 @@ package dev.gaborbiro.dailymacros.features.overview.views
 import android.content.res.Configuration
 import android.util.Range
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.AppTheme
-import dev.gaborbiro.dailymacros.design.ExtraColorScheme
 import dev.gaborbiro.dailymacros.design.LocalExtraColorScheme
 import dev.gaborbiro.dailymacros.design.PaddingHalf
-import dev.gaborbiro.dailymacros.features.common.model.MacroProgressItem
+import dev.gaborbiro.dailymacros.features.common.model.ChangeDirection
+import dev.gaborbiro.dailymacros.features.common.model.ChangeIndicator
+import dev.gaborbiro.dailymacros.features.common.model.WeeklySummaryMacroProgressItem
 import kotlinx.coroutines.delay
 
 @Composable
-internal fun MacroProgressBar(
+internal fun WeeklyMacroSummaryBarView(
     modifier: Modifier,
-    model: MacroProgressItem,
+    model: WeeklySummaryMacroProgressItem,
     rowIndex: Int,
     totalRowCount: Int,
 ) {
@@ -81,7 +83,7 @@ internal fun MacroProgressBar(
             .padding(horizontal = PaddingHalf)
             .padding(top = 7.dp),
     ) {
-        MacroProgressBar(
+        ProgressView(
             modifier = Modifier.fillMaxWidth(),
             progress0to1 = progress,
             min0to1 = model.targetRange0to1.lower,
@@ -92,7 +94,8 @@ internal fun MacroProgressBar(
 
         Row(
             modifier = Modifier
-                .padding(top = 2.dp)
+                .padding(top = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 modifier = Modifier.weight(1f),
@@ -100,128 +103,65 @@ internal fun MacroProgressBar(
                 style = MaterialTheme.typography.labelSmall,
                 color = if (model.progress0to1 > 1f) Color.Red else Color.Unspecified,
             )
-            Text(
-                text = model.targetRangeLabel,
-                style = MaterialTheme.typography.labelSmall,
+            ChangeIndicatorView(
+                changeIndicator = model.changeIndicator,
             )
         }
     }
 }
 
 @Composable
-private fun MacroProgressBar(
-    modifier: Modifier,
-    progress0to1: Float,
-    min0to1: Float,
-    max0to1: Float,
-    progressColor: Color,
-    trackColor: Color,
-    barHeight: Dp = 6.dp,
+private fun ChangeIndicatorView(
+    changeIndicator: dev.gaborbiro.dailymacros.features.common.model.ChangeIndicator,
 ) {
-    Canvas(modifier = modifier.height(barHeight)) {
-        val radius = size.height / 2
-        val cornerRadius = CornerRadius(radius, radius)
+    val (icon, color) = when (changeIndicator.direction) {
+        ChangeDirection.UP -> Icons.Default.ArrowUpward to Color(0xFF4CAF50) // Green for up
+        ChangeDirection.DOWN -> Icons.Default.ArrowDownward to Color(0xFFE53935) // Red for down
+        ChangeDirection.NEUTRAL -> Icons.Default.Remove to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+    }
 
-        // Track (full background)
-        drawRoundRect(
-            color = trackColor,
-            cornerRadius = cornerRadius,
-            size = size
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(14.dp),
+            tint = color,
         )
-
-        // Target range start highlight (only on first coat)
-        if (progress0to1 < min0to1) {
-            val start = min0to1 * size.width
-            drawArc(
-                color = progressColor,
-                startAngle = 90f,
-                sweepAngle = 180f,
-                useCenter = true,
-                topLeft = Offset(start - radius, (size.height / 2) - radius),
-                size = Size(radius * 2, radius * 2)
-            )
-        }
-
-        // Target range end highlight (only on first coat)
-//        if (progress0to1 < 1f) {
-//            val end = max0to1 * size.width
-//            drawArc(
-//                color = progressColor,
-//                startAngle = 270f,
-//                sweepAngle = 180f,
-//                useCenter = true,
-//                topLeft = Offset(end - radius, (size.height / 2) - radius),
-//                size = Size(radius * 2, radius * 2)
-//            )
-//        }
-
-        // Progress fill
-        val fraction = progress0to1 % 1f
-        val progressWidth = fraction * size.width
-        drawRoundRect(
-            color = progressColor,
-            topLeft = Offset(0f, 0f),
-            size = Size(progressWidth, size.height),
-            cornerRadius = cornerRadius
+        Text(
+            text = changeIndicator.value,
+            style = MaterialTheme.typography.labelSmall,
+            color = color,
         )
     }
 }
 
-private fun layeredColors(
-    progress0to1: Float,
-    base: Color,
-    onBackground: Color,
-): Pair<Color, Color> {
-    return when {
-        progress0to1 < 1f -> {
-            // First layer: macro color vs background
-            base to onBackground.copy(alpha = .09f)
-        }
-
-        progress0to1 < 2f -> {
-            // Second layer: red vs base
-            Color(0xFFE53935) to base
-        }
-
-        progress0to1 < 3f -> {
-            // Third layer: brighter red vs strong red
-            Color(0xFFFF1744) to Color(0xFFE53935)
-        }
-
-        else -> {
-            // Fourth layer: vivid red vs brighter red
-            Color(0xFFFF5252) to Color(0xFFFF1744)
-        }
-    }
-}
-
-/**
- * Custom easing that mimics an overshoot interpolator (like Android Views).
- */
-val OvershootInterpolatorEasing = Easing { fraction ->
-    val tension = 2.0f
-    val f = fraction - 1.0f
-    f * f * ((tension + 1) * f + tension) + 1.0f
-}
 
 @Preview
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-private fun MacroProgressViewPreview() {
-    val macro1 = MacroProgressItem(
+private fun WeeklyMacroSummaryBarViewPreview() {
+    val macro1 = WeeklySummaryMacroProgressItem(
         title = "Calories",
         progress0to1 = .15f,
         progressLabel = "1005kcal",
         targetRange0to1 = Range(.84f, 1f),
-        targetRangeLabel = "2.1-2.2k",
+        changeIndicator = ChangeIndicator(
+            direction = ChangeDirection.UP,
+            value = "+50kcal",
+        ),
         color = { it.calorieColor },
     )
-    val macro2 = MacroProgressItem(
+    val macro2 = WeeklySummaryMacroProgressItem(
         title = "Salt",
         progress0to1 = 1.5f,
         progressLabel = "110g",
         targetRange0to1 = Range(.8095f, 1f),
-        targetRangeLabel = "170-190g",
+        changeIndicator = ChangeIndicator(
+            direction = ChangeDirection.DOWN,
+            value = "-50kcal",
+        ),
         color = { it.proteinColor },
     )
     AppTheme {
@@ -235,7 +175,7 @@ private fun MacroProgressViewPreview() {
                 modifier = Modifier
                     .wrapContentWidth()
             ) {
-                MacroTitleView(
+                WeeklySummaryTitleView(
                     modifier = Modifier
                         .height(rowHeight),
                     model = macro1,
@@ -245,7 +185,7 @@ private fun MacroProgressViewPreview() {
                 modifier = Modifier
                     .weight(.5f)
             ) {
-                MacroProgressBar(
+                WeeklyMacroSummaryBarView(
                     modifier = Modifier
                         .height(rowHeight),
                     model = macro1,
@@ -257,7 +197,7 @@ private fun MacroProgressViewPreview() {
                 modifier = Modifier
                     .wrapContentWidth()
             ) {
-                MacroTitleView(
+                WeeklySummaryTitleView(
                     modifier = Modifier
                         .height(rowHeight),
                     model = macro2,
@@ -267,7 +207,7 @@ private fun MacroProgressViewPreview() {
                 modifier = Modifier
                     .weight(.5f)
             ) {
-                MacroProgressBar(
+                WeeklyMacroSummaryBarView(
                     modifier = Modifier
                         .height(rowHeight),
                     model = macro2,

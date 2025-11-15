@@ -25,7 +25,7 @@ import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPick
-import dev.gaborbiro.dailymacros.features.common.model.MacrosUIModel
+import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
 import dev.gaborbiro.dailymacros.features.widgetDiary.PaddingWidgetHalfVertical
 import dev.gaborbiro.dailymacros.features.widgetDiary.WidgetActionProvider
 import dev.gaborbiro.dailymacros.features.widgetDiary.WidgetActionProviderImpl
@@ -115,7 +115,7 @@ private fun WidgetViewPreview() {
                     title = "Breakfast",
                     timestamp = "Yesterday",
                     images = listOf("", ""),
-                    macros = MacrosUIModel(
+                    macrosAmounts = MacrosAmountsUIModel(
                         calories = "8cal",
                         protein = "prot 8",
                         fat = "fat 4(2)",
@@ -128,7 +128,7 @@ private fun WidgetViewPreview() {
                     templateId = 1,
                     title = "Breakfast",
                     images = listOf("", ""),
-                    macros = MacrosUIModel(
+                    macros = MacrosAmountsUIModel(
                         calories = "1008cal",
                         protein = "protein 8",
                         fat = "fat 4(2)",
@@ -141,7 +141,7 @@ private fun WidgetViewPreview() {
                     templateId = 2,
                     title = "Lunch",
                     images = listOf("", ""),
-                    macros = MacrosUIModel(
+                    macros = MacrosAmountsUIModel(
                         calories = "1008cal",
                         protein = "protein 8",
                         fat = "fat 4(2)",
@@ -154,7 +154,7 @@ private fun WidgetViewPreview() {
                     templateId = 3,
                     title = "Dinner",
                     images = listOf("", ""),
-                    macros = MacrosUIModel(
+                    macros = MacrosAmountsUIModel(
                         calories = "1008cal",
                         protein = "protein 8",
                         fat = "fat 4(2)",
@@ -169,7 +169,7 @@ private fun WidgetViewPreview() {
                     timestamp = "Yesterday",
                     title = "Lunch",
                     images = listOf("", ""),
-                    macros = MacrosUIModel(
+                    macrosAmounts = MacrosAmountsUIModel(
                         calories = "8cal",
                         protein = "prot 8",
                         fat = "fat 4(2)",
@@ -184,7 +184,7 @@ private fun WidgetViewPreview() {
                     timestamp = "Yesterday",
                     title = "Dinner",
                     images = listOf("", ""),
-                    macros = MacrosUIModel(
+                    macrosAmounts = MacrosAmountsUIModel(
                         calories = "8cal",
                         protein = "prot 8",
                         fat = "fat 4(2)",

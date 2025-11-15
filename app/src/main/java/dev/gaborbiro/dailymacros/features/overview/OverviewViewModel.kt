@@ -31,7 +31,8 @@ internal class OverviewViewModel(
     private val navigator: OverviewNavigator,
     private val recordsRepository: RecordsRepository,
     private val repeatRecordUseCase: RepeatRecordUseCase,
-    private val uiMapper: RecordsUIMapper,
+    private val recordsUIMapper: RecordsUIMapper,
+    private val overviewUIMapper: OverviewUIMapper,
     private val settingsRepository: SettingsRepository,
     private val appPrefs: AppPrefs,
 ) : ViewModel() {
@@ -39,12 +40,6 @@ internal class OverviewViewModel(
     private val _viewState: MutableStateFlow<OverviewViewState> =
         MutableStateFlow(OverviewViewState())
     val viewState: StateFlow<OverviewViewState> = _viewState.asStateFlow()
-
-//    init {
-//        viewModelScope.launch {
-//            recordsRepository.getRecords()
-//        }
-//    }
 
     fun onSearchTermChanged(search: String?) {
         viewModelScope.launch {
@@ -54,9 +49,11 @@ internal class OverviewViewModel(
                 }
                 .map { (records: List<Record>, targets: Targets) ->
                     if (search.isNullOrBlank()) {
-                        uiMapper.map(records, targets, showDay = false)
+                        overviewUIMapper.map(records, targets, showDay = false)
                     } else {
-                        uiMapper.map(records, showDay = true)
+                        records.map {
+                            recordsUIMapper.map(it, forceDay = true)
+                        }
                     }
                 }
                 .collect { records: List<ListUIModelBase> ->
