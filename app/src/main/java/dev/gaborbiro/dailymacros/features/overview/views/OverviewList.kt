@@ -5,7 +5,9 @@ import android.util.Range
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -61,6 +64,7 @@ internal fun OverviewList(
     onRecordImageTapped: (id: Long) -> Unit,
     onRecordBodyTapped: (id: Long) -> Unit,
     onSettingsButtonTapped: () -> Unit,
+    onDashboardButtonTapped: () -> Unit,
     onCoachMarkDismissed: () -> Unit,
 ) {
     val listState = rememberLazyListState()
@@ -145,29 +149,48 @@ internal fun OverviewList(
             }
         }
 
-        if (viewState.showSettingsButton) {
-            Box(
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = paddingValues.calculateTopPadding())
+        ) {
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = paddingValues.calculateTopPadding())
+                    .padding(PaddingHalf)
+                    .align(Alignment.TopEnd)
             ) {
-                IconButton(
-                    modifier = Modifier
-                        .padding(PaddingHalf)
-                        .align(Alignment.TopEnd)
-                        .coachMarkOverlayAnchor {
-                            targetBounds = it
-                        },
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                    ),
-                    onClick = onSettingsButtonTapped,
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = "Settings Button",
-                    )
+                if (viewState.showSettingsButton) {
+                    IconButton(
+                        modifier = Modifier
+                            .coachMarkOverlayAnchor {
+                                targetBounds = it
+                            },
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        ),
+                        onClick = onSettingsButtonTapped,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Settings Button",
+                        )
+                    }
+                }
+                if (viewState.showDashboardButton) {
+                    Spacer(modifier = Modifier.padding(PaddingHalf))
+                    IconButton(
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        ),
+                        onClick = onDashboardButtonTapped,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.BarChart,
+                            contentDescription = "Dashboard Button",
+                        )
+                    }
                 }
             }
         }
@@ -257,6 +280,8 @@ private fun OverviewListPreview() {
             OverviewList(
                 paddingValues = PaddingValues(),
                 viewState = OverviewViewState(
+                    showSettingsButton = true,
+                    showDashboardButton = true,
                     items = listOf(
                         ListUIModelDailyMacroProgress(
                             listItemId = 1L,
@@ -359,6 +384,7 @@ private fun OverviewListPreview() {
                 onRecordBodyTapped = {},
                 onMacrosMenuItemTapped = {},
                 onSettingsButtonTapped = {},
+                onDashboardButtonTapped = {},
                 onCoachMarkDismissed = {}
             )
         }

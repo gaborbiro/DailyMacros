@@ -10,4 +10,5 @@ data class OverviewViewState(
     val recordToUndelete: Record? = null,
     val showCoachMark: Boolean = false,
     val showSettingsButton: Boolean = false,
+    val showDashboardButton: Boolean = false,
 )

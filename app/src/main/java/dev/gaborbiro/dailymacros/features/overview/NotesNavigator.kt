@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.features.overview
 
 import android.content.Context
 import androidx.navigation.NavHostController
+import dev.gaborbiro.dailymacros.features.main.DASHBOARD_ROUTE
 import dev.gaborbiro.dailymacros.features.main.SETTINGS_ROUTE
 import dev.gaborbiro.dailymacros.features.modal.ModalActivity
 
@@ -12,6 +13,8 @@ interface OverviewNavigator {
     fun viewImage(recordId: Long)
 
     fun openSettingsScreen()
+
+    fun openDashboardScreen()
 }
 
 class OverviewNavigatorImpl(
@@ -29,5 +32,9 @@ class OverviewNavigatorImpl(
 
     override fun openSettingsScreen() {
         navController.navigate(SETTINGS_ROUTE)
+    }
+
+    override fun openDashboardScreen() {
+        navController.navigate(DASHBOARD_ROUTE)
     }
 }

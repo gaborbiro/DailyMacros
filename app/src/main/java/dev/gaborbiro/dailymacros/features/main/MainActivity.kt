@@ -35,6 +35,7 @@ import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.viewModelFactory
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
+import dev.gaborbiro.dailymacros.features.dashboard.DashboardScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewNavigatorImpl
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewUIMapper
@@ -141,6 +142,25 @@ class MainActivity : ComponentActivity() {
                         },
                     ) {
                         SettingsScreen(settingsViewModel)
+                    }
+                    composable(
+                        route = DASHBOARD_ROUTE,
+                        enterTransition = {
+                            // Slide in from right
+                            slideInHorizontally(
+                                initialOffsetX = { fullWidth -> fullWidth },
+                                animationSpec = tween(600, easing = FastOutSlowInEasing)
+                            )
+                        },
+                        exitTransition = {
+                            // Slide out to right
+                            slideOutHorizontally(
+                                targetOffsetX = { fullWidth -> fullWidth },
+                                animationSpec = tween(600, easing = FastOutSlowInEasing)
+                            )
+                        },
+                    ) {
+                        DashboardScreen()
                     }
                 }
             }

@@ -168,6 +168,10 @@ dependencies {
     implementation("com.google.firebase:firebase-crashlytics")
     implementation("com.google.firebase:firebase-analytics")
 
+    val vico = "1.16.1"
+    implementation("com.patrykandpatrick.vico:core:$vico")
+    implementation("com.patrykandpatrick.vico:compose:$vico")
+    implementation("com.patrykandpatrick.vico:compose-m3:$vico")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")

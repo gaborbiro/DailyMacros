@@ -51,6 +51,7 @@ internal fun OverviewView(
     onUndoDeleteSnackbarShown: () -> Unit,
     onSearchTermChanged: (String?) -> Unit,
     onSettingsButtonTapped: () -> Unit,
+    onDashboardButtonTapped: () -> Unit,
     onCoachMarkDismissed: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -98,6 +99,7 @@ internal fun OverviewView(
                 onRecordImageTapped = onRecordImageTapped,
                 onRecordBodyTapped = onRecordBodyTapped,
                 onSettingsButtonTapped = onSettingsButtonTapped,
+                onDashboardButtonTapped = onDashboardButtonTapped,
                 onCoachMarkDismissed = onCoachMarkDismissed,
             )
         } else if (viewState.showAddWidgetButton) {
@@ -252,6 +254,7 @@ private fun OverviewListPreview() {
                 onSearchTermChanged = {},
                 onMacrosMenuItemTapped = {},
                 onSettingsButtonTapped = {},
+                onDashboardButtonTapped = {},
                 onCoachMarkDismissed = {},
             )
         }
@@ -280,6 +283,7 @@ private fun OverviewListPreviewEmpty() {
                 onSearchTermChanged = {},
                 onMacrosMenuItemTapped = {},
                 onSettingsButtonTapped = {},
+                onDashboardButtonTapped = {},
                 onCoachMarkDismissed = {},
             )
         }

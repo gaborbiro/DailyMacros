@@ -159,6 +159,10 @@ internal class OverviewViewModel(
         }
     }
 
+    fun onDashboardButtonTapped() {
+        navigator.openDashboardScreen()
+    }
+
     private fun deleteTemplate(templateId: Long) {
         GlobalScope.launch {
             val (templateDeleted, imageDeleted) = recordsRepository.deleteTemplateIfUnused(
