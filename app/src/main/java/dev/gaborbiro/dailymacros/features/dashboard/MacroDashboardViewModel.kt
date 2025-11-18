@@ -93,7 +93,9 @@ internal class MacroDashboardViewModel(
             val calories = sumFor { it.template.macros?.calories?.toFloat() }
             val protein = sumFor { it.template.macros?.protein }
             val carbs = sumFor { it.template.macros?.carbs }
+            val sugar = sumFor { it.template.macros?.ofWhichSugar }
             val fat = sumFor { it.template.macros?.fat }
+            val saturated = sumFor { it.template.macros?.ofWhichSaturated }
             val salt = sumFor { it.template.macros?.salt }
             val fibre = sumFor { it.template.macros?.fibre }
 
@@ -101,7 +103,9 @@ internal class MacroDashboardViewModel(
                 MacroDataset("Calories (kcal)", androidx.compose.ui.graphics.Color(0xFF8AB4F8), calories),
                 MacroDataset("Protein (g)", androidx.compose.ui.graphics.Color(0xFF81C995), protein),
                 MacroDataset("Carbs (g)", androidx.compose.ui.graphics.Color(0xFFFFC278), carbs),
+                MacroDataset("    of which sugar (g)", androidx.compose.ui.graphics.Color(0xFFFFB74D), sugar),
                 MacroDataset("Fat (g)", androidx.compose.ui.graphics.Color(0xFFFFA6A6), fat),
+                MacroDataset("    of which saturated fat (g)", androidx.compose.ui.graphics.Color(0xFFE57373), saturated),
                 MacroDataset("Salt (g)", androidx.compose.ui.graphics.Color(0xFFB39DDB), salt),
                 MacroDataset("Fibre (g)", androidx.compose.ui.graphics.Color(0xFF4DB6AC), fibre),
             )
@@ -157,7 +161,9 @@ internal class MacroDashboardViewModel(
             val calories = sumFor { it.template.macros?.calories?.toFloat() }
             val protein = sumFor { it.template.macros?.protein }
             val carbs = sumFor { it.template.macros?.carbs }
+            val sugar = sumFor { it.template.macros?.ofWhichSugar }
             val fat = sumFor { it.template.macros?.fat }
+            val saturated = sumFor { it.template.macros?.ofWhichSaturated }
             val salt = sumFor { it.template.macros?.salt }
             val fibre = sumFor { it.template.macros?.fibre }
 
@@ -165,7 +171,9 @@ internal class MacroDashboardViewModel(
                 MacroDataset("Calories (kcal)", androidx.compose.ui.graphics.Color(0xFF8AB4F8), calories),
                 MacroDataset("Protein (g)", androidx.compose.ui.graphics.Color(0xFF81C995), protein),
                 MacroDataset("Carbs (g)", androidx.compose.ui.graphics.Color(0xFFFFC278), carbs),
+                MacroDataset("    of which sugar (g)", androidx.compose.ui.graphics.Color(0xFFFFB74D), sugar),
                 MacroDataset("Fat (g)", androidx.compose.ui.graphics.Color(0xFFFFA6A6), fat),
+                MacroDataset("    of which saturated fat (g)", androidx.compose.ui.graphics.Color(0xFFE57373), saturated),
                 MacroDataset("Salt (g)", androidx.compose.ui.graphics.Color(0xFFB39DDB), salt),
                 MacroDataset("Fibre (g)", androidx.compose.ui.graphics.Color(0xFF4DB6AC), fibre),
             )
@@ -202,7 +210,9 @@ internal class MacroDashboardViewModel(
             val calories = sumFor { it.template.macros?.calories?.toFloat() }
             val protein = sumFor { it.template.macros?.protein }
             val carbs = sumFor { it.template.macros?.carbs }
+            val sugar = sumFor { it.template.macros?.ofWhichSugar }
             val fat = sumFor { it.template.macros?.fat }
+            val saturated = sumFor { it.template.macros?.ofWhichSaturated }
             val salt = sumFor { it.template.macros?.salt }
             val fibre = sumFor { it.template.macros?.fibre }
 
@@ -210,7 +220,9 @@ internal class MacroDashboardViewModel(
                 MacroDataset("Calories (kcal)", androidx.compose.ui.graphics.Color(0xFF8AB4F8), calories),
                 MacroDataset("Protein (g)", androidx.compose.ui.graphics.Color(0xFF81C995), protein),
                 MacroDataset("Carbs (g)", androidx.compose.ui.graphics.Color(0xFFFFC278), carbs),
+                MacroDataset("    of which sugar (g)", androidx.compose.ui.graphics.Color(0xFFFFB74D), sugar),
                 MacroDataset("Fat (g)", androidx.compose.ui.graphics.Color(0xFFFFA6A6), fat),
+                MacroDataset("    of which saturated fat (g)", androidx.compose.ui.graphics.Color(0xFFE57373), saturated),
                 MacroDataset("Salt (g)", androidx.compose.ui.graphics.Color(0xFFB39DDB), salt),
                 MacroDataset("Fibre (g)", androidx.compose.ui.graphics.Color(0xFF4DB6AC), fibre),
             )
