@@ -53,6 +53,8 @@ import dev.gaborbiro.dailymacros.features.dashboard.model.TimeScale
 import kotlin.math.roundToInt
 
 
+data class MacroDataPoint(val label: String, val value: Float?)
+
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 internal fun MacroDashboardScreen(
@@ -118,17 +120,20 @@ fun MacroChartItem(
 ) {
     val producer = remember(macro) {
         ChartEntryModelProducer(
-            macro.data.mapIndexed { index, point ->
-                object : ChartEntry {
-                    override val x = index.toFloat()
-                    override val y = point.value
-                    override fun withY(y: Float): ChartEntry = this
+            macro.data.mapIndexedNotNull { index, point ->
+                point.value?.let { value ->
+                    object : ChartEntry {
+                        override val x = index.toFloat()
+                        override val y = value
+                        override fun withY(y: Float): ChartEntry = this
+                    }
                 }
             }
         )
     }
 
-    val avg = macro.data.map { it.value }.average().toInt()
+    val nonNullValues = macro.data.mapNotNull { it.value }
+    val avg = nonNullValues.takeIf { it.isNotEmpty() }?.average()?.toInt() ?: 0
 
     val marker = MarkerComponent(
         label = textComponent {

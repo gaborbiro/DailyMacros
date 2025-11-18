@@ -54,11 +54,19 @@ internal class MacroDashboardViewModel(
         // Aggregate data and generate nicely formatted labels per scale
         fun buildForDays(): List<MacroDataset> {
             val grouped: Map<LocalDate, List<Record>> = records.groupBy { it.timestamp.toLocalDate() }
-            val days = grouped.keys.sorted()
 
+            // Build a continuous range from earliest to latest day so missing days
+            // appear on the X axis with zero values.
+            val minDay = grouped.keys.minOrNull() ?: return emptyList()
+            val maxDay = grouped.keys.maxOrNull() ?: return emptyList()
+            val days = generateSequence(minDay) { prev ->
+                val next = prev.plusDays(1)
+                if (next <= maxDay) next else null
+            }.toList()
+
+            val weekFields = WeekFields.of(Locale.getDefault())
             val firstDayOfWeek = weekFields.firstDayOfWeek
             val lastDayOfWeek = firstDayOfWeek.minus(1)
-
             fun dayLabel(date: LocalDate): String {
                 val base = if (date.dayOfMonth == 1) {
                     "${date.dayOfMonth}/${date.monthValue}"
@@ -76,7 +84,8 @@ internal class MacroDashboardViewModel(
             fun sumFor(selector: (Record) -> Float?): List<MacroDataPoint> {
                 return days.map { date ->
                     val recordsForDay = grouped[date].orEmpty()
-                    val sum = recordsForDay.mapNotNull(selector).sum()
+                    val values = recordsForDay.mapNotNull(selector)
+                    val sum = values.takeIf { it.isNotEmpty() }?.sum()
                     MacroDataPoint(label = dayLabel(date), value = sum)
                 }
             }
@@ -105,7 +114,15 @@ internal class MacroDashboardViewModel(
                 // Day-of-week 1 in WeekFields is the first day (e.g., Monday for ISO)
                 date.with(weekFields.dayOfWeek(), 1)
             }
-            val weekStarts = grouped.keys.sorted()
+
+            // Build a continuous sequence of week starts between min and max so
+            // entirely missing weeks still appear on the X axis with zero values.
+            val minWeekStart = grouped.keys.minOrNull() ?: return emptyList()
+            val maxWeekStart = grouped.keys.maxOrNull() ?: return emptyList()
+            val weekStarts = generateSequence(minWeekStart) { prev ->
+                val next = prev.plusWeeks(1)
+                if (next <= maxWeekStart) next else null
+            }.toList()
 
             fun weekLabel(weekStart: LocalDate): String {
                 val weekEnd = weekStart.plusDays(6)
@@ -124,7 +141,8 @@ internal class MacroDashboardViewModel(
             fun sumFor(selector: (Record) -> Float?): List<MacroDataPoint> {
                 return weekStarts.map { weekStart ->
                     val recordsForWeek = grouped[weekStart].orEmpty()
-                    val sum = recordsForWeek.mapNotNull(selector).sum()
+                    val values = recordsForWeek.mapNotNull(selector)
+                    val sum = values.takeIf { it.isNotEmpty() }?.sum()
                     MacroDataPoint(label = weekLabel(weekStart), value = sum)
                 }
             }
@@ -150,7 +168,15 @@ internal class MacroDashboardViewModel(
             val grouped = records.groupBy { record ->
                 YearMonth.from(record.timestamp.toLocalDate())
             }
-            val months = grouped.keys.sorted()
+
+            // Build a continuous sequence of YearMonth between min and max so
+            // entirely missing months still appear on the X axis with zero values.
+            val minMonth = grouped.keys.minOrNull() ?: return emptyList()
+            val maxMonth = grouped.keys.maxOrNull() ?: return emptyList()
+            val months = generateSequence(minMonth) { prev ->
+                val next = prev.plusMonths(1)
+                if (next <= maxMonth) next else null
+            }.toList()
 
             fun monthLabel(month: YearMonth): String {
                 // e.g. "Jan", "Feb" with first letter capitalised per locale
@@ -160,7 +186,8 @@ internal class MacroDashboardViewModel(
             fun sumFor(selector: (Record) -> Float?): List<MacroDataPoint> {
                 return months.map { ym ->
                     val recordsForMonth = grouped[ym].orEmpty()
-                    val sum = recordsForMonth.mapNotNull(selector).sum()
+                    val values = recordsForMonth.mapNotNull(selector)
+                    val sum = values.takeIf { it.isNotEmpty() }?.sum()
                     MacroDataPoint(label = monthLabel(ym), value = sum)
                 }
             }

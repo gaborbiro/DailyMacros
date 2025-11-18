@@ -9,5 +9,5 @@ internal data class MacroDashboardViewState(
 
 enum class TimeScale { DAYS, WEEKS, MONTHS }
 
-data class MacroDataPoint(val label: String, val value: Float)
+data class MacroDataPoint(val label: String, val value: Float?)
 data class MacroDataset(val name: String, val color: Color, val data: List<MacroDataPoint>)
