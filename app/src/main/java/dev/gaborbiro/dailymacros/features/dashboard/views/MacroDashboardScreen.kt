@@ -48,12 +48,10 @@ import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.patrykandpatrick.vico.core.scroll.InitialScroll
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.dashboard.MacroDashboardViewModel
+import dev.gaborbiro.dailymacros.features.dashboard.model.MacroDataset
+import dev.gaborbiro.dailymacros.features.dashboard.model.TimeScale
 import kotlin.math.roundToInt
 
-enum class TimeScale { DAYS, WEEKS, MONTHS }
-
-data class MacroDataPoint(val label: String, val value: Float)
-data class MacroDataset(val name: String, val color: Color, val data: List<MacroDataPoint>)
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -130,9 +128,7 @@ fun MacroChartItem(
         )
     }
 
-    val avg = macro.data.map { it.value }.average().toFloat()
-    val min = macro.data.minOf { it.value }
-    val max = macro.data.maxOf { it.value }
+    val avg = macro.data.map { it.value }.average().toInt()
 
     val marker = MarkerComponent(
         label = textComponent {
@@ -156,7 +152,9 @@ fun MacroChartItem(
             .padding(vertical = 16.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(end = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -166,7 +164,7 @@ fun MacroChartItem(
                 color = macro.color
             )
             Text(
-                "Avg ${"%.1f".format(avg)}  Min ${"%.1f".format(min)}  Max ${"%.1f".format(max)}",
+                "Average: $avg",
                 style = MaterialTheme.typography.labelSmall
             )
         }

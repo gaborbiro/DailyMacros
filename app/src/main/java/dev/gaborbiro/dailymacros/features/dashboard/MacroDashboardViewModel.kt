@@ -2,9 +2,10 @@ package dev.gaborbiro.dailymacros.features.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.gaborbiro.dailymacros.features.dashboard.views.MacroDataPoint
-import dev.gaborbiro.dailymacros.features.dashboard.views.MacroDataset
-import dev.gaborbiro.dailymacros.features.dashboard.views.TimeScale
+import dev.gaborbiro.dailymacros.features.dashboard.model.MacroDashboardViewState
+import dev.gaborbiro.dailymacros.features.dashboard.model.MacroDataPoint
+import dev.gaborbiro.dailymacros.features.dashboard.model.MacroDataset
+import dev.gaborbiro.dailymacros.features.dashboard.model.TimeScale
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,11 +18,6 @@ import java.time.format.TextStyle
 import java.time.temporal.WeekFields
 import java.util.Locale
 
-internal data class MacroDashboardViewState(
-    val scale: TimeScale = TimeScale.DAYS,
-    val datasets: List<MacroDataset> = emptyList(),
-)
-
 internal class MacroDashboardViewModel(
     private val recordsRepository: RecordsRepository,
 ) : ViewModel() {
@@ -31,23 +27,21 @@ internal class MacroDashboardViewModel(
     val viewState: StateFlow<MacroDashboardViewState> = _viewState.asStateFlow()
 
     init {
-        // start with daily scale
-        observeRecords()
+        observeRecords(TimeScale.DAYS)
     }
 
     fun onScaleSelected(scale: TimeScale) {
         if (scale == _viewState.value.scale) return
-        _viewState.value = _viewState.value.copy(scale = scale)
-        observeRecords()
+        observeRecords(scale)
     }
 
-    private fun observeRecords() {
+    private fun observeRecords(scale: TimeScale) {
         // Re-launch collection each time scale changes
         viewModelScope.launch {
             // Use the same flow as overview (no search term = all records)
             recordsRepository.getFlowBySearchTerm(null).collect { records ->
-                val datasets = buildDatasets(records, _viewState.value.scale)
-                _viewState.value = _viewState.value.copy(datasets = datasets)
+                val datasets = buildDatasets(records, scale)
+                _viewState.value = _viewState.value.copy(datasets = datasets, scale = scale)
             }
         }
     }
