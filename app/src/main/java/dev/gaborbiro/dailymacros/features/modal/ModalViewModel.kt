@@ -494,7 +494,6 @@ internal class ModalViewModel(
 
     @UiThread
     fun onEditTargetConfirmed(target: ChangeImagesTarget) {
-        popDialog()
         _viewState.value.dialogs
             .filterIsInstance<DialogState.EditTargetConfirmationDialog>()
             .firstOrNull()
@@ -530,8 +529,10 @@ internal class ModalViewModel(
                         force = true,
                     )
                 }
+                popDialog()
+                popDialog()
+                DiaryWidgetScreen.reload()
             }
-        DiaryWidgetScreen.reload()
     }
 
     private fun runSafely(task: suspend () -> Unit): Job {
