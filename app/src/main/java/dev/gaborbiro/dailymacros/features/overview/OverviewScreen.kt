@@ -33,7 +33,7 @@ internal fun OverviewScreen(
         onUndoDeleteSnackbarShown = viewModel::onUndoDeleteSnackbarShown,
         onSearchTermChanged = viewModel::onSearchTermChanged,
         onSettingsButtonTapped = viewModel::onSettingsButtonTapped,
-        onDashboardButtonTapped = viewModel::onDashboardButtonTapped,
+        onTrendsButtonTapped = viewModel::onTrendsButtonTapped,
         onCoachMarkDismissed = viewModel::onCoachMarkDismissed,
     )
 

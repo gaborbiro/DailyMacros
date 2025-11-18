@@ -64,7 +64,7 @@ internal fun OverviewList(
     onRecordImageTapped: (id: Long) -> Unit,
     onRecordBodyTapped: (id: Long) -> Unit,
     onSettingsButtonTapped: () -> Unit,
-    onDashboardButtonTapped: () -> Unit,
+    onTrendsButtonTapped: () -> Unit,
     onCoachMarkDismissed: () -> Unit,
 ) {
     val listState = rememberLazyListState()
@@ -177,18 +177,18 @@ internal fun OverviewList(
                         )
                     }
                 }
-                if (viewState.showDashboardButton) {
+                if (viewState.showTrendsButton) {
                     Spacer(modifier = Modifier.padding(PaddingHalf))
                     IconButton(
                         colors = IconButtonDefaults.filledIconButtonColors(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer,
                             contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                         ),
-                        onClick = onDashboardButtonTapped,
+                        onClick = onTrendsButtonTapped,
                     ) {
                         Icon(
                             imageVector = Icons.Default.BarChart,
-                            contentDescription = "Dashboard Button",
+                            contentDescription = "Trends Button",
                         )
                     }
                 }
@@ -281,7 +281,7 @@ private fun OverviewListPreview() {
                 paddingValues = PaddingValues(),
                 viewState = OverviewViewState(
                     showSettingsButton = true,
-                    showDashboardButton = true,
+                    showTrendsButton = true,
                     items = listOf(
                         ListUIModelDailyMacroProgress(
                             listItemId = 1L,
@@ -384,7 +384,7 @@ private fun OverviewListPreview() {
                 onRecordBodyTapped = {},
                 onMacrosMenuItemTapped = {},
                 onSettingsButtonTapped = {},
-                onDashboardButtonTapped = {},
+                onTrendsButtonTapped = {},
                 onCoachMarkDismissed = {}
             )
         }

@@ -159,8 +159,8 @@ internal class OverviewViewModel(
         }
     }
 
-    fun onDashboardButtonTapped() {
-        navigator.openDashboardScreen()
+    fun onTrendsButtonTapped() {
+        navigator.openTrendsScreen()
     }
 
     private fun deleteTemplate(templateId: Long) {

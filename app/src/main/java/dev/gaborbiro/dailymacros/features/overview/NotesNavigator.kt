@@ -2,7 +2,7 @@ package dev.gaborbiro.dailymacros.features.overview
 
 import android.content.Context
 import androidx.navigation.NavHostController
-import dev.gaborbiro.dailymacros.features.main.DASHBOARD_ROUTE
+import dev.gaborbiro.dailymacros.features.main.TRENDS_ROUTE
 import dev.gaborbiro.dailymacros.features.main.SETTINGS_ROUTE
 import dev.gaborbiro.dailymacros.features.modal.ModalActivity
 
@@ -14,7 +14,7 @@ interface OverviewNavigator {
 
     fun openSettingsScreen()
 
-    fun openDashboardScreen()
+    fun openTrendsScreen()
 }
 
 class OverviewNavigatorImpl(
@@ -34,7 +34,7 @@ class OverviewNavigatorImpl(
         navController.navigate(SETTINGS_ROUTE)
     }
 
-    override fun openDashboardScreen() {
-        navController.navigate(DASHBOARD_ROUTE)
+    override fun openTrendsScreen() {
+        navController.navigate(TRENDS_ROUTE)
     }
 }

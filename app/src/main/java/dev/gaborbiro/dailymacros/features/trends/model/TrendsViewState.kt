@@ -1,8 +1,8 @@
-package dev.gaborbiro.dailymacros.features.dashboard.model
+package dev.gaborbiro.dailymacros.features.trends.model
 
 import androidx.compose.ui.graphics.Color
 
-internal data class MacroDashboardViewState(
+internal data class TrendsViewState(
     val scale: TimeScale = TimeScale.DAYS,
     val datasets: List<MacroDataset> = emptyList(),
 )

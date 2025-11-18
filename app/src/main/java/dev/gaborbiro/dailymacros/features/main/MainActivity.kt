@@ -35,8 +35,8 @@ import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.viewModelFactory
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
-import dev.gaborbiro.dailymacros.features.dashboard.DashboardScreen
-import dev.gaborbiro.dailymacros.features.dashboard.MacroDashboardViewModel
+import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
+import dev.gaborbiro.dailymacros.features.trends.TrendsViewModel
 import dev.gaborbiro.dailymacros.features.overview.OverviewNavigatorImpl
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewUIMapper
@@ -44,6 +44,7 @@ import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
 import dev.gaborbiro.dailymacros.features.settings.SettingsNavigatorImpl
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
+import dev.gaborbiro.dailymacros.features.trends.TrendsNavigatorImpl
 import dev.gaborbiro.dailymacros.repo.records.RecordsApiMapper
 import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.repo.requestStatus.RequestStatusRepositoryImpl
@@ -114,8 +115,14 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
-                val dashboardViewModel = viewModelFactory {
-                    MacroDashboardViewModel(
+                val trendsNavigator = remember {
+                    TrendsNavigatorImpl(
+                        navController = navController,
+                    )
+                }
+                val trendsViewModel = viewModelFactory {
+                    TrendsViewModel(
+                        navigator = trendsNavigator,
                         recordsRepository = recordsRepository,
                     )
                 }
@@ -151,7 +158,7 @@ class MainActivity : ComponentActivity() {
                         SettingsScreen(settingsViewModel)
                     }
                     composable(
-                        route = DASHBOARD_ROUTE,
+                        route = TRENDS_ROUTE,
                         enterTransition = {
                             // Slide in from right
                             slideInHorizontally(
@@ -167,7 +174,7 @@ class MainActivity : ComponentActivity() {
                             )
                         },
                     ) {
-                        DashboardScreen(dashboardViewModel)
+                        TrendsScreen(trendsViewModel)
                     }
                 }
             }

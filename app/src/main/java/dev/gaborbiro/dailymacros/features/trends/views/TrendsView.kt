@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.dashboard.views
+package dev.gaborbiro.dailymacros.features.trends.views
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.Arrangement
@@ -15,10 +15,16 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -26,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
@@ -51,24 +58,35 @@ import com.patrykandpatrick.vico.core.entry.ChartEntry
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.patrykandpatrick.vico.core.scroll.InitialScroll
 import dev.gaborbiro.dailymacros.design.PaddingDefault
-import dev.gaborbiro.dailymacros.features.dashboard.MacroDashboardViewModel
-import dev.gaborbiro.dailymacros.features.dashboard.model.MacroDataset
-import dev.gaborbiro.dailymacros.features.dashboard.model.TimeScale
+import dev.gaborbiro.dailymacros.features.trends.TrendsViewModel
+import dev.gaborbiro.dailymacros.features.trends.model.MacroDataset
+import dev.gaborbiro.dailymacros.features.trends.model.TimeScale
 import kotlin.math.roundToInt
 
 
-data class MacroDataPoint(val label: String, val value: Float?)
-
-@OptIn(ExperimentalAnimationApi::class)
+@OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
 @Composable
-internal fun MacroDashboardScreen(
-    viewModel: MacroDashboardViewModel,
+internal fun TrendsView(
+    viewModel: TrendsViewModel,
 ) {
     val state by viewModel.viewState.collectAsStateWithLifecycle()
     val chartStyle = m3ChartStyle()
 
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
+        topBar = {
+            TopAppBar(
+                title = { Text("Trends") },
+                navigationIcon = {
+                    IconButton(onClick = { viewModel.onBackNavigate() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                            contentDescription = "Back Button"
+                        )
+                    }
+                },
+            )
+        },
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -80,12 +98,27 @@ internal fun MacroDashboardScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                    .padding(24.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                ScaleButton("Days", state.scale == TimeScale.DAYS) { viewModel.onScaleSelected(TimeScale.DAYS) }
-                ScaleButton("Weeks", state.scale == TimeScale.WEEKS) { viewModel.onScaleSelected(TimeScale.WEEKS) }
-                ScaleButton("Months", state.scale == TimeScale.MONTHS) { viewModel.onScaleSelected(TimeScale.MONTHS) }
+                ScaleButton(
+                    label = "Days",
+                    selected = state.scale == TimeScale.DAYS,
+                    onClick = { viewModel.onScaleSelected(TimeScale.DAYS) },
+                    modifier = Modifier.weight(1f),
+                )
+                ScaleButton(
+                    label = "Weeks",
+                    selected = state.scale == TimeScale.WEEKS,
+                    onClick = { viewModel.onScaleSelected(TimeScale.WEEKS) },
+                    modifier = Modifier.weight(1f),
+                )
+                ScaleButton(
+                    label = "Months",
+                    selected = state.scale == TimeScale.MONTHS,
+                    onClick = { viewModel.onScaleSelected(TimeScale.MONTHS) },
+                    modifier = Modifier.weight(1f),
+                )
             }
 
             val daysChartScrollState = rememberChartScrollState()
@@ -106,7 +139,7 @@ internal fun MacroDashboardScreen(
                 }
             )
 
-            val showEveryXLabel = when(state.scale) {
+            val showEveryXLabel = when (state.scale) {
                 TimeScale.WEEKS -> 2
                 else -> 1
             }
@@ -125,18 +158,32 @@ internal fun MacroDashboardScreen(
 }
 
 @Composable
-fun ScaleButton(label: String, selected: Boolean, onClick: () -> Unit) {
+private fun ScaleButton(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     FilterChip(
+        modifier = modifier
+            .height(36.dp)
+            .fillMaxWidth(),
         selected = selected,
         onClick = onClick,
-        label = { Text(label) },
-        modifier = Modifier.height(36.dp)
+        label = {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                text = label,
+                textAlign = TextAlign.Center
+            )
+        },
     )
 }
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun MacroChartItem(
+private fun MacroChartItem(
     macro: MacroDataset,
     chartStyle: ChartStyle,
     chartScrollState: ChartScrollState,

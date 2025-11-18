@@ -1,11 +1,11 @@
-package dev.gaborbiro.dailymacros.features.dashboard
+package dev.gaborbiro.dailymacros.features.trends
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.gaborbiro.dailymacros.features.dashboard.model.MacroDashboardViewState
-import dev.gaborbiro.dailymacros.features.dashboard.model.MacroDataPoint
-import dev.gaborbiro.dailymacros.features.dashboard.model.MacroDataset
-import dev.gaborbiro.dailymacros.features.dashboard.model.TimeScale
+import dev.gaborbiro.dailymacros.features.trends.model.MacroDataPoint
+import dev.gaborbiro.dailymacros.features.trends.model.MacroDataset
+import dev.gaborbiro.dailymacros.features.trends.model.TimeScale
+import dev.gaborbiro.dailymacros.features.trends.model.TrendsViewState
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,13 +18,14 @@ import java.time.format.TextStyle
 import java.time.temporal.WeekFields
 import java.util.Locale
 
-internal class MacroDashboardViewModel(
+internal class TrendsViewModel(
+    private val navigator: TrendsNavigator,
     private val recordsRepository: RecordsRepository,
 ) : ViewModel() {
 
-    private val _viewState: MutableStateFlow<MacroDashboardViewState> =
-        MutableStateFlow(MacroDashboardViewState())
-    val viewState: StateFlow<MacroDashboardViewState> = _viewState.asStateFlow()
+    private val _viewState: MutableStateFlow<TrendsViewState> =
+        MutableStateFlow(TrendsViewState())
+    val viewState: StateFlow<TrendsViewState> = _viewState.asStateFlow()
 
     init {
         observeRecords(TimeScale.DAYS)
@@ -33,6 +34,10 @@ internal class MacroDashboardViewModel(
     fun onScaleSelected(scale: TimeScale) {
         if (scale == _viewState.value.scale) return
         observeRecords(scale)
+    }
+
+    fun onBackNavigate() {
+        navigator.navigateBack()
     }
 
     private fun observeRecords(scale: TimeScale) {
