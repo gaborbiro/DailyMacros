@@ -56,11 +56,20 @@ internal class MacroDashboardViewModel(
             val grouped: Map<LocalDate, List<Record>> = records.groupBy { it.timestamp.toLocalDate() }
             val days = grouped.keys.sorted()
 
+            val firstDayOfWeek = weekFields.firstDayOfWeek
+            val lastDayOfWeek = firstDayOfWeek.minus(1)
+
             fun dayLabel(date: LocalDate): String {
-                return if (date.dayOfMonth == 1) {
+                val base = if (date.dayOfMonth == 1) {
                     "${date.dayOfMonth}/${date.monthValue}"
                 } else {
                     date.dayOfMonth.toString()
+                }
+
+                return when (date.dayOfWeek) {
+                    firstDayOfWeek -> "•$base"   // week start (locale-aware)
+                    lastDayOfWeek -> "$base•"   // week end   (locale-aware)
+                    else -> base
                 }
             }
 
