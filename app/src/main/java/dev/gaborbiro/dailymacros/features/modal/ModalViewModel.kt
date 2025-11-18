@@ -472,6 +472,12 @@ internal class ModalViewModel(
                     title = title,
                     description = description,
                 )
+                DiaryWidgetScreen.reload()
+                GetMacrosWorker.setWorkRequest(
+                    appContext = App.appContext,
+                    recordId = dialogState.recordId,
+                    force = true,
+                )
             }
 
             is EditValidationResult.Error -> {
