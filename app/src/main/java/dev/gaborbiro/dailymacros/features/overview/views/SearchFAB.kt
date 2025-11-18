@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.features.overview.views
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -34,6 +35,13 @@ internal fun SearchFAB(onSearch: (String?) -> Unit) {
         mutableStateOf("")
     }
     val focusRequester = remember { FocusRequester() }
+
+    if (fabExpanded) {
+        BackHandler {
+            onSearch(null)
+            fabExpanded = false
+        }
+    }
 
     FloatingActionButton(
         onClick = {
