@@ -122,9 +122,7 @@ class ModalActivity : AppCompatActivity() {
             context.launchActivity { it.getShowTemplateImageIntent(templateId) }
 
         fun launchToAddRecord(context: Context) =
-            context.launchActivityInNewStack {
-                context.getTextOnlyIntent()
-            }
+            context.launchActivityInNewStack (Context::getTextOnlyIntent)
 
         fun launchViewRecordDetails(context: Context, recordId: Long) {
             context.launchActivity { it.getViewRecordDetailsIntent(recordId) }
@@ -346,6 +344,7 @@ class ModalActivity : AppCompatActivity() {
 
             is DialogState.SelectRecordActionDialog -> SelectRecordActionDialog(
                 recordId = dialogState.recordId,
+                title = dialogState.title,
                 onRepeatTapped = viewModel::onRepeatRecordButtonTapped,
                 onDetailsTapped = viewModel::onRecordDetailsButtonTapped,
                 onDeleteTapped = viewModel::onDeleteTapped,
@@ -355,6 +354,7 @@ class ModalActivity : AppCompatActivity() {
             is DialogState.SelectTemplateActionDialog -> {
                 SelectTemplateActionDialog(
                     templateId = dialogState.templateId,
+                    title = dialogState.title,
                     onRepeatButtonTapped = viewModel::onRepeatTemplateButtonTapped,
                     onDetailsButtonTapped = viewModel::onTemplateDetailsButtonTapped,
                     onDismissRequested = onDismissRequested,

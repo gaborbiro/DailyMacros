@@ -176,16 +176,22 @@ internal class ModalViewModel(
 
     @UiThread
     fun onSelectRecordActionDeeplink(recordId: Long) {
-        pushDialog(
-            DialogState.SelectRecordActionDialog(recordId)
-        )
+        runSafely {
+            val title = recordsRepository.get(recordId)?.template?.name ?: ""
+            pushDialog(
+                DialogState.SelectRecordActionDialog(recordId, title)
+            )
+        }
     }
 
     @UiThread
     fun onSelectTemplateActionDeeplink(templateId: Long) {
-        pushDialog(
-            DialogState.SelectTemplateActionDialog(templateId)
-        )
+        runSafely {
+            val title = recordsRepository.getRecordsByTemplate(templateId).firstOrNull()?.template?.name ?: ""
+            pushDialog(
+                DialogState.SelectTemplateActionDialog(templateId, title)
+            )
+        }
     }
 
     @UiThread

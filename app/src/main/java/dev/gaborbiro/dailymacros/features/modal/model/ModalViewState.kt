@@ -79,9 +79,9 @@ sealed class DialogState {
 
     data class ImageInput(val type: ImageInputType) : DialogState()
 
-    data class SelectRecordActionDialog(val recordId: Long) : DialogState()
+    data class SelectRecordActionDialog(val recordId: Long, val title: String) : DialogState()
 
-    data class SelectTemplateActionDialog(val templateId: Long) : DialogState()
+    data class SelectTemplateActionDialog(val templateId: Long, val title: String) : DialogState()
 
     data class InfoDialog(val message: String) : DialogState()
 }
