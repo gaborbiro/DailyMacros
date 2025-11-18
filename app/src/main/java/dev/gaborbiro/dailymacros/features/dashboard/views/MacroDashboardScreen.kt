@@ -1,10 +1,6 @@
 package dev.gaborbiro.dailymacros.features.dashboard.views
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,7 +32,9 @@ import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
+import com.patrykandpatrick.vico.compose.chart.scroll.ChartScrollState
 import com.patrykandpatrick.vico.compose.chart.scroll.rememberChartScrollSpec
+import com.patrykandpatrick.vico.compose.chart.scroll.rememberChartScrollState
 import com.patrykandpatrick.vico.compose.component.shapeComponent
 import com.patrykandpatrick.vico.compose.m3.style.m3ChartStyle
 import com.patrykandpatrick.vico.compose.style.ChartStyle
@@ -86,8 +84,18 @@ internal fun MacroDashboardScreen(
                 ScaleButton("Months", state.scale == TimeScale.MONTHS) { viewModel.onScaleSelected(TimeScale.MONTHS) }
             }
 
+            val daysChartScrollState = rememberChartScrollState()
+            val weeksChartScrollState = rememberChartScrollState()
+            val monthsChartScrollState = rememberChartScrollState()
+
+            val chartScrollState = when (state.scale) {
+                TimeScale.DAYS -> daysChartScrollState
+                TimeScale.WEEKS -> weeksChartScrollState
+                TimeScale.MONTHS -> monthsChartScrollState
+            }
+
             state.datasets.forEach { macro ->
-                MacroChartItem(macro = macro, chartStyle = chartStyle)
+                MacroChartItem(macro = macro, chartStyle = chartStyle, chartScrollState = chartScrollState)
             }
         }
     }
@@ -107,7 +115,8 @@ fun ScaleButton(label: String, selected: Boolean, onClick: () -> Unit) {
 @Composable
 fun MacroChartItem(
     macro: MacroDataset,
-    chartStyle: ChartStyle
+    chartStyle: ChartStyle,
+    chartScrollState: ChartScrollState,
 ) {
     val producer = remember(macro) {
         ChartEntryModelProducer(
@@ -138,7 +147,7 @@ fun MacroChartItem(
             color = macro.color,
             shape = CircleShape
         ),
-        guideline = null // or create a visible guideline component
+        guideline = null,
     )
 
     Column(
@@ -162,38 +171,34 @@ fun MacroChartItem(
             )
         }
 
-        AnimatedContent(
-            targetState = producer,
-            transitionSpec = { fadeIn() togetherWith fadeOut() }
-        ) { modelProducer ->
-            ProvideChartStyle(chartStyle) {
-                Chart(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                        .padding(top = 4.dp),
-                    chart = lineChart(
-                        lines = listOf(
-                            LineChart.LineSpec(
-                                lineColor = macro.color.toArgb(),
-                                point = shapeComponent(
-                                    color = macro.color,
-                                    shape = CircleShape
-                                )
+        ProvideChartStyle(chartStyle) {
+            Chart(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp)
+                    .padding(top = 4.dp),
+                chart = lineChart(
+                    lines = listOf(
+                        LineChart.LineSpec(
+                            lineColor = macro.color.toArgb(),
+                            point = shapeComponent(
+                                color = macro.color,
+                                shape = CircleShape
                             )
                         )
-                    ),
-                    model = modelProducer.getModel()!!,
-                    startAxis = rememberStartAxis(),
-                    bottomAxis = rememberBottomAxis(
-                        valueFormatter = { x, _ ->
-                            macro.data.getOrNull(x.roundToInt())?.label ?: ""
-                        }
-                    ),
-                    marker = marker,
-                    chartScrollSpec = rememberChartScrollSpec(initialScroll = InitialScroll.End),
-                )
-            }
+                    )
+                ),
+                model = producer.getModel()!!,
+                startAxis = rememberStartAxis(),
+                bottomAxis = rememberBottomAxis(
+                    valueFormatter = { x, _ ->
+                        macro.data.getOrNull(x.roundToInt())?.label ?: ""
+                    }
+                ),
+                marker = marker,
+                chartScrollSpec = rememberChartScrollSpec(initialScroll = InitialScroll.End),
+                chartScrollState = chartScrollState,
+            )
         }
     }
 }
