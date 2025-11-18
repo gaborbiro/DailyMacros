@@ -98,7 +98,12 @@ internal fun MacroDashboardScreen(
             }
 
             // Shared start axis within a tab so all charts line up vertically.
-            val startAxis = rememberStartAxis(sizeConstraint = Axis.SizeConstraint.Exact(70f))
+            val startAxis = rememberStartAxis(
+                sizeConstraint = Axis.SizeConstraint.Exact(50f),
+                valueFormatter = { value, _ ->
+                    value.roundToInt().toString()
+                }
+            )
 
             state.datasets.forEach { macro ->
                 MacroChartItem(
