@@ -36,6 +36,7 @@ import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
+import com.patrykandpatrick.vico.compose.chart.scroll.rememberChartScrollSpec
 import com.patrykandpatrick.vico.compose.component.shapeComponent
 import com.patrykandpatrick.vico.compose.m3.style.m3ChartStyle
 import com.patrykandpatrick.vico.compose.style.ChartStyle
@@ -46,6 +47,7 @@ import com.patrykandpatrick.vico.core.component.text.textComponent
 import com.patrykandpatrick.vico.core.dimensions.MutableDimensions
 import com.patrykandpatrick.vico.core.entry.ChartEntry
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
+import com.patrykandpatrick.vico.core.scroll.InitialScroll
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.dashboard.MacroDashboardViewModel
 import kotlin.math.roundToInt
@@ -73,7 +75,6 @@ internal fun MacroDashboardScreen(
                 .padding(paddingValues)
                 .padding(start = PaddingDefault)
         ) {
-            // scale selector
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -85,7 +86,6 @@ internal fun MacroDashboardScreen(
                 ScaleButton("Months", state.scale == TimeScale.MONTHS) { viewModel.onScaleSelected(TimeScale.MONTHS) }
             }
 
-            // charts
             state.datasets.forEach { macro ->
                 MacroChartItem(macro = macro, chartStyle = chartStyle)
             }
@@ -109,7 +109,6 @@ fun MacroChartItem(
     macro: MacroDataset,
     chartStyle: ChartStyle
 ) {
-    // create chart data
     val producer = remember(macro) {
         ChartEntryModelProducer(
             macro.data.mapIndexed { index, point ->
@@ -126,7 +125,6 @@ fun MacroChartItem(
     val min = macro.data.minOf { it.value }
     val max = macro.data.maxOf { it.value }
 
-    // --- manual marker creation ---
     val marker = MarkerComponent(
         label = textComponent {
             color = Color.White.toArgb()
@@ -148,7 +146,6 @@ fun MacroChartItem(
             .fillMaxWidth()
             .padding(vertical = 16.dp)
     ) {
-        // header
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -165,11 +162,10 @@ fun MacroChartItem(
             )
         }
 
-        // chart
         AnimatedContent(
             targetState = producer,
             transitionSpec = { fadeIn() togetherWith fadeOut() }
-        ) { state ->
+        ) { modelProducer ->
             ProvideChartStyle(chartStyle) {
                 Chart(
                     modifier = Modifier
@@ -187,7 +183,7 @@ fun MacroChartItem(
                             )
                         )
                     ),
-                    model = state.getModel()!!,
+                    model = modelProducer.getModel()!!,
                     startAxis = rememberStartAxis(),
                     bottomAxis = rememberBottomAxis(
                         valueFormatter = { x, _ ->
@@ -195,6 +191,7 @@ fun MacroChartItem(
                         }
                     ),
                     marker = marker,
+                    chartScrollSpec = rememberChartScrollSpec(initialScroll = InitialScroll.End),
                 )
             }
         }
