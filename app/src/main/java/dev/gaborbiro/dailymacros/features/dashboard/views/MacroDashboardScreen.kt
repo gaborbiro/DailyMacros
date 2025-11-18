@@ -25,14 +25,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
@@ -48,8 +47,8 @@ import com.patrykandpatrick.vico.core.dimensions.MutableDimensions
 import com.patrykandpatrick.vico.core.entry.ChartEntry
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import dev.gaborbiro.dailymacros.design.PaddingDefault
+import dev.gaborbiro.dailymacros.features.dashboard.MacroDashboardViewModel
 import kotlin.math.roundToInt
-import kotlin.random.Random
 
 enum class TimeScale { DAYS, WEEKS, MONTHS }
 
@@ -58,9 +57,10 @@ data class MacroDataset(val name: String, val color: Color, val data: List<Macro
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun MacroDashboardScreen() {
-    var scale by remember { mutableStateOf(TimeScale.DAYS) }
-    val macros = remember(scale) { generateDummyMacros(scale) }
+internal fun MacroDashboardScreen(
+    viewModel: MacroDashboardViewModel,
+) {
+    val state by viewModel.viewState.collectAsStateWithLifecycle()
     val chartStyle = m3ChartStyle()
 
     Scaffold(
@@ -80,13 +80,13 @@ fun MacroDashboardScreen() {
                     .padding(8.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                ScaleButton("Days", scale == TimeScale.DAYS) { scale = TimeScale.DAYS }
-                ScaleButton("Weeks", scale == TimeScale.WEEKS) { scale = TimeScale.WEEKS }
-                ScaleButton("Months", scale == TimeScale.MONTHS) { scale = TimeScale.MONTHS }
+                ScaleButton("Days", state.scale == TimeScale.DAYS) { viewModel.onScaleSelected(TimeScale.DAYS) }
+                ScaleButton("Weeks", state.scale == TimeScale.WEEKS) { viewModel.onScaleSelected(TimeScale.WEEKS) }
+                ScaleButton("Months", state.scale == TimeScale.MONTHS) { viewModel.onScaleSelected(TimeScale.MONTHS) }
             }
 
             // charts
-            macros.forEach { macro ->
+            state.datasets.forEach { macro ->
                 MacroChartItem(macro = macro, chartStyle = chartStyle)
             }
         }
@@ -199,27 +199,4 @@ fun MacroChartItem(
             }
         }
     }
-}
-
-fun generateDummyMacros(scale: TimeScale): List<MacroDataset> {
-    val labels = when (scale) {
-        TimeScale.DAYS -> (1..30).map { if (it % 7 == 0) "$it/11" else it.toString() }
-        TimeScale.WEEKS -> (1..12).map { "W$it" }
-        TimeScale.MONTHS -> listOf(
-            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-        )
-    }
-
-    fun randomSeries(name: String, color: Color, base: Float, spread: Float) =
-        MacroDataset(name, color, labels.map {
-            MacroDataPoint(it, base + Random.nextFloat() * spread)
-        })
-
-    return listOf(
-        randomSeries("Calories (kcal)", Color(0xFF8AB4F8), 2000f, 500f),
-        randomSeries("Protein (g)", Color(0xFF81C995), 100f, 40f),
-        randomSeries("Carbs (g)", Color(0xFFFFC278), 250f, 60f),
-        randomSeries("Fat (g)", Color(0xFFFFA6A6), 70f, 25f)
-    )
 }

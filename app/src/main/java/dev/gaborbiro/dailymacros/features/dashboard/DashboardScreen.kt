@@ -5,6 +5,8 @@ import dev.gaborbiro.dailymacros.features.dashboard.views.MacroDashboardScreen
 
 
 @Composable
-fun DashboardScreen() {
-    MacroDashboardScreen()
+internal fun DashboardScreen(
+    viewModel: MacroDashboardViewModel,
+) {
+    MacroDashboardScreen(viewModel)
 }

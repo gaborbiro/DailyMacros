@@ -36,6 +36,7 @@ import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.viewModelFactory
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.dashboard.DashboardScreen
+import dev.gaborbiro.dailymacros.features.dashboard.MacroDashboardViewModel
 import dev.gaborbiro.dailymacros.features.overview.OverviewNavigatorImpl
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewUIMapper
@@ -113,6 +114,12 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
+                val dashboardViewModel = viewModelFactory {
+                    MacroDashboardViewModel(
+                        recordsRepository = recordsRepository,
+                    )
+                }
+
                 NavHost(
                     navController = navController,
                     startDestination = OVERVIEW_ROUTE,
@@ -160,7 +167,7 @@ class MainActivity : ComponentActivity() {
                             )
                         },
                     ) {
-                        DashboardScreen()
+                        DashboardScreen(dashboardViewModel)
                     }
                 }
             }
