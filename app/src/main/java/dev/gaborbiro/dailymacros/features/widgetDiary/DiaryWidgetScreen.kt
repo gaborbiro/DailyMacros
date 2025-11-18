@@ -88,11 +88,15 @@ class DiaryWidgetScreen : GlanceAppWidget() {
                         val recordsUIMapper = RecordsUIMapper(macrosUIMapper, dateUIMapper)
                         val widgetUIMapper = WidgetUIMapper(macrosUIMapper)
 
-                        val topTemplates = widgetUIMapper.map(widgetPrefs.retrieveTopTemplates())
+                        val topTemplates = widgetUIMapper.map(
+                            runCatching { widgetPrefs.retrieveTopTemplates() }.getOrNull() ?: emptyList()
+                        )
 
-                        val recentRecords = widgetPrefs.retrieveRecentRecords().map {
-                            recordsUIMapper.map(it, forceDay = true)
-                        }
+                        val recentRecords = runCatching {
+                            widgetPrefs.retrieveRecentRecords().map {
+                                recordsUIMapper.map(it, forceDay = true)
+                            }
+                        }.getOrNull() ?: emptyList()
 
                         val items = buildList {
                             if (recentRecords.isNotEmpty() || topTemplates.isNotEmpty()) {
