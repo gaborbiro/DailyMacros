@@ -128,11 +128,18 @@ internal class MacroDashboardViewModel(
                 val weekEnd = weekStart.plusDays(6)
                 val startDay = weekStart.dayOfMonth
                 val endDay = weekEnd.dayOfMonth
-                return if (weekStart.month == weekEnd.month) {
-                    // Same month: 20-26
+
+                // Does this week contain the first day of any month?
+                val includesFirstOfMonth = (0L..6L).any { offset ->
+                    val date = weekStart.plusDays(offset)
+                    date.dayOfMonth == 1
+                }
+
+                return if (weekStart.month == weekEnd.month && !includesFirstOfMonth) {
+                    // Same month and does NOT include a 1st-of-month day: 20-26
                     "$startDay-$endDay"
                 } else {
-                    // Cross-month: 27-2 Oct
+                    // Cross-month OR includes 1st of a month: append end month, e.g. 1-7 Sep, 27-2 Oct
                     val monthAbbrev = weekEnd.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
                     "$startDay-$endDay $monthAbbrev"
                 }

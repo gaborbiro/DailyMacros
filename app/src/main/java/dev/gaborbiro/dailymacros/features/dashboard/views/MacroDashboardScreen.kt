@@ -30,8 +30,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
-import com.patrykandpatrick.vico.core.axis.AxisRenderer
-import com.patrykandpatrick.vico.core.axis.AxisPosition
 import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
 import com.patrykandpatrick.vico.compose.chart.scroll.ChartScrollState
@@ -42,6 +40,9 @@ import com.patrykandpatrick.vico.compose.m3.style.m3ChartStyle
 import com.patrykandpatrick.vico.compose.style.ChartStyle
 import com.patrykandpatrick.vico.compose.style.ProvideChartStyle
 import com.patrykandpatrick.vico.core.axis.Axis
+import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
+import com.patrykandpatrick.vico.core.axis.AxisPosition
+import com.patrykandpatrick.vico.core.axis.AxisRenderer
 import com.patrykandpatrick.vico.core.chart.line.LineChart
 import com.patrykandpatrick.vico.core.component.marker.MarkerComponent
 import com.patrykandpatrick.vico.core.component.text.textComponent
@@ -105,12 +106,18 @@ internal fun MacroDashboardScreen(
                 }
             )
 
+            val showEveryXLabel = when(state.scale) {
+                TimeScale.WEEKS -> 2
+                else -> 1
+            }
+
             state.datasets.forEach { macro ->
                 MacroChartItem(
                     macro = macro,
                     chartStyle = chartStyle,
                     chartScrollState = chartScrollState,
                     startAxis = startAxis,
+                    showEveryXLabel = showEveryXLabel,
                 )
             }
         }
@@ -134,6 +141,7 @@ fun MacroChartItem(
     chartStyle: ChartStyle,
     chartScrollState: ChartScrollState,
     startAxis: AxisRenderer<AxisPosition.Vertical.Start>,
+    showEveryXLabel: Int,
 ) {
     val producer = remember(macro) {
         ChartEntryModelProducer(
@@ -213,11 +221,13 @@ fun MacroChartItem(
                 bottomAxis = rememberBottomAxis(
                     valueFormatter = { x, _ ->
                         macro.data.getOrNull(x.roundToInt())?.label ?: ""
-                    }
+                    },
+                    itemPlacer = remember(showEveryXLabel) { AxisItemPlacer.Horizontal.default(spacing = showEveryXLabel) }
                 ),
                 marker = marker,
                 chartScrollSpec = rememberChartScrollSpec(initialScroll = InitialScroll.End),
                 chartScrollState = chartScrollState,
+                isZoomEnabled = false,
             )
         }
     }
