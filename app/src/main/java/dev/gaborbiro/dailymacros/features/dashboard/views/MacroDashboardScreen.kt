@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
+import com.patrykandpatrick.vico.core.axis.AxisRenderer
+import com.patrykandpatrick.vico.core.axis.AxisPosition
 import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
 import com.patrykandpatrick.vico.compose.chart.scroll.ChartScrollState
@@ -39,6 +41,7 @@ import com.patrykandpatrick.vico.compose.component.shapeComponent
 import com.patrykandpatrick.vico.compose.m3.style.m3ChartStyle
 import com.patrykandpatrick.vico.compose.style.ChartStyle
 import com.patrykandpatrick.vico.compose.style.ProvideChartStyle
+import com.patrykandpatrick.vico.core.axis.Axis
 import com.patrykandpatrick.vico.core.chart.line.LineChart
 import com.patrykandpatrick.vico.core.component.marker.MarkerComponent
 import com.patrykandpatrick.vico.core.component.text.textComponent
@@ -94,8 +97,16 @@ internal fun MacroDashboardScreen(
                 TimeScale.MONTHS -> monthsChartScrollState
             }
 
+            // Shared start axis within a tab so all charts line up vertically.
+            val startAxis = rememberStartAxis(sizeConstraint = Axis.SizeConstraint.Exact(70f))
+
             state.datasets.forEach { macro ->
-                MacroChartItem(macro = macro, chartStyle = chartStyle, chartScrollState = chartScrollState)
+                MacroChartItem(
+                    macro = macro,
+                    chartStyle = chartStyle,
+                    chartScrollState = chartScrollState,
+                    startAxis = startAxis,
+                )
             }
         }
     }
@@ -117,6 +128,7 @@ fun MacroChartItem(
     macro: MacroDataset,
     chartStyle: ChartStyle,
     chartScrollState: ChartScrollState,
+    startAxis: AxisRenderer<AxisPosition.Vertical.Start>,
 ) {
     val producer = remember(macro) {
         ChartEntryModelProducer(
@@ -192,7 +204,7 @@ fun MacroChartItem(
                     )
                 ),
                 model = producer.getModel()!!,
-                startAxis = rememberStartAxis(),
+                startAxis = startAxis,
                 bottomAxis = rememberBottomAxis(
                     valueFormatter = { x, _ ->
                         macro.data.getOrNull(x.roundToInt())?.label ?: ""
