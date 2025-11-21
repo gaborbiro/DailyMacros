@@ -56,29 +56,6 @@ internal fun FoodPicSummaryRequest.toApiModel(): ChatGPTRequest {
                             - Only return the success response if the images contain food or drink.
                             - Only return the success response if the images refer to one meal only.
                             - Otherwise, tell the user what's wrong with the photos and why you cannot discern food or drink from it. Be funny/whimsical about it. Use the error format.
-
-                            EXAMPLES:
-                            Example 1 — photo of packaged meal with visible label:
-                            {
-                                "titles": ["Beef Curry with Basmati Rice (250g)"],
-                                "description": "This ready meal contains beef curry, basmati rice, leeks, and carrots."
-                            }
-
-                            Example 2 — glass of red wine:
-                            {
-                                "titles": ["Glass of Red Wine"],
-                                "description": "A serving of red wine in a stemmed glass."
-                            }
-
-                            Example 3 — photo is unclear or not food/drink:
-                            {
-                                "error": "Erm... surely you didn't eat a puppy."
-                            }
-                            
-                            Example 4 — there are multiple photos but they are unrelated:
-                            {
-                                "error": "Please focus on one meal at a time."
-                            }
                         """.trimIndent()
                     )
                 ),
