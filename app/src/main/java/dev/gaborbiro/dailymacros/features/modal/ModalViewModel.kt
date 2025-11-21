@@ -5,6 +5,7 @@ import androidx.annotation.UiThread
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.util.fastCoerceAtLeast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.App
@@ -273,7 +274,7 @@ internal class ModalViewModel(
                     val title = summary.titles.firstOrNull() ?: ""
                     it.copy(
                         suggestions = summary,
-                        title = TextFieldValue(title, selection = TextRange(title.length - 1)),
+                        title = TextFieldValue(title, selection = TextRange((title.length - 1).fastCoerceAtLeast(0))),
                         showProgressIndicator = false,
                     )
                 }
@@ -413,7 +414,10 @@ internal class ModalViewModel(
             var dialogs = _viewState.value.dialogs
             dialogs = dialogs.replaceInstances<DialogState.InputDialog.CreateWithImageDialog> {
                 it.copy(
-                    title = TextFieldValue(suggestion, selection = TextRange(suggestion.length - 1))
+                    title = TextFieldValue(
+                        text = suggestion,
+                        selection = TextRange((suggestion.length - 1).coerceAtLeast(0))
+                    )
                 )
             }
 
@@ -431,7 +435,10 @@ internal class ModalViewModel(
             var dialogs = _viewState.value.dialogs
             dialogs = dialogs.replaceInstances<DialogState.InputDialog.CreateWithImageDialog> {
                 it.copy(
-                    description = TextFieldValue(suggestion, selection = TextRange(suggestion.length - 1))
+                    description = TextFieldValue(
+                        text = suggestion,
+                        selection = TextRange((suggestion.length - 1).coerceAtLeast(0))
+                    )
                 )
             }
 

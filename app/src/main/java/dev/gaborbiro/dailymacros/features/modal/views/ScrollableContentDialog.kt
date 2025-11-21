@@ -66,7 +66,7 @@ internal fun ScrollableContentDialog(
                 snackbarHostState.showSnackbar(
                     message = it,
                     withDismissAction = true,
-                    duration = SnackbarDuration.Short,
+                    duration = SnackbarDuration.Indefinite,
                 )
             }
         }

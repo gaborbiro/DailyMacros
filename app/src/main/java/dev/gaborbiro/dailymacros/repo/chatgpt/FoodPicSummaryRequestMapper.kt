@@ -4,6 +4,7 @@ import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodPicSummaryRequest
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodPicSummaryResponse
+import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTRequest
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTResponse
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntry
@@ -115,9 +116,12 @@ internal fun ChatGPTResponse.toFoodPicSummaryResponse(): FoodPicSummaryResponse 
     return resultJson
         ?.let {
             val summary = gson.fromJson(resultJson, Summary::class.java)
+            if (summary.error != null) {
+                throw ChatGPTApiError.GenericApiError(summary.error)
+            }
             FoodPicSummaryResponse(
                 titles = summary.titles ?: emptyList(),
-                description = summary.description ?: summary.error,
+                description = summary.description,
             )
         }
         ?: FoodPicSummaryResponse(
