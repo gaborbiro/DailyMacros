@@ -24,24 +24,25 @@ sealed class DialogState {
 
     sealed class InputDialog(
         open val titleHint: String,
-        open val validationError: String? = null,
+        open val titleValidationError: String? = null,
         open val title: TextFieldValue,
         open val description: TextFieldValue,
     ) : DialogState() {
 
         data class CreateDialog(
             override val titleHint: String,
-            override val validationError: String? = null,
+            override val titleValidationError: String? = null,
             override val title: TextFieldValue,
-            override  val description: TextFieldValue,
+            override val description: TextFieldValue,
         ) : InputDialog(
             titleHint = titleHint,
-            validationError = validationError,
+            titleValidationError = titleValidationError,
             title = title,
             description = description,
         ) {
-            override fun withValidationError(validationError: String?) =
-                copy(validationError = validationError)
+            override fun withTitleValidationError(titleValidationError: String?) = copy(titleValidationError = titleValidationError)
+            override fun withTitle(title: TextFieldValue) = copy(title = title)
+            override fun withDescription(description: TextFieldValue) = copy(description = description)
         }
 
         data class CreateWithImageDialog(
@@ -50,17 +51,18 @@ sealed class DialogState {
             val suggestions: SummarySuggestions?,
             val autoSubmitEnabled: Boolean,
             override val titleHint: String,
-            override val validationError: String? = null,
+            override val titleValidationError: String? = null,
             override val title: TextFieldValue,
-            override  val description: TextFieldValue,
+            override val description: TextFieldValue,
         ) : InputDialog(
             titleHint = titleHint,
-            validationError = validationError,
+            titleValidationError = titleValidationError,
             title = title,
             description = description,
         ) {
-            override fun withValidationError(validationError: String?) =
-                copy(validationError = validationError)
+            override fun withTitleValidationError(titleValidationError: String?) = copy(titleValidationError = titleValidationError)
+            override fun withTitle(title: TextFieldValue) = copy(title = title)
+            override fun withDescription(description: TextFieldValue) = copy(description = description)
 
             data class SummarySuggestions(
                 val titles: List<String>,
@@ -75,20 +77,23 @@ sealed class DialogState {
             val titleSuggestions: List<String>,
             val allowEdit: Boolean,
             override val titleHint: String,
-            override val validationError: String? = null,
+            override val titleValidationError: String? = null,
             override val title: TextFieldValue,
-            override  val description: TextFieldValue,
+            override val description: TextFieldValue,
         ) : InputDialog(
             titleHint = titleHint,
-            validationError = validationError,
+            titleValidationError = titleValidationError,
             title = title,
             description = description,
         ) {
-            override fun withValidationError(validationError: String?) =
-                copy(validationError = validationError)
+            override fun withTitleValidationError(titleValidationError: String?) = copy(titleValidationError = titleValidationError)
+            override fun withTitle(title: TextFieldValue) = copy(title = title)
+            override fun withDescription(description: TextFieldValue) = copy(description = description)
         }
 
-        abstract fun withValidationError(validationError: String?): InputDialog
+        abstract fun withTitleValidationError(titleValidationError: String?): InputDialog
+        abstract fun withTitle(title: TextFieldValue): InputDialog
+        abstract fun withDescription(description: TextFieldValue): InputDialog
     }
 
     data class ImageInput(val type: ImageInputType) : DialogState()

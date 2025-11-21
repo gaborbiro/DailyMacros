@@ -54,8 +54,9 @@ internal fun InputDialog(
     onTitleSuggestionSelected: (String) -> Unit,
     onDescriptionSuggestionSelected: (String) -> Unit,
     onAutoSubmitCheckedChanged: (checked: Boolean) -> Unit,
+    onTitleChanged: (TextFieldValue) -> Unit,
+    onDescriptionChanged: (TextFieldValue) -> Unit,
     onSubmitRequested: () -> Unit,
-    onRecordDetailsUserTyping: (title: String, description: String) -> Unit,
     onImageTapped: (String) -> Unit,
     onAddImageViaCameraTapped: () -> Unit,
     onAddImageViaPickerTapped: () -> Unit,
@@ -93,7 +94,8 @@ internal fun InputDialog(
         onDismissRequested = onDismissRequested,
         content = {
             InputDialogContent(
-                onChange = onRecordDetailsUserTyping,
+                onTitleChanged = onTitleChanged,
+                onDescriptionChanged = onDescriptionChanged,
                 showKeyboardOnOpen = showKeyboardOnOpen,
                 images = images,
                 title = title,
@@ -105,7 +107,7 @@ internal fun InputDialog(
                 onAutoSubmitCheckedChanged = onAutoSubmitCheckedChanged,
                 showProgressIndicator = showProgressIndicator ?: false,
                 description = description,
-                error = dialogState.validationError,
+                titleErrorMessage = dialogState.titleValidationError,
                 allowEdit = allowEdit,
                 macros = macros,
                 onImageTapped = onImageTapped,
@@ -159,7 +161,8 @@ internal fun InputDialog(
 
 @Composable
 private fun ColumnScope.InputDialogContent(
-    onChange: (String, String) -> Unit,
+    onTitleChanged: (TextFieldValue) -> Unit,
+    onDescriptionChanged: (TextFieldValue) -> Unit,
     onTitleSuggestionSelected: (String) -> Unit,
     onDescriptionSuggestionSelected: (String) -> Unit,
     showKeyboardOnOpen: Boolean,
@@ -171,7 +174,7 @@ private fun ColumnScope.InputDialogContent(
     onAutoSubmitCheckedChanged: (checked: Boolean) -> Unit,
     showProgressIndicator: Boolean,
     description: TextFieldValue,
-    error: String?,
+    titleErrorMessage: String?,
     allowEdit: Boolean,
     macros: MacrosUIModel?,
     onImageTapped: (String) -> Unit,
@@ -196,7 +199,7 @@ private fun ColumnScope.InputDialogContent(
             .wrapContentHeight()
             .focusRequester(focusRequester),
         enabled = allowEdit,
-        isError = error.isNullOrBlank().not(),
+        isError = titleErrorMessage.isNullOrBlank().not(),
         textStyle = MaterialTheme.typography.bodyMedium,
         placeholder = {
             if (allowEdit) {
@@ -215,12 +218,12 @@ private fun ColumnScope.InputDialogContent(
             imeAction = ImeAction.Next
         ),
         onValueChange = {
-            onChange(it.text, description.text)
+            onTitleChanged(it)
         },
     )
-    if (error.isNullOrBlank().not()) {
+    if (titleErrorMessage.isNullOrBlank().not()) {
         Text(
-            text = error,
+            text = titleErrorMessage,
             color = MaterialTheme.colorScheme.error,
             style = MaterialTheme.typography.labelSmall,
             modifier = Modifier
@@ -352,7 +355,7 @@ private fun ColumnScope.InputDialogContent(
             capitalization = KeyboardCapitalization.Sentences,
         ),
         onValueChange = {
-            onChange(title.text, it.text)
+            onDescriptionChanged(it)
         },
     )
 
@@ -396,8 +399,9 @@ private fun NoteInputDialogContentPreviewEdit() {
                 onTitleSuggestionSelected = {},
                 onDescriptionSuggestionSelected = {},
                 onAutoSubmitCheckedChanged = {},
+                onTitleChanged = {},
+                onDescriptionChanged = {},
                 onSubmitRequested = {},
-                onRecordDetailsUserTyping = { _, _ -> },
                 onImageTapped = {},
                 onAddImageViaCameraTapped = {},
                 onAddImageViaPickerTapped = {},
@@ -427,8 +431,9 @@ private fun NoteInputDialogContentPreview() {
             onTitleSuggestionSelected = {},
             onDescriptionSuggestionSelected = {},
             onAutoSubmitCheckedChanged = {},
+            onTitleChanged = {},
+            onDescriptionChanged = {},
             onSubmitRequested = {},
-            onRecordDetailsUserTyping = { _, _ -> },
             onImageTapped = {},
             onAddImageViaCameraTapped = {},
             onAddImageViaPickerTapped = {},
@@ -461,8 +466,9 @@ private fun NoteInputDialogContentPreviewSuggestion() {
                 onTitleSuggestionSelected = {},
                 onDescriptionSuggestionSelected = {},
                 onAutoSubmitCheckedChanged = {},
+                onTitleChanged = {},
+                onDescriptionChanged = {},
                 onSubmitRequested = {},
-                onRecordDetailsUserTyping = { _, _ -> },
                 onImageTapped = {},
                 onAddImageViaCameraTapped = {},
                 onAddImageViaPickerTapped = {},
@@ -487,7 +493,7 @@ private fun NoteInputDialogContentPreviewError() {
                 ),
                 autoSubmitEnabled = true,
                 titleHint = "Describe your meal",
-                validationError = "error",
+                titleValidationError = "error",
                 title = TextFieldValue(),
                 description = TextFieldValue(),
             ),
@@ -495,8 +501,9 @@ private fun NoteInputDialogContentPreviewError() {
             onTitleSuggestionSelected = {},
             onDescriptionSuggestionSelected = {},
             onAutoSubmitCheckedChanged = {},
+            onTitleChanged = {},
+            onDescriptionChanged = {},
             onSubmitRequested = {},
-            onRecordDetailsUserTyping = { _, _ -> },
             onImageTapped = {},
             onAddImageViaCameraTapped = {},
             onAddImageViaPickerTapped = {},

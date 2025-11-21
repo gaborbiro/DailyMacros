@@ -43,17 +43,17 @@ internal fun FoodPicSummaryRequest.toApiModel(): ChatGPTRequest {
                             Always return a valid JSON object in these structures.
                             Success format:
                             {
-                                "titles": ["Ham & Mushroom Panini", "Ham & Mushroom Sandwich"],
-                                "description": "This sandwich contains ham, mushrooms, and bread, likely contributing proteins, carbs, and fats."
+                                "titles": ["text", "text"],
+                                "description": "<text>"
                             }
                             Error format:
                             {
-                                "error": "Unable to identify any food items in the photo"
+                                "error": "<text>"
                             }
 
                             CONFIDENCE RULES:
                             - If the photos are not primarily of food/drink but indirectly implies/references something edible (for ex a photo of an ice-cream van) then instead of taking the photo at face value, just focus the a usual variant and portion of the implied/referenced food or drink (1 scoop of vanilla ice-cream in the previous example).
-                            - Only return the success response if the images contain food or drink.
+                            - Only return the success response if you can actually discern food/drink from the photo
                             - Only return the success response if the images refer to one meal only.
                             - Otherwise, tell the user what's wrong with the photos and why you cannot discern food or drink from it. Be funny/whimsical about it. Use the error format.
                         """.trimIndent()

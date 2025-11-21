@@ -2,10 +2,8 @@ package dev.gaborbiro.dailymacros.features.modal
 
 import android.net.Uri
 import androidx.annotation.UiThread
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.util.fastCoerceAtLeast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.App
@@ -173,7 +171,7 @@ internal class ModalViewModel(
                         allowEdit = edit,
                         titleSuggestions = emptyList(),
                         titleHint = "Describe your meal",
-                        validationError = null,
+                        titleValidationError = null,
                     )
                     _viewState.emit(
                         ModalViewState(
@@ -274,7 +272,7 @@ internal class ModalViewModel(
                     val title = summary.titles.firstOrNull() ?: ""
                     it.copy(
                         suggestions = summary,
-                        title = TextFieldValue(title, selection = TextRange((title.length - 1).fastCoerceAtLeast(0))),
+                        title = TextFieldValue(title, selection = TextRange(title.length)),
                         showProgressIndicator = false,
                     )
                 }
@@ -356,9 +354,18 @@ internal class ModalViewModel(
     }
 
     @UiThread
-    fun onRecordDetailsUserTyping(title: String, description: String) {
+    fun onTitleChanged(title: TextFieldValue) {
         updateDialogsOfType<DialogState.InputDialog> {
-            it.withValidationError(validationError = null)
+            it
+                .withTitle(title)
+                .withTitleValidationError(null)
+        }
+    }
+
+    @UiThread
+    fun onDescriptionChanged(description: TextFieldValue) {
+        updateDialogsOfType<DialogState.InputDialog> {
+            it.withDescription(description)
         }
     }
 
@@ -416,7 +423,7 @@ internal class ModalViewModel(
                 it.copy(
                     title = TextFieldValue(
                         text = suggestion,
-                        selection = TextRange((suggestion.length - 1).coerceAtLeast(0))
+                        selection = TextRange(suggestion.length)
                     )
                 )
             }
@@ -437,7 +444,7 @@ internal class ModalViewModel(
                 it.copy(
                     description = TextFieldValue(
                         text = suggestion,
-                        selection = TextRange((suggestion.length - 1).coerceAtLeast(0))
+                        selection = TextRange(suggestion.length)
                     )
                 )
             }
@@ -571,7 +578,7 @@ internal class ModalViewModel(
 
     private fun applyValidationError(message: String?) {
         updateDialogsOfType<DialogState.InputDialog> {
-            it.withValidationError(validationError = message)
+            it.withTitleValidationError(titleValidationError = message)
         }
     }
 
