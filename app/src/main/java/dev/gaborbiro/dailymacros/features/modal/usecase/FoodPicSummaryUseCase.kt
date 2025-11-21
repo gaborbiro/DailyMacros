@@ -14,7 +14,7 @@ internal class FoodPicSummaryUseCase(
     private val mapper: RecordsMapper,
 ) {
 
-    suspend fun execute(images: List<String>): DialogState.InputDialog.SummarySuggestions {
+    suspend fun execute(images: List<String>): DialogState.InputDialog.CreateWithImageDialog.SummarySuggestions {
         val response = try {
             val base64Images = images.map {
                 val inputStream = imageStore.open(it, thumbnail = false)

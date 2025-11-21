@@ -4,17 +4,8 @@ import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
 import com.google.gson.JsonParseException
-import com.google.gson.annotations.SerializedName
 import java.lang.reflect.Type
 
-
-sealed class OutputContent(
-    @SerializedName("type") open val type: String,
-) {
-    data class Text(
-        @SerializedName("text") val text: String,
-    ) : OutputContent("output_text")
-}
 
 // Polymorphic deserializer for OutputContent based on "type"
 internal class OutputContentDeserializer : JsonDeserializer<OutputContent> {

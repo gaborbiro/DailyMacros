@@ -59,6 +59,7 @@ import dev.gaborbiro.dailymacros.data.file.FileStore
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.AppTheme
+import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
@@ -187,7 +188,8 @@ class ModalActivity : AppCompatActivity() {
             service = retrofit.create(ChatGPTService::class.java)
         )
 
-        val recordsMapper = RecordsMapper()
+        val appPrefs = AppPrefs(this@ModalActivity)
+        val recordsMapper = RecordsMapper(appPrefs)
         val dateUIMapper = DateUIMapper()
         val macrosUIMapper = MacrosUIMapper(dateUIMapper)
         val deleteRecordUseCase = DeleteRecordUseCase(recordsRepository)
@@ -212,6 +214,7 @@ class ModalActivity : AppCompatActivity() {
             foodPicSummaryUseCase = FoodPicSummaryUseCase(imageStore, chatGPTRepository, recordsMapper),
             macrosUIMapper = macrosUIMapper,
             deleteRecordUseCase = deleteRecordUseCase,
+            appPrefs = appPrefs,
         )
     }
 
@@ -322,6 +325,9 @@ class ModalActivity : AppCompatActivity() {
             is DialogState.InputDialog -> InputDialog(
                 dialogState = dialogState,
                 errorMessages = errorMessages,
+                onTitleSuggestionSelected = viewModel::onTitleSuggestionSelected,
+                onDescriptionSuggestionSelected = viewModel::onDescriptionSuggestionSelected,
+                onAutoSubmitCheckedChanged = viewModel::onAutoSubmitCheckedChanged,
                 onSubmitRequested = viewModel::onSubmitRequested,
                 onRecordDetailsUserTyping = viewModel::onRecordDetailsUserTyping,
                 onImageTapped = viewModel::onImageTapped,

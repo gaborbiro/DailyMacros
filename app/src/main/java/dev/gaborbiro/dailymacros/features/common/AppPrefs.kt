@@ -26,20 +26,12 @@ internal class AppPrefs(context: Context) {
             return newUuid
         }
 
-//    // String
-//    var username: String?
-//        get() = prefs.getString("username", null)
-//        set(value) = prefs.edit().putString("username", value).apply()
-//
-//    // Int
-//    var launchCount: Int
-//        get() = prefs.getInt("launch_count", 0)
-//        set(value) = prefs.edit().putInt("launch_count", value).apply()
-//
-//    // Float
-//    var volume: Float
-//        get() = prefs.getFloat("volume", 1.0f)
-//        set(value) = prefs.edit().putFloat("volume", value).apply()
+    var autoSubmitEnabled: Boolean
+        get() = prefs.getBoolean("auto_submit_enabled", true)
+        set(value) {
+            prefs.edit { putBoolean("auto_submit_enabled", value) }
+        }
+
 
     // Remove value
     fun clear(key: String) {

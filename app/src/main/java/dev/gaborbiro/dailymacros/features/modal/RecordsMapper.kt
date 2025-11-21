@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.features.modal
 
+import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodPicSummaryRequest
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodPicSummaryResponse
@@ -9,7 +10,9 @@ import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.MacrosResponse
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 
-class RecordsMapper {
+internal class RecordsMapper(
+    private val appPrefs: AppPrefs,
+) {
 
     fun mapFoodPicsSummaryRequest(base64Images: List<String>): FoodPicSummaryRequest {
         return FoodPicSummaryRequest(
@@ -17,8 +20,8 @@ class RecordsMapper {
         )
     }
 
-    fun map(response: FoodPicSummaryResponse): DialogState.InputDialog.SummarySuggestions {
-        return DialogState.InputDialog.SummarySuggestions(
+    fun map(response: FoodPicSummaryResponse): DialogState.InputDialog.CreateWithImageDialog.SummarySuggestions {
+        return DialogState.InputDialog.CreateWithImageDialog.SummarySuggestions(
             titles = response.titles.distinct(),
             description = response.description
         )

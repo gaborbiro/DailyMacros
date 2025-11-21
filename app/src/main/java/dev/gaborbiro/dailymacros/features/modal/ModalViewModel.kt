@@ -2,10 +2,14 @@ package dev.gaborbiro.dailymacros.features.modal
 
 import android.net.Uri
 import androidx.annotation.UiThread
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
+import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
@@ -59,6 +63,7 @@ internal class ModalViewModel(
     private val foodPicSummaryUseCase: FoodPicSummaryUseCase,
     private val deleteRecordUseCase: DeleteRecordUseCase,
     private val macrosUIMapper: MacrosUIMapper,
+    private val appPrefs: AppPrefs,
 ) : ViewModel() {
 
     companion object {
@@ -99,7 +104,11 @@ internal class ModalViewModel(
     @UiThread
     fun onCreateRecordDeeplink() {
         pushDialog(
-            DialogState.InputDialog.CreateDialog(titleHint = "Describe your meal (or snap a photo)")
+            DialogState.InputDialog.CreateDialog(
+                titleHint = "Describe your meal (or snap a photo)",
+                title = TextFieldValue(),
+                description = TextFieldValue(),
+            )
         )
     }
 
@@ -157,8 +166,8 @@ internal class ModalViewModel(
                     val dialog = DialogState.InputDialog.RecordDetailsDialog(
                         recordId = recordId,
                         images = record.template.images,
-                        title = record.template.name,
-                        description = record.template.description,
+                        title = TextFieldValue(record.template.name),
+                        description = TextFieldValue(record.template.description),
                         macros = macros,
                         allowEdit = edit,
                         titleSuggestions = emptyList(),
@@ -215,8 +224,11 @@ internal class ModalViewModel(
                 DialogState.InputDialog.CreateWithImageDialog(
                     images = listOf(persistedFilename),
                     suggestions = null,
+                    autoSubmitEnabled = appPrefs.autoSubmitEnabled,
                     showProgressIndicator = true,
                     titleHint = "Describe your meal (or tap one of the AI suggestions)",
+                    title = it.title,
+                    description = it.description,
                 )
             }
 
@@ -231,8 +243,11 @@ internal class ModalViewModel(
                     DialogState.InputDialog.CreateWithImageDialog(
                         images = listOf(persistedFilename),
                         suggestions = null,
+                        autoSubmitEnabled = appPrefs.autoSubmitEnabled,
                         showProgressIndicator = true,
                         titleHint = "Describe your meal (or tap one of the AI suggestions)",
+                        title = TextFieldValue(),
+                        description = TextFieldValue(),
                     )
                 )
             }
@@ -255,17 +270,17 @@ internal class ModalViewModel(
             try {
                 val summary = foodPicSummaryUseCase.execute(images)
                 updateDialogsOfType<DialogState.InputDialog.CreateWithImageDialog> {
+                    val title = summary.titles.firstOrNull() ?: ""
                     it.copy(
                         suggestions = summary,
+                        title = TextFieldValue(title, selection = TextRange(title.length - 1)),
+                        showProgressIndicator = false,
                     )
                 }
-//                updateDialogsOfType<DialogState.InputDialog.CreateDialog> {
-//                    DialogState.InputDialog.CreateWithImageDialog(
-//                        images = images,
-//                        suggestions = summary,
-//                        titleHint = "Describe your meal (or tap one of the AI suggestions)",
-//                    )
-//                }
+                if (appPrefs.autoSubmitEnabled) {
+                    onSubmitRequested()
+                    popDialog()
+                }
             } catch (t: Throwable) {
                 throw t
             } finally {
@@ -393,7 +408,62 @@ internal class ModalViewModel(
     }
 
     @UiThread
-    fun onSubmitRequested(title: String, description: String) {
+    fun onTitleSuggestionSelected(suggestion: String) {
+        runSafely {
+            var dialogs = _viewState.value.dialogs
+            dialogs = dialogs.replaceInstances<DialogState.InputDialog.CreateWithImageDialog> {
+                it.copy(
+                    title = TextFieldValue(suggestion, selection = TextRange(suggestion.length - 1))
+                )
+            }
+
+            _viewState.emit(
+                ModalViewState(
+                    dialogs = dialogs,
+                )
+            )
+        }
+    }
+
+    @UiThread
+    fun onDescriptionSuggestionSelected(suggestion: String) {
+        runSafely {
+            var dialogs = _viewState.value.dialogs
+            dialogs = dialogs.replaceInstances<DialogState.InputDialog.CreateWithImageDialog> {
+                it.copy(
+                    description = TextFieldValue(suggestion, selection = TextRange(suggestion.length - 1))
+                )
+            }
+
+            _viewState.emit(
+                ModalViewState(
+                    dialogs = dialogs,
+                )
+            )
+        }
+    }
+
+    @UiThread
+    fun onAutoSubmitCheckedChanged(checked: Boolean) {
+        imageSummaryJob = runSafely {
+            appPrefs.autoSubmitEnabled = checked
+            var dialogs = _viewState.value.dialogs
+            dialogs = dialogs.replaceInstances<DialogState.InputDialog.CreateWithImageDialog> {
+                it.copy(
+                    autoSubmitEnabled = checked
+                )
+            }
+
+            _viewState.emit(
+                ModalViewState(
+                    dialogs = dialogs,
+                )
+            )
+        }
+    }
+
+    @UiThread
+    fun onSubmitRequested() {
         _viewState.value.dialogs
             .filterIsInstance<DialogState.InputDialog>()
             .firstOrNull()
@@ -401,11 +471,11 @@ internal class ModalViewModel(
                 runSafely {
                     when (it) {
                         is DialogState.InputDialog.CreateDialog, is DialogState.InputDialog.CreateWithImageDialog -> {
-                            handleCreateRecordDetailsSubmitted(it, title, description)
+                            handleCreateRecordDetailsSubmitted(it, it.title.text.trim(), it.description.text.trim())
                         }
 
                         is DialogState.InputDialog.RecordDetailsDialog -> {
-                            handleEditRecordDialogSubmitted(it, title, description)
+                            handleEditRecordDialogSubmitted(it, it.title.text.trim(), it.description.text.trim())
                         }
                     }
                 }

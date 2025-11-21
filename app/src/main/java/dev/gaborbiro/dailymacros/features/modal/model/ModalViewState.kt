@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.modal.model
 
 import android.graphics.Bitmap
+import androidx.compose.ui.text.input.TextFieldValue
 
 data class ModalViewState(
     val dialogs: List<DialogState> = emptyList(),
@@ -24,14 +25,20 @@ sealed class DialogState {
     sealed class InputDialog(
         open val titleHint: String,
         open val validationError: String? = null,
+        open val title: TextFieldValue,
+        open val description: TextFieldValue,
     ) : DialogState() {
 
         data class CreateDialog(
             override val titleHint: String,
             override val validationError: String? = null,
+            override val title: TextFieldValue,
+            override  val description: TextFieldValue,
         ) : InputDialog(
             titleHint = titleHint,
             validationError = validationError,
+            title = title,
+            description = description,
         ) {
             override fun withValidationError(validationError: String?) =
                 copy(validationError = validationError)
@@ -41,34 +48,41 @@ sealed class DialogState {
             val images: List<String>,
             val showProgressIndicator: Boolean = false,
             val suggestions: SummarySuggestions?,
+            val autoSubmitEnabled: Boolean,
             override val titleHint: String,
             override val validationError: String? = null,
+            override val title: TextFieldValue,
+            override  val description: TextFieldValue,
         ) : InputDialog(
             titleHint = titleHint,
             validationError = validationError,
+            title = title,
+            description = description,
         ) {
             override fun withValidationError(validationError: String?) =
                 copy(validationError = validationError)
-        }
 
-        data class SummarySuggestions(
-            val titles: List<String>,
-            val description: String?,
-        )
+            data class SummarySuggestions(
+                val titles: List<String>,
+                val description: String?,
+            )
+        }
 
         data class RecordDetailsDialog(
             val recordId: Long,
             val images: List<String>,
-            val title: String?,
-            val description: String?,
             val macros: MacrosUIModel?,
             val titleSuggestions: List<String>,
             val allowEdit: Boolean,
             override val titleHint: String,
             override val validationError: String? = null,
+            override val title: TextFieldValue,
+            override  val description: TextFieldValue,
         ) : InputDialog(
             titleHint = titleHint,
             validationError = validationError,
+            title = title,
+            description = description,
         ) {
             override fun withValidationError(validationError: String?) =
                 copy(validationError = validationError)

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -19,15 +20,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -53,7 +51,10 @@ import kotlinx.coroutines.flow.emptyFlow
 internal fun InputDialog(
     dialogState: DialogState.InputDialog,
     errorMessages: Flow<String>,
-    onSubmitRequested: (title: String, description: String) -> Unit,
+    onTitleSuggestionSelected: (String) -> Unit,
+    onDescriptionSuggestionSelected: (String) -> Unit,
+    onAutoSubmitCheckedChanged: (checked: Boolean) -> Unit,
+    onSubmitRequested: () -> Unit,
     onRecordDetailsUserTyping: (title: String, description: String) -> Unit,
     onImageTapped: (String) -> Unit,
     onAddImageViaCameraTapped: () -> Unit,
@@ -61,7 +62,7 @@ internal fun InputDialog(
     onDismissRequested: () -> Unit,
     onImagesInfoButtonTapped: () -> Unit,
 ) {
-    val title = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.title
+    val title = dialogState.title
     val titleHint = dialogState.titleHint
     val images: List<String> =
         (dialogState as? DialogState.InputDialog.RecordDetailsDialog)
@@ -72,23 +73,10 @@ internal fun InputDialog(
         ?.suggestions
     val showProgressIndicator = (dialogState as? DialogState.InputDialog.CreateWithImageDialog)
         ?.showProgressIndicator
-    val description =
-        (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.description
+    val description = dialogState.description
     val macros = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.macros
     val allowEdit = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.allowEdit ?: true
-
-    val titleField: MutableState<TextFieldValue> = remember {
-        mutableStateOf(TextFieldValue(title ?: ""))
-    }
-    val descriptionField: MutableState<TextFieldValue> = remember {
-        mutableStateOf(TextFieldValue(description ?: ""))
-    }
-    val onSubmit: () -> Unit = {
-        onSubmitRequested(
-            /* title = */ titleField.value.text.trim(),
-            /* description = */ descriptionField.value.text.trim(),
-        )
-    }
+    val autoSubmitEnabled = (dialogState as? DialogState.InputDialog.CreateWithImageDialog)?.autoSubmitEnabled
 
     val saveButtonText =
         if (dialogState is DialogState.InputDialog.RecordDetailsDialog) "Update and Analyze" else "Add and Analyze"
@@ -108,11 +96,15 @@ internal fun InputDialog(
                 onChange = onRecordDetailsUserTyping,
                 showKeyboardOnOpen = showKeyboardOnOpen,
                 images = images,
-                titleField = titleField,
+                title = title,
                 titleHint = titleHint,
                 suggestions = suggestions,
+                autoSubmitEnabled = autoSubmitEnabled,
+                onTitleSuggestionSelected = onTitleSuggestionSelected,
+                onDescriptionSuggestionSelected = onDescriptionSuggestionSelected,
+                onAutoSubmitCheckedChanged = onAutoSubmitCheckedChanged,
                 showProgressIndicator = showProgressIndicator ?: false,
-                descriptionField = descriptionField,
+                description = description,
                 error = dialogState.validationError,
                 allowEdit = allowEdit,
                 macros = macros,
@@ -140,7 +132,7 @@ internal fun InputDialog(
                             style = MaterialTheme.typography.labelLarge,
                         )
                     }
-                    TextButton(onSubmit) {
+                    TextButton(onSubmitRequested) {
                         Text(
                             modifier = Modifier
                                 .padding(horizontal = PaddingDefault),
@@ -168,13 +160,17 @@ internal fun InputDialog(
 @Composable
 private fun ColumnScope.InputDialogContent(
     onChange: (String, String) -> Unit,
+    onTitleSuggestionSelected: (String) -> Unit,
+    onDescriptionSuggestionSelected: (String) -> Unit,
     showKeyboardOnOpen: Boolean,
     images: List<String>,
-    titleField: MutableState<TextFieldValue>,
+    title: TextFieldValue,
     titleHint: String,
-    suggestions: DialogState.InputDialog.SummarySuggestions?,
+    suggestions: DialogState.InputDialog.CreateWithImageDialog.SummarySuggestions?,
+    autoSubmitEnabled: Boolean?,
+    onAutoSubmitCheckedChanged: (checked: Boolean) -> Unit,
     showProgressIndicator: Boolean,
-    descriptionField: MutableState<TextFieldValue>,
+    description: TextFieldValue,
     error: String?,
     allowEdit: Boolean,
     macros: MacrosUIModel?,
@@ -212,15 +208,14 @@ private fun ColumnScope.InputDialogContent(
                 )
             }
         },
-        value = titleField.value,
+        value = title,
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Text,
             capitalization = KeyboardCapitalization.Sentences,
             imeAction = ImeAction.Next
         ),
         onValueChange = {
-            titleField.value = it
-            onChange(titleField.value.text, descriptionField.value.text)
+            onChange(it.text, description.text)
         },
     )
     if (error.isNullOrBlank().not()) {
@@ -254,9 +249,7 @@ private fun ColumnScope.InputDialogContent(
                             .padding(bottom = 4.dp),
                         text = it,
                         onClick = {
-                            titleField.value =
-                                titleField.value.copy(text = it, selection = TextRange(it.length))
-                            onChange(titleField.value.text, descriptionField.value.text)
+                            onTitleSuggestionSelected(it)
                         },
                     )
                 }
@@ -275,16 +268,25 @@ private fun ColumnScope.InputDialogContent(
 
         CircularProgressIndicator(
             modifier = Modifier
-                .padding(bottom = PaddingDefault)
                 .size(25.dp)
                 .align(Alignment.CenterHorizontally)
         )
-    } else {
-        Spacer(
-            modifier = Modifier
-                .height(PaddingDefault)
-        )
     }
+
+    autoSubmitEnabled?.let {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(
+                checked = autoSubmitEnabled,
+                onCheckedChange = onAutoSubmitCheckedChanged,
+            )
+            Text(text = "Auto-submit")
+        }
+    }
+
+    Spacer(
+        modifier = Modifier
+            .height(PaddingDefault)
+    )
 
     ImageStrip(
         modifier = Modifier
@@ -316,9 +318,7 @@ private fun ColumnScope.InputDialogContent(
                     .padding(bottom = PaddingHalf),
                 text = descriptionSuggestion,
                 onClick = {
-                    descriptionField.value =
-                        descriptionField.value.copy(text = descriptionSuggestion, selection = TextRange(descriptionSuggestion.length))
-                    onChange(titleField.value.text, descriptionField.value.text)
+                    onDescriptionSuggestionSelected(descriptionSuggestion)
                 },
             )
         }
@@ -346,14 +346,13 @@ private fun ColumnScope.InputDialogContent(
                 )
             }
         },
-        value = descriptionField.value,
+        value = description,
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Text,
             capitalization = KeyboardCapitalization.Sentences,
         ),
         onValueChange = {
-            descriptionField.value = it
-            onChange(titleField.value.text, descriptionField.value.text)
+            onChange(title.text, it.text)
         },
     )
 
@@ -377,9 +376,9 @@ private fun NoteInputDialogContentPreviewEdit() {
                     recordId = 1L,
                     images = listOf("1", "2"),
                     titleSuggestions = emptyList(),
-                    title = null,
+                    title = TextFieldValue(),
                     titleHint = "Describe your meal (or pick a suggestion from below)",
-                    description = null,
+                    description = TextFieldValue(),
                     allowEdit = true,
                     macros = MacrosUIModel(
                         calories = "Calories: 2100 cal",
@@ -394,7 +393,10 @@ private fun NoteInputDialogContentPreviewEdit() {
                     ),
                 ),
                 errorMessages = emptyFlow(),
-                onSubmitRequested = { _, _ -> },
+                onTitleSuggestionSelected = {},
+                onDescriptionSuggestionSelected = {},
+                onAutoSubmitCheckedChanged = {},
+                onSubmitRequested = {},
                 onRecordDetailsUserTyping = { _, _ -> },
                 onImageTapped = {},
                 onAddImageViaCameraTapped = {},
@@ -416,10 +418,16 @@ private fun NoteInputDialogContentPreview() {
                 images = listOf("1", "2"),
                 showProgressIndicator = true,
                 suggestions = null,
+                autoSubmitEnabled = true,
                 titleHint = "Describe your meal (or pick a suggestion from below)",
+                title = TextFieldValue(),
+                description = TextFieldValue(),
             ),
             errorMessages = emptyFlow(),
-            onSubmitRequested = { _, _ -> },
+            onTitleSuggestionSelected = {},
+            onDescriptionSuggestionSelected = {},
+            onAutoSubmitCheckedChanged = {},
+            onSubmitRequested = {},
             onRecordDetailsUserTyping = { _, _ -> },
             onImageTapped = {},
             onAddImageViaCameraTapped = {},
@@ -440,14 +448,20 @@ private fun NoteInputDialogContentPreviewSuggestion() {
             InputDialog(
                 dialogState = DialogState.InputDialog.CreateWithImageDialog(
                     images = listOf("1", "2"),
-                    suggestions = DialogState.InputDialog.SummarySuggestions(
+                    suggestions = DialogState.InputDialog.CreateWithImageDialog.SummarySuggestions(
                         titles = listOf("This is a title suggestion", "This is another title suggestion"),
                         description = "",
                     ),
+                    autoSubmitEnabled = true,
                     titleHint = "Describe your meal",
+                    title = TextFieldValue(),
+                    description = TextFieldValue(),
                 ),
                 errorMessages = emptyFlow(),
-                onSubmitRequested = { _, _ -> },
+                onTitleSuggestionSelected = {},
+                onDescriptionSuggestionSelected = {},
+                onAutoSubmitCheckedChanged = {},
+                onSubmitRequested = {},
                 onRecordDetailsUserTyping = { _, _ -> },
                 onImageTapped = {},
                 onAddImageViaCameraTapped = {},
@@ -467,15 +481,21 @@ private fun NoteInputDialogContentPreviewError() {
         InputDialog(
             dialogState = DialogState.InputDialog.CreateWithImageDialog(
                 images = listOf("1", "2"),
-                suggestions = DialogState.InputDialog.SummarySuggestions(
+                suggestions = DialogState.InputDialog.CreateWithImageDialog.SummarySuggestions(
                     titles = listOf("This is a title suggestion", "This is another title suggestion"),
                     description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
                 ),
+                autoSubmitEnabled = true,
                 titleHint = "Describe your meal",
                 validationError = "error",
+                title = TextFieldValue(),
+                description = TextFieldValue(),
             ),
             errorMessages = emptyFlow(),
-            onSubmitRequested = { _, _ -> },
+            onTitleSuggestionSelected = {},
+            onDescriptionSuggestionSelected = {},
+            onAutoSubmitCheckedChanged = {},
+            onSubmitRequested = {},
             onRecordDetailsUserTyping = { _, _ -> },
             onImageTapped = {},
             onAddImageViaCameraTapped = {},
