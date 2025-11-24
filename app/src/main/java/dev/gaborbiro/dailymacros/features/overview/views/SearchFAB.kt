@@ -54,7 +54,7 @@ internal fun SearchFAB(onSearch: (String?) -> Unit) {
         shape = RoundedCornerShape(16.dp),
     ) {
         Row(
-            verticalAlignment = Alignment.Companion.CenterVertically
+            verticalAlignment = Alignment.CenterVertically
         ) {
             AnimatedVisibility(visible = fabExpanded) {
                 TextField(
@@ -65,8 +65,8 @@ internal fun SearchFAB(onSearch: (String?) -> Unit) {
                         },
                     colors = TextFieldDefaults.colors().copy(
                         unfocusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        focusedIndicatorColor = Color.Companion.Transparent,
-                        unfocusedIndicatorColor = Color.Companion.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
                     ),
                     textStyle = MaterialTheme.typography.bodyMedium,
                     placeholder = {

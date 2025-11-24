@@ -22,7 +22,7 @@ internal fun DailyMacroTitleView(
             .padding(start = PaddingHalf)
             .wrapContentHeight(),
         text = model.title,
-        textAlign = TextAlign.Companion.End,
+        textAlign = TextAlign.End,
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onBackground,
     )

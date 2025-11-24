@@ -361,7 +361,7 @@ private fun ColumnScope.InputDialogContent(
 
     macros?.let {
         Spacer(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .height(PaddingDefault)
         )
         MacroTable(macros = macros)

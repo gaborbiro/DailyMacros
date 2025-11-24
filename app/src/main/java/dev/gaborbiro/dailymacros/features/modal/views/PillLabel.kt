@@ -61,12 +61,12 @@ internal fun PillLabel(
             modifier = Modifier
                 .defaultMinSize(minHeight = 24.dp) // make it thinner than default buttons
                 .padding(contentPadding),
-            contentAlignment = Alignment.Companion.Center
+            contentAlignment = Alignment.Center
         ) {
             Text(
                 text = text,
                 style = textStyle,
-                overflow = TextOverflow.Companion.Ellipsis
+                overflow = TextOverflow.Ellipsis
             )
         }
     }

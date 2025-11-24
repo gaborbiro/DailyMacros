@@ -17,7 +17,7 @@ internal fun MacroTable(
 ) {
     macros.calories?.let {
         PillLabel(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(top = PaddingQuarter),
             text = it,
@@ -30,7 +30,7 @@ internal fun MacroTable(
 
     macros.protein?.let {
         PillLabel(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(top = PaddingQuarter),
             text = it,
@@ -43,7 +43,7 @@ internal fun MacroTable(
 
     macros.fat?.let {
         PillLabel(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(top = PaddingQuarter),
             text = it,
@@ -56,7 +56,7 @@ internal fun MacroTable(
 
     macros.ofWhichSaturated?.let {
         PillLabel(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(start = PaddingDefault, top = PaddingQuarter),
             text = it,
@@ -69,7 +69,7 @@ internal fun MacroTable(
 
     macros.carbs?.let {
         PillLabel(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(top = PaddingQuarter),
             text = it,
@@ -82,7 +82,7 @@ internal fun MacroTable(
 
     macros.ofWhichSugar?.let {
         PillLabel(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(start = PaddingDefault, top = PaddingQuarter),
             text = it,
@@ -95,7 +95,7 @@ internal fun MacroTable(
 
     macros.salt?.let {
         PillLabel(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(top = PaddingQuarter),
             text = it,
@@ -108,7 +108,7 @@ internal fun MacroTable(
 
     macros.fibre?.let {
         PillLabel(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(top = PaddingQuarter),
             text = it,
@@ -121,7 +121,7 @@ internal fun MacroTable(
 
     macros.notes?.let {
         PillLabel(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(top = PaddingQuarter),
             text = it,

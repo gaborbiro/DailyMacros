@@ -1,9 +1,10 @@
 package dev.gaborbiro.dailymacros.features.trends
 
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.gaborbiro.dailymacros.features.trends.model.MacroDataPoint
-import dev.gaborbiro.dailymacros.features.trends.model.MacroDataset
+import dev.gaborbiro.dailymacros.features.trends.model.MacroChartDataPoint
+import dev.gaborbiro.dailymacros.features.trends.model.MacroChartDataset
 import dev.gaborbiro.dailymacros.features.trends.model.TimeScale
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsViewState
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
@@ -51,185 +52,103 @@ internal class TrendsViewModel(
         }
     }
 
-    private fun buildDatasets(records: List<Record>, scale: TimeScale): List<MacroDataset> {
+    private fun buildDatasets(records: List<Record>, scale: TimeScale): List<MacroChartDataset> {
         if (records.isEmpty()) return emptyList()
 
         val weekFields = WeekFields.of(Locale.getDefault())
 
-        // Aggregate data and generate nicely formatted labels per scale
-        fun buildForDays(): List<MacroDataset> {
-            val grouped: Map<LocalDate, List<Record>> = records.groupBy { it.timestamp.toLocalDate() }
+        fun buildForDays(): List<MacroChartDataset> {
+            val grouped = records.groupBy { it.timestamp.toLocalDate() }
 
-            // Build a continuous range from earliest to latest day so missing days
-            // appear on the X axis with zero values.
-            val minDay = grouped.keys.minOrNull() ?: return emptyList()
-            val maxDay = grouped.keys.maxOrNull() ?: return emptyList()
-            val days = generateSequence(minDay) { prev ->
-                val next = prev.plusDays(1)
-                if (next <= maxDay) next else null
-            }.toList()
+            val days = continuousSequence(
+                min = grouped.keys.minOrNull(),
+                max = grouped.keys.maxOrNull(),
+                advance = { it.plusDays(1) }
+            )
 
             val weekFields = WeekFields.of(Locale.getDefault())
-            val firstDayOfWeek = weekFields.firstDayOfWeek
-            val lastDayOfWeek = firstDayOfWeek.minus(1)
+            val first = weekFields.firstDayOfWeek
+            val last  = first.minus(1)
+
             fun dayLabel(date: LocalDate): String {
-                val base = if (date.dayOfMonth == 1) {
+                val base = if (date.dayOfMonth == 1)
                     "${date.dayOfMonth}/${date.monthValue}"
-                } else {
-                    date.dayOfMonth.toString()
-                }
+                else
+                    "${date.dayOfMonth}"
 
                 return when (date.dayOfWeek) {
-                    firstDayOfWeek -> "•$base"   // week start (locale-aware)
-                    lastDayOfWeek -> "$base•"   // week end   (locale-aware)
-                    else -> base
+                    first -> "•$base"
+                    last  -> "$base•"
+                    else  -> base
                 }
             }
 
-            fun sumFor(selector: (Record) -> Float?): List<MacroDataPoint> {
-                return days.map { date ->
-                    val recordsForDay = grouped[date].orEmpty()
-                    val values = recordsForDay.mapNotNull(selector)
-                    val sum = values.takeIf { it.isNotEmpty() }?.sum()
-                    MacroDataPoint(label = dayLabel(date), value = sum)
-                }
-            }
+            val today = LocalDate.now()
 
-            val calories = sumFor { it.template.macros?.calories?.toFloat() }
-            val protein = sumFor { it.template.macros?.protein }
-            val carbs = sumFor { it.template.macros?.carbs }
-            val sugar = sumFor { it.template.macros?.ofWhichSugar }
-            val fat = sumFor { it.template.macros?.fat }
-            val saturated = sumFor { it.template.macros?.ofWhichSaturated }
-            val salt = sumFor { it.template.macros?.salt }
-            val fibre = sumFor { it.template.macros?.fibre }
-
-            return listOf(
-                MacroDataset("Calories (kcal)", androidx.compose.ui.graphics.Color(0xFF8AB4F8), calories),
-                MacroDataset("Protein (g)", androidx.compose.ui.graphics.Color(0xFF81C995), protein),
-                MacroDataset("Carbs (g)", androidx.compose.ui.graphics.Color(0xFFFFC278), carbs),
-                MacroDataset("    of which sugar (g)", androidx.compose.ui.graphics.Color(0xFFFFB74D), sugar),
-                MacroDataset("Fat (g)", androidx.compose.ui.graphics.Color(0xFFFFA6A6), fat),
-                MacroDataset("    of which saturated fat (g)", androidx.compose.ui.graphics.Color(0xFFE57373), saturated),
-                MacroDataset("Salt (g)", androidx.compose.ui.graphics.Color(0xFFB39DDB), salt),
-                MacroDataset("Fibre (g)", androidx.compose.ui.graphics.Color(0xFF4DB6AC), fibre),
+            return buildMacroDatasets(
+                keys = days,
+                grouped = grouped,
+                labelFor = ::dayLabel,
+                isOngoing = { it == today }
             )
         }
 
-        fun buildForWeeks(): List<MacroDataset> {
-            // Use the first day of the week (typically Monday) as key
-            val grouped: Map<LocalDate, List<Record>> = records.groupBy { record ->
-                val date = record.timestamp.toLocalDate()
-                // Day-of-week 1 in WeekFields is the first day (e.g., Monday for ISO)
-                date.with(weekFields.dayOfWeek(), 1)
+        fun buildForWeeks(): List<MacroChartDataset> {
+            val grouped = records.groupBy { r ->
+                r.timestamp.toLocalDate().with(weekFields.dayOfWeek(), 1)
             }
 
-            // Build a continuous sequence of week starts between min and max so
-            // entirely missing weeks still appear on the X axis with zero values.
-            val minWeekStart = grouped.keys.minOrNull() ?: return emptyList()
-            val maxWeekStart = grouped.keys.maxOrNull() ?: return emptyList()
-            val weekStarts = generateSequence(minWeekStart) { prev ->
-                val next = prev.plusWeeks(1)
-                if (next <= maxWeekStart) next else null
-            }.toList()
+            val weeks = continuousSequence(
+                min = grouped.keys.minOrNull(),
+                max = grouped.keys.maxOrNull(),
+                advance = { it.plusWeeks(1) }
+            )
 
-            fun weekLabel(weekStart: LocalDate): String {
-                val weekEnd = weekStart.plusDays(6)
-                val startDay = weekStart.dayOfMonth
-                val endDay = weekEnd.dayOfMonth
+            fun weekLabel(start: LocalDate): String {
+                val end = start.plusDays(6)
+                val includesFirst = (0L..6).any { start.plusDays(it).dayOfMonth == 1 }
 
-                // Does this week contain the first day of any month?
-                val includesFirstOfMonth = (0L..6L).any { offset ->
-                    val date = weekStart.plusDays(offset)
-                    date.dayOfMonth == 1
-                }
-
-                return if (weekStart.month == weekEnd.month && !includesFirstOfMonth) {
-                    // Same month and does NOT include a 1st-of-month day: 20-26
-                    "$startDay-$endDay"
+                return if (start.month == end.month && !includesFirst) {
+                    "${start.dayOfMonth}-${end.dayOfMonth}"
                 } else {
-                    // Cross-month OR includes 1st of a month: append end month, e.g. 1-7 Sep, 27-2 Oct
-                    val monthAbbrev = weekEnd.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-                    "$startDay-$endDay $monthAbbrev"
+                    val month = end.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                    "${start.dayOfMonth}-${end.dayOfMonth} $month"
                 }
             }
 
-            fun sumFor(selector: (Record) -> Float?): List<MacroDataPoint> {
-                return weekStarts.map { weekStart ->
-                    val recordsForWeek = grouped[weekStart].orEmpty()
-                    val values = recordsForWeek.mapNotNull(selector)
-                    val sum = values.takeIf { it.isNotEmpty() }?.sum()
-                    MacroDataPoint(label = weekLabel(weekStart), value = sum)
+            val today = LocalDate.now()
+
+            return buildMacroDatasets(
+                keys = weeks,
+                grouped = grouped,
+                labelFor = ::weekLabel,
+                isOngoing = { start ->
+                    today in start..start.plusDays(6)
                 }
-            }
-
-            val calories = sumFor { it.template.macros?.calories?.toFloat() }
-            val protein = sumFor { it.template.macros?.protein }
-            val carbs = sumFor { it.template.macros?.carbs }
-            val sugar = sumFor { it.template.macros?.ofWhichSugar }
-            val fat = sumFor { it.template.macros?.fat }
-            val saturated = sumFor { it.template.macros?.ofWhichSaturated }
-            val salt = sumFor { it.template.macros?.salt }
-            val fibre = sumFor { it.template.macros?.fibre }
-
-            return listOf(
-                MacroDataset("Calories (kcal)", androidx.compose.ui.graphics.Color(0xFF8AB4F8), calories),
-                MacroDataset("Protein (g)", androidx.compose.ui.graphics.Color(0xFF81C995), protein),
-                MacroDataset("Carbs (g)", androidx.compose.ui.graphics.Color(0xFFFFC278), carbs),
-                MacroDataset("    of which sugar (g)", androidx.compose.ui.graphics.Color(0xFFFFB74D), sugar),
-                MacroDataset("Fat (g)", androidx.compose.ui.graphics.Color(0xFFFFA6A6), fat),
-                MacroDataset("    of which saturated fat (g)", androidx.compose.ui.graphics.Color(0xFFE57373), saturated),
-                MacroDataset("Salt (g)", androidx.compose.ui.graphics.Color(0xFFB39DDB), salt),
-                MacroDataset("Fibre (g)", androidx.compose.ui.graphics.Color(0xFF4DB6AC), fibre),
             )
         }
 
-        fun buildForMonths(): List<MacroDataset> {
-            val grouped = records.groupBy { record ->
-                YearMonth.from(record.timestamp.toLocalDate())
-            }
+        fun buildForMonths(): List<MacroChartDataset> {
+            val grouped = records.groupBy { YearMonth.from(it.timestamp.toLocalDate()) }
 
-            // Build a continuous sequence of YearMonth between min and max so
-            // entirely missing months still appear on the X axis with zero values.
-            val minMonth = grouped.keys.minOrNull() ?: return emptyList()
-            val maxMonth = grouped.keys.maxOrNull() ?: return emptyList()
-            val months = generateSequence(minMonth) { prev ->
-                val next = prev.plusMonths(1)
-                if (next <= maxMonth) next else null
-            }.toList()
+            val months = continuousSequence(
+                min = grouped.keys.minOrNull(),
+                max = grouped.keys.maxOrNull(),
+                advance = { it.plusMonths(1) }
+            )
 
-            fun monthLabel(month: YearMonth): String {
-                // e.g. "Jan", "Feb" with first letter capitalised per locale
-                return month.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-            }
+            fun monthLabel(ym: YearMonth): String =
+                ym.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
 
-            fun sumFor(selector: (Record) -> Float?): List<MacroDataPoint> {
-                return months.map { ym ->
-                    val recordsForMonth = grouped[ym].orEmpty()
-                    val values = recordsForMonth.mapNotNull(selector)
-                    val sum = values.takeIf { it.isNotEmpty() }?.sum()
-                    MacroDataPoint(label = monthLabel(ym), value = sum)
+            val thisMonth = YearMonth.now()
+
+            return buildMacroDatasets(
+                keys = months,
+                grouped = grouped,
+                labelFor = ::monthLabel,
+                isOngoing = { ym ->
+                    ym == thisMonth
                 }
-            }
-
-            val calories = sumFor { it.template.macros?.calories?.toFloat() }
-            val protein = sumFor { it.template.macros?.protein }
-            val carbs = sumFor { it.template.macros?.carbs }
-            val sugar = sumFor { it.template.macros?.ofWhichSugar }
-            val fat = sumFor { it.template.macros?.fat }
-            val saturated = sumFor { it.template.macros?.ofWhichSaturated }
-            val salt = sumFor { it.template.macros?.salt }
-            val fibre = sumFor { it.template.macros?.fibre }
-
-            return listOf(
-                MacroDataset("Calories (kcal)", androidx.compose.ui.graphics.Color(0xFF8AB4F8), calories),
-                MacroDataset("Protein (g)", androidx.compose.ui.graphics.Color(0xFF81C995), protein),
-                MacroDataset("Carbs (g)", androidx.compose.ui.graphics.Color(0xFFFFC278), carbs),
-                MacroDataset("    of which sugar (g)", androidx.compose.ui.graphics.Color(0xFFFFB74D), sugar),
-                MacroDataset("Fat (g)", androidx.compose.ui.graphics.Color(0xFFFFA6A6), fat),
-                MacroDataset("    of which saturated fat (g)", androidx.compose.ui.graphics.Color(0xFFE57373), saturated),
-                MacroDataset("Salt (g)", androidx.compose.ui.graphics.Color(0xFFB39DDB), salt),
-                MacroDataset("Fibre (g)", androidx.compose.ui.graphics.Color(0xFF4DB6AC), fibre),
             )
         }
 
@@ -239,4 +158,84 @@ internal class TrendsViewModel(
             TimeScale.MONTHS -> buildForMonths()
         }
     }
+
+    private fun <K : Comparable<K>> buildMacroDatasets(
+        keys: List<K>,
+        grouped: Map<K, List<Record>>,
+        labelFor: (K) -> String,
+        isOngoing: (K) -> Boolean
+    ): List<MacroChartDataset> {
+
+        fun agg(selector: (Record) -> Float?) =
+            aggregateSeries(
+                keys = keys,
+                grouped = grouped,
+                selector = selector,
+                makeLabel = labelFor,
+                isOngoing = isOngoing
+            )
+
+        return datasetsOf(
+            Triple("Calories (kcal)",                Color(0xFF8AB4F8), agg { it.template.macros?.calories?.toFloat() }),
+            Triple("Protein (g)",                    Color(0xFF81C995), agg { it.template.macros?.protein }),
+            Triple("Carbs (g)",                      Color(0xFFFFC278), agg { it.template.macros?.carbs }),
+            Triple("    of which sugar (g)",         Color(0xFFFFB74D), agg { it.template.macros?.ofWhichSugar }),
+            Triple("Fat (g)",                        Color(0xFFFFA6A6), agg { it.template.macros?.fat }),
+            Triple("    of which saturated fat (g)", Color(0xFFE57373), agg { it.template.macros?.ofWhichSaturated }),
+            Triple("Salt (g)",                       Color(0xFFB39DDB), agg { it.template.macros?.salt }),
+            Triple("Fibre (g)",                      Color(0xFF4DB6AC), agg { it.template.macros?.fibre }),
+        )
+    }
+
+
+    private fun <T : Comparable<T>> continuousSequence(
+        min: T?,
+        max: T?,
+        advance: (T) -> T,
+    ): List<T> {
+        if (min == null || max == null) return emptyList()
+
+        return generateSequence(min) { prev ->
+            val next = advance(prev)
+            if (next <= max) next else null
+        }.toList()
+    }
+
+    private fun <K> aggregateSeries(
+        keys: List<K>,
+        grouped: Map<K, List<Record>>,
+        selector: (Record) -> Float?,
+        makeLabel: (K) -> String,
+        isOngoing: (K) -> Boolean,
+    ): Pair<List<MacroChartDataPoint>, MacroChartDataPoint?> {
+        val points = keys.mapIndexed { index, key ->
+            val sum = grouped[key]
+                ?.mapNotNull(selector)
+                ?.takeIf { it.isNotEmpty() }
+                ?.sum()
+
+            key to MacroChartDataPoint(index, makeLabel(key), sum)
+        }
+
+        val last = points.lastOrNull() ?: return emptyList<MacroChartDataPoint>() to null
+
+        return if (isOngoing(last.first)) {
+            points.dropLast(1).map { it.second } to last.second
+        } else {
+            points.map { it.second } to null
+        }
+    }
+
+    private fun datasetsOf(
+        vararg tuples: Triple<String, Color, Pair<List<MacroChartDataPoint>, MacroChartDataPoint?>>
+    ): List<MacroChartDataset> =
+        tuples.map { (name, color, points) ->
+            val (set, last) = points
+            MacroChartDataset(
+                name = name,
+                color = color,
+                set = set,
+                now = last
+            )
+        }
 }

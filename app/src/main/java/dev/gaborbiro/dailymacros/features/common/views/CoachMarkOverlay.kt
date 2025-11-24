@@ -59,7 +59,7 @@ internal fun Modifier.coachMarkOverlayAnchor(targetBounds: (Rect) -> Unit): Modi
 internal fun CoachMarkOverlay(
     targetRect: Rect?,
     text: String,
-    scrimColor: Color = Color.Companion.Black.copy(alpha = 0.6f),
+    scrimColor: Color = Color.Black.copy(alpha = 0.6f),
     bubbleMaxWidth: Dp = 220.dp,
     spotlightPadding: Dp = 12.dp,
     onDismiss: () -> Unit,
@@ -93,7 +93,7 @@ internal fun CoachMarkOverlay(
     }
 
     Box(
-        Modifier.Companion
+        Modifier
             .fillMaxSize()
             .pointerInteropFilter { motionEvent ->
                 val dx = motionEvent.x - buttonCenter.x
@@ -117,7 +117,7 @@ internal fun CoachMarkOverlay(
             .zIndex(10f)
     ) {
         // Scrim drawing
-        Canvas(Modifier.Companion.matchParentSize()) {
+        Canvas(Modifier.matchParentSize()) {
             val path = Path().apply {
                 addRect(Rect(0f, 0f, size.width, size.height))
                 addRect(
@@ -128,7 +128,7 @@ internal fun CoachMarkOverlay(
                         bottom = buttonCenter.y + radius.value
                     )
                 )
-                fillType = PathFillType.Companion.EvenOdd
+                fillType = PathFillType.EvenOdd
             }
             drawPath(path, scrimColor)
         }
@@ -140,14 +140,14 @@ internal fun CoachMarkOverlay(
             }
 
             Column(
-                Modifier.Companion
+                Modifier
                     .offset(x = bubbleX, y = bubbleY)
                     .widthIn(max = bubbleMaxWidth)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Color.Companion.White)
+                    .background(Color.White)
                     .padding(12.dp)
             ) {
-                Text(text, color = Color.Companion.Black, style = MaterialTheme.typography.bodyMedium)
+                Text(text, color = Color.Black, style = MaterialTheme.typography.bodyMedium)
             }
         }
     }
