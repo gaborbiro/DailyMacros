@@ -58,6 +58,7 @@ internal fun InputDialog(
     onDescriptionChanged: (TextFieldValue) -> Unit,
     onSubmitRequested: () -> Unit,
     onImageTapped: (String) -> Unit,
+    onImageDeleteTapped: (String) -> Unit,
     onAddImageViaCameraTapped: () -> Unit,
     onAddImageViaPickerTapped: () -> Unit,
     onDismissRequested: () -> Unit,
@@ -111,6 +112,7 @@ internal fun InputDialog(
                 allowEdit = allowEdit,
                 macros = macros,
                 onImageTapped = onImageTapped,
+                onImageDeleteTapped = onImageDeleteTapped,
                 onAddImageViaCameraTapped = onAddImageViaCameraTapped,
                 onAddImageViaPickerTapped = onAddImageViaPickerTapped,
                 onImagesInfoButtonTapped = onImagesInfoButtonTapped,
@@ -178,6 +180,7 @@ private fun ColumnScope.InputDialogContent(
     allowEdit: Boolean,
     macros: MacrosUIModel?,
     onImageTapped: (String) -> Unit,
+    onImageDeleteTapped: (String) -> Unit,
     onAddImageViaCameraTapped: () -> Unit,
     onAddImageViaPickerTapped: () -> Unit,
     onImagesInfoButtonTapped: () -> Unit,
@@ -298,6 +301,7 @@ private fun ColumnScope.InputDialogContent(
         showAddPhotoButtons = allowEdit,
         images = images,
         onImageTapped = onImageTapped,
+        onImageDeleteTapped = onImageDeleteTapped,
         onAddImageViaCameraTapped = onAddImageViaCameraTapped,
         onAddImageViaPickerTapped = onAddImageViaPickerTapped,
         onInfoButtonTapped = onImagesInfoButtonTapped,
@@ -365,6 +369,10 @@ private fun ColumnScope.InputDialogContent(
                 .height(PaddingDefault)
         )
         MacroTable(macros = macros)
+        Spacer(
+            modifier = Modifier
+                .height(PaddingDefault)
+        )
     }
 }
 
@@ -403,6 +411,7 @@ private fun NoteInputDialogContentPreviewEdit() {
                 onDescriptionChanged = {},
                 onSubmitRequested = {},
                 onImageTapped = {},
+                onImageDeleteTapped = {},
                 onAddImageViaCameraTapped = {},
                 onAddImageViaPickerTapped = {},
                 onDismissRequested = {},
@@ -435,6 +444,7 @@ private fun NoteInputDialogContentPreview() {
             onDescriptionChanged = {},
             onSubmitRequested = {},
             onImageTapped = {},
+            onImageDeleteTapped = {},
             onAddImageViaCameraTapped = {},
             onAddImageViaPickerTapped = {},
             onDismissRequested = {},
@@ -470,6 +480,7 @@ private fun NoteInputDialogContentPreviewSuggestion() {
                 onDescriptionChanged = {},
                 onSubmitRequested = {},
                 onImageTapped = {},
+                onImageDeleteTapped = {},
                 onAddImageViaCameraTapped = {},
                 onAddImageViaPickerTapped = {},
                 onDismissRequested = {},
@@ -505,6 +516,7 @@ private fun NoteInputDialogContentPreviewError() {
             onDescriptionChanged = {},
             onSubmitRequested = {},
             onImageTapped = {},
+            onImageDeleteTapped = {},
             onAddImageViaCameraTapped = {},
             onAddImageViaPickerTapped = {},
             onDismissRequested = {},

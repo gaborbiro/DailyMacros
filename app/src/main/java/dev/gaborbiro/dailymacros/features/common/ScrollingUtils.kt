@@ -6,7 +6,6 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -24,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import dev.gaborbiro.dailymacros.design.LocalExtraColorScheme
 import dev.gaborbiro.dailymacros.util.px
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.time.debounce
@@ -36,8 +36,8 @@ fun Modifier.verticalScrollWithBar(
     scrollState: ScrollState = rememberScrollState(),
     width: Dp = 4.dp,
     showScrollBarTrack: Boolean = false,
-    scrollBarTrackColor: Color = Color.Gray,
-    scrollBarColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
+    scrollBarTrackColor: Color = Color.LightGray.copy(alpha = .5f),
+    scrollBarColor: Color = LocalExtraColorScheme.current.scrollbarColor,
     scrollBarCornerRadius: Float = 8f,
     rightPadding: Dp = 0.dp,
     topPadding: Dp = 0.dp,
@@ -64,6 +64,7 @@ fun Modifier.verticalScrollWithBar(
             }
     }
 
+    // Immediate fade-in on scroll
     LaunchedEffect(scrollState) {
         snapshotFlow { scrollState.value }
             .collect { alpha = 1f } // Immediate fade-in
@@ -75,8 +76,9 @@ fun Modifier.verticalScrollWithBar(
         .drawWithContent {
             // Draw the column's content
             this.drawContent()
-            // Dimensions and calculations
-            val viewportHeight = this.size.height - topPadding.px(context) - bottomPadding.px(context)
+
+            val viewportHeight =
+                this.size.height - topPadding.px(context) - bottomPadding.px(context)
             val totalContentHeight = scrollState.maxValue.toFloat() + viewportHeight
 
             if (viewportHeight != totalContentHeight) {
@@ -87,24 +89,35 @@ fun Modifier.verticalScrollWithBar(
                 val scrollBarStartOffset =
                     (scrollValue / totalContentHeight) * viewportHeight + topPadding.px(context)
                 val rightPadding = rightPadding.px(context)
+
                 // Draw the track (optional)
                 if (showScrollBarTrack) {
                     drawRoundRect(
                         cornerRadius = CornerRadius(scrollBarCornerRadius),
                         color = scrollBarTrackColor,
-                        topLeft = Offset(this.size.width - rightPadding, topPadding.px(context)),
-                        size = Size(width.px(context), viewportHeight),
+                        topLeft = Offset(
+                            x = this.size.width - rightPadding - width.px(context),
+                            y = topPadding.px(context),
+                        ),
+                        size = Size(
+                            width = width.px(context),
+                            height = viewportHeight,
+                        ),
                     )
                 }
+
                 // Draw the scrollbar
                 drawRoundRect(
                     cornerRadius = CornerRadius(scrollBarCornerRadius),
                     color = scrollBarColor.copy(alpha = scrollBarColor.alpha * alpha),
                     topLeft = Offset(
-                        this.size.width - rightPadding - width.px(context),
-                        scrollBarStartOffset
+                        x = this.size.width - rightPadding - width.px(context),
+                        y = scrollBarStartOffset,
                     ),
-                    size = Size(width.px(context), scrollBarHeight)
+                    size = Size(
+                        width = width.px(context),
+                        height = scrollBarHeight,
+                    )
                 )
             }
         }
@@ -117,8 +130,8 @@ fun Modifier.horizontalScrollWithBar(
     scrollState: ScrollState = rememberScrollState(),
     height: Dp = 4.dp,
     showScrollBarTrack: Boolean = false,
-    scrollBarTrackColor: Color = Color.Gray,
-    scrollBarColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
+    scrollBarTrackColor: Color = Color.LightGray.copy(alpha = .5f),
+    scrollBarColor: Color = LocalExtraColorScheme.current.scrollbarColor,
     scrollBarCornerRadius: Float = 8f,
     startPadding: Dp = 0.dp,
     endPadding: Dp = 0.dp,
@@ -132,10 +145,9 @@ fun Modifier.horizontalScrollWithBar(
         snapshotFlow { scrollState.value }
             .debounce(Duration.ofSeconds(1))
             .collect {
-                // Only runs after 1000ms of no scrolling
                 if (autoFade) {
                     animate(
-                        initialValue = alpha, // Start from current alpha
+                        initialValue = alpha,
                         targetValue = 0f,
                         animationSpec = tween(durationMillis = 500)
                     ) { value, _ ->
@@ -145,47 +157,58 @@ fun Modifier.horizontalScrollWithBar(
             }
     }
 
+    // Immediate fade-in on scroll
     LaunchedEffect(scrollState) {
         snapshotFlow { scrollState.value }
-            .collect { alpha = 1f } // Immediate fade-in
+            .collect { alpha = 1f }
     }
 
     val context = LocalContext.current
 
     this
         .drawWithContent {
-            // Draw the column's content
-            this.drawContent()
-            // Dimensions and calculations
-            val viewportWidth = this.size.width - startPadding.px(context) - endPadding.px(context)
+            // Draw the row's content
+            drawContent()
+
+            val viewportWidth = size.width - startPadding.px(context) - endPadding.px(context)
             val totalContentWidth = scrollState.maxValue.toFloat() + viewportWidth
 
             if (viewportWidth != totalContentWidth) {
-                val scrollValue = scrollState.value.toFloat()
-                // Compute scrollbar width and position
+                val scrollPx = scrollState.value.toFloat()
                 val scrollBarWidth = (viewportWidth / totalContentWidth) * viewportWidth
+                val scrollBarX =
+                    (scrollPx / totalContentWidth) * viewportWidth + startPadding.px(context)
 
-                val scrollBarStartOffset =
-                    (scrollValue / totalContentWidth) * viewportWidth + startPadding.px(context)
-                val rightPadding = bottomPadding.px(context)
+                val bottomOffset = bottomPadding.px(context)
+
                 // Draw the track (optional)
                 if (showScrollBarTrack) {
                     drawRoundRect(
-                        cornerRadius = CornerRadius(scrollBarCornerRadius),
                         color = scrollBarTrackColor,
-                        topLeft = Offset(this.size.height - rightPadding, startPadding.px(context)),
-                        size = Size(viewportWidth, height.px(context)),
+                        cornerRadius = CornerRadius(scrollBarCornerRadius),
+                        topLeft = Offset(
+                            x = startPadding.px(context),
+                            y = size.height - bottomOffset - height.px(context),
+                        ),
+                        size = Size(
+                            width = viewportWidth,
+                            height = height.px(context),
+                        )
                     )
                 }
+
                 // Draw the scrollbar
                 drawRoundRect(
-                    cornerRadius = CornerRadius(scrollBarCornerRadius),
                     color = scrollBarColor.copy(alpha = scrollBarColor.alpha * alpha),
+                    cornerRadius = CornerRadius(scrollBarCornerRadius),
                     topLeft = Offset(
-                        this.size.height - rightPadding - height.px(context),
-                        scrollBarStartOffset
+                        x = scrollBarX,
+                        y = size.height - bottomOffset - height.px(context)
                     ),
-                    size = Size(scrollBarWidth, height.px(context))
+                    size = Size(
+                        width = scrollBarWidth,
+                        height = height.px(context),
+                    )
                 )
             }
         }

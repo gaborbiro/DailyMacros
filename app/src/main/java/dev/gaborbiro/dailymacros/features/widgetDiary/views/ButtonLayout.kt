@@ -19,7 +19,7 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.features.widgetDiary.PaddingWidgetDefaultVertical
-import dev.gaborbiro.dailymacros.features.widgetDiary.util.WidgetPreview
+import dev.gaborbiro.dailymacros.features.widgetDiary.util.PreviewContext
 
 @Composable
 fun ButtonLayout(
@@ -38,7 +38,7 @@ fun ButtonLayout(
                 .defaultWeight()
                 .padding(vertical = PaddingWidgetDefaultVertical),
             iconResId = R.drawable.ic_add_photo,
-            contentDescription = "New note via camera",
+            contentDescription = "New record via camera",
             tapAction = launchNoteViaCameraAction(),
         )
         WidgetButton(
@@ -46,15 +46,15 @@ fun ButtonLayout(
                 .defaultWeight()
                 .padding(vertical = PaddingWidgetDefaultVertical),
             iconResId = R.drawable.ic_add_picture,
-            contentDescription = "New note via existing image",
+            contentDescription = "New record via existing image",
             tapAction = launchNewNoteViaImagePickerActionProvider(),
         )
         WidgetButton(
             modifier = GlanceModifier
                 .defaultWeight()
                 .padding(vertical = PaddingWidgetDefaultVertical),
-            iconResId = R.drawable.ic_add,
-            contentDescription = "New note",
+            iconResId = R.drawable.ic_add_just_text,
+            contentDescription = "New record",
             tapAction = launchNewNoteViaTextOnlyActionProvider(),
         )
         WidgetButton(
@@ -88,7 +88,7 @@ private fun WidgetButton(
 @Composable
 @OptIn(ExperimentalGlancePreviewApi::class)
 private fun ButtonLayoutPreview() {
-    WidgetPreview {
+    PreviewContext {
         ButtonLayout(
             modifier = GlanceModifier
                 .fillMaxWidth()

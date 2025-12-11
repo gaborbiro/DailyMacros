@@ -21,7 +21,7 @@ import androidx.glance.text.Text
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
 import dev.gaborbiro.dailymacros.features.widgetDiary.PaddingWidgetDefaultHorizontal
-import dev.gaborbiro.dailymacros.features.widgetDiary.util.WidgetPreview
+import dev.gaborbiro.dailymacros.features.widgetDiary.util.PreviewContext
 
 @Composable
 fun ListItemRecord(
@@ -83,7 +83,7 @@ fun ListItemRecord(
 @Composable
 @OptIn(ExperimentalGlancePreviewApi::class)
 private fun RecordListItemPreview() {
-    WidgetPreview {
+    PreviewContext {
         ListItemRecord(
             record = ListUIModelRecord(
                 recordId = 1,
@@ -110,7 +110,7 @@ private fun RecordListItemPreview() {
 @Composable
 @OptIn(ExperimentalGlancePreviewApi::class)
 private fun RecordListItemPreviewLoading() {
-    WidgetPreview {
+    PreviewContext {
         ListItemRecord(
             record = ListUIModelRecord(
                 recordId = 1,

@@ -6,7 +6,7 @@ import dev.gaborbiro.dailymacros.design.WidgetColorScheme
 import dev.gaborbiro.dailymacros.features.widgetDiary.views.PreviewImageStoreProviderWidget
 
 @Composable
-internal fun WidgetPreview(
+internal fun PreviewContext(
     content: @Composable () -> Unit,
 ) {
     GlanceTheme(colors = WidgetColorScheme.colors()) {

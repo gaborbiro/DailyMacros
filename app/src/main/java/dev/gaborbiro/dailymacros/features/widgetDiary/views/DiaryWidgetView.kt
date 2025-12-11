@@ -29,7 +29,7 @@ import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
 import dev.gaborbiro.dailymacros.features.widgetDiary.PaddingWidgetHalfVertical
 import dev.gaborbiro.dailymacros.features.widgetDiary.WidgetActionProvider
 import dev.gaborbiro.dailymacros.features.widgetDiary.WidgetActionProviderImpl
-import dev.gaborbiro.dailymacros.features.widgetDiary.util.WidgetPreview
+import dev.gaborbiro.dailymacros.features.widgetDiary.util.PreviewContext
 
 @Composable
 internal fun DiaryWidgetView(
@@ -103,7 +103,7 @@ internal fun DiaryWidgetView(
 @Composable
 @OptIn(ExperimentalGlancePreviewApi::class)
 private fun WidgetViewPreview() {
-    WidgetPreview {
+    PreviewContext {
         DiaryWidgetView(
             modifier = GlanceModifier
                 .fillMaxSize(),
@@ -202,7 +202,7 @@ private fun WidgetViewPreview() {
 @Composable
 @OptIn(ExperimentalGlancePreviewApi::class)
 private fun WidgetViewPreviewEmpty() {
-    WidgetPreview {
+    PreviewContext {
         DiaryWidgetView(
             modifier = GlanceModifier
                 .fillMaxSize(),

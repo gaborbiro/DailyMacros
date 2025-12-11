@@ -195,7 +195,9 @@ internal class ModalViewModel(
     @UiThread
     fun onSelectTemplateActionDeeplink(templateId: Long) {
         runSafely {
-            val title = recordsRepository.getRecordsByTemplate(templateId).firstOrNull()?.template?.name ?: ""
+            val title =
+                recordsRepository.getRecordsByTemplate(templateId).firstOrNull()?.template?.name
+                    ?: ""
             pushDialog(
                 DialogState.SelectTemplateActionDialog(templateId, title)
             )
@@ -382,6 +384,23 @@ internal class ModalViewModel(
     }
 
     @UiThread
+    fun onImageDeleteTapped(image: String) {
+        var dialogs = _viewState.value.dialogs
+        dialogs = dialogs.replaceInstances<DialogState.InputDialog.RecordDetailsDialog> {
+            it.copy(
+                images = it.images - image,
+            )
+        }
+        runSafely {
+            _viewState.emit(
+                ModalViewState(
+                    dialogs = dialogs, // cancel any other dialogs
+                )
+            )
+        }
+    }
+
+    @UiThread
     fun onAddImageViaCameraTapped(dialogState: DialogState.InputDialog) {
         when (dialogState) {
             is DialogState.InputDialog.CreateDialog, is DialogState.InputDialog.CreateWithImageDialog -> {
@@ -489,7 +508,7 @@ internal class ModalViewModel(
                         }
 
                         is DialogState.InputDialog.RecordDetailsDialog -> {
-                            handleEditRecordDialogSubmitted(it, it.title.text.trim(), it.description.text.trim())
+                            handleEditRecordDialogSubmitted(it)
                         }
                     }
                 }
@@ -533,13 +552,14 @@ internal class ModalViewModel(
 
     private suspend fun handleEditRecordDialogSubmitted(
         dialogState: DialogState.InputDialog.RecordDetailsDialog,
-        title: String,
-        description: String,
     ) {
+        val title = dialogState.title.text.trim()
+        val description = dialogState.description.text.trim()
+
         val result = validateEditRecordUseCase.execute(
-            dialogState.recordId,
-            title,
-            description
+            recordId = dialogState.recordId,
+            title = title,
+            description = description,
         )
         when (result) {
             is EditValidationResult.ConfirmMultipleEdit -> {

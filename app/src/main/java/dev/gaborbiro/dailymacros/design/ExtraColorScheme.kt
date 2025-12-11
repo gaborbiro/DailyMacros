@@ -15,6 +15,7 @@ val darkExtraColorScheme = ExtraColorScheme(
     carbsColor = Color(0xFFFFE0C7),
     saltColor = Color(0xFFE8D9FF),
     fibreColor = Color(0xFFFFD8E2),
+    scrollbarColor = Color.White.copy(alpha = .5f),
 )
 
 val lightExtraColorScheme = ExtraColorScheme(
@@ -24,6 +25,7 @@ val lightExtraColorScheme = ExtraColorScheme(
     carbsColor = Color(0xFFFFB178),
     saltColor = Color(0xFFBA91FF),
     fibreColor = Color(0xFFFF6F92),
+    scrollbarColor = Color.Black.copy(alpha = .5f),
 )
 
 data class ExtraColorScheme(
@@ -33,4 +35,5 @@ data class ExtraColorScheme(
     val carbsColor: Color,
     val saltColor: Color,
     val fibreColor: Color,
+    val scrollbarColor: Color,
 )

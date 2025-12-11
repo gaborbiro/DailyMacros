@@ -28,7 +28,7 @@ import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingHalf
-import dev.gaborbiro.dailymacros.features.widgetDiary.util.WidgetPreview
+import dev.gaborbiro.dailymacros.features.widgetDiary.util.PreviewContext
 
 @Composable
 internal fun EmptyView() {
@@ -76,7 +76,7 @@ internal fun EmptyView() {
 @Preview(widthDp = 180, heightDp = 156)
 @Composable
 private fun EmptyViewPreview() {
-    WidgetPreview {
+    PreviewContext {
         EmptyView()
     }
 }

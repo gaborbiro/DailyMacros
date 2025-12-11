@@ -23,7 +23,7 @@ import androidx.glance.text.Text
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPick
 import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
 import dev.gaborbiro.dailymacros.features.widgetDiary.PaddingWidgetDefaultHorizontal
-import dev.gaborbiro.dailymacros.features.widgetDiary.util.WidgetPreview
+import dev.gaborbiro.dailymacros.features.widgetDiary.util.PreviewContext
 
 @Composable
 internal fun ListItemQuickPick(
@@ -86,7 +86,7 @@ internal fun ListItemQuickPick(
 @Composable
 @OptIn(ExperimentalGlancePreviewApi::class)
 private fun ListItemQuickPickPreview() {
-    WidgetPreview {
+    PreviewContext {
         ListItemQuickPick(
             quickPickEntry = ListUIModelQuickPick(
                 title = "Breakfast",

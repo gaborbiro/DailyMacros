@@ -59,7 +59,7 @@ internal fun OverviewView(
     LaunchedEffect(key1 = viewState.showUndoDeleteSnackbar) {
         if (viewState.showUndoDeleteSnackbar) {
             val result = snackbarHostState.showSnackbar(
-                message = "Note deleted",
+                message = "Record deleted",
                 actionLabel = "Undo",
                 withDismissAction = true,
                 duration = SnackbarDuration.Short,

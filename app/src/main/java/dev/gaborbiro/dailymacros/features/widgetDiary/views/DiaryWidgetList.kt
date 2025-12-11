@@ -25,7 +25,7 @@ import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
 import dev.gaborbiro.dailymacros.features.widgetDiary.PaddingWidgetDefaultHorizontal
 import dev.gaborbiro.dailymacros.features.widgetDiary.PaddingWidgetDefaultVertical
 import dev.gaborbiro.dailymacros.features.widgetDiary.PaddingWidgetHalfVertical
-import dev.gaborbiro.dailymacros.features.widgetDiary.util.WidgetPreview
+import dev.gaborbiro.dailymacros.features.widgetDiary.util.PreviewContext
 
 @Composable
 internal fun DiaryWidgetList(
@@ -118,7 +118,7 @@ internal fun DiaryWidgetList(
 @Composable
 @OptIn(ExperimentalGlancePreviewApi::class)
 private fun WidgetListPreview() {
-    WidgetPreview {
+    PreviewContext {
         DiaryWidgetList(
             items = listOf(
                 ListUIModelRecord(
