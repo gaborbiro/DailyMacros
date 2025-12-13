@@ -49,7 +49,6 @@ sealed class DialogState {
             val images: List<String>,
             val showProgressIndicator: Boolean = false,
             val suggestions: SummarySuggestions?,
-            val autoSubmitEnabled: Boolean,
             override val titleHint: String,
             override val titleValidationError: String? = null,
             override val title: TextFieldValue,

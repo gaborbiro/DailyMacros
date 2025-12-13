@@ -46,7 +46,7 @@ internal interface RecordsRepository {
      */
     suspend fun updateTemplate(
         templateId: Long,
-        title: String? = null,
+        name: String? = null,
         description: String? = null,
         images: List<String>? = null,
         macros: Macros? = null,

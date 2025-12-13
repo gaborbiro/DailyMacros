@@ -26,13 +26,6 @@ internal class AppPrefs(context: Context) {
             return newUuid
         }
 
-    var autoSubmitEnabled: Boolean
-        get() = prefs.getBoolean("auto_submit_enabled", true)
-        set(value) {
-            prefs.edit { putBoolean("auto_submit_enabled", value) }
-        }
-
-
     // Remove value
     fun clear(key: String) {
         prefs.edit { remove(key) }

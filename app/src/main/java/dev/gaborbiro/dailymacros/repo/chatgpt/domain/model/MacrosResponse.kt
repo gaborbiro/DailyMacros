@@ -4,6 +4,7 @@ data class MacrosResponse(
     val macros: MacrosApiModel?,
     val issues: String?,
     val notes: String?,
+    val title: String?,
 )
 
 data class MacrosApiModel(

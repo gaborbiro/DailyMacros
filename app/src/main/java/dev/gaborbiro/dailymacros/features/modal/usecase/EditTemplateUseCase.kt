@@ -14,7 +14,7 @@ internal class EditTemplateUseCase(
     ) {
         repository.updateTemplate(
             templateId = templateId,
-            title = title,
+            name = title,
             description = description,
             images = images,
         )

@@ -225,7 +225,6 @@ internal class ModalViewModel(
                 DialogState.InputDialog.CreateWithImageDialog(
                     images = listOf(persistedFilename),
                     suggestions = null,
-                    autoSubmitEnabled = appPrefs.autoSubmitEnabled,
                     showProgressIndicator = true,
                     titleHint = "Describe your meal (or tap one of the AI suggestions)",
                     title = it.title,
@@ -244,7 +243,6 @@ internal class ModalViewModel(
                     DialogState.InputDialog.CreateWithImageDialog(
                         images = listOf(persistedFilename),
                         suggestions = null,
-                        autoSubmitEnabled = appPrefs.autoSubmitEnabled,
                         showProgressIndicator = true,
                         titleHint = "Describe your meal (or tap one of the AI suggestions)",
                         title = TextFieldValue(),
@@ -277,10 +275,6 @@ internal class ModalViewModel(
                         title = TextFieldValue(title, selection = TextRange(title.length)),
                         showProgressIndicator = false,
                     )
-                }
-                if (appPrefs.autoSubmitEnabled) {
-                    onSubmitRequested()
-                    popDialog()
                 }
             } catch (t: Throwable) {
                 throw t
@@ -477,26 +471,7 @@ internal class ModalViewModel(
     }
 
     @UiThread
-    fun onAutoSubmitCheckedChanged(checked: Boolean) {
-        imageSummaryJob = runSafely {
-            appPrefs.autoSubmitEnabled = checked
-            var dialogs = _viewState.value.dialogs
-            dialogs = dialogs.replaceInstances<DialogState.InputDialog.CreateWithImageDialog> {
-                it.copy(
-                    autoSubmitEnabled = checked
-                )
-            }
-
-            _viewState.emit(
-                ModalViewState(
-                    dialogs = dialogs,
-                )
-            )
-        }
-    }
-
-    @UiThread
-    fun onSubmitRequested() {
+    fun onSubmitButtonTapped() {
         _viewState.value.dialogs
             .filterIsInstance<DialogState.InputDialog>()
             .firstOrNull()

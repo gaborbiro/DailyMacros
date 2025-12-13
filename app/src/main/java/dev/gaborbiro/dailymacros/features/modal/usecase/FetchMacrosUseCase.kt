@@ -62,11 +62,19 @@ internal class FetchMacrosUseCase(
                 }
 
             getMacrosResult.getOrNull()?.let {
-                val (macros: Macros?, issues: String?) = recordsMapper.map(it)
-                recordsRepository.updateTemplate(
-                    templateId = record.template.dbId,
-                    macros = macros,
-                )
+                val (macros: Macros?, issues: String?, title: String?) = recordsMapper.map(it)
+                if (record.template.name.isBlank()) {
+                    recordsRepository.updateTemplate(
+                        templateId = record.template.dbId,
+                        name = title ?: record.template.name,
+                        macros = macros,
+                    )
+                } else {
+                    recordsRepository.updateTemplate(
+                        templateId = record.template.dbId,
+                        macros = macros,
+                    )
+                }
                 val macrosStr = macrosUIMapper.mapMacrosPrintout(macros)
                 appContext.showMacroResultsNotification(
                     id = 123000L + recordId,

@@ -25,9 +25,11 @@ internal fun MacrosRequest.toApiModel(): ChatGPTRequest {
                             You are an intelligent image and text analyser for a macronutrient tracker app.  
                             The user provides:
                             1. Photos of a meal or drink, AND/OR  
-                            2. A title and optional description (often produced by a previous step in this app).  
+                            2. A title and description (often produced by a previous step in this app).  
 
-                            Your job: estimate the macronutrient content.
+                            Your job: 
+                            - Estimate the macronutrient content.
+                            - Suggest one short title (around 3–4 words) that identify the food/drink, notwithstanding any title provided by the submitted request.
 
                             TASK:
                             - Estimate the following macronutrients:
@@ -58,6 +60,7 @@ internal fun MacrosRequest.toApiModel(): ChatGPTRequest {
                                 "salt": 5.4,
                                 "fibre": 5.0
                               },
+                              "title": "",
                               "notes": "",
                             }
 
@@ -130,6 +133,7 @@ internal fun ChatGPTResponse.toMacrosResponse(): MacrosResponse {
     class Response(
         @SerializedName("macros") val macros: Macros?,
         @SerializedName("notes") val notes: String?,
+        @SerializedName("title") val title: String?,
         @SerializedName("error") val error: String?,
     )
 
@@ -152,5 +156,6 @@ internal fun ChatGPTResponse.toMacrosResponse(): MacrosResponse {
         macros = macros,
         issues = response.error,
         notes = response.notes,
+        title = response.title,
     )
 }

@@ -35,8 +35,12 @@ internal class RecordsMapper(
         )
     }
 
-    fun map(response: MacrosResponse): Pair<Macros?, String?> {
-        return response.macros?.let { map(it, response.notes) } to response.issues
+    fun map(response: MacrosResponse): Triple<Macros?, String?, String?> {
+        return Triple(
+            first = response.macros?.let { map(it, response.notes) },
+            second = response.issues,
+            third = response.title,
+        )
     }
 
     private fun map(macrosApiModel: MacrosApiModel, notes: String?): Macros {

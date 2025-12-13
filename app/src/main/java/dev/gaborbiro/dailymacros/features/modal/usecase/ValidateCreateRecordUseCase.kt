@@ -7,9 +7,9 @@ class ValidateCreateRecordUseCase {
         title: String,
         description: String,
     ): CreateValidationResult {
-        if (title.isBlank()) {
-            return CreateValidationResult.Error("Cannot be empty")
-        }
+//        if (title.isBlank()) {
+//            return CreateValidationResult.Error("Cannot be empty")
+//        }
         return CreateValidationResult.Valid
     }
 }

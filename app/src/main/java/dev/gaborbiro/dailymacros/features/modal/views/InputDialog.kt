@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -53,10 +52,9 @@ internal fun InputDialog(
     errorMessages: Flow<String>,
     onTitleSuggestionSelected: (String) -> Unit,
     onDescriptionSuggestionSelected: (String) -> Unit,
-    onAutoSubmitCheckedChanged: (checked: Boolean) -> Unit,
     onTitleChanged: (TextFieldValue) -> Unit,
     onDescriptionChanged: (TextFieldValue) -> Unit,
-    onSubmitRequested: () -> Unit,
+    onSubmitButtonTapped: () -> Unit,
     onImageTapped: (String) -> Unit,
     onImageDeleteTapped: (String) -> Unit,
     onAddImageViaCameraTapped: () -> Unit,
@@ -78,7 +76,6 @@ internal fun InputDialog(
     val description = dialogState.description
     val macros = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.macros
     val allowEdit = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.allowEdit ?: true
-    val autoSubmitEnabled = (dialogState as? DialogState.InputDialog.CreateWithImageDialog)?.autoSubmitEnabled
 
     val saveButtonText =
         if (dialogState is DialogState.InputDialog.RecordDetailsDialog) "Update and Analyze" else "Add and Analyze"
@@ -102,10 +99,8 @@ internal fun InputDialog(
                 title = title,
                 titleHint = titleHint,
                 suggestions = suggestions,
-                autoSubmitEnabled = autoSubmitEnabled,
                 onTitleSuggestionSelected = onTitleSuggestionSelected,
                 onDescriptionSuggestionSelected = onDescriptionSuggestionSelected,
-                onAutoSubmitCheckedChanged = onAutoSubmitCheckedChanged,
                 showProgressIndicator = showProgressIndicator ?: false,
                 description = description,
                 titleErrorMessage = dialogState.titleValidationError,
@@ -136,7 +131,7 @@ internal fun InputDialog(
                             style = MaterialTheme.typography.labelLarge,
                         )
                     }
-                    TextButton(onSubmitRequested) {
+                    TextButton(onSubmitButtonTapped) {
                         Text(
                             modifier = Modifier
                                 .padding(horizontal = PaddingDefault),
@@ -172,8 +167,6 @@ private fun ColumnScope.InputDialogContent(
     title: TextFieldValue,
     titleHint: String,
     suggestions: DialogState.InputDialog.CreateWithImageDialog.SummarySuggestions?,
-    autoSubmitEnabled: Boolean?,
-    onAutoSubmitCheckedChanged: (checked: Boolean) -> Unit,
     showProgressIndicator: Boolean,
     description: TextFieldValue,
     titleErrorMessage: String?,
@@ -277,16 +270,6 @@ private fun ColumnScope.InputDialogContent(
                 .size(25.dp)
                 .align(Alignment.CenterHorizontally)
         )
-    }
-
-    autoSubmitEnabled?.let {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(
-                checked = autoSubmitEnabled,
-                onCheckedChange = onAutoSubmitCheckedChanged,
-            )
-            Text(text = "Auto-submit")
-        }
     }
 
     Spacer(
@@ -406,10 +389,9 @@ private fun NoteInputDialogContentPreviewEdit() {
                 errorMessages = emptyFlow(),
                 onTitleSuggestionSelected = {},
                 onDescriptionSuggestionSelected = {},
-                onAutoSubmitCheckedChanged = {},
                 onTitleChanged = {},
                 onDescriptionChanged = {},
-                onSubmitRequested = {},
+                onSubmitButtonTapped = {},
                 onImageTapped = {},
                 onImageDeleteTapped = {},
                 onAddImageViaCameraTapped = {},
@@ -431,7 +413,6 @@ private fun NoteInputDialogContentPreview() {
                 images = listOf("1", "2"),
                 showProgressIndicator = true,
                 suggestions = null,
-                autoSubmitEnabled = true,
                 titleHint = "Describe your meal (or pick a suggestion from below)",
                 title = TextFieldValue(),
                 description = TextFieldValue(),
@@ -439,10 +420,9 @@ private fun NoteInputDialogContentPreview() {
             errorMessages = emptyFlow(),
             onTitleSuggestionSelected = {},
             onDescriptionSuggestionSelected = {},
-            onAutoSubmitCheckedChanged = {},
             onTitleChanged = {},
             onDescriptionChanged = {},
-            onSubmitRequested = {},
+            onSubmitButtonTapped = {},
             onImageTapped = {},
             onImageDeleteTapped = {},
             onAddImageViaCameraTapped = {},
@@ -467,7 +447,6 @@ private fun NoteInputDialogContentPreviewSuggestion() {
                         titles = listOf("This is a title suggestion", "This is another title suggestion"),
                         description = "",
                     ),
-                    autoSubmitEnabled = true,
                     titleHint = "Describe your meal",
                     title = TextFieldValue(),
                     description = TextFieldValue(),
@@ -475,10 +454,9 @@ private fun NoteInputDialogContentPreviewSuggestion() {
                 errorMessages = emptyFlow(),
                 onTitleSuggestionSelected = {},
                 onDescriptionSuggestionSelected = {},
-                onAutoSubmitCheckedChanged = {},
                 onTitleChanged = {},
                 onDescriptionChanged = {},
-                onSubmitRequested = {},
+                onSubmitButtonTapped = {},
                 onImageTapped = {},
                 onImageDeleteTapped = {},
                 onAddImageViaCameraTapped = {},
@@ -502,7 +480,6 @@ private fun NoteInputDialogContentPreviewError() {
                     titles = listOf("This is a title suggestion", "This is another title suggestion"),
                     description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
                 ),
-                autoSubmitEnabled = true,
                 titleHint = "Describe your meal",
                 titleValidationError = "error",
                 title = TextFieldValue(),
@@ -511,10 +488,9 @@ private fun NoteInputDialogContentPreviewError() {
             errorMessages = emptyFlow(),
             onTitleSuggestionSelected = {},
             onDescriptionSuggestionSelected = {},
-            onAutoSubmitCheckedChanged = {},
             onTitleChanged = {},
             onDescriptionChanged = {},
-            onSubmitRequested = {},
+            onSubmitButtonTapped = {},
             onImageTapped = {},
             onImageDeleteTapped = {},
             onAddImageViaCameraTapped = {},

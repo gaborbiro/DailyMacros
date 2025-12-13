@@ -119,7 +119,7 @@ internal class RecordsRepositoryImpl(
 
     override suspend fun updateTemplate(
         templateId: Long,
-        title: String?, /* = null */
+        name: String?, /* = null */
         description: String?, /* = null */
         images: List<String>?,
         macros: Macros?,
@@ -128,7 +128,7 @@ internal class RecordsRepositoryImpl(
 
         templatesDAO.insertOrUpdate(
             TemplateEntity(
-                name = title ?: oldTemplate.entity.name,
+                name = name ?: oldTemplate.entity.name,
                 description = description ?: oldTemplate.entity.description,
             ).apply { id = templateId }
         )
