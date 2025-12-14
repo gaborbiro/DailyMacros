@@ -41,14 +41,15 @@ import dev.gaborbiro.dailymacros.design.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.common.views.PreviewImageStoreProvider
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.MacrosUIModel
+import dev.gaborbiro.dailymacros.features.modal.model.SummarySuggestions
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
 
 @Composable
-internal fun InputDialog(
-    dialogState: DialogState.InputDialog,
+internal fun RecordDetailsDialog(
+    dialogState: DialogState.RecordDetailsDialog,
     errorMessages: Flow<String>,
     onTitleSuggestionSelected: (String) -> Unit,
     onDescriptionSuggestionSelected: (String) -> Unit,
@@ -64,27 +65,25 @@ internal fun InputDialog(
 ) {
     val title = dialogState.title
     val titleHint = dialogState.titleHint
-    val images: List<String> =
-        (dialogState as? DialogState.InputDialog.RecordDetailsDialog)
-            ?.images
-            ?: run { (dialogState as? DialogState.InputDialog.CreateWithImageDialog)?.images }
-            ?: emptyList()
-    val suggestions = (dialogState as? DialogState.InputDialog.CreateWithImageDialog)
+    val images: List<String> = dialogState.images
+    val suggestions = (dialogState as? DialogState.RecordDetailsDialog.Edit)
         ?.suggestions
-    val showProgressIndicator = (dialogState as? DialogState.InputDialog.CreateWithImageDialog)
+    val showProgressIndicator = (dialogState as? DialogState.RecordDetailsDialog.Edit)
         ?.showProgressIndicator
     val description = dialogState.description
-    val macros = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.macros
-    val allowEdit = (dialogState as? DialogState.InputDialog.RecordDetailsDialog)?.allowEdit ?: true
+    val macros = (dialogState as? DialogState.RecordDetailsDialog.View)
+        ?.macros
+    val allowEdit = (dialogState as? DialogState.RecordDetailsDialog.View)
+        ?.allowEdit
+        ?: true
 
     val saveButtonText =
-        if (dialogState is DialogState.InputDialog.RecordDetailsDialog) "Update and Analyze" else "Add and Analyze"
+        if (dialogState is DialogState.RecordDetailsDialog.View) "Update and Analyze" else "Add and Analyze"
 
     val showKeyboardOnOpen = remember(dialogState) {
         when (dialogState) {
-            is DialogState.InputDialog.CreateDialog -> true
-            is DialogState.InputDialog.CreateWithImageDialog -> true
-            is DialogState.InputDialog.RecordDetailsDialog -> false
+            is DialogState.RecordDetailsDialog.Edit -> true
+            is DialogState.RecordDetailsDialog.View -> false
         }
     }
 
@@ -166,7 +165,7 @@ private fun ColumnScope.InputDialogContent(
     images: List<String>,
     title: TextFieldValue,
     titleHint: String,
-    suggestions: DialogState.InputDialog.CreateWithImageDialog.SummarySuggestions?,
+    suggestions: SummarySuggestions?,
     showProgressIndicator: Boolean,
     description: TextFieldValue,
     titleErrorMessage: String?,
@@ -365,14 +364,13 @@ private fun ColumnScope.InputDialogContent(
 private fun NoteInputDialogContentPreviewEdit() {
     ViewPreviewContext {
         PreviewImageStoreProvider {
-            InputDialog(
-                dialogState = DialogState.InputDialog.RecordDetailsDialog(
+            RecordDetailsDialog(
+                dialogState = DialogState.RecordDetailsDialog.View(
                     recordId = 1L,
-                    images = listOf("1", "2"),
-                    titleSuggestions = emptyList(),
                     title = TextFieldValue(),
                     titleHint = "Describe your meal (or pick a suggestion from below)",
                     description = TextFieldValue(),
+                    images = listOf("1", "2"),
                     allowEdit = true,
                     macros = MacrosUIModel(
                         calories = "Calories: 2100 cal",
@@ -408,14 +406,14 @@ private fun NoteInputDialogContentPreviewEdit() {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreview() {
     ViewPreviewContext {
-        InputDialog(
-            dialogState = DialogState.InputDialog.CreateWithImageDialog(
+        RecordDetailsDialog(
+            dialogState = DialogState.RecordDetailsDialog.Edit(
+                title = TextFieldValue(),
+                titleHint = "Describe your meal (or pick a suggestion from below)",
+                description = TextFieldValue(),
                 images = listOf("1", "2"),
                 showProgressIndicator = true,
                 suggestions = null,
-                titleHint = "Describe your meal (or pick a suggestion from below)",
-                title = TextFieldValue(),
-                description = TextFieldValue(),
             ),
             errorMessages = emptyFlow(),
             onTitleSuggestionSelected = {},
@@ -440,16 +438,16 @@ private fun NoteInputDialogContentPreview() {
 private fun NoteInputDialogContentPreviewSuggestion() {
     ViewPreviewContext {
         PreviewImageStoreProvider {
-            InputDialog(
-                dialogState = DialogState.InputDialog.CreateWithImageDialog(
+            RecordDetailsDialog(
+                dialogState = DialogState.RecordDetailsDialog.Edit(
+                    title = TextFieldValue(),
+                    titleHint = "Describe your meal",
+                    description = TextFieldValue(),
                     images = listOf("1", "2"),
-                    suggestions = DialogState.InputDialog.CreateWithImageDialog.SummarySuggestions(
+                    suggestions = SummarySuggestions(
                         titles = listOf("This is a title suggestion", "This is another title suggestion"),
                         description = "",
                     ),
-                    titleHint = "Describe your meal",
-                    title = TextFieldValue(),
-                    description = TextFieldValue(),
                 ),
                 errorMessages = emptyFlow(),
                 onTitleSuggestionSelected = {},
@@ -473,17 +471,17 @@ private fun NoteInputDialogContentPreviewSuggestion() {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreviewError() {
     ViewPreviewContext {
-        InputDialog(
-            dialogState = DialogState.InputDialog.CreateWithImageDialog(
+        RecordDetailsDialog(
+            dialogState = DialogState.RecordDetailsDialog.Edit(
+                title = TextFieldValue(),
+                titleHint = "Describe your meal",
+                titleValidationError = "error",
+                description = TextFieldValue(),
                 images = listOf("1", "2"),
-                suggestions = DialogState.InputDialog.CreateWithImageDialog.SummarySuggestions(
+                suggestions = SummarySuggestions(
                     titles = listOf("This is a title suggestion", "This is another title suggestion"),
                     description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
                 ),
-                titleHint = "Describe your meal",
-                titleValidationError = "error",
-                title = TextFieldValue(),
-                description = TextFieldValue(),
             ),
             errorMessages = emptyFlow(),
             onTitleSuggestionSelected = {},

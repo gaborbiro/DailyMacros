@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.features.modal
 
 import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
+import dev.gaborbiro.dailymacros.features.modal.model.SummarySuggestions
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodPicSummaryRequest
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodPicSummaryResponse
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.MacrosApiModel
@@ -20,8 +21,8 @@ internal class RecordsMapper(
         )
     }
 
-    fun map(response: FoodPicSummaryResponse): DialogState.InputDialog.CreateWithImageDialog.SummarySuggestions {
-        return DialogState.InputDialog.CreateWithImageDialog.SummarySuggestions(
+    fun map(response: FoodPicSummaryResponse): SummarySuggestions {
+        return SummarySuggestions(
             titles = response.titles.distinct(),
             description = response.description
         )

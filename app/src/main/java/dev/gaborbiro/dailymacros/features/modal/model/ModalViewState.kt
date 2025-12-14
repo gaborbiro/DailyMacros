@@ -22,77 +22,64 @@ sealed class DialogState {
         val bitmap: Bitmap,
     ) : DialogState()
 
-    sealed class InputDialog(
+    sealed class RecordDetailsDialog(
         open val titleHint: String,
         open val titleValidationError: String? = null,
         open val title: TextFieldValue,
         open val description: TextFieldValue,
+        open val images: List<String>,
     ) : DialogState() {
 
-        data class CreateDialog(
+        data class Edit(
+            override val title: TextFieldValue,
             override val titleHint: String,
             override val titleValidationError: String? = null,
-            override val title: TextFieldValue,
             override val description: TextFieldValue,
-        ) : InputDialog(
-            titleHint = titleHint,
-            titleValidationError = titleValidationError,
-            title = title,
-            description = description,
-        ) {
-            override fun withTitleValidationError(titleValidationError: String?) = copy(titleValidationError = titleValidationError)
-            override fun withTitle(title: TextFieldValue) = copy(title = title)
-            override fun withDescription(description: TextFieldValue) = copy(description = description)
-        }
-
-        data class CreateWithImageDialog(
-            val images: List<String>,
+            override val images: List<String>,
             val showProgressIndicator: Boolean = false,
             val suggestions: SummarySuggestions?,
-            override val titleHint: String,
-            override val titleValidationError: String? = null,
-            override val title: TextFieldValue,
-            override val description: TextFieldValue,
-        ) : InputDialog(
+        ) : RecordDetailsDialog(
             titleHint = titleHint,
             titleValidationError = titleValidationError,
             title = title,
             description = description,
+            images = images,
         ) {
-            override fun withTitleValidationError(titleValidationError: String?) = copy(titleValidationError = titleValidationError)
-            override fun withTitle(title: TextFieldValue) = copy(title = title)
-            override fun withDescription(description: TextFieldValue) = copy(description = description)
+            override fun withTitleValidationError(titleValidationError: String?) =
+                copy(titleValidationError = titleValidationError)
 
-            data class SummarySuggestions(
-                val titles: List<String>,
-                val description: String?,
-            )
+            override fun withTitle(title: TextFieldValue) = copy(title = title)
+            override fun withDescription(description: TextFieldValue) =
+                copy(description = description)
         }
 
-        data class RecordDetailsDialog(
+        data class View(
             val recordId: Long,
-            val images: List<String>,
             val macros: MacrosUIModel?,
-            val titleSuggestions: List<String>,
             val allowEdit: Boolean,
             override val titleHint: String,
             override val titleValidationError: String? = null,
             override val title: TextFieldValue,
             override val description: TextFieldValue,
-        ) : InputDialog(
+            override val images: List<String>,
+        ) : RecordDetailsDialog(
             titleHint = titleHint,
             titleValidationError = titleValidationError,
             title = title,
             description = description,
+            images = images,
         ) {
-            override fun withTitleValidationError(titleValidationError: String?) = copy(titleValidationError = titleValidationError)
+            override fun withTitleValidationError(titleValidationError: String?) =
+                copy(titleValidationError = titleValidationError)
+
             override fun withTitle(title: TextFieldValue) = copy(title = title)
-            override fun withDescription(description: TextFieldValue) = copy(description = description)
+            override fun withDescription(description: TextFieldValue) =
+                copy(description = description)
         }
 
-        abstract fun withTitleValidationError(titleValidationError: String?): InputDialog
-        abstract fun withTitle(title: TextFieldValue): InputDialog
-        abstract fun withDescription(description: TextFieldValue): InputDialog
+        abstract fun withTitleValidationError(titleValidationError: String?): RecordDetailsDialog
+        abstract fun withTitle(title: TextFieldValue): RecordDetailsDialog
+        abstract fun withDescription(description: TextFieldValue): RecordDetailsDialog
     }
 
     data class ImageInput(val type: ImageInputType) : DialogState()
@@ -104,10 +91,14 @@ sealed class DialogState {
     data class InfoDialog(val message: String) : DialogState()
 }
 
+data class SummarySuggestions(
+    val titles: List<String>,
+    val description: String?,
+)
+
 sealed class ImageInputType {
-    data object Browse : ImageInputType()
-    data object QuickPhoto : ImageInputType()
-    data object TakePhoto : ImageInputType()
+    data object Camera : ImageInputType()
+    data object BrowseImages : ImageInputType()
 }
 
 data class MacrosUIModel(

@@ -1,55 +1,22 @@
 package dev.gaborbiro.dailymacros.features.modal
 
-import android.Manifest
 import android.app.ComponentCaller
 import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Size
-import android.view.OrientationEventListener
-import android.view.Surface
-import android.view.ViewGroup
-import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.activity.result.contract.ActivityResultContracts.TakePicture
 import androidx.appcompat.app.AppCompatActivity
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.Preview
-import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.view.PreviewView
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
@@ -82,7 +49,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseC
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.views.EditTargetConfirmationDialog
 import dev.gaborbiro.dailymacros.features.modal.views.ImageDialog
-import dev.gaborbiro.dailymacros.features.modal.views.InputDialog
+import dev.gaborbiro.dailymacros.features.modal.views.RecordDetailsDialog
 import dev.gaborbiro.dailymacros.features.modal.views.SelectRecordActionDialog
 import dev.gaborbiro.dailymacros.features.modal.views.SelectTemplateActionDialog
 import dev.gaborbiro.dailymacros.repo.chatgpt.AuthInterceptor
@@ -102,7 +69,6 @@ import okhttp3.java.net.cookiejar.JavaNetCookieJar
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.io.File
 import java.net.CookieManager
 import java.util.concurrent.TimeUnit.SECONDS
 
@@ -123,7 +89,7 @@ class ModalActivity : AppCompatActivity() {
             context.launchActivity { it.getShowTemplateImageIntent(templateId) }
 
         fun launchToAddRecord(context: Context) =
-            context.launchActivityInNewStack (Context::getTextOnlyIntent)
+            context.launchActivityInNewStack(Context::getTextOnlyIntent)
 
         fun launchViewRecordDetails(context: Context, recordId: Long) {
             context.launchActivity { it.getViewRecordDetailsIntent(recordId) }
@@ -214,7 +180,6 @@ class ModalActivity : AppCompatActivity() {
             foodPicSummaryUseCase = FoodPicSummaryUseCase(imageStore, chatGPTRepository, recordsMapper),
             macrosUIMapper = macrosUIMapper,
             deleteRecordUseCase = deleteRecordUseCase,
-            appPrefs = appPrefs,
         )
     }
 
@@ -278,9 +243,8 @@ class ModalActivity : AppCompatActivity() {
     private fun handleAction(action: Action, intent: Intent = this.intent) {
         when (action) {
             Action.CAMERA -> viewModel.onCreateRecordWithCameraDeeplink()
-            Action.QUICK_CAMERA -> viewModel.onCreateRecordWithQuickCameraDeeplink()
-            Action.PICK_PHOTO -> viewModel.onCreateRecordWithImagePickerDeeplink()
-            Action.TEXT_ONLY -> viewModel.onCreateRecordDeeplink()
+            Action.BROWSE_IMAGES -> viewModel.onCreateRecordWithBrowseImagesDeeplink()
+            Action.TEXT_ONLY -> viewModel.onCreateRecordWithTextDeeplink()
 
             Action.VIEW_RECORD_DETAILS -> {
                 val recordId = intent.getLongExtra(EXTRA_RECORD_ID, -1L)
@@ -322,7 +286,7 @@ class ModalActivity : AppCompatActivity() {
                 }
             }
         when (dialogState) {
-            is DialogState.InputDialog -> InputDialog(
+            is DialogState.RecordDetailsDialog -> RecordDetailsDialog(
                 dialogState = dialogState,
                 errorMessages = errorMessages,
                 onTitleSuggestionSelected = viewModel::onTitleSuggestionSelected,
@@ -397,7 +361,7 @@ private fun ImageInputView(
     cacheFileStore: FileStore,
 ) {
     when (imageInput.type) {
-        is ImageInputType.TakePhoto -> {
+        is ImageInputType.Camera -> {
             val filename = "temp.$DefaultFoodPicExt"
             val launcher = rememberLauncherForActivityResult(
                 contract = TakePicture(),
@@ -416,22 +380,22 @@ private fun ImageInputView(
             }
         }
 
-        ImageInputType.QuickPhoto -> {
-            val activity = LocalActivity.current!!
-            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                val filename = "temp.$DefaultFoodPicExt"
-                val uri = cacheFileStore.getOrCreateFile(filename).toUri()
-                val file = cacheFileStore.resolveFile(filename)
-                QuickCaptureScreen(file = file) {
-                    viewModel.onImageSelected(uri, imageInput)
-                }
-            } else {
-                ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.CAMERA), 1001)
-                viewModel.onNoImageSelected()
-            }
-        }
+//        ImageInputType.QuickPhoto -> {
+//            val activity = LocalActivity.current!!
+//            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+//                val filename = "temp.$DefaultFoodPicExt"
+//                val uri = cacheFileStore.getOrCreateFile(filename).toUri()
+//                val file = cacheFileStore.resolveFile(filename)
+//                QuickCaptureScreen(file = file) {
+//                    viewModel.onImageSelected(uri, imageInput)
+//                }
+//            } else {
+//                ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.CAMERA), 1001)
+//                viewModel.onNoImageSelected()
+//            }
+//        }
 
-        is ImageInputType.Browse -> {
+        is ImageInputType.BrowseImages -> {
             val launcher = rememberLauncherForActivityResult(
                 contract = PickVisualMedia(),
                 onResult = {
@@ -449,109 +413,109 @@ private fun ImageInputView(
     }
 }
 
-@Composable
-fun QuickCaptureScreen(
-    modifier: Modifier = Modifier,
-    file: File,
-    onImageCaptured: () -> Unit,
-) {
-    val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
-    var imageCapture: ImageCapture? by remember { mutableStateOf(null) }
-
-    Box(modifier = modifier.fillMaxSize()) {
-
-        AndroidView(
-            modifier = Modifier.fillMaxSize(),
-            factory = { ctx ->
-                val previewView = PreviewView(ctx).apply {
-                    layoutParams = ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
-                    )
-                    // force cropping to fill
-                    scaleType = PreviewView.ScaleType.FILL_CENTER
-                }
-
-                val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
-                cameraProviderFuture.addListener({
-                    val cameraProvider = cameraProviderFuture.get()
-
-                    val metrics = ctx.resources.displayMetrics
-                    val screenSize = Size(metrics.widthPixels, metrics.heightPixels)
-                    val rotation = previewView.display?.rotation ?: Surface.ROTATION_0
-
-                    val preview = Preview.Builder()
-                        .setTargetResolution(screenSize)
-                        .setTargetRotation(rotation)
-                        .build()
-                        .also { it.surfaceProvider = previewView.surfaceProvider }
-
-                    imageCapture = ImageCapture.Builder()
-                        .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                        .setTargetResolution(screenSize)
-                        .setTargetRotation(rotation)
-                        .build()
-
-                    try {
-                        cameraProvider.unbindAll()
-                        cameraProvider.bindToLifecycle(
-                            lifecycleOwner,
-                            CameraSelector.DEFAULT_BACK_CAMERA,
-                            preview,
-                            imageCapture
-                        )
-                    } catch (exc: Exception) {
-                        exc.printStackTrace()
-                    }
-                }, ContextCompat.getMainExecutor(ctx))
-
-                previewView
-            }
-        )
-
-        DisposableEffect(imageCapture) {
-            val listener = object : OrientationEventListener(context) {
-                override fun onOrientationChanged(orientation: Int) {
-                    val rotation = when (orientation) {
-                        in 45..134 -> Surface.ROTATION_270
-                        in 135..224 -> Surface.ROTATION_180
-                        in 225..314 -> Surface.ROTATION_90
-                        else -> Surface.ROTATION_0
-                    }
-                    imageCapture?.targetRotation = rotation
-                }
-            }
-            listener.enable()
-
-            onDispose { listener.disable() }
-        }
-
-        Button(
-            onClick = {
-                val outputOptions = ImageCapture.OutputFileOptions.Builder(file).build()
-                imageCapture?.takePicture(
-                    outputOptions,
-                    ContextCompat.getMainExecutor(context),
-                    object : ImageCapture.OnImageSavedCallback {
-                        override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                            onImageCaptured()
-                        }
-
-                        override fun onError(exc: ImageCaptureException) {
-                            exc.printStackTrace()
-                        }
-                    }
-                )
-            },
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(32.dp)
-                .size(80.dp),
-            shape = CircleShape,
-            contentPadding = PaddingValues(0.dp),
-        ) {
-            Text("●", fontSize = 32.sp)
-        }
-    }
-}
+//@Composable
+//fun QuickCaptureScreen(
+//    modifier: Modifier = Modifier,
+//    file: File,
+//    onImageCaptured: () -> Unit,
+//) {
+//    val context = LocalContext.current
+//    val lifecycleOwner = LocalLifecycleOwner.current
+//    var imageCapture: ImageCapture? by remember { mutableStateOf(null) }
+//
+//    Box(modifier = modifier.fillMaxSize()) {
+//
+//        AndroidView(
+//            modifier = Modifier.fillMaxSize(),
+//            factory = { ctx ->
+//                val previewView = PreviewView(ctx).apply {
+//                    layoutParams = ViewGroup.LayoutParams(
+//                        ViewGroup.LayoutParams.MATCH_PARENT,
+//                        ViewGroup.LayoutParams.MATCH_PARENT
+//                    )
+//                    // force cropping to fill
+//                    scaleType = PreviewView.ScaleType.FILL_CENTER
+//                }
+//
+//                val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
+//                cameraProviderFuture.addListener({
+//                    val cameraProvider = cameraProviderFuture.get()
+//
+//                    val metrics = ctx.resources.displayMetrics
+//                    val screenSize = Size(metrics.widthPixels, metrics.heightPixels)
+//                    val rotation = previewView.display?.rotation ?: Surface.ROTATION_0
+//
+//                    val preview = Preview.Builder()
+//                        .setTargetResolution(screenSize)
+//                        .setTargetRotation(rotation)
+//                        .build()
+//                        .also { it.surfaceProvider = previewView.surfaceProvider }
+//
+//                    imageCapture = ImageCapture.Builder()
+//                        .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+//                        .setTargetResolution(screenSize)
+//                        .setTargetRotation(rotation)
+//                        .build()
+//
+//                    try {
+//                        cameraProvider.unbindAll()
+//                        cameraProvider.bindToLifecycle(
+//                            lifecycleOwner,
+//                            CameraSelector.DEFAULT_BACK_CAMERA,
+//                            preview,
+//                            imageCapture
+//                        )
+//                    } catch (exc: Exception) {
+//                        exc.printStackTrace()
+//                    }
+//                }, ContextCompat.getMainExecutor(ctx))
+//
+//                previewView
+//            }
+//        )
+//
+//        DisposableEffect(imageCapture) {
+//            val listener = object : OrientationEventListener(context) {
+//                override fun onOrientationChanged(orientation: Int) {
+//                    val rotation = when (orientation) {
+//                        in 45..134 -> Surface.ROTATION_270
+//                        in 135..224 -> Surface.ROTATION_180
+//                        in 225..314 -> Surface.ROTATION_90
+//                        else -> Surface.ROTATION_0
+//                    }
+//                    imageCapture?.targetRotation = rotation
+//                }
+//            }
+//            listener.enable()
+//
+//            onDispose { listener.disable() }
+//        }
+//
+//        Button(
+//            onClick = {
+//                val outputOptions = ImageCapture.OutputFileOptions.Builder(file).build()
+//                imageCapture?.takePicture(
+//                    outputOptions,
+//                    ContextCompat.getMainExecutor(context),
+//                    object : ImageCapture.OnImageSavedCallback {
+//                        override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+//                            onImageCaptured()
+//                        }
+//
+//                        override fun onError(exc: ImageCaptureException) {
+//                            exc.printStackTrace()
+//                        }
+//                    }
+//                )
+//            },
+//            modifier = Modifier
+//                .align(Alignment.BottomCenter)
+//                .padding(32.dp)
+//                .size(80.dp),
+//            shape = CircleShape,
+//            contentPadding = PaddingValues(0.dp),
+//        ) {
+//            Text("●", fontSize = 32.sp)
+//        }
+//    }
+//}
