@@ -116,9 +116,9 @@ internal fun TrendsView(
                 else -> 1
             }
 
-            state.datasets.forEach { dataset ->
+            state.charts.forEach { chartData ->
                 MacroChart(
-                    dataset = dataset,
+                    chartData = chartData,
                     chartStyle = chartStyle,
                     chartScrollState = chartScrollState,
                     startAxis = startAxis,

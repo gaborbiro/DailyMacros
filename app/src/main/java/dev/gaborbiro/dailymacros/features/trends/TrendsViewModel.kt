@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.features.trends
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.gaborbiro.dailymacros.features.trends.model.MacroChartData
 import dev.gaborbiro.dailymacros.features.trends.model.MacroChartDataPoint
 import dev.gaborbiro.dailymacros.features.trends.model.MacroChartDataset
 import dev.gaborbiro.dailymacros.features.trends.model.TimeScale
@@ -46,18 +47,18 @@ internal class TrendsViewModel(
         viewModelScope.launch {
             // Use the same flow as overview (no search term = all records)
             recordsRepository.getFlowBySearchTerm(null).collect { records ->
-                val datasets = buildDatasets(records, scale)
-                _viewState.value = _viewState.value.copy(datasets = datasets, scale = scale)
+                val charts = buildCharts(records, scale)
+                _viewState.value = _viewState.value.copy(charts = charts, scale = scale)
             }
         }
     }
 
-    private fun buildDatasets(records: List<Record>, scale: TimeScale): List<MacroChartDataset> {
+    private fun buildCharts(records: List<Record>, scale: TimeScale): List<MacroChartData> {
         if (records.isEmpty()) return emptyList()
 
         val weekFields = WeekFields.of(Locale.getDefault())
 
-        fun buildForDays(): List<MacroChartDataset> {
+        fun buildForDays(): List<MacroChartData> {
             val grouped = records.groupBy { it.timestamp.toLocalDate() }
 
             val days = continuousSequence(
@@ -68,7 +69,7 @@ internal class TrendsViewModel(
 
             val weekFields = WeekFields.of(Locale.getDefault())
             val first = weekFields.firstDayOfWeek
-            val last  = first.minus(1)
+            val last = first.minus(1)
 
             fun dayLabel(date: LocalDate): String {
                 val base = if (date.dayOfMonth == 1)
@@ -78,14 +79,14 @@ internal class TrendsViewModel(
 
                 return when (date.dayOfWeek) {
                     first -> "•$base"
-                    last  -> "$base•"
-                    else  -> base
+                    last -> "$base•"
+                    else -> base
                 }
             }
 
             val today = LocalDate.now()
 
-            return buildMacroDatasets(
+            return buildCharts(
                 keys = days,
                 grouped = grouped,
                 labelFor = ::dayLabel,
@@ -93,7 +94,7 @@ internal class TrendsViewModel(
             )
         }
 
-        fun buildForWeeks(): List<MacroChartDataset> {
+        fun buildForWeeks(): List<MacroChartData> {
             val grouped = records.groupBy { r ->
                 r.timestamp.toLocalDate().with(weekFields.dayOfWeek(), 1)
             }
@@ -118,7 +119,7 @@ internal class TrendsViewModel(
 
             val today = LocalDate.now()
 
-            return buildMacroDatasets(
+            return buildCharts(
                 keys = weeks,
                 grouped = grouped,
                 labelFor = ::weekLabel,
@@ -128,7 +129,7 @@ internal class TrendsViewModel(
             )
         }
 
-        fun buildForMonths(): List<MacroChartDataset> {
+        fun buildForMonths(): List<MacroChartData> {
             val grouped = records.groupBy { YearMonth.from(it.timestamp.toLocalDate()) }
 
             val months = continuousSequence(
@@ -142,7 +143,7 @@ internal class TrendsViewModel(
 
             val thisMonth = YearMonth.now()
 
-            return buildMacroDatasets(
+            return buildCharts(
                 keys = months,
                 grouped = grouped,
                 labelFor = ::monthLabel,
@@ -159,12 +160,12 @@ internal class TrendsViewModel(
         }
     }
 
-    private fun <K : Comparable<K>> buildMacroDatasets(
+    private fun <K : Comparable<K>> buildCharts(
         keys: List<K>,
         grouped: Map<K, List<Record>>,
         labelFor: (K) -> String,
         isOngoing: (K) -> Boolean
-    ): List<MacroChartDataset> {
+    ): List<MacroChartData> {
 
         fun agg(selector: (Record) -> Float?) =
             aggregateSeries(
@@ -176,14 +177,26 @@ internal class TrendsViewModel(
             )
 
         return datasetsOf(
-            Triple("Calories (kcal)",                Color(0xFF8AB4F8), agg { it.template.macros?.calories?.toFloat() }),
-            Triple("Protein (g)",                    Color(0xFF81C995), agg { it.template.macros?.protein }),
-            Triple("Carbs (g)",                      Color(0xFFFFC278), agg { it.template.macros?.carbs }),
-            Triple("    of which sugar (g)",         Color(0xFFFFB74D), agg { it.template.macros?.ofWhichSugar }),
-            Triple("Fat (g)",                        Color(0xFFFFA6A6), agg { it.template.macros?.fat }),
-            Triple("    of which saturated fat (g)", Color(0xFFE57373), agg { it.template.macros?.ofWhichSaturated }),
-            Triple("Salt (g)",                       Color(0xFFB39DDB), agg { it.template.macros?.salt }),
-            Triple("Fibre (g)",                      Color(0xFF4DB6AC), agg { it.template.macros?.fibre }),
+            listOf(
+                Triple("Calories (kcal)", Color(0xFF8AB4F8), agg { it.template.macros?.calories?.toFloat() })
+            ),
+            listOf(
+                Triple("Protein (g)", Color(0xFF81C995), agg { it.template.macros?.protein })
+            ),
+            listOf(
+                Triple("Carbs (g)", Color(0xFFFFC278), agg { it.template.macros?.carbs }),
+                Triple("    of which sugar (g)", Color(0xFFFFB74D), agg { it.template.macros?.ofWhichSugar })
+            ),
+            listOf(
+                Triple("Fat (g)", Color(0xFFFFA6A6), agg { it.template.macros?.fat }),
+                Triple("    of which saturated fat (g)", Color(0xFFE57373), agg { it.template.macros?.ofWhichSaturated })
+            ),
+            listOf(
+                Triple("Salt (g)", Color(0xFFB39DDB), agg { it.template.macros?.salt })
+            ),
+            listOf(
+                Triple("Fibre (g)", Color(0xFF4DB6AC), agg { it.template.macros?.fibre })
+            ),
         )
     }
 
@@ -227,15 +240,20 @@ internal class TrendsViewModel(
     }
 
     private fun datasetsOf(
-        vararg tuples: Triple<String, Color, Pair<List<MacroChartDataPoint>, MacroChartDataPoint?>>
-    ): List<MacroChartDataset> =
-        tuples.map { (name, color, points) ->
-            val (set, last) = points
-            MacroChartDataset(
-                name = name,
-                color = color,
-                set = set,
-                now = last
+        vararg tuples: List<Triple<String, Color, Pair<List<MacroChartDataPoint>, MacroChartDataPoint?>>>
+    ): List<MacroChartData> {
+        return tuples.map { chartConfig ->
+            MacroChartData(
+                chartConfig.map { (name, color, points) ->
+                    val (set: List<MacroChartDataPoint>, last) = points
+                    MacroChartDataset(
+                        name = name,
+                        color = color,
+                        set = set,
+                        now = last
+                    )
+                }
             )
         }
+    }
 }
