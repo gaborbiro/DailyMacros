@@ -15,12 +15,12 @@ import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.settings.SettingsRepository
 import dev.gaborbiro.dailymacros.repo.settings.model.Targets
+import dev.gaborbiro.dailymacros.util.combine
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -44,16 +44,16 @@ internal class OverviewViewModel(
     fun onSearchTermChanged(search: String?) {
         viewModelScope.launch {
             recordsRepository.getFlowBySearchTerm(search)
-                .combine(flowOf(settingsRepository.loadTargets())) { a, b ->
-                    a to b
-                }
+                .combine(flowOf(settingsRepository.loadTargets()))
                 .map { (records: List<Record>, targets: Targets) ->
                     if (search.isNullOrBlank()) {
                         overviewUIMapper.map(records, targets, showDay = false)
                     } else {
-                        records.map {
-                            recordsUIMapper.map(it, forceDay = true)
-                        }
+                        records
+                            .map {
+                                recordsUIMapper.map(it, forceDay = true)
+                            }
+                            .reversed()
                     }
                 }
                 .collect { records: List<ListUIModelBase> ->
