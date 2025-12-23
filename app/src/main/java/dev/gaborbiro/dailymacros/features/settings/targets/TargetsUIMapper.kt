@@ -1,8 +1,9 @@
-package dev.gaborbiro.dailymacros.features.settings
+package dev.gaborbiro.dailymacros.features.settings.targets
 
-import dev.gaborbiro.dailymacros.features.settings.model.MacroType
-import dev.gaborbiro.dailymacros.features.settings.model.SettingsUIModel
-import dev.gaborbiro.dailymacros.features.settings.model.TargetUIModel
+import dev.gaborbiro.dailymacros.features.settings.targets.model.FieldErrors
+import dev.gaborbiro.dailymacros.features.settings.targets.model.MacroType
+import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetUIModel
+import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsViewState
 import dev.gaborbiro.dailymacros.repo.settings.model.THEORETICAL_CALORIES_MAX
 import dev.gaborbiro.dailymacros.repo.settings.model.THEORETICAL_CARBS_MAX
 import dev.gaborbiro.dailymacros.repo.settings.model.THEORETICAL_FAT_MAX
@@ -14,11 +15,17 @@ import dev.gaborbiro.dailymacros.repo.settings.model.THEORETICAL_SUGAR_MAX
 import dev.gaborbiro.dailymacros.repo.settings.model.Target
 import dev.gaborbiro.dailymacros.repo.settings.model.Targets
 
-internal class SettingsUIMapper {
+internal class TargetsUIMapper {
 
-    fun map(targets: Targets): SettingsUIModel {
-        return SettingsUIModel(
-            buildMap {
+    fun map(
+        targets: Targets,
+        canReset: Boolean = false,
+        canSave: Boolean = false,
+        showExitDialog: Boolean = false,
+        errors: Map<MacroType, FieldErrors> = emptyMap(),
+    ): TargetsViewState {
+        return TargetsViewState(
+            targets = buildMap {
                 put(MacroType.CALORIES, map(MacroType.CALORIES, targets.calories))
                 put(MacroType.PROTEIN, map(MacroType.PROTEIN, targets.protein))
                 put(MacroType.SALT, map(MacroType.SALT, targets.salt))
@@ -27,7 +34,11 @@ internal class SettingsUIMapper {
                 put(MacroType.SATURATED, map(MacroType.SATURATED, targets.ofWhichSaturated))
                 put(MacroType.CARBS, map(MacroType.CARBS, targets.carbs))
                 put(MacroType.SUGAR, map(MacroType.SUGAR, targets.ofWhichSugar))
-            }
+            },
+            canReset = canReset,
+            canSave = canSave,
+            showExitDialog = showExitDialog,
+            errors = errors,
         )
     }
 
@@ -53,8 +64,8 @@ internal class SettingsUIMapper {
         }
     }
 
-    fun map(settings: SettingsUIModel): Targets {
-        val targets: Map<MacroType, Target> = settings.targets.mapValues { (_, target) ->
+    fun map(targetsViewState: TargetsViewState): Targets {
+        val targets: Map<MacroType, Target> = targetsViewState.targets.mapValues { (_, target) ->
             map(target)
         }
         return Targets(

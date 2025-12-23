@@ -1,7 +1,8 @@
-package dev.gaborbiro.dailymacros.features.settings
+package dev.gaborbiro.dailymacros.features.settings.targets.views
 
 import android.content.res.Configuration
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,128 +13,110 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.systemGestures
-import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RangeSlider
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.BuildConfig
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
-import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.design.PreviewContext
 import dev.gaborbiro.dailymacros.design.ViewPreviewContext
-import dev.gaborbiro.dailymacros.features.settings.model.FieldErrors
-import dev.gaborbiro.dailymacros.features.settings.model.MacroType
-import dev.gaborbiro.dailymacros.features.settings.model.SettingsUIModel
-import dev.gaborbiro.dailymacros.features.settings.model.SettingsViewState
-import dev.gaborbiro.dailymacros.features.settings.model.TargetUIModel
-import dev.gaborbiro.dailymacros.features.settings.model.ValidationError
+import dev.gaborbiro.dailymacros.features.common.verticalScrollWithBar
+import dev.gaborbiro.dailymacros.features.settings.targets.model.FieldErrors
+import dev.gaborbiro.dailymacros.features.settings.targets.model.MacroType
+import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetUIModel
+import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsEvents
+import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsViewState
+import dev.gaborbiro.dailymacros.features.settings.targets.model.ValidationError
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun SettingsView(
-    viewState: SettingsViewState,
-    onBackClick: () -> Unit,
-    onMacroTargetChange: (MacroType, TargetUIModel) -> Unit,
-    onReset: () -> Unit,
-    onSave: () -> Unit,
-    onDiscardExit: () -> Unit,
-    onDismissExitDialog: () -> Unit,
+internal fun TargetsBottomSheet(
+    viewState: TargetsViewState,
+    events: Flow<TargetsEvents>,
+    onDismissRequested: () -> Unit,
+    onTargetChanged: (MacroType, TargetUIModel) -> Unit,
+    onResetTapped: () -> Unit,
+    onSaveTapped: () -> Unit,
+    onUnsavedTargetsDiscardTapped: () -> Unit,
+    onUnsavedTargetsDismissRequested: () -> Unit,
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
-
-    Scaffold(
-        contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        topBar = {
-            TopAppBar(
-                title = { Text("Settings") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                            contentDescription = "Back Button"
-                        )
-                    }
-                },
-                actions = {
-                    if (viewState.canReset) {
-                        TextButton(onClick = onReset) { Text("Reset") }
-                    }
-                    TextButton(
-                        onClick = onSave,
-                        enabled = viewState.canSave
-                    ) { Text("Save") }
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = { true },
+    )
+    LaunchedEffect(Unit) {
+        events.collect { event ->
+            when (event) {
+                TargetsEvents.Show -> sheetState.show()
+                TargetsEvents.Hide -> {
+                    sheetState.hide()
+                    onDismissRequested()
                 }
-            )
-        },
-        bottomBar = {
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp)
-                    .padding(WindowInsets.navigationBars.asPaddingValues()),
-                text = viewState.bottomLabel,
-                textAlign = TextAlign.Center,
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background,
-    ) { padding ->
+                TargetsEvents.Close -> {
+                    // handled by parent container
+                }
+            }
+        }
+    }
+    val systemBarHeight = with(LocalDensity.current) {
+        WindowInsets.systemBars.getTop(this)
+    }
+    ModalBottomSheet(
+        containerColor = MaterialTheme.colorScheme.surface,
+        sheetState = sheetState,
+        contentWindowInsets = { WindowInsets(0, systemBarHeight, 0, 0) },
+        onDismissRequest = onDismissRequested,
+        properties = ModalBottomSheetProperties(
+            shouldDismissOnBackPress = true,
+        ),
+    ) {
+        TargetsHeader(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(horizontal = 16.dp),
+            saveButtonEnabled = viewState.canSave,
+            resetButtonVisible = viewState.canReset,
+            onSaveTapped = onSaveTapped,
+            onResetTapped = onResetTapped,
+        )
         Column(
             modifier = Modifier
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
+                .verticalScrollWithBar(autoFade = false)
                 .padding(16.dp)
                 .imePadding()
         ) {
-            Text(
-                text = "Your daily macro targets",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(top = PaddingHalf)
-            )
-
-            Text(
-                text = "Feel free to disable the ones you don't care about",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(top = PaddingQuarter, bottom = PaddingHalf)
-            )
-
             val ordered = listOf(
                 Triple(MacroType.CALORIES, "Calories", "kcal"),
                 Triple(MacroType.PROTEIN, "Protein", "g"),
@@ -146,14 +129,14 @@ internal fun SettingsView(
             )
 
             ordered.forEach { (type, label, unit) ->
-                val target = viewState.settings.targets[type]
+                val target = viewState.targets[type]
                 if (target != null) {
                     MacroRow(
                         label = label,
                         unit = unit,
                         target = target,
                         error = viewState.errors[type],
-                        onChange = { onMacroTargetChange(type, it) }
+                        onChange = { onTargetChanged(type, it) }
                     )
                 }
             }
@@ -163,9 +146,9 @@ internal fun SettingsView(
     if (viewState.showExitDialog) {
         ExitConfirmationDialog(
             canSave = viewState.canSave,
-            onSave = onSave,
-            onDiscard = onDiscardExit,
-            onDismiss = onDismissExitDialog
+            onSaveTapped = onSaveTapped,
+            onDiscardTapped = onUnsavedTargetsDiscardTapped,
+            onCancelTapped = onUnsavedTargetsDismissRequested,
         )
     }
 }
@@ -308,23 +291,23 @@ private fun MacroRow(
 @Composable
 private fun ExitConfirmationDialog(
     canSave: Boolean,
-    onSave: () -> Unit,
-    onDiscard: () -> Unit,
-    onDismiss: () -> Unit,
+    onSaveTapped: () -> Unit,
+    onDiscardTapped: () -> Unit,
+    onCancelTapped: () -> Unit,
 ) {
     AlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = onCancelTapped,
         title = { Text("Unsaved changes") },
-        text = { Text("You have unsaved changes. Do you want to save before leaving?") },
+        text = { Text("You have unsaved changes. Do you want to save them?") },
         confirmButton = {
             if (canSave) {
-                TextButton(onClick = onSave) { Text("Save") }
+                TextButton(onClick = onSaveTapped) { Text("Save") }
             }
         },
         dismissButton = {
             Row {
-                TextButton(onClick = onDiscard) { Text("Discard") }
-                TextButton(onClick = onDismiss) { Text("Cancel") }
+                TextButton(onClick = onDiscardTapped) { Text("Discard") }
+                TextButton(onClick = onCancelTapped) { Text("Cancel") }
             }
         }
     )
@@ -333,22 +316,22 @@ private fun ExitConfirmationDialog(
 @Preview(name = "Default - Light")
 @Preview(name = "Default - Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun SettingsViewPreview_Default() {
+private fun TargetsBottomSheetPreview_Default() {
     PreviewContext {
-        SettingsView(
-            viewState = SettingsViewState(
-                settings = SettingsUIModel(targets = dummyTargets()),
+        TargetsBottomSheet(
+            viewState = TargetsViewState(
+                targets = dummyTargets(),
                 canReset = false,
                 canSave = false,
                 showExitDialog = false,
-                bottomLabel = "v${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE})",
             ),
-            onBackClick = {},
-            onMacroTargetChange = { _, _ -> },
-            onReset = {},
-            onSave = {},
-            onDiscardExit = {},
-            onDismissExitDialog = {}
+            events = emptyFlow(),
+            onDismissRequested = {},
+            onTargetChanged = { _, _ -> },
+            onResetTapped = {},
+            onSaveTapped = {},
+            onUnsavedTargetsDiscardTapped = {},
+            onUnsavedTargetsDismissRequested = {}
         )
     }
 }
@@ -356,22 +339,22 @@ private fun SettingsViewPreview_Default() {
 @Preview(name = "Dirty Valid - Light")
 @Preview(name = "Dirty Valid - Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun SettingsViewPreview_DirtyValid() {
+private fun TargetsBottomSheetPreview_DirtyValid() {
     PreviewContext {
-        SettingsView(
-            viewState = SettingsViewState(
-                settings = SettingsUIModel(targets = dummyTargets(calories = 1800 to 2000, protein = 60 to 120)),
+        TargetsBottomSheet(
+            viewState = TargetsViewState(
+                targets = dummyTargets(calories = 1800 to 2000, protein = 60 to 120),
                 canReset = true,
                 canSave = true,
                 showExitDialog = false,
-                bottomLabel = "v${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE})",
             ),
-            onBackClick = {},
-            onMacroTargetChange = { _, _ -> },
-            onReset = {},
-            onSave = {},
-            onDiscardExit = {},
-            onDismissExitDialog = {}
+            events = emptyFlow(),
+            onDismissRequested = {},
+            onTargetChanged = { _, _ -> },
+            onResetTapped = {},
+            onSaveTapped = {},
+            onUnsavedTargetsDiscardTapped = {},
+            onUnsavedTargetsDismissRequested = {}
         )
     }
 }
@@ -379,22 +362,22 @@ private fun SettingsViewPreview_DirtyValid() {
 @Preview(name = "Dirty Invalid - Light")
 @Preview(name = "Dirty Invalid - Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun SettingsViewPreview_DirtyInvalid() {
+private fun TargetsBottomSheetPreview_DirtyInvalid() {
     PreviewContext {
-        SettingsView(
-            viewState = SettingsViewState(
-                settings = SettingsUIModel(targets = dummyTargets(calories = 2200 to 2000)), // min > max
+        TargetsBottomSheet(
+            viewState = TargetsViewState(
+                targets = dummyTargets(calories = 2200 to 2000), // min > max
                 canReset = true,
                 canSave = false,
                 showExitDialog = false,
-                bottomLabel = "v${BuildConfig.VERSION_NAME}(${BuildConfig.VERSION_CODE})",
             ),
-            onBackClick = {},
-            onMacroTargetChange = { _, _ -> },
-            onReset = {},
-            onSave = {},
-            onDiscardExit = {},
-            onDismissExitDialog = {}
+            events = emptyFlow(),
+            onDismissRequested = {},
+            onTargetChanged = { _, _ -> },
+            onResetTapped = {},
+            onSaveTapped = {},
+            onUnsavedTargetsDiscardTapped = {},
+            onUnsavedTargetsDismissRequested = {}
         )
     }
 }
@@ -406,9 +389,9 @@ private fun ExitDialogPreview_Valid() {
     ViewPreviewContext {
         ExitConfirmationDialog(
             canSave = true,
-            onSave = {},
-            onDiscard = {},
-            onDismiss = {}
+            onSaveTapped = {},
+            onDiscardTapped = {},
+            onCancelTapped = {}
         )
     }
 }
@@ -420,9 +403,9 @@ private fun ExitDialogPreview_Invalid() {
     ViewPreviewContext {
         ExitConfirmationDialog(
             canSave = false,
-            onSave = {},
-            onDiscard = {},
-            onDismiss = {}
+            onSaveTapped = {},
+            onDiscardTapped = {},
+            onCancelTapped = {}
         )
     }
 }

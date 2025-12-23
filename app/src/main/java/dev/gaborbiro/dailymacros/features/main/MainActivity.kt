@@ -35,8 +35,6 @@ import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.viewModelFactory
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
-import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
-import dev.gaborbiro.dailymacros.features.trends.TrendsViewModel
 import dev.gaborbiro.dailymacros.features.overview.OverviewNavigatorImpl
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewUIMapper
@@ -44,7 +42,10 @@ import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
 import dev.gaborbiro.dailymacros.features.settings.SettingsNavigatorImpl
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
+import dev.gaborbiro.dailymacros.features.settings.targets.TargetsSettingsViewModel
 import dev.gaborbiro.dailymacros.features.trends.TrendsNavigatorImpl
+import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
+import dev.gaborbiro.dailymacros.features.trends.TrendsViewModel
 import dev.gaborbiro.dailymacros.repo.records.RecordsApiMapper
 import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.repo.requestStatus.RequestStatusRepositoryImpl
@@ -110,8 +111,12 @@ class MainActivity : ComponentActivity() {
                 val settingsViewModel = viewModelFactory {
                     SettingsViewModel(
                         navigator = settingsNavigator,
+                        appPrefs = appPrefs,
+                    )
+                }
+                val targetsViewModel = viewModelFactory {
+                    TargetsSettingsViewModel(
                         repo = settingsRepository,
-                        appPrefs = appPrefs
                     )
                 }
 
@@ -155,7 +160,10 @@ class MainActivity : ComponentActivity() {
                             )
                         },
                     ) {
-                        SettingsScreen(settingsViewModel)
+                        SettingsScreen(
+                            settingsViewModel = settingsViewModel,
+                            targetsViewModel = targetsViewModel,
+                        )
                     }
                     composable(
                         route = TRENDS_ROUTE,
