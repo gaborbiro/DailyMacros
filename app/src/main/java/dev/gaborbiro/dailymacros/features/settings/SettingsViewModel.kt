@@ -1,16 +1,20 @@
 package dev.gaborbiro.dailymacros.features.settings
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.BuildConfig
 import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsViewState
+import dev.gaborbiro.dailymacros.features.settings.useCases.ExportFoodDiaryUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 internal class SettingsViewModel(
     private val navigator: SettingsNavigator,
     private val appPrefs: AppPrefs,
+    private val exportFoodDiaryUseCase: ExportFoodDiaryUseCase,
 ) : ViewModel() {
 
     private val _viewState = MutableStateFlow(
@@ -42,7 +46,9 @@ internal class SettingsViewModel(
     }
 
     fun onExportSettingsTapped() {
-
+        viewModelScope.launch {
+            exportFoodDiaryUseCase.execute()
+        }
     }
 
     private val bottomLabel: String

@@ -9,7 +9,7 @@ import java.time.ZonedDateTime
 
 internal interface RecordsRepository {
 
-    suspend fun getRecords(since: ZonedDateTime): List<Record>
+    suspend fun getRecords(since: ZonedDateTime? = null): List<Record>
 
     fun getMostRecentRecord(): Record?
 

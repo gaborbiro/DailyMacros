@@ -29,8 +29,8 @@ internal class RecordsRepositoryImpl(
 
     // -------- Reads --------
 
-    override suspend fun getRecords(since: ZonedDateTime): List<Record> = recordsDAO
-        .get(since.toInstant().toEpochMilli())
+    override suspend fun getRecords(since: ZonedDateTime?): List<Record> = recordsDAO
+        .get(since?.toInstant()?.toEpochMilli() ?: 0L)
         .map(mapper::map)
 
     override fun getMostRecentRecord(): Record? {

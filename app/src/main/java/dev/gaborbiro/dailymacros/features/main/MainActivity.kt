@@ -43,6 +43,7 @@ import dev.gaborbiro.dailymacros.features.settings.SettingsNavigatorImpl
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
 import dev.gaborbiro.dailymacros.features.settings.targets.TargetsSettingsViewModel
+import dev.gaborbiro.dailymacros.features.settings.useCases.ExportFoodDiaryUseCase
 import dev.gaborbiro.dailymacros.features.trends.TrendsNavigatorImpl
 import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
 import dev.gaborbiro.dailymacros.features.trends.TrendsViewModel
@@ -84,6 +85,15 @@ class MainActivity : ComponentActivity() {
             recordsRepository = recordsRepository,
             createRecordFromTemplateUseCase = createRecordFromTemplateUseCase,
         )
+        val createJsonDocumentUseCase = CreateJsonDocumentUseCase(this@MainActivity)
+        val streamWriter = StreamWriter(this@MainActivity)
+        val shareIntentLauncher = ShareIntentLauncher(this@MainActivity)
+        val exportFoodDiaryUseCase = ExportFoodDiaryUseCase(
+            recordRepository = recordsRepository,
+            createJsonDocumentUseCase = createJsonDocumentUseCase,
+            streamWriter = streamWriter,
+            shareIntentLauncher = shareIntentLauncher,
+        )
 
         setContent {
             AppTheme {
@@ -112,6 +122,7 @@ class MainActivity : ComponentActivity() {
                     SettingsViewModel(
                         navigator = settingsNavigator,
                         appPrefs = appPrefs,
+                        exportFoodDiaryUseCase = exportFoodDiaryUseCase,
                     )
                 }
                 val targetsViewModel = viewModelFactory {
@@ -163,6 +174,12 @@ class MainActivity : ComponentActivity() {
                         SettingsScreen(
                             settingsViewModel = settingsViewModel,
                             targetsViewModel = targetsViewModel,
+                            exportFoodDiaryUseCase = ExportFoodDiaryUseCase(
+                                recordRepository = recordsRepository,
+                                createJsonDocumentUseCase = createJsonDocumentUseCase,
+                                streamWriter = streamWriter,
+                                shareIntentLauncher = shareIntentLauncher,
+                            ),
                         )
                     }
                     composable(
