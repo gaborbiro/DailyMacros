@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.main
+package dev.gaborbiro.dailymacros.features.settings.export
 
 import android.content.Context
 import android.net.Uri

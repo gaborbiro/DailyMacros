@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.BuildConfig
 import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsViewState
-import dev.gaborbiro.dailymacros.features.settings.useCases.ExportFoodDiaryUseCase
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

@@ -5,7 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.gaborbiro.dailymacros.features.settings.targets.TargetsSettingsRoute
 import dev.gaborbiro.dailymacros.features.settings.targets.TargetsSettingsViewModel
-import dev.gaborbiro.dailymacros.features.settings.useCases.ExportFoodDiaryUseCase
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
 import dev.gaborbiro.dailymacros.features.settings.views.SettingsView
 
 @Composable

@@ -42,8 +42,11 @@ import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
 import dev.gaborbiro.dailymacros.features.settings.SettingsNavigatorImpl
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
+import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCaseImpl
+import dev.gaborbiro.dailymacros.features.settings.export.SharePublicUriLauncher
+import dev.gaborbiro.dailymacros.features.settings.export.StreamWriter
 import dev.gaborbiro.dailymacros.features.settings.targets.TargetsSettingsViewModel
-import dev.gaborbiro.dailymacros.features.settings.useCases.ExportFoodDiaryUseCase
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
 import dev.gaborbiro.dailymacros.features.trends.TrendsNavigatorImpl
 import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
 import dev.gaborbiro.dailymacros.features.trends.TrendsViewModel
@@ -85,14 +88,14 @@ class MainActivity : ComponentActivity() {
             recordsRepository = recordsRepository,
             createRecordFromTemplateUseCase = createRecordFromTemplateUseCase,
         )
-        val createJsonDocumentUseCase = CreateJsonDocumentUseCase(this@MainActivity)
+        val createJsonDocumentUseCase = CreatePublicDocumentUseCaseImpl(this@MainActivity)
         val streamWriter = StreamWriter(this@MainActivity)
-        val shareIntentLauncher = ShareIntentLauncher(this@MainActivity)
+        val sharePublicUriLauncher = SharePublicUriLauncher(this@MainActivity)
         val exportFoodDiaryUseCase = ExportFoodDiaryUseCase(
             recordRepository = recordsRepository,
-            createJsonDocumentUseCase = createJsonDocumentUseCase,
+            createPublicDocumentUseCase = createJsonDocumentUseCase,
             streamWriter = streamWriter,
-            shareIntentLauncher = shareIntentLauncher,
+            sharePublicUriLauncher = sharePublicUriLauncher,
         )
 
         setContent {
@@ -176,9 +179,9 @@ class MainActivity : ComponentActivity() {
                             targetsViewModel = targetsViewModel,
                             exportFoodDiaryUseCase = ExportFoodDiaryUseCase(
                                 recordRepository = recordsRepository,
-                                createJsonDocumentUseCase = createJsonDocumentUseCase,
+                                createPublicDocumentUseCase = createJsonDocumentUseCase,
                                 streamWriter = streamWriter,
-                                shareIntentLauncher = shareIntentLauncher,
+                                sharePublicUriLauncher = sharePublicUriLauncher,
                             ),
                         )
                     }

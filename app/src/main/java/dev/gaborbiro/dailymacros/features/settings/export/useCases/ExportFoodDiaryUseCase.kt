@@ -1,17 +1,18 @@
-package dev.gaborbiro.dailymacros.features.settings.useCases
+package dev.gaborbiro.dailymacros.features.settings.export.useCases
 
 import com.google.gson.GsonBuilder
-import dev.gaborbiro.dailymacros.features.main.CreateJsonDocumentUseCase
-import dev.gaborbiro.dailymacros.features.main.ShareIntentLauncher
-import dev.gaborbiro.dailymacros.features.main.StreamWriter
+import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCase
+import dev.gaborbiro.dailymacros.features.settings.export.SharePublicUriLauncher
+import dev.gaborbiro.dailymacros.features.settings.export.StreamWriter
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
+import java.io.OutputStream
 import java.time.ZonedDateTime
 
 internal class ExportFoodDiaryUseCase(
     private val recordRepository: RecordsRepository,
-    private val createJsonDocumentUseCase: CreateJsonDocumentUseCase,
+    private val createPublicDocumentUseCase: CreatePublicDocumentUseCase,
     private val streamWriter: StreamWriter,
-    private val shareIntentLauncher: ShareIntentLauncher,
+    private val sharePublicUriLauncher: SharePublicUriLauncher,
 ) {
 
     private val gson = GsonBuilder()
@@ -22,17 +23,14 @@ internal class ExportFoodDiaryUseCase(
 
     suspend fun execute() {
         val (fileName, diary) = generatePayload()
-        val uri = createJsonDocumentUseCase.execute(fileName)
+        val uri = createPublicDocumentUseCase.execute(fileName)
         uri?.let {
-            streamWriter.execute(uri) { output ->
+            streamWriter.execute(uri) { output: OutputStream ->
                 val bytes = gson.toJson(diary).toByteArray(Charsets.UTF_8)
                 output.write(bytes)
                 output.flush()
             }
-            shareIntentLauncher.execute(
-                uri = uri,
-                chooserTitle = "Share food diary with ChatGPT",
-            )
+            sharePublicUriLauncher.execute(uri)
         }
     }
 
@@ -60,10 +58,10 @@ internal class ExportFoodDiaryUseCase(
                     }
             }
 
-        val from = records.minOf { it.timestamp }
-        val to = records.maxOf { it.timestamp }
+        val from = records.minOf { it.timestamp }.toLocalDate()
+        val to = ZonedDateTime.now().toLocalDate()
         val fileName =
-            "food-diary-${from.toLocalDate()}_to_${to.toLocalDate()}.json"
+            "food-diary-${from}_to_${to}.json"
 
         val diary = LlmFoodDiary(
             exportedAt = ZonedDateTime.now().toString(),
@@ -76,14 +74,14 @@ internal class ExportFoodDiaryUseCase(
 
 private data class LlmFoodDiary(
     val schemaVersion: Int = 1,
-    val exportedAt: String,          // ISO-8601
+    val exportedAt: String,         // ISO-8601
     val entries: List<LlmFoodEntry>,
 )
 
 private data class LlmFoodEntry(
     val timestamp: String,          // ISO-8601
-    val title: String,               // template.name
-    val description: String,         // template.description
+    val title: String,              // template.name
+    val description: String,        // template.description
     val calories_kcal: Int?,
     val protein_g: Float?,
     val fat_g: Float?,
