@@ -56,7 +56,7 @@ internal fun MacroChart(
                         point.value?.let { value ->
                             object : ChartEntry {
                                 override val x = point.index.toFloat()
-                                override val y = value
+                                override val y = value.toFloat()
                                 override fun withY(y: Float) = this
                             }
                         }
@@ -69,13 +69,13 @@ internal fun MacroChart(
                                 dataset.set.lastOrNull { it.value != null }?.let { prev ->
                                     object : ChartEntry {
                                         override val x = prev.index.toFloat()
-                                        override val y = prev.value!!
+                                        override val y = prev.value!!.toFloat()
                                         override fun withY(y: Float) = this
                                     }
                                 },
                                 object : ChartEntry {
                                     override val x = now.index.toFloat()
-                                    override val y = now.value!!
+                                    override val y = now.value!!.toFloat()
                                     override fun withY(y: Float) = this
                                 }
                             )

@@ -173,7 +173,7 @@ internal class TrendsViewModel(
                 grouped = grouped,
                 selector = selector,
                 makeLabel = labelFor,
-                isOngoing = isOngoing
+                isOngoing = isOngoing,
             )
 
         return datasetsOf(
@@ -200,7 +200,6 @@ internal class TrendsViewModel(
         )
     }
 
-
     private fun <T : Comparable<T>> continuousSequence(
         min: T?,
         max: T?,
@@ -222,12 +221,23 @@ internal class TrendsViewModel(
         isOngoing: (K) -> Boolean,
     ): Pair<List<MacroChartDataPoint>, MacroChartDataPoint?> {
         val points = keys.mapIndexed { index, key ->
-            val sum = grouped[key]
-                ?.mapNotNull(selector)
+            val avg = grouped[key]
+                ?.mapNotNull { record ->
+                    selector(record)?.let { value ->
+                        record.timestamp.toLocalDate() to value
+                    }
+                }
+                ?.groupBy({ it.first }, { it.second }) // group by day
+                ?.mapValues { (_, values) -> values.sum() } // daily total
+                ?.values
                 ?.takeIf { it.isNotEmpty() }
-                ?.sum()
+                ?.average()
 
-            key to MacroChartDataPoint(index, makeLabel(key), sum)
+            key to MacroChartDataPoint(
+                index = index,
+                label = makeLabel(key),
+                value = avg
+            )
         }
 
         val last = points.lastOrNull() ?: return emptyList<MacroChartDataPoint>() to null
