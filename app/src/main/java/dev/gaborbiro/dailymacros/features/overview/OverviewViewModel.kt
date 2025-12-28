@@ -44,7 +44,7 @@ internal class OverviewViewModel(
     fun onSearchTermChanged(search: String?) {
         viewModelScope.launch {
             recordsRepository.getFlowBySearchTerm(search)
-                .combine(flowOf(settingsRepository.loadTargets()))
+                .combine(flowOf(settingsRepository.get()))
                 .map { (records: List<Record>, targets: Targets) ->
                     if (search.isNullOrBlank()) {
                         overviewUIMapper.map(records, targets, showDay = false)

@@ -3,6 +3,9 @@ package dev.gaborbiro.dailymacros.features.overview.views
 import android.content.res.Configuration
 import android.util.Range
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +15,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -26,6 +30,7 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -68,6 +73,13 @@ internal fun OverviewList(
     onCoachMarkDismissed: () -> Unit,
 ) {
     val listState = rememberLazyListState()
+
+    val atTop by remember {
+        derivedStateOf {
+            listState.firstVisibleItemIndex == 0 &&
+                    listState.firstVisibleItemScrollOffset == 0
+        }
+    }
 
     var targetBounds by remember { mutableStateOf<Rect?>(null) }
     var showCoachMark by remember(viewState.showCoachMark) { mutableStateOf(viewState.showCoachMark) }
@@ -154,10 +166,20 @@ internal fun OverviewList(
                 .fillMaxWidth()
                 .padding(top = paddingValues.calculateTopPadding())
         ) {
+            val buttonsOffset by animateDpAsState(
+                targetValue = if (atTop) 0.dp else (72).dp,
+                animationSpec = tween(
+                    durationMillis = 220,
+                    easing = FastOutSlowInEasing
+                ),
+                label = "ButtonsSlide"
+            )
+
             Column(
                 modifier = Modifier
                     .padding(PaddingHalf)
                     .align(Alignment.TopEnd)
+                    .offset(x = buttonsOffset)
             ) {
                 if (viewState.showSettingsButton) {
                     IconButton(

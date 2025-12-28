@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.features.settings.targets.model.FieldErrors
 import dev.gaborbiro.dailymacros.features.settings.targets.model.MacroType
 import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetUIModel
-import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsEvents
+import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsSettingsEvents
 import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsViewState
 import dev.gaborbiro.dailymacros.features.settings.targets.model.ValidationError
 import dev.gaborbiro.dailymacros.repo.settings.SettingsRepository
@@ -27,7 +27,7 @@ internal class TargetsSettingsViewModel(
         )
     )
     val viewState: StateFlow<TargetsViewState> = _viewState.asStateFlow()
-    private val _events = MutableSharedFlow<TargetsEvents>()
+    private val _events = MutableSharedFlow<TargetsSettingsEvents>()
     val events = _events.asSharedFlow()
 
 
@@ -38,7 +38,7 @@ internal class TargetsSettingsViewModel(
     }
 
     private fun load() {
-        val loaded = repo.loadTargets()
+        val loaded = repo.get()
         val targets = mapper.map(targets = loaded)
         savedTargets = targets
         _viewState.value = targets
@@ -97,7 +97,7 @@ internal class TargetsSettingsViewModel(
             errors = emptyMap()
         )
         viewModelScope.launch {
-            _events.emit(TargetsEvents.Hide)
+            _events.emit(TargetsSettingsEvents.Hide)
         }
     }
 
@@ -107,7 +107,7 @@ internal class TargetsSettingsViewModel(
             showExitDialog = false,
         )
         viewModelScope.launch {
-            _events.emit(TargetsEvents.Close)
+            _events.emit(TargetsSettingsEvents.Close)
         }
     }
 
@@ -116,12 +116,12 @@ internal class TargetsSettingsViewModel(
             showExitDialog = false,
         )
         viewModelScope.launch {
-            _events.emit(TargetsEvents.Show)
+            _events.emit(TargetsSettingsEvents.Show)
         }
     }
 
     fun onTargetsResetTapped() {
-        val saved = mapper.map(repo.loadTargets())
+        val saved = mapper.map(repo.get())
         savedTargets = saved
         _viewState.value = saved
     }
@@ -134,7 +134,7 @@ internal class TargetsSettingsViewModel(
             )
         } else {
             viewModelScope.launch {
-                _events.emit(TargetsEvents.Close)
+                _events.emit(TargetsSettingsEvents.Close)
             }
         }
     }

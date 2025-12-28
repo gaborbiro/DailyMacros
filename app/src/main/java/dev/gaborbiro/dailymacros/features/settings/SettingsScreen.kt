@@ -12,7 +12,6 @@ import dev.gaborbiro.dailymacros.features.settings.views.SettingsView
 internal fun SettingsScreen(
     settingsViewModel: SettingsViewModel,
     targetsViewModel: TargetsSettingsViewModel,
-    exportFoodDiaryUseCase: ExportFoodDiaryUseCase,
 ) {
     val settingsViewState by settingsViewModel.viewState.collectAsStateWithLifecycle()
 

@@ -45,8 +45,9 @@ import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
 import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCaseImpl
 import dev.gaborbiro.dailymacros.features.settings.export.SharePublicUriLauncher
 import dev.gaborbiro.dailymacros.features.settings.export.StreamWriter
-import dev.gaborbiro.dailymacros.features.settings.targets.TargetsSettingsViewModel
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
+import dev.gaborbiro.dailymacros.features.settings.targets.TargetsSettingsViewModel
+import dev.gaborbiro.dailymacros.features.trends.TrendsMapper
 import dev.gaborbiro.dailymacros.features.trends.TrendsNavigatorImpl
 import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
 import dev.gaborbiro.dailymacros.features.trends.TrendsViewModel
@@ -143,6 +144,8 @@ class MainActivity : ComponentActivity() {
                     TrendsViewModel(
                         navigator = trendsNavigator,
                         recordsRepository = recordsRepository,
+                        appPrefs = appPrefs,
+                        mapper = TrendsMapper(),
                     )
                 }
 
@@ -177,12 +180,6 @@ class MainActivity : ComponentActivity() {
                         SettingsScreen(
                             settingsViewModel = settingsViewModel,
                             targetsViewModel = targetsViewModel,
-                            exportFoodDiaryUseCase = ExportFoodDiaryUseCase(
-                                recordRepository = recordsRepository,
-                                createPublicDocumentUseCase = createJsonDocumentUseCase,
-                                streamWriter = streamWriter,
-                                sharePublicUriLauncher = sharePublicUriLauncher,
-                            ),
                         )
                     }
                     composable(

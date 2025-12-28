@@ -2,14 +2,6 @@ package dev.gaborbiro.dailymacros.repo.settings
 
 import android.content.Context
 import androidx.core.content.edit
-import dev.gaborbiro.dailymacros.repo.settings.model.THEORETICAL_CALORIES_MAX
-import dev.gaborbiro.dailymacros.repo.settings.model.THEORETICAL_CARBS_MAX
-import dev.gaborbiro.dailymacros.repo.settings.model.THEORETICAL_FAT_MAX
-import dev.gaborbiro.dailymacros.repo.settings.model.THEORETICAL_FIBRE_MAX
-import dev.gaborbiro.dailymacros.repo.settings.model.THEORETICAL_PROTEIN_MAX
-import dev.gaborbiro.dailymacros.repo.settings.model.THEORETICAL_SALT_MAX
-import dev.gaborbiro.dailymacros.repo.settings.model.THEORETICAL_SATURATED_MAX
-import dev.gaborbiro.dailymacros.repo.settings.model.THEORETICAL_SUGAR_MAX
 import dev.gaborbiro.dailymacros.repo.settings.model.Target
 import dev.gaborbiro.dailymacros.repo.settings.model.Targets
 
@@ -38,7 +30,7 @@ internal class SettingsRepository(
         ofWhichSugar = Target(enabled = false)
     )
 
-    fun loadTargets(): Targets {
+    fun get(): Targets {
         val json = prefs.getString(KEY_TARGETS, null) ?: return defaultTargets
         return try {
             mapper.map(json)

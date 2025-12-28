@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.features.trends.views
 
+import android.content.res.Configuration
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,41 +24,60 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.scroll.rememberChartScrollState
 import com.patrykandpatrick.vico.compose.m3.style.m3ChartStyle
 import com.patrykandpatrick.vico.core.axis.Axis
 import dev.gaborbiro.dailymacros.design.PaddingDefault
-import dev.gaborbiro.dailymacros.features.trends.TrendsViewModel
+import dev.gaborbiro.dailymacros.design.PreviewContext
+import dev.gaborbiro.dailymacros.features.common.views.PreviewImageStoreProvider
+import dev.gaborbiro.dailymacros.features.trends.model.DailyAggregationMode
+import dev.gaborbiro.dailymacros.features.trends.model.MacroChartData
+import dev.gaborbiro.dailymacros.features.trends.model.MacroChartDataPoint
+import dev.gaborbiro.dailymacros.features.trends.model.MacroChartDataset
 import dev.gaborbiro.dailymacros.features.trends.model.TimeScale
+import dev.gaborbiro.dailymacros.features.trends.model.TrendsSettingsUIModel
+import dev.gaborbiro.dailymacros.features.trends.model.TrendsViewState
 import kotlin.math.roundToInt
 
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 internal fun TrendsView(
-    viewModel: TrendsViewModel,
+    viewState: TrendsViewState,
+    onTimeScaleSelected: (scale: TimeScale) -> Unit,
+    onBackNavigate: () -> Unit,
+    onSettingsActionButtonClicked: () -> Unit,
+    onSettingsCloseRequested: () -> Unit,
+    onSettingsAggregationModeChanged: (DailyAggregationMode) -> Unit,
+    onSettingsThresholdChanged: (Long) -> Unit,
 ) {
-    val state by viewModel.viewState.collectAsStateWithLifecycle()
-    val chartStyle = m3ChartStyle()
-
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
         topBar = {
             TopAppBar(
                 title = { Text("Trends") },
                 navigationIcon = {
-                    IconButton(onClick = { viewModel.onBackNavigate() }) {
+                    IconButton(onClick = onBackNavigate) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Default.ArrowBack,
                             contentDescription = "Back Button"
                         )
                     }
                 },
+                actions = {
+                    IconButton(
+                        onClick = onSettingsActionButtonClicked,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Settings",
+                        )
+                    }
+                }
             )
         },
     ) { paddingValues ->
@@ -65,7 +86,6 @@ internal fun TrendsView(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(paddingValues)
-                .padding(start = PaddingDefault)
         ) {
             Row(
                 modifier = Modifier
@@ -75,20 +95,20 @@ internal fun TrendsView(
             ) {
                 ScaleButton(
                     label = "Days",
-                    selected = state.scale == TimeScale.DAYS,
-                    onClick = { viewModel.onScaleSelected(TimeScale.DAYS) },
+                    selected = viewState.timeScale == TimeScale.DAYS,
+                    onClick = { onTimeScaleSelected(TimeScale.DAYS) },
                     modifier = Modifier.weight(1f),
                 )
                 ScaleButton(
                     label = "Weeks",
-                    selected = state.scale == TimeScale.WEEKS,
-                    onClick = { viewModel.onScaleSelected(TimeScale.WEEKS) },
+                    selected = viewState.timeScale == TimeScale.WEEKS,
+                    onClick = { onTimeScaleSelected(TimeScale.WEEKS) },
                     modifier = Modifier.weight(1f),
                 )
                 ScaleButton(
                     label = "Months",
-                    selected = state.scale == TimeScale.MONTHS,
-                    onClick = { viewModel.onScaleSelected(TimeScale.MONTHS) },
+                    selected = viewState.timeScale == TimeScale.MONTHS,
+                    onClick = { onTimeScaleSelected(TimeScale.MONTHS) },
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -97,7 +117,7 @@ internal fun TrendsView(
             val weeksChartScrollState = rememberChartScrollState()
             val monthsChartScrollState = rememberChartScrollState()
 
-            val chartScrollState = when (state.scale) {
+            val chartScrollState = when (viewState.timeScale) {
                 TimeScale.DAYS -> daysChartScrollState
                 TimeScale.WEEKS -> weeksChartScrollState
                 TimeScale.MONTHS -> monthsChartScrollState
@@ -111,13 +131,17 @@ internal fun TrendsView(
                 }
             )
 
-            val showEveryXLabel = when (state.scale) {
+            val showEveryXLabel = when (viewState.timeScale) {
                 TimeScale.WEEKS -> 2
                 else -> 1
             }
 
-            state.charts.forEach { chartData ->
+            val chartStyle = m3ChartStyle()
+
+            viewState.chartsData.forEach { chartData ->
                 MacroChart(
+                    modifier = Modifier
+                        .padding(start = PaddingDefault),
                     chartData = chartData,
                     chartStyle = chartStyle,
                     chartScrollState = chartScrollState,
@@ -126,6 +150,106 @@ internal fun TrendsView(
                 )
             }
         }
+
+        if (viewState.trendsSettings is TrendsSettingsUIModel.Show) {
+            TrendsSettingsBottomSheet(
+                dailyAggregationMode = viewState.trendsSettings.dailyAggregationMode,
+                qualifiedDaysThreshold = viewState.trendsSettings.qualifiedDaysThreshold,
+                onDismissRequested = onSettingsCloseRequested,
+                onAggregationModeChanged = onSettingsAggregationModeChanged,
+                onThresholdChanged = onSettingsThresholdChanged,
+            )
+        }
     }
 }
 
+@Preview
+@Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+private fun TrendsViewPreviewDays() {
+    PreviewContext {
+        PreviewImageStoreProvider {
+            TrendsView(
+                viewState = TrendsViewState(
+                    timeScale = TimeScale.DAYS,
+                    chartsData = previewData,
+                ),
+                onTimeScaleSelected = {},
+                onBackNavigate = {},
+                onSettingsActionButtonClicked = {},
+                onSettingsCloseRequested = {},
+                onSettingsAggregationModeChanged = {},
+                onSettingsThresholdChanged = {},
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+private fun TrendsViewPreviewWeeks() {
+    PreviewContext {
+        TrendsView(
+            viewState = TrendsViewState(
+                timeScale = TimeScale.WEEKS,
+                chartsData = previewData,
+            ),
+            onTimeScaleSelected = {},
+            onBackNavigate = {},
+            onSettingsActionButtonClicked = {},
+            onSettingsCloseRequested = {},
+            onSettingsAggregationModeChanged = {},
+            onSettingsThresholdChanged = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+private fun TrendsViewPreviewMonths() {
+    PreviewContext {
+        TrendsView(
+            viewState = TrendsViewState(
+                timeScale = TimeScale.MONTHS,
+                chartsData = previewData,
+            ),
+            onTimeScaleSelected = {},
+            onBackNavigate = {},
+            onSettingsActionButtonClicked = {},
+            onSettingsCloseRequested = {},
+            onSettingsAggregationModeChanged = {},
+            onSettingsThresholdChanged = {},
+        )
+    }
+}
+
+private val previewData = listOf(
+    MacroChartData(
+        datasets = listOf(
+            MacroChartDataset(
+                name = "Chart",
+                color = androidx.compose.ui.graphics.Color.Blue,
+                set = listOf(
+                    MacroChartDataPoint(1, "test", 1.0),
+                    MacroChartDataPoint(2, "test", 2.0)
+                ),
+                now = MacroChartDataPoint(3, "test", 3.0),
+            ),
+        )
+    ),
+    MacroChartData(
+        datasets = listOf(
+            MacroChartDataset(
+                name = "Chart2",
+                color = androidx.compose.ui.graphics.Color.Red,
+                set = listOf(
+                    MacroChartDataPoint(1, "test", 3.0),
+                    MacroChartDataPoint(2, "test", 2.0)
+                ),
+                now = MacroChartDataPoint(3, "test", 1.0),
+            )
+        )
+    )
+)

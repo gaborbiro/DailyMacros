@@ -42,6 +42,7 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 internal fun MacroChart(
+    modifier: Modifier = Modifier,
     chartData: MacroChartData,
     chartStyle: ChartStyle,
     chartScrollState: ChartScrollState,
@@ -155,7 +156,7 @@ internal fun MacroChart(
     }
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 16.dp)
     ) {

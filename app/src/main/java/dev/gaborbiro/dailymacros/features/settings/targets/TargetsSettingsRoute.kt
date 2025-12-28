@@ -4,8 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsEvents
-import dev.gaborbiro.dailymacros.features.settings.targets.views.TargetsBottomSheet
+import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsSettingsEvents
+import dev.gaborbiro.dailymacros.features.settings.targets.views.TargetsSettingsBottomSheet
 import kotlinx.coroutines.flow.Flow
 
 @Composable
@@ -16,17 +16,17 @@ internal fun TargetsSettingsRoute(
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                TargetsEvents.Close -> onCloseRequested()
-                TargetsEvents.Hide, TargetsEvents.Show -> {
+                TargetsSettingsEvents.Close -> onCloseRequested()
+                TargetsSettingsEvents.Hide, TargetsSettingsEvents.Show -> {
                     // handled in TargetsBottomSheet
                 }
             }
         }
     }
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()
-    val events: Flow<TargetsEvents> = viewModel.events
+    val events: Flow<TargetsSettingsEvents> = viewModel.events
 
-    TargetsBottomSheet(
+    TargetsSettingsBottomSheet(
         viewState = viewState,
         events = events,
         onDismissRequested = viewModel::onBottomSheetDismissRequested,

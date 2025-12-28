@@ -54,7 +54,7 @@ import dev.gaborbiro.dailymacros.features.common.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.features.settings.targets.model.FieldErrors
 import dev.gaborbiro.dailymacros.features.settings.targets.model.MacroType
 import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetUIModel
-import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsEvents
+import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsSettingsEvents
 import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsViewState
 import dev.gaborbiro.dailymacros.features.settings.targets.model.ValidationError
 import kotlinx.coroutines.flow.Flow
@@ -62,9 +62,9 @@ import kotlinx.coroutines.flow.emptyFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun TargetsBottomSheet(
+internal fun TargetsSettingsBottomSheet(
     viewState: TargetsViewState,
-    events: Flow<TargetsEvents>,
+    events: Flow<TargetsSettingsEvents>,
     onDismissRequested: () -> Unit,
     onTargetChanged: (MacroType, TargetUIModel) -> Unit,
     onResetTapped: () -> Unit,
@@ -79,12 +79,12 @@ internal fun TargetsBottomSheet(
     LaunchedEffect(Unit) {
         events.collect { event ->
             when (event) {
-                TargetsEvents.Show -> sheetState.show()
-                TargetsEvents.Hide -> {
+                TargetsSettingsEvents.Show -> sheetState.show()
+                TargetsSettingsEvents.Hide -> {
                     sheetState.hide()
                     onDismissRequested()
                 }
-                TargetsEvents.Close -> {
+                TargetsSettingsEvents.Close -> {
                     // handled by parent container
                 }
             }
@@ -309,16 +309,16 @@ private fun ExitConfirmationDialog(
                 TextButton(onClick = onDiscardTapped) { Text("Discard") }
                 TextButton(onClick = onCancelTapped) { Text("Cancel") }
             }
-        }
+        },
     )
 }
 
-@Preview(name = "Default - Light")
-@Preview(name = "Default - Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun TargetsBottomSheetPreview_Default() {
+private fun TargetsSettingsBottomSheetPreview_Default() {
     PreviewContext {
-        TargetsBottomSheet(
+        TargetsSettingsBottomSheet(
             viewState = TargetsViewState(
                 targets = dummyTargets(),
                 canReset = false,
@@ -331,17 +331,17 @@ private fun TargetsBottomSheetPreview_Default() {
             onResetTapped = {},
             onSaveTapped = {},
             onUnsavedTargetsDiscardTapped = {},
-            onUnsavedTargetsDismissRequested = {}
+            onUnsavedTargetsDismissRequested = {},
         )
     }
 }
 
-@Preview(name = "Dirty Valid - Light")
-@Preview(name = "Dirty Valid - Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun TargetsBottomSheetPreview_DirtyValid() {
+private fun TargetsSettingsBottomSheetPreview_DirtyValid() {
     PreviewContext {
-        TargetsBottomSheet(
+        TargetsSettingsBottomSheet(
             viewState = TargetsViewState(
                 targets = dummyTargets(calories = 1800 to 2000, protein = 60 to 120),
                 canReset = true,
@@ -354,17 +354,17 @@ private fun TargetsBottomSheetPreview_DirtyValid() {
             onResetTapped = {},
             onSaveTapped = {},
             onUnsavedTargetsDiscardTapped = {},
-            onUnsavedTargetsDismissRequested = {}
+            onUnsavedTargetsDismissRequested = {},
         )
     }
 }
 
-@Preview(name = "Dirty Invalid - Light")
-@Preview(name = "Dirty Invalid - Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun TargetsBottomSheetPreview_DirtyInvalid() {
+private fun TargetsSettingsBottomSheetPreview_DirtyInvalid() {
     PreviewContext {
-        TargetsBottomSheet(
+        TargetsSettingsBottomSheet(
             viewState = TargetsViewState(
                 targets = dummyTargets(calories = 2200 to 2000), // min > max
                 canReset = true,
@@ -377,13 +377,13 @@ private fun TargetsBottomSheetPreview_DirtyInvalid() {
             onResetTapped = {},
             onSaveTapped = {},
             onUnsavedTargetsDiscardTapped = {},
-            onUnsavedTargetsDismissRequested = {}
+            onUnsavedTargetsDismissRequested = {},
         )
     }
 }
 
-@Preview(name = "Exit Dialog Valid - Light")
-@Preview(name = "Exit Dialog Valid - Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun ExitDialogPreview_Valid() {
     ViewPreviewContext {
@@ -391,13 +391,13 @@ private fun ExitDialogPreview_Valid() {
             canSave = true,
             onSaveTapped = {},
             onDiscardTapped = {},
-            onCancelTapped = {}
+            onCancelTapped = {},
         )
     }
 }
 
-@Preview(name = "Exit Dialog Invalid - Light")
-@Preview(name = "Exit Dialog Invalid - Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun ExitDialogPreview_Invalid() {
     ViewPreviewContext {
@@ -405,7 +405,7 @@ private fun ExitDialogPreview_Invalid() {
             canSave = false,
             onSaveTapped = {},
             onDiscardTapped = {},
-            onCancelTapped = {}
+            onCancelTapped = {},
         )
     }
 }
