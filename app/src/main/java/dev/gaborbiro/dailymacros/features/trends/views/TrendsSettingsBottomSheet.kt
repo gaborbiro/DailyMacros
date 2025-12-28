@@ -22,7 +22,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -87,7 +86,7 @@ internal fun TrendsSettingsBottomSheet(
                     DailyAggregationMode.QUALIFIED_DAYS -> "Days that have enough calories logged"
                 }
             }
-            var customValue by remember { mutableLongStateOf(qualifiedDaysThreshold) }
+            var customThresholdValue by remember { mutableStateOf(qualifiedDaysThreshold.toString()) }
 
             Spacer(
                 modifier = Modifier
@@ -153,15 +152,24 @@ internal fun TrendsSettingsBottomSheet(
             }
 
             if (selectedMode == DailyAggregationMode.QUALIFIED_DAYS) {
+                var isError by remember { mutableStateOf(false) }
                 OutlinedTextField(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp),
-                    value = customValue.toString(),
+                    value = customThresholdValue,
                     onValueChange = { input ->
-                        customValue =
-                            input.filter { it.isDigit() }.toLong()
-                        onThresholdChanged(customValue)
+                        customThresholdValue = input.filter { it.isDigit() }
+                        val validation = runCatching {
+                            onThresholdChanged(customThresholdValue.toLong())
+                        }
+                        isError = validation.isFailure
+                    },
+                    isError = isError,
+                    supportingText = {
+                        if (isError) {
+                            Text(text = "Invalid value")
+                        }
                     },
                     label = {
                         Text(text = "Calorie threshold (for ex: 800)")
