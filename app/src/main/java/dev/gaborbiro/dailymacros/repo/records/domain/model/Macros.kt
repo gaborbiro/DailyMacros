@@ -10,6 +10,7 @@ data class Macros(
     val ofWhichSaturated: Float?,
     val carbs: Float?,
     val ofWhichSugar: Float?,
+    val ofWhichAddedSugar: Float?,
     val salt: Float?,
     val fibre: Float?,
     val notes: String?,

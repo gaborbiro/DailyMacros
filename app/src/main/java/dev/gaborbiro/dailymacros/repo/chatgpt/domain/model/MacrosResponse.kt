@@ -14,6 +14,7 @@ data class MacrosApiModel(
     val ofWhichSaturatedGrams: Float?,
     val carbGrams: Float?,
     val ofWhichSugarGrams: Float?,
+    val ofWhichAddedSugarGrams: Float?,
     val saltGrams: Float?,
     val fibreGrams: Float?,
 )

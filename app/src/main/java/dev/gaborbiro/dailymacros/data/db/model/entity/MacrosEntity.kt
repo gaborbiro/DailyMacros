@@ -23,6 +23,7 @@ data class MacrosEntity(
     val protein: Float?,
     val carbohydrates: Float?,
     val ofWhichSugar: Float?,
+    val ofWhichAddedSugar: Float?,
     val fat: Float?,
     val ofWhichSaturated: Float?,
     val salt: Float?,

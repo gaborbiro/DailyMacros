@@ -108,6 +108,7 @@ data class MacrosUIModel(
     val ofWhichSaturated: String?,
     val carbs: String?,
     val ofWhichSugar: String?,
+    val ofWhichAddedSugar: String?,
     val salt: String?,
     val fibre: String?,
     val notes: String?,

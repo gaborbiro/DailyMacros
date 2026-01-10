@@ -24,7 +24,7 @@ import java.time.ZoneId
         ImageEntity::class,
         RequestStatusEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2)
@@ -56,6 +56,7 @@ abstract class AppDatabase : RoomDatabase() {
             )
                 .addMigrations(MIGRATION_2_3)
                 .addMigrations(MIGRATION_3_4)
+                .addMigrations(MIGRATION_4_5)
                 .build()
         }
     }
@@ -94,5 +95,13 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
             )
         }
         cursor.close()
+    }
+}
+
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL(
+            "ALTER TABLE macros ADD COLUMN ofWhichAddedSugar REAL DEFAULT NULL"
+        )
     }
 }

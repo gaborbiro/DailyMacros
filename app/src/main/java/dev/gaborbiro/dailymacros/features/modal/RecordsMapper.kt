@@ -52,6 +52,7 @@ internal class RecordsMapper(
             ofWhichSaturated = macrosApiModel.ofWhichSaturatedGrams,
             carbs = macrosApiModel.carbGrams,
             ofWhichSugar = macrosApiModel.ofWhichSugarGrams,
+            ofWhichAddedSugar = macrosApiModel.ofWhichAddedSugarGrams,
             salt = macrosApiModel.saltGrams,
             fibre = macrosApiModel.fibreGrams,
             notes = notes,

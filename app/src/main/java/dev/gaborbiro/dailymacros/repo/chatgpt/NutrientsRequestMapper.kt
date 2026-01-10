@@ -36,7 +36,8 @@ internal fun MacrosRequest.toApiModel(): ChatGPTRequest {
                               • calories (cal)  
                               • protein (g)  
                               • carbohydrate (g)  
-                              • ofWhichSugars (g)  
+                              • ofWhichSugar (g)  
+                              • ofWhichAddedSugar (g)
                               • fat (g)  
                               • ofWhichSaturated (g)  
                               • salt (g)  
@@ -56,7 +57,8 @@ internal fun MacrosRequest.toApiModel(): ChatGPTRequest {
                                 "fat": 12.8,
                                 "ofWhichSaturated": 12.8,
                                 "carbohydrate": 54.2,
-                                "ofWhichSugars": 20.7,
+                                "ofWhichSugar": 20.7,
+                                "ofWhichAddedSugar": 4.0,
                                 "salt": 5.4,
                                 "fibre": 5.0
                               },
@@ -73,6 +75,7 @@ internal fun MacrosRequest.toApiModel(): ChatGPTRequest {
                             - Perfect accuracy is less important than **reliability and consistency** in estimates across different meals.  
                             - Use typical/average nutritional values for standard foods when exact packaging data is unavailable.
                             - When packaging data is available but one or more macronutrients are missing from it, estimate them.
+                            - When ingredients are listed but quantities are unknown, estimate ofWhichAddedSugars using typical proportions for that dish (e.g. teriyaki, BBQ, sweet chili, curry, tomato sauce).
 
                             CONFIDENCE RULES:
                             - Output "macros" only if:
@@ -84,6 +87,7 @@ internal fun MacrosRequest.toApiModel(): ChatGPTRequest {
                               - Include "error" with a short, clear sentence explaining what’s missing or unclear so the user can improve their input.
                             - If total fat or total carbohydrates are estimated, you must also estimate ofWhichSaturated and ofWhichSugars using typical ratios, even if approximate.
                             - If vegetables, grains, legumes or seeds are visible or listed, always estimate fibre.
+                            - If ofWhichSugars is estimated, also estimate ofWhichAddedSugars. Treat sugar from sauces, marinades, syrups, honey, sugar, sweeteners and processed condiments as added sugar. Treat sugar from fruit, vegetables, grains and milk as natural sugar. ofWhichAddedSugars must never exceed ofWhichSugars.
 
                             NOTES:
                             - Always use both the photos and the texts provided.
@@ -127,7 +131,8 @@ internal fun ChatGPTResponse.toMacrosResponse(): MacrosResponse {
         @SerializedName("fat") val fat: Number?,
         @SerializedName("ofWhichSaturated") val ofWhichSaturated: Number?,
         @SerializedName("carbohydrate") val carbs: Number?,
-        @SerializedName("ofWhichSugars") val ofWhichSugars: Number?,
+        @SerializedName("ofWhichSugar") val ofWhichSugar: Number?,
+        @SerializedName("ofWhichAddedSugar") val ofWhichAddedSugar: Number?,
         @SerializedName("salt") val salt: Number?,
         @SerializedName("fibre") val fibre: Number?,
     )
@@ -149,7 +154,8 @@ internal fun ChatGPTResponse.toMacrosResponse(): MacrosResponse {
             fatGrams = response.macros.fat?.toFloat(),
             ofWhichSaturatedGrams = response.macros.ofWhichSaturated?.toFloat(),
             carbGrams = response.macros.carbs?.toFloat(),
-            ofWhichSugarGrams = response.macros.ofWhichSugars?.toFloat(),
+            ofWhichSugarGrams = response.macros.ofWhichSugar?.toFloat(),
+            ofWhichAddedSugarGrams = response.macros.ofWhichAddedSugar?.toFloat(),
             saltGrams = response.macros.salt?.toFloat(),
             fibreGrams = response.macros.fibre?.toFloat(),
         )

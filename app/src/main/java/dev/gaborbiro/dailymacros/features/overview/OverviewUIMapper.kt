@@ -91,6 +91,7 @@ internal class OverviewUIMapper(
                         ofWhichSaturated = (acc.ofWhichSaturated ?: 0f) + (m.ofWhichSaturated ?: 0f),
                         carbs = (acc.carbs ?: 0f) + (m.carbs ?: 0f),
                         ofWhichSugar = (acc.ofWhichSugar ?: 0f) + (m.ofWhichSugar ?: 0f),
+                        ofWhichAddedSugar = (acc.ofWhichAddedSugar ?: 0f) + (m.ofWhichAddedSugar ?: 0f),
                         salt = (acc.salt ?: 0f) + (m.salt ?: 0f),
                         fibre = (acc.fibre ?: 0f) + (m.fibre ?: 0f),
                         notes = null,
@@ -126,6 +127,7 @@ internal class OverviewUIMapper(
                 ofWhichSaturated = weightedAvg(dailyTotals) { it.ofWhichSaturated }?.toFloat(),
                 carbs = weightedAvg(dailyTotals) { it.carbs }?.toFloat(),
                 ofWhichSugar = weightedAvg(dailyTotals) { it.ofWhichSugar }?.toFloat(),
+                ofWhichAddedSugar = weightedAvg(dailyTotals) { it.ofWhichAddedSugar }?.toFloat(),
                 salt = weightedAvg(dailyTotals) { it.salt }?.toFloat(),
                 fibre = weightedAvg(dailyTotals) { it.fibre }?.toFloat(),
                 notes = null,
@@ -241,7 +243,7 @@ internal class OverviewUIMapper(
                     WeeklySummaryMacroProgressItem(
                         title = "Carbs",
                         progress0to1 = macrosUIMapper.targetProgress(it, macros.carbs ?: 0f) ?: 0f,
-                        progressLabel = macrosUIMapper.formatCarbs(macros.carbs, sugar = null, isShort = false, withLabel = false)
+                        progressLabel = macrosUIMapper.formatCarbs(macros.carbs, sugar = null, addedSugar = null, isShort = false, withLabel = false)
                             ?: "0g",
                         targetRange0to1 = macrosUIMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(

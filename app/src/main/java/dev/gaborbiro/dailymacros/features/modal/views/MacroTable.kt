@@ -93,6 +93,19 @@ internal fun MacroTable(
         )
     }
 
+    macros.ofWhichAddedSugar?.let {
+        PillLabel(
+            modifier = Modifier
+                .padding(horizontal = PaddingDefault)
+                .padding(start = PaddingDefault, top = PaddingQuarter),
+            text = it,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+            border = null,
+            elevation = 0.dp,
+        )
+    }
+
     macros.salt?.let {
         PillLabel(
             modifier = Modifier
