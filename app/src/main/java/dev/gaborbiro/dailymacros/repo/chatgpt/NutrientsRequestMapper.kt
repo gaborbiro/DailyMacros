@@ -82,6 +82,8 @@ internal fun MacrosRequest.toApiModel(): ChatGPTRequest {
                             - If any of the above condition are not met:
                               - Omit "macros".
                               - Include "error" with a short, clear sentence explaining what’s missing or unclear so the user can improve their input.
+                            - If total fat or total carbohydrates are estimated, you must also estimate ofWhichSaturated and ofWhichSugars using typical ratios, even if approximate.
+                            - If vegetables, grains, legumes or seeds are visible or listed, always estimate fibre.
 
                             NOTES:
                             - Always use both the photos and the texts provided.
