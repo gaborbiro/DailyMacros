@@ -17,7 +17,7 @@ android {
         applicationId = "dev.gaborbiro.dailymacros"
         minSdk = 31
         targetSdk = 35
-        versionName = "1.8.0"
+        versionName = "1.8.2"
         versionCode = 19
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
