@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.PaddingDefault
+import dev.gaborbiro.dailymacros.design.PaddingDouble
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.features.modal.model.MacrosUIModel
 
@@ -97,7 +98,7 @@ internal fun MacroTable(
         PillLabel(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
-                .padding(start = PaddingDefault, top = PaddingQuarter),
+                .padding(start = PaddingDouble, top = PaddingQuarter),
             text = it,
             contentColor = MaterialTheme.colorScheme.onSurface,
             backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),

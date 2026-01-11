@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -22,10 +23,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
@@ -128,22 +133,20 @@ private fun RecordTextContent(modifier: Modifier, record: ListUIModelRecord) {
             )
         } else {
             record.macrosAmounts?.let {
-                Row(
+                MacroRow(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    MacroPill(Modifier.weight(1f), it.calories, darkExtraColorScheme.calorieColor)
-                    MacroPill(Modifier.weight(1f), it.protein, darkExtraColorScheme.proteinColor)
-                    MacroPill(Modifier.weight(1f), it.fat, darkExtraColorScheme.fatColor)
+                    MacroPill(text = it.calories ?: "", bg = darkExtraColorScheme.calorieColor, protectEndOfText = false)
+                    MacroPill(text = it.protein ?: "", bg = darkExtraColorScheme.proteinColor)
+                    MacroPill(text = it.fat ?: "", bg = darkExtraColorScheme.fatColor)
                 }
                 Spacer(Modifier.height(4.dp))
-                Row(
+                MacroRow(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    MacroPill(Modifier.weight(1f), it.carbs, darkExtraColorScheme.carbsColor)
-                    MacroPill(Modifier.weight(1f), it.salt, darkExtraColorScheme.saltColor)
-                    MacroPill(Modifier.weight(1f), it.fibre, darkExtraColorScheme.fibreColor)
+                    MacroPill(text = it.carbs ?: "", bg = darkExtraColorScheme.carbsColor)
+                    MacroPill(text = it.salt ?: "", bg = darkExtraColorScheme.saltColor)
+                    MacroPill(text = it.fibre ?: "", bg = darkExtraColorScheme.fibreColor)
                 }
             }
         }
@@ -152,28 +155,127 @@ private fun RecordTextContent(modifier: Modifier, record: ListUIModelRecord) {
 
 @Composable
 private fun MacroPill(
-    modifier: Modifier,
-    text: String?,
+    text: String,
     bg: Color,
     color: Color = Color.Black,
+    protectEndOfText: Boolean = true,
 ) {
+    if (text.isBlank()) {
+        Spacer(
+            modifier = Modifier
+                .fillMaxSize()
+        )
+        return
+    }
+
     Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = if (text != null) bg else Color.Transparent),
+        modifier = Modifier,
+        colors = CardDefaults.cardColors(containerColor = bg),
         shape = RoundedCornerShape(4.dp),
     ) {
         Text(
-            modifier = Modifier.padding(horizontal = PaddingQuarter, vertical = 2.dp),
-            text = text ?: "",
+            modifier = Modifier
+                .padding(horizontal = PaddingQuarter, vertical = 2.dp),
+            text = text,
             color = color,
+            maxLines = 1,
+            softWrap = false,
+            overflow = if (protectEndOfText) TextOverflow.StartEllipsis else TextOverflow.Ellipsis,
             style = MaterialTheme.typography.bodySmall,
         )
     }
 }
 
-@Preview
 @Composable
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, widthDp = 200)
+private fun MacroRow(
+    modifier: Modifier = Modifier,
+    spacing: Dp = 4.dp,
+    content: @Composable () -> Unit
+) {
+    val spacingPx = with(LocalDensity.current) { spacing.roundToPx() }
+
+    Layout(
+        modifier = modifier,
+        content = content
+    ) { measurables, constraints ->
+
+        val n = measurables.size
+        val maxWidth = constraints.maxWidth
+        if (n == 0) return@Layout layout(maxWidth, 0) {}
+
+        val totalSpacing = spacingPx * (n - 1)
+        val available = (maxWidth - totalSpacing).coerceAtLeast(0)
+        val equal = available / n
+
+        val required = measurables.map {
+            it.maxIntrinsicWidth(constraints.maxHeight)
+        }
+
+        // Step 1: start with equal columns
+        val widths = IntArray(n) { equal }
+
+        // Step 2: find how much extra is needed by oversized pills
+        var deficit = 0
+        for (i in 0 until n) {
+            val need = required[i] - equal
+            if (need > 0) deficit += need
+        }
+
+        // Step 3: see how much can be stolen from smaller pills
+        var pool = 0
+        for (i in 0 until n) {
+            if (required[i] < equal) {
+                pool += equal - required[i]
+            }
+        }
+
+        val transferable = minOf(deficit, pool)
+
+        // Step 4: shrink small pills proportionally
+        if (transferable > 0) {
+            val shrinkables = (0 until n).filter { required[it] < equal }
+
+            var remaining = transferable
+            for (i in shrinkables) {
+                val maxShrink = equal - required[i]
+                val take = minOf(maxShrink, remaining)
+                widths[i] -= take
+                remaining -= take
+                if (remaining == 0) break
+            }
+
+            // Step 5: grow big pills with what we took
+            val growables = (0 until n).filter { required[it] > equal }
+            var give = transferable
+            for (i in growables) {
+                val need = required[i] - equal
+                val add = minOf(need, give)
+                widths[i] += add
+                give -= add
+                if (give == 0) break
+            }
+        }
+
+        val placeables = measurables.mapIndexed { i, m ->
+            m.measure(Constraints.fixedWidth(widths[i]))
+        }
+
+        val height = placeables.maxOf { it.height }
+
+        layout(maxWidth, height) {
+            var x = 0
+            for (i in 0 until n) {
+                val p = placeables[i]
+                p.placeRelative(x, 0)
+                x += p.width + if (i != n - 1) spacingPx else 0
+            }
+        }
+    }
+}
+
+@Preview(widthDp = 300)
+@Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, widthDp = 260)
 private fun OverviewListItemPreview() {
     ViewPreviewContext {
         PreviewImageStoreProvider {
@@ -185,12 +287,41 @@ private fun OverviewListItemPreview() {
                     images = listOf("", ""),
                     timestamp = "Tue 19 Aug, 20:49",
                     macrosAmounts = MacrosAmountsUIModel(
-                        calories = "1008cal",
-                        protein = "protein 8",
-                        fat = "fat 4(2)",
-                        carbs = "carbs 9(9)",
-                        salt = "salt 2",
-                        fibre = "fibre 4",
+                        calories = "1008kcal",
+                        protein = "Protein 158g",
+                        fat = "Fat 14g(12g)",
+                        carbs = "Carbs 39g(29g/19g)",
+                        salt = "Salt 1.2g",
+                        fibre = "Fibre 14g",
+                    ),
+                ),
+                onRecordImageTapped = {},
+                onRecordBodyTapped = {},
+                rowMenu = {}
+            )
+        }
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO, widthDp = 300)
+@Composable
+private fun OverviewListItemPreviewMissing() {
+    ViewPreviewContext {
+        PreviewImageStoreProvider {
+            ListItemRecord(
+                record = ListUIModelRecord(
+                    recordId = 1L,
+                    title = "Title",
+                    templateId = 1L,
+                    images = listOf("", ""),
+                    timestamp = "Tue 19 Aug, 20:49",
+                    macrosAmounts = MacrosAmountsUIModel(
+                        calories = "1008kcal",
+                        protein = null,
+                        fat = "Fat 14g(12g)",
+                        carbs = null,
+                        salt = "Salt 1.2g",
+                        fibre = null,
                     ),
                 ),
                 onRecordImageTapped = {},
@@ -215,12 +346,12 @@ private fun OverviewListItemPreviewLoading() {
                     images = listOf("", ""),
                     timestamp = "Tue 19 Aug, 20:49",
                     macrosAmounts = MacrosAmountsUIModel(
-                        calories = "1008cal",
-                        protein = "protein 8",
-                        fat = "fat 4(2)",
-                        carbs = "carbs 9(9)",
-                        salt = "salt 2",
-                        fibre = "fibre 4",
+                        calories = "1008kcal",
+                        protein = "Protein 58g",
+                        fat = "Fat 14g(12g)",
+                        carbs = "Carbs 39g(29g/19g)",
+                        salt = "Salt 1.2g",
+                        fibre = "Fibre 14g",
                     ),
                     showLoadingIndicator = true,
                 ),

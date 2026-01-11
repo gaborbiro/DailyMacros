@@ -267,7 +267,7 @@ internal class MacrosUIMapper(
         val (shortFormat, longFormat) = generateFormats(
             shortLabel = "Protein",
             longLabel = "Protein:",
-            unit = if (isShort) "" else "g",
+            unit = "g",
             withLabel = withLabel,
             allowDecimal = smallScaleValue,
         )
@@ -283,9 +283,9 @@ internal class MacrosUIMapper(
     ): String? {
         val smallScaleValue = false
         val (shortFormat, longFormat) = generateFormats(
-            shortLabel = "Carbs",
-            longLabel = "Carbs:",
-            unit = if (isShort) "" else "g",
+            shortLabel = "Carb",
+            longLabel = "Carb:",
+            unit = "g",
             withLabel = withLabel,
             allowDecimal = smallScaleValue,
         )
@@ -306,8 +306,8 @@ internal class MacrosUIMapper(
         val smallScaleValue = false
         val (shortFormat, longFormat) = generateFormats(
             shortLabel = "",  // no short label because in short mode sugar is displayed after carbs in parenthesis
-            longLabel = "total sugar:",
-            unit = if (isShort) "" else "g",
+            longLabel = "of which sugar:",
+            unit = "g",
             withLabel = withLabel,
             allowDecimal = smallScaleValue,
         )
@@ -322,8 +322,8 @@ internal class MacrosUIMapper(
         val smallScaleValue = false
         val (shortFormat, longFormat) = generateFormats(
             shortLabel = "",  // no short label because in short mode sugar is displayed after carbs in parenthesis
-            longLabel = "added sugar:",
-            unit = if (isShort) "" else "g",
+            longLabel = "of which added sugar:",
+            unit = "g",
             withLabel = withLabel,
             allowDecimal = smallScaleValue,
         )
@@ -340,7 +340,7 @@ internal class MacrosUIMapper(
         val (shortFormat, longFormat) = generateFormats(
             shortLabel = "Fat",
             longLabel = "Fat:",
-            unit = if (isShort) "" else "g",
+            unit = "g",
             withLabel = withLabel,
             allowDecimal = smallScaleValue,
         )
@@ -358,7 +358,7 @@ internal class MacrosUIMapper(
         val (shortFormat, longFormat) = generateFormats(
             shortLabel = "", // no short label because in short mode saturated fats are displayed after fat in parenthesis
             longLabel = "of which saturated:",
-            unit = if (isShort) "" else "g",
+            unit = "g",
             withLabel = withLabel,
             allowDecimal = smallScaleValue,
         )
@@ -374,7 +374,7 @@ internal class MacrosUIMapper(
         val (shortFormat, longFormat) = generateFormats(
             shortLabel = "Salt",
             longLabel = "Salt:",
-            unit = if (isShort) "" else "g",
+            unit = "g",
             withLabel = withLabel,
             allowDecimal = smallScaleValue,
         )
@@ -390,7 +390,7 @@ internal class MacrosUIMapper(
         val (shortFormat, longFormat) = generateFormats(
             shortLabel = "Fibre",
             longLabel = "Fibre:",
-            unit = if (isShort) "" else "g",
+            unit = "g",
             withLabel = withLabel,
             allowDecimal = smallScaleValue,
         )
