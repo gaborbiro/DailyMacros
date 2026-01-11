@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -62,14 +63,16 @@ internal fun SettingsView(
             )
         },
         bottomBar = {
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp)
-                    .padding(WindowInsets.navigationBars.asPaddingValues()),
-                text = viewState.bottomLabel,
-                textAlign = TextAlign.Center,
-            )
+            SelectionContainer {
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp)
+                        .padding(WindowInsets.navigationBars.asPaddingValues()),
+                    text = viewState.bottomLabel,
+                    textAlign = TextAlign.Center,
+                )
+            }
         },
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
