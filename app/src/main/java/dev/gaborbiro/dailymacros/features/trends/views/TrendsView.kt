@@ -24,12 +24,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
-import com.patrykandpatrick.vico.compose.chart.scroll.rememberChartScrollState
-import com.patrykandpatrick.vico.compose.m3.style.m3ChartStyle
+import com.patrykandpatrick.vico.compose.chart.scroll.ChartScrollState
 import com.patrykandpatrick.vico.core.axis.Axis
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PreviewContext
@@ -52,8 +56,8 @@ internal fun TrendsView(
     onBackNavigate: () -> Unit,
     onSettingsActionButtonClicked: () -> Unit,
     onSettingsCloseRequested: () -> Unit,
-    onSettingsAggregationModeChanged: (DailyAggregationMode) -> Unit,
-    onSettingsThresholdChanged: (Long) -> Unit,
+    onSettingsAggregationModeChanged: (DailyAggregationMode, TimeScale) -> Unit,
+    onSettingsThresholdChanged: (Long, TimeScale) -> Unit,
 ) {
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
@@ -81,6 +85,10 @@ internal fun TrendsView(
             )
         },
     ) { paddingValues ->
+        var timeScale by remember {
+            mutableStateOf(TimeScale.DAYS)
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -95,32 +103,31 @@ internal fun TrendsView(
             ) {
                 ScaleButton(
                     label = "Days",
-                    selected = viewState.timeScale == TimeScale.DAYS,
-                    onClick = { onTimeScaleSelected(TimeScale.DAYS) },
+                    selected = timeScale == TimeScale.DAYS,
+                    onClick = {
+                        onTimeScaleSelected(TimeScale.DAYS)
+                        timeScale = TimeScale.DAYS
+                    },
                     modifier = Modifier.weight(1f),
                 )
                 ScaleButton(
                     label = "Weeks",
-                    selected = viewState.timeScale == TimeScale.WEEKS,
-                    onClick = { onTimeScaleSelected(TimeScale.WEEKS) },
+                    selected = timeScale == TimeScale.WEEKS,
+                    onClick = {
+                        onTimeScaleSelected(TimeScale.WEEKS)
+                        timeScale = TimeScale.WEEKS
+                    },
                     modifier = Modifier.weight(1f),
                 )
                 ScaleButton(
                     label = "Months",
-                    selected = viewState.timeScale == TimeScale.MONTHS,
-                    onClick = { onTimeScaleSelected(TimeScale.MONTHS) },
+                    selected = timeScale == TimeScale.MONTHS,
+                    onClick = {
+                        onTimeScaleSelected(TimeScale.MONTHS)
+                        timeScale = TimeScale.MONTHS
+                    },
                     modifier = Modifier.weight(1f),
                 )
-            }
-
-            val daysChartScrollState = rememberChartScrollState()
-            val weeksChartScrollState = rememberChartScrollState()
-            val monthsChartScrollState = rememberChartScrollState()
-
-            val chartScrollState = when (viewState.timeScale) {
-                TimeScale.DAYS -> daysChartScrollState
-                TimeScale.WEEKS -> weeksChartScrollState
-                TimeScale.MONTHS -> monthsChartScrollState
             }
 
             // Shared start axis within a tab so all charts line up vertically.
@@ -131,23 +138,24 @@ internal fun TrendsView(
                 }
             )
 
-            val showEveryXLabel = when (viewState.timeScale) {
+            val showEveryXLabel = when (timeScale) {
                 TimeScale.WEEKS -> 2
                 else -> 1
             }
 
-            val chartStyle = m3ChartStyle()
+            key(viewState.chartsData, timeScale) {
+                val chartScrollState = ChartScrollState()
 
-            viewState.chartsData.forEach { chartData ->
-                MacroChart(
-                    modifier = Modifier
-                        .padding(start = PaddingDefault),
-                    chartData = chartData,
-                    chartStyle = chartStyle,
-                    chartScrollState = chartScrollState,
-                    startAxis = startAxis,
-                    showEveryXLabel = showEveryXLabel,
-                )
+                viewState.chartsData.forEach { chartData ->
+                    MacroChart(
+                        modifier = Modifier
+                            .padding(start = PaddingDefault),
+                        chartData = chartData,
+                        chartScrollState = chartScrollState,
+                        startAxis = startAxis,
+                        showEveryXLabel = showEveryXLabel,
+                    )
+                }
             }
         }
 
@@ -156,8 +164,8 @@ internal fun TrendsView(
                 dailyAggregationMode = viewState.trendsSettings.dailyAggregationMode,
                 qualifiedDaysThreshold = viewState.trendsSettings.qualifiedDaysThreshold,
                 onDismissRequested = onSettingsCloseRequested,
-                onAggregationModeChanged = onSettingsAggregationModeChanged,
-                onThresholdChanged = onSettingsThresholdChanged,
+                onAggregationModeChanged = { onSettingsAggregationModeChanged(it, timeScale) },
+                onThresholdChanged = { onSettingsThresholdChanged(it, timeScale) },
             )
         }
     }
@@ -166,62 +174,21 @@ internal fun TrendsView(
 @Preview
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-private fun TrendsViewPreviewDays() {
+private fun TrendsViewPreview() {
     PreviewContext {
         PreviewImageStoreProvider {
             TrendsView(
                 viewState = TrendsViewState(
-                    timeScale = TimeScale.DAYS,
                     chartsData = previewData,
                 ),
                 onTimeScaleSelected = {},
                 onBackNavigate = {},
                 onSettingsActionButtonClicked = {},
                 onSettingsCloseRequested = {},
-                onSettingsAggregationModeChanged = {},
-                onSettingsThresholdChanged = {},
+                onSettingsAggregationModeChanged = { _, _ -> },
+                onSettingsThresholdChanged = { _, _ -> },
             )
         }
-    }
-}
-
-@Preview
-@Composable
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-private fun TrendsViewPreviewWeeks() {
-    PreviewContext {
-        TrendsView(
-            viewState = TrendsViewState(
-                timeScale = TimeScale.WEEKS,
-                chartsData = previewData,
-            ),
-            onTimeScaleSelected = {},
-            onBackNavigate = {},
-            onSettingsActionButtonClicked = {},
-            onSettingsCloseRequested = {},
-            onSettingsAggregationModeChanged = {},
-            onSettingsThresholdChanged = {},
-        )
-    }
-}
-
-@Preview
-@Composable
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-private fun TrendsViewPreviewMonths() {
-    PreviewContext {
-        TrendsView(
-            viewState = TrendsViewState(
-                timeScale = TimeScale.MONTHS,
-                chartsData = previewData,
-            ),
-            onTimeScaleSelected = {},
-            onBackNavigate = {},
-            onSettingsActionButtonClicked = {},
-            onSettingsCloseRequested = {},
-            onSettingsAggregationModeChanged = {},
-            onSettingsThresholdChanged = {},
-        )
     }
 }
 

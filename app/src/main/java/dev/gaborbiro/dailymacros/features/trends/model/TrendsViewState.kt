@@ -3,7 +3,6 @@ package dev.gaborbiro.dailymacros.features.trends.model
 import androidx.compose.ui.graphics.Color
 
 internal data class TrendsViewState(
-    val timeScale: TimeScale,
     val chartsData: List<MacroChartData> = emptyList(),
     val trendsSettings: TrendsSettingsUIModel = TrendsSettingsUIModel.Hidden,
 )

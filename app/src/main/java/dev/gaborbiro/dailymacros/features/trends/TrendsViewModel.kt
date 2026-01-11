@@ -36,19 +36,17 @@ internal class TrendsViewModel(
 
     private val _viewState: MutableStateFlow<TrendsViewState> =
         MutableStateFlow(
-            TrendsViewState(timeScale = TimeScale.DAYS)
+            TrendsViewState()
         )
     val viewState: StateFlow<TrendsViewState> = _viewState.asStateFlow()
 
     init {
-        recordsJob = observeRecords()
+        recordsJob = observeRecords(TimeScale.DAYS)
     }
 
     fun onTimeScaleSelected(timeScale: TimeScale) {
-        if (timeScale == _viewState.value.timeScale) return
-        _viewState.value = _viewState.value.copy(timeScale = timeScale)
         recordsJob.cancel()
-        recordsJob = observeRecords()
+        recordsJob = observeRecords(timeScale)
     }
 
     fun onBackNavigate() {
@@ -68,24 +66,23 @@ internal class TrendsViewModel(
         _viewState.value = _viewState.value.copy(trendsSettings = TrendsSettingsUIModel.Hidden)
     }
 
-    fun onAggregationModeChanged(dailyAggregationMode: DailyAggregationMode) {
+    fun onAggregationModeChanged(dailyAggregationMode: DailyAggregationMode, timeScale: TimeScale) {
         appPrefs.aggregationMode = mapper.map(dailyAggregationMode)
         recordsJob.cancel()
-        recordsJob = observeRecords()
+        recordsJob = observeRecords(timeScale)
     }
 
-    fun onAggregationThresholdChanged(threshold: Long) {
+    fun onAggregationThresholdChanged(threshold: Long, timeScale: TimeScale) {
         appPrefs.qualifiedAggregationThreshold = threshold
         recordsJob.cancel()
-        recordsJob = observeRecords()
+        recordsJob = observeRecords(timeScale)
     }
 
-    private fun observeRecords(): Job {
+    private fun observeRecords(timeScale: TimeScale): Job {
         // Re-launch collection each time scale changes
         return viewModelScope.launch {
             // Use the same flow as overview (no search term = all records)
             recordsRepository.getFlowBySearchTerm(null).collect { records ->
-                val timeScale = _viewState.value.timeScale
                 if (records.isEmpty()) {
                     _viewState.value = _viewState.value.copy(chartsData = emptyList())
                 } else {
