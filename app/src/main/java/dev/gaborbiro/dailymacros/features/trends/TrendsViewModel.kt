@@ -263,11 +263,12 @@ internal class TrendsViewModel(
             ),
             listOf(
                 Triple("Carbs (g)", Color(0xFFFFC278), agg { it.template.macros?.carbs }),
-                Triple("    of which sugar (g)", Color(0xFFFFB74D), agg { it.template.macros?.ofWhichSugar })
+                Triple(" └>of which sugar (g)", Color(0xFFFFB74D), agg { it.template.macros?.ofWhichSugar }),
+                Triple("     └>of which added sugar (g)", Color(0xFFFF802C), agg { it.template.macros?.ofWhichAddedSugar })
             ),
             listOf(
                 Triple("Fat (g)", Color(0xFFFFA6A6), agg { it.template.macros?.fat }),
-                Triple("    of which saturated fat (g)", Color(0xFFE57373), agg { it.template.macros?.ofWhichSaturated })
+                Triple(" └>of which saturated fat (g)", Color(0xFFE57373), agg { it.template.macros?.ofWhichSaturated })
             ),
             listOf(
                 Triple("Salt (g)", Color(0xFFB39DDB), agg { it.template.macros?.salt })

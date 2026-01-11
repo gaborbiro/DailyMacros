@@ -143,9 +143,9 @@ internal fun MacroChart(
         // Preserve line order (series index)
         val values = markedEntries
             .sortedBy { it.index }
+            .distinctBy { it.entry.x * 1_000_000 + it.entry.y }
             .map { it.entry.y }
 
-        // Example output: "115.40; 43.80"
         values.joinToString(
             separator = "; ",
             prefix = "",
