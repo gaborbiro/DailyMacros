@@ -1,14 +1,21 @@
 package dev.gaborbiro.dailymacros.features.modal.views
 
+import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircleOutline
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -18,9 +25,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import dev.gaborbiro.dailymacros.design.PaddingHalf
+import dev.gaborbiro.dailymacros.design.ViewPreviewContext
 
 @Composable
 internal fun PillLabel(
@@ -34,6 +43,7 @@ internal fun PillLabel(
     elevation: Dp = 0.dp,
     enabled: Boolean = true,
     textStyle: TextStyle = MaterialTheme.typography.bodySmall,
+    iconOrientation: Orientation = Orientation.Horizontal
 ) {
     val shape = RoundedCornerShape(16.dp) // pill
 
@@ -57,17 +67,84 @@ internal fun PillLabel(
         border = border,
         shadowElevation = elevation
     ) {
-        Box(
+        Row(
             modifier = Modifier
                 .defaultMinSize(minHeight = 24.dp) // make it thinner than default buttons
                 .padding(contentPadding),
-            contentAlignment = Alignment.Center
+            verticalAlignment = Alignment.Top,
         ) {
+            AxisLayout(orientation = iconOrientation) {
+                Icon(
+                    modifier = Modifier
+                        .size(16.dp),
+                    imageVector = Icons.Default.ArrowUpward,
+                    contentDescription = "Insert to input field",
+                )
+                Icon(
+                    modifier = Modifier
+                        .size(16.dp),
+                    imageVector = Icons.Default.AddCircleOutline,
+                    contentDescription = "Insert to input field",
+                )
+            }
             Text(
+                modifier = Modifier
+                    .padding(start = PaddingHalf),
                 text = text,
                 style = textStyle,
-                overflow = TextOverflow.Ellipsis
             )
         }
+    }
+}
+
+enum class Orientation {
+    Horizontal, Vertical
+}
+
+@Composable
+private fun AxisLayout(
+    orientation: Orientation,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    when (orientation) {
+        Orientation.Horizontal -> Row(
+            modifier = modifier,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            content()
+        }
+
+        Orientation.Vertical -> Column(
+            modifier = modifier,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            content()
+        }
+    }
+}
+
+@Preview
+@Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+private fun PillLabelPreview() {
+    ViewPreviewContext {
+        PillLabel(
+            text = "This is a label",
+            onClick = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+private fun PillLabelPreviewLong() {
+    ViewPreviewContext {
+        PillLabel(
+            text = "A packaged meal of chicken teriyaki with jasmine rice and oriental mix, high in carbs and protein,  with 484 kcal.",
+            onClick = {},
+            iconOrientation = Orientation.Vertical,
+        )
     }
 }

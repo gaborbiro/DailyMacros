@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.features.modal.views
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -12,7 +13,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -22,11 +27,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -34,9 +40,9 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
-import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.design.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.common.views.PreviewImageStoreProvider
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
@@ -90,7 +96,7 @@ internal fun RecordDetailsDialog(
     ScrollableContentDialog(
         onDismissRequested = onDismissRequested,
         content = {
-            InputDialogContent(
+            RecordDetailsDialogContent(
                 onTitleChanged = onTitleChanged,
                 onDescriptionChanged = onDescriptionChanged,
                 showKeyboardOnOpen = showKeyboardOnOpen,
@@ -156,7 +162,7 @@ internal fun RecordDetailsDialog(
 }
 
 @Composable
-private fun ColumnScope.InputDialogContent(
+private fun ColumnScope.RecordDetailsDialogContent(
     onTitleChanged: (TextFieldValue) -> Unit,
     onDescriptionChanged: (TextFieldValue) -> Unit,
     onTitleSuggestionSelected: (String) -> Unit,
@@ -240,7 +246,21 @@ private fun ColumnScope.InputDialogContent(
                 modifier = Modifier
                     .padding(horizontal = PaddingDefault),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.Center,
             ) {
+                Icon(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .alpha(.3f),
+                    painter = painterResource(R.drawable.ic_chatgpt),
+                    contentDescription = "chatgpt",
+                )
+                Text(
+                    text = "suggests:",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontStyle = FontStyle.Italic,
+                    color = Color.Gray,
+                )
                 it.forEach {
                     PillLabel(
                         modifier = Modifier
@@ -289,29 +309,6 @@ private fun ColumnScope.InputDialogContent(
         onInfoButtonTapped = onImagesInfoButtonTapped,
     )
 
-    suggestions
-        ?.description
-        ?.takeIf { it.isNotBlank() }
-        ?.let { descriptionSuggestion ->
-            Text(
-                modifier = Modifier
-                    .padding(top = PaddingDefault, bottom = PaddingQuarter)
-                    .padding(horizontal = PaddingDefault),
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Normal,
-                text = "Verify that the AI can understand your photo:"
-            )
-            PillLabel(
-                modifier = Modifier
-                    .padding(horizontal = PaddingDefault)
-                    .padding(bottom = PaddingHalf),
-                text = descriptionSuggestion,
-                onClick = {
-                    onDescriptionSuggestionSelected(descriptionSuggestion)
-                },
-            )
-        }
-
     TextField(
         modifier = Modifier
             .fillMaxWidth()
@@ -344,6 +341,33 @@ private fun ColumnScope.InputDialogContent(
             onDescriptionChanged(it)
         },
     )
+
+    suggestions
+        ?.description
+        ?.takeIf { it.isNotBlank() }
+        ?.let { descriptionSuggestion ->
+            Box {
+                PillLabel(
+                    modifier = Modifier
+                        .padding(horizontal = PaddingDefault)
+                        .padding(top = PaddingHalf),
+                    text = descriptionSuggestion,
+                    onClick = {
+                        onDescriptionSuggestionSelected(descriptionSuggestion)
+                    },
+                    iconOrientation = Orientation.Vertical,
+                )
+                Icon(
+                    modifier = Modifier
+                        .padding(end = PaddingDefault + 8.dp, bottom = 8.dp)
+                        .size(24.dp)
+                        .alpha(.3f)
+                        .align(Alignment.BottomEnd),
+                    painter = painterResource(R.drawable.ic_chatgpt),
+                    contentDescription = "chatgpt",
+                )
+            }
+        }
 
     macros?.let {
         Spacer(
@@ -405,37 +429,6 @@ private fun NoteInputDialogContentPreviewEdit() {
 @Preview
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-private fun NoteInputDialogContentPreview() {
-    ViewPreviewContext {
-        RecordDetailsDialog(
-            dialogState = DialogState.RecordDetailsDialog.Edit(
-                title = TextFieldValue(),
-                titleHint = "Describe your meal (or pick a suggestion from below)",
-                description = TextFieldValue(),
-                images = listOf("1", "2"),
-                showProgressIndicator = true,
-                suggestions = null,
-            ),
-            errorMessages = emptyFlow(),
-            onTitleSuggestionSelected = {},
-            onDescriptionSuggestionSelected = {},
-            onTitleChanged = {},
-            onDescriptionChanged = {},
-            onSubmitButtonTapped = {},
-            onImageTapped = {},
-            onImageDeleteTapped = {},
-            onAddImageViaCameraTapped = {},
-            onAddImageViaPickerTapped = {},
-            onDismissRequested = {},
-            onImagesInfoButtonTapped = {},
-        )
-    }
-}
-
-
-@Preview
-@Composable
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreviewSuggestion() {
     ViewPreviewContext {
         PreviewImageStoreProvider {
@@ -447,8 +440,41 @@ private fun NoteInputDialogContentPreviewSuggestion() {
                     images = listOf("1", "2"),
                     suggestions = SummarySuggestions(
                         titles = listOf("This is a title suggestion", "This is another title suggestion"),
-                        description = "",
+                        description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
                     ),
+                ),
+                errorMessages = emptyFlow(),
+                onTitleSuggestionSelected = {},
+                onDescriptionSuggestionSelected = {},
+                onTitleChanged = {},
+                onDescriptionChanged = {},
+                onSubmitButtonTapped = {},
+                onImageTapped = {},
+                onImageDeleteTapped = {},
+                onAddImageViaCameraTapped = {},
+                onAddImageViaPickerTapped = {},
+                onDismissRequested = {},
+                onImagesInfoButtonTapped = {},
+            )
+        }
+    }
+}
+
+
+@Preview
+@Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+private fun NoteInputDialogContentPreview() {
+    ViewPreviewContext {
+        PreviewImageStoreProvider {
+            RecordDetailsDialog(
+                dialogState = DialogState.RecordDetailsDialog.Edit(
+                    title = TextFieldValue(),
+                    titleHint = "Describe your meal (or pick a suggestion from below)",
+                    description = TextFieldValue(),
+                    images = listOf("1", "2"),
+                    showProgressIndicator = true,
+                    suggestions = null,
                 ),
                 errorMessages = emptyFlow(),
                 onTitleSuggestionSelected = {},
@@ -472,30 +498,32 @@ private fun NoteInputDialogContentPreviewSuggestion() {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreviewError() {
     ViewPreviewContext {
-        RecordDetailsDialog(
-            dialogState = DialogState.RecordDetailsDialog.Edit(
-                title = TextFieldValue(),
-                titleHint = "Describe your meal",
-                titleValidationError = "error",
-                description = TextFieldValue(),
-                images = listOf("1", "2"),
-                suggestions = SummarySuggestions(
-                    titles = listOf("This is a title suggestion", "This is another title suggestion"),
-                    description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
+        PreviewImageStoreProvider {
+            RecordDetailsDialog(
+                dialogState = DialogState.RecordDetailsDialog.Edit(
+                    title = TextFieldValue(),
+                    titleHint = "Describe your meal",
+                    titleValidationError = "error",
+                    description = TextFieldValue(),
+                    images = listOf("1", "2"),
+                    suggestions = SummarySuggestions(
+                        titles = listOf("This is a title suggestion", "This is another title suggestion"),
+                        description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
+                    ),
                 ),
-            ),
-            errorMessages = emptyFlow(),
-            onTitleSuggestionSelected = {},
-            onDescriptionSuggestionSelected = {},
-            onTitleChanged = {},
-            onDescriptionChanged = {},
-            onSubmitButtonTapped = {},
-            onImageTapped = {},
-            onImageDeleteTapped = {},
-            onAddImageViaCameraTapped = {},
-            onAddImageViaPickerTapped = {},
-            onDismissRequested = {},
-            onImagesInfoButtonTapped = {},
-        )
+                errorMessages = emptyFlow(),
+                onTitleSuggestionSelected = {},
+                onDescriptionSuggestionSelected = {},
+                onTitleChanged = {},
+                onDescriptionChanged = {},
+                onSubmitButtonTapped = {},
+                onImageTapped = {},
+                onImageDeleteTapped = {},
+                onAddImageViaCameraTapped = {},
+                onAddImageViaPickerTapped = {},
+                onDismissRequested = {},
+                onImagesInfoButtonTapped = {},
+            )
+        }
     }
 }

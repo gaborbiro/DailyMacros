@@ -20,9 +20,9 @@ import androidx.glance.layout.wrapContentHeight
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
+import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPick
 import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
-import dev.gaborbiro.dailymacros.features.widgetDiary.PaddingWidgetDefaultHorizontal
 import dev.gaborbiro.dailymacros.features.widgetDiary.util.PreviewContext
 
 @Composable
@@ -62,7 +62,7 @@ internal fun ListItemQuickPick(
             Text(
                 modifier = GlanceModifier
                     .wrapContentHeight()
-                    .padding(start = PaddingWidgetDefaultHorizontal + extraPadding, end = PaddingWidgetDefaultHorizontal),
+                    .padding(start = PaddingWidgetDefault + extraPadding, end = PaddingWidgetDefault),
                 text = quickPickEntry.title,
                 maxLines = 3,
                 style = titleTextStyle,
@@ -72,7 +72,7 @@ internal fun ListItemQuickPick(
                     Text(
                         modifier = GlanceModifier
                             .wrapContentHeight()
-                            .padding(start = PaddingWidgetDefaultHorizontal + extraPadding, end = PaddingWidgetDefaultHorizontal),
+                            .padding(start = PaddingWidgetDefault + extraPadding, end = PaddingWidgetDefault),
                         text = it,
                         maxLines = 1,
                         style = descriptionTextStyle,

@@ -32,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.design.ViewPreviewContext
@@ -61,7 +62,8 @@ fun ListItemRecord(
     ) {
         RecordImage(
             modifier = Modifier
-                .size(64.dp)
+                .size(73.dp)
+                .padding(top = 4.dp)
                 .clickable(onClick = onImageTapped),
             image = record.images.firstOrNull(),
             title = record.title,
@@ -106,19 +108,22 @@ private fun RecordTextContent(modifier: Modifier, record: ListUIModelRecord) {
         modifier,
         verticalArrangement = Arrangement.Center,
     ) {
-        Row {
+        Row(
+            modifier = Modifier
+                .padding(bottom = 4.dp)
+        ) {
             Text(
                 modifier = Modifier
                     .weight(1f),
                 text = record.title,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.W400,
+                style = MaterialTheme.typography.titleMedium,
             )
             Text(
                 modifier = Modifier
-                    .padding(top = PaddingQuarter),
+                    .padding(start = PaddingHalf, top = PaddingQuarter),
                 text = record.timestamp,
                 textAlign = TextAlign.End,
                 style = MaterialTheme.typography.labelMedium,
@@ -129,20 +134,25 @@ private fun RecordTextContent(modifier: Modifier, record: ListUIModelRecord) {
                 text = "Analyzing…",
                 maxLines = 1,
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
             )
         } else {
             record.macrosAmounts?.let {
                 MacroRow(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth(),
                 ) {
                     MacroPill(text = it.calories ?: "", bg = darkExtraColorScheme.calorieColor, protectEndOfText = false)
                     MacroPill(text = it.protein ?: "", bg = darkExtraColorScheme.proteinColor)
                     MacroPill(text = it.fat ?: "", bg = darkExtraColorScheme.fatColor)
                 }
-                Spacer(Modifier.height(4.dp))
+                Spacer(
+                    modifier = Modifier
+                        .height(4.dp)
+                )
                 MacroRow(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth(),
                 ) {
                     MacroPill(text = it.carbs ?: "", bg = darkExtraColorScheme.carbsColor)
                     MacroPill(text = it.salt ?: "", bg = darkExtraColorScheme.saltColor)

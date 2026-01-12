@@ -18,9 +18,9 @@ import androidx.glance.layout.size
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
+import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
-import dev.gaborbiro.dailymacros.features.widgetDiary.PaddingWidgetDefaultHorizontal
 import dev.gaborbiro.dailymacros.features.widgetDiary.util.PreviewContext
 
 @Composable
@@ -32,7 +32,7 @@ fun ListItemRecord(
     Row(
         modifier = GlanceModifier
             .fillMaxSize()
-            .padding(start = PaddingWidgetDefaultHorizontal),
+            .padding(start = PaddingWidgetDefault),
     ) {
         record.images.firstOrNull()
             ?.let {
@@ -52,7 +52,7 @@ fun ListItemRecord(
             modifier = GlanceModifier
                 .defaultWeight()
                 .fillMaxHeight()
-                .padding(horizontal = PaddingWidgetDefaultHorizontal)
+                .padding(horizontal = PaddingWidgetDefault)
                 .clickable(bodyTappedActionProvider),
             verticalAlignment = Alignment.Vertical.Top,
         ) {

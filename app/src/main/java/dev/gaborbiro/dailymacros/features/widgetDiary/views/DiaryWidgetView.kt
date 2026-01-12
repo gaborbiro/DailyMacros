@@ -22,11 +22,11 @@ import androidx.glance.layout.wrapContentHeight
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import dev.gaborbiro.dailymacros.R
+import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPick
+import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
-import dev.gaborbiro.dailymacros.features.widgetDiary.PaddingWidgetHalfVertical
 import dev.gaborbiro.dailymacros.features.widgetDiary.WidgetActionProvider
 import dev.gaborbiro.dailymacros.features.widgetDiary.WidgetActionProviderImpl
 import dev.gaborbiro.dailymacros.features.widgetDiary.util.PreviewContext
@@ -71,7 +71,7 @@ internal fun DiaryWidgetView(
             Box(
                 modifier = GlanceModifier
                     .size(56.dp)
-                    .padding(PaddingWidgetHalfVertical),
+                    .padding(PaddingWidgetDefault),
                 contentAlignment = Alignment.Center,
             ) {
                 Image(

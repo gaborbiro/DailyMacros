@@ -18,7 +18,7 @@ import androidx.glance.layout.wrapContentHeight
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import dev.gaborbiro.dailymacros.R
-import dev.gaborbiro.dailymacros.features.widgetDiary.PaddingWidgetDefaultVertical
+import dev.gaborbiro.dailymacros.design.PaddingWidgetDouble
 import dev.gaborbiro.dailymacros.features.widgetDiary.util.PreviewContext
 
 @Composable
@@ -36,7 +36,7 @@ fun ButtonLayout(
         WidgetButton(
             modifier = GlanceModifier
                 .defaultWeight()
-                .padding(vertical = PaddingWidgetDefaultVertical),
+                .padding(vertical = PaddingWidgetDouble),
             iconResId = R.drawable.ic_add_photo,
             contentDescription = "New record via camera",
             tapAction = launchNoteViaCameraAction(),
@@ -44,7 +44,7 @@ fun ButtonLayout(
         WidgetButton(
             modifier = GlanceModifier
                 .defaultWeight()
-                .padding(vertical = PaddingWidgetDefaultVertical),
+                .padding(vertical = PaddingWidgetDouble),
             iconResId = R.drawable.ic_add_picture,
             contentDescription = "New record via existing image",
             tapAction = launchNewNoteViaImagePickerActionProvider(),
@@ -52,7 +52,7 @@ fun ButtonLayout(
         WidgetButton(
             modifier = GlanceModifier
                 .defaultWeight()
-                .padding(vertical = PaddingWidgetDefaultVertical),
+                .padding(vertical = PaddingWidgetDouble),
             iconResId = R.drawable.ic_add_just_text,
             contentDescription = "New record",
             tapAction = launchNewNoteViaTextOnlyActionProvider(),
@@ -60,7 +60,7 @@ fun ButtonLayout(
         WidgetButton(
             modifier = GlanceModifier
                 .defaultWeight()
-                .padding(vertical = PaddingWidgetDefaultVertical),
+                .padding(vertical = PaddingWidgetDouble),
             iconResId = R.drawable.ic_refresh,
             contentDescription = "Reload",
             tapAction = reloadActionProvider(),

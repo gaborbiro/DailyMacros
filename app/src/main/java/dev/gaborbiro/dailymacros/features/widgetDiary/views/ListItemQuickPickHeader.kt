@@ -16,7 +16,7 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
 import dev.gaborbiro.dailymacros.R
-import dev.gaborbiro.dailymacros.features.widgetDiary.PaddingWidgetDefaultVertical
+import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
 import dev.gaborbiro.dailymacros.features.widgetDiary.util.PreviewContext
 
 @Composable
@@ -37,7 +37,7 @@ fun ListItemQuickPickHeader(
         )
         Text(
             modifier = GlanceModifier
-                .padding(PaddingWidgetDefaultVertical)
+                .padding(PaddingWidgetDefault)
                 .wrapContentWidth(),
             text = "Tap to Quick Pick",
             style = sectionTitleTextStyle,

@@ -16,15 +16,14 @@ import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
+import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
+import dev.gaborbiro.dailymacros.design.PaddingWidgetHalf
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPick
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPickFooter
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPickHeader
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
-import dev.gaborbiro.dailymacros.features.widgetDiary.PaddingWidgetDefaultHorizontal
-import dev.gaborbiro.dailymacros.features.widgetDiary.PaddingWidgetDefaultVertical
-import dev.gaborbiro.dailymacros.features.widgetDiary.PaddingWidgetHalfVertical
 import dev.gaborbiro.dailymacros.features.widgetDiary.util.PreviewContext
 
 @Composable
@@ -52,7 +51,7 @@ internal fun DiaryWidgetList(
                     ) {
                         Spacer(
                             modifier = GlanceModifier
-                                .height(PaddingWidgetDefaultVertical)
+                                .height(PaddingWidgetDefault)
                         )
                         ListItemRecord(
                             record = item,
@@ -70,7 +69,7 @@ internal fun DiaryWidgetList(
                     ) {
                         Spacer(
                             modifier = GlanceModifier
-                                .height(PaddingWidgetDefaultVertical)
+                                .height(PaddingWidgetDefault)
                         )
                         ListItemQuickPickHeader()
                     }
@@ -83,7 +82,7 @@ internal fun DiaryWidgetList(
                     ) {
                         ListItemQuickPick(
                             modifier = GlanceModifier
-                                .padding(horizontal = PaddingWidgetDefaultHorizontal, vertical = PaddingWidgetHalfVertical),
+                                .padding(horizontal = PaddingWidgetDefault, vertical = PaddingWidgetHalf),
                             quickPickEntry = item,
                             imageTapActionProvider = quickPickImageTapActionProvider(item.templateId),
                             bodyTapActionProvider = quickPickBodyTapActionProvider(item.templateId),
@@ -99,7 +98,7 @@ internal fun DiaryWidgetList(
                     ) {
                         Spacer(
                             modifier = GlanceModifier
-                                .height(PaddingWidgetHalfVertical)
+                                .height(PaddingWidgetHalf)
                         )
                     }
                 }

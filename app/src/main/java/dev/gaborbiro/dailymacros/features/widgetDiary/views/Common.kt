@@ -32,7 +32,7 @@ val sectionTitleTextStyle: TextStyle
 
 val titleTextStyle: TextStyle
     @Composable get() = TextStyle(
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.Normal,
         fontSize = 13.sp,
         textAlign = TextAlign.Start,
         color = GlanceTheme.colors.onBackground,
@@ -57,7 +57,7 @@ val dateTextStyle: TextStyle
 val loadingTextStyle: TextStyle
     @Composable get() = TextStyle(
         fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
+        fontSize = 14.sp,
         textAlign = TextAlign.Start,
         color = ColorProvider(day = Color(0xFFFF5722), night = Color(0xFFCDE9FF)),
     )
