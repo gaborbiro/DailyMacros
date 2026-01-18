@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.Clock
 import kotlin.time.Duration.Companion.seconds
-import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatus as RequestStatusDB
+import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatusEntity.Status as RequestStatusDB
 import dev.gaborbiro.dailymacros.repo.requestStatus.domain.model.RequestStatus as RequestStatusDomain
 
 class RequestStatusRepositoryImpl(

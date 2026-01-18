@@ -3,7 +3,6 @@ package dev.gaborbiro.dailymacros.data.db.model
 import androidx.room.Embedded
 import androidx.room.Relation
 import dev.gaborbiro.dailymacros.data.db.model.entity.COLUMN_ID
-import dev.gaborbiro.dailymacros.data.db.model.entity.COLUMN_TEMPLATE_ID
 import dev.gaborbiro.dailymacros.data.db.model.entity.ImageEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.MacrosEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatusEntity
@@ -14,20 +13,20 @@ data class TemplateJoined(
 
     @Relation(
         parentColumn = COLUMN_ID,
-        entityColumn = COLUMN_TEMPLATE_ID
+        entityColumn = MacrosEntity.COLUMN_TEMPLATE_ID
     )
     val macros: MacrosEntity?, // null = no macros row
 
     @Relation(
         parentColumn = COLUMN_ID,
-        entityColumn = COLUMN_TEMPLATE_ID,
+        entityColumn = ImageEntity.COLUMN_TEMPLATE_ID,
         entity = ImageEntity::class
     )
     val images: List<ImageEntity>,
 
     @Relation(
         parentColumn = COLUMN_ID,
-        entityColumn = COLUMN_TEMPLATE_ID,
+        entityColumn = RequestStatusEntity.COLUMN_TEMPLATE_ID,
         entity = RequestStatusEntity::class
     )
     val requestStatus: RequestStatusEntity?,

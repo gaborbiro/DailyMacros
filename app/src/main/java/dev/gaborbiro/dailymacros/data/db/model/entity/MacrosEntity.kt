@@ -11,11 +11,11 @@ import androidx.room.Index
         ForeignKey(
             entity = TemplateEntity::class,
             parentColumns = [COLUMN_ID],
-            childColumns = [COLUMN_TEMPLATE_ID],
+            childColumns = [MacrosEntity.COLUMN_TEMPLATE_ID],
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index(value = [COLUMN_TEMPLATE_ID], unique = true)] // enforce 1:1
+    indices = [Index(value = [MacrosEntity.COLUMN_TEMPLATE_ID], unique = true)] // enforce 1:1
 )
 data class MacrosEntity(
     @ColumnInfo(name = COLUMN_TEMPLATE_ID) val templateId: Long,
@@ -29,4 +29,8 @@ data class MacrosEntity(
     val salt: Float?,
     val fibre: Float?,
     val notes: String?,
-) : BaseEntity()
+) : BaseEntity() {
+    companion object {
+        const val COLUMN_TEMPLATE_ID = "templateId"
+    }
+}

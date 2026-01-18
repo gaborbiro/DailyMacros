@@ -11,18 +11,22 @@ import androidx.room.Index
         ForeignKey(
             entity = TemplateEntity::class,
             parentColumns = [COLUMN_ID],
-            childColumns = [COLUMN_TEMPLATE_ID],
+            childColumns = [ImageEntity.COLUMN_TEMPLATE_ID],
             onDelete = ForeignKey.CASCADE
         )
     ],
     indices = [
-        Index(value = [COLUMN_TEMPLATE_ID]),
+        Index(value = [ImageEntity.COLUMN_TEMPLATE_ID]),
         Index(value = ["image"]),
-        Index(value = [COLUMN_TEMPLATE_ID, "sortOrder"], unique = true)
+        Index(value = [ImageEntity.COLUMN_TEMPLATE_ID, "sortOrder"], unique = true)
     ]
 )
 data class ImageEntity(
     @ColumnInfo(name = COLUMN_TEMPLATE_ID) val templateId: Long,
     val image: String,
     val sortOrder: Int,
-) : BaseEntity()
+) : BaseEntity() {
+    companion object {
+        const val COLUMN_TEMPLATE_ID = "templateId"
+    }
+}

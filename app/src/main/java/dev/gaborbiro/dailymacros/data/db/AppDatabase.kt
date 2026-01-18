@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.data.db
 
 import android.content.Context
+import android.util.Log
 import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
@@ -10,6 +11,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import dev.gaborbiro.dailymacros.data.db.model.entity.ImageEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.MacrosEntity
+import dev.gaborbiro.dailymacros.data.db.model.entity.QuickPickOverrideEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatusEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
@@ -23,14 +25,15 @@ import java.time.ZoneId
         MacrosEntity::class,
         ImageEntity::class,
         RequestStatusEntity::class,
+        QuickPickOverrideEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2)
     ]
 )
-@TypeConverters(Converters::class)
+@TypeConverters(Converters::class, QuickPickOverrideEntity.Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun recordsDAO(): RecordsDAO
@@ -57,6 +60,7 @@ abstract class AppDatabase : RoomDatabase() {
                 .addMigrations(MIGRATION_2_3)
                 .addMigrations(MIGRATION_3_4)
                 .addMigrations(MIGRATION_4_5)
+                .addMigrations(MIGRATION_5_6)
                 .build()
         }
     }
@@ -102,6 +106,24 @@ val MIGRATION_4_5 = object : Migration(4, 5) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL(
             "ALTER TABLE macros ADD COLUMN ofWhichAddedSugar REAL DEFAULT NULL"
+        )
+    }
+}
+
+val MIGRATION_5_6 = object : Migration(5, 6) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        Log.e("DB", "🔥 MIGRATION 5 → 6 RUNNING")
+        db.execSQL(
+            """
+            CREATE TABLE QuickPickOverride (
+                templateId INTEGER NOT NULL,
+                overrideType TEXT NOT NULL,
+                PRIMARY KEY(templateId),
+                FOREIGN KEY(templateId)
+                    REFERENCES templates(_id)
+                    ON DELETE CASCADE
+            )
+            """.trimIndent()
         )
     }
 }

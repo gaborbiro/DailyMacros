@@ -5,7 +5,6 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatus
 import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatusEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -28,7 +27,7 @@ interface RequestStatusDAO {
     suspend fun deleteByTemplate(templateId: Long): Int
 
     @Query("DELETE FROM request_status WHERE status = :status AND startedAt < :cutoff")
-    suspend fun deleteStale(status: RequestStatus, cutoff: Long)
+    suspend fun deleteStale(status: RequestStatusEntity.Status, cutoff: Long)
 
     @Delete
     suspend fun delete(vararg entries: RequestStatusEntity): Int
