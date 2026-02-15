@@ -41,7 +41,7 @@ internal fun DiaryWidgetList(
         itemsIndexed(
             items = items,
             itemId = { _, item -> item.listItemId },
-        ) { index, item ->
+        ) { _, item ->
             when (item) {
                 is ListUIModelRecord -> {
                     Column(

@@ -52,7 +52,7 @@ internal class MacrosUIMapper(
         val infoMessage = buildTimezoneInfo(day)
 
         return ListUIModelDailyMacroProgress(
-            listItemId = day.day.toEpochDay(),
+            listItemId = day.day.atStartOfDay(day.startZone).toInstant().toEpochMilli(),
             dayTitle = dateUIMapper.mapDayTitleTimestamp(day.day),
             infoMessage = infoMessage,
             progress = progressItems,
