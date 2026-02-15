@@ -7,6 +7,7 @@ import dev.gaborbiro.dailymacros.data.db.TemplatesDAO
 import dev.gaborbiro.dailymacros.data.db.model.RecordJoined
 import dev.gaborbiro.dailymacros.data.db.model.entity.ImageEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.MacrosEntity
+import dev.gaborbiro.dailymacros.data.db.model.entity.QuickPickOverrideEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
@@ -178,6 +179,16 @@ internal class RecordsRepositoryImpl(
         } else {
             Pair(false, false)
         }
+    }
+
+    override suspend fun addQuickPickOverride(templateId: Long, type: QuickPickOverrideEntity.OverrideType) {
+        templatesDAO.upsertQuickPickOverride(
+            QuickPickOverrideEntity(templateId = templateId, overrideType = type)
+        )
+    }
+
+    override suspend fun removeQuickPickOverride(templateId: Long) {
+        templatesDAO.deleteQuickPickOverride(templateId)
     }
 
     private suspend fun deleteImageIfUnused(image: String): Boolean {

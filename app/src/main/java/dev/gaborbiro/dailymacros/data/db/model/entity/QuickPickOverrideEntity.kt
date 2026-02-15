@@ -21,6 +21,7 @@ data class QuickPickOverrideEntity(
     @PrimaryKey
     @ColumnInfo(name = COLUMN_TEMPLATE_ID) val templateId: Long,
     val overrideType: OverrideType,
+    val sortOrder: Int? = null,
 ) {
     companion object {
         const val COLUMN_TEMPLATE_ID = "templateId"

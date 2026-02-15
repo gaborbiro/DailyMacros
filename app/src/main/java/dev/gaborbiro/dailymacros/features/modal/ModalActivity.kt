@@ -322,6 +322,7 @@ class ModalActivity : AppCompatActivity() {
                 title = dialogState.title,
                 onRepeatTapped = viewModel::onRepeatRecordButtonTapped,
                 onDetailsTapped = viewModel::onRecordDetailsButtonTapped,
+                onAddToQuickPicksTapped = viewModel::onAddToQuickPicksTapped,
                 onDeleteTapped = viewModel::onDeleteTapped,
                 onDismissRequested = onDismissRequested,
             )
@@ -332,6 +333,7 @@ class ModalActivity : AppCompatActivity() {
                     title = dialogState.title,
                     onRepeatButtonTapped = viewModel::onRepeatTemplateButtonTapped,
                     onDetailsButtonTapped = viewModel::onTemplateDetailsButtonTapped,
+                    onRemoveFromQuickPicksTapped = viewModel::onRemoveFromQuickPicksTapped,
                     onDismissRequested = onDismissRequested,
                 )
             }

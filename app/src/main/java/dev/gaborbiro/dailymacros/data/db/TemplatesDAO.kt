@@ -8,6 +8,7 @@ import androidx.room.Upsert
 import dev.gaborbiro.dailymacros.data.db.model.TemplateJoined
 import dev.gaborbiro.dailymacros.data.db.model.entity.ImageEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.MacrosEntity
+import dev.gaborbiro.dailymacros.data.db.model.entity.QuickPickOverrideEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 
 @Dao
@@ -29,18 +30,32 @@ interface TemplatesDAO {
     @Query("DELETE FROM templates WHERE _id = :id")
     suspend fun delete(id: Long): Int
 
+    @Transaction
     @Query(
         """
         SELECT T.*
         FROM templates T
         LEFT JOIN records R ON R.templateId = T._id
+        LEFT JOIN QuickPickOverride QO ON QO.templateId = T._id
+        WHERE COALESCE(QO.overrideType, '') != 'EXCLUDE'
         GROUP BY T._id
-        HAVING COUNT(R._id) > 1
-        ORDER BY COUNT(R._id) DESC
+        HAVING COUNT(R._id) > 1 OR QO.overrideType = 'INCLUDE'
+        ORDER BY
+            CASE WHEN QO.overrideType = 'INCLUDE' THEN 0 ELSE 1 END,
+            COALESCE(QO.sortOrder, 999999),
+            COUNT(R._id) DESC
         LIMIT :count
     """
     )
     suspend fun getQuickPicks(count: Int): List<TemplateJoined>
+
+    // ---- QUICK PICK OVERRIDES ----
+
+    @Upsert
+    suspend fun upsertQuickPickOverride(override: QuickPickOverrideEntity)
+
+    @Query("DELETE FROM QuickPickOverride WHERE templateId = :templateId")
+    suspend fun deleteQuickPickOverride(templateId: Long)
 
     // ---- IMAGES ----
 

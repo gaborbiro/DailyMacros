@@ -35,6 +35,7 @@ fun SelectRecordActionDialog(
     title: String,
     onRepeatTapped: (recordId: Long) -> Unit,
     onDetailsTapped: (recordId: Long) -> Unit,
+    onAddToQuickPicksTapped: (recordId: Long) -> Unit,
     onDeleteTapped: (recordId: Long) -> Unit,
     onDismissRequested: () -> Unit,
 ) {
@@ -105,6 +106,25 @@ fun SelectRecordActionDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
+                    onClick = { onAddToQuickPicksTapped(recordId) },
+                    colors = normalButtonColors,
+                    shape = RoundedCornerShape(50.dp),
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_star),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(text = "Add to Quick Picks")
+                }
+
+                Spacer(modifier = Modifier.height(PaddingDefault))
+
+                Button(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
                     onClick = { onDeleteTapped(recordId) },
                     colors = destructiveButtonColors,
                     shape = RoundedCornerShape(50.dp),
@@ -132,6 +152,7 @@ private fun SelectRecordActionDialogPreview() {
             title = "Pizza",
             onRepeatTapped = {},
             onDetailsTapped = {},
+            onAddToQuickPicksTapped = {},
             onDeleteTapped = {},
             onDismissRequested = {},
         )

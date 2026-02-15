@@ -35,6 +35,7 @@ fun SelectTemplateActionDialog(
     title: String,
     onRepeatButtonTapped: (templateId: Long) -> Unit,
     onDetailsButtonTapped: (templateId: Long) -> Unit,
+    onRemoveFromQuickPicksTapped: (templateId: Long) -> Unit,
     onDismissRequested: () -> Unit,
 ) {
     Dialog(onDismissRequest = onDismissRequested) {
@@ -112,6 +113,25 @@ fun SelectTemplateActionDialog(
                     Spacer(Modifier.width(8.dp))
                     Text(text = "Details")
                 }
+
+                Spacer(modifier = Modifier.height(PaddingDefault))
+
+                Button(
+                    onClick = { onRemoveFromQuickPicksTapped(templateId) },
+                    colors = destructiveButtonColors,
+                    shape = RoundedCornerShape(50.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_close),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(text = "Remove from Quick Picks")
+                }
             }
         }
     }
@@ -127,6 +147,7 @@ private fun SelectTemplateActionDialogPreview() {
             title = "Quick Snacks",
             onRepeatButtonTapped = {},
             onDetailsButtonTapped = {},
+            onRemoveFromQuickPicksTapped = {},
             onDismissRequested = {},
         )
     }

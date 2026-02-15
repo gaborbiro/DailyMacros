@@ -1,7 +1,6 @@
 package dev.gaborbiro.dailymacros.data.db
 
 import android.content.Context
-import android.util.Log
 import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
@@ -27,7 +26,7 @@ import java.time.ZoneId
         RequestStatusEntity::class,
         QuickPickOverrideEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2)
@@ -61,6 +60,7 @@ abstract class AppDatabase : RoomDatabase() {
                 .addMigrations(MIGRATION_3_4)
                 .addMigrations(MIGRATION_4_5)
                 .addMigrations(MIGRATION_5_6)
+                .addMigrations(MIGRATION_6_7)
                 .build()
         }
     }
@@ -112,7 +112,6 @@ val MIGRATION_4_5 = object : Migration(4, 5) {
 
 val MIGRATION_5_6 = object : Migration(5, 6) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        Log.e("DB", "🔥 MIGRATION 5 → 6 RUNNING")
         db.execSQL(
             """
             CREATE TABLE QuickPickOverride (
@@ -124,6 +123,14 @@ val MIGRATION_5_6 = object : Migration(5, 6) {
                     ON DELETE CASCADE
             )
             """.trimIndent()
+        )
+    }
+}
+
+val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "ALTER TABLE QuickPickOverride ADD COLUMN sortOrder INTEGER DEFAULT NULL"
         )
     }
 }

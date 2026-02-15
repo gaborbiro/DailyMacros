@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.AnalyticsLogger
 import dev.gaborbiro.dailymacros.App
+import dev.gaborbiro.dailymacros.data.db.model.entity.QuickPickOverrideEntity
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
@@ -309,6 +310,25 @@ internal class ModalViewModel(
                 ?.let {
                     viewRecordDetails(it.recordId, edit = false)
                 }
+        }
+    }
+
+    @UiThread
+    fun onRemoveFromQuickPicksTapped(templateId: Long) {
+        popDialog()
+        runSafely {
+            recordsRepository.addQuickPickOverride(templateId, QuickPickOverrideEntity.OverrideType.EXCLUDE)
+            DiaryWidgetScreen.reload()
+        }
+    }
+
+    @UiThread
+    fun onAddToQuickPicksTapped(recordId: Long) {
+        popDialog()
+        runSafely {
+            val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return@runSafely
+            recordsRepository.addQuickPickOverride(templateId, QuickPickOverrideEntity.OverrideType.INCLUDE)
+            DiaryWidgetScreen.reload()
         }
     }
 
