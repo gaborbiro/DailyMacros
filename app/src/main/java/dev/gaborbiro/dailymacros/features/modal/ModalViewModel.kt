@@ -194,36 +194,27 @@ internal class ModalViewModel(
     }
 
     @UiThread
-    fun onImageSelected(uri: Uri, imageInputDialog: DialogState.ImageInput) {
+    fun onImagesSelected(uris: List<Uri>, imageInputDialog: DialogState.ImageInput) {
         imageSummaryJob?.cancel()
         imageSummaryJob = runSafely {
             var dialogs = _viewState.value.dialogs
-            val persistedFilename = saveImageUseCase.execute(uri)
+            val persistedFilenames = uris.map {
+                saveImageUseCase.execute(it)
+            }
 
             dialogs = dialogs - imageInputDialog
 
             dialogs = dialogs.replaceInstances<DialogState.RecordDetailsDialog.Edit> {
                 it.copy(
-                    images = it.images + persistedFilename,
+                    images = it.images + persistedFilenames,
                     suggestions = null, // will be replaced by AI
                     showProgressIndicator = true,
                 )
             }
 
-//            dialogs = dialogs.replaceInstances<DialogState.RecordDetailsDialog.Text> {
-//                DialogState.RecordDetailsDialog.Edit(
-//                    title = it.title,
-//                    titleHint = "Describe your meal (or tap one of the AI suggestions)",
-//                    suggestions = null,
-//                    images = listOf(persistedFilename),
-//                    showProgressIndicator = true,
-//                    description = it.description,
-//                )
-//            }
-
             dialogs = dialogs.replaceInstances<DialogState.RecordDetailsDialog.View> {
                 it.copy(
-                    images = it.images + persistedFilename,
+                    images = it.images + persistedFilenames,
                 )
             }
 
@@ -233,7 +224,7 @@ internal class ModalViewModel(
                         title = TextFieldValue(),
                         titleHint = "Describe your meal (or tap one of the AI suggestions)",
                         description = TextFieldValue(),
-                        images = listOf(persistedFilename),
+                        images = persistedFilenames,
                         suggestions = null,
                         showProgressIndicator = true,
                     )
@@ -246,6 +237,28 @@ internal class ModalViewModel(
                 }
 
             setDialogs(dialogs)
+        }
+    }
+
+    @UiThread
+    fun onImagesShared(uris: List<Uri>) {
+        imageSummaryJob?.cancel()
+        imageSummaryJob = runSafely {
+            val persistedFilenames = uris.map {
+                saveImageUseCase.execute(it)
+            }
+
+            pushDialog(
+                DialogState.RecordDetailsDialog.Edit(
+                    title = TextFieldValue(),
+                    titleHint = "Describe your meal (or tap one of the AI suggestions)",
+                    description = TextFieldValue(),
+                    images = persistedFilenames,
+                    suggestions = null,
+                    showProgressIndicator = true,
+                )
+            )
+            fetchSummary(persistedFilenames)
         }
     }
 

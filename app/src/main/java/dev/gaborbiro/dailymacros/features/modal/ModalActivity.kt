@@ -4,10 +4,12 @@ import android.app.ComponentCaller
 import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.activity.result.contract.ActivityResultContracts.TakePicture
 import androidx.appcompat.app.AppCompatActivity
@@ -201,11 +203,17 @@ class ModalActivity : AppCompatActivity() {
             km.requestDismissKeyguard(this, null)
         }
 
-        getActionFromIntent()
-            ?.let(::handleAction)
+        getImagesFromIntent().takeIf { it.isNotEmpty() }
+            ?.let {
+                viewModel.onImagesShared(it)
+            }
             ?: run {
-                finish()
-                return
+                getActionFromIntent()
+                    ?.let(::handleAction)
+                    ?: run {
+                        finish()
+                        return
+                    }
             }
 
         setContent {
@@ -245,6 +253,20 @@ class ModalActivity : AppCompatActivity() {
             ?.let { Action.valueOf(it) }
         intent.removeExtra(EXTRA_ACTION) // consume intent
         return action
+    }
+
+    private fun getImagesFromIntent(): List<Uri> {
+        return when (intent.action) {
+            Intent.ACTION_SEND -> {
+                listOfNotNull(intent.getParcelableExtra(Intent.EXTRA_STREAM))
+            }
+
+            Intent.ACTION_SEND_MULTIPLE -> {
+                intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM) ?: emptyList()
+            }
+
+            else -> emptyList()
+        }
     }
 
     private fun handleAction(action: Action, intent: Intent = this.intent) {
@@ -377,7 +399,7 @@ private fun ImageInputView(
                 onResult = { imageSaved ->
                     if (imageSaved) {
                         val uri = cacheFileStore.getOrCreateFile(filename).toUri()
-                        viewModel.onImageSelected(uri, imageInput)
+                        viewModel.onImagesSelected(listOf(uri), imageInput)
                     } else {
                         viewModel.onNoImageSelected()
                     }
@@ -406,10 +428,10 @@ private fun ImageInputView(
 
         is ImageInputType.BrowseImages -> {
             val launcher = rememberLauncherForActivityResult(
-                contract = PickVisualMedia(),
+                contract = ActivityResultContracts.PickMultipleVisualMedia(),
                 onResult = {
-                    it
-                        ?.let { viewModel.onImageSelected(it, imageInput) }
+                    it.takeIf { it.isNotEmpty() }
+                        ?.let { viewModel.onImagesSelected(it, imageInput) }
                         ?: run { viewModel.onNoImageSelected() }
                 }
             )
