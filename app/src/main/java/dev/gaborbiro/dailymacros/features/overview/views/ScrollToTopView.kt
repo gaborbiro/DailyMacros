@@ -33,7 +33,7 @@ fun ScrollToTopView(listState: LazyListState) {
     val coroutineScope = rememberCoroutineScope()
     val showButton = remember {
         derivedStateOf {
-            listState.firstVisibleItemIndex > 20
+            listState.firstVisibleItemIndex > 3
         }
     }
 
@@ -58,7 +58,7 @@ fun ScrollToTopView(listState: LazyListState) {
                         .wrapContentSize(),
                     onClick = {
                         coroutineScope.launch {
-                            listState.animateScrollToItem(0)
+                            listState.scrollToItem(0)
                         }
                     },
                     colors = ButtonDefaults.buttonColors(
