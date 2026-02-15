@@ -14,6 +14,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
+import dev.gaborbiro.dailymacros.AnalyticsLogger
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
@@ -54,6 +55,10 @@ class GetMacrosWorker(
     private val workerParameters: WorkerParameters,
 ) : CoroutineWorker(appContext, workerParameters) {
 
+    private val analyticsLogger: AnalyticsLogger by lazy {
+        AnalyticsLogger()
+    }
+
     private val imageStore: ImageStore by lazy {
         val fileStore = FileStoreFactoryImpl(appContext).getStore("public", keepFiles = true)
         ImageStoreImpl(fileStore)
@@ -66,6 +71,7 @@ class GetMacrosWorker(
             recordsDAO = database.recordsDAO(),
             mapper = RecordsApiMapper(),
             imageStore = imageStore,
+            analyticsLogger = analyticsLogger,
         )
     }
     private val requestStatusRepository by lazy {
@@ -185,7 +191,7 @@ class GetMacrosWorker(
                 Result.success()
             }
         } catch (t: Throwable) {
-            t.printStackTrace()
+            analyticsLogger.logError(t)
             Result.failure()
         }
     }

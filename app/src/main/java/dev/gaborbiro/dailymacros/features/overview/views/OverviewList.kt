@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -24,6 +25,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -71,6 +73,7 @@ internal fun OverviewList(
     onSettingsButtonTapped: () -> Unit,
     onTrendsButtonTapped: () -> Unit,
     onCoachMarkDismissed: () -> Unit,
+    onLoadMore: () -> Unit = {},
 ) {
     val listState = rememberLazyListState()
 
@@ -78,6 +81,21 @@ internal fun OverviewList(
         derivedStateOf {
             listState.firstVisibleItemIndex == 0 &&
                     listState.firstVisibleItemScrollOffset == 0
+        }
+    }
+
+    // Detect when the user scrolls near the end of the list
+    val shouldLoadMore by remember {
+        derivedStateOf {
+            val totalItems = listState.layoutInfo.totalItemsCount
+            val lastVisibleIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            totalItems > 0 && lastVisibleIndex >= totalItems - 5
+        }
+    }
+
+    LaunchedEffect(shouldLoadMore) {
+        if (shouldLoadMore && viewState.hasMoreData) {
+            onLoadMore()
         }
     }
 
@@ -155,6 +173,22 @@ internal fun OverviewList(
                     is ListUIModelWeeklyReport -> {
                         ListItemWeeklySummary(
                             model = item
+                        )
+                    }
+                }
+            }
+
+            if (viewState.isLoadingMore) {
+                item(key = "loading_indicator") {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(PaddingDefault),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp,
                         )
                     }
                 }
@@ -407,7 +441,8 @@ private fun OverviewListPreview() {
                 onMacrosMenuItemTapped = {},
                 onSettingsButtonTapped = {},
                 onTrendsButtonTapped = {},
-                onCoachMarkDismissed = {}
+                onCoachMarkDismissed = {},
+                onLoadMore = {},
             )
         }
     }

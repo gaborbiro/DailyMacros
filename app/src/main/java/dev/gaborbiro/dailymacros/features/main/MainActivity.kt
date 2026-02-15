@@ -66,6 +66,8 @@ class MainActivity : ComponentActivity() {
         )
         super.onCreate(savedInstanceState)
 
+        val analyticsLogger = AnalyticsLogger()
+
         val fileStore = FileStoreFactoryImpl(this).getStore("public", keepFiles = true)
         val imageStore = ImageStoreImpl(fileStore)
         val db = AppDatabase.getInstance()
@@ -74,13 +76,14 @@ class MainActivity : ComponentActivity() {
             recordsDAO = db.recordsDAO(),
             mapper = RecordsApiMapper(),
             imageStore = imageStore,
+            analyticsLogger = analyticsLogger,
         )
         val dateUIMapper = DateUIMapper()
         val macrosUIMapper = MacrosUIMapper(dateUIMapper)
 
         val settingsRepository = SettingsRepository(this@MainActivity, SettingsMapper())
         val appPrefs = AppPrefs(this@MainActivity)
-        AnalyticsLogger().setUserId(appPrefs.userUUID)
+        analyticsLogger.setUserId(appPrefs.userUUID)
         lifecycleScope.launch {
             RequestStatusRepositoryImpl(db.requestStatusDAO()).deleteStale()
         }

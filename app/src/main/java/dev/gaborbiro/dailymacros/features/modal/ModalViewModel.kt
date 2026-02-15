@@ -6,6 +6,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.gaborbiro.dailymacros.AnalyticsLogger
 import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
@@ -61,6 +62,7 @@ internal class ModalViewModel(
     private val foodPicSummaryUseCase: FoodPicSummaryUseCase,
     private val deleteRecordUseCase: DeleteRecordUseCase,
     private val macrosUIMapper: MacrosUIMapper,
+    private val analyticsLogger: AnalyticsLogger,
 ) : ViewModel() {
 
     companion object {
@@ -581,6 +583,7 @@ internal class ModalViewModel(
     }
 
     private val errorHandler = CoroutineExceptionHandler { _, exception ->
+        analyticsLogger.logError(exception)
         val message = when {
             exception is DomainError -> exception.message()
             else -> exception.message ?: exception.cause?.message

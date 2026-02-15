@@ -32,11 +32,7 @@ internal class SettingsRepository(
 
     fun get(): Targets {
         val json = prefs.getString(KEY_TARGETS, null) ?: return defaultTargets
-        return try {
-            mapper.map(json)
-        } catch (e: Exception) {
-            defaultTargets
-        }
+        return mapper.map(json)
     }
 
     companion object {

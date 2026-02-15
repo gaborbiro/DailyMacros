@@ -20,6 +20,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
+import dev.gaborbiro.dailymacros.AnalyticsLogger
 import dev.gaborbiro.dailymacros.DefaultFoodPicExt
 import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStore
@@ -111,11 +112,13 @@ class ModalActivity : AppCompatActivity() {
     private val imageStore = ImageStoreImpl(fileStore)
 
     private val viewModel by lazy {
+        val analyticsLogger = AnalyticsLogger()
         val recordsRepository = RecordsRepositoryImpl(
             templatesDAO = AppDatabase.getInstance().templatesDAO(),
             recordsDAO = AppDatabase.getInstance().recordsDAO(),
             mapper = RecordsApiMapper(),
             imageStore = imageStore,
+            analyticsLogger = analyticsLogger,
         )
 
         val logger = HttpLoggingInterceptor().also {
@@ -180,6 +183,7 @@ class ModalActivity : AppCompatActivity() {
             foodPicSummaryUseCase = FoodPicSummaryUseCase(imageStore, chatGPTRepository, recordsMapper),
             macrosUIMapper = macrosUIMapper,
             deleteRecordUseCase = deleteRecordUseCase,
+            analyticsLogger = analyticsLogger,
         )
     }
 

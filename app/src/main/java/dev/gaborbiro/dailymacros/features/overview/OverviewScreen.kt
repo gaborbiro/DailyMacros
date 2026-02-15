@@ -35,6 +35,7 @@ internal fun OverviewScreen(
         onSettingsButtonTapped = viewModel::onSettingsButtonTapped,
         onTrendsButtonTapped = viewModel::onTrendsButtonTapped,
         onCoachMarkDismissed = viewModel::onCoachMarkDismissed,
+        onLoadMore = viewModel::onLoadMore,
     )
 
     val lifecycleOwner = LocalLifecycleOwner.current

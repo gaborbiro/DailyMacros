@@ -6,6 +6,8 @@ import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 
 data class OverviewViewState(
     val items: List<ListUIModelBase> = emptyList(),
+    val isLoadingMore: Boolean = false,
+    val hasMoreData: Boolean = true,
     val showAddWidgetButton: Boolean = false,
     val showUndoDeleteSnackbar: Boolean = false,
     val recordToUndelete: Record? = null,

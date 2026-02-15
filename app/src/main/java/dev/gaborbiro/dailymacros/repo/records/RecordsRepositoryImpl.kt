@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.repo.records
 
 import androidx.room.Transaction
+import dev.gaborbiro.dailymacros.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.db.RecordsDAO
 import dev.gaborbiro.dailymacros.data.db.TemplatesDAO
 import dev.gaborbiro.dailymacros.data.db.model.RecordJoined
@@ -25,6 +26,7 @@ internal class RecordsRepositoryImpl(
     private val recordsDAO: RecordsDAO,
     private val mapper: RecordsApiMapper,
     private val imageStore: ImageStore,
+    private val analyticsLogger: AnalyticsLogger,
 ) : RecordsRepository {
 
     // -------- Reads --------
@@ -46,10 +48,13 @@ internal class RecordsRepositoryImpl(
         .getByTemplate(templateId)
         .let(mapper::map)
 
-    override fun getFlowBySearchTerm(search: String? /* = null */): Flow<List<Record>> {
+    override fun getFlowBySearchTerm(
+        search: String? /* = null */,
+        sinceEpochMillis: Long /* = 0L */,
+    ): Flow<List<Record>> {
         return try {
             val raw: Flow<List<RecordJoined>> = if (search.isNullOrEmpty()) {
-                recordsDAO.getFlow(0)
+                recordsDAO.getFlow(sinceEpochMillis)
             } else {
                 recordsDAO.getFlowBySearchTerm(search)
             }
@@ -57,7 +62,7 @@ internal class RecordsRepositoryImpl(
                 .distinctUntilChanged()
                 .map(mapper::map)
         } catch (t: Throwable) {
-            t.printStackTrace()
+            analyticsLogger.logError(t)
             flowOf(emptyList())
         }
     }

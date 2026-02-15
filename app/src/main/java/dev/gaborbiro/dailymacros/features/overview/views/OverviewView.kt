@@ -53,6 +53,7 @@ internal fun OverviewView(
     onSettingsButtonTapped: () -> Unit,
     onTrendsButtonTapped: () -> Unit,
     onCoachMarkDismissed: () -> Unit,
+    onLoadMore: () -> Unit = {},
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -101,6 +102,7 @@ internal fun OverviewView(
                 onSettingsButtonTapped = onSettingsButtonTapped,
                 onTrendsButtonTapped = onTrendsButtonTapped,
                 onCoachMarkDismissed = onCoachMarkDismissed,
+                onLoadMore = onLoadMore,
             )
         } else if (viewState.showAddWidgetButton) {
             Box(
@@ -256,6 +258,7 @@ private fun OverviewListPreview() {
                 onSettingsButtonTapped = {},
                 onTrendsButtonTapped = {},
                 onCoachMarkDismissed = {},
+                onLoadMore = {},
             )
         }
     }
@@ -285,6 +288,7 @@ private fun OverviewListPreviewEmpty() {
                 onSettingsButtonTapped = {},
                 onTrendsButtonTapped = {},
                 onCoachMarkDismissed = {},
+                onLoadMore = {},
             )
         }
     }

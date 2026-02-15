@@ -28,6 +28,7 @@ internal class ReloadWorker(
     private val workerParameters: WorkerParameters,
 ) : CoroutineWorker(appContext, workerParameters) {
 
+    private val analyticsLogger = AnalyticsLogger()
     private val database by lazy { AppDatabase.getInstance() }
     private val fileStore by lazy { FileStoreFactoryImpl(appContext).getStore("public", keepFiles = true) }
     private val recordsRepository by lazy {
@@ -36,12 +37,12 @@ internal class ReloadWorker(
             recordsDAO = database.recordsDAO(),
             mapper = RecordsApiMapper(),
             imageStore = ImageStoreImpl(fileStore),
+            analyticsLogger = analyticsLogger,
         )
     }
     private val requestStatusRepository by lazy {
         RequestStatusRepositoryImpl(database.requestStatusDAO())
     }
-    private val analyticsLogger = AnalyticsLogger()
 
     companion object {
         private const val RECORD_DAYS_TO_DISPLAY_DEFAULT = 7
