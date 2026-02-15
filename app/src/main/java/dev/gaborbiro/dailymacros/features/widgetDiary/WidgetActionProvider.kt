@@ -130,7 +130,7 @@ internal class RecordImageTappedAction : ActionCallback {
         parameters: ActionParameters,
     ) {
         val recordId = parameters[ActionParameters.Key<Long>(PREFS_KEY_RECORD)]!!
-        ModalActivity.launchToShowRecordImage(context, recordId)
+        ModalActivity.launchToShowRecordImageNoApp(context, recordId)
     }
 }
 

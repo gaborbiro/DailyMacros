@@ -86,6 +86,9 @@ class ModalActivity : AppCompatActivity() {
         fun launchToShowRecordImage(context: Context, recordId: Long) =
             context.launchActivity { it.getShowRecordImageIntent(recordId) }
 
+        fun launchToShowRecordImageNoApp(context: Context, recordId: Long) =
+            context.launchActivityInNewStack { it.getShowRecordImageIntent(recordId) }
+
         fun launchToShowTemplateImage(context: Context, templateId: Long) =
             context.launchActivity { it.getShowTemplateImageIntent(templateId) }
 
