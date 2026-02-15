@@ -48,8 +48,8 @@ import dev.gaborbiro.dailymacros.features.widgetDiary.views.ListItemImageCornerR
 fun ListItemRecord(
     modifier: Modifier = Modifier,
     record: ListUIModelRecord,
-    onRecordImageTapped: (id: Long) -> Unit,
-    onRecordBodyTapped: (id: Long) -> Unit,
+    onRecordImageTapped: (recordId: Long) -> Unit,
+    onRecordBodyTapped: (recordId: Long) -> Unit,
     rowMenu: @Composable () -> Unit,
 ) {
     val onBodyTapped = remember(record.listItemId) { { onRecordBodyTapped(record.listItemId) } }
@@ -304,6 +304,8 @@ private fun OverviewListItemPreview() {
                         salt = "Salt 1.2g",
                         fibre = "Fibre 14g",
                     ),
+                    showLoadingIndicator = false,
+                    showAddToQuickPicksMenuItem = true,
                 ),
                 onRecordImageTapped = {},
                 onRecordBodyTapped = {},
@@ -333,6 +335,8 @@ private fun OverviewListItemPreviewMissing() {
                         salt = "Salt 1.2g",
                         fibre = null,
                     ),
+                    showLoadingIndicator = false,
+                    showAddToQuickPicksMenuItem = true,
                 ),
                 onRecordImageTapped = {},
                 onRecordBodyTapped = {},
@@ -364,6 +368,7 @@ private fun OverviewListItemPreviewLoading() {
                         fibre = "Fibre 14g",
                     ),
                     showLoadingIndicator = true,
+                    showAddToQuickPicksMenuItem = true,
                 ),
                 onRecordImageTapped = {},
                 onRecordBodyTapped = {},

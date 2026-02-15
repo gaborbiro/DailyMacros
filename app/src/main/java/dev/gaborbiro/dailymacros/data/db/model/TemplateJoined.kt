@@ -5,6 +5,7 @@ import androidx.room.Relation
 import dev.gaborbiro.dailymacros.data.db.model.entity.COLUMN_ID
 import dev.gaborbiro.dailymacros.data.db.model.entity.ImageEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.MacrosEntity
+import dev.gaborbiro.dailymacros.data.db.model.entity.QuickPickOverrideEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatusEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 
@@ -30,4 +31,11 @@ data class TemplateJoined(
         entity = RequestStatusEntity::class
     )
     val requestStatus: RequestStatusEntity?,
+
+    @Relation(
+        parentColumn = COLUMN_ID,
+        entityColumn = RequestStatusEntity.COLUMN_TEMPLATE_ID,
+        entity = QuickPickOverrideEntity::class
+    )
+    val quickPickOverride: QuickPickOverrideEntity?,
 )

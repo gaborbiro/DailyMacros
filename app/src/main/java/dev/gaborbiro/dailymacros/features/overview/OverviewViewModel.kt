@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.App
+import dev.gaborbiro.dailymacros.data.db.model.entity.QuickPickOverrideEntity
 import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
@@ -80,7 +81,7 @@ internal class OverviewViewModel(
                     } else {
                         records
                             .map {
-                                recordsUIMapper.map(it, forceDay = true)
+                                recordsUIMapper.map(record = it, forceDay = true)
                             }
                             .reversed()
                     }
@@ -131,13 +132,6 @@ internal class OverviewViewModel(
         }
     }
 
-    fun onRepeatRecordMenuItemTapped(id: Long) {
-        viewModelScope.launch {
-            repeatRecordUseCase.execute(recordId = id)
-        }
-        DiaryWidgetScreen.reload()
-    }
-
     fun onCoachMarkDismissed() {
         _viewState.update {
             it.copy(
@@ -146,13 +140,42 @@ internal class OverviewViewModel(
         }
     }
 
-    fun onDetailsMenuItemTapped(id: Long) {
-        navigator.editRecord(recordId = id)
+    fun onRepeatMenuItemTapped(recordId: Long) {
+        viewModelScope.launch {
+            repeatRecordUseCase.execute(recordId = recordId)
+        }
+        DiaryWidgetScreen.reload()
     }
 
-    fun onDeleteRecordMenuItemTapped(id: Long) {
+    fun onAnalyseMacrosMenuItemTapped(recordId: Long) {
         viewModelScope.launch {
-            val oldRecord = recordsRepository.deleteRecord(recordId = id)
+            GetMacrosWorker.cancelWorkRequest(
+                appContext = App.appContext,
+                recordId = recordId,
+            )
+            GetMacrosWorker.setWorkRequest(
+                appContext = App.appContext,
+                recordId = recordId,
+                force = true,
+            )
+        }
+    }
+
+    fun onDetailsMenuItemTapped(recordId: Long) {
+        navigator.editRecord(recordId = recordId)
+    }
+
+    fun onAddToQuickPicksMenuItemTapped(recordId: Long) {
+        viewModelScope.launch {
+            val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return@launch
+            recordsRepository.addQuickPickOverride(templateId, QuickPickOverrideEntity.OverrideType.INCLUDE)
+            DiaryWidgetScreen.reload()
+        }
+    }
+
+    fun onDeleteMenuItemTapped(recordId: Long) {
+        viewModelScope.launch {
+            val oldRecord = recordsRepository.deleteRecord(recordId = recordId)
             _viewState.update {
                 it.copy(
                     showUndoDeleteSnackbar = true,
@@ -162,17 +185,17 @@ internal class OverviewViewModel(
             DiaryWidgetScreen.reload()
             GetMacrosWorker.cancelWorkRequest(
                 appContext = App.appContext,
-                recordId = id,
+                recordId = recordId,
             )
         }
     }
 
-    fun onRecordImageTapped(id: Long) {
-        navigator.viewImage(id)
+    fun onRecordImageTapped(recordId: Long) {
+        navigator.viewImage(recordId)
     }
 
-    fun onRecordBodyTapped(id: Long) {
-        navigator.editRecord(id)
+    fun onRecordBodyTapped(recordId: Long) {
+        navigator.editRecord(recordId)
     }
 
     fun onUndoDeleteTapped() {
@@ -220,20 +243,6 @@ internal class OverviewViewModel(
                 "template deleted: $templateDeleted, image deleted: $imageDeleted"
             )
             DiaryWidgetScreen.reload()
-        }
-    }
-
-    fun onMacrosMenuItemTapped(id: Long) {
-        viewModelScope.launch {
-            GetMacrosWorker.cancelWorkRequest(
-                appContext = App.appContext,
-                recordId = id,
-            )
-            GetMacrosWorker.setWorkRequest(
-                appContext = App.appContext,
-                recordId = id,
-                force = true,
-            )
         }
     }
 

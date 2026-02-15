@@ -134,6 +134,8 @@ private fun WidgetListPreview() {
                         salt = "sal 2",
                         fibre = "fib 4",
                     ),
+                    showLoadingIndicator = false,
+                    showAddToQuickPicksMenuItem = true,
                 ),
                 ListUIModelQuickPickHeader,
                 ListUIModelQuickPick(
@@ -190,6 +192,8 @@ private fun WidgetListPreview() {
                         salt = "sal 2",
                         fibre = "fib 4",
                     ),
+                    showLoadingIndicator = false,
+                    showAddToQuickPicksMenuItem = true,
                 ),
                 ListUIModelRecord(
                     recordId = 3L,
@@ -205,6 +209,8 @@ private fun WidgetListPreview() {
                         salt = "sal 2",
                         fibre = "fib 4",
                     ),
+                    showLoadingIndicator = false,
+                    showAddToQuickPicksMenuItem = true,
                 ),
             ),
             recordImageTapActionProvider = { action {} },

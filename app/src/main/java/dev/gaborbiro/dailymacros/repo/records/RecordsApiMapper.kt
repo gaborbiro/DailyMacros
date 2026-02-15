@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.repo.records
 import dev.gaborbiro.dailymacros.data.db.model.RecordJoined
 import dev.gaborbiro.dailymacros.data.db.model.TemplateJoined
 import dev.gaborbiro.dailymacros.data.db.model.entity.MacrosEntity
+import dev.gaborbiro.dailymacros.data.db.model.entity.QuickPickOverrideEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatusEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
@@ -27,7 +28,16 @@ internal class RecordsApiMapper {
             description = template.entity.description,
             macros = template.macros?.let(::map),
             isPending = template.requestStatus?.status == RequestStatusEntity.Status.PENDING,
+            quickPickOverride = map(template.quickPickOverride),
         )
+    }
+
+    private fun map(quickPickOverride: QuickPickOverrideEntity?): Template.QuickPickOverride? {
+        return when (quickPickOverride?.overrideType) {
+            QuickPickOverrideEntity.OverrideType.INCLUDE -> Template.QuickPickOverride.INCLUDE
+            QuickPickOverrideEntity.OverrideType.EXCLUDE -> Template.QuickPickOverride.EXCLUDE
+            null -> null
+        }
     }
 
     // -------- Domain <— DB: Macros --------

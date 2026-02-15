@@ -22,10 +22,11 @@ internal fun OverviewScreen(
 
     OverviewView(
         viewState = viewState,
-        onRepeatMenuItemTapped = viewModel::onRepeatRecordMenuItemTapped,
+        onRepeatMenuItemTapped = viewModel::onRepeatMenuItemTapped,
+        onAnalyseMacrosMenuItemTapped = viewModel::onAnalyseMacrosMenuItemTapped,
         onDetailsMenuItemTapped = viewModel::onDetailsMenuItemTapped,
-        onDeleteRecordMenuItemTapped = viewModel::onDeleteRecordMenuItemTapped,
-        onMacrosMenuItemTapped = viewModel::onMacrosMenuItemTapped,
+        onAddToQuickPicksMenuItemTapped = viewModel::onAddToQuickPicksMenuItemTapped,
+        onDeleteMenuItemTapped = viewModel::onDeleteMenuItemTapped,
         onRecordImageTapped = viewModel::onRecordImageTapped,
         onRecordBodyTapped = viewModel::onRecordBodyTapped,
         onUndoDeleteTapped = viewModel::onUndoDeleteTapped,

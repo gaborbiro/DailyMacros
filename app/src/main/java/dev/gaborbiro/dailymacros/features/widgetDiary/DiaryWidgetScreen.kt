@@ -94,7 +94,7 @@ class DiaryWidgetScreen : GlanceAppWidget() {
 
                         val recentRecords = runCatching {
                             widgetPrefs.retrieveRecentRecords().map {
-                                recordsUIMapper.map(it, forceDay = true)
+                                recordsUIMapper.map(record = it, forceDay = true)
                             }
                         }.getOrNull() ?: emptyList()
 

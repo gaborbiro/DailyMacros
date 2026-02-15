@@ -10,7 +10,8 @@ data class ListUIModelRecord(
     val timestamp: String,
     val title: String,
     val macrosAmounts: MacrosAmountsUIModel?,
-    val showLoadingIndicator: Boolean = false,
+    val showLoadingIndicator: Boolean,
+    val showAddToQuickPicksMenuItem: Boolean,
 ) : ListUIModelBase(listItemId = recordId, contentType = "record")
 
 data class MacrosAmountsUIModel(

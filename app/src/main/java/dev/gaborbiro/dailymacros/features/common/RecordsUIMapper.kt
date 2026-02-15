@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.features.common
 
 import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
 
 internal class RecordsUIMapper(
     private val macrosUIMapper: MacrosUIMapper,
@@ -21,6 +22,15 @@ internal class RecordsUIMapper(
             title = record.template.name,
             macrosAmounts = macros,
             showLoadingIndicator = record.template.isPending,
+            showAddToQuickPicksMenuItem = mapShowAddToQuickPicksMenuItem(record.template.quickPickOverride),
         )
+    }
+
+    private fun mapShowAddToQuickPicksMenuItem(quickPickOverride: Template.QuickPickOverride?): Boolean {
+        return when (quickPickOverride) {
+            Template.QuickPickOverride.INCLUDE -> false
+            Template.QuickPickOverride.EXCLUDE -> true
+            null -> true
+        }
     }
 }

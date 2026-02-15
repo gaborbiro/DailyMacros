@@ -64,12 +64,13 @@ import kotlinx.coroutines.launch
 internal fun OverviewList(
     viewState: OverviewViewState,
     paddingValues: PaddingValues,
-    onRepeatMenuItemTapped: (id: Long) -> Unit,
-    onDetailsMenuItemTapped: (id: Long) -> Unit,
-    onDeleteRecordMenuItemTapped: (id: Long) -> Unit,
-    onMacrosMenuItemTapped: (id: Long) -> Unit,
-    onRecordImageTapped: (id: Long) -> Unit,
-    onRecordBodyTapped: (id: Long) -> Unit,
+    onRepeatMenuItemTapped: (recordId: Long) -> Unit,
+    onAnalyseMacrosMenuItemTapped: (recordId: Long) -> Unit,
+    onDetailsMenuItemTapped: (recordId: Long) -> Unit,
+    onAddToQuickPicksMenuItemTapped: (recordId: Long) -> Unit,
+    onDeleteMenuItemTapped: (recordId: Long) -> Unit,
+    onRecordImageTapped: (recordId: Long) -> Unit,
+    onRecordBodyTapped: (recordId: Long) -> Unit,
     onSettingsButtonTapped: () -> Unit,
     onTrendsButtonTapped: () -> Unit,
     onCoachMarkDismissed: () -> Unit,
@@ -106,13 +107,15 @@ internal fun OverviewList(
         val repeatIcon = painterResource(R.drawable.ic_exposure_plus_1)
         val macrosIcon = painterResource(R.drawable.ic_nutrition)
         val detailsIcon = painterResource(R.drawable.ic_topic)
+        val starIcon = painterResource(R.drawable.ic_star)
         val deleteIcon = painterResource(R.drawable.ic_delete)
         val menuIcons = remember {
             MenuIcons(
                 repeat = repeatIcon,
                 macros = macrosIcon,
                 details = detailsIcon,
-                delete = deleteIcon
+                star = starIcon,
+                delete = deleteIcon,
             )
         }
         var expandedId by remember { mutableStateOf<Any?>(null) }
@@ -135,14 +138,16 @@ internal fun OverviewList(
                 when (item) {
                     is ListUIModelRecord -> {
                         val onOpen = remember(item.listItemId) { { expandedId = item.listItemId } }
-                        val onRepeat =
+                        val onRepeatTapped =
                             remember(item.listItemId) { { onRepeatMenuItemTapped(item.listItemId) } }
-                        val onMacros =
-                            remember(item.listItemId) { { onMacrosMenuItemTapped(item.listItemId) } }
-                        val onDetails =
+                        val onAnalyseMacrosTapped =
+                            remember(item.listItemId) { { onAnalyseMacrosMenuItemTapped(item.listItemId) } }
+                        val onDetailsTapped =
                             remember(item.listItemId) { { onDetailsMenuItemTapped(item.listItemId) } }
-                        val onDelete =
-                            remember(item.listItemId) { { onDeleteRecordMenuItemTapped(item.listItemId) } }
+                        val onDeleteTapped =
+                            remember(item.listItemId) { { onDeleteMenuItemTapped(item.listItemId) } }
+                        val onAddToQuickPicksTapped =
+                            remember(item.listItemId) { { onAddToQuickPicksMenuItemTapped(item.listItemId) } }
                         val onDismiss = remember { { expandedId = null } }
 
                         ListItemRecord(
@@ -155,10 +160,11 @@ internal fun OverviewList(
                                 onOpen = onOpen,
                                 onDismiss = onDismiss,
                                 icons = menuIcons,
-                                onRepeat = onRepeat,
-                                onMacros = onMacros,
-                                onDetails = onDetails,
-                                onDelete = onDelete,
+                                onRepeatTapped = onRepeatTapped,
+                                onAnalyseMacrosTapped = onAnalyseMacrosTapped,
+                                onDetailsTapped = onDetailsTapped,
+                                onAddToQuickPicksTapped = if (item.showAddToQuickPicksMenuItem) onAddToQuickPicksTapped else null,
+                                onDeleteTapped = onDeleteTapped,
                             )
                         }
                     }
@@ -415,6 +421,8 @@ private fun OverviewListPreview() {
                                 salt = "sal 2",
                                 fibre = "fib 4",
                             ),
+                            showLoadingIndicator = false,
+                            showAddToQuickPicksMenuItem = true,
                         ),
                         ListUIModelRecord(
                             recordId = 3L,
@@ -430,15 +438,18 @@ private fun OverviewListPreview() {
                                 salt = "sal 2",
                                 fibre = "fib 4",
                             ),
+                            showLoadingIndicator = false,
+                            showAddToQuickPicksMenuItem = true,
                         )
                     ),
                 ),
                 onRepeatMenuItemTapped = {},
                 onDetailsMenuItemTapped = {},
-                onDeleteRecordMenuItemTapped = {},
+                onDeleteMenuItemTapped = {},
+                onAddToQuickPicksMenuItemTapped = {},
                 onRecordImageTapped = {},
                 onRecordBodyTapped = {},
-                onMacrosMenuItemTapped = {},
+                onAnalyseMacrosMenuItemTapped = {},
                 onSettingsButtonTapped = {},
                 onTrendsButtonTapped = {},
                 onCoachMarkDismissed = {},

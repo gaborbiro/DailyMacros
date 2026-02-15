@@ -24,10 +24,11 @@ fun RowDropdownMenu(
     onOpen: () -> Unit,
     onDismiss: () -> Unit,
     icons: MenuIcons,
-    onRepeat: () -> Unit,
-    onMacros: () -> Unit,
-    onDetails: () -> Unit,
-    onDelete: () -> Unit,
+    onRepeatTapped: (() -> Unit)?,
+    onAnalyseMacrosTapped: (() -> Unit)?,
+    onDetailsTapped: (() -> Unit)?,
+    onAddToQuickPicksTapped: (() -> Unit)?,
+    onDeleteTapped: (() -> Unit)?,
 ) {
 
     Box {
@@ -48,26 +49,41 @@ fun RowDropdownMenu(
                 onDismissRequest = onDismiss,
                 offset = DpOffset(0.dp, 0.dp)
             ) {
-                DropdownMenuItem(
-                    leadingIcon = { Icon(icons.repeat, null) },
-                    text = { Text("Repeat") },
-                    onClick = { onDismiss(); onRepeat() }
-                )
-                DropdownMenuItem(
-                    leadingIcon = { Icon(icons.macros, null) },
-                    text = { Text("Analyse Macros") },
-                    onClick = { onDismiss(); onMacros() }
-                )
-                DropdownMenuItem(
-                    leadingIcon = { Icon(icons.details, null) },
-                    text = { Text("Details") },
-                    onClick = { onDismiss(); onDetails() }
-                )
-                DropdownMenuItem(
-                    leadingIcon = { Icon(icons.delete, null) },
-                    text = { Text("Delete") },
-                    onClick = { onDismiss(); onDelete() },
-                )
+                onRepeatTapped?.let {
+                    DropdownMenuItem(
+                        leadingIcon = { Icon(icons.repeat, null) },
+                        text = { Text("Repeat") },
+                        onClick = { onDismiss(); onRepeatTapped() }
+                    )
+                }
+                onAnalyseMacrosTapped?.let {
+                    DropdownMenuItem(
+                        leadingIcon = { Icon(icons.macros, null) },
+                        text = { Text("Analyse Macros") },
+                        onClick = { onDismiss(); onAnalyseMacrosTapped() }
+                    )
+                }
+                onDetailsTapped?.let {
+                    DropdownMenuItem(
+                        leadingIcon = { Icon(icons.details, null) },
+                        text = { Text("Details") },
+                        onClick = { onDismiss(); onDetailsTapped() }
+                    )
+                }
+                onAddToQuickPicksTapped?.let {
+                    DropdownMenuItem(
+                        leadingIcon = { Icon(icons.star, null) },
+                        text = { Text("Add to Quick Picks") },
+                        onClick = { onDismiss(); onAddToQuickPicksTapped() }
+                    )
+                }
+                onDeleteTapped?.let {
+                    DropdownMenuItem(
+                        leadingIcon = { Icon(icons.delete, null) },
+                        text = { Text("Delete") },
+                        onClick = { onDismiss(); onDeleteTapped() },
+                    )
+                }
             }
         }
     }
@@ -75,5 +91,9 @@ fun RowDropdownMenu(
 
 @Stable
 data class MenuIcons(
-    val repeat: Painter, val macros: Painter, val details: Painter, val delete: Painter,
+    val repeat: Painter,
+    val macros: Painter,
+    val details: Painter,
+    val star: Painter,
+    val delete: Painter,
 )

@@ -7,6 +7,11 @@ data class Template(
     val description: String,
     val isPending: Boolean,
     val macros: Macros?,
+    val quickPickOverride: QuickPickOverride?,
 ) {
     val primaryImage: String? get() = images.firstOrNull()
+
+    enum class QuickPickOverride {
+        INCLUDE, EXCLUDE
+    }
 }

@@ -123,6 +123,8 @@ private fun WidgetViewPreview() {
                         salt = "sal 2",
                         fibre = "fib 4",
                     ),
+                    showLoadingIndicator = false,
+                    showAddToQuickPicksMenuItem = true,
                 ),
                 ListUIModelQuickPick(
                     templateId = 1,
@@ -177,6 +179,8 @@ private fun WidgetViewPreview() {
                         salt = "sal 2",
                         fibre = "fib 4",
                     ),
+                    showLoadingIndicator = false,
+                    showAddToQuickPicksMenuItem = true,
                 ),
                 ListUIModelRecord(
                     recordId = 3L,
@@ -192,6 +196,8 @@ private fun WidgetViewPreview() {
                         salt = "sal 2",
                         fibre = "fib 4",
                     ),
+                    showLoadingIndicator = false,
+                    showAddToQuickPicksMenuItem = true,
                 ),
             ),
         )
