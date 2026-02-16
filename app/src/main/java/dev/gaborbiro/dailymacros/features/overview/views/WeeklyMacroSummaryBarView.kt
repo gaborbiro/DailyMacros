@@ -22,16 +22,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.LocalExtraColorScheme
 import dev.gaborbiro.dailymacros.design.PaddingHalf
-import dev.gaborbiro.dailymacros.design.ViewPreviewContext
+import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.common.model.ChangeDirection
 import dev.gaborbiro.dailymacros.features.common.model.ChangeIndicator
-import dev.gaborbiro.dailymacros.features.common.model.WeeklySummaryMacroProgressItem
+import dev.gaborbiro.dailymacros.features.common.model.WeeklySummaryEntry
 import kotlinx.coroutines.delay
 
 @Composable
 internal fun WeeklyMacroSummaryBarView(
     modifier: Modifier,
-    model: WeeklySummaryMacroProgressItem,
+    model: WeeklySummaryEntry,
     rowIndex: Int,
     totalRowCount: Int,
 ) {
@@ -110,7 +110,7 @@ internal fun WeeklyMacroSummaryBarView(
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun WeeklyMacroSummaryBarViewPreview() {
-    val macro1 = WeeklySummaryMacroProgressItem(
+    val macro1 = WeeklySummaryEntry(
         title = "Calories",
         progress0to1 = .15f,
         progressLabel = "1005kcal",
@@ -121,7 +121,7 @@ private fun WeeklyMacroSummaryBarViewPreview() {
         ),
         color = { it.calorieColor },
     )
-    val macro2 = WeeklySummaryMacroProgressItem(
+    val macro2 = WeeklySummaryEntry(
         title = "Salt",
         progress0to1 = 1.5f,
         progressLabel = "110g",

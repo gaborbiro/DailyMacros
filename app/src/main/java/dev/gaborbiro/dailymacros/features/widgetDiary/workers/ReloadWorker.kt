@@ -81,11 +81,11 @@ internal class ReloadWorker(
                     PREFS_RECORD_DAYS_TO_DISPLAY,
                     RECORD_DAYS_TO_DISPLAY_DEFAULT
                 )
-            val templateCount =
+            val quickPickCount =
                 workerParameters.inputData.getInt(PREFS_QUICK_PICK_COUNT, QUICK_PICK_COUNT_DEFAULT)
             val since = ZonedDateTime.now().minusDays(recordDaysToDisplay.toLong())
             val recentRecords = recordsRepository.getRecords(since)
-            val quickPicks = recordsRepository.getQuickPicks(templateCount)
+            val quickPicks = recordsRepository.getQuickPicks(quickPickCount)
 
             sendToWidgets(applicationContext, recentRecords, quickPicks)
             Result.success()

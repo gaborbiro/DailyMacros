@@ -1,6 +1,6 @@
 package dev.gaborbiro.dailymacros.features.common
 
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
+import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
 
@@ -8,13 +8,13 @@ internal class RecordsUIMapper(
     private val macrosUIMapper: MacrosUIMapper,
     private val dateUIMapper: DateUIMapper,
 ) {
-    fun map(record: Record, forceDay: Boolean): ListUIModelRecord {
+    fun map(record: Record, forceDay: Boolean): ListUiModelRecord {
         val timestampStr = dateUIMapper.mapRecordTimestamp(record.timestamp, forceDay)
 
         val macros = record.template.macros
             ?.let { macrosUIMapper.mapMacroAmounts(it) }
 
-        return ListUIModelRecord(
+        return ListUiModelRecord(
             recordId = record.recordId,
             templateId = record.template.dbId,
             images = record.template.images,

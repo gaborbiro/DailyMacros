@@ -8,7 +8,7 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.QuickPickOverrideEntity
 import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
+import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
 import dev.gaborbiro.dailymacros.features.widgetDiary.DiaryWidgetScreen
@@ -86,7 +86,7 @@ internal class OverviewViewModel(
                             .reversed()
                     }
                 }
-                .collect { records: List<ListUIModelBase> ->
+                .collect { records: List<ListUiModelBase> ->
                     // Determine if there is more data to load.
                     // For search results we load everything, so no more pages.
                     // For the main list, if expanding the window didn't bring new

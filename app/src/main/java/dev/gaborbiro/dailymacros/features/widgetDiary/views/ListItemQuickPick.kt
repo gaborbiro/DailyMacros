@@ -21,14 +21,14 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPick
+import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPick
 import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
-import dev.gaborbiro.dailymacros.features.widgetDiary.util.PreviewContext
+import dev.gaborbiro.dailymacros.features.widgetDiary.util.WidgetPreviewContext
 
 @Composable
 internal fun ListItemQuickPick(
     modifier: GlanceModifier = GlanceModifier,
-    quickPickEntry: ListUIModelQuickPick,
+    quickPickEntry: ListUiModelQuickPick,
     imageTapActionProvider: Action,
     bodyTapActionProvider: Action,
 ) {
@@ -86,9 +86,9 @@ internal fun ListItemQuickPick(
 @Composable
 @OptIn(ExperimentalGlancePreviewApi::class)
 private fun ListItemQuickPickPreview() {
-    PreviewContext {
+    WidgetPreviewContext {
         ListItemQuickPick(
-            quickPickEntry = ListUIModelQuickPick(
+            quickPickEntry = ListUiModelQuickPick(
                 title = "Breakfast",
                 images = listOf("", ""),
                 templateId = 0L,

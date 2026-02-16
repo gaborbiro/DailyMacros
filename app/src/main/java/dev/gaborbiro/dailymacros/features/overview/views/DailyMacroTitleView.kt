@@ -9,13 +9,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import dev.gaborbiro.dailymacros.design.PaddingHalf
-import dev.gaborbiro.dailymacros.features.common.model.DailyMacroProgressItem
+import dev.gaborbiro.dailymacros.features.common.model.DailySummaryEntry
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun DailyMacroTitleView(
     modifier: Modifier,
-    model: DailyMacroProgressItem,
+    model: DailySummaryEntry,
 ) {
     Text(
         modifier = modifier

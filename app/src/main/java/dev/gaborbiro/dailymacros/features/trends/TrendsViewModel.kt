@@ -5,9 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.trends.model.DailyAggregationMode
-import dev.gaborbiro.dailymacros.features.trends.model.MacroChartData
-import dev.gaborbiro.dailymacros.features.trends.model.MacroChartDataPoint
-import dev.gaborbiro.dailymacros.features.trends.model.MacroChartDataset
+import dev.gaborbiro.dailymacros.features.trends.model.TrendsChartUiModel
+import dev.gaborbiro.dailymacros.features.trends.model.ChartDataPoint
+import dev.gaborbiro.dailymacros.features.trends.model.ChartDataset
 import dev.gaborbiro.dailymacros.features.trends.model.TimeScale
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsSettingsUIModel
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsViewState
@@ -55,7 +55,7 @@ internal class TrendsViewModel(
 
     fun onSettingsActionButtonClicked() {
         _viewState.value = _viewState.value.copy(
-            trendsSettings = TrendsSettingsUIModel.Show(
+            settings = TrendsSettingsUIModel.Show(
                 dailyAggregationMode = mapper.map(appPrefs.aggregationMode),
                 qualifiedDaysThreshold = appPrefs.qualifiedAggregationThreshold,
             )
@@ -63,7 +63,7 @@ internal class TrendsViewModel(
     }
 
     fun onSettingsCloseRequested() {
-        _viewState.value = _viewState.value.copy(trendsSettings = TrendsSettingsUIModel.Hidden)
+        _viewState.value = _viewState.value.copy(settings = TrendsSettingsUIModel.Hidden)
     }
 
     fun onAggregationModeChanged(dailyAggregationMode: DailyAggregationMode, timeScale: TimeScale) {
@@ -84,7 +84,7 @@ internal class TrendsViewModel(
             // Use the same flow as overview (no search term = all records)
             recordsRepository.getFlowBySearchTerm(null).collect { records ->
                 if (records.isEmpty()) {
-                    _viewState.value = _viewState.value.copy(chartsData = emptyList())
+                    _viewState.value = _viewState.value.copy(charts = emptyList())
                 } else {
                     val aggregationMode = mapper.map(appPrefs.aggregationMode)
                     val charts = when (timeScale) {
@@ -92,7 +92,7 @@ internal class TrendsViewModel(
                         TimeScale.WEEKS -> buildForWeeks(records, aggregationMode)
                         TimeScale.MONTHS -> buildForMonths(records, aggregationMode)
                     }
-                    _viewState.value = _viewState.value.copy(chartsData = charts)
+                    _viewState.value = _viewState.value.copy(charts = charts)
                 }
             }
         }
@@ -101,7 +101,7 @@ internal class TrendsViewModel(
     private fun buildForDays(
         records: List<Record>,
         aggregationMode: DailyAggregationMode,
-    ): List<MacroChartData> {
+    ): List<TrendsChartUiModel> {
         val grouped = records.groupBy { it.timestamp.toLocalDate() }
 
         val days: List<LocalDate> = generateSequence(
@@ -121,8 +121,8 @@ internal class TrendsViewModel(
                 "${date.dayOfMonth}"
 
             return when (date.dayOfWeek) {
-                first -> "•$base"
-                last -> "$base•"
+                first -> "[$base"
+                last -> "$base]"
                 else -> base
             }
         }
@@ -148,7 +148,7 @@ internal class TrendsViewModel(
     private fun buildForWeeks(
         records: List<Record>,
         aggregationMode: DailyAggregationMode,
-    ): List<MacroChartData> {
+    ): List<TrendsChartUiModel> {
         val weekFields = WeekFields.of(Locale.getDefault())
 
         val grouped = records.groupBy { record ->
@@ -198,7 +198,7 @@ internal class TrendsViewModel(
     private fun buildForMonths(
         records: List<Record>,
         aggregationMode: DailyAggregationMode,
-    ): List<MacroChartData> {
+    ): List<TrendsChartUiModel> {
         val grouped = records.groupBy { YearMonth.from(it.timestamp.toLocalDate()) }
 
         val months: List<YearMonth> = generateSequence(
@@ -239,7 +239,7 @@ internal class TrendsViewModel(
         daysInBucket: (K) -> List<LocalDate>,
         labelFor: (K) -> String,
         isOngoing: (K) -> Boolean,
-    ): List<MacroChartData> {
+    ): List<TrendsChartUiModel> {
 
         fun agg(selector: (Record) -> Float?) =
             aggregateSeries(
@@ -322,7 +322,7 @@ internal class TrendsViewModel(
         selector: (Record) -> Float?,
         makeLabel: (K) -> String,
         isOngoing: (K) -> Boolean,
-    ): Pair<List<MacroChartDataPoint>, MacroChartDataPoint?> {
+    ): Pair<List<ChartDataPoint>, ChartDataPoint?> {
         val points = keys.mapIndexed { index, key ->
             val dailyTotals: Map<LocalDate, Float> =
                 grouped[key]
@@ -342,14 +342,14 @@ internal class TrendsViewModel(
                 .takeIf { it.isNotEmpty() }
                 ?.average()
 
-            key to MacroChartDataPoint(
+            key to ChartDataPoint(
                 index = index,
                 label = makeLabel(key),
                 value = avg
             )
         }
 
-        val last = points.lastOrNull() ?: return emptyList<MacroChartDataPoint>() to null
+        val last = points.lastOrNull() ?: return emptyList<ChartDataPoint>() to null
 
         return if (isOngoing(last.first)) {
             points.dropLast(1).map { it.second } to last.second
@@ -359,13 +359,13 @@ internal class TrendsViewModel(
     }
 
     private fun datasetsOf(
-        vararg tuples: List<Triple<String, Color, Pair<List<MacroChartDataPoint>, MacroChartDataPoint?>>>
-    ): List<MacroChartData> {
+        vararg tuples: List<Triple<String, Color, Pair<List<ChartDataPoint>, ChartDataPoint?>>>
+    ): List<TrendsChartUiModel> {
         return tuples.map { chartConfig ->
-            MacroChartData(
+            TrendsChartUiModel(
                 chartConfig.map { (name, color, points) ->
-                    val (set: List<MacroChartDataPoint>, last) = points
-                    MacroChartDataset(
+                    val (set: List<ChartDataPoint>, last) = points
+                    ChartDataset(
                         name = name,
                         color = color,
                         set = set,

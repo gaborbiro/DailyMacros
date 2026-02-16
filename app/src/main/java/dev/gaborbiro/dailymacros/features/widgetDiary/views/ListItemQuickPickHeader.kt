@@ -17,7 +17,7 @@ import androidx.glance.preview.Preview
 import androidx.glance.text.Text
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
-import dev.gaborbiro.dailymacros.features.widgetDiary.util.PreviewContext
+import dev.gaborbiro.dailymacros.features.widgetDiary.util.WidgetPreviewContext
 
 @Composable
 fun ListItemQuickPickHeader(
@@ -56,7 +56,7 @@ fun ListItemQuickPickHeader(
 @Composable
 @OptIn(ExperimentalGlancePreviewApi::class)
 private fun ListItemQuickPickPreview() {
-    PreviewContext {
+    WidgetPreviewContext {
         ListItemQuickPickHeader()
     }
 }

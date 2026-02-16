@@ -2,15 +2,25 @@ package dev.gaborbiro.dailymacros.features.modal.views
 
 import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircleOutline
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,20 +32,34 @@ import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 
 @Composable
-internal fun PillLabel(
+internal fun TappablePill(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
     text: String,
+    onClick: () -> Unit,
     backgroundColor: Color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
     contentColor: Color = MaterialTheme.colorScheme.primary,
     border: BorderStroke? = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
     elevation: Dp = 0.dp,
+    enabled: Boolean = true,
     textStyle: TextStyle = MaterialTheme.typography.bodySmall,
+    iconOrientation: Orientation = Orientation.Horizontal
 ) {
     val shape = RoundedCornerShape(16.dp) // pill
 
+    val clickableModifier = if (enabled) {
+        Modifier.clickable(
+            onClick = onClick,
+            indication = LocalIndication.current,
+            interactionSource = remember { MutableInteractionSource() }
+        )
+    } else {
+        Modifier
+    }
+
     Surface(
-        modifier = modifier,
+        modifier = modifier
+            .then(clickableModifier),
         shape = shape,
         color = backgroundColor,
         contentColor = contentColor,
@@ -49,9 +73,23 @@ internal fun PillLabel(
                 .padding(contentPadding),
             verticalAlignment = Alignment.Top,
         ) {
+            AxisLayout(orientation = iconOrientation) {
+                Icon(
+                    modifier = Modifier
+                        .size(16.dp),
+                    imageVector = Icons.Default.ArrowUpward,
+                    contentDescription = "Insert to input field",
+                )
+                Icon(
+                    modifier = Modifier
+                        .size(16.dp),
+                    imageVector = Icons.Default.AddCircleOutline,
+                    contentDescription = "Insert to input field",
+                )
+            }
             Text(
                 modifier = Modifier
-                    .padding(horizontal = PaddingHalf),
+                    .padding(start = PaddingHalf),
                 text = text,
                 style = textStyle,
             )
@@ -59,13 +97,45 @@ internal fun PillLabel(
     }
 }
 
+enum class Orientation {
+    Horizontal, Vertical
+}
+
+@Composable
+private fun AxisLayout(
+    orientation: Orientation,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    when (orientation) {
+        Orientation.Horizontal -> {
+            Row(
+                modifier = modifier,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                content()
+            }
+        }
+
+        Orientation.Vertical -> {
+            Column(
+                modifier = modifier,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                content()
+            }
+        }
+    }
+}
+
 @Preview
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-private fun PillLabelPreview() {
+private fun TappablePillPreview() {
     ViewPreviewContext {
-        PillLabel(
+        TappablePill(
             text = "This is a label",
+            onClick = {},
         )
     }
 }
@@ -73,10 +143,12 @@ private fun PillLabelPreview() {
 @Preview
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-private fun PillLabelPreviewLong() {
+private fun TappablePillPreviewLong() {
     ViewPreviewContext {
-        PillLabel(
+        TappablePill(
             text = "A packaged meal of chicken teriyaki with jasmine rice and oriental mix, high in carbs and protein,  with 484 kcal.",
+            onClick = {},
+            iconOrientation = Orientation.Vertical,
         )
     }
 }

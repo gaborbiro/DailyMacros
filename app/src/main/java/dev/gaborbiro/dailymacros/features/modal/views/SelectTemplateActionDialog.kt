@@ -27,7 +27,7 @@ import androidx.compose.ui.window.Dialog
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
-import dev.gaborbiro.dailymacros.design.ViewPreviewContext
+import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 
 @Composable
 fun SelectTemplateActionDialog(
@@ -61,7 +61,8 @@ fun SelectTemplateActionDialog(
                     )
                     Text(
                         modifier = Modifier
-                            .padding(PaddingDefault),
+                            .padding(PaddingDefault)
+                            .weight(1f),
                         text = title,
                         style = MaterialTheme.typography.bodyMedium,
                     )
@@ -118,7 +119,7 @@ fun SelectTemplateActionDialog(
 
                 Button(
                     onClick = { onRemoveFromQuickPicksTapped(templateId) },
-                    colors = destructiveButtonColors,
+                    colors = normalButtonColors,
                     shape = RoundedCornerShape(50.dp),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -144,7 +145,7 @@ private fun SelectTemplateActionDialogPreview() {
     ViewPreviewContext {
         SelectTemplateActionDialog(
             templateId = 1,
-            title = "Quick Snacks",
+            title = "Quick Snacks sdfdkgj dfjkgh dskfjg dfg skg dsfjhg",
             onRepeatButtonTapped = {},
             onDetailsButtonTapped = {},
             onRemoveFromQuickPicksTapped = {},

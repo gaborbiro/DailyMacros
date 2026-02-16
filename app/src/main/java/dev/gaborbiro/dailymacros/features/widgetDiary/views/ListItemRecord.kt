@@ -19,13 +19,13 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
+import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
-import dev.gaborbiro.dailymacros.features.widgetDiary.util.PreviewContext
+import dev.gaborbiro.dailymacros.features.widgetDiary.util.WidgetPreviewContext
 
 @Composable
 fun ListItemRecord(
-    record: ListUIModelRecord,
+    record: ListUiModelRecord,
     imageTappedActionProvider: Action,
     bodyTappedActionProvider: Action,
 ) {
@@ -83,9 +83,9 @@ fun ListItemRecord(
 @Composable
 @OptIn(ExperimentalGlancePreviewApi::class)
 private fun RecordListItemPreview() {
-    PreviewContext {
+    WidgetPreviewContext {
         ListItemRecord(
-            record = ListUIModelRecord(
+            record = ListUiModelRecord(
                 recordId = 1,
                 templateId = 1L,
                 title = "Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast ",
@@ -112,9 +112,9 @@ private fun RecordListItemPreview() {
 @Composable
 @OptIn(ExperimentalGlancePreviewApi::class)
 private fun RecordListItemPreviewLoading() {
-    PreviewContext {
+    WidgetPreviewContext {
         ListItemRecord(
-            record = ListUIModelRecord(
+            record = ListUiModelRecord(
                 recordId = 1,
                 templateId = 1L,
                 title = "Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast ",

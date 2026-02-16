@@ -13,11 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -43,8 +40,7 @@ import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
-import dev.gaborbiro.dailymacros.design.ViewPreviewContext
-import dev.gaborbiro.dailymacros.features.common.views.PreviewImageStoreProvider
+import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.MacrosUIModel
 import dev.gaborbiro.dailymacros.features.modal.model.SummarySuggestions
@@ -262,7 +258,7 @@ private fun ColumnScope.RecordDetailsDialogContent(
                     color = Color.Gray,
                 )
                 it.forEach {
-                    PillLabel(
+                    TappablePill(
                         modifier = Modifier
                             .padding(bottom = 4.dp),
                         text = it,
@@ -347,7 +343,7 @@ private fun ColumnScope.RecordDetailsDialogContent(
         ?.takeIf { it.isNotBlank() }
         ?.let { descriptionSuggestion ->
             Box {
-                PillLabel(
+                TappablePill(
                     modifier = Modifier
                         .padding(horizontal = PaddingDefault)
                         .padding(top = PaddingHalf),
@@ -374,7 +370,7 @@ private fun ColumnScope.RecordDetailsDialogContent(
             modifier = Modifier
                 .height(PaddingDefault)
         )
-        MacroTable(macros = macros)
+        MacroIndentedList(macros = macros)
         Spacer(
             modifier = Modifier
                 .height(PaddingDefault)
@@ -387,42 +383,40 @@ private fun ColumnScope.RecordDetailsDialogContent(
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreviewEdit() {
     ViewPreviewContext {
-        PreviewImageStoreProvider {
-            RecordDetailsDialog(
-                dialogState = DialogState.RecordDetailsDialog.View(
-                    recordId = 1L,
-                    title = TextFieldValue(),
-                    titleHint = "Describe your meal (or pick a suggestion from below)",
-                    description = TextFieldValue(),
-                    images = listOf("1", "2"),
-                    allowEdit = true,
-                    macros = MacrosUIModel(
-                        calories = "Calories: 2100 cal",
-                        protein = "Protein: 150g",
-                        fat = "Fat 100g",
-                        ofWhichSaturated = "of which saturated: 20g",
-                        carbs = "Carbs: 100g",
-                        ofWhichSugar = "of which sugar: 30g",
-                        ofWhichAddedSugar = "of which added sugar: 15g",
-                        salt = "Salt: 5g",
-                        fibre = "Fibre: 4.5g",
-                        notes = "Notes: This is a note",
-                    ),
+        RecordDetailsDialog(
+            dialogState = DialogState.RecordDetailsDialog.View(
+                recordId = 1L,
+                title = TextFieldValue(),
+                titleHint = "Describe your meal (or pick a suggestion from below)",
+                description = TextFieldValue(),
+                images = listOf("1", "2"),
+                allowEdit = true,
+                macros = MacrosUIModel(
+                    calories = "Calories: 2100 cal",
+                    protein = "Protein: 150g",
+                    fat = "Fat 100g",
+                    ofWhichSaturated = "of which saturated: 20g",
+                    carbs = "Carbs: 100g",
+                    ofWhichSugar = "of which sugar: 30g",
+                    ofWhichAddedSugar = "of which added sugar: 15g",
+                    salt = "Salt: 5g",
+                    fibre = "Fibre: 4.5g",
+                    notes = "Notes: This is a note",
                 ),
-                errorMessages = emptyFlow(),
-                onTitleSuggestionSelected = {},
-                onDescriptionSuggestionSelected = {},
-                onTitleChanged = {},
-                onDescriptionChanged = {},
-                onSubmitButtonTapped = {},
-                onImageTapped = {},
-                onImageDeleteTapped = {},
-                onAddImageViaCameraTapped = {},
-                onAddImageViaPickerTapped = {},
-                onDismissRequested = {},
-                onImagesInfoButtonTapped = {},
-            )
-        }
+            ),
+            errorMessages = emptyFlow(),
+            onTitleSuggestionSelected = {},
+            onDescriptionSuggestionSelected = {},
+            onTitleChanged = {},
+            onDescriptionChanged = {},
+            onSubmitButtonTapped = {},
+            onImageTapped = {},
+            onImageDeleteTapped = {},
+            onAddImageViaCameraTapped = {},
+            onAddImageViaPickerTapped = {},
+            onDismissRequested = {},
+            onImagesInfoButtonTapped = {},
+        )
     }
 }
 
@@ -431,32 +425,30 @@ private fun NoteInputDialogContentPreviewEdit() {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreviewSuggestion() {
     ViewPreviewContext {
-        PreviewImageStoreProvider {
-            RecordDetailsDialog(
-                dialogState = DialogState.RecordDetailsDialog.Edit(
-                    title = TextFieldValue(),
-                    titleHint = "Describe your meal",
-                    description = TextFieldValue(),
-                    images = listOf("1", "2"),
-                    suggestions = SummarySuggestions(
-                        titles = listOf("This is a title suggestion", "This is another title suggestion"),
-                        description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
-                    ),
+        RecordDetailsDialog(
+            dialogState = DialogState.RecordDetailsDialog.Edit(
+                title = TextFieldValue(),
+                titleHint = "Describe your meal",
+                description = TextFieldValue(),
+                images = listOf("1", "2"),
+                suggestions = SummarySuggestions(
+                    titles = listOf("This is a title suggestion", "This is another title suggestion"),
+                    description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
                 ),
-                errorMessages = emptyFlow(),
-                onTitleSuggestionSelected = {},
-                onDescriptionSuggestionSelected = {},
-                onTitleChanged = {},
-                onDescriptionChanged = {},
-                onSubmitButtonTapped = {},
-                onImageTapped = {},
-                onImageDeleteTapped = {},
-                onAddImageViaCameraTapped = {},
-                onAddImageViaPickerTapped = {},
-                onDismissRequested = {},
-                onImagesInfoButtonTapped = {},
-            )
-        }
+            ),
+            errorMessages = emptyFlow(),
+            onTitleSuggestionSelected = {},
+            onDescriptionSuggestionSelected = {},
+            onTitleChanged = {},
+            onDescriptionChanged = {},
+            onSubmitButtonTapped = {},
+            onImageTapped = {},
+            onImageDeleteTapped = {},
+            onAddImageViaCameraTapped = {},
+            onAddImageViaPickerTapped = {},
+            onDismissRequested = {},
+            onImagesInfoButtonTapped = {},
+        )
     }
 }
 
@@ -466,30 +458,28 @@ private fun NoteInputDialogContentPreviewSuggestion() {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreview() {
     ViewPreviewContext {
-        PreviewImageStoreProvider {
-            RecordDetailsDialog(
-                dialogState = DialogState.RecordDetailsDialog.Edit(
-                    title = TextFieldValue(),
-                    titleHint = "Describe your meal (or pick a suggestion from below)",
-                    description = TextFieldValue(),
-                    images = listOf("1", "2"),
-                    showProgressIndicator = true,
-                    suggestions = null,
-                ),
-                errorMessages = emptyFlow(),
-                onTitleSuggestionSelected = {},
-                onDescriptionSuggestionSelected = {},
-                onTitleChanged = {},
-                onDescriptionChanged = {},
-                onSubmitButtonTapped = {},
-                onImageTapped = {},
-                onImageDeleteTapped = {},
-                onAddImageViaCameraTapped = {},
-                onAddImageViaPickerTapped = {},
-                onDismissRequested = {},
-                onImagesInfoButtonTapped = {},
-            )
-        }
+        RecordDetailsDialog(
+            dialogState = DialogState.RecordDetailsDialog.Edit(
+                title = TextFieldValue(),
+                titleHint = "Describe your meal (or pick a suggestion from below)",
+                description = TextFieldValue(),
+                images = listOf("1", "2"),
+                showProgressIndicator = true,
+                suggestions = null,
+            ),
+            errorMessages = emptyFlow(),
+            onTitleSuggestionSelected = {},
+            onDescriptionSuggestionSelected = {},
+            onTitleChanged = {},
+            onDescriptionChanged = {},
+            onSubmitButtonTapped = {},
+            onImageTapped = {},
+            onImageDeleteTapped = {},
+            onAddImageViaCameraTapped = {},
+            onAddImageViaPickerTapped = {},
+            onDismissRequested = {},
+            onImagesInfoButtonTapped = {},
+        )
     }
 }
 
@@ -498,32 +488,30 @@ private fun NoteInputDialogContentPreview() {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreviewError() {
     ViewPreviewContext {
-        PreviewImageStoreProvider {
-            RecordDetailsDialog(
-                dialogState = DialogState.RecordDetailsDialog.Edit(
-                    title = TextFieldValue(),
-                    titleHint = "Describe your meal",
-                    titleValidationError = "error",
-                    description = TextFieldValue(),
-                    images = listOf("1", "2"),
-                    suggestions = SummarySuggestions(
-                        titles = listOf("This is a title suggestion", "This is another title suggestion"),
-                        description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
-                    ),
+        RecordDetailsDialog(
+            dialogState = DialogState.RecordDetailsDialog.Edit(
+                title = TextFieldValue(),
+                titleHint = "Describe your meal",
+                titleValidationError = "error",
+                description = TextFieldValue(),
+                images = listOf("1", "2"),
+                suggestions = SummarySuggestions(
+                    titles = listOf("This is a title suggestion", "This is another title suggestion"),
+                    description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
                 ),
-                errorMessages = emptyFlow(),
-                onTitleSuggestionSelected = {},
-                onDescriptionSuggestionSelected = {},
-                onTitleChanged = {},
-                onDescriptionChanged = {},
-                onSubmitButtonTapped = {},
-                onImageTapped = {},
-                onImageDeleteTapped = {},
-                onAddImageViaCameraTapped = {},
-                onAddImageViaPickerTapped = {},
-                onDismissRequested = {},
-                onImagesInfoButtonTapped = {},
-            )
-        }
+            ),
+            errorMessages = emptyFlow(),
+            onTitleSuggestionSelected = {},
+            onDescriptionSuggestionSelected = {},
+            onTitleChanged = {},
+            onDescriptionChanged = {},
+            onSubmitButtonTapped = {},
+            onImageTapped = {},
+            onImageDeleteTapped = {},
+            onAddImageViaCameraTapped = {},
+            onAddImageViaPickerTapped = {},
+            onDismissRequested = {},
+            onImagesInfoButtonTapped = {},
+        )
     }
 }

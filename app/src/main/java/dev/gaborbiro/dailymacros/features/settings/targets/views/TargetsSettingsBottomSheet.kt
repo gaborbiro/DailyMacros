@@ -48,8 +48,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
-import dev.gaborbiro.dailymacros.design.PreviewContext
-import dev.gaborbiro.dailymacros.design.ViewPreviewContext
+import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
+import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.common.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.features.settings.targets.model.FieldErrors
 import dev.gaborbiro.dailymacros.features.settings.targets.model.MacroType

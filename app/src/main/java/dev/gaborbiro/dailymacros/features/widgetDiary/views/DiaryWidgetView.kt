@@ -23,19 +23,19 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPick
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
+import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
+import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPick
+import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
 import dev.gaborbiro.dailymacros.features.widgetDiary.WidgetActionProvider
 import dev.gaborbiro.dailymacros.features.widgetDiary.WidgetActionProviderImpl
-import dev.gaborbiro.dailymacros.features.widgetDiary.util.PreviewContext
+import dev.gaborbiro.dailymacros.features.widgetDiary.util.WidgetPreviewContext
 
 @Composable
 internal fun DiaryWidgetView(
     modifier: GlanceModifier,
     actionProvider: WidgetActionProvider,
-    items: List<ListUIModelBase>,
+    items: List<ListUiModelBase>,
 ) {
     Column(
         modifier = modifier
@@ -103,13 +103,13 @@ internal fun DiaryWidgetView(
 @Composable
 @OptIn(ExperimentalGlancePreviewApi::class)
 private fun WidgetViewPreview() {
-    PreviewContext {
+    WidgetPreviewContext {
         DiaryWidgetView(
             modifier = GlanceModifier
                 .fillMaxSize(),
             actionProvider = WidgetActionProviderImpl(),
             items = listOf(
-                ListUIModelRecord(
+                ListUiModelRecord(
                     recordId = 1,
                     templateId = 1L,
                     title = "Breakfast",
@@ -126,7 +126,7 @@ private fun WidgetViewPreview() {
                     showLoadingIndicator = false,
                     showAddToQuickPicksMenuItem = true,
                 ),
-                ListUIModelQuickPick(
+                ListUiModelQuickPick(
                     templateId = 1,
                     title = "Breakfast",
                     images = listOf("", ""),
@@ -139,7 +139,7 @@ private fun WidgetViewPreview() {
                         fibre = "fibre 4",
                     ),
                 ),
-                ListUIModelQuickPick(
+                ListUiModelQuickPick(
                     templateId = 2,
                     title = "Lunch",
                     images = listOf("", ""),
@@ -152,7 +152,7 @@ private fun WidgetViewPreview() {
                         fibre = "fibre 4",
                     ),
                 ),
-                ListUIModelQuickPick(
+                ListUiModelQuickPick(
                     templateId = 3,
                     title = "Dinner",
                     images = listOf("", ""),
@@ -165,7 +165,7 @@ private fun WidgetViewPreview() {
                         fibre = "fibre 4",
                     ),
                 ),
-                ListUIModelRecord(
+                ListUiModelRecord(
                     recordId = 2L,
                     templateId = 1L,
                     timestamp = "Yesterday",
@@ -182,7 +182,7 @@ private fun WidgetViewPreview() {
                     showLoadingIndicator = false,
                     showAddToQuickPicksMenuItem = true,
                 ),
-                ListUIModelRecord(
+                ListUiModelRecord(
                     recordId = 3L,
                     templateId = 1L,
                     timestamp = "Yesterday",
@@ -208,7 +208,7 @@ private fun WidgetViewPreview() {
 @Composable
 @OptIn(ExperimentalGlancePreviewApi::class)
 private fun WidgetViewPreviewEmpty() {
-    PreviewContext {
+    WidgetPreviewContext {
         DiaryWidgetView(
             modifier = GlanceModifier
                 .fillMaxSize(),

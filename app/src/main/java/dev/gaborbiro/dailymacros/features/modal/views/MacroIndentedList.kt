@@ -1,19 +1,20 @@
 package dev.gaborbiro.dailymacros.features.modal.views
 
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingDouble
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
+import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.modal.model.MacrosUIModel
 
 @Composable
-internal fun MacroTable(
+internal fun MacroIndentedList(
     macros: MacrosUIModel,
 ) {
     macros.calories?.let {
@@ -143,6 +144,28 @@ internal fun MacroTable(
             backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
             border = null,
             elevation = 0.dp,
+        )
+    }
+}
+
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun MacroIndentedListPreview() {
+    ViewPreviewContext {
+        MacroIndentedList(
+            macros = MacrosUIModel(
+                calories = "Calories: 2100 cal",
+                protein = "Protein: 150g",
+                fat = "Fat 100g",
+                ofWhichSaturated = "of which saturated: 20g",
+                carbs = "Carbs: 100g",
+                ofWhichSugar = "of which sugar: 30g",
+                ofWhichAddedSugar = "of which added sugar: 15g",
+                salt = "Salt: 5g",
+                fibre = "Fibre: 4.5g",
+                notes = "Notes: This is a note",
+            ),
         )
     }
 }

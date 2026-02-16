@@ -32,22 +32,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
-import dev.gaborbiro.dailymacros.design.ViewPreviewContext
+import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.design.darkExtraColorScheme
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
+import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
 import dev.gaborbiro.dailymacros.features.common.views.LocalImage
-import dev.gaborbiro.dailymacros.features.common.views.PreviewImageStoreProvider
 import dev.gaborbiro.dailymacros.features.widgetDiary.views.ListItemImageCornerRadius
 
 
 @Composable
 fun ListItemRecord(
     modifier: Modifier = Modifier,
-    record: ListUIModelRecord,
+    record: ListUiModelRecord,
     onRecordImageTapped: (recordId: Long) -> Unit,
     onRecordBodyTapped: (recordId: Long) -> Unit,
     rowMenu: @Composable () -> Unit,
@@ -103,7 +101,7 @@ private fun RecordImage(
 }
 
 @Composable
-private fun RecordTextContent(modifier: Modifier, record: ListUIModelRecord) {
+private fun RecordTextContent(modifier: Modifier, record: ListUiModelRecord) {
     Column(
         modifier,
         verticalArrangement = Arrangement.Center,
@@ -288,30 +286,28 @@ private fun MacroRow(
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, widthDp = 260)
 private fun OverviewListItemPreview() {
     ViewPreviewContext {
-        PreviewImageStoreProvider {
-            ListItemRecord(
-                record = ListUIModelRecord(
-                    recordId = 1L,
-                    title = "Title",
-                    templateId = 1L,
-                    images = listOf("", ""),
-                    timestamp = "Tue 19 Aug, 20:49",
-                    macrosAmounts = MacrosAmountsUIModel(
-                        calories = "1008kcal",
-                        protein = "Protein 158g",
-                        fat = "Fat 14g(12g)",
-                        carbs = "Carbs 39g(29g/19g)",
-                        salt = "Salt 1.2g",
-                        fibre = "Fibre 14g",
-                    ),
-                    showLoadingIndicator = false,
-                    showAddToQuickPicksMenuItem = true,
+        ListItemRecord(
+            record = ListUiModelRecord(
+                recordId = 1L,
+                title = "Title",
+                templateId = 1L,
+                images = listOf("", ""),
+                timestamp = "Tue 19 Aug, 20:49",
+                macrosAmounts = MacrosAmountsUIModel(
+                    calories = "1008kcal",
+                    protein = "Protein 158g",
+                    fat = "Fat 14g(12g)",
+                    carbs = "Carbs 39g(29g/19g)",
+                    salt = "Salt 1.2g",
+                    fibre = "Fibre 14g",
                 ),
-                onRecordImageTapped = {},
-                onRecordBodyTapped = {},
-                rowMenu = {}
-            )
-        }
+                showLoadingIndicator = false,
+                showAddToQuickPicksMenuItem = true,
+            ),
+            onRecordImageTapped = {},
+            onRecordBodyTapped = {},
+            rowMenu = {}
+        )
     }
 }
 
@@ -319,30 +315,28 @@ private fun OverviewListItemPreview() {
 @Composable
 private fun OverviewListItemPreviewMissing() {
     ViewPreviewContext {
-        PreviewImageStoreProvider {
-            ListItemRecord(
-                record = ListUIModelRecord(
-                    recordId = 1L,
-                    title = "Title",
-                    templateId = 1L,
-                    images = listOf("", ""),
-                    timestamp = "Tue 19 Aug, 20:49",
-                    macrosAmounts = MacrosAmountsUIModel(
-                        calories = "1008kcal",
-                        protein = null,
-                        fat = "Fat 14g(12g)",
-                        carbs = null,
-                        salt = "Salt 1.2g",
-                        fibre = null,
-                    ),
-                    showLoadingIndicator = false,
-                    showAddToQuickPicksMenuItem = true,
+        ListItemRecord(
+            record = ListUiModelRecord(
+                recordId = 1L,
+                title = "Title",
+                templateId = 1L,
+                images = listOf("", ""),
+                timestamp = "Tue 19 Aug, 20:49",
+                macrosAmounts = MacrosAmountsUIModel(
+                    calories = "1008kcal",
+                    protein = null,
+                    fat = "Fat 14g(12g)",
+                    carbs = null,
+                    salt = "Salt 1.2g",
+                    fibre = null,
                 ),
-                onRecordImageTapped = {},
-                onRecordBodyTapped = {},
-                rowMenu = {}
-            )
-        }
+                showLoadingIndicator = false,
+                showAddToQuickPicksMenuItem = true,
+            ),
+            onRecordImageTapped = {},
+            onRecordBodyTapped = {},
+            rowMenu = {}
+        )
     }
 }
 
@@ -351,29 +345,27 @@ private fun OverviewListItemPreviewMissing() {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun OverviewListItemPreviewLoading() {
     ViewPreviewContext {
-        PreviewImageStoreProvider {
-            ListItemRecord(
-                record = ListUIModelRecord(
-                    recordId = 1L,
-                    title = "Title",
-                    templateId = 1L,
-                    images = listOf("", ""),
-                    timestamp = "Tue 19 Aug, 20:49",
-                    macrosAmounts = MacrosAmountsUIModel(
-                        calories = "1008kcal",
-                        protein = "Protein 58g",
-                        fat = "Fat 14g(12g)",
-                        carbs = "Carbs 39g(29g/19g)",
-                        salt = "Salt 1.2g",
-                        fibre = "Fibre 14g",
-                    ),
-                    showLoadingIndicator = true,
-                    showAddToQuickPicksMenuItem = true,
+        ListItemRecord(
+            record = ListUiModelRecord(
+                recordId = 1L,
+                title = "Title",
+                templateId = 1L,
+                images = listOf("", ""),
+                timestamp = "Tue 19 Aug, 20:49",
+                macrosAmounts = MacrosAmountsUIModel(
+                    calories = "1008kcal",
+                    protein = "Protein 58g",
+                    fat = "Fat 14g(12g)",
+                    carbs = "Carbs 39g(29g/19g)",
+                    salt = "Salt 1.2g",
+                    fibre = "Fibre 14g",
                 ),
-                onRecordImageTapped = {},
-                onRecordBodyTapped = {},
-                rowMenu = {}
-            )
-        }
+                showLoadingIndicator = true,
+                showAddToQuickPicksMenuItem = true,
+            ),
+            onRecordImageTapped = {},
+            onRecordBodyTapped = {},
+            rowMenu = {}
+        )
     }
 }

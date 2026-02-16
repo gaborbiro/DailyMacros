@@ -21,14 +21,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.LocalExtraColorScheme
 import dev.gaborbiro.dailymacros.design.PaddingHalf
-import dev.gaborbiro.dailymacros.design.ViewPreviewContext
-import dev.gaborbiro.dailymacros.features.common.model.DailyMacroProgressItem
+import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
+import dev.gaborbiro.dailymacros.features.common.model.DailySummaryEntry
 import kotlinx.coroutines.delay
 
 @Composable
 internal fun DailyMacroBarView(
     modifier: Modifier,
-    model: DailyMacroProgressItem,
+    model: DailySummaryEntry,
     rowIndex: Int,
     totalRowCount: Int,
 ) {
@@ -105,7 +105,7 @@ internal fun DailyMacroBarView(
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun DailyDailyMacroBarViewPreview() {
-    val macro1 = DailyMacroProgressItem(
+    val macro1 = DailySummaryEntry(
         title = "Calories",
         progress0to1 = .15f,
         progressLabel = "1005kcal",
@@ -113,7 +113,7 @@ private fun DailyDailyMacroBarViewPreview() {
         targetRangeLabel = "2.1-2.2k",
         color = { it.calorieColor },
     )
-    val macro2 = DailyMacroProgressItem(
+    val macro2 = DailySummaryEntry(
         title = "Salt",
         progress0to1 = 1.5f,
         progressLabel = "110g",

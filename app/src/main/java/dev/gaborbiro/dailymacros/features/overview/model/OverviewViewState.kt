@@ -1,11 +1,11 @@
 package dev.gaborbiro.dailymacros.features.overview.model
 
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
+import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 
 
 data class OverviewViewState(
-    val items: List<ListUIModelBase> = emptyList(),
+    val items: List<ListUiModelBase> = emptyList(),
     val isLoadingMore: Boolean = false,
     val hasMoreData: Boolean = true,
     val showAddWidgetButton: Boolean = false,

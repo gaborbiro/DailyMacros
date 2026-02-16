@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.design
+package dev.gaborbiro.dailymacros.features.common.views
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import dev.gaborbiro.dailymacros.design.AppTheme
 
 @Composable
 fun PreviewContext(content: @Composable ColumnScope.() -> Unit) {
@@ -21,7 +23,9 @@ fun PreviewContext(content: @Composable ColumnScope.() -> Unit) {
                 modifier = Modifier
                     .fillMaxSize()
             ) {
-                content()
+                CompositionLocalProvider(LocalImageStore provides DummyImageStore) {
+                    content()
+                }
             }
         }
     }
@@ -39,7 +43,9 @@ fun ViewPreviewContext(content: @Composable ColumnScope.() -> Unit) {
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                content()
+                CompositionLocalProvider(LocalImageStore provides DummyImageStore) {
+                    content()
+                }
             }
         }
     }

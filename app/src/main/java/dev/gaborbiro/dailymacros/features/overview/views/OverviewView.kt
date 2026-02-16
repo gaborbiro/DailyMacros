@@ -28,12 +28,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import dev.gaborbiro.dailymacros.design.PaddingDefault
-import dev.gaborbiro.dailymacros.design.PreviewContext
-import dev.gaborbiro.dailymacros.features.common.model.DailyMacroProgressItem
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelDailyMacroProgress
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
+import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
+import dev.gaborbiro.dailymacros.features.common.model.DailySummaryEntry
+import dev.gaborbiro.dailymacros.features.common.model.ListUiModelDailySummary
+import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
-import dev.gaborbiro.dailymacros.features.common.views.PreviewImageStoreProvider
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
 import dev.gaborbiro.dailymacros.features.widgetDiary.DiaryWidgetReceiver
 
@@ -149,125 +148,123 @@ fun AddWidgetButton() {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun OverviewListPreview() {
     PreviewContext {
-        PreviewImageStoreProvider {
-            OverviewView(
-                viewState = OverviewViewState(
-                    items = listOf(
-                        ListUIModelDailyMacroProgress(
-                            listItemId = 1L,
-                            dayTitle = "Yesterday",
-                            progress = listOf(
-                                DailyMacroProgressItem(
-                                    title = "Calories",
-                                    progress0to1 = .15f,
-                                    progressLabel = "1005kcal",
-                                    targetRange0to1 = Range(.84f, .88f),
-                                    targetRangeLabel = "2.1-2.2k",
-                                    color = { it.calorieColor },
-                                ),
-                                DailyMacroProgressItem(
-                                    title = "Protein",
-                                    progress0to1 = .0809f,
-                                    progressLabel = "110g",
-                                    targetRange0to1 = Range(.8095f, .9047f),
-                                    targetRangeLabel = "170-190g",
-                                    color = { it.proteinColor },
-                                ),
-                                DailyMacroProgressItem(
-                                    title = "Fat",
-                                    progress0to1 = .2121f,
-                                    progressLabel = "30g",
-                                    targetRange0to1 = Range(.6818f, .9091f),
-                                    targetRangeLabel = "45-60g",
-                                    color = { it.fatColor },
-                                ),
-                                DailyMacroProgressItem(
-                                    title = "Carbs",
-                                    progress0to1 = .1818f,
-                                    progressLabel = "105g",
-                                    targetRange0to1 = Range(.6818f, .9091f),
-                                    targetRangeLabel = "150-200g",
-                                    color = { it.carbsColor },
-                                ),
-                                DailyMacroProgressItem(
-                                    title = "Sugar",
-                                    progress0to1 = .2955f,
-                                    progressLabel = "35g",
-                                    targetRange0to1 = Range(.9091f, .9091f),
-                                    targetRangeLabel = "<40g/<25g added",
-                                    color = { it.carbsColor },
-                                ),
-                                DailyMacroProgressItem(
-                                    title = "Salt",
-                                    progress0to1 = .0f,
-                                    progressLabel = "0g",
-                                    targetRange0to1 = Range(.9091f, .9091f),
-                                    targetRangeLabel = "<5g (≈2g Na)",
-                                    color = { it.saltColor },
-                                ),
-                                DailyMacroProgressItem(
-                                    title = "Fibre",
-                                    progress0to1 = .0f,
-                                    progressLabel = "0g",
-                                    targetRange0to1 = Range(.9091f, .9091f),
-                                    targetRangeLabel = "30-38g",
-                                    color = { it.fibreColor },
-                                ),
-                            )
-                        ),
-                        ListUIModelRecord(
-                            recordId = 2L,
-                            title = "Title",
-                            templateId = 2L,
-                            images = listOf("", ""),
-                            timestamp = "17:00",
-                            macrosAmounts = MacrosAmountsUIModel(
-                                calories = "8cal",
-                                protein = "prot 8",
-                                fat = "fat 4(2)",
-                                carbs = "carb 9(9)",
-                                salt = "sal 2",
-                                fibre = "fib 4",
+        OverviewView(
+            viewState = OverviewViewState(
+                items = listOf(
+                    ListUiModelDailySummary(
+                        listItemId = 1L,
+                        dayTitle = "Yesterday",
+                        entries = listOf(
+                            DailySummaryEntry(
+                                title = "Calories",
+                                progress0to1 = .15f,
+                                progressLabel = "1005kcal",
+                                targetRange0to1 = Range(.84f, .88f),
+                                targetRangeLabel = "2.1-2.2k",
+                                color = { it.calorieColor },
                             ),
-                            showLoadingIndicator = false,
-                            showAddToQuickPicksMenuItem = true,
-                        ),
-                        ListUIModelRecord(
-                            recordId = 3L,
-                            title = "Title 2",
-                            templateId = 4L,
-                            images = listOf("", ""),
-                            timestamp = "15:38",
-                            macrosAmounts = MacrosAmountsUIModel(
-                                calories = "8cal",
-                                protein = "prot 8",
-                                fat = "fat 4(2)",
-                                carbs = "carb 9(9)",
-                                salt = "sal 2",
-                                fibre = "fib 4",
+                            DailySummaryEntry(
+                                title = "Protein",
+                                progress0to1 = .0809f,
+                                progressLabel = "110g",
+                                targetRange0to1 = Range(.8095f, .9047f),
+                                targetRangeLabel = "170-190g",
+                                color = { it.proteinColor },
                             ),
-                            showLoadingIndicator = false,
-                            showAddToQuickPicksMenuItem = true,
+                            DailySummaryEntry(
+                                title = "Fat",
+                                progress0to1 = .2121f,
+                                progressLabel = "30g",
+                                targetRange0to1 = Range(.6818f, .9091f),
+                                targetRangeLabel = "45-60g",
+                                color = { it.fatColor },
+                            ),
+                            DailySummaryEntry(
+                                title = "Carbs",
+                                progress0to1 = .1818f,
+                                progressLabel = "105g",
+                                targetRange0to1 = Range(.6818f, .9091f),
+                                targetRangeLabel = "150-200g",
+                                color = { it.carbsColor },
+                            ),
+                            DailySummaryEntry(
+                                title = "Sugar",
+                                progress0to1 = .2955f,
+                                progressLabel = "35g",
+                                targetRange0to1 = Range(.9091f, .9091f),
+                                targetRangeLabel = "<40g/<25g added",
+                                color = { it.carbsColor },
+                            ),
+                            DailySummaryEntry(
+                                title = "Salt",
+                                progress0to1 = .0f,
+                                progressLabel = "0g",
+                                targetRange0to1 = Range(.9091f, .9091f),
+                                targetRangeLabel = "<5g (≈2g Na)",
+                                color = { it.saltColor },
+                            ),
+                            DailySummaryEntry(
+                                title = "Fibre",
+                                progress0to1 = .0f,
+                                progressLabel = "0g",
+                                targetRange0to1 = Range(.9091f, .9091f),
+                                targetRangeLabel = "30-38g",
+                                color = { it.fibreColor },
+                            ),
                         )
                     ),
+                    ListUiModelRecord(
+                        recordId = 2L,
+                        title = "Title",
+                        templateId = 2L,
+                        images = listOf("", ""),
+                        timestamp = "17:00",
+                        macrosAmounts = MacrosAmountsUIModel(
+                            calories = "8cal",
+                            protein = "prot 8",
+                            fat = "fat 4(2)",
+                            carbs = "carb 9(9)",
+                            salt = "sal 2",
+                            fibre = "fib 4",
+                        ),
+                        showLoadingIndicator = false,
+                        showAddToQuickPicksMenuItem = true,
+                    ),
+                    ListUiModelRecord(
+                        recordId = 3L,
+                        title = "Title 2",
+                        templateId = 4L,
+                        images = listOf("", ""),
+                        timestamp = "15:38",
+                        macrosAmounts = MacrosAmountsUIModel(
+                            calories = "8cal",
+                            protein = "prot 8",
+                            fat = "fat 4(2)",
+                            carbs = "carb 9(9)",
+                            salt = "sal 2",
+                            fibre = "fib 4",
+                        ),
+                        showLoadingIndicator = false,
+                        showAddToQuickPicksMenuItem = true,
+                    )
                 ),
-                onRepeatMenuItemTapped = {},
-                onDetailsMenuItemTapped = {},
-                onDeleteMenuItemTapped = {},
-                onAddToQuickPicksMenuItemTapped = {},
-                onRecordImageTapped = {},
-                onRecordBodyTapped = {},
-                onUndoDeleteTapped = {},
-                onUndoDeleteDismissed = {},
-                onUndoDeleteSnackbarShown = {},
-                onSearchTermChanged = {},
-                onAnalyseMacrosMenuItemTapped = {},
-                onSettingsButtonTapped = {},
-                onTrendsButtonTapped = {},
-                onCoachMarkDismissed = {},
-                onLoadMore = {},
-            )
-        }
+            ),
+            onRepeatMenuItemTapped = {},
+            onDetailsMenuItemTapped = {},
+            onDeleteMenuItemTapped = {},
+            onAddToQuickPicksMenuItemTapped = {},
+            onRecordImageTapped = {},
+            onRecordBodyTapped = {},
+            onUndoDeleteTapped = {},
+            onUndoDeleteDismissed = {},
+            onUndoDeleteSnackbarShown = {},
+            onSearchTermChanged = {},
+            onAnalyseMacrosMenuItemTapped = {},
+            onSettingsButtonTapped = {},
+            onTrendsButtonTapped = {},
+            onCoachMarkDismissed = {},
+            onLoadMore = {},
+        )
     }
 }
 
@@ -276,28 +273,26 @@ private fun OverviewListPreview() {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun OverviewListPreviewEmpty() {
     PreviewContext {
-        PreviewImageStoreProvider {
-            OverviewView(
-                viewState = OverviewViewState(
-                    items = emptyList(),
-                    showAddWidgetButton = true,
-                ),
-                onRepeatMenuItemTapped = {},
-                onDetailsMenuItemTapped = {},
-                onDeleteMenuItemTapped = {},
-                onAddToQuickPicksMenuItemTapped = {},
-                onRecordImageTapped = {},
-                onRecordBodyTapped = {},
-                onUndoDeleteTapped = {},
-                onUndoDeleteDismissed = {},
-                onUndoDeleteSnackbarShown = {},
-                onSearchTermChanged = {},
-                onAnalyseMacrosMenuItemTapped = {},
-                onSettingsButtonTapped = {},
-                onTrendsButtonTapped = {},
-                onCoachMarkDismissed = {},
-                onLoadMore = {},
-            )
-        }
+        OverviewView(
+            viewState = OverviewViewState(
+                items = emptyList(),
+                showAddWidgetButton = true,
+            ),
+            onRepeatMenuItemTapped = {},
+            onDetailsMenuItemTapped = {},
+            onDeleteMenuItemTapped = {},
+            onAddToQuickPicksMenuItemTapped = {},
+            onRecordImageTapped = {},
+            onRecordBodyTapped = {},
+            onUndoDeleteTapped = {},
+            onUndoDeleteDismissed = {},
+            onUndoDeleteSnackbarShown = {},
+            onSearchTermChanged = {},
+            onAnalyseMacrosMenuItemTapped = {},
+            onSettingsButtonTapped = {},
+            onTrendsButtonTapped = {},
+            onCoachMarkDismissed = {},
+            onLoadMore = {},
+        )
     }
 }

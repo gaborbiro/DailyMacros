@@ -32,9 +32,9 @@ import dev.gaborbiro.dailymacros.design.WidgetColorScheme
 import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPickFooter
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPickHeader
+import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
+import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPickFooter
+import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPickHeader
 import dev.gaborbiro.dailymacros.features.widgetDiary.views.LocalImageStoreWidget
 import dev.gaborbiro.dailymacros.features.widgetDiary.views.DiaryWidgetView
 import dev.gaborbiro.dailymacros.features.widgetDiary.workers.ReloadWorker
@@ -102,9 +102,9 @@ class DiaryWidgetScreen : GlanceAppWidget() {
                             if (recentRecords.isNotEmpty() || topTemplates.isNotEmpty()) {
                                 addAll(recentRecords.take(3))
                                 if (topTemplates.isNotEmpty()) {
-                                    add(ListUIModelQuickPickHeader)
+                                    add(ListUiModelQuickPickHeader)
                                     addAll(topTemplates)
-                                    add(ListUIModelQuickPickFooter)
+                                    add(ListUiModelQuickPickFooter)
                                 }
                                 addAll(recentRecords.drop(3))
                             }
@@ -143,7 +143,7 @@ class DiaryWidgetScreen : GlanceAppWidget() {
     }
 
     sealed interface WidgetUiState {
-        data class Success(val items: List<ListUIModelBase>, val imageStore: ImageStore) :
+        data class Success(val items: List<ListUiModelBase>, val imageStore: ImageStore) :
             WidgetUiState
 
         object Error : WidgetUiState

@@ -6,9 +6,9 @@ import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.TravelDay
 import dev.gaborbiro.dailymacros.features.common.model.ChangeDirection
 import dev.gaborbiro.dailymacros.features.common.model.ChangeIndicator
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelWeeklyReport
-import dev.gaborbiro.dailymacros.features.common.model.WeeklySummaryMacroProgressItem
+import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
+import dev.gaborbiro.dailymacros.features.common.model.ListUiModelWeeklySummary
+import dev.gaborbiro.dailymacros.features.common.model.WeeklySummaryEntry
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.settings.model.Target
@@ -27,10 +27,10 @@ internal class OverviewUIMapper(
         records: List<Record>,
         targets: Targets,
         showDay: Boolean,
-    ): List<ListUIModelBase> {
+    ): List<ListUiModelBase> {
         val weekFields = WeekFields.of(Locale.getDefault())
         val firstDayOfWeek = weekFields.firstDayOfWeek
-        val result = mutableListOf<ListUIModelBase>()
+        val result = mutableListOf<ListUiModelBase>()
         val currentWeek = mutableListOf<TravelDay>()
         var previousWeek: List<TravelDay>? = null
         val today = LocalDate.now()
@@ -69,7 +69,7 @@ internal class OverviewUIMapper(
         week: List<TravelDay>,
         previousWeek: List<TravelDay>?,
         targets: Targets,
-    ): ListUIModelWeeklyReport? {
+    ): ListUiModelWeeklySummary? {
         if (week.isEmpty()) return null
 
         // 1. Compute total macros per day for a given week
@@ -160,9 +160,9 @@ internal class OverviewUIMapper(
 
         val weekStart = week.minOf { it.day }
 
-        return ListUIModelWeeklyReport(
+        return ListUiModelWeeklySummary(
             listItemId = weekStart.toEpochDay(),
-            weeklyProgress = buildWeeklySummaryMacroItems(avgMacros, targets, previousWeekMacros),
+            entries = buildWeeklySummaryMacroItems(avgMacros, targets, previousWeekMacros),
             averageAdherence100Percentage = (avgAdherence * 100).roundToInt(),
             adherenceChange = calculateChangeIndicator(avgAdherence, prevWeekAvgAdherence),
         )
@@ -176,11 +176,11 @@ internal class OverviewUIMapper(
         macros: Macros,
         targets: Targets,
         previousWeekMacros: Macros? = null,
-    ): List<WeeklySummaryMacroProgressItem> {
+    ): List<WeeklySummaryEntry> {
         return buildList {
             targets.calories.takeIf { it.enabled }?.let {
                 add(
-                    WeeklySummaryMacroProgressItem(
+                    WeeklySummaryEntry(
                         title = "Calories",
                         progress0to1 = macrosUIMapper.targetProgress(it, macros.calories?.toFloat() ?: 0f) ?: 0f,
                         progressLabel = macrosUIMapper.formatCalories(macros.calories, isShort = false, withLabel = false) ?: "0",
@@ -195,7 +195,7 @@ internal class OverviewUIMapper(
             }
             targets.protein.takeIf { it.enabled }?.let {
                 add(
-                    WeeklySummaryMacroProgressItem(
+                    WeeklySummaryEntry(
                         title = "Protein",
                         progress0to1 = macrosUIMapper.targetProgress(it, macros.protein ?: 0f) ?: 0f,
                         progressLabel = macrosUIMapper.formatProtein(macros.protein, isShort = false, withLabel = false) ?: "0g",
@@ -210,7 +210,7 @@ internal class OverviewUIMapper(
             }
             targets.salt.takeIf { it.enabled }?.let {
                 add(
-                    WeeklySummaryMacroProgressItem(
+                    WeeklySummaryEntry(
                         title = "Salt",
                         progress0to1 = macrosUIMapper.targetProgress(it, macros.salt ?: 0f) ?: 0f,
                         progressLabel = macrosUIMapper.formatSalt(macros.salt, isShort = false, withLabel = false) ?: "0.0g",
@@ -225,7 +225,7 @@ internal class OverviewUIMapper(
             }
             targets.fibre.takeIf { it.enabled }?.let {
                 add(
-                    WeeklySummaryMacroProgressItem(
+                    WeeklySummaryEntry(
                         title = "Fibre",
                         progress0to1 = macrosUIMapper.targetProgress(it, macros.fibre ?: 0f) ?: 0f,
                         progressLabel = macrosUIMapper.formatFibre(macros.fibre, isShort = false, withLabel = false) ?: "0g",
@@ -240,7 +240,7 @@ internal class OverviewUIMapper(
             }
             targets.carbs.takeIf { it.enabled }?.let {
                 add(
-                    WeeklySummaryMacroProgressItem(
+                    WeeklySummaryEntry(
                         title = "Carbs",
                         progress0to1 = macrosUIMapper.targetProgress(it, macros.carbs ?: 0f) ?: 0f,
                         progressLabel = macrosUIMapper.formatCarbs(macros.carbs, sugar = null, addedSugar = null, isShort = false, withLabel = false)
@@ -256,7 +256,7 @@ internal class OverviewUIMapper(
             }
             targets.ofWhichSugar.takeIf { it.enabled }?.let {
                 add(
-                    WeeklySummaryMacroProgressItem(
+                    WeeklySummaryEntry(
                         title = "sugar",
                         progress0to1 = macrosUIMapper.targetProgress(it, macros.ofWhichSugar ?: 0f) ?: 0f,
                         progressLabel = macrosUIMapper.formatSugar(macros.ofWhichSugar, isShort = false, withLabel = false) ?: "0g",
@@ -271,7 +271,7 @@ internal class OverviewUIMapper(
             }
             targets.fat.takeIf { it.enabled }?.let {
                 add(
-                    WeeklySummaryMacroProgressItem(
+                    WeeklySummaryEntry(
                         title = "Fat",
                         progress0to1 = macrosUIMapper.targetProgress(it, macros.fat ?: 0f) ?: 0f,
                         progressLabel = macrosUIMapper.formatFat(macros.fat, saturated = null, isShort = false, withLabel = false)
@@ -287,7 +287,7 @@ internal class OverviewUIMapper(
             }
             targets.ofWhichSaturated.takeIf { it.enabled }?.let {
                 add(
-                    WeeklySummaryMacroProgressItem(
+                    WeeklySummaryEntry(
                         title = "saturated",
                         progress0to1 = macrosUIMapper.targetProgress(it, macros.ofWhichSaturated ?: 0f) ?: 0f,
                         progressLabel = macrosUIMapper.formatSaturatedFat(macros.ofWhichSaturated, isShort = false, withLabel = false) ?: "0g",

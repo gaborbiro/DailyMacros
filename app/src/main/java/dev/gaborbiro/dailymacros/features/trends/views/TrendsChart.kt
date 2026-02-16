@@ -36,14 +36,14 @@ import com.patrykandpatrick.vico.core.entry.ChartEntry
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.patrykandpatrick.vico.core.marker.MarkerLabelFormatter
 import com.patrykandpatrick.vico.core.scroll.InitialScroll
-import dev.gaborbiro.dailymacros.features.trends.model.MacroChartData
+import dev.gaborbiro.dailymacros.features.trends.model.TrendsChartUiModel
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-internal fun MacroChart(
+internal fun TrendsChart(
     modifier: Modifier = Modifier,
-    chartData: MacroChartData,
+    chartData: TrendsChartUiModel,
     chartScrollState: ChartScrollState,
     startAxis: AxisRenderer<AxisPosition.Vertical.Start>,
     showEveryXLabel: Int,

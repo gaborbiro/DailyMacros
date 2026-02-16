@@ -19,7 +19,7 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDouble
-import dev.gaborbiro.dailymacros.features.widgetDiary.util.PreviewContext
+import dev.gaborbiro.dailymacros.features.widgetDiary.util.WidgetPreviewContext
 
 @Composable
 fun ButtonLayout(
@@ -88,7 +88,7 @@ private fun WidgetButton(
 @Composable
 @OptIn(ExperimentalGlancePreviewApi::class)
 private fun ButtonLayoutPreview() {
-    PreviewContext {
+    WidgetPreviewContext {
         ButtonLayout(
             modifier = GlanceModifier
                 .fillMaxWidth()

@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,10 +31,9 @@ import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
-import dev.gaborbiro.dailymacros.design.ViewPreviewContext
+import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.common.horizontalScrollWithBar
 import dev.gaborbiro.dailymacros.features.common.views.LocalImage
-import dev.gaborbiro.dailymacros.features.common.views.PreviewImageStoreProvider
 
 
 @Composable
@@ -143,17 +141,15 @@ fun ImageStrip(
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun ImageStripPreview() {
     ViewPreviewContext {
-        PreviewImageStoreProvider {
-            ImageStrip(
-                images = listOf("1", "2"),
-                showAddPhotoButtons = true,
-                onImageTapped = {},
-                onImageDeleteTapped = {},
-                onAddImageViaCameraTapped = {},
-                onAddImageViaPickerTapped = {},
-                onInfoButtonTapped = {},
-            )
-        }
+        ImageStrip(
+            images = listOf("1", "2"),
+            showAddPhotoButtons = true,
+            onImageTapped = {},
+            onImageDeleteTapped = {},
+            onAddImageViaCameraTapped = {},
+            onAddImageViaPickerTapped = {},
+            onInfoButtonTapped = {},
+        )
     }
 }
 
@@ -162,16 +158,14 @@ private fun ImageStripPreview() {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun ImageStripPreviewViewOnly() {
     ViewPreviewContext {
-        PreviewImageStoreProvider {
-            ImageStrip(
-                images = listOf("1", "2"),
-                showAddPhotoButtons = false,
-                onImageTapped = {},
-                onImageDeleteTapped = {},
-                onAddImageViaCameraTapped = {},
-                onAddImageViaPickerTapped = {},
-                onInfoButtonTapped = {},
-            )
-        }
+        ImageStrip(
+            images = listOf("1", "2"),
+            showAddPhotoButtons = false,
+            onImageTapped = {},
+            onImageDeleteTapped = {},
+            onAddImageViaCameraTapped = {},
+            onAddImageViaPickerTapped = {},
+            onInfoButtonTapped = {},
+        )
     }
 }

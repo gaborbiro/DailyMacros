@@ -36,12 +36,11 @@ import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.scroll.ChartScrollState
 import com.patrykandpatrick.vico.core.axis.Axis
 import dev.gaborbiro.dailymacros.design.PaddingDefault
-import dev.gaborbiro.dailymacros.design.PreviewContext
-import dev.gaborbiro.dailymacros.features.common.views.PreviewImageStoreProvider
+import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
 import dev.gaborbiro.dailymacros.features.trends.model.DailyAggregationMode
-import dev.gaborbiro.dailymacros.features.trends.model.MacroChartData
-import dev.gaborbiro.dailymacros.features.trends.model.MacroChartDataPoint
-import dev.gaborbiro.dailymacros.features.trends.model.MacroChartDataset
+import dev.gaborbiro.dailymacros.features.trends.model.TrendsChartUiModel
+import dev.gaborbiro.dailymacros.features.trends.model.ChartDataPoint
+import dev.gaborbiro.dailymacros.features.trends.model.ChartDataset
 import dev.gaborbiro.dailymacros.features.trends.model.TimeScale
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsSettingsUIModel
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsViewState
@@ -143,11 +142,11 @@ internal fun TrendsView(
                 else -> 1
             }
 
-            key(viewState.chartsData, timeScale) {
+            key(viewState.charts, timeScale) {
                 val chartScrollState = ChartScrollState()
 
-                viewState.chartsData.forEach { chartData ->
-                    MacroChart(
+                viewState.charts.forEach { chartData ->
+                    TrendsChart(
                         modifier = Modifier
                             .padding(start = PaddingDefault),
                         chartData = chartData,
@@ -159,10 +158,10 @@ internal fun TrendsView(
             }
         }
 
-        if (viewState.trendsSettings is TrendsSettingsUIModel.Show) {
+        if (viewState.settings is TrendsSettingsUIModel.Show) {
             TrendsSettingsBottomSheet(
-                dailyAggregationMode = viewState.trendsSettings.dailyAggregationMode,
-                qualifiedDaysThreshold = viewState.trendsSettings.qualifiedDaysThreshold,
+                dailyAggregationMode = viewState.settings.dailyAggregationMode,
+                qualifiedDaysThreshold = viewState.settings.qualifiedDaysThreshold,
                 onDismissRequested = onSettingsCloseRequested,
                 onAggregationModeChanged = { onSettingsAggregationModeChanged(it, timeScale) },
                 onThresholdChanged = { onSettingsThresholdChanged(it, timeScale) },
@@ -176,46 +175,44 @@ internal fun TrendsView(
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun TrendsViewPreview() {
     PreviewContext {
-        PreviewImageStoreProvider {
-            TrendsView(
-                viewState = TrendsViewState(
-                    chartsData = previewData,
-                ),
-                onTimeScaleSelected = {},
-                onBackNavigate = {},
-                onSettingsActionButtonClicked = {},
-                onSettingsCloseRequested = {},
-                onSettingsAggregationModeChanged = { _, _ -> },
-                onSettingsThresholdChanged = { _, _ -> },
-            )
-        }
+        TrendsView(
+            viewState = TrendsViewState(
+                charts = previewData,
+            ),
+            onTimeScaleSelected = {},
+            onBackNavigate = {},
+            onSettingsActionButtonClicked = {},
+            onSettingsCloseRequested = {},
+            onSettingsAggregationModeChanged = { _, _ -> },
+            onSettingsThresholdChanged = { _, _ -> },
+        )
     }
 }
 
 private val previewData = listOf(
-    MacroChartData(
+    TrendsChartUiModel(
         datasets = listOf(
-            MacroChartDataset(
+            ChartDataset(
                 name = "Chart",
                 color = androidx.compose.ui.graphics.Color.Blue,
                 set = listOf(
-                    MacroChartDataPoint(1, "test", 1.0),
-                    MacroChartDataPoint(2, "test", 2.0)
+                    ChartDataPoint(1, "test", 1.0),
+                    ChartDataPoint(2, "test", 2.0)
                 ),
-                now = MacroChartDataPoint(3, "test", 3.0),
+                now = ChartDataPoint(3, "test", 3.0),
             ),
         )
     ),
-    MacroChartData(
+    TrendsChartUiModel(
         datasets = listOf(
-            MacroChartDataset(
+            ChartDataset(
                 name = "Chart2",
                 color = androidx.compose.ui.graphics.Color.Red,
                 set = listOf(
-                    MacroChartDataPoint(1, "test", 3.0),
-                    MacroChartDataPoint(2, "test", 2.0)
+                    ChartDataPoint(1, "test", 3.0),
+                    ChartDataPoint(2, "test", 2.0)
                 ),
-                now = MacroChartDataPoint(3, "test", 1.0),
+                now = ChartDataPoint(3, "test", 1.0),
             )
         )
     )

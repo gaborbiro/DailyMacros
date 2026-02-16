@@ -18,17 +18,17 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
 import dev.gaborbiro.dailymacros.design.PaddingWidgetHalf
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelBase
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPick
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPickFooter
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelQuickPickHeader
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelRecord
+import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
+import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPick
+import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPickFooter
+import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPickHeader
+import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
-import dev.gaborbiro.dailymacros.features.widgetDiary.util.PreviewContext
+import dev.gaborbiro.dailymacros.features.widgetDiary.util.WidgetPreviewContext
 
 @Composable
 internal fun DiaryWidgetList(
-    items: List<ListUIModelBase>,
+    items: List<ListUiModelBase>,
     recordImageTapActionProvider: @Composable (recordId: Long) -> Action,
     recordBodyTapActionProvider: @Composable (recordId: Long) -> Action,
     quickPickImageTapActionProvider: @Composable (templateId: Long) -> Action,
@@ -43,7 +43,7 @@ internal fun DiaryWidgetList(
             itemId = { _, item -> item.listItemId },
         ) { _, item ->
             when (item) {
-                is ListUIModelRecord -> {
+                is ListUiModelRecord -> {
                     Column(
                         modifier = GlanceModifier
                             .fillMaxWidth()
@@ -61,7 +61,7 @@ internal fun DiaryWidgetList(
                     }
                 }
 
-                is ListUIModelQuickPickHeader -> {
+                is ListUiModelQuickPickHeader -> {
                     Column(
                         modifier = GlanceModifier
                             .fillMaxWidth()
@@ -75,7 +75,7 @@ internal fun DiaryWidgetList(
                     }
                 }
 
-                is ListUIModelQuickPick -> {
+                is ListUiModelQuickPick -> {
                     Column(
                         modifier = GlanceModifier
                             .fillMaxWidth()
@@ -90,7 +90,7 @@ internal fun DiaryWidgetList(
                     }
                 }
 
-                is ListUIModelQuickPickFooter -> {
+                is ListUiModelQuickPickFooter -> {
                     Column(
                         modifier = GlanceModifier
                             .fillMaxWidth()
@@ -117,10 +117,10 @@ internal fun DiaryWidgetList(
 @Composable
 @OptIn(ExperimentalGlancePreviewApi::class)
 private fun WidgetListPreview() {
-    PreviewContext {
+    WidgetPreviewContext {
         DiaryWidgetList(
             items = listOf(
-                ListUIModelRecord(
+                ListUiModelRecord(
                     recordId = 1,
                     templateId = 1L,
                     title = "Breakfast",
@@ -137,8 +137,8 @@ private fun WidgetListPreview() {
                     showLoadingIndicator = false,
                     showAddToQuickPicksMenuItem = true,
                 ),
-                ListUIModelQuickPickHeader,
-                ListUIModelQuickPick(
+                ListUiModelQuickPickHeader,
+                ListUiModelQuickPick(
                     templateId = 1,
                     title = "Breakfast",
                     images = listOf("", ""),
@@ -151,7 +151,7 @@ private fun WidgetListPreview() {
                         fibre = "fibre 4",
                     ),
                 ),
-                ListUIModelQuickPick(
+                ListUiModelQuickPick(
                     templateId = 2,
                     title = "Lunch",
                     images = listOf("", ""),
@@ -164,7 +164,7 @@ private fun WidgetListPreview() {
                         fibre = "fibre 4",
                     ),
                 ),
-                ListUIModelQuickPick(
+                ListUiModelQuickPick(
                     templateId = 3,
                     title = "Dinner",
                     images = listOf("", ""),
@@ -177,8 +177,8 @@ private fun WidgetListPreview() {
                         fibre = "fibre 4",
                     ),
                 ),
-                ListUIModelQuickPickFooter,
-                ListUIModelRecord(
+                ListUiModelQuickPickFooter,
+                ListUiModelRecord(
                     recordId = 2L,
                     templateId = 1L,
                     timestamp = "Yesterday",
@@ -195,7 +195,7 @@ private fun WidgetListPreview() {
                     showLoadingIndicator = false,
                     showAddToQuickPicksMenuItem = true,
                 ),
-                ListUIModelRecord(
+                ListUiModelRecord(
                     recordId = 3L,
                     templateId = 1L,
                     timestamp = "Yesterday",

@@ -2,8 +2,8 @@ package dev.gaborbiro.dailymacros.features.common
 
 import android.icu.text.DecimalFormat
 import android.util.Range
-import dev.gaborbiro.dailymacros.features.common.model.DailyMacroProgressItem
-import dev.gaborbiro.dailymacros.features.common.model.ListUIModelDailyMacroProgress
+import dev.gaborbiro.dailymacros.features.common.model.DailySummaryEntry
+import dev.gaborbiro.dailymacros.features.common.model.ListUiModelDailySummary
 import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
 import dev.gaborbiro.dailymacros.repo.settings.model.Target
@@ -17,7 +17,7 @@ internal class MacrosUIMapper(
     fun mapDailyMacroProgressTable(
         day: TravelDay,
         targets: Targets,
-    ): ListUIModelDailyMacroProgress {
+    ): ListUiModelDailySummary {
         val records = day.records
         val totalCalories = records.sumOf { it.template.macros?.calories ?: 0 }
         val totalProtein =
@@ -51,18 +51,18 @@ internal class MacrosUIMapper(
 
         val infoMessage = buildTimezoneInfo(day)
 
-        return ListUIModelDailyMacroProgress(
+        return ListUiModelDailySummary(
             listItemId = day.day.atStartOfDay(day.startZone).toInstant().toEpochMilli(),
             dayTitle = dateUIMapper.mapDayTitleTimestamp(day.day),
             infoMessage = infoMessage,
-            progress = progressItems,
+            entries = progressItems,
         )
     }
 
     fun buildMacroProgressItems(
         macros: Macros,
         targets: Targets,
-    ): List<DailyMacroProgressItem> {
+    ): List<DailySummaryEntry> {
         fun gramRangeLabel(target: Target): String =
             "${target.min ?: "?"}-${target.max ?: "?"}"
 
@@ -80,7 +80,7 @@ internal class MacrosUIMapper(
                 }
                 val rangeLabel = "${min}k-${max}k"
                 add(
-                    DailyMacroProgressItem(
+                    DailySummaryEntry(
                         title = "Calories",
                         progress0to1 = targetProgress(it, macros.calories?.toFloat() ?: 0f) ?: 0f,
                         progressLabel = formatCalories(macros.calories, isShort = false, withLabel = false) ?: "0",
@@ -92,7 +92,7 @@ internal class MacrosUIMapper(
             }
             targets.protein.takeIf { it.enabled }?.let {
                 add(
-                    DailyMacroProgressItem(
+                    DailySummaryEntry(
                         title = "Protein",
                         progress0to1 = targetProgress(it, macros.protein ?: 0f) ?: 0f,
                         progressLabel = formatProtein(macros.protein, isShort = false, withLabel = false) ?: "0g",
@@ -104,7 +104,7 @@ internal class MacrosUIMapper(
             }
             targets.salt.takeIf { it.enabled }?.let {
                 add(
-                    DailyMacroProgressItem(
+                    DailySummaryEntry(
                         title = "Salt",
                         progress0to1 = targetProgress(it, macros.salt ?: 0f) ?: 0f,
                         progressLabel = formatSalt(macros.salt, isShort = false, withLabel = false) ?: "0.0g",
@@ -116,7 +116,7 @@ internal class MacrosUIMapper(
             }
             targets.fibre.takeIf { it.enabled }?.let {
                 add(
-                    DailyMacroProgressItem(
+                    DailySummaryEntry(
                         title = "Fibre",
                         progress0to1 = targetProgress(it, macros.fibre ?: 0f) ?: 0f,
                         progressLabel = formatFibre(macros.fibre, isShort = false, withLabel = false) ?: "0g",
@@ -128,7 +128,7 @@ internal class MacrosUIMapper(
             }
             targets.carbs.takeIf { it.enabled }?.let {
                 add(
-                    DailyMacroProgressItem(
+                    DailySummaryEntry(
                         title = "Carbs",
                         progress0to1 = targetProgress(it, macros.carbs ?: 0f) ?: 0f,
                         progressLabel = formatCarbs(macros.carbs, sugar = null, addedSugar = null, isShort = false, withLabel = false)
@@ -141,7 +141,7 @@ internal class MacrosUIMapper(
             }
             targets.ofWhichSugar.takeIf { it.enabled }?.let {
                 add(
-                    DailyMacroProgressItem(
+                    DailySummaryEntry(
                         title = "sugar",
                         progress0to1 = targetProgress(it, macros.ofWhichSugar ?: 0f) ?: 0f,
                         progressLabel = formatSugar(macros.ofWhichSugar, isShort = false, withLabel = false) ?: "0g",
@@ -153,7 +153,7 @@ internal class MacrosUIMapper(
             }
             targets.fat.takeIf { it.enabled }?.let {
                 add(
-                    DailyMacroProgressItem(
+                    DailySummaryEntry(
                         title = "Fat",
                         progress0to1 = targetProgress(it, macros.fat ?: 0f) ?: 0f,
                         progressLabel = formatFat(macros.fat, saturated = null, isShort = false, withLabel = false)
@@ -166,7 +166,7 @@ internal class MacrosUIMapper(
             }
             targets.ofWhichSaturated.takeIf { it.enabled }?.let {
                 add(
-                    DailyMacroProgressItem(
+                    DailySummaryEntry(
                         title = "saturated",
                         progress0to1 = targetProgress(it, macros.ofWhichSaturated ?: 0f) ?: 0f,
                         progressLabel = formatSaturatedFat(macros.ofWhichSaturated, isShort = false, withLabel = false) ?: "0g",
