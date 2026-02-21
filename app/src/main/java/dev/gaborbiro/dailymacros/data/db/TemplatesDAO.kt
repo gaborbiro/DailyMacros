@@ -33,48 +33,42 @@ interface TemplatesDAO {
     @Transaction
     @Query(
         """
-WITH Base AS (
+WITH Usage AS (
+    SELECT
+        templateId,
+        COUNT(*) AS usageCount
+    FROM records
+    GROUP BY templateId
+),
+Base AS (
     SELECT
         T.*,
-        QO.overrideType AS overrideType,
-        COUNT(R._id)   AS recordCount,
-
-        -- materialized sort keys (must be real columns for ORDER BY with UNION)
-        CASE WHEN QO.overrideType = 'INCLUDE' THEN 0 ELSE 1 END AS includeRank,
-        COALESCE(QO.sortOrder, 999999) AS sortOrderKey
+        COALESCE(U.usageCount, 0) AS usageCount,
+        QO.overrideType
     FROM templates T
-    LEFT JOIN records R ON R.templateId = T._id
-    LEFT JOIN QuickPickOverride QO ON QO.templateId = T._id
+    LEFT JOIN Usage U
+        ON U.templateId = T._id
+    LEFT JOIN QuickPickOverride QO
+        ON QO.templateId = T._id
     WHERE COALESCE(QO.overrideType, '') != 'EXCLUDE'
-    GROUP BY T._id
-    HAVING COUNT(R._id) > 1 OR QO.overrideType = 'INCLUDE'
 ),
-IncludeCount AS (
-    SELECT COUNT(*) AS cnt
+Ranked AS (
+    SELECT
+        *,
+        ROW_NUMBER() OVER (
+            PARTITION BY (overrideType IS NULL)
+            ORDER BY usageCount DESC
+        ) AS regularRank
     FROM Base
-    WHERE overrideType = 'INCLUDE'
 )
 
 SELECT *
-FROM (
-    SELECT *
-    FROM Base
-    WHERE overrideType = 'INCLUDE'
-
-    UNION ALL
-
-    SELECT *
-    FROM Base
-    WHERE overrideType IS NULL OR overrideType != 'INCLUDE'
-    ORDER BY
-        sortOrderKey,
-        recordCount DESC
-    LIMIT MAX(:count - (SELECT cnt FROM IncludeCount), 0)
-)
+FROM Ranked
+WHERE overrideType = 'INCLUDE'
+   OR (overrideType IS NULL AND regularRank <= :count)
 ORDER BY
-    includeRank,
-    sortOrderKey,
-    recordCount DESC
+    CASE WHEN overrideType = 'INCLUDE' THEN 0 ELSE 1 END,
+    usageCount DESC;
     """
     )
     suspend fun getQuickPicks(count: Int): List<TemplateJoined>

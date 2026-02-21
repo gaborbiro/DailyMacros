@@ -50,8 +50,8 @@ internal class RecordsRepositoryImpl(
         .let(mapper::map)
 
     override fun getFlowBySearchTerm(
-        search: String? /* = null */,
-        sinceEpochMillis: Long /* = 0L */,
+        search: String?, /* = null */
+        sinceEpochMillis: Long, /* = 0L */
     ): Flow<List<Record>> {
         return try {
             val raw: Flow<List<RecordJoined>> = if (search.isNullOrEmpty()) {
