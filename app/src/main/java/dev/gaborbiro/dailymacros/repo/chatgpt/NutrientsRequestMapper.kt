@@ -15,7 +15,7 @@ import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.Role
 
 internal fun MacrosRequest.toApiModel(): ChatGPTRequest {
     return ChatGPTRequest(
-        model = "gpt-5.1-2025-11-13",
+        model = model,
         input = listOf(
             ContentEntry(
                 role = Role.system,
@@ -116,7 +116,7 @@ internal fun ChatGPTResponse.toMacrosResponse(): MacrosResponse {
     val resultJson: String? = this.output
         .lastOrNull {
             it.role == Role.assistant &&
-                    it.content.any { it is OutputContent.Text }
+                    it.content?.any { it is OutputContent.Text } == true
         }
         ?.content
         ?.filterIsInstance<OutputContent.Text>()

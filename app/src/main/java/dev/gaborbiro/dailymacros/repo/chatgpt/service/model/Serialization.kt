@@ -43,7 +43,7 @@ internal class ContentEntryOutputContentDeserializer :
         val role = context.deserialize<Role>(obj.get("role"), Role::class.java)
 
         val contentArray = obj.getAsJsonArray("content")
-        val contents = contentArray.map { element ->
+        val contents = contentArray?.map { element ->
             context.deserialize<OutputContent>(element, OutputContent::class.java)
         }
 

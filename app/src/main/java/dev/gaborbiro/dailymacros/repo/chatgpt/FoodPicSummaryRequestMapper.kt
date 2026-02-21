@@ -14,7 +14,7 @@ import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.Role
 
 internal fun FoodPicSummaryRequest.toApiModel(): ChatGPTRequest {
     return ChatGPTRequest(
-        model = "gpt-4.1-nano-2025-04-14",
+        model = model,
         input = listOf(
             ContentEntry(
                 role = Role.system,
@@ -76,7 +76,7 @@ internal fun ChatGPTResponse.toFoodPicSummaryResponse(): FoodPicSummaryResponse 
     val resultJson: String? = this.output
         .lastOrNull {
             it.role == Role.assistant &&
-                    it.content.any { it is OutputContent.Text }
+                    it.content?.any { it is OutputContent.Text } == true
         }
         ?.content
         ?.filterIsInstance<OutputContent.Text>()
