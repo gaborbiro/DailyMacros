@@ -219,16 +219,17 @@ class ModalActivity : AppCompatActivity() {
 
             AppTheme {
                 CompositionLocalProvider(LocalImageStore provides imageStore) {
-                    viewState.dialogs.forEach {
-                        Dialog(
-                            dialogHandle = it,
-                            errorMessages = viewModel.uiUpdates
-                                .filterIsInstance<ModalUIUpdates.Error>()
-                                .map {
-                                    it.message
-                                }
-                        )
-                    }
+                    val errorMessages = viewModel.uiUpdates
+                        .filterIsInstance<ModalUIUpdates.Error>()
+                        .map { it.message }
+                    Dialog(
+                        dialogHandle = viewState.rootDialog,
+                        errorMessages = errorMessages,
+                    )
+                    Dialog(
+                        dialogHandle = viewState.overlayDialog,
+                        errorMessages = errorMessages,
+                    )
                 }
             }
 
@@ -240,10 +241,16 @@ class ModalActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent, caller: ComponentCaller) {
         super.onNewIntent(intent, caller)
-        val action = getActionFromIntent(intent)
-        action?.let {
-            handleAction(action, intent)
-        }
+        getImagesFromIntent(intent).takeIf { it.isNotEmpty() }
+            ?.let {
+                viewModel.onImagesShared(it)
+            }
+            ?: run {
+                val action = getActionFromIntent(intent)
+                action?.let {
+                    handleAction(action, intent)
+                }
+            }
     }
 
     private fun getActionFromIntent(intent: Intent = this.intent): Action? {
@@ -253,7 +260,7 @@ class ModalActivity : AppCompatActivity() {
         return action
     }
 
-    private fun getImagesFromIntent(): List<Uri> {
+    private fun getImagesFromIntent(intent: Intent = this.intent): List<Uri> {
         return when (intent.action) {
             Intent.ACTION_SEND -> {
                 listOfNotNull(intent.getParcelableExtra(Intent.EXTRA_STREAM))

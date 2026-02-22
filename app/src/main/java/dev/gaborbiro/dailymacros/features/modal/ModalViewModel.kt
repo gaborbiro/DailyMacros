@@ -84,21 +84,17 @@ internal class ModalViewModel(
 
     @UiThread
     fun onCreateRecordWithCameraDeeplink() {
-        pushDialog(
-            DialogHandle.ImageInput(type = ImageInputType.Camera)
-        )
+        setRoot(DialogHandle.ImageInput(type = ImageInputType.Camera))
     }
 
     @UiThread
     fun onCreateRecordWithBrowseImagesDeeplink() {
-        pushDialog(
-            DialogHandle.ImageInput(type = ImageInputType.BrowseImages)
-        )
+        setRoot(DialogHandle.ImageInput(type = ImageInputType.BrowseImages))
     }
 
     @UiThread
     fun onCreateRecordWithTextDeeplink() {
-        pushDialog(
+        setRoot(
             DialogHandle.RecordDetailsDialog.Edit(
                 title = TextFieldValue(),
                 titleHint = "Describe your meal (or snap a photo)",
@@ -114,7 +110,7 @@ internal class ModalViewModel(
         runSafely {
             getRecordImageUseCase.execute(recordId, thumbnail = false)
                 ?.let { imageDialog ->
-                    pushDialog(imageDialog)
+                    setRoot(imageDialog)
                 }
                 ?: run {
                     _viewState.update { it.copy(close = true) }
@@ -126,7 +122,7 @@ internal class ModalViewModel(
         runSafely {
             getTemplateImageUseCase.execute(templateId, thumbnail = false)
                 ?.let { imageDialog ->
-                    pushDialog(imageDialog)
+                    setRoot(imageDialog)
                 }
                 ?: run {
                     _viewState.update { it.copy(close = true) }
@@ -185,7 +181,7 @@ internal class ModalViewModel(
                         titleHint = "Describe your meal",
                         titleValidationError = null,
                     )
-                    setDialogs(dialog)
+                    setRoot(dialog)
                 }
         }
     }
@@ -194,9 +190,7 @@ internal class ModalViewModel(
     fun onSelectRecordActionDeeplink(recordId: Long) {
         runSafely {
             val title = recordsRepository.get(recordId)?.template?.name ?: ""
-            pushDialog(
-                DialogHandle.SelectRecordActionDialog(recordId, title)
-            )
+            setRoot(DialogHandle.SelectRecordActionDialog(recordId, title))
         }
     }
 
@@ -206,9 +200,7 @@ internal class ModalViewModel(
             val title =
                 recordsRepository.getRecordsByTemplate(templateId).firstOrNull()?.template?.name
                     ?: ""
-            pushDialog(
-                DialogHandle.SelectTemplateActionDialog(templateId, title)
-            )
+            setRoot(DialogHandle.SelectTemplateActionDialog(templateId, title))
         }
     }
 
@@ -216,46 +208,41 @@ internal class ModalViewModel(
     fun onImagesSelected(uris: List<Uri>, imageInputDialog: DialogHandle.ImageInput) {
         recogniseFoodJob?.cancel()
         recogniseFoodJob = runSafely {
-            var dialogs = _viewState.value.dialogs
             val persistedFilenames = uris.map {
                 saveImageUseCase.execute(it)
             }
 
-            dialogs = dialogs - imageInputDialog
-
-            dialogs = dialogs.replaceInstances<DialogHandle.RecordDetailsDialog.Edit> {
-                it.copy(
-                    images = it.images + persistedFilenames,
-                    recognisedFood = null, // will be replaced by AI
-                    showProgressIndicator = true,
-                )
-            }
-
-            dialogs = dialogs.replaceInstances<DialogHandle.RecordDetailsDialog.View> {
-                it.copy(
-                    images = it.images + persistedFilenames,
-                )
-            }
-
-            if (dialogs.isEmpty()) {
-                dialogs = listOf(
-                    DialogHandle.RecordDetailsDialog.Edit(
-                        title = TextFieldValue(),
-                        titleHint = "Describe your meal (or tap one of the AI suggestions)",
-                        description = TextFieldValue(),
-                        images = persistedFilenames,
-                        recognisedFood = null,
-                        showProgressIndicator = true,
+            when (val root = _viewState.value.rootDialog) {
+                is DialogHandle.RecordDetailsDialog.Edit -> {
+                    val updatedImages = root.images + persistedFilenames
+                    setRoot(
+                        root.copy(
+                            images = updatedImages,
+                            recognisedFood = null,
+                            showProgressIndicator = true,
+                        )
                     )
-                )
-            }
-
-            dialogs.filterIsInstance<DialogHandle.RecordDetailsDialog.Edit>().firstOrNull()
-                ?.let {
-                    runFoodRecognition(it.images)
+                    runFoodRecognition(updatedImages)
                 }
 
-            setDialogs(*dialogs.toTypedArray())
+                is DialogHandle.RecordDetailsDialog.View -> {
+                    setRoot(root.copy(images = root.images + persistedFilenames))
+                }
+
+                else -> {
+                    setRoot(
+                        DialogHandle.RecordDetailsDialog.Edit(
+                            title = TextFieldValue(),
+                            titleHint = "Describe your meal (or tap one of the AI suggestions)",
+                            description = TextFieldValue(),
+                            images = persistedFilenames,
+                            recognisedFood = null,
+                            showProgressIndicator = true,
+                        )
+                    )
+                    runFoodRecognition(persistedFilenames)
+                }
+            }
         }
     }
 
@@ -267,7 +254,7 @@ internal class ModalViewModel(
                 saveImageUseCase.execute(it)
             }
 
-            setDialogs(
+            setRoot(
                 DialogHandle.RecordDetailsDialog.Edit(
                     title = TextFieldValue(),
                     titleHint = "Describe your meal (or tap one of the AI suggestions)",
@@ -285,7 +272,7 @@ internal class ModalViewModel(
         runSafely {
             try {
                 val recognisedFood = foodRecognitionUseCase.execute(images)
-                updateDialogsOfType<DialogHandle.RecordDetailsDialog.Edit> {
+                updateRoot<DialogHandle.RecordDetailsDialog.Edit> {
                     val title = if (it.title.text.isBlank()) {
                         val title = recognisedFood.title ?: ""
                         TextFieldValue(title, selection = TextRange(title.length))
@@ -301,7 +288,7 @@ internal class ModalViewModel(
             } catch (t: Throwable) {
                 throw t
             } finally {
-                updateDialogsOfType<DialogHandle.RecordDetailsDialog.Edit> {
+                updateRoot<DialogHandle.RecordDetailsDialog.Edit> {
                     it.copy(showProgressIndicator = false)
                 }
             }
@@ -309,12 +296,16 @@ internal class ModalViewModel(
     }
 
     fun onNoImageSelected() {
-        popDialog()
+        if (_viewState.value.overlayDialog is DialogHandle.ImageInput) {
+            popOverlay()
+        } else {
+            closeAll()
+        }
     }
 
     @UiThread
     fun onRepeatRecordButtonTapped(recordId: Long) {
-        popDialog()
+        closeAll()
         runSafely {
             repeatRecordUseCase.execute(recordId)
             DiaryWidgetScreen.reload()
@@ -323,7 +314,7 @@ internal class ModalViewModel(
 
     @UiThread
     fun onRepeatTemplateButtonTapped(templateId: Long) {
-        popDialog()
+        closeAll()
         runSafely {
             createRecordFromTemplateUseCase.execute(templateId)
             DiaryWidgetScreen.reload()
@@ -347,7 +338,7 @@ internal class ModalViewModel(
 
     @UiThread
     fun onRemoveFromQuickPicksTapped(templateId: Long) {
-        popDialog()
+        closeAll()
         runSafely {
             recordsRepository.addQuickPickOverride(templateId, QuickPickOverrideEntity.OverrideType.EXCLUDE)
             DiaryWidgetScreen.reload()
@@ -356,7 +347,7 @@ internal class ModalViewModel(
 
     @UiThread
     fun onAddToQuickPicksTapped(recordId: Long) {
-        popDialog()
+        closeAll()
         runSafely {
             val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return@runSafely
             recordsRepository.addQuickPickOverride(templateId, QuickPickOverrideEntity.OverrideType.INCLUDE)
@@ -366,7 +357,7 @@ internal class ModalViewModel(
 
     @UiThread
     fun onDeleteTapped(recordId: Long) {
-        popDialog()
+        closeAll()
         runSafely {
             deleteRecordUseCase.execute(recordId)
             DiaryWidgetScreen.reload()
@@ -379,7 +370,11 @@ internal class ModalViewModel(
 
     @UiThread
     fun onDialogDismissRequested(dialog: DialogHandle) {
-        popDialog()
+        if (dialog == _viewState.value.overlayDialog) {
+            popOverlay()
+        } else {
+            closeAll()
+        }
         recogniseFoodJob?.cancel()
         (dialog as? DialogHandle.RecordDetailsDialog.Edit)?.let {
             runSafely {
@@ -392,7 +387,7 @@ internal class ModalViewModel(
 
     @UiThread
     fun onTitleChanged(title: TextFieldValue) {
-        updateDialogsOfType<DialogHandle.RecordDetailsDialog> {
+        updateRoot<DialogHandle.RecordDetailsDialog> {
             it
                 .withTitle(title)
                 .withTitleValidationError(null)
@@ -401,7 +396,7 @@ internal class ModalViewModel(
 
     @UiThread
     fun onDescriptionChanged(description: TextFieldValue) {
-        updateDialogsOfType<DialogHandle.RecordDetailsDialog> {
+        updateRoot<DialogHandle.RecordDetailsDialog> {
             it.withDescription(description)
         }
     }
@@ -411,46 +406,34 @@ internal class ModalViewModel(
         runSafely {
             imageStore.read(image, thumbnail = false)
                 ?.let { bitmap ->
-                    pushDialog(
-                        DialogHandle.ViewImageDialog("", bitmap)
-                    )
+                    pushOverlay(DialogHandle.ViewImageDialog("", bitmap))
                 }
         }
     }
 
     @UiThread
     fun onImageDeleteTapped(image: String) {
-        updateDialogsOfType<DialogHandle.RecordDetailsDialog.View> {
-            it.copy(
-                images = it.images - image,
-            )
-        }
-        updateDialogsOfType<DialogHandle.RecordDetailsDialog.Edit> {
-            it.copy(
-                images = it.images - image,
-            )
+        updateRoot<DialogHandle.RecordDetailsDialog> {
+            when (it) {
+                is DialogHandle.RecordDetailsDialog.View -> it.copy(images = it.images - image)
+                is DialogHandle.RecordDetailsDialog.Edit -> it.copy(images = it.images - image)
+            }
         }
     }
 
     @UiThread
     fun onAddImageViaCameraTapped(dialogHandle: DialogHandle.RecordDetailsDialog) {
-        pushDialog(
-            DialogHandle.ImageInput(type = ImageInputType.Camera)
-        )
+        pushOverlay(DialogHandle.ImageInput(type = ImageInputType.Camera))
     }
 
     @UiThread
     fun onAddImageViaPickerTapped(dialogHandle: DialogHandle.RecordDetailsDialog) {
-        pushDialog(
-            DialogHandle.ImageInput(type = ImageInputType.BrowseImages)
-        )
+        pushOverlay(DialogHandle.ImageInput(type = ImageInputType.BrowseImages))
     }
 
     @UiThread
     fun onSubmitButtonTapped() {
-        _viewState.value.dialogs
-            .filterIsInstance<DialogHandle.RecordDetailsDialog>()
-            .firstOrNull()
+        (_viewState.value.rootDialog as? DialogHandle.RecordDetailsDialog)
             ?.let {
                 runSafely {
                     when (it) {
@@ -467,7 +450,7 @@ internal class ModalViewModel(
     }
 
     fun onImagesInfoButtonTapped() {
-        pushDialog(DialogHandle.InfoDialog("You can add as many images as you like. Nutritional labels are particularly useful to the AI. You can also add more photos or update things later, don't worry about gathering all info right away."))
+        pushOverlay(DialogHandle.InfoDialog("You can add as many images as you like. Nutritional labels are particularly useful to the AI. You can also add more photos or update things later, don't worry about gathering all info right away."))
     }
 
     private suspend fun handleCreateRecordDetailsSubmitted(
@@ -489,7 +472,7 @@ internal class ModalViewModel(
             }
 
             is CreateValidationResult.Valid -> {
-                popDialog()
+                closeAll()
                 val recordId = createRecordWithNewTemplateUseCase.execute(
                     images = images,
                     title = title,
@@ -518,7 +501,7 @@ internal class ModalViewModel(
         )
         when (result) {
             is EditValidationResult.ConfirmMultipleEdit -> {
-                pushDialog(
+                pushOverlay(
                     DialogHandle.EditTargetConfirmationDialog(
                         recordId = dialogHandle.recordId,
                         images = dialogHandle.images,
@@ -530,7 +513,7 @@ internal class ModalViewModel(
             }
 
             is EditValidationResult.Valid -> {
-                popDialog()
+                closeAll()
                 updateRecordWithNewTemplateUseCase.execute(
                     recordId = dialogHandle.recordId,
                     images = dialogHandle.images,
@@ -552,16 +535,14 @@ internal class ModalViewModel(
     }
 
     private fun applyValidationError(message: String?) {
-        updateDialogsOfType<DialogHandle.RecordDetailsDialog> {
+        updateRoot<DialogHandle.RecordDetailsDialog> {
             it.withTitleValidationError(titleValidationError = message)
         }
     }
 
     @UiThread
     fun onEditTargetConfirmed(target: ChangeImagesTarget) {
-        _viewState.value.dialogs
-            .filterIsInstance<DialogHandle.EditTargetConfirmationDialog>()
-            .firstOrNull()
+        (_viewState.value.overlayDialog as? DialogHandle.EditTargetConfirmationDialog)
             ?.let {
                 val recordId = it.recordId
                 val images = it.images
@@ -594,8 +575,7 @@ internal class ModalViewModel(
                         force = true,
                     )
                 }
-                popDialog()
-                popDialog()
+                closeAll()
                 DiaryWidgetScreen.reload()
             }
     }
@@ -624,43 +604,38 @@ internal class ModalViewModel(
         }
     }
 
-    private fun pushDialog(dialog: DialogHandle) {
+    private fun setRoot(dialog: DialogHandle) {
         _viewState.update {
-            it.copy(
-                dialogs = it.dialogs +
-                        dialog
-            )
+            it.copy(rootDialog = dialog, overlayDialog = null)
         }
     }
 
-    private fun popDialog() {
+    private fun pushOverlay(dialog: DialogHandle) {
         _viewState.update {
-            val newDialogs = it.dialogs.dropLast(1)
-            it.copy(
-                dialogs = newDialogs,
-                close = newDialogs.isEmpty(),
-            )
+            it.copy(overlayDialog = dialog)
         }
     }
 
-    private fun setDialogs(vararg dialogs: DialogHandle) {
+    private fun popOverlay() {
         _viewState.update {
-            it.copy(
-                dialogs = dialogs.toList(),
-                close = dialogs.isEmpty(),
-            )
+            it.copy(overlayDialog = null)
         }
     }
 
-    private inline fun <reified T : DialogHandle> updateDialogsOfType(noinline provider: (T) -> DialogHandle) {
+    private fun closeAll() {
         _viewState.update {
-            it.copy(
-                dialogs = it.dialogs.replaceInstances<T>(provider)
-            )
+            it.copy(rootDialog = null, overlayDialog = null, close = true)
         }
     }
 
-    private inline fun <reified T : DialogHandle> List<DialogHandle>.replaceInstances(
-        noinline provider: (T) -> DialogHandle,
-    ): List<DialogHandle> = map { e -> if (e is T) provider(e) else e }
+    private inline fun <reified T : DialogHandle> updateRoot(transform: (T) -> DialogHandle) {
+        _viewState.update {
+            val root = it.rootDialog
+            if (root is T) {
+                it.copy(rootDialog = transform(root))
+            } else {
+                it
+            }
+        }
+    }
 }

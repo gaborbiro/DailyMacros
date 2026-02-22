@@ -4,7 +4,8 @@ import android.graphics.Bitmap
 import androidx.compose.ui.text.input.TextFieldValue
 
 data class ModalViewState(
-    val dialogs: List<DialogHandle> = emptyList(),
+    val rootDialog: DialogHandle? = null,
+    val overlayDialog: DialogHandle? = null,
     val close: Boolean = false,
 )
 
