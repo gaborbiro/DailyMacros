@@ -91,7 +91,7 @@ class ModalActivity : AppCompatActivity() {
             context.launchActivityInNewStack { it.getShowRecordImageIntent(recordId) }
 
         fun launchToShowTemplateImage(context: Context, templateId: Long) =
-            context.launchActivity { it.getShowTemplateImageIntent(templateId) }
+            context.launchActivityInNewStack { it.getShowTemplateImageIntent(templateId) }
 
         fun launchToAddRecord(context: Context) =
             context.launchActivityInNewStack(Context::getTextOnlyIntent)
