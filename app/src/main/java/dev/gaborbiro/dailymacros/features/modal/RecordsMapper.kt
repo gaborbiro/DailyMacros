@@ -1,11 +1,11 @@
 package dev.gaborbiro.dailymacros.features.modal
 
 import dev.gaborbiro.dailymacros.features.modal.model.RecognisedFood
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientsApiModel
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientAnalysisRequest
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientAnalysisResponse
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodRecognitionRequest
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodRecognitionResponse
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientAnalysisRequest
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientAnalysisResponse
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientsApiModel
 import dev.gaborbiro.dailymacros.repo.records.domain.model.NutrientsBreakdown
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 
@@ -32,11 +32,10 @@ internal class RecordsMapper {
         )
     }
 
-    fun mapNutrientAnalysisResponse(response: NutrientAnalysisResponse): Triple<NutrientsBreakdown?, String?, String?> {
-        return Triple(
-            first = response.nutrients?.let { map(it, response.notes) },
+    fun mapNutrientAnalysisResponse(response: NutrientAnalysisResponse): Pair<NutrientsBreakdown?, String?> {
+        return Pair(
+            first = response.nutrients?.let { map(it, response.description) },
             second = response.issues,
-            third = response.title,
         )
     }
 

@@ -78,12 +78,6 @@ internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionRespons
         }
         ?.text
 
-    class Component(
-        @SerializedName("name") val name: String?,
-        @SerializedName("estimatedAmount") val estimatedAmount: String?,
-        @SerializedName("confidence") val confidence: String?,
-    )
-
     class FoodDescription(
         @SerializedName("title") val title: String?,
         @SerializedName("description") val description: String?,
@@ -112,7 +106,7 @@ internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionRespons
 
             FoodRecognitionResponse(
                 title = foodDescription.title.takeIf { it.isNullOrBlank().not() },
-                description = descriptionItems.joinToString("\n").takeIf { it.isNotBlank() },
+                description = descriptionItems.joinToString("\nComponents:\n").takeIf { it.isNotBlank() },
             )
         }
         ?: FoodRecognitionResponse(

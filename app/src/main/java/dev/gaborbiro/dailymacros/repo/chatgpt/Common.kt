@@ -1,5 +1,7 @@
 package dev.gaborbiro.dailymacros.repo.chatgpt
 
+import com.google.gson.annotations.SerializedName
+
 val model = "gpt-5-nano-2025-08-07"
 
 internal const val SHARED_SYSTEM_PROMPT = """
@@ -22,3 +24,9 @@ General principles:
 - If vegetables, grains, legumes or seeds are present, estimate fibre.
 - Only return valid JSON.
 """
+
+data class Component(
+    @SerializedName("name") val name: String?,
+    @SerializedName("estimatedAmount") val estimatedAmount: String?,
+    @SerializedName("confidence") val confidence: String?,
+)

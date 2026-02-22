@@ -62,11 +62,10 @@ internal class NutrientAnalysisUseCase(
                 }
 
             nutrientsResponse.getOrNull()?.let {
-                val (nutrientsBreakdown: NutrientsBreakdown?, issues: String?, title: String?) = recordsMapper.mapNutrientAnalysisResponse(it)
+                val (nutrientsBreakdown: NutrientsBreakdown?, issues: String?) = recordsMapper.mapNutrientAnalysisResponse(it)
                 if (record.template.name.isBlank()) {
                     recordsRepository.updateTemplate(
                         templateId = record.template.dbId,
-                        name = title ?: record.template.name,
                         nutrientsBreakdown = nutrientsBreakdown,
                     )
                 } else {

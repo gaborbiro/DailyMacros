@@ -58,8 +58,14 @@ Output format:
     "salt": 0.00,
     "fibre": 0.0
   },
-  "title": "",
-  "notes": ""
+  "components": [
+    {
+      "name": "",
+      "estimatedAmount": "",
+      "confidence": "high|medium|low"
+    }
+  ],
+  "description": ""
 }
 
 If estimation is not possible:
@@ -105,8 +111,8 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(): NutrientAnalysisRespo
 
     class Response(
         @SerializedName("nutrients") val nutrients: Nutrients?,
-        @SerializedName("notes") val notes: String?,
-        @SerializedName("title") val title: String?,
+        @SerializedName("description") val description: String?,
+        @SerializedName("components") val components: List<Component>,
         @SerializedName("error") val error: String?,
     )
 
@@ -126,10 +132,23 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(): NutrientAnalysisRespo
             fibreGrams = response.nutrients.fibre?.toFloat(),
         )
     }
+
+    val componentStr = response.components.joinToString("\n") { component ->
+        val confidence = when (component.confidence) {
+            "medium" -> "?"
+            "low" -> "??"
+            else -> null
+        }
+        "${component.estimatedAmount} ${component.name} ${confidence?.let { "($it)" } ?: ""}"
+    }
+    val descriptionItems = listOfNotNull(
+        response.description.takeIf { it.isNullOrBlank().not() },
+        componentStr
+    )
+
     return NutrientAnalysisResponse(
         nutrients = nutrients,
         issues = response.error,
-        notes = response.notes,
-        title = response.title,
+        description = descriptionItems.joinToString("\nComponents:\n").takeIf { it.isNotBlank() },
     )
 }
