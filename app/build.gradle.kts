@@ -40,12 +40,6 @@ android {
             storeFile = file("../signing/keystore.jks")
             storePassword = "keystore"
         }
-        create("prod") {
-            keyAlias = localProperties.getProperty("KEY_ALIAS")
-            keyPassword = localProperties.getProperty("KEY_PASSWORD")
-            storeFile = file(localProperties.getProperty("KEY_PATH"))
-            storePassword = localProperties.getProperty("STORE_PASSWORD")
-        }
     }
 
     val chatGptApiKeyKey = "CHATGPT_API_KEY"
@@ -74,7 +68,6 @@ android {
                 "proguard-rules.pro"
             )
 
-            signingConfig = signingConfigs.getByName("prod")
         }
     }
     compileOptions {
