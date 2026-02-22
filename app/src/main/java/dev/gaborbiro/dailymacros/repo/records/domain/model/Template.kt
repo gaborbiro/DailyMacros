@@ -10,8 +10,6 @@ data class Template(
     val topContributors: TopContributors,
     val quickPickOverride: QuickPickOverride?,
 ) {
-    val primaryImage: String? get() = images.firstOrNull()
-
     enum class QuickPickOverride {
         INCLUDE, EXCLUDE
     }

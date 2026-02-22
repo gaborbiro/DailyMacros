@@ -66,13 +66,13 @@ fun RowDropdownMenu(
                         onClick = { onDismiss(); onAnalyseMacrosTapped() }
                     )
                 }
-                onDetailsTapped?.let {
-                    DropdownMenuItem(
-                        leadingIcon = { Icon(icons.details, null) },
-                        text = { Text("Details") },
-                        onClick = { onDismiss(); onDetailsTapped() }
-                    )
-                }
+//                onDetailsTapped?.let {
+//                    DropdownMenuItem(
+//                        leadingIcon = { Icon(icons.details, null) },
+//                        text = { Text("Details") },
+//                        onClick = { onDismiss(); onDetailsTapped() }
+//                    )
+//                }
                 onAddToQuickPicksTapped?.let {
                     DropdownMenuItem(
                         leadingIcon = { Icon(icons.star, null) },

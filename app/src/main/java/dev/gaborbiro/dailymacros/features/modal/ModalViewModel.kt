@@ -112,7 +112,7 @@ internal class ModalViewModel(
 
     fun viewRecordImageDeeplink(recordId: Long) {
         runSafely {
-            getRecordImageUseCase.execute(recordId, thumbnail = false)
+            getRecordImageUseCase.execute(recordId)
                 ?.let { imageDialog ->
                     setRoot(imageDialog)
                 }
@@ -124,7 +124,7 @@ internal class ModalViewModel(
 
     fun onViewTemplateImageDeeplink(templateId: Long) {
         runSafely {
-            getTemplateImageUseCase.execute(templateId, thumbnail = false)
+            getTemplateImageUseCase.execute(templateId)
                 ?.let { imageDialog ->
                     setRoot(imageDialog)
                 }
@@ -413,12 +413,10 @@ internal class ModalViewModel(
 
     @UiThread
     fun onImageTapped(image: String) {
-        runSafely {
-            imageStore.read(image, thumbnail = false)
-                ?.let { bitmap ->
-                    pushOverlay(DialogHandle.ViewImageDialog("", bitmap))
-                }
-        }
+        val root = _viewState.value.rootDialog
+        val allImages = (root as? DialogHandle.RecordDetailsDialog)?.images ?: listOf(image)
+        val index = allImages.indexOf(image).coerceAtLeast(0)
+        pushOverlay(DialogHandle.ViewImageDialog("", allImages, index))
     }
 
     @UiThread

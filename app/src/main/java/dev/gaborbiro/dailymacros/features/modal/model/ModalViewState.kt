@@ -1,6 +1,5 @@
 package dev.gaborbiro.dailymacros.features.modal.model
 
-import android.graphics.Bitmap
 import androidx.compose.ui.text.input.TextFieldValue
 
 data class ModalViewState(
@@ -20,7 +19,8 @@ sealed class DialogHandle {
 
     data class ViewImageDialog(
         val title: String,
-        val bitmap: Bitmap,
+        val images: List<String>,
+        val initialPage: Int = 0,
     ) : DialogHandle()
 
     sealed class RecordDetailsDialog(
