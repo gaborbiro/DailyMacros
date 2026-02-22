@@ -11,8 +11,7 @@ internal class RecordsUIMapper(
     fun map(record: Record, forceDay: Boolean): ListUiModelRecord {
         val timestampStr = dateUIMapper.mapRecordTimestamp(record.timestamp, forceDay)
 
-        val macros = record.template.nutrientsBreakdown
-            ?.let { nutrientsUIMapper.mapMacroAmounts(it) }
+        val nutrients = nutrientsUIMapper.map(record.template.nutrientBreakdown)
 
         return ListUiModelRecord(
             recordId = record.recordId,
@@ -20,7 +19,7 @@ internal class RecordsUIMapper(
             images = record.template.images,
             timestamp = timestampStr,
             title = record.template.name,
-            nutrients = macros,
+            nutrients = nutrients,
             showLoadingIndicator = record.template.isPending,
             showAddToQuickPicksMenuItem = mapShowAddToQuickPicksMenuItem(record.template.quickPickOverride),
         )

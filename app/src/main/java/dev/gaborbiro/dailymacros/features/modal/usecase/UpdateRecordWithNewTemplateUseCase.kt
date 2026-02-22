@@ -21,7 +21,7 @@ internal class UpdateRecordWithNewTemplateUseCase(
             title = title,
             description = description,
         )
-        val newTemplate = repository.getTemplate(newTemplateId)!!
+        val newTemplate = repository.getTemplate(newTemplateId)
         repository.updateRecord(record.copy(template = newTemplate))
     }
 }

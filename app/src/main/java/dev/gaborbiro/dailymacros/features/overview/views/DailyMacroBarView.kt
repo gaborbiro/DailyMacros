@@ -111,7 +111,7 @@ private fun DailyDailyMacroBarViewPreview() {
         progressLabel = "1005kcal",
         targetRange0to1 = Range(.84f, 1f),
         targetRangeLabel = "2.1-2.2k",
-        color = { it.calorieColor },
+        color = { it.caloriesColor },
     )
     val macro2 = DailySummaryEntry(
         title = "Salt",

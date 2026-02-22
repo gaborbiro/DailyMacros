@@ -8,12 +8,17 @@ data class NutrientAnalysisResponse(
 
 data class NutrientsApiModel(
     val calories: Int?,
-    val proteinGrams: Float?,
-    val fatGrams: Float?,
-    val ofWhichSaturatedGrams: Float?,
-    val carbGrams: Float?,
-    val ofWhichSugarGrams: Float?,
-    val ofWhichAddedSugarGrams: Float?,
-    val saltGrams: Float?,
-    val fibreGrams: Float?,
+    val protein: NutrientApiModel?,
+    val fat: NutrientApiModel?,
+    val ofWhichSaturated: NutrientApiModel?,
+    val carb: NutrientApiModel?,
+    val ofWhichSugar: NutrientApiModel?,
+    val ofWhichAddedSugar: NutrientApiModel?,
+    val salt: NutrientApiModel?,
+    val fibre: NutrientApiModel?,
+)
+
+data class NutrientApiModel(
+    val grams: Float?,
+    val topContributors: String?,
 )

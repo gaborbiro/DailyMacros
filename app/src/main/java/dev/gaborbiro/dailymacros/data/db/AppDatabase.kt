@@ -14,6 +14,7 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.QuickPickOverrideEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatusEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
+import dev.gaborbiro.dailymacros.data.db.model.entity.TopContributorsEntity
 import java.time.LocalDateTime
 import java.time.ZoneId
 
@@ -22,14 +23,16 @@ import java.time.ZoneId
         RecordEntity::class,
         TemplateEntity::class,
         MacrosEntity::class,
+        TopContributorsEntity::class,
         ImageEntity::class,
         RequestStatusEntity::class,
         QuickPickOverrideEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = true,
     autoMigrations = [
-        AutoMigration(from = 1, to = 2)
+        AutoMigration(from = 1, to = 2),
+        AutoMigration(from = 7, to = 8), // adding top_contributors table
     ]
 )
 @TypeConverters(Converters::class, QuickPickOverrideEntity.Converters::class)

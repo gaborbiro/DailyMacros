@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.gaborbiro.dailymacros.design.LocalExtraColorScheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingDouble
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
@@ -23,8 +25,8 @@ internal fun NutrientsIndentedList(
                 .padding(horizontal = PaddingDefault)
                 .padding(top = PaddingQuarter),
             text = it,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+            contentColor = Color.Black,
+            backgroundColor = LocalExtraColorScheme.current.caloriesColor,
             border = null,
             elevation = 0.dp,
         )
@@ -36,8 +38,8 @@ internal fun NutrientsIndentedList(
                 .padding(horizontal = PaddingDefault)
                 .padding(top = PaddingQuarter),
             text = it,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+            contentColor = Color.Black,
+            backgroundColor = LocalExtraColorScheme.current.proteinColor,
             border = null,
             elevation = 0.dp,
         )
@@ -49,8 +51,8 @@ internal fun NutrientsIndentedList(
                 .padding(horizontal = PaddingDefault)
                 .padding(top = PaddingQuarter),
             text = it,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+            contentColor = Color.Black,
+            backgroundColor = LocalExtraColorScheme.current.fatColor,
             border = null,
             elevation = 0.dp,
         )
@@ -62,8 +64,8 @@ internal fun NutrientsIndentedList(
                 .padding(horizontal = PaddingDefault)
                 .padding(start = PaddingDefault, top = PaddingQuarter),
             text = it,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+            contentColor = Color.Black,
+            backgroundColor = LocalExtraColorScheme.current.caloriesColor,
             border = null,
             elevation = 0.dp,
         )
@@ -75,8 +77,8 @@ internal fun NutrientsIndentedList(
                 .padding(horizontal = PaddingDefault)
                 .padding(top = PaddingQuarter),
             text = it,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+            contentColor = Color.Black,
+            backgroundColor = LocalExtraColorScheme.current.carbsColor,
             border = null,
             elevation = 0.dp,
         )
@@ -88,8 +90,8 @@ internal fun NutrientsIndentedList(
                 .padding(horizontal = PaddingDefault)
                 .padding(start = PaddingDefault, top = PaddingQuarter),
             text = it,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+            contentColor = Color.Black,
+            backgroundColor = LocalExtraColorScheme.current.carbsColor,
             border = null,
             elevation = 0.dp,
         )
@@ -101,8 +103,8 @@ internal fun NutrientsIndentedList(
                 .padding(horizontal = PaddingDefault)
                 .padding(start = PaddingDouble, top = PaddingQuarter),
             text = it,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+            contentColor = Color.Black,
+            backgroundColor = LocalExtraColorScheme.current.carbsColor,
             border = null,
             elevation = 0.dp,
         )
@@ -114,8 +116,8 @@ internal fun NutrientsIndentedList(
                 .padding(horizontal = PaddingDefault)
                 .padding(top = PaddingQuarter),
             text = it,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+            contentColor = Color.Black,
+            backgroundColor = LocalExtraColorScheme.current.saltColor,
             border = null,
             elevation = 0.dp,
         )
@@ -127,8 +129,8 @@ internal fun NutrientsIndentedList(
                 .padding(horizontal = PaddingDefault)
                 .padding(top = PaddingQuarter),
             text = it,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+            contentColor = Color.Black,
+            backgroundColor = LocalExtraColorScheme.current.fibreColor,
             border = null,
             elevation = 0.dp,
         )
@@ -140,8 +142,8 @@ internal fun NutrientsIndentedList(
                 .padding(horizontal = PaddingDefault)
                 .padding(top = PaddingQuarter),
             text = it,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+            contentColor = MaterialTheme.colorScheme.surface,
+            backgroundColor = MaterialTheme.colorScheme.onSurface,
             border = null,
             elevation = 0.dp,
         )

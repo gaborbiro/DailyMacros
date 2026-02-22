@@ -137,7 +137,7 @@ private fun ListItemDailySummaryPreview() {
                         progressLabel = "1005kcal",
                         targetRange0to1 = Range(.84f, .88f),
                         targetRangeLabel = "2.1-2.2",
-                        color = { it.calorieColor },
+                        color = { it.caloriesColor },
                     ),
                     DailySummaryEntry(
                         title = "Protein",

@@ -119,7 +119,7 @@ private fun WeeklyMacroSummaryBarViewPreview() {
             direction = ChangeDirection.UP,
             value = "+50kcal",
         ),
-        color = { it.calorieColor },
+        color = { it.caloriesColor },
     )
     val macro2 = WeeklySummaryEntry(
         title = "Salt",

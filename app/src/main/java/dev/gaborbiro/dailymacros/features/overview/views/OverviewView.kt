@@ -161,7 +161,7 @@ private fun OverviewListPreview() {
                                 progressLabel = "1005kcal",
                                 targetRange0to1 = Range(.84f, .88f),
                                 targetRangeLabel = "2.1-2.2k",
-                                color = { it.calorieColor },
+                                color = { it.caloriesColor },
                             ),
                             DailySummaryEntry(
                                 title = "Protein",

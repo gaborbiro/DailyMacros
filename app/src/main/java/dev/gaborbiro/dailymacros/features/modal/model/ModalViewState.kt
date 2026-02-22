@@ -55,7 +55,7 @@ sealed class DialogState {
 
         data class View(
             val recordId: Long,
-            val nutrientsBreakdown: NutrientsBreakdownUiModel?,
+            val nutrientBreakdown: NutrientsBreakdownUiModel?,
             val allowEdit: Boolean,
             override val titleHint: String,
             override val titleValidationError: String? = null,

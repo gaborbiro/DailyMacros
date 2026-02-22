@@ -140,7 +140,7 @@ private fun RecordTextContent(modifier: Modifier, record: ListUiModelRecord) {
                     modifier = Modifier
                         .fillMaxWidth(),
                 ) {
-                    MacroPill(text = it.calories ?: "", bg = darkExtraColorScheme.calorieColor, protectEndOfText = false)
+                    MacroPill(text = it.calories ?: "", bg = darkExtraColorScheme.caloriesColor, protectEndOfText = false)
                     MacroPill(text = it.protein ?: "", bg = darkExtraColorScheme.proteinColor)
                     MacroPill(text = it.fat ?: "", bg = darkExtraColorScheme.fatColor)
                 }

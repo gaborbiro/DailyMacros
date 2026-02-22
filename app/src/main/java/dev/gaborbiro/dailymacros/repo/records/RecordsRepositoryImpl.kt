@@ -10,9 +10,11 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.MacrosEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.QuickPickOverrideEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
+import dev.gaborbiro.dailymacros.data.db.model.entity.TopContributorsEntity
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
-import dev.gaborbiro.dailymacros.repo.records.domain.model.NutrientsBreakdown
+import dev.gaborbiro.dailymacros.repo.records.domain.model.NutrientBreakdown
+import dev.gaborbiro.dailymacros.repo.records.domain.model.TopContributors
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateToSave
@@ -78,7 +80,7 @@ internal class RecordsRepositoryImpl(
         return recordsDAO.observe(recordId).map(mapper::map)
     }
 
-    override suspend fun getTemplate(templateId: Long): Template? = templatesDAO
+    override suspend fun getTemplate(templateId: Long): Template = templatesDAO
         .getTemplateById(templateId)
         .let(mapper::map)
 
@@ -128,7 +130,7 @@ internal class RecordsRepositoryImpl(
         name: String?, /* = null */
         description: String?, /* = null */
         images: List<String>?,
-        nutrientsBreakdown: NutrientsBreakdown?,
+        nutrients: Pair<NutrientBreakdown, TopContributors>?,
     ) {
         val oldTemplate = templatesDAO.getTemplateById(templateId)
 
@@ -152,15 +154,22 @@ internal class RecordsRepositoryImpl(
             }
         }
 
-        if (nutrientsBreakdown == null) {
+        if (nutrients == null) {
             templatesDAO.deleteMacrosForTemplate(templateId)
         } else {
-            val entity: MacrosEntity = mapper.map(
-                nutrientsBreakdown = nutrientsBreakdown,
+            val macros: MacrosEntity = mapper.map(
+                nutrientBreakdown = nutrients.first,
                 id = oldTemplate.macros?.id,
                 templateId = templateId
             )
-            templatesDAO.insertOrUpdate(entity)
+            templatesDAO.insertOrUpdate(macros)
+
+            val topContributors: TopContributorsEntity = mapper.map(
+                topContributors = nutrients.second,
+                id = oldTemplate.macros?.id,
+                templateId = templateId
+            )
+            templatesDAO.insertOrUpdate(topContributors)
         }
     }
 

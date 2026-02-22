@@ -7,6 +7,7 @@ import dev.gaborbiro.dailymacros.features.modal.sha256
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientsApiModel
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientAnalysisResponse
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientApiModel
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTRequest
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTResponse
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntry
@@ -33,7 +34,7 @@ internal fun NutrientAnalysisRequest.toApiModel(): ChatGPTRequest {
                 role = Role.user,
                 content = listOf(
                     InputContent.Text(
-                        """
+"""
 TASK: NUTRIENT_ESTIMATION
 
 Use both images and provided text.
@@ -49,14 +50,38 @@ Output format:
 {
   "nutrients": {
     "calories": 0.0,
-    "protein": 0.0,
-    "fat": 0.0,
-    "ofWhichSaturated": 0.0,
-    "carbohydrate": 0.0,
-    "ofWhichSugar": 0.0,
-    "ofWhichAddedSugar": 0.0,
-    "salt": 0.00,
-    "fibre": 0.0
+    "protein": {
+        grams: 0.0,
+        topContributorIngredients: "",
+    },
+    "fat": {
+        grams: 0.0,
+        topContributorIngredients: "",
+    },
+    "ofWhichSaturated": {
+        grams: 0.0,
+        topContributorIngredients: "",
+    },
+    "carbohydrate": {
+        grams: 0.0,
+        topContributorIngredients: "",
+    },
+    "ofWhichSugar": {
+        grams: 0.0,
+        topContributorIngredients: "",
+    },
+    "ofWhichAddedSugar": {
+        grams: 0.0,
+        topContributorIngredients: "",
+    },
+    "salt": {
+        grams: 0.00,
+        topContributorIngredients: "",
+    },
+    "fibre": {
+        grams: 0.0,
+        topContributorIngredients: "",
+    },
   },
   "components": [
     {
@@ -97,16 +122,21 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(): NutrientAnalysisRespo
         }
         ?.text
 
+    data class Nutrient(
+        @SerializedName("grams") val grams: Number?,
+        @SerializedName("topContributorIngredients") val topContributorIngredients: String?,
+    )
+
     class Nutrients(
         @SerializedName("calories") val calories: Number?,
-        @SerializedName("protein") val protein: Number?,
-        @SerializedName("fat") val fat: Number?,
-        @SerializedName("ofWhichSaturated") val ofWhichSaturated: Number?,
-        @SerializedName("carbohydrate") val carbs: Number?,
-        @SerializedName("ofWhichSugar") val ofWhichSugar: Number?,
-        @SerializedName("ofWhichAddedSugar") val ofWhichAddedSugar: Number?,
-        @SerializedName("salt") val salt: Number?,
-        @SerializedName("fibre") val fibre: Number?,
+        @SerializedName("protein") val protein: Nutrient?,
+        @SerializedName("fat") val fat: Nutrient?,
+        @SerializedName("ofWhichSaturated") val ofWhichSaturated: Nutrient?,
+        @SerializedName("carbohydrate") val carbs: Nutrient?,
+        @SerializedName("ofWhichSugar") val ofWhichSugar: Nutrient?,
+        @SerializedName("ofWhichAddedSugar") val ofWhichAddedSugar: Nutrient?,
+        @SerializedName("salt") val salt: Nutrient?,
+        @SerializedName("fibre") val fibre: Nutrient?,
     )
 
     class Response(
@@ -118,18 +148,25 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(): NutrientAnalysisRespo
 
     val response = gson.fromJson(resultJson, Response::class.java)
 
+    fun map(nutrient: Nutrient?): NutrientApiModel {
+        return NutrientApiModel(
+            grams = nutrient?.grams?.toFloat(),
+            topContributors = nutrient?.topContributorIngredients,
+        )
+    }
+
     val nutrients = response.nutrients?.let {
         // null value doesn't mean 0 for that macronutrient, the AI just has no information on it.
         NutrientsApiModel(
             calories = response.nutrients.calories?.toInt(),
-            proteinGrams = response.nutrients.protein?.toFloat(),
-            fatGrams = response.nutrients.fat?.toFloat(),
-            ofWhichSaturatedGrams = response.nutrients.ofWhichSaturated?.toFloat(),
-            carbGrams = response.nutrients.carbs?.toFloat(),
-            ofWhichSugarGrams = response.nutrients.ofWhichSugar?.toFloat(),
-            ofWhichAddedSugarGrams = response.nutrients.ofWhichAddedSugar?.toFloat(),
-            saltGrams = response.nutrients.salt?.toFloat(),
-            fibreGrams = response.nutrients.fibre?.toFloat(),
+            protein = map(response.nutrients.protein),
+            fat = map(response.nutrients.fat),
+            ofWhichSaturated = map(response.nutrients.ofWhichSaturated),
+            carb = map(response.nutrients.carbs),
+            ofWhichSugar = map(response.nutrients.ofWhichSugar),
+            ofWhichAddedSugar = map(response.nutrients.ofWhichAddedSugar),
+            salt = map(response.nutrients.salt),
+            fibre = map(response.nutrients.fibre),
         )
     }
 

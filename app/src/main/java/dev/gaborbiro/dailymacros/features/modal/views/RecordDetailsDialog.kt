@@ -71,7 +71,7 @@ internal fun RecordDetailsDialog(
         ?.showProgressIndicator
     val description = dialogState.description
     val macros = (dialogState as? DialogState.RecordDetailsDialog.View)
-        ?.nutrientsBreakdown
+        ?.nutrientBreakdown
     val allowEdit = (dialogState as? DialogState.RecordDetailsDialog.View)
         ?.allowEdit
         ?: true
@@ -358,7 +358,7 @@ private fun NoteInputDialogContentPreviewEdit() {
                 description = TextFieldValue(),
                 images = listOf("1", "2"),
                 allowEdit = true,
-                nutrientsBreakdown = NutrientsBreakdownUiModel(
+                nutrientBreakdown = NutrientsBreakdownUiModel(
                     calories = "Calories: 2100 cal",
                     protein = "Protein: 150g",
                     fat = "Fat 100g",

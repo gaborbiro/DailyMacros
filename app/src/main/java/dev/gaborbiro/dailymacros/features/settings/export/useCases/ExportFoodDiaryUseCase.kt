@@ -39,7 +39,7 @@ internal class ExportFoodDiaryUseCase(
             .getRecords()
         val entries = records
             .mapNotNull {
-                it.template.nutrientsBreakdown
+                it.template.nutrientBreakdown
                     ?.let { macros ->
                         LlmFoodEntry(
                             timestamp = it.timestamp.toString(),

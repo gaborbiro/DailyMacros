@@ -10,6 +10,7 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.ImageEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.MacrosEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.QuickPickOverrideEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
+import dev.gaborbiro.dailymacros.data.db.model.entity.TopContributorsEntity
 
 @Dao
 interface TemplatesDAO {
@@ -19,6 +20,9 @@ interface TemplatesDAO {
 
     @Upsert
     suspend fun insertOrUpdate(macros: MacrosEntity): Long
+
+    @Upsert
+    suspend fun insertOrUpdate(topContributors: TopContributorsEntity): Long
 
     @Query("DELETE FROM macros WHERE templateId = :templateId")
     suspend fun deleteMacrosForTemplate(templateId: Long): Int

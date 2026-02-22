@@ -9,7 +9,7 @@ val LocalExtraColorScheme = staticCompositionLocalOf<ExtraColorScheme> {
 }
 
 val darkExtraColorScheme = ExtraColorScheme(
-    calorieColor = Color(0xFFCDE9FF),
+    caloriesColor = Color(0xFFCDE9FF),
     proteinColor = Color(0xFFCFF9E8),
     fatColor = Color(0xFFFFF3B8),
     carbsColor = Color(0xFFFFE0C7),
@@ -19,7 +19,7 @@ val darkExtraColorScheme = ExtraColorScheme(
 )
 
 val lightExtraColorScheme = ExtraColorScheme(
-    calorieColor = Color(0xFF48B7FF),
+    caloriesColor = Color(0xFF48B7FF),
     proteinColor = Color(0xFF71FFC5),
     fatColor = Color(0xFFFFEC73),
     carbsColor = Color(0xFFFFB178),
@@ -29,7 +29,7 @@ val lightExtraColorScheme = ExtraColorScheme(
 )
 
 data class ExtraColorScheme(
-    val calorieColor: Color,
+    val caloriesColor: Color,
     val proteinColor: Color,
     val fatColor: Color,
     val carbsColor: Color,

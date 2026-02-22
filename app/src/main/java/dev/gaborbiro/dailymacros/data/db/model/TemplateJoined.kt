@@ -8,6 +8,7 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.MacrosEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.QuickPickOverrideEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatusEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
+import dev.gaborbiro.dailymacros.data.db.model.entity.TopContributorsEntity
 
 data class TemplateJoined(
     @Embedded val entity: TemplateEntity,
@@ -20,22 +21,29 @@ data class TemplateJoined(
 
     @Relation(
         parentColumn = COLUMN_ID,
+        entityColumn = TopContributorsEntity.COLUMN_TEMPLATE_ID,
+        entity = TopContributorsEntity::class,
+    )
+    val topContributors: TopContributorsEntity?, // null = no contributors
+
+    @Relation(
+        parentColumn = COLUMN_ID,
         entityColumn = ImageEntity.COLUMN_TEMPLATE_ID,
-        entity = ImageEntity::class
+        entity = ImageEntity::class,
     )
     val images: List<ImageEntity>,
 
     @Relation(
         parentColumn = COLUMN_ID,
         entityColumn = RequestStatusEntity.COLUMN_TEMPLATE_ID,
-        entity = RequestStatusEntity::class
+        entity = RequestStatusEntity::class,
     )
     val requestStatus: RequestStatusEntity?,
 
     @Relation(
         parentColumn = COLUMN_ID,
         entityColumn = RequestStatusEntity.COLUMN_TEMPLATE_ID,
-        entity = QuickPickOverrideEntity::class
+        entity = QuickPickOverrideEntity::class,
     )
     val quickPickOverride: QuickPickOverrideEntity?,
 )

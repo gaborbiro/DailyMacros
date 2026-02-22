@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 7,
-    "identityHash": "ca51b2593c959c4b169404c321a3fc4e",
+    "version": 8,
+    "identityHash": "9710986c090ceae2ffc4f7d22159a162",
     "entities": [
       {
         "tableName": "records",
@@ -168,6 +168,93 @@
             ],
             "orders": [],
             "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_macros_templateId` ON `${TABLE_NAME}` (`templateId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "templates",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "templateId"
+            ],
+            "referencedColumns": [
+              "_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "top_contributors",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`templateId` INTEGER NOT NULL, `topProteinContributors` TEXT, `topCarbohydratesContributors` TEXT, `topSugarContributors` TEXT, `topAddedSugarContributors` TEXT, `topFatContributors` TEXT, `topSaturatedFatContributors` TEXT, `topSaltContributors` TEXT, `topFibreContributors` TEXT, `_id` INTEGER PRIMARY KEY AUTOINCREMENT, FOREIGN KEY(`templateId`) REFERENCES `templates`(`_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "templateId",
+            "columnName": "templateId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "topProteinContributors",
+            "columnName": "topProteinContributors",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "topCarbohydratesContributors",
+            "columnName": "topCarbohydratesContributors",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "topSugarContributors",
+            "columnName": "topSugarContributors",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "topAddedSugarContributors",
+            "columnName": "topAddedSugarContributors",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "topFatContributors",
+            "columnName": "topFatContributors",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "topSaturatedFatContributors",
+            "columnName": "topSaturatedFatContributors",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "topSaltContributors",
+            "columnName": "topSaltContributors",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "topFibreContributors",
+            "columnName": "topFibreContributors",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "id",
+            "columnName": "_id",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_top_contributors_templateId",
+            "unique": true,
+            "columnNames": [
+              "templateId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_top_contributors_templateId` ON `${TABLE_NAME}` (`templateId`)"
           }
         ],
         "foreignKeys": [
@@ -366,7 +453,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ca51b2593c959c4b169404c321a3fc4e')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9710986c090ceae2ffc4f7d22159a162')"
     ]
   }
 }

@@ -154,7 +154,7 @@ private fun ListItemWeeklySummaryPreview() {
                         progressLabel = "1005kcal",
                         targetRange0to1 = Range(.84f, .88f),
                         changeIndicator = ChangeIndicator(ChangeDirection.UP, "+5.2%"),
-                        color = { it.calorieColor },
+                        color = { it.caloriesColor },
                     ),
                     WeeklySummaryEntry(
                         title = "Protein",

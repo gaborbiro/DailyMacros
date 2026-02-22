@@ -5,7 +5,7 @@ import android.util.Range
 import dev.gaborbiro.dailymacros.features.common.model.DailySummaryEntry
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelDailySummary
 import dev.gaborbiro.dailymacros.features.common.model.NutrientsUiModel
-import dev.gaborbiro.dailymacros.repo.records.domain.model.NutrientsBreakdown
+import dev.gaborbiro.dailymacros.repo.records.domain.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.repo.settings.model.Target
 import dev.gaborbiro.dailymacros.repo.settings.model.Targets
 import kotlin.math.absoluteValue
@@ -19,22 +19,22 @@ internal class NutrientsUIMapper(
         targets: Targets,
     ): ListUiModelDailySummary {
         val records = day.records
-        val totalCalories = records.sumOf { it.template.nutrientsBreakdown?.calories ?: 0 }
+        val totalCalories = records.sumOf { it.template.nutrientBreakdown.calories ?: 0 }
         val totalProtein =
-            records.sumOf { it.template.nutrientsBreakdown?.protein?.toDouble() ?: 0.0 }.toFloat()
+            records.sumOf { it.template.nutrientBreakdown.protein?.toDouble() ?: 0.0 }.toFloat()
         val totalCarbs =
-            records.sumOf { it.template.nutrientsBreakdown?.carbs?.toDouble() ?: 0.0 }.toFloat()
+            records.sumOf { it.template.nutrientBreakdown.carbs?.toDouble() ?: 0.0 }.toFloat()
         val totalSugar =
-            records.sumOf { it.template.nutrientsBreakdown?.ofWhichSugar?.toDouble() ?: 0.0 }.toFloat()
+            records.sumOf { it.template.nutrientBreakdown.ofWhichSugar?.toDouble() ?: 0.0 }.toFloat()
         val totalAddedSugar =
-            records.sumOf { it.template.nutrientsBreakdown?.ofWhichAddedSugar?.toDouble() ?: 0.0 }.toFloat()
-        val totalFat = records.sumOf { it.template.nutrientsBreakdown?.fat?.toDouble() ?: 0.0 }.toFloat()
+            records.sumOf { it.template.nutrientBreakdown.ofWhichAddedSugar?.toDouble() ?: 0.0 }.toFloat()
+        val totalFat = records.sumOf { it.template.nutrientBreakdown.fat?.toDouble() ?: 0.0 }.toFloat()
         val totalSaturated =
-            records.sumOf { it.template.nutrientsBreakdown?.ofWhichSaturated?.toDouble() ?: 0.0 }.toFloat()
-        val totalSalt = records.sumOf { it.template.nutrientsBreakdown?.salt?.toDouble() ?: 0.0 }.toFloat()
-        val totalFibre = records.sumOf { it.template.nutrientsBreakdown?.fibre?.toDouble() ?: 0.0 }.toFloat()
+            records.sumOf { it.template.nutrientBreakdown.ofWhichSaturated?.toDouble() ?: 0.0 }.toFloat()
+        val totalSalt = records.sumOf { it.template.nutrientBreakdown.salt?.toDouble() ?: 0.0 }.toFloat()
+        val totalFibre = records.sumOf { it.template.nutrientBreakdown.fibre?.toDouble() ?: 0.0 }.toFloat()
 
-        val totalNutrientsBreakdown = NutrientsBreakdown(
+        val totalNutrientBreakdown = NutrientBreakdown(
             calories = totalCalories,
             protein = totalProtein,
             fat = totalFat,
@@ -47,7 +47,7 @@ internal class NutrientsUIMapper(
             notes = null,
         )
 
-        val progressItems = buildNutrientProgressItems(totalNutrientsBreakdown, targets)
+        val progressItems = buildNutrientProgressItems(totalNutrientBreakdown, targets)
 
         val infoMessage = buildTimezoneInfo(day)
 
@@ -60,7 +60,7 @@ internal class NutrientsUIMapper(
     }
 
     fun buildNutrientProgressItems(
-        nutrientsBreakdown: NutrientsBreakdown,
+        nutrientBreakdown: NutrientBreakdown,
         targets: Targets,
     ): List<DailySummaryEntry> {
         fun gramRangeLabel(target: Target): String =
@@ -82,11 +82,11 @@ internal class NutrientsUIMapper(
                 add(
                     DailySummaryEntry(
                         title = "Calories",
-                        progress0to1 = targetProgress(it, nutrientsBreakdown.calories?.toFloat() ?: 0f) ?: 0f,
-                        progressLabel = formatCalories(nutrientsBreakdown.calories, isShort = false, withLabel = false) ?: "0",
+                        progress0to1 = targetProgress(it, nutrientBreakdown.calories?.toFloat() ?: 0f) ?: 0f,
+                        progressLabel = formatCalories(nutrientBreakdown.calories, isShort = false, withLabel = false) ?: "0",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = rangeLabel,
-                        color = { it.calorieColor },
+                        color = { it.caloriesColor },
                     )
                 )
             }
@@ -94,8 +94,8 @@ internal class NutrientsUIMapper(
                 add(
                     DailySummaryEntry(
                         title = "Protein",
-                        progress0to1 = targetProgress(it, nutrientsBreakdown.protein ?: 0f) ?: 0f,
-                        progressLabel = formatProtein(nutrientsBreakdown.protein, isShort = false, withLabel = false) ?: "0g",
+                        progress0to1 = targetProgress(it, nutrientBreakdown.protein ?: 0f) ?: 0f,
+                        progressLabel = formatProtein(nutrientBreakdown.protein, isShort = false, withLabel = false) ?: "0g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.proteinColor },
@@ -106,8 +106,8 @@ internal class NutrientsUIMapper(
                 add(
                     DailySummaryEntry(
                         title = "Salt",
-                        progress0to1 = targetProgress(it, nutrientsBreakdown.salt ?: 0f) ?: 0f,
-                        progressLabel = formatSalt(nutrientsBreakdown.salt, isShort = false, withLabel = false) ?: "0.0g",
+                        progress0to1 = targetProgress(it, nutrientBreakdown.salt ?: 0f) ?: 0f,
+                        progressLabel = formatSalt(nutrientBreakdown.salt, isShort = false, withLabel = false) ?: "0.0g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.saltColor },
@@ -118,8 +118,8 @@ internal class NutrientsUIMapper(
                 add(
                     DailySummaryEntry(
                         title = "Fibre",
-                        progress0to1 = targetProgress(it, nutrientsBreakdown.fibre ?: 0f) ?: 0f,
-                        progressLabel = formatFibre(nutrientsBreakdown.fibre, isShort = false, withLabel = false) ?: "0g",
+                        progress0to1 = targetProgress(it, nutrientBreakdown.fibre ?: 0f) ?: 0f,
+                        progressLabel = formatFibre(nutrientBreakdown.fibre, isShort = false, withLabel = false) ?: "0g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.fibreColor },
@@ -130,8 +130,8 @@ internal class NutrientsUIMapper(
                 add(
                     DailySummaryEntry(
                         title = "Carbs",
-                        progress0to1 = targetProgress(it, nutrientsBreakdown.carbs ?: 0f) ?: 0f,
-                        progressLabel = formatCarbs(nutrientsBreakdown.carbs, sugar = null, addedSugar = null, isShort = false, withLabel = false)
+                        progress0to1 = targetProgress(it, nutrientBreakdown.carbs ?: 0f) ?: 0f,
+                        progressLabel = formatCarbs(nutrientBreakdown.carbs, sugar = null, addedSugar = null, isShort = false, withLabel = false)
                             ?: "0g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
@@ -143,8 +143,8 @@ internal class NutrientsUIMapper(
                 add(
                     DailySummaryEntry(
                         title = "sugar",
-                        progress0to1 = targetProgress(it, nutrientsBreakdown.ofWhichSugar ?: 0f) ?: 0f,
-                        progressLabel = formatSugar(nutrientsBreakdown.ofWhichSugar, isShort = false, withLabel = false) ?: "0g",
+                        progress0to1 = targetProgress(it, nutrientBreakdown.ofWhichSugar ?: 0f) ?: 0f,
+                        progressLabel = formatSugar(nutrientBreakdown.ofWhichSugar, isShort = false, withLabel = false) ?: "0g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.carbsColor },
@@ -155,8 +155,8 @@ internal class NutrientsUIMapper(
                 add(
                     DailySummaryEntry(
                         title = "Fat",
-                        progress0to1 = targetProgress(it, nutrientsBreakdown.fat ?: 0f) ?: 0f,
-                        progressLabel = formatFat(nutrientsBreakdown.fat, saturated = null, isShort = false, withLabel = false)
+                        progress0to1 = targetProgress(it, nutrientBreakdown.fat ?: 0f) ?: 0f,
+                        progressLabel = formatFat(nutrientBreakdown.fat, saturated = null, isShort = false, withLabel = false)
                             ?: "0g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
@@ -168,8 +168,8 @@ internal class NutrientsUIMapper(
                 add(
                     DailySummaryEntry(
                         title = "saturated",
-                        progress0to1 = targetProgress(it, nutrientsBreakdown.ofWhichSaturated ?: 0f) ?: 0f,
-                        progressLabel = formatSaturatedFat(nutrientsBreakdown.ofWhichSaturated, isShort = false, withLabel = false) ?: "0g",
+                        progress0to1 = targetProgress(it, nutrientBreakdown.ofWhichSaturated ?: 0f) ?: 0f,
+                        progressLabel = formatSaturatedFat(nutrientBreakdown.ofWhichSaturated, isShort = false, withLabel = false) ?: "0g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.fatColor },
@@ -209,36 +209,36 @@ internal class NutrientsUIMapper(
         }
     }
 
-    fun mapMacrosPrintout(nutrientsBreakdown: NutrientsBreakdown?, isShort: Boolean = false): String? {
+    fun mapMacrosPrintout(nutrientBreakdown: NutrientBreakdown?, isShort: Boolean = false): String? {
         return listOfNotNull(
-            nutrientsBreakdown?.calories?.let { formatCalories(it, isShort, withLabel = true) },
-            nutrientsBreakdown?.protein?.let { formatProtein(it, isShort, withLabel = true) },
-            nutrientsBreakdown?.fat?.let { formatFat(it, nutrientsBreakdown.ofWhichSaturated, isShort, withLabel = true) },
+            nutrientBreakdown?.calories?.let { formatCalories(it, isShort, withLabel = true) },
+            nutrientBreakdown?.protein?.let { formatProtein(it, isShort, withLabel = true) },
+            nutrientBreakdown?.fat?.let { formatFat(it, nutrientBreakdown.ofWhichSaturated, isShort, withLabel = true) },
             if (!isShort) {
-                nutrientsBreakdown?.ofWhichSaturated?.let { formatSaturatedFat(it, isShort = false, withLabel = true) }
+                nutrientBreakdown?.ofWhichSaturated?.let { formatSaturatedFat(it, isShort = false, withLabel = true) }
             } else null,
-            nutrientsBreakdown?.carbs?.let { formatCarbs(it, nutrientsBreakdown.ofWhichSugar, nutrientsBreakdown.ofWhichAddedSugar, isShort, withLabel = true) },
+            nutrientBreakdown?.carbs?.let { formatCarbs(it, nutrientBreakdown.ofWhichSugar, nutrientBreakdown.ofWhichAddedSugar, isShort, withLabel = true) },
             if (!isShort) {
-                nutrientsBreakdown?.ofWhichSugar?.let { formatSugar(it, isShort = false, withLabel = true) }
+                nutrientBreakdown?.ofWhichSugar?.let { formatSugar(it, isShort = false, withLabel = true) }
             } else null,
             if (!isShort) {
-                nutrientsBreakdown?.ofWhichAddedSugar?.let { formatAddedSugar(it, isShort = false, withLabel = true) }
+                nutrientBreakdown?.ofWhichAddedSugar?.let { formatAddedSugar(it, isShort = false, withLabel = true) }
             } else null,
-            nutrientsBreakdown?.salt?.let { formatSalt(it, isShort, withLabel = true) },
-            nutrientsBreakdown?.fibre?.let { formatFibre(it, isShort, withLabel = true) }
+            nutrientBreakdown?.salt?.let { formatSalt(it, isShort, withLabel = true) },
+            nutrientBreakdown?.fibre?.let { formatFibre(it, isShort, withLabel = true) }
         )
             .joinToString()
             .takeIf { it.isNotBlank() }
     }
 
-    fun mapMacroAmounts(nutrientsBreakdown: NutrientsBreakdown): NutrientsUiModel {
+    fun map(nutrientBreakdown: NutrientBreakdown): NutrientsUiModel {
         return NutrientsUiModel(
-            calories = formatCalories(nutrientsBreakdown.calories, isShort = true, withLabel = true),
-            protein = formatProtein(nutrientsBreakdown.protein, isShort = true, withLabel = true),
-            fat = formatFat(nutrientsBreakdown.fat, nutrientsBreakdown.ofWhichSaturated, isShort = true, withLabel = true),
-            carbs = formatCarbs(nutrientsBreakdown.carbs, nutrientsBreakdown.ofWhichSugar, nutrientsBreakdown.ofWhichAddedSugar, isShort = true, withLabel = true),
-            salt = formatSalt(nutrientsBreakdown.salt, isShort = true, withLabel = true),
-            fibre = formatFibre(nutrientsBreakdown.fibre, isShort = true, withLabel = true),
+            calories = formatCalories(nutrientBreakdown.calories, isShort = true, withLabel = true),
+            protein = formatProtein(nutrientBreakdown.protein, isShort = true, withLabel = true),
+            fat = formatFat(nutrientBreakdown.fat, nutrientBreakdown.ofWhichSaturated, isShort = true, withLabel = true),
+            carbs = formatCarbs(nutrientBreakdown.carbs, nutrientBreakdown.ofWhichSugar, nutrientBreakdown.ofWhichAddedSugar, isShort = true, withLabel = true),
+            salt = formatSalt(nutrientBreakdown.salt, isShort = true, withLabel = true),
+            fibre = formatFibre(nutrientBreakdown.fibre, isShort = true, withLabel = true),
         )
     }
 
@@ -490,6 +490,14 @@ internal class NutrientsUIMapper(
     ) = takeIf(String::isNotBlank)
         ?.let { "'$this'" }
         ?: default
+
+    fun formatTopContributorText(text: String?): String {
+        return text
+            ?.takeIf { it.isNotBlank() }
+            ?.let {
+                "\n    ($it)"
+            } ?: ""
+    }
 
     private abstract class SafeNumberFormatter(
         private val format: DecimalFormat,

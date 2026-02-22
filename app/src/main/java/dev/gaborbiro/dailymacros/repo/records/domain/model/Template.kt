@@ -6,7 +6,8 @@ data class Template(
     val name: String,
     val description: String,
     val isPending: Boolean,
-    val nutrientsBreakdown: NutrientsBreakdown?,
+    val nutrientBreakdown: NutrientBreakdown,
+    val topContributors: TopContributors,
     val quickPickOverride: QuickPickOverride?,
 ) {
     val primaryImage: String? get() = images.firstOrNull()

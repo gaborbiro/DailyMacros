@@ -7,7 +7,9 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.QuickPickOverrideEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatusEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
-import dev.gaborbiro.dailymacros.repo.records.domain.model.NutrientsBreakdown
+import dev.gaborbiro.dailymacros.data.db.model.entity.TopContributorsEntity
+import dev.gaborbiro.dailymacros.repo.records.domain.model.NutrientBreakdown
+import dev.gaborbiro.dailymacros.repo.records.domain.model.TopContributors
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateToSave
@@ -26,7 +28,8 @@ internal class RecordsApiMapper {
             images = orderedImages,
             name = template.entity.name,
             description = template.entity.description,
-            nutrientsBreakdown = template.macros?.let(::map),
+            nutrientBreakdown = template.macros?.let(::map) ?: NutrientBreakdown(),
+            topContributors = template.topContributors?.let(::map) ?: TopContributors(),
             isPending = template.requestStatus?.status == RequestStatusEntity.Status.PENDING,
             quickPickOverride = map(template.quickPickOverride),
         )
@@ -42,8 +45,8 @@ internal class RecordsApiMapper {
 
     // -------- Domain <— DB: Macros --------
 
-    private fun map(template: MacrosEntity): NutrientsBreakdown {
-        return NutrientsBreakdown(
+    private fun map(template: MacrosEntity): NutrientBreakdown {
+        return NutrientBreakdown(
             calories = template.calories,
             protein = template.protein,
             fat = template.fat,
@@ -54,6 +57,19 @@ internal class RecordsApiMapper {
             salt = template.salt,
             fibre = template.fibre,
             notes = template.notes,
+        )
+    }
+
+    private fun map(template: TopContributorsEntity): TopContributors {
+        return TopContributors(
+            topProteinContributors = template.topProteinContributors,
+            topFatContributors = template.topFatContributors,
+            topSaturatedFatContributors = template.topSaturatedFatContributors,
+            topCarbsContributors = template.topCarbohydratesContributors,
+            topSugarContributors = template.topSugarContributors,
+            topAddedSugarContributors = template.topAddedSugarContributors,
+            topSaltContributors = template.topSaltContributors,
+            topFibreContributors = template.topFibreContributors,
         )
     }
 
@@ -92,19 +108,44 @@ internal class RecordsApiMapper {
     }
 
     // Domain Macros -> MacrosEntity (templateId set by caller via .copy)
-    fun map(nutrientsBreakdown: NutrientsBreakdown, id: Long?, templateId: Long): MacrosEntity {
+    fun map(
+        nutrientBreakdown: NutrientBreakdown,
+        id: Long?,
+        templateId: Long
+    ): MacrosEntity {
         return MacrosEntity(
             templateId = templateId,
-            calories = nutrientsBreakdown.calories,
-            protein = nutrientsBreakdown.protein,
-            carbohydrates = nutrientsBreakdown.carbs,
-            ofWhichSugar = nutrientsBreakdown.ofWhichSugar,
-            ofWhichAddedSugar = nutrientsBreakdown.ofWhichAddedSugar,
-            fat = nutrientsBreakdown.fat,
-            ofWhichSaturated = nutrientsBreakdown.ofWhichSaturated,
-            salt = nutrientsBreakdown.salt,
-            fibre = nutrientsBreakdown.fibre,
-            notes = nutrientsBreakdown.notes,
+            calories = nutrientBreakdown.calories,
+            protein = nutrientBreakdown.protein,
+            carbohydrates = nutrientBreakdown.carbs,
+            ofWhichSugar = nutrientBreakdown.ofWhichSugar,
+            ofWhichAddedSugar = nutrientBreakdown.ofWhichAddedSugar,
+            fat = nutrientBreakdown.fat,
+            ofWhichSaturated = nutrientBreakdown.ofWhichSaturated,
+            salt = nutrientBreakdown.salt,
+            fibre = nutrientBreakdown.fibre,
+            notes = nutrientBreakdown.notes,
+        ).also {
+            it.id = id
+        }
+    }
+
+    // Domain TopContributors -> TopContributorsEntity (templateId set by caller via .copy)
+    fun map(
+        topContributors: TopContributors,
+        id: Long?,
+        templateId: Long
+    ): TopContributorsEntity {
+        return TopContributorsEntity(
+            templateId = templateId,
+            topProteinContributors = topContributors.topProteinContributors,
+            topCarbohydratesContributors = topContributors.topCarbsContributors,
+            topSugarContributors = topContributors.topSugarContributors,
+            topAddedSugarContributors = topContributors.topAddedSugarContributors,
+            topFatContributors = topContributors.topFatContributors,
+            topSaturatedFatContributors = topContributors.topSaturatedFatContributors,
+            topSaltContributors = topContributors.topSaltContributors,
+            topFibreContributors = topContributors.topFibreContributors,
         ).also {
             it.id = id
         }
