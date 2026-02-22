@@ -48,8 +48,7 @@ google-gson = "2.13.2"
 google-mlkit-image-labeling = "17.0.9"
 # @pin
 guava = "33.4.8-android"
-# @pin
-vico = "1.16.1"
+vico = "3.0.0"
 # -------------------------------------------------------------------------------
 # --- Testing -------------------------------------------------------------------
 # -------------------------------------------------------------------------------
@@ -140,7 +139,6 @@ kotlinx-coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-
 # -------------------------------------------------------------------------------
 # --- UI / Charts ---------------------------------------------------------------
 # -------------------------------------------------------------------------------
-vico-core = { module = "com.patrykandpatrick.vico:core", version.ref = "vico" }
 vico-compose = { module = "com.patrykandpatrick.vico:compose", version.ref = "vico" }
 vico-compose-m3 = { module = "com.patrykandpatrick.vico:compose-m3", version.ref = "vico" }
 accompanist-navigation-animation = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanist" }

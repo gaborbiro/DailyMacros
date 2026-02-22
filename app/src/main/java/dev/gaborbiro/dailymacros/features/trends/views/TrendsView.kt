@@ -3,11 +3,13 @@ package dev.gaborbiro.dailymacros.features.trends.views
 import android.content.res.Configuration
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
@@ -17,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,26 +27,31 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
-import com.patrykandpatrick.vico.compose.chart.scroll.ChartScrollState
-import com.patrykandpatrick.vico.core.axis.Axis
+import com.patrykandpatrick.vico.compose.cartesian.Scroll
+import com.patrykandpatrick.vico.compose.cartesian.axis.BaseAxis
+import com.patrykandpatrick.vico.compose.cartesian.axis.VerticalAxis
+import com.patrykandpatrick.vico.compose.cartesian.data.CartesianValueFormatter
+import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
-import dev.gaborbiro.dailymacros.features.trends.model.DailyAggregationMode
-import dev.gaborbiro.dailymacros.features.trends.model.TrendsChartUiModel
 import dev.gaborbiro.dailymacros.features.trends.model.ChartDataPoint
 import dev.gaborbiro.dailymacros.features.trends.model.ChartDataset
+import dev.gaborbiro.dailymacros.features.trends.model.DailyAggregationMode
 import dev.gaborbiro.dailymacros.features.trends.model.TimeScale
+import dev.gaborbiro.dailymacros.features.trends.model.TrendsChartUiModel
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsSettingsUIModel
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsViewState
+import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 
@@ -129,12 +137,11 @@ internal fun TrendsView(
                 )
             }
 
-            // Shared start axis within a tab so all charts line up vertically.
-            val startAxis = rememberStartAxis(
-                sizeConstraint = Axis.SizeConstraint.Exact(50f),
-                valueFormatter = { value, _ ->
+            val startAxis = VerticalAxis.rememberStart(
+                size = BaseAxis.Size.Fixed(50.dp),
+                valueFormatter = CartesianValueFormatter { _, value, _ ->
                     value.roundToInt().toString()
-                }
+                },
             )
 
             val showEveryXLabel = when (timeScale) {
@@ -142,18 +149,38 @@ internal fun TrendsView(
                 else -> 1
             }
 
-            key(viewState.charts, timeScale) {
-                val chartScrollState = ChartScrollState()
+            key(timeScale) {
+                var chartsVisible by remember { mutableStateOf(false) }
 
-                viewState.charts.forEach { chartData ->
-                    TrendsChart(
-                        modifier = Modifier
-                            .padding(start = PaddingDefault),
-                        chartData = chartData,
-                        chartScrollState = chartScrollState,
-                        startAxis = startAxis,
-                        showEveryXLabel = showEveryXLabel,
+                LaunchedEffect(Unit) {
+                    delay(300)
+                    chartsVisible = true
+                }
+
+                if (chartsVisible) {
+                    val scrollState = rememberVicoScrollState(
+                        initialScroll = Scroll.Absolute.End,
                     )
+
+                    viewState.charts.forEach { chartData ->
+                        TrendsChart(
+                            modifier = Modifier
+                                .padding(start = PaddingDefault),
+                            chartData = chartData,
+                            scrollState = scrollState,
+                            startAxis = startAxis,
+                            showEveryXLabel = showEveryXLabel,
+                        )
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
             }
         }

@@ -1,6 +1,5 @@
 package dev.gaborbiro.dailymacros.features.trends.views
 
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,147 +10,172 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
-import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
-import com.patrykandpatrick.vico.compose.chart.Chart
-import com.patrykandpatrick.vico.compose.chart.line.lineChart
-import com.patrykandpatrick.vico.compose.chart.scroll.ChartScrollState
-import com.patrykandpatrick.vico.compose.chart.scroll.rememberChartScrollSpec
-import com.patrykandpatrick.vico.compose.component.lineComponent
-import com.patrykandpatrick.vico.compose.component.shapeComponent
-import com.patrykandpatrick.vico.compose.m3.style.m3ChartStyle
-import com.patrykandpatrick.vico.compose.style.ProvideChartStyle
-import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
-import com.patrykandpatrick.vico.core.axis.AxisPosition
-import com.patrykandpatrick.vico.core.axis.AxisRenderer
-import com.patrykandpatrick.vico.core.chart.line.LineChart
-import com.patrykandpatrick.vico.core.component.marker.MarkerComponent
-import com.patrykandpatrick.vico.core.component.text.textComponent
-import com.patrykandpatrick.vico.core.dimensions.MutableDimensions
-import com.patrykandpatrick.vico.core.entry.ChartEntry
-import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
-import com.patrykandpatrick.vico.core.marker.MarkerLabelFormatter
-import com.patrykandpatrick.vico.core.scroll.InitialScroll
+import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
+import com.patrykandpatrick.vico.compose.cartesian.VicoScrollState
+import com.patrykandpatrick.vico.compose.cartesian.VicoZoomState
+import com.patrykandpatrick.vico.compose.cartesian.Zoom
+import com.patrykandpatrick.vico.compose.cartesian.axis.Axis
+import com.patrykandpatrick.vico.compose.cartesian.axis.HorizontalAxis
+import com.patrykandpatrick.vico.compose.cartesian.axis.VerticalAxis
+import com.patrykandpatrick.vico.compose.cartesian.data.CartesianChartModelProducer
+import com.patrykandpatrick.vico.compose.cartesian.data.CartesianValueFormatter
+import com.patrykandpatrick.vico.compose.cartesian.data.lineSeries
+import com.patrykandpatrick.vico.compose.cartesian.layer.LineCartesianLayer
+import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
+import com.patrykandpatrick.vico.compose.cartesian.marker.DefaultCartesianMarker
+import com.patrykandpatrick.vico.compose.cartesian.marker.LineCartesianLayerMarkerTarget
+import com.patrykandpatrick.vico.compose.cartesian.marker.rememberDefaultCartesianMarker
+import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
+import com.patrykandpatrick.vico.compose.common.Fill
+import com.patrykandpatrick.vico.compose.common.Insets
+import com.patrykandpatrick.vico.compose.common.component.ShapeComponent
+import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
+import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
+import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsChartUiModel
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 internal fun TrendsChart(
     modifier: Modifier = Modifier,
     chartData: TrendsChartUiModel,
-    chartScrollState: ChartScrollState,
-    startAxis: AxisRenderer<AxisPosition.Vertical.Start>,
+    scrollState: VicoScrollState,
+    startAxis: VerticalAxis<Axis.Position.Vertical.Start>,
     showEveryXLabel: Int,
 ) {
-    val producer = remember(chartData.datasets) {
-        ChartEntryModelProducer(
-            chartData.datasets.flatMap { dataset ->
-                listOf(
-                    dataset.set.mapNotNull { point ->
-                        point.value?.let { value ->
-                            object : ChartEntry {
-                                override val x = point.index.toFloat()
-                                override val y = value.toFloat()
-                                override fun withY(y: Float) = this
-                            }
-                        }
-                    },
+    val modelProducer = remember { CartesianChartModelProducer() }
 
-                    dataset.now
-                        ?.takeIf { it.value != null }
-                        ?.let { now ->
-                            listOfNotNull(
-                                dataset.set.lastOrNull { it.value != null }?.let { prev ->
-                                    object : ChartEntry {
-                                        override val x = prev.index.toFloat()
-                                        override val y = prev.value!!.toFloat()
-                                        override fun withY(y: Float) = this
-                                    }
-                                },
-                                object : ChartEntry {
-                                    override val x = now.index.toFloat()
-                                    override val y = now.value!!.toFloat()
-                                    override fun withY(y: Float) = this
-                                }
-                            )
-                        }
-                        ?: emptyList()
-                )
+    LaunchedEffect(chartData.datasets) {
+        modelProducer.runTransaction {
+            lineSeries {
+                for (dataset in chartData.datasets) {
+                    val mainPoints = dataset.set.filter { it.value != null }
+                    series(
+                        x = mainPoints.map { it.index.toDouble() },
+                        y = mainPoints.map { it.value!! },
+                    )
+
+                    val nowPoint = dataset.now?.takeIf { it.value != null }
+                    val lastHistorical = dataset.set.lastOrNull { it.value != null }
+                    if (nowPoint != null && lastHistorical != null) {
+                        series(
+                            x = listOf(lastHistorical.index.toDouble(), nowPoint.index.toDouble()),
+                            y = listOf(lastHistorical.value!!, nowPoint.value!!),
+                        )
+                    } else {
+                        series(y = listOf(0))
+                    }
+                }
+            }
+        }
+    }
+
+    val lines = remember(chartData.datasets) {
+        chartData.datasets.flatMap { dataset ->
+            listOf(
+                LineCartesianLayer.Line(
+                    fill = LineCartesianLayer.LineFill.single(Fill(dataset.color)),
+                    stroke = LineCartesianLayer.LineStroke.Continuous(thickness = 2.dp),
+                    pointProvider = LineCartesianLayer.PointProvider.single(
+                        LineCartesianLayer.Point(
+                            component = ShapeComponent(Fill(dataset.color), CircleShape),
+                        )
+                    ),
+                ),
+                LineCartesianLayer.Line(
+                    fill = LineCartesianLayer.LineFill.single(Fill(dataset.color.copy(alpha = 0.5f))),
+                    stroke = LineCartesianLayer.LineStroke.Continuous(thickness = 2.dp),
+                    pointProvider = LineCartesianLayer.PointProvider.single(
+                        LineCartesianLayer.Point(
+                            component = ShapeComponent(
+                                Fill(dataset.color.copy(alpha = 0.5f)),
+                                CircleShape,
+                            ),
+                        )
+                    ),
+                ),
+            )
+        }
+    }
+
+    val lineProvider = remember(lines) {
+        LineCartesianLayer.LineProvider.series(lines)
+    }
+
+    val averages = remember(chartData.datasets) {
+        chartData.datasets.associateBy(
+            keySelector = { it.name },
+            valueTransform = { dataset ->
+                val nonNullValues = dataset.set.mapNotNull { it.value }
+                nonNullValues.takeIf { it.isNotEmpty() }?.average()?.toInt() ?: 0
             }
         )
     }
 
-    val lineSpecs = chartData.datasets.flatMap { dataset ->
-        listOf(
-            // Main line
-            LineChart.LineSpec(
-                lineColor = dataset.color.toArgb(),
-                lineThicknessDp = 2f,
-                point = shapeComponent(
-                    color = dataset.color,
-                    shape = CircleShape
-                )
-            ),
+    val markerValueFormatter = remember {
+        DefaultCartesianMarker.ValueFormatter { _, targets ->
+            val values = targets
+                .filterIsInstance<LineCartesianLayerMarkerTarget>()
+                .flatMap { it.points }
+                .distinctBy { it.entry.x * 1_000_000 + it.entry.y }
+                .map { it.entry.y }
 
-            // "Now" overlay
-            LineChart.LineSpec(
-                lineColor = dataset.color.copy(alpha = 0.5f).toArgb(),
-                lineThicknessDp = 2f,
-                point = shapeComponent(
-                    color = dataset.color.copy(alpha = 0.5f),
-                    shape = CircleShape
-                )
-            )
-        )
+            values.joinToString(separator = "; ") { value ->
+                "%.2f".format(value)
+            }
+        }
     }
 
-    val averages = chartData.datasets.associateBy(
-        keySelector = { it.name },
-        valueTransform = { dataset ->
-            val nonNullValues = dataset.set.mapNotNull { it.value }
-            nonNullValues.takeIf { it.isNotEmpty() }?.average()?.toInt() ?: 0
-        }
-    )
+    val indicatorFactory = remember<(androidx.compose.ui.graphics.Color) -> ShapeComponent> {
+        { color -> ShapeComponent(Fill(color), CircleShape) }
+    }
 
-    val marker = MarkerComponent(
-        label = textComponent {
-            color = MaterialTheme.colorScheme.onSurface.toArgb()
-            background = shapeComponent(
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+    val marker = rememberDefaultCartesianMarker(
+        label = rememberTextComponent(
+            style = androidx.compose.ui.text.TextStyle(color = MaterialTheme.colorScheme.onSurface),
+            background = rememberShapeComponent(
+                fill = Fill(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)),
                 shape = CircleShape,
-                strokeColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                strokeWidth = 1.dp,
-            )
-            padding = MutableDimensions(horizontalDp = 8.dp.value, verticalDp = 4.dp.value)
-        },
-        indicator = shapeComponent(
-            color = MaterialTheme.colorScheme.onSurface,
-            shape = CircleShape,
+                strokeFill = Fill(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)),
+                strokeThickness = 1.dp,
+            ),
+            padding = Insets(horizontal = 8.dp, vertical = 4.dp),
         ),
-        guideline = lineComponent(
-            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f),
-            thickness = 1.dp
+        valueFormatter = markerValueFormatter,
+        indicator = indicatorFactory,
+        guideline = rememberLineComponent(
+            fill = Fill(MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)),
+            thickness = 1.dp,
         ),
     )
-    marker.labelFormatter = MarkerLabelFormatter { markedEntries, _ ->
-        // Preserve line order (series index)
-        val values = markedEntries
-            .sortedBy { it.index }
-            .distinctBy { it.entry.x * 1_000_000 + it.entry.y }
-            .map { it.entry.y }
 
-        values.joinToString(
-            separator = "; ",
-            prefix = "",
-            postfix = ""
-        ) { value ->
-            "%.2f".format(value)
+    val bottomAxisValueFormatter = remember(chartData.datasets) {
+        val dataset = chartData.datasets.firstOrNull()
+        val labelByIndex = buildMap {
+            dataset?.set?.forEach { put(it.index, it.label) }
+            dataset?.now?.let { put(it.index, it.label) }
         }
+        CartesianValueFormatter { _, value, _ ->
+            labelByIndex[value.roundToInt()] ?: value.roundToInt().toString()
+        }
+    }
+
+    val itemPlacer = remember(showEveryXLabel) {
+        HorizontalAxis.ItemPlacer.aligned(spacing = { showEveryXLabel })
+    }
+
+    val zoomState = remember {
+        VicoZoomState(
+            zoomEnabled = false,
+            initialZoom = Zoom.fixed(),
+            minZoom = Zoom.fixed(),
+            maxZoom = Zoom.fixed(),
+        )
     }
 
     Column(
@@ -179,35 +203,25 @@ internal fun TrendsChart(
             }
         }
 
-        ProvideChartStyle(m3ChartStyle()) {
-            Chart(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-                    .padding(top = 4.dp),
-                chart = lineChart(lines = lineSpecs),
-                model = producer.getModel()!!,
-                marker = marker,
+        CartesianChartHost(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(180.dp)
+                .padding(top = 4.dp),
+            chart = rememberCartesianChart(
+                rememberLineCartesianLayer(lineProvider = lineProvider),
                 startAxis = startAxis,
-                bottomAxis = rememberBottomAxis(
-                    valueFormatter = { x, _ ->
-                        chartData.datasets
-                            .firstOrNull()
-                            ?.set
-                            ?.getOrNull(x.roundToInt())
-                            ?.label
-                            ?: ""
-                    },
-                    itemPlacer = remember(showEveryXLabel) {
-                        AxisItemPlacer.Horizontal.default(spacing = showEveryXLabel)
-                    }
+                bottomAxis = HorizontalAxis.rememberBottom(
+                    valueFormatter = bottomAxisValueFormatter,
+                    itemPlacer = itemPlacer,
                 ),
-                chartScrollSpec = rememberChartScrollSpec(
-                    initialScroll = InitialScroll.End
-                ),
-                chartScrollState = chartScrollState,
-                isZoomEnabled = false,
-            )
-        }
+                marker = marker,
+            ),
+            modelProducer = modelProducer,
+            scrollState = scrollState,
+            zoomState = zoomState,
+            animationSpec = null,
+            animateIn = false,
+        )
     }
 }

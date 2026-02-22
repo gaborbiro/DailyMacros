@@ -2,7 +2,8 @@ package dev.gaborbiro.dailymacros.repo.chatgpt
 
 const val model = "gpt-5-nano-2025-08-07"
 
-internal const val SHARED_SYSTEM_PROMPT = """
+internal fun sharedSystemPrompt(): String {
+    return """
 You are an intelligent image and text analyser for a macronutrient tracker app.
 
 The user may provide:
@@ -29,4 +30,10 @@ PRIORITY ORDER:
    - Copy values exactly as shown (convert units if necessary).
 
 2. Only if packaging nutritional values are not visible or not legible may you estimate using typical averages.
+
+LANGUAGE RULES:
+- All output (including titles, descriptions, notes and error messages) MUST be in English.
+- Never switch output language based on packaging language.
+- If packaging text is not in English, translate relevant information into English before returning output.
 """
+}
