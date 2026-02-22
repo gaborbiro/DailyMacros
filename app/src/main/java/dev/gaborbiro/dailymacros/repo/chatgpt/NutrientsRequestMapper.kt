@@ -1,10 +1,12 @@
 package dev.gaborbiro.dailymacros.repo.chatgpt
 
+import android.util.Log
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.MacrosApiModel
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.MacrosRequest
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.MacrosResponse
+import dev.gaborbiro.dailymacros.features.modal.sha256
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientsApiModel
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientAnalysisRequest
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientAnalysisResponse
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTRequest
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTResponse
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntry
@@ -13,8 +15,8 @@ import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContent
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.Role
 
 
-internal fun MacrosRequest.toApiModel(): ChatGPTRequest {
-    return ChatGPTRequest(
+internal fun NutrientAnalysisRequest.toApiModel(): ChatGPTRequest {
+    val request = ChatGPTRequest(
         model = model,
         input = listOf(
             ContentEntry(
@@ -32,7 +34,7 @@ internal fun MacrosRequest.toApiModel(): ChatGPTRequest {
                 content = listOf(
                     InputContent.Text(
                         """
-TASK: MACRO_ESTIMATION
+TASK: NUTRIENT_ESTIMATION
 
 Use both images and provided text.
 If text contradicts image, prefer text.
@@ -45,7 +47,7 @@ $description
 
 Output format:
 {
-  "macros": {
+  "nutrients": {
     "calories": 0.0,
     "protein": 0.0,
     "fat": 0.0,
@@ -70,11 +72,13 @@ If estimation is not possible:
             )
         )
     )
+    Log.i("Request SHA-256", request.input.take(2).joinToString().sha256())
+    return request
 }
 
 private val gson = GsonBuilder().create()
 
-internal fun ChatGPTResponse.toMacrosResponse(): MacrosResponse {
+internal fun ChatGPTResponse.toNutrientAnalysisResponse(): NutrientAnalysisResponse {
     val resultJson: String? = this.output
         .lastOrNull {
             it.role == Role.assistant &&
@@ -87,7 +91,7 @@ internal fun ChatGPTResponse.toMacrosResponse(): MacrosResponse {
         }
         ?.text
 
-    class Macros(
+    class Nutrients(
         @SerializedName("calories") val calories: Number?,
         @SerializedName("protein") val protein: Number?,
         @SerializedName("fat") val fat: Number?,
@@ -100,7 +104,7 @@ internal fun ChatGPTResponse.toMacrosResponse(): MacrosResponse {
     )
 
     class Response(
-        @SerializedName("macros") val macros: Macros?,
+        @SerializedName("nutrients") val nutrients: Nutrients?,
         @SerializedName("notes") val notes: String?,
         @SerializedName("title") val title: String?,
         @SerializedName("error") val error: String?,
@@ -108,22 +112,22 @@ internal fun ChatGPTResponse.toMacrosResponse(): MacrosResponse {
 
     val response = gson.fromJson(resultJson, Response::class.java)
 
-    val macros = response.macros?.let {
+    val nutrients = response.nutrients?.let {
         // null value doesn't mean 0 for that macronutrient, the AI just has no information on it.
-        MacrosApiModel(
-            calories = response.macros.calories?.toInt(),
-            proteinGrams = response.macros.protein?.toFloat(),
-            fatGrams = response.macros.fat?.toFloat(),
-            ofWhichSaturatedGrams = response.macros.ofWhichSaturated?.toFloat(),
-            carbGrams = response.macros.carbs?.toFloat(),
-            ofWhichSugarGrams = response.macros.ofWhichSugar?.toFloat(),
-            ofWhichAddedSugarGrams = response.macros.ofWhichAddedSugar?.toFloat(),
-            saltGrams = response.macros.salt?.toFloat(),
-            fibreGrams = response.macros.fibre?.toFloat(),
+        NutrientsApiModel(
+            calories = response.nutrients.calories?.toInt(),
+            proteinGrams = response.nutrients.protein?.toFloat(),
+            fatGrams = response.nutrients.fat?.toFloat(),
+            ofWhichSaturatedGrams = response.nutrients.ofWhichSaturated?.toFloat(),
+            carbGrams = response.nutrients.carbs?.toFloat(),
+            ofWhichSugarGrams = response.nutrients.ofWhichSugar?.toFloat(),
+            ofWhichAddedSugarGrams = response.nutrients.ofWhichAddedSugar?.toFloat(),
+            saltGrams = response.nutrients.salt?.toFloat(),
+            fibreGrams = response.nutrients.fibre?.toFloat(),
         )
     }
-    return MacrosResponse(
-        macros = macros,
+    return NutrientAnalysisResponse(
+        nutrients = nutrients,
         issues = response.error,
         notes = response.notes,
         title = response.title,

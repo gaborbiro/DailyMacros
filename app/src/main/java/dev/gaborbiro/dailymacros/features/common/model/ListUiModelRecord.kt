@@ -9,12 +9,12 @@ data class ListUiModelRecord(
     val images: List<String>,
     val timestamp: String,
     val title: String,
-    val macrosAmounts: MacrosAmountsUIModel?,
+    val nutrients: NutrientsUiModel?,
     val showLoadingIndicator: Boolean,
     val showAddToQuickPicksMenuItem: Boolean,
 ) : ListUiModelBase(listItemId = recordId, contentType = "record")
 
-data class MacrosAmountsUIModel(
+data class NutrientsUiModel(
     val calories: String?,
     val protein: String?,
     val fat: String?,

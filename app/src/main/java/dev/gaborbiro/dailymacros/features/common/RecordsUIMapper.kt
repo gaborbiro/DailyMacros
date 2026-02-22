@@ -5,14 +5,14 @@ import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
 
 internal class RecordsUIMapper(
-    private val macrosUIMapper: MacrosUIMapper,
+    private val nutrientsUIMapper: NutrientsUIMapper,
     private val dateUIMapper: DateUIMapper,
 ) {
     fun map(record: Record, forceDay: Boolean): ListUiModelRecord {
         val timestampStr = dateUIMapper.mapRecordTimestamp(record.timestamp, forceDay)
 
-        val macros = record.template.macros
-            ?.let { macrosUIMapper.mapMacroAmounts(it) }
+        val macros = record.template.nutrientsBreakdown
+            ?.let { nutrientsUIMapper.mapMacroAmounts(it) }
 
         return ListUiModelRecord(
             recordId = record.recordId,
@@ -20,7 +20,7 @@ internal class RecordsUIMapper(
             images = record.template.images,
             timestamp = timestampStr,
             title = record.template.name,
-            macrosAmounts = macros,
+            nutrients = macros,
             showLoadingIndicator = record.template.isPending,
             showAddToQuickPicksMenuItem = mapShowAddToQuickPicksMenuItem(record.template.quickPickOverride),
         )

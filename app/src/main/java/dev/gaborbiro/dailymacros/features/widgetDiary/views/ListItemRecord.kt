@@ -20,7 +20,7 @@ import androidx.glance.preview.Preview
 import androidx.glance.text.Text
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
-import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
+import dev.gaborbiro.dailymacros.features.common.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.widgetDiary.util.WidgetPreviewContext
 
 @Composable
@@ -68,7 +68,7 @@ fun ListItemRecord(
                     style = loadingTextStyle,
                 )
             } else {
-                val nutrient = record.macrosAmounts?.calories?.let { " ($it)" }
+                val nutrient = record.nutrients?.calories?.let { " ($it)" }
                 Text(
                     text = record.timestamp + nutrient,
                     maxLines = 1,
@@ -91,7 +91,7 @@ private fun RecordListItemPreview() {
                 title = "Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast ",
                 timestamp = "Yesterday",
                 images = listOf("1", "2"),
-                macrosAmounts = MacrosAmountsUIModel(
+                nutrients = NutrientsUiModel(
                     calories = "8cal",
                     protein = "prot 8",
                     fat = "fat 4(2)",
@@ -120,7 +120,7 @@ private fun RecordListItemPreviewLoading() {
                 title = "Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast ",
                 timestamp = "Yesterday",
                 images = listOf("1", "2"),
-                macrosAmounts = MacrosAmountsUIModel(
+                nutrients = NutrientsUiModel(
                     calories = "8cal",
                     protein = "prot 8",
                     fat = "fat 4(2)",

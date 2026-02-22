@@ -253,25 +253,25 @@ internal class TrendsViewModel(
 
         return datasetsOf(
             listOf(
-                Triple("Calories (kcal)", Color(0xFF8AB4F8), agg { it.template.macros?.calories?.toFloat() })
+                Triple("Calories (kcal)", Color(0xFF8AB4F8), agg { it.template.nutrientsBreakdown?.calories?.toFloat() })
             ),
             listOf(
-                Triple("Protein (g)", Color(0xFF81C995), agg { it.template.macros?.protein })
+                Triple("Protein (g)", Color(0xFF81C995), agg { it.template.nutrientsBreakdown?.protein })
             ),
             listOf(
-                Triple("Carbs (g)", Color(0xFFFFC278), agg { it.template.macros?.carbs }),
-                Triple(" └>of which sugar (g)", Color(0xFFFFB74D), agg { it.template.macros?.ofWhichSugar }),
-                Triple("     └>of which added sugar (g)", Color(0xFFFF802C), agg { it.template.macros?.ofWhichAddedSugar })
+                Triple("Carbs (g)", Color(0xFFFFC278), agg { it.template.nutrientsBreakdown?.carbs }),
+                Triple(" └>of which sugar (g)", Color(0xFFFFB74D), agg { it.template.nutrientsBreakdown?.ofWhichSugar }),
+                Triple("     └>of which added sugar (g)", Color(0xFFFF802C), agg { it.template.nutrientsBreakdown?.ofWhichAddedSugar })
             ),
             listOf(
-                Triple("Fat (g)", Color(0xFFFFA6A6), agg { it.template.macros?.fat }),
-                Triple(" └>of which saturated fat (g)", Color(0xFFE57373), agg { it.template.macros?.ofWhichSaturated })
+                Triple("Fat (g)", Color(0xFFFFA6A6), agg { it.template.nutrientsBreakdown?.fat }),
+                Triple(" └>of which saturated fat (g)", Color(0xFFE57373), agg { it.template.nutrientsBreakdown?.ofWhichSaturated })
             ),
             listOf(
-                Triple("Salt (g)", Color(0xFFB39DDB), agg { it.template.macros?.salt })
+                Triple("Salt (g)", Color(0xFFB39DDB), agg { it.template.nutrientsBreakdown?.salt })
             ),
             listOf(
-                Triple("Fibre (g)", Color(0xFF4DB6AC), agg { it.template.macros?.fibre })
+                Triple("Fibre (g)", Color(0xFF4DB6AC), agg { it.template.nutrientsBreakdown?.fibre })
             ),
         )
     }
@@ -307,7 +307,7 @@ internal class TrendsViewModel(
     private fun calorieTotalsByDay(records: List<Record>): Map<LocalDate, Float> =
         records
             .mapNotNull { record ->
-                record.template.macros?.calories?.toFloat()?.let {
+                record.template.nutrientsBreakdown?.calories?.toFloat()?.let {
                     record.timestamp.toLocalDate() to it
                 }
             }

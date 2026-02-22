@@ -41,8 +41,8 @@ import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
-import dev.gaborbiro.dailymacros.features.modal.model.MacrosUIModel
-import dev.gaborbiro.dailymacros.features.modal.model.PhotoAnalysisResults
+import dev.gaborbiro.dailymacros.features.modal.model.NutrientsBreakdownUiModel
+import dev.gaborbiro.dailymacros.features.modal.model.RecognisedFood
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -66,12 +66,12 @@ internal fun RecordDetailsDialog(
     val titleHint = dialogState.titleHint
     val images: List<String> = dialogState.images
     val analysis = (dialogState as? DialogState.RecordDetailsDialog.Edit)
-        ?.analysis
+        ?.recognisedFood
     val showProgressIndicator = (dialogState as? DialogState.RecordDetailsDialog.Edit)
         ?.showProgressIndicator
     val description = dialogState.description
     val macros = (dialogState as? DialogState.RecordDetailsDialog.View)
-        ?.macros
+        ?.nutrientsBreakdown
     val allowEdit = (dialogState as? DialogState.RecordDetailsDialog.View)
         ?.allowEdit
         ?: true
@@ -160,12 +160,12 @@ private fun ColumnScope.RecordDetailsDialogContent(
     images: List<String>,
     title: TextFieldValue,
     titleHint: String,
-    analysis: PhotoAnalysisResults?,
+    analysis: RecognisedFood?,
     showProgressIndicator: Boolean,
     description: TextFieldValue,
     titleErrorMessage: String?,
     allowEdit: Boolean,
-    macros: MacrosUIModel?,
+    macros: NutrientsBreakdownUiModel?,
     onImageTapped: (String) -> Unit,
     onImageDeleteTapped: (String) -> Unit,
     onAddImageViaCameraTapped: () -> Unit,
@@ -337,7 +337,7 @@ private fun ColumnScope.RecordDetailsDialogContent(
             modifier = Modifier
                 .height(PaddingDefault)
         )
-        MacroIndentedList(macros = macros)
+        NutrientsIndentedList(nutrientsBreakdown = macros)
         Spacer(
             modifier = Modifier
                 .height(PaddingDefault)
@@ -358,7 +358,7 @@ private fun NoteInputDialogContentPreviewEdit() {
                 description = TextFieldValue(),
                 images = listOf("1", "2"),
                 allowEdit = true,
-                macros = MacrosUIModel(
+                nutrientsBreakdown = NutrientsBreakdownUiModel(
                     calories = "Calories: 2100 cal",
                     protein = "Protein: 150g",
                     fat = "Fat 100g",
@@ -396,7 +396,7 @@ private fun NoteInputDialogContentPreviewSuggestion() {
                 titleHint = "Describe your meal",
                 description = TextFieldValue(),
                 images = listOf("1", "2"),
-                analysis = PhotoAnalysisResults(
+                recognisedFood = RecognisedFood(
                     title = "This is a title suggestion",
                     description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
                 ),
@@ -428,7 +428,7 @@ private fun NoteInputDialogContentPreview() {
                 description = TextFieldValue(),
                 images = listOf("1", "2"),
                 showProgressIndicator = true,
-                analysis = null,
+                recognisedFood = null,
             ),
             errorMessages = emptyFlow(),
             onTitleChanged = {},
@@ -456,7 +456,7 @@ private fun NoteInputDialogContentPreviewError() {
                 titleValidationError = "error",
                 description = TextFieldValue(),
                 images = listOf("1", "2"),
-                analysis = PhotoAnalysisResults(
+                recognisedFood = RecognisedFood(
                     title = "This is a title suggestion",
                     description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
                 ),

@@ -32,7 +32,7 @@ import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
 import dev.gaborbiro.dailymacros.features.common.model.DailySummaryEntry
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelDailySummary
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
-import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
+import dev.gaborbiro.dailymacros.features.common.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
 import dev.gaborbiro.dailymacros.features.widgetDiary.DiaryWidgetReceiver
 
@@ -219,7 +219,7 @@ private fun OverviewListPreview() {
                         templateId = 2L,
                         images = listOf("", ""),
                         timestamp = "17:00",
-                        macrosAmounts = MacrosAmountsUIModel(
+                        nutrients = NutrientsUiModel(
                             calories = "8cal",
                             protein = "prot 8",
                             fat = "fat 4(2)",
@@ -236,7 +236,7 @@ private fun OverviewListPreview() {
                         templateId = 4L,
                         images = listOf("", ""),
                         timestamp = "15:38",
-                        macrosAmounts = MacrosAmountsUIModel(
+                        nutrients = NutrientsUiModel(
                             calories = "8cal",
                             protein = "prot 8",
                             fat = "fat 4(2)",

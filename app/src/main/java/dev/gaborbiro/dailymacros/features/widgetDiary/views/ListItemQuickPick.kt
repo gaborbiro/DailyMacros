@@ -22,7 +22,7 @@ import androidx.glance.preview.Preview
 import androidx.glance.text.Text
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPick
-import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
+import dev.gaborbiro.dailymacros.features.common.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.widgetDiary.util.WidgetPreviewContext
 
 @Composable
@@ -67,7 +67,7 @@ internal fun ListItemQuickPick(
                 maxLines = 3,
                 style = titleTextStyle,
             )
-            quickPickEntry.macros?.calories
+            quickPickEntry.nutrients?.calories
                 ?.let {
                     Text(
                         modifier = GlanceModifier
@@ -92,7 +92,7 @@ private fun ListItemQuickPickPreview() {
                 title = "Breakfast",
                 images = listOf("", ""),
                 templateId = 0L,
-                macros = MacrosAmountsUIModel(
+                nutrients = NutrientsUiModel(
                     calories = "1008cal",
                     protein = "protein 8",
                     fat = "fat 4(2)",

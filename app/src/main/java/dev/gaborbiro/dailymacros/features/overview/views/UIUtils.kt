@@ -10,7 +10,7 @@ fun layeredColors(
 ): Pair<Color, Color> {
     return when {
         progress0to1 < 1f -> {
-            // First layer: macro color vs background
+            // First layer: nutrient color vs background
             base to onBackground.copy(alpha = .09f)
         }
 

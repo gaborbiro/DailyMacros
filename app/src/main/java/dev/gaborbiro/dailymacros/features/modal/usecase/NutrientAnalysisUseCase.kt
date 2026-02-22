@@ -3,7 +3,7 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 import android.content.Context
 import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
-import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
+import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.features.modal.RecordsMapper
 import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
@@ -12,18 +12,18 @@ import dev.gaborbiro.dailymacros.repo.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repo.chatgpt.toDomainModel
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
+import dev.gaborbiro.dailymacros.repo.records.domain.model.NutrientsBreakdown
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.requestStatus.domain.RequestStatusRepository
 import dev.gaborbiro.dailymacros.util.showMacroResultsNotification
 
-internal class FetchMacrosUseCase(
+internal class NutrientAnalysisUseCase(
     private val appContext: Context,
     private val imageStore: ImageStore,
     private val chatGPTRepository: ChatGPTRepository,
     private val recordsRepository: RecordsRepository,
     private val recordsMapper: RecordsMapper,
-    private val macrosUIMapper: MacrosUIMapper,
+    private val nutrientsUIMapper: NutrientsUIMapper,
     private val requestStatusRepository: RequestStatusRepository,
 ) {
 
@@ -39,16 +39,16 @@ internal class FetchMacrosUseCase(
                 }
             requestStatusRepository.markAsPending(record.template.dbId)
             DiaryWidgetScreen.reload()
-            val getMacrosResult = runCatching {
-                chatGPTRepository.getMacros(
-                    request = recordsMapper.mapMacrosRequest(
+            val nutrientsResponse = runCatching {
+                chatGPTRepository.analyseNutrients(
+                    request = recordsMapper.mapToNutrientAnalysisRequest(
                         record = record,
                         base64Images = base64Images,
                     )
                 )
             }
 
-            getMacrosResult
+            nutrientsResponse
                 .exceptionOrNull()
                 ?.let {
                     if (it is ChatGPTApiError.InternetApiError) {
@@ -61,26 +61,26 @@ internal class FetchMacrosUseCase(
                     throw it
                 }
 
-            getMacrosResult.getOrNull()?.let {
-                val (macros: Macros?, issues: String?, title: String?) = recordsMapper.map(it)
+            nutrientsResponse.getOrNull()?.let {
+                val (nutrientsBreakdown: NutrientsBreakdown?, issues: String?, title: String?) = recordsMapper.mapNutrientAnalysisResponse(it)
                 if (record.template.name.isBlank()) {
                     recordsRepository.updateTemplate(
                         templateId = record.template.dbId,
                         name = title ?: record.template.name,
-                        macros = macros,
+                        nutrientsBreakdown = nutrientsBreakdown,
                     )
                 } else {
                     recordsRepository.updateTemplate(
                         templateId = record.template.dbId,
-                        macros = macros,
+                        nutrientsBreakdown = nutrientsBreakdown,
                     )
                 }
-                val macrosStr = macrosUIMapper.mapMacrosPrintout(macros)
+                val macrosStr = nutrientsUIMapper.mapMacrosPrintout(nutrientsBreakdown)
                 appContext.showMacroResultsNotification(
                     id = 123000L + recordId,
                     recordId = recordId,
                     title = null,
-                    message = listOfNotNull(record.template.name, macrosStr, issues, macros?.notes).joinToString("\n"),
+                    message = listOfNotNull(record.template.name, macrosStr, issues, nutrientsBreakdown?.notes).joinToString("\n"),
                 )
             }
         } catch (apiError: ChatGPTApiError) {

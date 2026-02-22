@@ -4,37 +4,37 @@ import android.icu.text.DecimalFormat
 import android.util.Range
 import dev.gaborbiro.dailymacros.features.common.model.DailySummaryEntry
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelDailySummary
-import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
+import dev.gaborbiro.dailymacros.features.common.model.NutrientsUiModel
+import dev.gaborbiro.dailymacros.repo.records.domain.model.NutrientsBreakdown
 import dev.gaborbiro.dailymacros.repo.settings.model.Target
 import dev.gaborbiro.dailymacros.repo.settings.model.Targets
 import kotlin.math.absoluteValue
 
-internal class MacrosUIMapper(
+internal class NutrientsUIMapper(
     private val dateUIMapper: DateUIMapper,
 ) {
 
-    fun mapDailyMacroProgressTable(
+    fun mapDailyNutrientProgressTable(
         day: TravelDay,
         targets: Targets,
     ): ListUiModelDailySummary {
         val records = day.records
-        val totalCalories = records.sumOf { it.template.macros?.calories ?: 0 }
+        val totalCalories = records.sumOf { it.template.nutrientsBreakdown?.calories ?: 0 }
         val totalProtein =
-            records.sumOf { it.template.macros?.protein?.toDouble() ?: 0.0 }.toFloat()
+            records.sumOf { it.template.nutrientsBreakdown?.protein?.toDouble() ?: 0.0 }.toFloat()
         val totalCarbs =
-            records.sumOf { it.template.macros?.carbs?.toDouble() ?: 0.0 }.toFloat()
+            records.sumOf { it.template.nutrientsBreakdown?.carbs?.toDouble() ?: 0.0 }.toFloat()
         val totalSugar =
-            records.sumOf { it.template.macros?.ofWhichSugar?.toDouble() ?: 0.0 }.toFloat()
+            records.sumOf { it.template.nutrientsBreakdown?.ofWhichSugar?.toDouble() ?: 0.0 }.toFloat()
         val totalAddedSugar =
-            records.sumOf { it.template.macros?.ofWhichAddedSugar?.toDouble() ?: 0.0 }.toFloat()
-        val totalFat = records.sumOf { it.template.macros?.fat?.toDouble() ?: 0.0 }.toFloat()
+            records.sumOf { it.template.nutrientsBreakdown?.ofWhichAddedSugar?.toDouble() ?: 0.0 }.toFloat()
+        val totalFat = records.sumOf { it.template.nutrientsBreakdown?.fat?.toDouble() ?: 0.0 }.toFloat()
         val totalSaturated =
-            records.sumOf { it.template.macros?.ofWhichSaturated?.toDouble() ?: 0.0 }.toFloat()
-        val totalSalt = records.sumOf { it.template.macros?.salt?.toDouble() ?: 0.0 }.toFloat()
-        val totalFibre = records.sumOf { it.template.macros?.fibre?.toDouble() ?: 0.0 }.toFloat()
+            records.sumOf { it.template.nutrientsBreakdown?.ofWhichSaturated?.toDouble() ?: 0.0 }.toFloat()
+        val totalSalt = records.sumOf { it.template.nutrientsBreakdown?.salt?.toDouble() ?: 0.0 }.toFloat()
+        val totalFibre = records.sumOf { it.template.nutrientsBreakdown?.fibre?.toDouble() ?: 0.0 }.toFloat()
 
-        val totalMacros = Macros(
+        val totalNutrientsBreakdown = NutrientsBreakdown(
             calories = totalCalories,
             protein = totalProtein,
             fat = totalFat,
@@ -47,7 +47,7 @@ internal class MacrosUIMapper(
             notes = null,
         )
 
-        val progressItems = buildMacroProgressItems(totalMacros, targets)
+        val progressItems = buildNutrientProgressItems(totalNutrientsBreakdown, targets)
 
         val infoMessage = buildTimezoneInfo(day)
 
@@ -59,8 +59,8 @@ internal class MacrosUIMapper(
         )
     }
 
-    fun buildMacroProgressItems(
-        macros: Macros,
+    fun buildNutrientProgressItems(
+        nutrientsBreakdown: NutrientsBreakdown,
         targets: Targets,
     ): List<DailySummaryEntry> {
         fun gramRangeLabel(target: Target): String =
@@ -82,8 +82,8 @@ internal class MacrosUIMapper(
                 add(
                     DailySummaryEntry(
                         title = "Calories",
-                        progress0to1 = targetProgress(it, macros.calories?.toFloat() ?: 0f) ?: 0f,
-                        progressLabel = formatCalories(macros.calories, isShort = false, withLabel = false) ?: "0",
+                        progress0to1 = targetProgress(it, nutrientsBreakdown.calories?.toFloat() ?: 0f) ?: 0f,
+                        progressLabel = formatCalories(nutrientsBreakdown.calories, isShort = false, withLabel = false) ?: "0",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = rangeLabel,
                         color = { it.calorieColor },
@@ -94,8 +94,8 @@ internal class MacrosUIMapper(
                 add(
                     DailySummaryEntry(
                         title = "Protein",
-                        progress0to1 = targetProgress(it, macros.protein ?: 0f) ?: 0f,
-                        progressLabel = formatProtein(macros.protein, isShort = false, withLabel = false) ?: "0g",
+                        progress0to1 = targetProgress(it, nutrientsBreakdown.protein ?: 0f) ?: 0f,
+                        progressLabel = formatProtein(nutrientsBreakdown.protein, isShort = false, withLabel = false) ?: "0g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.proteinColor },
@@ -106,8 +106,8 @@ internal class MacrosUIMapper(
                 add(
                     DailySummaryEntry(
                         title = "Salt",
-                        progress0to1 = targetProgress(it, macros.salt ?: 0f) ?: 0f,
-                        progressLabel = formatSalt(macros.salt, isShort = false, withLabel = false) ?: "0.0g",
+                        progress0to1 = targetProgress(it, nutrientsBreakdown.salt ?: 0f) ?: 0f,
+                        progressLabel = formatSalt(nutrientsBreakdown.salt, isShort = false, withLabel = false) ?: "0.0g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.saltColor },
@@ -118,8 +118,8 @@ internal class MacrosUIMapper(
                 add(
                     DailySummaryEntry(
                         title = "Fibre",
-                        progress0to1 = targetProgress(it, macros.fibre ?: 0f) ?: 0f,
-                        progressLabel = formatFibre(macros.fibre, isShort = false, withLabel = false) ?: "0g",
+                        progress0to1 = targetProgress(it, nutrientsBreakdown.fibre ?: 0f) ?: 0f,
+                        progressLabel = formatFibre(nutrientsBreakdown.fibre, isShort = false, withLabel = false) ?: "0g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.fibreColor },
@@ -130,8 +130,8 @@ internal class MacrosUIMapper(
                 add(
                     DailySummaryEntry(
                         title = "Carbs",
-                        progress0to1 = targetProgress(it, macros.carbs ?: 0f) ?: 0f,
-                        progressLabel = formatCarbs(macros.carbs, sugar = null, addedSugar = null, isShort = false, withLabel = false)
+                        progress0to1 = targetProgress(it, nutrientsBreakdown.carbs ?: 0f) ?: 0f,
+                        progressLabel = formatCarbs(nutrientsBreakdown.carbs, sugar = null, addedSugar = null, isShort = false, withLabel = false)
                             ?: "0g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
@@ -143,8 +143,8 @@ internal class MacrosUIMapper(
                 add(
                     DailySummaryEntry(
                         title = "sugar",
-                        progress0to1 = targetProgress(it, macros.ofWhichSugar ?: 0f) ?: 0f,
-                        progressLabel = formatSugar(macros.ofWhichSugar, isShort = false, withLabel = false) ?: "0g",
+                        progress0to1 = targetProgress(it, nutrientsBreakdown.ofWhichSugar ?: 0f) ?: 0f,
+                        progressLabel = formatSugar(nutrientsBreakdown.ofWhichSugar, isShort = false, withLabel = false) ?: "0g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.carbsColor },
@@ -155,8 +155,8 @@ internal class MacrosUIMapper(
                 add(
                     DailySummaryEntry(
                         title = "Fat",
-                        progress0to1 = targetProgress(it, macros.fat ?: 0f) ?: 0f,
-                        progressLabel = formatFat(macros.fat, saturated = null, isShort = false, withLabel = false)
+                        progress0to1 = targetProgress(it, nutrientsBreakdown.fat ?: 0f) ?: 0f,
+                        progressLabel = formatFat(nutrientsBreakdown.fat, saturated = null, isShort = false, withLabel = false)
                             ?: "0g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
@@ -168,8 +168,8 @@ internal class MacrosUIMapper(
                 add(
                     DailySummaryEntry(
                         title = "saturated",
-                        progress0to1 = targetProgress(it, macros.ofWhichSaturated ?: 0f) ?: 0f,
-                        progressLabel = formatSaturatedFat(macros.ofWhichSaturated, isShort = false, withLabel = false) ?: "0g",
+                        progress0to1 = targetProgress(it, nutrientsBreakdown.ofWhichSaturated ?: 0f) ?: 0f,
+                        progressLabel = formatSaturatedFat(nutrientsBreakdown.ofWhichSaturated, isShort = false, withLabel = false) ?: "0g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.fatColor },
@@ -209,36 +209,36 @@ internal class MacrosUIMapper(
         }
     }
 
-    fun mapMacrosPrintout(macros: Macros?, isShort: Boolean = false): String? {
+    fun mapMacrosPrintout(nutrientsBreakdown: NutrientsBreakdown?, isShort: Boolean = false): String? {
         return listOfNotNull(
-            macros?.calories?.let { formatCalories(it, isShort, withLabel = true) },
-            macros?.protein?.let { formatProtein(it, isShort, withLabel = true) },
-            macros?.fat?.let { formatFat(it, macros.ofWhichSaturated, isShort, withLabel = true) },
+            nutrientsBreakdown?.calories?.let { formatCalories(it, isShort, withLabel = true) },
+            nutrientsBreakdown?.protein?.let { formatProtein(it, isShort, withLabel = true) },
+            nutrientsBreakdown?.fat?.let { formatFat(it, nutrientsBreakdown.ofWhichSaturated, isShort, withLabel = true) },
             if (!isShort) {
-                macros?.ofWhichSaturated?.let { formatSaturatedFat(it, isShort = false, withLabel = true) }
+                nutrientsBreakdown?.ofWhichSaturated?.let { formatSaturatedFat(it, isShort = false, withLabel = true) }
             } else null,
-            macros?.carbs?.let { formatCarbs(it, macros.ofWhichSugar, macros.ofWhichAddedSugar, isShort, withLabel = true) },
+            nutrientsBreakdown?.carbs?.let { formatCarbs(it, nutrientsBreakdown.ofWhichSugar, nutrientsBreakdown.ofWhichAddedSugar, isShort, withLabel = true) },
             if (!isShort) {
-                macros?.ofWhichSugar?.let { formatSugar(it, isShort = false, withLabel = true) }
+                nutrientsBreakdown?.ofWhichSugar?.let { formatSugar(it, isShort = false, withLabel = true) }
             } else null,
             if (!isShort) {
-                macros?.ofWhichAddedSugar?.let { formatAddedSugar(it, isShort = false, withLabel = true) }
+                nutrientsBreakdown?.ofWhichAddedSugar?.let { formatAddedSugar(it, isShort = false, withLabel = true) }
             } else null,
-            macros?.salt?.let { formatSalt(it, isShort, withLabel = true) },
-            macros?.fibre?.let { formatFibre(it, isShort, withLabel = true) }
+            nutrientsBreakdown?.salt?.let { formatSalt(it, isShort, withLabel = true) },
+            nutrientsBreakdown?.fibre?.let { formatFibre(it, isShort, withLabel = true) }
         )
             .joinToString()
             .takeIf { it.isNotBlank() }
     }
 
-    fun mapMacroAmounts(macros: Macros): MacrosAmountsUIModel {
-        return MacrosAmountsUIModel(
-            calories = formatCalories(macros.calories, isShort = true, withLabel = true),
-            protein = formatProtein(macros.protein, isShort = true, withLabel = true),
-            fat = formatFat(macros.fat, macros.ofWhichSaturated, isShort = true, withLabel = true),
-            carbs = formatCarbs(macros.carbs, macros.ofWhichSugar, macros.ofWhichAddedSugar, isShort = true, withLabel = true),
-            salt = formatSalt(macros.salt, isShort = true, withLabel = true),
-            fibre = formatFibre(macros.fibre, isShort = true, withLabel = true),
+    fun mapMacroAmounts(nutrientsBreakdown: NutrientsBreakdown): NutrientsUiModel {
+        return NutrientsUiModel(
+            calories = formatCalories(nutrientsBreakdown.calories, isShort = true, withLabel = true),
+            protein = formatProtein(nutrientsBreakdown.protein, isShort = true, withLabel = true),
+            fat = formatFat(nutrientsBreakdown.fat, nutrientsBreakdown.ofWhichSaturated, isShort = true, withLabel = true),
+            carbs = formatCarbs(nutrientsBreakdown.carbs, nutrientsBreakdown.ofWhichSugar, nutrientsBreakdown.ofWhichAddedSugar, isShort = true, withLabel = true),
+            salt = formatSalt(nutrientsBreakdown.salt, isShort = true, withLabel = true),
+            fibre = formatFibre(nutrientsBreakdown.fibre, isShort = true, withLabel = true),
         )
     }
 
@@ -249,7 +249,7 @@ internal class MacrosUIMapper(
     ): String? {
         val smallScaleValue = false
         val (shortFormat, longFormat) = generateFormats(
-            shortLabel = "",  // no short label because "kcal" makes this macro recognisable enough
+            shortLabel = "",  // no short label because "kcal" makes this value recognizable enough
             longLabel = "Calories:",
             unit = "kcal",
             withLabel = withLabel,

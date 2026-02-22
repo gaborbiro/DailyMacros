@@ -1,9 +1,9 @@
 package dev.gaborbiro.dailymacros.repo.records.domain.model
 
 /**
- * null doesn't mean 0 for that macro. It means it's unknown.
+ * null doesn't mean 0 for that nutrient. It means it's unknown.
  */
-data class Macros(
+data class NutrientsBreakdown(
     val calories: Int?,
     val protein: Float?,
     val fat: Float?,

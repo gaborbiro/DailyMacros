@@ -7,7 +7,7 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.QuickPickOverrideEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatusEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
+import dev.gaborbiro.dailymacros.repo.records.domain.model.NutrientsBreakdown
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateToSave
@@ -26,7 +26,7 @@ internal class RecordsApiMapper {
             images = orderedImages,
             name = template.entity.name,
             description = template.entity.description,
-            macros = template.macros?.let(::map),
+            nutrientsBreakdown = template.macros?.let(::map),
             isPending = template.requestStatus?.status == RequestStatusEntity.Status.PENDING,
             quickPickOverride = map(template.quickPickOverride),
         )
@@ -42,8 +42,8 @@ internal class RecordsApiMapper {
 
     // -------- Domain <— DB: Macros --------
 
-    private fun map(template: MacrosEntity): Macros {
-        return Macros(
+    private fun map(template: MacrosEntity): NutrientsBreakdown {
+        return NutrientsBreakdown(
             calories = template.calories,
             protein = template.protein,
             fat = template.fat,
@@ -92,19 +92,19 @@ internal class RecordsApiMapper {
     }
 
     // Domain Macros -> MacrosEntity (templateId set by caller via .copy)
-    fun map(macros: Macros, id: Long?, templateId: Long): MacrosEntity {
+    fun map(nutrientsBreakdown: NutrientsBreakdown, id: Long?, templateId: Long): MacrosEntity {
         return MacrosEntity(
             templateId = templateId,
-            calories = macros.calories,
-            protein = macros.protein,
-            carbohydrates = macros.carbs,
-            ofWhichSugar = macros.ofWhichSugar,
-            ofWhichAddedSugar = macros.ofWhichAddedSugar,
-            fat = macros.fat,
-            ofWhichSaturated = macros.ofWhichSaturated,
-            salt = macros.salt,
-            fibre = macros.fibre,
-            notes = macros.notes,
+            calories = nutrientsBreakdown.calories,
+            protein = nutrientsBreakdown.protein,
+            carbohydrates = nutrientsBreakdown.carbs,
+            ofWhichSugar = nutrientsBreakdown.ofWhichSugar,
+            ofWhichAddedSugar = nutrientsBreakdown.ofWhichAddedSugar,
+            fat = nutrientsBreakdown.fat,
+            ofWhichSaturated = nutrientsBreakdown.ofWhichSaturated,
+            salt = nutrientsBreakdown.salt,
+            fibre = nutrientsBreakdown.fibre,
+            notes = nutrientsBreakdown.notes,
         ).also {
             it.id = id
         }

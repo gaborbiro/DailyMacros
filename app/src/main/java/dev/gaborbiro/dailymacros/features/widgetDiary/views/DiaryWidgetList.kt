@@ -23,7 +23,7 @@ import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPick
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPickFooter
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPickHeader
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
-import dev.gaborbiro.dailymacros.features.common.model.MacrosAmountsUIModel
+import dev.gaborbiro.dailymacros.features.common.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.widgetDiary.util.WidgetPreviewContext
 
 @Composable
@@ -126,7 +126,7 @@ private fun WidgetListPreview() {
                     title = "Breakfast",
                     timestamp = "Yesterday",
                     images = listOf("", ""),
-                    macrosAmounts = MacrosAmountsUIModel(
+                    nutrients = NutrientsUiModel(
                         calories = "8cal",
                         protein = "prot 8",
                         fat = "fat 4(2)",
@@ -142,7 +142,7 @@ private fun WidgetListPreview() {
                     templateId = 1,
                     title = "Breakfast",
                     images = listOf("", ""),
-                    macros = MacrosAmountsUIModel(
+                    nutrients = NutrientsUiModel(
                         calories = "1008cal",
                         protein = "protein 8",
                         fat = "fat 4(2)",
@@ -155,7 +155,7 @@ private fun WidgetListPreview() {
                     templateId = 2,
                     title = "Lunch",
                     images = listOf("", ""),
-                    macros = MacrosAmountsUIModel(
+                    nutrients = NutrientsUiModel(
                         calories = "1008cal",
                         protein = "protein 8",
                         fat = "fat 4(2)",
@@ -168,7 +168,7 @@ private fun WidgetListPreview() {
                     templateId = 3,
                     title = "Dinner",
                     images = listOf("", ""),
-                    macros = MacrosAmountsUIModel(
+                    nutrients = NutrientsUiModel(
                         calories = "1008cal",
                         protein = "protein 8",
                         fat = "fat 4(2)",
@@ -184,7 +184,7 @@ private fun WidgetListPreview() {
                     timestamp = "Yesterday",
                     title = "Lunch",
                     images = listOf("", ""),
-                    macrosAmounts = MacrosAmountsUIModel(
+                    nutrients = NutrientsUiModel(
                         calories = "8cal",
                         protein = "prot 8",
                         fat = "fat 4(2)",
@@ -201,7 +201,7 @@ private fun WidgetListPreview() {
                     timestamp = "Yesterday",
                     title = "Dinner",
                     images = listOf("", ""),
-                    macrosAmounts = MacrosAmountsUIModel(
+                    nutrients = NutrientsUiModel(
                         calories = "8cal",
                         protein = "prot 8",
                         fat = "fat 4(2)",

@@ -29,11 +29,10 @@ import dev.gaborbiro.dailymacros.data.file.FileStore
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.AppTheme
-import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
-import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
+import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.views.InfoDialog
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
@@ -43,7 +42,7 @@ import dev.gaborbiro.dailymacros.features.modal.model.ModalUIUpdates
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.PhotoAnalysisUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
@@ -162,10 +161,9 @@ class ModalActivity : AppCompatActivity() {
             service = retrofit.create(ChatGPTService::class.java)
         )
 
-        val appPrefs = AppPrefs(this@ModalActivity)
-        val recordsMapper = RecordsMapper(appPrefs)
+        val recordsMapper = RecordsMapper()
         val dateUIMapper = DateUIMapper()
-        val macrosUIMapper = MacrosUIMapper(dateUIMapper)
+        val nutrientsUIMapper = NutrientsUIMapper(dateUIMapper)
         val deleteRecordUseCase = DeleteRecordUseCase(recordsRepository)
         val createRecordFromTemplateUseCase = CreateRecordFromTemplateUseCase(recordsRepository)
         val createTemplateUseCase = CreateTemplateUseCase(recordsRepository)
@@ -185,8 +183,8 @@ class ModalActivity : AppCompatActivity() {
             saveImageUseCase = SaveImageUseCase(this, imageStore),
             getRecordImageUseCase = GetRecordImageUseCase(recordsRepository, imageStore),
             getTemplateImageUseCase = GetTemplateImageUseCase(recordsRepository, imageStore),
-            photoAnalysisUseCase = PhotoAnalysisUseCase(imageStore, chatGPTRepository, recordsMapper),
-            macrosUIMapper = macrosUIMapper,
+            foodRecognitionUseCase = FoodRecognitionUseCase(imageStore, chatGPTRepository, recordsMapper),
+            nutrientsUIMapper = nutrientsUIMapper,
             deleteRecordUseCase = deleteRecordUseCase,
             analyticsLogger = analyticsLogger,
         )

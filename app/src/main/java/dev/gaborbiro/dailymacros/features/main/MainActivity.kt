@@ -30,7 +30,7 @@ import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.common.DateUIMapper
-import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
+import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.viewModelFactory
@@ -79,7 +79,7 @@ class MainActivity : ComponentActivity() {
             analyticsLogger = analyticsLogger,
         )
         val dateUIMapper = DateUIMapper()
-        val macrosUIMapper = MacrosUIMapper(dateUIMapper)
+        val nutrientsUIMapper = NutrientsUIMapper(dateUIMapper)
 
         val settingsRepository = SettingsRepository(this@MainActivity, SettingsMapper())
         val appPrefs = AppPrefs(this@MainActivity)
@@ -111,14 +111,14 @@ class MainActivity : ComponentActivity() {
                         navController = navController,
                     )
                 }
-                val recordsUIMapper = RecordsUIMapper(macrosUIMapper, dateUIMapper)
+                val recordsUIMapper = RecordsUIMapper(nutrientsUIMapper, dateUIMapper)
                 val overviewViewModel = viewModelFactory {
                     OverviewViewModel(
                         navigator = overviewNavigator,
                         recordsRepository = recordsRepository,
                         repeatRecordUseCase = repeatRecordUseCase,
                         recordsUIMapper = recordsUIMapper,
-                        overviewUIMapper = OverviewUIMapper(recordsUIMapper, macrosUIMapper),
+                        overviewUIMapper = OverviewUIMapper(recordsUIMapper, nutrientsUIMapper),
                         settingsRepository = settingsRepository,
                         appPrefs = appPrefs,
                     )

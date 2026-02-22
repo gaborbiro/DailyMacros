@@ -1,59 +1,56 @@
 package dev.gaborbiro.dailymacros.features.modal
 
-import dev.gaborbiro.dailymacros.features.common.AppPrefs
-import dev.gaborbiro.dailymacros.features.modal.model.PhotoAnalysisResults
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.PhotoAnalysisRequest
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.PhotoAnalysisResponse
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.MacrosApiModel
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.MacrosRequest
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.MacrosResponse
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
+import dev.gaborbiro.dailymacros.features.modal.model.RecognisedFood
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientsApiModel
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientAnalysisRequest
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientAnalysisResponse
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodRecognitionRequest
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodRecognitionResponse
+import dev.gaborbiro.dailymacros.repo.records.domain.model.NutrientsBreakdown
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 
-internal class RecordsMapper(
-    private val appPrefs: AppPrefs,
-) {
+internal class RecordsMapper {
 
-    fun mapPhotoAnalysisRequest(base64Images: List<String>): PhotoAnalysisRequest {
-        return PhotoAnalysisRequest(
+    fun mapToFoodRecognitionRequest(base64Images: List<String>): FoodRecognitionRequest {
+        return FoodRecognitionRequest(
             base64Images = base64Images,
         )
     }
 
-    fun map(response: PhotoAnalysisResponse): PhotoAnalysisResults {
-        return PhotoAnalysisResults(
+    fun mapRecognisedFood(response: FoodRecognitionResponse): RecognisedFood {
+        return RecognisedFood(
             title = response.title,
             description = response.description
         )
     }
 
-    fun mapMacrosRequest(record: Record, base64Images: List<String>): MacrosRequest {
-        return MacrosRequest(
+    fun mapToNutrientAnalysisRequest(record: Record, base64Images: List<String>): NutrientAnalysisRequest {
+        return NutrientAnalysisRequest(
             base64Images = base64Images,
             title = record.template.name,
             description = record.template.description,
         )
     }
 
-    fun map(response: MacrosResponse): Triple<Macros?, String?, String?> {
+    fun mapNutrientAnalysisResponse(response: NutrientAnalysisResponse): Triple<NutrientsBreakdown?, String?, String?> {
         return Triple(
-            first = response.macros?.let { map(it, response.notes) },
+            first = response.nutrients?.let { map(it, response.notes) },
             second = response.issues,
             third = response.title,
         )
     }
 
-    private fun map(macrosApiModel: MacrosApiModel, notes: String?): Macros {
-        return Macros(
-            calories = macrosApiModel.calories,
-            protein = macrosApiModel.proteinGrams,
-            fat = macrosApiModel.fatGrams,
-            ofWhichSaturated = macrosApiModel.ofWhichSaturatedGrams,
-            carbs = macrosApiModel.carbGrams,
-            ofWhichSugar = macrosApiModel.ofWhichSugarGrams,
-            ofWhichAddedSugar = macrosApiModel.ofWhichAddedSugarGrams,
-            salt = macrosApiModel.saltGrams,
-            fibre = macrosApiModel.fibreGrams,
+    private fun map(nutrientsApiModel: NutrientsApiModel, notes: String?): NutrientsBreakdown {
+        return NutrientsBreakdown(
+            calories = nutrientsApiModel.calories,
+            protein = nutrientsApiModel.proteinGrams,
+            fat = nutrientsApiModel.fatGrams,
+            ofWhichSaturated = nutrientsApiModel.ofWhichSaturatedGrams,
+            carbs = nutrientsApiModel.carbGrams,
+            ofWhichSugar = nutrientsApiModel.ofWhichSugarGrams,
+            ofWhichAddedSugar = nutrientsApiModel.ofWhichAddedSugarGrams,
+            salt = nutrientsApiModel.saltGrams,
+            fibre = nutrientsApiModel.fibreGrams,
             notes = notes,
         )
     }

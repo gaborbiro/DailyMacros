@@ -6,7 +6,7 @@ import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 
 /**
  * Creates a new template and updates the specified record with it.
- * This will delete macro data from the record and needs to be AI-d.
+ * This will delete nutrient data from the record and needs to be AI-d.
  */
 internal class UpdateRecordWithNewTemplateUseCase(
     private val repository: RecordsRepository,

@@ -12,20 +12,20 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.QuickPickOverrideEntity
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
-import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
+import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.message
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
-import dev.gaborbiro.dailymacros.features.modal.model.MacrosUIModel
+import dev.gaborbiro.dailymacros.features.modal.model.NutrientsBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUIUpdates
 import dev.gaborbiro.dailymacros.features.modal.model.ModalViewState
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditValidationResult
-import dev.gaborbiro.dailymacros.features.modal.usecase.PhotoAnalysisUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
@@ -60,9 +60,9 @@ internal class ModalViewModel(
     private val saveImageUseCase: SaveImageUseCase,
     private val getRecordImageUseCase: GetRecordImageUseCase,
     private val getTemplateImageUseCase: GetTemplateImageUseCase,
-    private val photoAnalysisUseCase: PhotoAnalysisUseCase,
+    private val foodRecognitionUseCase: FoodRecognitionUseCase,
     private val deleteRecordUseCase: DeleteRecordUseCase,
-    private val macrosUIMapper: MacrosUIMapper,
+    private val nutrientsUIMapper: NutrientsUIMapper,
     private val analyticsLogger: AnalyticsLogger,
 ) : ViewModel() {
 
@@ -78,7 +78,7 @@ internal class ModalViewModel(
     private val _uiUpdates = Channel<ModalUIUpdates>(Channel.BUFFERED)
     val uiUpdates: Flow<ModalUIUpdates> = _uiUpdates.receiveAsFlow()
 
-    private var imageSummaryJob: Job? = null
+    private var recogniseFoodJob: Job? = null
 
     @UiThread
     fun onCreateRecordWithCameraDeeplink() {
@@ -102,7 +102,7 @@ internal class ModalViewModel(
                 titleHint = "Describe your meal (or snap a photo)",
                 description = TextFieldValue(),
                 images = emptyList(),
-                analysis = null,
+                recognisedFood = null,
                 showProgressIndicator = false,
             )
         )
@@ -141,19 +141,19 @@ internal class ModalViewModel(
         runSafely {
             recordsRepository.observe(recordId)
                 .collect { record ->
-                    val macros = record.template.macros
+                    val macros = record.template.nutrientsBreakdown
                         ?.let {
-                            MacrosUIModel(
-                                calories = macrosUIMapper.formatCalories(value = record.template.macros.calories, isShort = false, withLabel = true),
-                                protein = macrosUIMapper.formatProtein(value = record.template.macros.protein, isShort = false, withLabel = true),
-                                fat = macrosUIMapper.formatFat(value = record.template.macros.fat, saturated = null, isShort = false, withLabel = true),
-                                ofWhichSaturated = macrosUIMapper.formatSaturatedFat(value = record.template.macros.ofWhichSaturated, isShort = false, withLabel = true),
-                                carbs = macrosUIMapper.formatCarbs(value = record.template.macros.carbs, sugar = null, addedSugar = null, isShort = false, withLabel = true),
-                                ofWhichSugar = macrosUIMapper.formatSugar(value = record.template.macros.ofWhichSugar, isShort = false, withLabel = true),
-                                ofWhichAddedSugar = macrosUIMapper.formatAddedSugar(value = record.template.macros.ofWhichAddedSugar, isShort = false, withLabel = true),
-                                salt = macrosUIMapper.formatSalt(value = record.template.macros.salt, isShort = false, withLabel = true),
-                                fibre = macrosUIMapper.formatFibre(value = record.template.macros.fibre, isShort = false, withLabel = true),
-                                notes = record.template.macros.notes,
+                            NutrientsBreakdownUiModel(
+                                calories = nutrientsUIMapper.formatCalories(value = record.template.nutrientsBreakdown.calories, isShort = false, withLabel = true),
+                                protein = nutrientsUIMapper.formatProtein(value = record.template.nutrientsBreakdown.protein, isShort = false, withLabel = true),
+                                fat = nutrientsUIMapper.formatFat(value = record.template.nutrientsBreakdown.fat, saturated = null, isShort = false, withLabel = true),
+                                ofWhichSaturated = nutrientsUIMapper.formatSaturatedFat(value = record.template.nutrientsBreakdown.ofWhichSaturated, isShort = false, withLabel = true),
+                                carbs = nutrientsUIMapper.formatCarbs(value = record.template.nutrientsBreakdown.carbs, sugar = null, addedSugar = null, isShort = false, withLabel = true),
+                                ofWhichSugar = nutrientsUIMapper.formatSugar(value = record.template.nutrientsBreakdown.ofWhichSugar, isShort = false, withLabel = true),
+                                ofWhichAddedSugar = nutrientsUIMapper.formatAddedSugar(value = record.template.nutrientsBreakdown.ofWhichAddedSugar, isShort = false, withLabel = true),
+                                salt = nutrientsUIMapper.formatSalt(value = record.template.nutrientsBreakdown.salt, isShort = false, withLabel = true),
+                                fibre = nutrientsUIMapper.formatFibre(value = record.template.nutrientsBreakdown.fibre, isShort = false, withLabel = true),
+                                notes = record.template.nutrientsBreakdown.notes,
                             )
                         }
                     val dialog = DialogState.RecordDetailsDialog.View(
@@ -161,7 +161,7 @@ internal class ModalViewModel(
                         title = TextFieldValue(record.template.name),
                         description = TextFieldValue(record.template.description),
                         images = record.template.images,
-                        macros = macros,
+                        nutrientsBreakdown = macros,
                         allowEdit = edit,
                         titleHint = "Describe your meal",
                         titleValidationError = null,
@@ -195,8 +195,8 @@ internal class ModalViewModel(
 
     @UiThread
     fun onImagesSelected(uris: List<Uri>, imageInputDialog: DialogState.ImageInput) {
-        imageSummaryJob?.cancel()
-        imageSummaryJob = runSafely {
+        recogniseFoodJob?.cancel()
+        recogniseFoodJob = runSafely {
             var dialogs = _viewState.value.dialogs
             val persistedFilenames = uris.map {
                 saveImageUseCase.execute(it)
@@ -207,7 +207,7 @@ internal class ModalViewModel(
             dialogs = dialogs.replaceInstances<DialogState.RecordDetailsDialog.Edit> {
                 it.copy(
                     images = it.images + persistedFilenames,
-                    analysis = null, // will be replaced by AI
+                    recognisedFood = null, // will be replaced by AI
                     showProgressIndicator = true,
                 )
             }
@@ -225,7 +225,7 @@ internal class ModalViewModel(
                         titleHint = "Describe your meal (or tap one of the AI suggestions)",
                         description = TextFieldValue(),
                         images = persistedFilenames,
-                        analysis = null,
+                        recognisedFood = null,
                         showProgressIndicator = true,
                     )
                 )
@@ -233,7 +233,7 @@ internal class ModalViewModel(
 
             dialogs.filterIsInstance<DialogState.RecordDetailsDialog.Edit>().firstOrNull()
                 ?.let {
-                    fetchSummary(it.images)
+                    runFoodRecognition(it.images)
                 }
 
             setDialogs(dialogs)
@@ -242,8 +242,8 @@ internal class ModalViewModel(
 
     @UiThread
     fun onImagesShared(uris: List<Uri>) {
-        imageSummaryJob?.cancel()
-        imageSummaryJob = runSafely {
+        recogniseFoodJob?.cancel()
+        recogniseFoodJob = runSafely {
             val persistedFilenames = uris.map {
                 saveImageUseCase.execute(it)
             }
@@ -254,27 +254,27 @@ internal class ModalViewModel(
                     titleHint = "Describe your meal (or tap one of the AI suggestions)",
                     description = TextFieldValue(),
                     images = persistedFilenames,
-                    analysis = null,
+                    recognisedFood = null,
                     showProgressIndicator = true,
                 )
             )
-            fetchSummary(persistedFilenames)
+            runFoodRecognition(persistedFilenames)
         }
     }
 
-    private fun fetchSummary(images: List<String>) {
+    private fun runFoodRecognition(images: List<String>) {
         runSafely {
             try {
-                val summary = photoAnalysisUseCase.execute(images)
+                val recognisedFood = foodRecognitionUseCase.execute(images)
                 updateDialogsOfType<DialogState.RecordDetailsDialog.Edit> {
                     val title = if (it.title.text.isBlank()) {
-                        val title = summary.title ?: ""
+                        val title = recognisedFood.title ?: ""
                         TextFieldValue(title, selection = TextRange(title.length))
                     } else {
                         it.title
                     }
                     it.copy(
-                        analysis = summary,
+                        recognisedFood = recognisedFood,
                         title = title,
                         showProgressIndicator = false,
                     )
@@ -361,7 +361,7 @@ internal class ModalViewModel(
     @UiThread
     fun onDialogDismissRequested(dialog: DialogState) {
         popDialog()
-        imageSummaryJob?.cancel()
+        recogniseFoodJob?.cancel()
         (dialog as? DialogState.RecordDetailsDialog.Edit)?.let {
             runSafely {
                 dialog.images.forEach {

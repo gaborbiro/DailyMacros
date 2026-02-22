@@ -11,13 +11,13 @@ import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingDouble
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
-import dev.gaborbiro.dailymacros.features.modal.model.MacrosUIModel
+import dev.gaborbiro.dailymacros.features.modal.model.NutrientsBreakdownUiModel
 
 @Composable
-internal fun MacroIndentedList(
-    macros: MacrosUIModel,
+internal fun NutrientsIndentedList(
+    nutrientsBreakdown: NutrientsBreakdownUiModel,
 ) {
-    macros.calories?.let {
+    nutrientsBreakdown.calories?.let {
         PillLabel(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
@@ -30,7 +30,7 @@ internal fun MacroIndentedList(
         )
     }
 
-    macros.protein?.let {
+    nutrientsBreakdown.protein?.let {
         PillLabel(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
@@ -43,7 +43,7 @@ internal fun MacroIndentedList(
         )
     }
 
-    macros.fat?.let {
+    nutrientsBreakdown.fat?.let {
         PillLabel(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
@@ -56,7 +56,7 @@ internal fun MacroIndentedList(
         )
     }
 
-    macros.ofWhichSaturated?.let {
+    nutrientsBreakdown.ofWhichSaturated?.let {
         PillLabel(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
@@ -69,7 +69,7 @@ internal fun MacroIndentedList(
         )
     }
 
-    macros.carbs?.let {
+    nutrientsBreakdown.carbs?.let {
         PillLabel(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
@@ -82,7 +82,7 @@ internal fun MacroIndentedList(
         )
     }
 
-    macros.ofWhichSugar?.let {
+    nutrientsBreakdown.ofWhichSugar?.let {
         PillLabel(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
@@ -95,7 +95,7 @@ internal fun MacroIndentedList(
         )
     }
 
-    macros.ofWhichAddedSugar?.let {
+    nutrientsBreakdown.ofWhichAddedSugar?.let {
         PillLabel(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
@@ -108,7 +108,7 @@ internal fun MacroIndentedList(
         )
     }
 
-    macros.salt?.let {
+    nutrientsBreakdown.salt?.let {
         PillLabel(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
@@ -121,7 +121,7 @@ internal fun MacroIndentedList(
         )
     }
 
-    macros.fibre?.let {
+    nutrientsBreakdown.fibre?.let {
         PillLabel(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
@@ -134,7 +134,7 @@ internal fun MacroIndentedList(
         )
     }
 
-    macros.notes?.let {
+    nutrientsBreakdown.notes?.let {
         PillLabel(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
@@ -151,10 +151,10 @@ internal fun MacroIndentedList(
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun MacroIndentedListPreview() {
+private fun NutrientsIndentedListPreview() {
     ViewPreviewContext {
-        MacroIndentedList(
-            macros = MacrosUIModel(
+        NutrientsIndentedList(
+            nutrientsBreakdown = NutrientsBreakdownUiModel(
                 calories = "Calories: 2100 cal",
                 protein = "Protein: 150g",
                 fat = "Fat 100g",

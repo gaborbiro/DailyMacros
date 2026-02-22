@@ -37,7 +37,7 @@ sealed class DialogState {
             override val description: TextFieldValue,
             override val images: List<String>,
             val showProgressIndicator: Boolean = false,
-            val analysis: PhotoAnalysisResults?,
+            val recognisedFood: RecognisedFood?,
         ) : RecordDetailsDialog(
             titleHint = titleHint,
             titleValidationError = titleValidationError,
@@ -55,7 +55,7 @@ sealed class DialogState {
 
         data class View(
             val recordId: Long,
-            val macros: MacrosUIModel?,
+            val nutrientsBreakdown: NutrientsBreakdownUiModel?,
             val allowEdit: Boolean,
             override val titleHint: String,
             override val titleValidationError: String? = null,
@@ -91,7 +91,7 @@ sealed class DialogState {
     data class InfoDialog(val message: String) : DialogState()
 }
 
-data class PhotoAnalysisResults(
+data class RecognisedFood(
     val title: String?,
     val description: String?,
 )
@@ -101,7 +101,7 @@ sealed class ImageInputType {
     data object BrowseImages : ImageInputType()
 }
 
-data class MacrosUIModel(
+data class NutrientsBreakdownUiModel(
     val calories: String?,
     val protein: String?,
     val fat: String?,

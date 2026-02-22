@@ -12,7 +12,7 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Macros
+import dev.gaborbiro.dailymacros.repo.records.domain.model.NutrientsBreakdown
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateToSave
@@ -128,7 +128,7 @@ internal class RecordsRepositoryImpl(
         name: String?, /* = null */
         description: String?, /* = null */
         images: List<String>?,
-        macros: Macros?,
+        nutrientsBreakdown: NutrientsBreakdown?,
     ) {
         val oldTemplate = templatesDAO.getTemplateById(templateId)
 
@@ -152,11 +152,11 @@ internal class RecordsRepositoryImpl(
             }
         }
 
-        if (macros == null) {
+        if (nutrientsBreakdown == null) {
             templatesDAO.deleteMacrosForTemplate(templateId)
         } else {
             val entity: MacrosEntity = mapper.map(
-                macros = macros,
+                nutrientsBreakdown = nutrientsBreakdown,
                 id = oldTemplate.macros?.id,
                 templateId = templateId
             )

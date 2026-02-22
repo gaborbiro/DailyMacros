@@ -1,9 +1,11 @@
 package dev.gaborbiro.dailymacros.repo.chatgpt
 
+import android.util.Log
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.PhotoAnalysisRequest
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.PhotoAnalysisResponse
+import dev.gaborbiro.dailymacros.features.modal.sha256
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodRecognitionRequest
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodRecognitionResponse
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTRequest
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTResponse
@@ -12,8 +14,8 @@ import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.InputContent
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContent
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.Role
 
-internal fun PhotoAnalysisRequest.toApiModel(): ChatGPTRequest {
-    return ChatGPTRequest(
+internal fun FoodRecognitionRequest.toApiModel(): ChatGPTRequest {
+    val request = ChatGPTRequest(
         model = model,
         input = listOf(
             ContentEntry(
@@ -33,7 +35,7 @@ internal fun PhotoAnalysisRequest.toApiModel(): ChatGPTRequest {
                         """
 TASK: RECOGNITION
 
-Return structured food breakdown suitable for later macro estimation.
+Return structured food breakdown suitable for later nutrient estimation.
 
 Output format:
 {
@@ -57,11 +59,13 @@ If food cannot be determined:
             )
         )
     )
+    Log.i("Request SHA-256", request.input.take(2).joinToString().sha256())
+    return request
 }
 
 private val gson = GsonBuilder().create()
 
-internal fun ChatGPTResponse.toPhotoAnalysisResponse(): PhotoAnalysisResponse {
+internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionResponse {
     val resultJson: String? = this.output
         .lastOrNull {
             it.role == Role.assistant &&
@@ -80,7 +84,7 @@ internal fun ChatGPTResponse.toPhotoAnalysisResponse(): PhotoAnalysisResponse {
         @SerializedName("confidence") val confidence: String?,
     )
 
-    class AnalysisResult(
+    class FoodDescription(
         @SerializedName("title") val title: String?,
         @SerializedName("description") val description: String?,
         @SerializedName("components") val components: List<Component>,
@@ -89,25 +93,29 @@ internal fun ChatGPTResponse.toPhotoAnalysisResponse(): PhotoAnalysisResponse {
 
     return resultJson
         ?.let {
-            val analysisResult = gson.fromJson(resultJson, AnalysisResult::class.java)
-            if (analysisResult.error != null) {
-                throw ChatGPTApiError.GenericApiError(analysisResult.error)
+            val foodDescription = gson.fromJson(resultJson, FoodDescription::class.java)
+            if (foodDescription.error != null) {
+                throw ChatGPTApiError.GenericApiError(foodDescription.error)
             }
-            val componentStr = analysisResult.components.joinToString("\n") { component ->
+            val componentStr = foodDescription.components.joinToString("\n") { component ->
                 val confidence = when (component.confidence) {
                     "medium" -> "?"
                     "low" -> "??"
                     else -> null
                 }
-                "${component.estimatedAmount} ${component.name} ${confidence?.let { "($it)" }}"
+                "${component.estimatedAmount} ${component.name} ${confidence?.let { "($it)" } ?: ""}"
             }
+            val descriptionItems = listOfNotNull(
+                foodDescription.description.takeIf { it.isNullOrBlank().not() },
+                componentStr
+            )
 
-            PhotoAnalysisResponse(
-                title = analysisResult.title,
-                description = "${analysisResult.description}\n$componentStr",
+            FoodRecognitionResponse(
+                title = foodDescription.title.takeIf { it.isNullOrBlank().not() },
+                description = descriptionItems.joinToString("\n").takeIf { it.isNotBlank() },
             )
         }
-        ?: PhotoAnalysisResponse(
+        ?: FoodRecognitionResponse(
             title = null,
             description = null,
         )

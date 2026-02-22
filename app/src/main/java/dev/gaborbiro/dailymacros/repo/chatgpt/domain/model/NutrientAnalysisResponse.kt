@@ -1,13 +1,13 @@
 package dev.gaborbiro.dailymacros.repo.chatgpt.domain.model
 
-data class MacrosResponse(
-    val macros: MacrosApiModel?,
+data class NutrientAnalysisResponse(
+    val nutrients: NutrientsApiModel?,
     val issues: String?,
     val notes: String?,
     val title: String?,
 )
 
-data class MacrosApiModel(
+data class NutrientsApiModel(
     val calories: Int?,
     val proteinGrams: Float?,
     val fatGrams: Float?,

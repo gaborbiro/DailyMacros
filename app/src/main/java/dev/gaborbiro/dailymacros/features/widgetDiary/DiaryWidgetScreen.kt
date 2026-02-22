@@ -30,7 +30,7 @@ import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.design.WidgetColorScheme
 import dev.gaborbiro.dailymacros.features.common.DateUIMapper
-import dev.gaborbiro.dailymacros.features.common.MacrosUIMapper
+import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPickFooter
@@ -84,9 +84,9 @@ class DiaryWidgetScreen : GlanceAppWidget() {
                             FileStoreFactoryImpl(context).getStore("public", keepFiles = true)
                         val imageStore: ImageStore = ImageStoreImpl(fileStore)
                         val dateUIMapper = DateUIMapper()
-                        val macrosUIMapper = MacrosUIMapper(dateUIMapper)
-                        val recordsUIMapper = RecordsUIMapper(macrosUIMapper, dateUIMapper)
-                        val widgetUIMapper = WidgetUIMapper(macrosUIMapper)
+                        val nutrientsUIMapper = NutrientsUIMapper(dateUIMapper)
+                        val recordsUIMapper = RecordsUIMapper(nutrientsUIMapper, dateUIMapper)
+                        val widgetUIMapper = WidgetUIMapper(nutrientsUIMapper)
 
                         val topTemplates = widgetUIMapper.map(
                             runCatching { widgetPrefs.retrieveTopTemplates() }.getOrNull() ?: emptyList()
