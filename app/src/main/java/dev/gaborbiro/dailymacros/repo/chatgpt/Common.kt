@@ -2,7 +2,7 @@ package dev.gaborbiro.dailymacros.repo.chatgpt
 
 val model = "gpt-5-nano-2025-08-07"
 
-private const val SHARED_SYSTEM_PROMPT = """
+internal const val SHARED_SYSTEM_PROMPT = """
 You are an intelligent image and text analyser for a macronutrient tracker app.
 
 The user may provide:

@@ -1,8 +1,8 @@
 package dev.gaborbiro.dailymacros.repo.chatgpt
 
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.ChatGPTRepository
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodPicSummaryRequest
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodPicSummaryResponse
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.PhotoAnalysisRequest
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.PhotoAnalysisResponse
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.MacrosRequest
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.MacrosResponse
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.ChatGPTService
@@ -14,13 +14,13 @@ internal class ChatGPTRepositoryImpl(
     private val service: ChatGPTService,
 ) : ChatGPTRepository {
 
-    override suspend fun summarizeFoodPic(request: FoodPicSummaryRequest): FoodPicSummaryResponse {
-        return runCatching(logTag = "summarizeFoodPic") {
+    override suspend fun analysePhotos(request: PhotoAnalysisRequest): PhotoAnalysisResponse {
+        return runCatching(logTag = "analysePhotos") {
             val response = service.callResponses(
                 request = request.toApiModel(),
             )
             return@runCatching parse(response)
-                .toFoodPicSummaryResponse()
+                .toPhotoAnalysisResponse()
         }
     }
 

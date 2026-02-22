@@ -2,9 +2,8 @@ package dev.gaborbiro.dailymacros.features.modal.views
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -43,7 +42,7 @@ import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.modal.model.DialogState
 import dev.gaborbiro.dailymacros.features.modal.model.MacrosUIModel
-import dev.gaborbiro.dailymacros.features.modal.model.SummarySuggestions
+import dev.gaborbiro.dailymacros.features.modal.model.PhotoAnalysisResults
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -53,8 +52,6 @@ import kotlinx.coroutines.flow.emptyFlow
 internal fun RecordDetailsDialog(
     dialogState: DialogState.RecordDetailsDialog,
     errorMessages: Flow<String>,
-    onTitleSuggestionSelected: (String) -> Unit,
-    onDescriptionSuggestionSelected: (String) -> Unit,
     onTitleChanged: (TextFieldValue) -> Unit,
     onDescriptionChanged: (TextFieldValue) -> Unit,
     onSubmitButtonTapped: () -> Unit,
@@ -68,8 +65,8 @@ internal fun RecordDetailsDialog(
     val title = dialogState.title
     val titleHint = dialogState.titleHint
     val images: List<String> = dialogState.images
-    val suggestions = (dialogState as? DialogState.RecordDetailsDialog.Edit)
-        ?.suggestions
+    val analysis = (dialogState as? DialogState.RecordDetailsDialog.Edit)
+        ?.analysis
     val showProgressIndicator = (dialogState as? DialogState.RecordDetailsDialog.Edit)
         ?.showProgressIndicator
     val description = dialogState.description
@@ -99,9 +96,7 @@ internal fun RecordDetailsDialog(
                 images = images,
                 title = title,
                 titleHint = titleHint,
-                suggestions = suggestions,
-                onTitleSuggestionSelected = onTitleSuggestionSelected,
-                onDescriptionSuggestionSelected = onDescriptionSuggestionSelected,
+                analysis = analysis,
                 showProgressIndicator = showProgressIndicator ?: false,
                 description = description,
                 titleErrorMessage = dialogState.titleValidationError,
@@ -161,13 +156,11 @@ internal fun RecordDetailsDialog(
 private fun ColumnScope.RecordDetailsDialogContent(
     onTitleChanged: (TextFieldValue) -> Unit,
     onDescriptionChanged: (TextFieldValue) -> Unit,
-    onTitleSuggestionSelected: (String) -> Unit,
-    onDescriptionSuggestionSelected: (String) -> Unit,
     showKeyboardOnOpen: Boolean,
     images: List<String>,
     title: TextFieldValue,
     titleHint: String,
-    suggestions: SummarySuggestions?,
+    analysis: PhotoAnalysisResults?,
     showProgressIndicator: Boolean,
     description: TextFieldValue,
     titleErrorMessage: String?,
@@ -229,45 +222,13 @@ private fun ColumnScope.RecordDetailsDialogContent(
         )
     }
 
-    suggestions
-        ?.titles
-        ?.takeIf { it.isNotEmpty() }
+    analysis
+        ?.title
         ?.let {
             Spacer(
                 modifier = Modifier
                     .height(PaddingHalf)
             )
-
-            FlowRow(
-                modifier = Modifier
-                    .padding(horizontal = PaddingDefault),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Icon(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .alpha(.3f),
-                    painter = painterResource(R.drawable.ic_chatgpt),
-                    contentDescription = "chatgpt",
-                )
-                Text(
-                    text = "suggests:",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontStyle = FontStyle.Italic,
-                    color = Color.Gray,
-                )
-                it.forEach {
-                    TappablePill(
-                        modifier = Modifier
-                            .padding(bottom = 4.dp),
-                        text = it,
-                        onClick = {
-                            onTitleSuggestionSelected(it)
-                        },
-                    )
-                }
-            }
         }
 
     if (showProgressIndicator) {
@@ -338,29 +299,35 @@ private fun ColumnScope.RecordDetailsDialogContent(
         },
     )
 
-    suggestions
+    analysis
         ?.description
         ?.takeIf { it.isNotBlank() }
-        ?.let { descriptionSuggestion ->
-            Box {
-                TappablePill(
+        ?.let { description ->
+            Column {
+                Row(
                     modifier = Modifier
                         .padding(horizontal = PaddingDefault)
-                        .padding(top = PaddingHalf),
-                    text = descriptionSuggestion,
-                    onClick = {
-                        onDescriptionSuggestionSelected(descriptionSuggestion)
-                    },
-                    iconOrientation = Orientation.Vertical,
-                )
-                Icon(
+                        .padding(top = PaddingDefault),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .alpha(.3f),
+                        painter = painterResource(R.drawable.ic_chatgpt),
+                        contentDescription = "chatgpt",
+                    )
+                    Text(
+                        text = "analysis:",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontStyle = FontStyle.Italic,
+                        color = Color.Gray,
+                    )
+                }
+                PillLabel(
                     modifier = Modifier
-                        .padding(end = PaddingDefault + 8.dp, bottom = 8.dp)
-                        .size(24.dp)
-                        .alpha(.3f)
-                        .align(Alignment.BottomEnd),
-                    painter = painterResource(R.drawable.ic_chatgpt),
-                    contentDescription = "chatgpt",
+                        .padding(horizontal = PaddingDefault),
+                    text = description,
                 )
             }
         }
@@ -405,8 +372,6 @@ private fun NoteInputDialogContentPreviewEdit() {
                 ),
             ),
             errorMessages = emptyFlow(),
-            onTitleSuggestionSelected = {},
-            onDescriptionSuggestionSelected = {},
             onTitleChanged = {},
             onDescriptionChanged = {},
             onSubmitButtonTapped = {},
@@ -431,14 +396,12 @@ private fun NoteInputDialogContentPreviewSuggestion() {
                 titleHint = "Describe your meal",
                 description = TextFieldValue(),
                 images = listOf("1", "2"),
-                suggestions = SummarySuggestions(
-                    titles = listOf("This is a title suggestion", "This is another title suggestion"),
+                analysis = PhotoAnalysisResults(
+                    title = "This is a title suggestion",
                     description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
                 ),
             ),
             errorMessages = emptyFlow(),
-            onTitleSuggestionSelected = {},
-            onDescriptionSuggestionSelected = {},
             onTitleChanged = {},
             onDescriptionChanged = {},
             onSubmitButtonTapped = {},
@@ -465,11 +428,9 @@ private fun NoteInputDialogContentPreview() {
                 description = TextFieldValue(),
                 images = listOf("1", "2"),
                 showProgressIndicator = true,
-                suggestions = null,
+                analysis = null,
             ),
             errorMessages = emptyFlow(),
-            onTitleSuggestionSelected = {},
-            onDescriptionSuggestionSelected = {},
             onTitleChanged = {},
             onDescriptionChanged = {},
             onSubmitButtonTapped = {},
@@ -495,14 +456,12 @@ private fun NoteInputDialogContentPreviewError() {
                 titleValidationError = "error",
                 description = TextFieldValue(),
                 images = listOf("1", "2"),
-                suggestions = SummarySuggestions(
-                    titles = listOf("This is a title suggestion", "This is another title suggestion"),
+                analysis = PhotoAnalysisResults(
+                    title = "This is a title suggestion",
                     description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
                 ),
             ),
             errorMessages = emptyFlow(),
-            onTitleSuggestionSelected = {},
-            onDescriptionSuggestionSelected = {},
             onTitleChanged = {},
             onDescriptionChanged = {},
             onSubmitButtonTapped = {},

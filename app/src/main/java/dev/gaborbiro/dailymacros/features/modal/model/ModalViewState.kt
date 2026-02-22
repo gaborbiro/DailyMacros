@@ -37,7 +37,7 @@ sealed class DialogState {
             override val description: TextFieldValue,
             override val images: List<String>,
             val showProgressIndicator: Boolean = false,
-            val suggestions: SummarySuggestions?,
+            val analysis: PhotoAnalysisResults?,
         ) : RecordDetailsDialog(
             titleHint = titleHint,
             titleValidationError = titleValidationError,
@@ -91,8 +91,8 @@ sealed class DialogState {
     data class InfoDialog(val message: String) : DialogState()
 }
 
-data class SummarySuggestions(
-    val titles: List<String>,
+data class PhotoAnalysisResults(
+    val title: String?,
     val description: String?,
 )
 

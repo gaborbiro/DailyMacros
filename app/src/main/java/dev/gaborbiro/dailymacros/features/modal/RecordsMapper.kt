@@ -1,10 +1,9 @@
 package dev.gaborbiro.dailymacros.features.modal
 
 import dev.gaborbiro.dailymacros.features.common.AppPrefs
-import dev.gaborbiro.dailymacros.features.modal.model.DialogState
-import dev.gaborbiro.dailymacros.features.modal.model.SummarySuggestions
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodPicSummaryRequest
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodPicSummaryResponse
+import dev.gaborbiro.dailymacros.features.modal.model.PhotoAnalysisResults
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.PhotoAnalysisRequest
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.PhotoAnalysisResponse
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.MacrosApiModel
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.MacrosRequest
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.MacrosResponse
@@ -15,15 +14,15 @@ internal class RecordsMapper(
     private val appPrefs: AppPrefs,
 ) {
 
-    fun mapFoodPicsSummaryRequest(base64Images: List<String>): FoodPicSummaryRequest {
-        return FoodPicSummaryRequest(
+    fun mapPhotoAnalysisRequest(base64Images: List<String>): PhotoAnalysisRequest {
+        return PhotoAnalysisRequest(
             base64Images = base64Images,
         )
     }
 
-    fun map(response: FoodPicSummaryResponse): SummarySuggestions {
-        return SummarySuggestions(
-            titles = response.titles.distinct(),
+    fun map(response: PhotoAnalysisResponse): PhotoAnalysisResults {
+        return PhotoAnalysisResults(
+            title = response.title,
             description = response.description
         )
     }

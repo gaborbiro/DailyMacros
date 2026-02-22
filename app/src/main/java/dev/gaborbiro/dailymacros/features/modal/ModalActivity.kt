@@ -43,7 +43,7 @@ import dev.gaborbiro.dailymacros.features.modal.model.ModalUIUpdates
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.FoodPicSummaryUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.PhotoAnalysisUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
@@ -185,7 +185,7 @@ class ModalActivity : AppCompatActivity() {
             saveImageUseCase = SaveImageUseCase(this, imageStore),
             getRecordImageUseCase = GetRecordImageUseCase(recordsRepository, imageStore),
             getTemplateImageUseCase = GetTemplateImageUseCase(recordsRepository, imageStore),
-            foodPicSummaryUseCase = FoodPicSummaryUseCase(imageStore, chatGPTRepository, recordsMapper),
+            photoAnalysisUseCase = PhotoAnalysisUseCase(imageStore, chatGPTRepository, recordsMapper),
             macrosUIMapper = macrosUIMapper,
             deleteRecordUseCase = deleteRecordUseCase,
             analyticsLogger = analyticsLogger,
@@ -318,8 +318,6 @@ class ModalActivity : AppCompatActivity() {
             is DialogState.RecordDetailsDialog -> RecordDetailsDialog(
                 dialogState = dialogState,
                 errorMessages = errorMessages,
-                onTitleSuggestionSelected = viewModel::onTitleSuggestionSelected,
-                onDescriptionSuggestionSelected = viewModel::onDescriptionSuggestionSelected,
                 onSubmitButtonTapped = viewModel::onSubmitButtonTapped,
                 onTitleChanged = viewModel::onTitleChanged,
                 onDescriptionChanged = viewModel::onDescriptionChanged,

@@ -25,7 +25,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTempl
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditValidationResult
-import dev.gaborbiro.dailymacros.features.modal.usecase.FoodPicSummaryUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.PhotoAnalysisUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
@@ -60,7 +60,7 @@ internal class ModalViewModel(
     private val saveImageUseCase: SaveImageUseCase,
     private val getRecordImageUseCase: GetRecordImageUseCase,
     private val getTemplateImageUseCase: GetTemplateImageUseCase,
-    private val foodPicSummaryUseCase: FoodPicSummaryUseCase,
+    private val photoAnalysisUseCase: PhotoAnalysisUseCase,
     private val deleteRecordUseCase: DeleteRecordUseCase,
     private val macrosUIMapper: MacrosUIMapper,
     private val analyticsLogger: AnalyticsLogger,
@@ -102,7 +102,7 @@ internal class ModalViewModel(
                 titleHint = "Describe your meal (or snap a photo)",
                 description = TextFieldValue(),
                 images = emptyList(),
-                suggestions = null,
+                analysis = null,
                 showProgressIndicator = false,
             )
         )
@@ -207,7 +207,7 @@ internal class ModalViewModel(
             dialogs = dialogs.replaceInstances<DialogState.RecordDetailsDialog.Edit> {
                 it.copy(
                     images = it.images + persistedFilenames,
-                    suggestions = null, // will be replaced by AI
+                    analysis = null, // will be replaced by AI
                     showProgressIndicator = true,
                 )
             }
@@ -225,7 +225,7 @@ internal class ModalViewModel(
                         titleHint = "Describe your meal (or tap one of the AI suggestions)",
                         description = TextFieldValue(),
                         images = persistedFilenames,
-                        suggestions = null,
+                        analysis = null,
                         showProgressIndicator = true,
                     )
                 )
@@ -254,7 +254,7 @@ internal class ModalViewModel(
                     titleHint = "Describe your meal (or tap one of the AI suggestions)",
                     description = TextFieldValue(),
                     images = persistedFilenames,
-                    suggestions = null,
+                    analysis = null,
                     showProgressIndicator = true,
                 )
             )
@@ -265,16 +265,16 @@ internal class ModalViewModel(
     private fun fetchSummary(images: List<String>) {
         runSafely {
             try {
-                val summary = foodPicSummaryUseCase.execute(images)
+                val summary = photoAnalysisUseCase.execute(images)
                 updateDialogsOfType<DialogState.RecordDetailsDialog.Edit> {
                     val title = if (it.title.text.isBlank()) {
-                        val title = summary.titles.firstOrNull() ?: ""
+                        val title = summary.title ?: ""
                         TextFieldValue(title, selection = TextRange(title.length))
                     } else {
                         it.title
                     }
                     it.copy(
-                        suggestions = summary,
+                        analysis = summary,
                         title = title,
                         showProgressIndicator = false,
                     )
@@ -427,32 +427,6 @@ internal class ModalViewModel(
         pushDialog(
             DialogState.ImageInput(type = ImageInputType.BrowseImages)
         )
-    }
-
-    @UiThread
-    fun onTitleSuggestionSelected(suggestion: String) {
-        runSafely {
-            updateDialogsOfType<DialogState.RecordDetailsDialog.Edit> {
-                it.copy(
-                    title = TextFieldValue(
-                        text = suggestion,
-                        selection = TextRange(suggestion.length)
-                    )
-                )
-            }
-        }
-    }
-
-    @UiThread
-    fun onDescriptionSuggestionSelected(suggestion: String) {
-        updateDialogsOfType<DialogState.RecordDetailsDialog.Edit> {
-            it.copy(
-                description = TextFieldValue(
-                    text = suggestion,
-                    selection = TextRange(suggestion.length)
-                )
-            )
-        }
     }
 
     @UiThread

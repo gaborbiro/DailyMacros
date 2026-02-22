@@ -3,25 +3,25 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.modal.RecordsMapper
 import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
-import dev.gaborbiro.dailymacros.features.modal.model.SummarySuggestions
+import dev.gaborbiro.dailymacros.features.modal.model.PhotoAnalysisResults
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repo.chatgpt.toDomainModel
 
-internal class FoodPicSummaryUseCase(
+internal class PhotoAnalysisUseCase(
     private val imageStore: ImageStore,
     private val chatGPTRepository: ChatGPTRepository,
     private val mapper: RecordsMapper,
 ) {
 
-    suspend fun execute(images: List<String>): SummarySuggestions {
+    suspend fun execute(images: List<String>): PhotoAnalysisResults {
         val response = try {
             val base64Images = images.map {
                 val inputStream = imageStore.open(it, thumbnail = false)
                 inputStreamToBase64(inputStream)
             }
-            chatGPTRepository.summarizeFoodPic(
-                request = mapper.mapFoodPicsSummaryRequest(
+            chatGPTRepository.analysePhotos(
+                request = mapper.mapPhotoAnalysisRequest(
                     base64Images = base64Images,
                 )
             )

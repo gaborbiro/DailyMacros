@@ -1,5 +1,5 @@
 package dev.gaborbiro.dailymacros.repo.chatgpt.domain.model
 
-data class FoodPicSummaryRequest(
+data class PhotoAnalysisRequest(
     val base64Images: List<String>,
 )
