@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.features.overview.views
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -7,6 +8,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -79,9 +82,15 @@ fun RowDropdownMenu(
                 }
                 onDeleteTapped?.let {
                     DropdownMenuItem(
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.errorContainer),
                         leadingIcon = { Icon(icons.delete, null) },
                         text = { Text("Delete") },
                         onClick = { onDismiss(); onDeleteTapped() },
+                        colors = MenuDefaults.itemColors(
+                            textColor = MaterialTheme.colorScheme.onErrorContainer,
+                            leadingIconColor = MaterialTheme.colorScheme.onErrorContainer,
+                        )
                     )
                 }
             }

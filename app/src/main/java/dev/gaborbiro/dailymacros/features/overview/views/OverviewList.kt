@@ -63,6 +63,7 @@ import kotlinx.coroutines.launch
 internal fun OverviewList(
     viewState: OverviewViewState,
     paddingValues: PaddingValues,
+    expandedId: Long? = null,
     onRepeatMenuItemTapped: (recordId: Long) -> Unit,
     onAnalyseMacrosMenuItemTapped: (recordId: Long) -> Unit,
     onDetailsMenuItemTapped: (recordId: Long) -> Unit,
@@ -104,7 +105,7 @@ internal fun OverviewList(
 
     Box(Modifier.fillMaxSize()) {
         val repeatIcon = painterResource(R.drawable.ic_exposure_plus_1)
-        val macrosIcon = painterResource(R.drawable.ic_nutrition)
+        val macrosIcon = painterResource(R.drawable.ic_chatgpt)
         val detailsIcon = painterResource(R.drawable.ic_topic)
         val starIcon = painterResource(R.drawable.ic_star)
         val deleteIcon = painterResource(R.drawable.ic_delete)
@@ -117,7 +118,7 @@ internal fun OverviewList(
                 delete = deleteIcon,
             )
         }
-        var expandedId by remember { mutableStateOf<Any?>(null) }
+        var expandedId by remember { mutableStateOf<Any?>(expandedId) }
 
         LazyColumn(
             modifier = Modifier
@@ -338,6 +339,7 @@ private fun OverviewListPreview() {
     ViewPreviewContext {
         OverviewList(
             paddingValues = PaddingValues(),
+            expandedId = 3L,
             viewState = OverviewViewState(
                 showSettingsButton = true,
                 showTrendsButton = true,

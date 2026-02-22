@@ -38,7 +38,7 @@ internal class RecordsMapper {
             mapBreakdown(it, response.description) to mapContributors(it)
         }
 
-        return nutrients to response.issues
+        return nutrients to response.error
     }
 
     private fun mapBreakdown(nutrientsApiModel: NutrientsApiModel, notes: String?): NutrientBreakdown {

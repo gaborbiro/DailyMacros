@@ -13,8 +13,8 @@ import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repo.chatgpt.toDomainModel
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repo.records.domain.model.NutrientBreakdown
-import dev.gaborbiro.dailymacros.repo.records.domain.model.TopContributors
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repo.records.domain.model.TopContributors
 import dev.gaborbiro.dailymacros.repo.requestStatus.domain.RequestStatusRepository
 import dev.gaborbiro.dailymacros.util.showMacroResultsNotification
 
@@ -63,7 +63,7 @@ internal class NutrientAnalysisUseCase(
                 }
 
             nutrientsResponse.getOrNull()?.let {
-                val (nutrients: Pair<NutrientBreakdown, TopContributors>?, issues: String?) = recordsMapper.mapNutrientAnalysisResponse(it)
+                val (nutrients: Pair<NutrientBreakdown, TopContributors>?, error: String?) = recordsMapper.mapNutrientAnalysisResponse(it)
                 recordsRepository.updateTemplate(
                     templateId = record.template.dbId,
                     nutrients = nutrients,
@@ -75,16 +75,27 @@ internal class NutrientAnalysisUseCase(
                             id = 123000L + recordId,
                             recordId = recordId,
                             title = null,
-                            message = listOfNotNull(record.template.name, macrosStr, issues).joinToString("\n"),
+                            message = listOfNotNull(record.template.name, macrosStr, error).joinToString("\n"),
                         )
                     }
                     ?: run {
-                        appContext.showMacroResultsNotification(
-                            id = 123000L + recordId,
-                            recordId = recordId,
-                            title = null,
-                            message = listOfNotNull(record.template.name, "Something went wrong while fetching macros. Please try again later.").joinToString("\n"),
-                        )
+                        error
+                            ?.let {
+                                appContext.showMacroResultsNotification(
+                                    id = 123000L + recordId,
+                                    recordId = recordId,
+                                    title = null,
+                                    message = listOfNotNull(record.template.name, error).joinToString("\n"),
+                                )
+                            }
+                            ?: run {
+                                appContext.showMacroResultsNotification(
+                                    id = 123000L + recordId,
+                                    recordId = recordId,
+                                    title = null,
+                                    message = listOfNotNull(record.template.name, "Something went wrong while fetching macros. Please try again later.").joinToString("\n"),
+                                )
+                            }
                     }
             }
         } catch (apiError: ChatGPTApiError) {

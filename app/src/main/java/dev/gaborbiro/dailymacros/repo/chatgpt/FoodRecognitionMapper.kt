@@ -51,7 +51,7 @@ Output format:
 }
 If food cannot be determined:
 {
-  "error": ""
+  "error": "<one short sentence explaining clearly why food cannot be determined>"
 }
 """
                     )

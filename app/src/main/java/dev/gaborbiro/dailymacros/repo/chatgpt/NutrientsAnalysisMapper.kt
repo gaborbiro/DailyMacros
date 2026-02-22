@@ -95,7 +95,7 @@ Output format:
 
 If estimation is not possible:
 {
-  "error": ""
+  "error": "<one short, specific sentence explaining what is missing or unclear>"
 }
 """
                     )
@@ -142,7 +142,7 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(): NutrientAnalysisRespo
     class Response(
         @SerializedName("nutrients") val nutrients: Nutrients?,
         @SerializedName("description") val description: String?,
-        @SerializedName("components") val components: List<Component>,
+        @SerializedName("components") val components: List<Component>?,
         @SerializedName("error") val error: String?,
     )
 
@@ -170,7 +170,7 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(): NutrientAnalysisRespo
         )
     }
 
-    val componentStr = response.components.joinToString("\n") { component ->
+    val componentStr = response.components?.joinToString("\n") { component ->
         val confidence = when (component.confidence) {
             "medium" -> "?"
             "low" -> "??"
@@ -185,7 +185,7 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(): NutrientAnalysisRespo
 
     return NutrientAnalysisResponse(
         nutrients = nutrients,
-        issues = response.error,
+        error = response.error,
         description = descriptionItems.joinToString("\nComponents:\n").takeIf { it.isNotBlank() },
     )
 }

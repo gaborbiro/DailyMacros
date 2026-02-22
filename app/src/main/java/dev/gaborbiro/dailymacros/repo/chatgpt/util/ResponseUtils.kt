@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ErrorResponseBody1
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ErrorResponseBody2
+import kotlinx.coroutines.CancellationException
 import okhttp3.ResponseBody
 import retrofit2.Response
 import java.io.IOException
@@ -20,6 +21,9 @@ internal suspend fun <T> runCatching(
     return try {
         body(ErrorHandlingContext(logTag))
     } catch (e: ChatGPTApiError) {
+        throw e
+    } catch (e: CancellationException) {
+        // not mapping this into ChatGPTApiError means upstreams won't pick up on it, allowing quiet task cancellations
         throw e
     } catch (e: IOException) {
         throw ChatGPTApiError.InternetApiError(cause = e)
