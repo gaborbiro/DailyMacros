@@ -38,6 +38,7 @@ sealed class DialogHandle {
             override val description: TextFieldValue,
             override val images: List<String>,
             val showProgressIndicator: Boolean = false,
+            val showRunAIButton: Boolean = false,
             val recognisedFood: RecognisedFood?,
         ) : RecordDetailsDialog(
             titleHint = titleHint,

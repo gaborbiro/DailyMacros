@@ -332,6 +332,7 @@ class ModalActivity : AppCompatActivity() {
                 onAddImageViaPickerTapped = viewModel::onAddImageViaPickerTapped,
                 onDismissRequested = onDismissRequested,
                 onImagesInfoButtonTapped = viewModel::onImagesInfoButtonTapped,
+                onRunAIButtonTapped = viewModel::onRunAIButtonTapped,
             )
 
             is DialogHandle.EditTargetConfirmationDialog -> EditTargetConfirmationDialog(

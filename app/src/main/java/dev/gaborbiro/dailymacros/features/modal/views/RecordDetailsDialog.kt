@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -33,7 +35,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.R
@@ -61,9 +62,13 @@ internal fun RecordDetailsDialog(
     onAddImageViaPickerTapped: () -> Unit,
     onDismissRequested: () -> Unit,
     onImagesInfoButtonTapped: () -> Unit,
+    onRunAIButtonTapped: () -> Unit,
 ) {
     val title = dialogHandle.title
     val titleHint = dialogHandle.titleHint
+    val showRunAIButton = (dialogHandle as? DialogHandle.RecordDetailsDialog.Edit)
+        ?.showRunAIButton
+        ?: false
     val images: List<String> = dialogHandle.images
     val analysis = (dialogHandle as? DialogHandle.RecordDetailsDialog.Edit)
         ?.recognisedFood
@@ -95,6 +100,7 @@ internal fun RecordDetailsDialog(
                 showKeyboardOnOpen = showKeyboardOnOpen,
                 images = images,
                 title = title,
+                showRunAIButton = showRunAIButton,
                 titleHint = titleHint,
                 analysis = analysis,
                 showProgressIndicator = showProgressIndicator ?: false,
@@ -107,6 +113,7 @@ internal fun RecordDetailsDialog(
                 onAddImageViaCameraTapped = onAddImageViaCameraTapped,
                 onAddImageViaPickerTapped = onAddImageViaPickerTapped,
                 onImagesInfoButtonTapped = onImagesInfoButtonTapped,
+                onRunAIButtonTapped = onRunAIButtonTapped,
             )
         },
         errorMessages = errorMessages,
@@ -159,6 +166,7 @@ private fun ColumnScope.RecordDetailsDialogContent(
     showKeyboardOnOpen: Boolean,
     images: List<String>,
     title: TextFieldValue,
+    showRunAIButton: Boolean,
     titleHint: String,
     analysis: RecognisedFood?,
     showProgressIndicator: Boolean,
@@ -171,6 +179,7 @@ private fun ColumnScope.RecordDetailsDialogContent(
     onAddImageViaCameraTapped: () -> Unit,
     onAddImageViaPickerTapped: () -> Unit,
     onImagesInfoButtonTapped: () -> Unit,
+    onRunAIButtonTapped: () -> Unit,
 ) {
     val focusRequester = remember { FocusRequester() }
 
@@ -191,6 +200,30 @@ private fun ColumnScope.RecordDetailsDialogContent(
         enabled = allowEdit,
         isError = titleErrorMessage.isNullOrBlank().not(),
         textStyle = MaterialTheme.typography.bodyMedium,
+        trailingIcon = {
+            if (showProgressIndicator) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(25.dp)
+                        .align(Alignment.CenterHorizontally)
+                )
+            } else {
+                if (showRunAIButton) {
+                    Button(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .padding(PaddingHalf),
+                        contentPadding = PaddingValues(),
+                        onClick = onRunAIButtonTapped,
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_chatgpt),
+                            contentDescription = "Run image recognition"
+                        )
+                    }
+                }
+            }
+        },
         placeholder = {
             if (allowEdit) {
                 Text(
@@ -231,22 +264,22 @@ private fun ColumnScope.RecordDetailsDialogContent(
             )
         }
 
-    if (showProgressIndicator) {
-        Text(
-            modifier = Modifier
-                .padding(horizontal = PaddingDefault, vertical = PaddingHalf)
-                .fillMaxWidth(),
-            text = "Analyzing images…",
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-        )
-
-        CircularProgressIndicator(
-            modifier = Modifier
-                .size(25.dp)
-                .align(Alignment.CenterHorizontally)
-        )
-    }
+//    if (showProgressIndicator) {
+//        Text(
+//            modifier = Modifier
+//                .padding(horizontal = PaddingDefault, vertical = PaddingHalf)
+//                .fillMaxWidth(),
+//            text = "Analyzing images…",
+//            style = MaterialTheme.typography.bodyMedium,
+//            textAlign = TextAlign.Center,
+//        )
+//
+//        CircularProgressIndicator(
+//            modifier = Modifier
+//                .size(25.dp)
+//                .align(Alignment.CenterHorizontally)
+//        )
+//    }
 
     Spacer(
         modifier = Modifier
@@ -381,6 +414,7 @@ private fun NoteInputDialogContentPreviewEdit() {
             onAddImageViaPickerTapped = {},
             onDismissRequested = {},
             onImagesInfoButtonTapped = {},
+            onRunAIButtonTapped = {},
         )
     }
 }
@@ -411,6 +445,7 @@ private fun NoteInputDialogContentPreviewSuggestion() {
             onAddImageViaPickerTapped = {},
             onDismissRequested = {},
             onImagesInfoButtonTapped = {},
+            onRunAIButtonTapped = {},
         )
     }
 }
@@ -440,6 +475,7 @@ private fun NoteInputDialogContentPreview() {
             onAddImageViaPickerTapped = {},
             onDismissRequested = {},
             onImagesInfoButtonTapped = {},
+            onRunAIButtonTapped = {},
         )
     }
 }
@@ -471,6 +507,7 @@ private fun NoteInputDialogContentPreviewError() {
             onAddImageViaPickerTapped = {},
             onDismissRequested = {},
             onImagesInfoButtonTapped = {},
+            onRunAIButtonTapped = {},
         )
     }
 }

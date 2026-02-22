@@ -39,18 +39,17 @@ import ellipsize
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.job
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
-import kotlin.coroutines.coroutineContext
 
 internal class ModalViewModel(
     private val imageStore: ImageStore,
@@ -223,10 +222,11 @@ internal class ModalViewModel(
                         root.copy(
                             images = updatedImages,
                             recognisedFood = null,
-                            showProgressIndicator = true,
                         )
                     )
-                    runFoodRecognition(updatedImages)
+                    if (root.images.isEmpty()) { // only run the food recognition automatically for the first (batch of) images
+                        runFoodRecognition(updatedImages)
+                    }
                 }
 
                 is DialogHandle.RecordDetailsDialog.View -> {
@@ -241,7 +241,6 @@ internal class ModalViewModel(
                             description = TextFieldValue(),
                             images = persistedFilenames,
                             recognisedFood = null,
-                            showProgressIndicator = true,
                         )
                     )
                     runFoodRecognition(persistedFilenames)
@@ -264,7 +263,6 @@ internal class ModalViewModel(
                     description = TextFieldValue(),
                     images = persistedFilenames,
                     recognisedFood = null,
-                    showProgressIndicator = true,
                 )
             )
             runFoodRecognition(persistedFilenames)
@@ -274,19 +272,23 @@ internal class ModalViewModel(
     private fun runFoodRecognition(images: List<String>) {
         recogniseFoodJob?.cancel()
         recogniseFoodJob = runSafely {
+            updateRoot<DialogHandle.RecordDetailsDialog.Edit> {
+                it.copy(showProgressIndicator = true)
+            }
             try {
                 val recognisedFood = foodRecognitionUseCase.execute(images)
                 updateRoot<DialogHandle.RecordDetailsDialog.Edit> {
-                    val title = if (it.title.text.isBlank()) {
-                        val title = recognisedFood.title ?: ""
-                        TextFieldValue(title, selection = TextRange(title.length))
-                    } else {
-                        it.title
-                    }
+                    val title = recognisedFood.title
+                        ?.takeIf { it.isNotBlank() }
+                        ?.let {
+                            TextFieldValue(it, selection = TextRange(it.length))
+                        }
+                        ?: it.title
                     it.copy(
                         recognisedFood = recognisedFood,
                         title = title,
                         showProgressIndicator = false,
+                        showRunAIButton = true,
                     )
                 }
             } catch (e: CancellationException) {
@@ -459,6 +461,13 @@ internal class ModalViewModel(
 
     fun onImagesInfoButtonTapped() {
         pushOverlay(DialogHandle.InfoDialog("You can add as many images as you like. Nutritional labels are particularly useful to the AI. You can also add more photos or update things later, don't worry about gathering all info right away."))
+    }
+
+    fun onRunAIButtonTapped() {
+        updateRoot<DialogHandle.RecordDetailsDialog.Edit> {
+            runFoodRecognition(it.images)
+            it.copy(showProgressIndicator = true)
+        }
     }
 
     private suspend fun handleCreateRecordDetailsSubmitted(
