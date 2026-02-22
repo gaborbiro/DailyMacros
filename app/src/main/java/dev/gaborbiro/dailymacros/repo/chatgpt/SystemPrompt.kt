@@ -1,8 +1,6 @@
 package dev.gaborbiro.dailymacros.repo.chatgpt
 
-import com.google.gson.annotations.SerializedName
-
-val model = "gpt-5-nano-2025-08-07"
+const val model = "gpt-5-nano-2025-08-07"
 
 internal const val SHARED_SYSTEM_PROMPT = """
 You are an intelligent image and text analyser for a macronutrient tracker app.
@@ -15,7 +13,6 @@ You must follow the requested TASK strictly.
 
 General principles:
 - Perfect accuracy is less important than reliability and consistency.
-- Use typical/average nutritional values when exact packaging data is unavailable.
 - When ingredients are visible or described but quantities are unclear, estimate typical portions.
 - Round numbers to 1 decimal place, except salt (2 decimal places).
 - If total fat is estimated, also estimate ofWhichSaturated.
@@ -23,10 +20,13 @@ General principles:
 - ofWhichAddedSugar must never exceed ofWhichSugar.
 - If vegetables, grains, legumes or seeds are present, estimate fibre.
 - Only return valid JSON.
-"""
 
-data class Component(
-    @SerializedName("name") val name: String?,
-    @SerializedName("estimatedAmount") val estimatedAmount: String?,
-    @SerializedName("confidence") val confidence: String?,
-)
+PRIORITY ORDER:
+1. If nutritional values are clearly visible on packaging in the image, you MUST extract and use those exact values.
+   - Do NOT estimate.
+   - Do NOT adjust values.
+   - Do NOT reinterpret.
+   - Copy values exactly as shown (convert units if necessary).
+
+2. Only if packaging nutritional values are not visible or not legible may you estimate using typical averages.
+"""
