@@ -205,9 +205,8 @@ internal class ModalViewModel(
     }
 
     @UiThread
-    fun onImagesSelected(uris: List<Uri>, imageInputDialog: DialogHandle.ImageInput) {
-        recogniseFoodJob?.cancel()
-        recogniseFoodJob = runSafely {
+    fun onImagesSelected(uris: List<Uri>) {
+        runSafely {
             val persistedFilenames = uris.map {
                 saveImageUseCase.execute(it)
             }
@@ -248,8 +247,7 @@ internal class ModalViewModel(
 
     @UiThread
     fun onImagesShared(uris: List<Uri>) {
-        recogniseFoodJob?.cancel()
-        recogniseFoodJob = runSafely {
+        runSafely {
             val persistedFilenames = uris.map {
                 saveImageUseCase.execute(it)
             }
@@ -269,7 +267,8 @@ internal class ModalViewModel(
     }
 
     private fun runFoodRecognition(images: List<String>) {
-        runSafely {
+        recogniseFoodJob?.cancel()
+        recogniseFoodJob = runSafely {
             try {
                 val recognisedFood = foodRecognitionUseCase.execute(images)
                 updateRoot<DialogHandle.RecordDetailsDialog.Edit> {
@@ -422,12 +421,12 @@ internal class ModalViewModel(
     }
 
     @UiThread
-    fun onAddImageViaCameraTapped(dialogHandle: DialogHandle.RecordDetailsDialog) {
+    fun onAddImageViaCameraTapped() {
         pushOverlay(DialogHandle.ImageInput(type = ImageInputType.Camera))
     }
 
     @UiThread
-    fun onAddImageViaPickerTapped(dialogHandle: DialogHandle.RecordDetailsDialog) {
+    fun onAddImageViaPickerTapped() {
         pushOverlay(DialogHandle.ImageInput(type = ImageInputType.BrowseImages))
     }
 

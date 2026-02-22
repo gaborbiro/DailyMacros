@@ -219,17 +219,17 @@ class ModalActivity : AppCompatActivity() {
 
             AppTheme {
                 CompositionLocalProvider(LocalImageStore provides imageStore) {
-                    val errorMessages = viewModel.uiUpdates
-                        .filterIsInstance<ModalUIUpdates.Error>()
-                        .map { it.message }
-                    Dialog(
-                        dialogHandle = viewState.rootDialog,
-                        errorMessages = errorMessages,
-                    )
-                    Dialog(
-                        dialogHandle = viewState.overlayDialog,
-                        errorMessages = errorMessages,
-                    )
+                    val errorMessages = remember {
+                        viewModel.uiUpdates
+                            .filterIsInstance<ModalUIUpdates.Error>()
+                            .map { it.message }
+                    }
+                    listOfNotNull(viewState.rootDialog, viewState.overlayDialog).forEach {
+                        Dialog(
+                            dialogHandle = it,
+                            errorMessages = errorMessages,
+                        )
+                    }
                 }
             }
 
@@ -328,8 +328,8 @@ class ModalActivity : AppCompatActivity() {
                 onDescriptionChanged = viewModel::onDescriptionChanged,
                 onImageTapped = viewModel::onImageTapped,
                 onImageDeleteTapped = viewModel::onImageDeleteTapped,
-                onAddImageViaCameraTapped = { viewModel.onAddImageViaCameraTapped(dialogHandle) },
-                onAddImageViaPickerTapped = { viewModel.onAddImageViaPickerTapped(dialogHandle) },
+                onAddImageViaCameraTapped = viewModel::onAddImageViaCameraTapped,
+                onAddImageViaPickerTapped = viewModel::onAddImageViaPickerTapped,
                 onDismissRequested = onDismissRequested,
                 onImagesInfoButtonTapped = viewModel::onImagesInfoButtonTapped,
             )
@@ -402,7 +402,7 @@ private fun ImageInputView(
                 onResult = { imageSaved ->
                     if (imageSaved) {
                         val uri = cacheFileStore.getOrCreateFile(filename).toUri()
-                        viewModel.onImagesSelected(listOf(uri), imageInput)
+                        viewModel.onImagesSelected(listOf(uri))
                     } else {
                         viewModel.onNoImageSelected()
                     }
@@ -434,7 +434,7 @@ private fun ImageInputView(
                 contract = ActivityResultContracts.PickMultipleVisualMedia(),
                 onResult = {
                     it.takeIf { it.isNotEmpty() }
-                        ?.let { viewModel.onImagesSelected(it, imageInput) }
+                        ?.let { viewModel.onImagesSelected(it) }
                         ?: run { viewModel.onNoImageSelected() }
                 }
             )
