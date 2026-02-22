@@ -95,6 +95,9 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.15"
     }
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -172,6 +175,8 @@ dependencies {
     implementation("com.patrykandpatrick.vico:core:$vico")
     implementation("com.patrykandpatrick.vico:compose:$vico")
     implementation("com.patrykandpatrick.vico:compose-m3:$vico")
+
+    testImplementation("junit:junit:4.13.2")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
