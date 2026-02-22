@@ -2,11 +2,11 @@ import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    id("com.android.application")
-    id("com.google.devtools.ksp")
-    id("org.jetbrains.kotlin.plugin.compose")
-    id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
 }
 
 android {
@@ -103,80 +103,71 @@ android {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.17.0")
+    implementation(libs.androidx.core.ktx)
 
-    implementation(platform("androidx.compose:compose-bom:2025.09.01"))
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.runtime:runtime-livedata")
-    implementation("androidx.compose.ui:ui-tooling")
-    implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.activity:activity-compose:1.11.0")
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.runtime.livedata)
+    implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.activity.compose)
 
-    implementation("androidx.appcompat:appcompat:1.7.1")
-    implementation("androidx.work:work-runtime-ktx:2.10.5")
-    implementation("androidx.window:window:1.5.0")
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.window)
 
-    val cameraxVersion = "1.5.0"
-    implementation("androidx.camera:camera-core:$cameraxVersion")
-    implementation("androidx.camera:camera-camera2:$cameraxVersion")
-    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
-    implementation("androidx.camera:camera-view:$cameraxVersion")
-    implementation("androidx.camera:camera-extensions:$cameraxVersion") // optional
+    implementation(libs.androidx.camerax.core)
+    implementation(libs.androidx.camerax.camera2)
+    implementation(libs.androidx.camerax.lifecycle)
+    implementation(libs.androidx.camerax.view)
+    implementation(libs.androidx.camerax.extensions)
 
-    val lifecycleVersion = "2.9.4"
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVersion")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:$lifecycleVersion")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycleVersion")
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 
-    val glanceVersion = "1.2.0-beta01"
-    implementation("androidx.glance:glance-appwidget:$glanceVersion")
-    implementation("androidx.glance:glance-appwidget-preview:$glanceVersion")
-    implementation("androidx.glance:glance-preview:$glanceVersion")
-    implementation("androidx.glance:glance-material3:$glanceVersion")
+    implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.glance.appwidget.preview)
+    implementation(libs.androidx.glance.preview)
+    implementation(libs.androidx.glance.material3)
 
-    val navVersion = "2.9.5"
-    implementation("androidx.navigation:navigation-fragment-ktx:$navVersion")
-    implementation("androidx.navigation:navigation-ui-ktx:$navVersion")
-    implementation("androidx.navigation:navigation-compose:$navVersion")
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
+    implementation(libs.androidx.navigation.compose)
 
-    implementation("com.google.accompanist:accompanist-navigation-animation:0.36.0")
+    implementation(libs.accompanist.navigation.animation)
 
-    implementation("com.google.code.gson:gson:2.13.2")
+    implementation(libs.network.gson)
 
-    val roomVersion = "2.8.1"
-    implementation("androidx.room:room-runtime:$roomVersion")
-    implementation("androidx.room:room-ktx:$roomVersion")
-    ksp("androidx.room:room-compiler:$roomVersion")
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 
-    implementation("com.squareup.retrofit2:retrofit:3.0.0")
-    implementation("com.squareup.retrofit2:converter-gson:3.0.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:5.1.0")
-    implementation("com.squareup.okhttp3:okhttp-java-net-cookiejar:5.1.0")
-    implementation("com.squareup.okhttp3:okhttp:5.1.0")
-    implementation("com.google.code.gson:gson:2.13.2")
-    implementation("androidx.datastore:datastore-preferences:1.1.7")
-    implementation("com.google.mlkit:image-labeling:17.0.9")
+    implementation(libs.network.retrofit)
+    implementation(libs.network.retrofit.converter.gson)
+    implementation(libs.network.okhttp)
+    implementation(libs.network.okhttp.logging.interceptor)
+    implementation(libs.network.okhttp.cookiejar)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.google.mlkit.image.labeling)
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.10.2")
-    implementation("com.google.guava:guava:33.4.8-android")
+    implementation(libs.kotlinx.coroutines.guava)
+    implementation(libs.google.guava)
 
-    val firebaseBom = "34.3.0"
-    implementation(platform("com.google.firebase:firebase-bom:$firebaseBom"))
-    implementation("com.google.firebase:firebase-crashlytics")
-    implementation("com.google.firebase:firebase-analytics")
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.analytics)
 
-    val vico = "1.16.1"
-    implementation("com.patrykandpatrick.vico:core:$vico")
-    implementation("com.patrykandpatrick.vico:compose:$vico")
-    implementation("com.patrykandpatrick.vico:compose-m3:$vico")
+    implementation(libs.vico.core)
+    implementation(libs.vico.compose)
+    implementation(libs.vico.compose.m3)
 
-    testImplementation("junit:junit:4.13.2")
+    testImplementation(libs.test.junit)
 
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
 
 tasks.matching { it.name.startsWith("bundle") }.configureEach {
