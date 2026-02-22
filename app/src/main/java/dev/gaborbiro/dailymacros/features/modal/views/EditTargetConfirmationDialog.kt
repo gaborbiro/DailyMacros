@@ -6,17 +6,17 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import dev.gaborbiro.dailymacros.features.modal.model.DialogState
+import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.ModalViewModel
 
 @Composable
 internal fun EditTargetConfirmationDialog(
-    dialogState: DialogState.EditTargetConfirmationDialog,
+    dialogHandle: DialogHandle.EditTargetConfirmationDialog,
     onEditTargetConfirmed: (ModalViewModel.Companion.ChangeImagesTarget) -> Unit,
     onDismissRequested: () -> Unit,
 ) {
     TargetConfirmationDialog(
-        count = dialogState.count,
+        count = dialogHandle.count,
         onConfirmed = onEditTargetConfirmed,
         onDismissRequested = onDismissRequested,
     )

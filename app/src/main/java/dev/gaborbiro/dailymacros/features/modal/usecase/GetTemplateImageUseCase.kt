@@ -1,7 +1,7 @@
 package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
-import dev.gaborbiro.dailymacros.features.modal.model.DialogState
+import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 
 internal class GetTemplateImageUseCase(
@@ -9,7 +9,7 @@ internal class GetTemplateImageUseCase(
     private val imageStore: ImageStore,
 ) {
 
-    suspend fun execute(templateId: Long, thumbnail: Boolean): DialogState.ViewImageDialog? {
+    suspend fun execute(templateId: Long, thumbnail: Boolean): DialogHandle.ViewImageDialog? {
         val template = repository.getTemplate(templateId)
         return template
             .primaryImage
@@ -17,7 +17,7 @@ internal class GetTemplateImageUseCase(
                 imageStore.read(it, thumbnail)
             }
             ?.let {
-                DialogState.ViewImageDialog(
+                DialogHandle.ViewImageDialog(
                     title = template.name,
                     bitmap = it
                 )

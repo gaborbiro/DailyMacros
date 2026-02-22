@@ -36,7 +36,7 @@ import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.views.InfoDialog
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
-import dev.gaborbiro.dailymacros.features.modal.model.DialogState
+import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUIUpdates
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
@@ -221,7 +221,7 @@ class ModalActivity : AppCompatActivity() {
                 CompositionLocalProvider(LocalImageStore provides imageStore) {
                     viewState.dialogs.forEach {
                         Dialog(
-                            dialogState = it,
+                            dialogHandle = it,
                             errorMessages = viewModel.uiUpdates
                                 .filterIsInstance<ModalUIUpdates.Error>()
                                 .map {
@@ -302,45 +302,45 @@ class ModalActivity : AppCompatActivity() {
 
     @Composable
     fun Dialog(
-        dialogState: DialogState?,
+        dialogHandle: DialogHandle?,
         errorMessages: Flow<String>,
     ) {
         val onDismissRequested: () -> Unit =
-            remember(dialogState) {
+            remember(dialogHandle) {
                 {
-                    dialogState
+                    dialogHandle
                         ?.let { viewModel.onDialogDismissRequested(it) }
                 }
             }
-        when (dialogState) {
-            is DialogState.RecordDetailsDialog -> RecordDetailsDialog(
-                dialogState = dialogState,
+        when (dialogHandle) {
+            is DialogHandle.RecordDetailsDialog -> RecordDetailsDialog(
+                dialogHandle = dialogHandle,
                 errorMessages = errorMessages,
                 onSubmitButtonTapped = viewModel::onSubmitButtonTapped,
                 onTitleChanged = viewModel::onTitleChanged,
                 onDescriptionChanged = viewModel::onDescriptionChanged,
                 onImageTapped = viewModel::onImageTapped,
                 onImageDeleteTapped = viewModel::onImageDeleteTapped,
-                onAddImageViaCameraTapped = { viewModel.onAddImageViaCameraTapped(dialogState) },
-                onAddImageViaPickerTapped = { viewModel.onAddImageViaPickerTapped(dialogState) },
+                onAddImageViaCameraTapped = { viewModel.onAddImageViaCameraTapped(dialogHandle) },
+                onAddImageViaPickerTapped = { viewModel.onAddImageViaPickerTapped(dialogHandle) },
                 onDismissRequested = onDismissRequested,
                 onImagesInfoButtonTapped = viewModel::onImagesInfoButtonTapped,
             )
 
-            is DialogState.EditTargetConfirmationDialog -> EditTargetConfirmationDialog(
-                dialogState = dialogState,
+            is DialogHandle.EditTargetConfirmationDialog -> EditTargetConfirmationDialog(
+                dialogHandle = dialogHandle,
                 onEditTargetConfirmed = viewModel::onEditTargetConfirmed,
                 onDismissRequested = onDismissRequested,
             )
 
-            is DialogState.ViewImageDialog -> ImageDialog(
-                dialogState = dialogState,
+            is DialogHandle.ViewImageDialog -> ImageDialog(
+                dialogHandle = dialogHandle,
                 onDismissRequested = onDismissRequested,
             )
 
-            is DialogState.SelectRecordActionDialog -> SelectRecordActionDialog(
-                recordId = dialogState.recordId,
-                title = dialogState.title,
+            is DialogHandle.SelectRecordActionDialog -> SelectRecordActionDialog(
+                recordId = dialogHandle.recordId,
+                title = dialogHandle.title,
                 onRepeatTapped = viewModel::onRepeatRecordButtonTapped,
                 onDetailsTapped = viewModel::onRecordDetailsButtonTapped,
                 onAddToQuickPicksTapped = viewModel::onAddToQuickPicksTapped,
@@ -348,10 +348,10 @@ class ModalActivity : AppCompatActivity() {
                 onDismissRequested = onDismissRequested,
             )
 
-            is DialogState.SelectTemplateActionDialog -> {
+            is DialogHandle.SelectTemplateActionDialog -> {
                 SelectTemplateActionDialog(
-                    templateId = dialogState.templateId,
-                    title = dialogState.title,
+                    templateId = dialogHandle.templateId,
+                    title = dialogHandle.title,
                     onRepeatButtonTapped = viewModel::onRepeatTemplateButtonTapped,
                     onDetailsButtonTapped = viewModel::onTemplateDetailsButtonTapped,
                     onRemoveFromQuickPicksTapped = viewModel::onRemoveFromQuickPicksTapped,
@@ -359,17 +359,17 @@ class ModalActivity : AppCompatActivity() {
                 )
             }
 
-            is DialogState.ImageInput -> {
+            is DialogHandle.ImageInput -> {
                 ImageInputView(
-                    imageInput = dialogState,
+                    imageInput = dialogHandle,
                     viewModel = viewModel,
                     cacheFileStore = cacheFileStore,
                 )
             }
 
-            is DialogState.InfoDialog -> {
+            is DialogHandle.InfoDialog -> {
                 InfoDialog(
-                    message = dialogState.message,
+                    message = dialogHandle.message,
                     onDismissRequested = onDismissRequested,
                 )
             }
@@ -383,7 +383,7 @@ class ModalActivity : AppCompatActivity() {
 
 @Composable
 private fun ImageInputView(
-    imageInput: DialogState.ImageInput,
+    imageInput: DialogHandle.ImageInput,
     viewModel: ModalViewModel,
     cacheFileStore: FileStore,
 ) {

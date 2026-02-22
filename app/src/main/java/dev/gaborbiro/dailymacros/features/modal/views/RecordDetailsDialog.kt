@@ -40,7 +40,7 @@ import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
-import dev.gaborbiro.dailymacros.features.modal.model.DialogState
+import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientsBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.RecognisedFood
 import kotlinx.coroutines.delay
@@ -50,7 +50,7 @@ import kotlinx.coroutines.flow.emptyFlow
 
 @Composable
 internal fun RecordDetailsDialog(
-    dialogState: DialogState.RecordDetailsDialog,
+    dialogHandle: DialogHandle.RecordDetailsDialog,
     errorMessages: Flow<String>,
     onTitleChanged: (TextFieldValue) -> Unit,
     onDescriptionChanged: (TextFieldValue) -> Unit,
@@ -62,27 +62,27 @@ internal fun RecordDetailsDialog(
     onDismissRequested: () -> Unit,
     onImagesInfoButtonTapped: () -> Unit,
 ) {
-    val title = dialogState.title
-    val titleHint = dialogState.titleHint
-    val images: List<String> = dialogState.images
-    val analysis = (dialogState as? DialogState.RecordDetailsDialog.Edit)
+    val title = dialogHandle.title
+    val titleHint = dialogHandle.titleHint
+    val images: List<String> = dialogHandle.images
+    val analysis = (dialogHandle as? DialogHandle.RecordDetailsDialog.Edit)
         ?.recognisedFood
-    val showProgressIndicator = (dialogState as? DialogState.RecordDetailsDialog.Edit)
+    val showProgressIndicator = (dialogHandle as? DialogHandle.RecordDetailsDialog.Edit)
         ?.showProgressIndicator
-    val description = dialogState.description
-    val macros = (dialogState as? DialogState.RecordDetailsDialog.View)
+    val description = dialogHandle.description
+    val macros = (dialogHandle as? DialogHandle.RecordDetailsDialog.View)
         ?.nutrientBreakdown
-    val allowEdit = (dialogState as? DialogState.RecordDetailsDialog.View)
+    val allowEdit = (dialogHandle as? DialogHandle.RecordDetailsDialog.View)
         ?.allowEdit
         ?: true
 
     val saveButtonText =
-        if (dialogState is DialogState.RecordDetailsDialog.View) "Update and Analyze" else "Add and Analyze"
+        if (dialogHandle is DialogHandle.RecordDetailsDialog.View) "Update and Analyze" else "Add and Analyze"
 
-    val showKeyboardOnOpen = remember(dialogState) {
-        when (dialogState) {
-            is DialogState.RecordDetailsDialog.Edit -> true
-            is DialogState.RecordDetailsDialog.View -> false
+    val showKeyboardOnOpen = remember(dialogHandle) {
+        when (dialogHandle) {
+            is DialogHandle.RecordDetailsDialog.Edit -> true
+            is DialogHandle.RecordDetailsDialog.View -> false
         }
     }
 
@@ -99,7 +99,7 @@ internal fun RecordDetailsDialog(
                 analysis = analysis,
                 showProgressIndicator = showProgressIndicator ?: false,
                 description = description,
-                titleErrorMessage = dialogState.titleValidationError,
+                titleErrorMessage = dialogHandle.titleValidationError,
                 allowEdit = allowEdit,
                 macros = macros,
                 onImageTapped = onImageTapped,
@@ -351,7 +351,7 @@ private fun ColumnScope.RecordDetailsDialogContent(
 private fun NoteInputDialogContentPreviewEdit() {
     ViewPreviewContext {
         RecordDetailsDialog(
-            dialogState = DialogState.RecordDetailsDialog.View(
+            dialogHandle = DialogHandle.RecordDetailsDialog.View(
                 recordId = 1L,
                 title = TextFieldValue(),
                 titleHint = "Describe your meal (or pick a suggestion from below)",
@@ -391,7 +391,7 @@ private fun NoteInputDialogContentPreviewEdit() {
 private fun NoteInputDialogContentPreviewSuggestion() {
     ViewPreviewContext {
         RecordDetailsDialog(
-            dialogState = DialogState.RecordDetailsDialog.Edit(
+            dialogHandle = DialogHandle.RecordDetailsDialog.Edit(
                 title = TextFieldValue(),
                 titleHint = "Describe your meal",
                 description = TextFieldValue(),
@@ -422,7 +422,7 @@ private fun NoteInputDialogContentPreviewSuggestion() {
 private fun NoteInputDialogContentPreview() {
     ViewPreviewContext {
         RecordDetailsDialog(
-            dialogState = DialogState.RecordDetailsDialog.Edit(
+            dialogHandle = DialogHandle.RecordDetailsDialog.Edit(
                 title = TextFieldValue(),
                 titleHint = "Describe your meal (or pick a suggestion from below)",
                 description = TextFieldValue(),
@@ -450,7 +450,7 @@ private fun NoteInputDialogContentPreview() {
 private fun NoteInputDialogContentPreviewError() {
     ViewPreviewContext {
         RecordDetailsDialog(
-            dialogState = DialogState.RecordDetailsDialog.Edit(
+            dialogHandle = DialogHandle.RecordDetailsDialog.Edit(
                 title = TextFieldValue(),
                 titleHint = "Describe your meal",
                 titleValidationError = "error",

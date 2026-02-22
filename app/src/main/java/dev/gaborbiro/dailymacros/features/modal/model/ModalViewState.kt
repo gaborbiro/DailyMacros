@@ -4,23 +4,23 @@ import android.graphics.Bitmap
 import androidx.compose.ui.text.input.TextFieldValue
 
 data class ModalViewState(
-    val dialogs: List<DialogState> = emptyList(),
+    val dialogs: List<DialogHandle> = emptyList(),
     val close: Boolean = false,
 )
 
-sealed class DialogState {
+sealed class DialogHandle {
     data class EditTargetConfirmationDialog(
         val recordId: Long,
         val count: Int,
         val images: List<String>,
         val title: String,
         val description: String,
-    ) : DialogState()
+    ) : DialogHandle()
 
     data class ViewImageDialog(
         val title: String,
         val bitmap: Bitmap,
-    ) : DialogState()
+    ) : DialogHandle()
 
     sealed class RecordDetailsDialog(
         open val titleHint: String,
@@ -28,7 +28,7 @@ sealed class DialogState {
         open val title: TextFieldValue,
         open val description: TextFieldValue,
         open val images: List<String>,
-    ) : DialogState() {
+    ) : DialogHandle() {
 
         data class Edit(
             override val title: TextFieldValue,
@@ -82,13 +82,13 @@ sealed class DialogState {
         abstract fun withDescription(description: TextFieldValue): RecordDetailsDialog
     }
 
-    data class ImageInput(val type: ImageInputType) : DialogState()
+    data class ImageInput(val type: ImageInputType) : DialogHandle()
 
-    data class SelectRecordActionDialog(val recordId: Long, val title: String) : DialogState()
+    data class SelectRecordActionDialog(val recordId: Long, val title: String) : DialogHandle()
 
-    data class SelectTemplateActionDialog(val templateId: Long, val title: String) : DialogState()
+    data class SelectTemplateActionDialog(val templateId: Long, val title: String) : DialogHandle()
 
-    data class InfoDialog(val message: String) : DialogState()
+    data class InfoDialog(val message: String) : DialogHandle()
 }
 
 data class RecognisedFood(

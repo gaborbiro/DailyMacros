@@ -24,12 +24,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import dev.gaborbiro.dailymacros.design.PaddingDefault
-import dev.gaborbiro.dailymacros.features.modal.model.DialogState
+import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import kotlin.math.roundToInt
 
 @Composable
 fun ImageDialog(
-    dialogState: DialogState.ViewImageDialog,
+    dialogHandle: DialogHandle.ViewImageDialog,
     onDismissRequested: () -> Unit,
 ) {
     Dialog(
@@ -39,8 +39,8 @@ fun ImageDialog(
         )
     ) {
         ZoomableImage(
-            bitmap = dialogState.bitmap.asImageBitmap(),
-            contentDescription = "Image: ${dialogState.title}",
+            bitmap = dialogHandle.bitmap.asImageBitmap(),
+            contentDescription = "Image: ${dialogHandle.title}",
         )
     }
 }
