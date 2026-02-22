@@ -11,3 +11,5 @@
 - Tap Next > Save and publish
 
 - Don't forget to git tag the commit
+
+./gradlew versionCatalogUpdate
