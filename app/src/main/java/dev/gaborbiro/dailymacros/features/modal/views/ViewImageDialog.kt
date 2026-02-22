@@ -4,10 +4,14 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.rememberTransformableState
-import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculateCentroidSize
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -38,6 +42,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,6 +55,7 @@ import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 @Composable
@@ -64,43 +71,50 @@ fun ImageDialog(
     ) {
         val images = dialogHandle.images
         if (images.size == 1) {
-            LazyZoomableImage(
-                imageName = images[0],
-                contentDescription = "Image: ${dialogHandle.title}",
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.6f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                LazyZoomableImage(
+                    imageName = images[0],
+                    contentDescription = "Image: ${dialogHandle.title}",
+                )
+
+                CloseButton(onTapped = onDismissRequested)
+            }
         } else {
             val pagerState = rememberPagerState(
                 initialPage = dialogHandle.initialPage,
                 pageCount = { images.size },
             )
+            var currentPageZoomed by remember { mutableStateOf(false) }
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.6f)),
             ) {
                 HorizontalPager(
+                    modifier = Modifier
+                        .fillMaxSize(),
                     state = pagerState,
-                    modifier = Modifier.fillMaxSize(),
                     beyondViewportPageCount = 1,
+                    userScrollEnabled = !currentPageZoomed,
                 ) { page ->
                     LazyZoomableImage(
                         imageName = images[page],
                         contentDescription = "Image ${page + 1} of ${images.size}: ${dialogHandle.title}",
+                        onZoomChanged = { scale ->
+                            if (page == pagerState.currentPage) {
+                                currentPageZoomed = scale > 1f
+                            }
+                        },
                     )
                 }
-                IconButton(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd),
-                    onClick = onDismissRequested,
-                ) {
-                    Icon(
-                        modifier = Modifier
-                            .size(64.dp),
-                        imageVector = androidx.compose.material.icons.Icons.Default.Close,
-                        tint = Color.White,
-                        contentDescription = "Close",
-                    )
-                }
+
+                CloseButton(onTapped = onDismissRequested)
+
                 PagerIndicator(
                     pagerState = pagerState,
                     modifier = Modifier
@@ -137,9 +151,28 @@ private fun PagerIndicator(
 }
 
 @Composable
+private fun BoxScope.CloseButton(onTapped: () -> Unit) {
+    IconButton(
+        modifier = Modifier
+            .align(Alignment.TopEnd)
+            .padding(horizontal = PaddingDefault),
+        onClick = onTapped,
+    ) {
+        Icon(
+            modifier = Modifier
+                .size(64.dp),
+            imageVector = androidx.compose.material.icons.Icons.Default.Close,
+            tint = Color.White,
+            contentDescription = "Close",
+        )
+    }
+}
+
+@Composable
 private fun LazyZoomableImage(
     imageName: String,
     contentDescription: String,
+    onZoomChanged: (Float) -> Unit = {},
 ) {
     val store = LocalImageStore.current
     val bitmap by produceState<Bitmap?>(initialValue = null, key1 = imageName) {
@@ -155,6 +188,7 @@ private fun LazyZoomableImage(
         ZoomableImage(
             bitmap = imageBitmap,
             contentDescription = contentDescription,
+            onZoomChanged = onZoomChanged,
         )
     } else {
         Surface(
@@ -179,6 +213,7 @@ private fun LazyZoomableImage(
 private fun ZoomableImage(
     bitmap: ImageBitmap,
     contentDescription: String,
+    onZoomChanged: (Float) -> Unit = {},
 ) {
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
@@ -188,17 +223,14 @@ private fun ZoomableImage(
         IntSize(bitmap.width, bitmap.height)
     }
 
-    val transformableState = rememberTransformableState { zoomChange, panChange, _ ->
+    fun applyGesture(zoomChange: Float, panChange: Offset) {
         val newScale = (scale * zoomChange).coerceIn(1f, 5f)
 
         val fitted = fittedImageSize(imageSize, containerSize)
-
         val scaledWidth = fitted.width * newScale
         val scaledHeight = fitted.height * newScale
-
         val maxX = ((scaledWidth - containerSize.width) / 2f).coerceAtLeast(0f)
         val maxY = ((scaledHeight - containerSize.height) / 2f).coerceAtLeast(0f)
-
         val adjustedPan = panChange * newScale
 
         val newOffset =
@@ -212,7 +244,8 @@ private fun ZoomableImage(
             }
 
         scale = newScale
-        offset = newOffset
+        offset = if (newScale <= 1f) Offset.Zero else newOffset
+        onZoomChanged(newScale)
     }
 
     Surface(
@@ -232,7 +265,50 @@ private fun ZoomableImage(
                     translationX = offset.x
                     translationY = offset.y
                 }
-                .transformable(transformableState)
+                .pointerInput(Unit) {
+                    awaitEachGesture {
+                        var zoom = 1f
+                        var pan = Offset.Zero
+                        var pastTouchSlop = false
+                        val touchSlop = viewConfiguration.touchSlop
+
+                        awaitFirstDown(requireUnconsumed = false)
+                        do {
+                            val event = awaitPointerEvent()
+                            val canceled = event.changes.any { it.isConsumed }
+                            if (!canceled) {
+                                val zoomChange = event.calculateZoom()
+                                val panChange = event.calculatePan()
+
+                                if (!pastTouchSlop) {
+                                    zoom *= zoomChange
+                                    pan += panChange
+                                    val centroidSize =
+                                        event.calculateCentroidSize(useCurrent = false)
+                                    val zoomMotion = abs(1 - zoom) * centroidSize
+                                    val panMotion = pan.getDistance()
+
+                                    if (zoomMotion > touchSlop || (scale > 1f && panMotion > touchSlop)) {
+                                        pastTouchSlop = true
+                                    }
+                                }
+
+                                if (pastTouchSlop) {
+                                    val effectivePan =
+                                        if (scale > 1f) panChange else Offset.Zero
+                                    if (zoomChange != 1f || effectivePan != Offset.Zero) {
+                                        applyGesture(zoomChange, effectivePan)
+                                        event.changes.forEach {
+                                            if (it.positionChanged()) {
+                                                it.consume()
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        } while (!canceled && event.changes.any { it.pressed })
+                    }
+                }
         )
     }
 }
@@ -261,6 +337,21 @@ private fun fittedImageSize(
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun ViewImageDialogPreview() {
+    PreviewContext {
+        ImageDialog(
+            dialogHandle = DialogHandle.ViewImageDialog(
+                title = "",
+                images = listOf("1"),
+            ),
+            onDismissRequested = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+private fun ViewImageDialogPreviewMulti() {
     PreviewContext {
         ImageDialog(
             dialogHandle = DialogHandle.ViewImageDialog(
