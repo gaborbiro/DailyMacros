@@ -72,6 +72,8 @@ internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionRespons
         }
         ?.text
 
+    val cachedTokens = this.usage.inputTokensDetails.cachedTokens
+
     // temporary helper class
 
     class FoodDescription(
@@ -103,10 +105,12 @@ internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionRespons
             FoodRecognitionResponse(
                 title = foodDescription.title.takeIf { it.isNullOrBlank().not() },
                 description = descriptionItems.joinToString("\nComponents:\n").takeIf { it.isNotBlank() },
+                cachedTokens = cachedTokens,
             )
         }
         ?: FoodRecognitionResponse(
             title = null,
             description = null,
+            cachedTokens = cachedTokens,
         )
 }

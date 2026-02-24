@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName
 
 internal data class ChatGPTResponse(
     @SerializedName("output") val output: List<ContentEntry<OutputContent>>,
+    @SerializedName("usage") val usage: Usage,
 )
 
 internal data class ContentEntry<T>(
@@ -22,3 +23,30 @@ sealed class OutputContent(
         @SerializedName("text") val text: String,
     ) : OutputContent(type = "output_text")
 }
+
+data class Usage(
+    @SerializedName("input_tokens")
+    val inputTokens: Int,
+
+    @SerializedName("input_tokens_details")
+    val inputTokensDetails: InputTokensDetails,
+
+    @SerializedName("output_tokens")
+    val outputTokens: Int,
+
+    @SerializedName("output_tokens_details")
+    val outputTokensDetails: OutputTokensDetails,
+
+    @SerializedName("total_tokens")
+    val totalTokens: Int,
+)
+
+data class InputTokensDetails(
+    @SerializedName("cached_tokens")
+    val cachedTokens: Int,
+)
+
+data class OutputTokensDetails(
+    @SerializedName("reasoning_tokens")
+    val reasoningTokens: Int,
+)

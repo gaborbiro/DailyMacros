@@ -37,6 +37,7 @@ import com.patrykandpatrick.vico.compose.common.component.ShapeComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
+import dev.gaborbiro.dailymacros.features.trends.model.ChartDataPoint
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsChartUiModel
 import kotlin.math.roundToInt
 
@@ -50,15 +51,38 @@ internal fun TrendsChart(
 ) {
     val modelProducer = remember { CartesianChartModelProducer() }
 
-    LaunchedEffect(chartData.datasets) {
+    val segmentsByDataset = remember(chartData.datasets) {
+        chartData.datasets.map { dataset ->
+            val segments = buildList {
+                val current = mutableListOf<ChartDataPoint>()
+                for (point in dataset.set) {
+                    if (point.value != null) {
+                        current.add(point)
+                    } else if (current.isNotEmpty()) {
+                        add(current.toList())
+                        current.clear()
+                    }
+                }
+                if (current.isNotEmpty()) add(current.toList())
+            }
+            dataset to segments
+        }
+    }
+
+    LaunchedEffect(segmentsByDataset) {
         modelProducer.runTransaction {
             lineSeries {
-                for (dataset in chartData.datasets) {
-                    val mainPoints = dataset.set.filter { it.value != null }
-                    series(
-                        x = mainPoints.map { it.index.toDouble() },
-                        y = mainPoints.map { it.value!! },
-                    )
+                for ((dataset, segments) in segmentsByDataset) {
+                    if (segments.isNotEmpty()) {
+                        for (segment in segments) {
+                            series(
+                                x = segment.map { it.index.toDouble() },
+                                y = segment.map { it.value!! },
+                            )
+                        }
+                    } else {
+                        series(y = listOf(0))
+                    }
 
                     val currentPoint = dataset.current?.takeIf { it.value != null }
                     val lastHistorical = dataset.set.lastOrNull { it.value != null }
@@ -75,32 +99,35 @@ internal fun TrendsChart(
         }
     }
 
-    val lines = remember(chartData.datasets) {
-        chartData.datasets.flatMap { dataset ->
-            listOf(
-                LineCartesianLayer.Line(
-                    fill = LineCartesianLayer.LineFill.single(Fill(dataset.color)),
-                    stroke = LineCartesianLayer.LineStroke.Continuous(thickness = 2.dp),
-                    pointProvider = LineCartesianLayer.PointProvider.single(
-                        LineCartesianLayer.Point(
-                            component = ShapeComponent(Fill(dataset.color), CircleShape),
-                        )
-                    ),
-                ),
-                // current
-                LineCartesianLayer.Line(
-                    fill = LineCartesianLayer.LineFill.single(Fill(dataset.color.copy(alpha = 0.5f))),
-                    stroke = LineCartesianLayer.LineStroke.Continuous(thickness = 2.dp),
-                    pointProvider = LineCartesianLayer.PointProvider.single(
-                        LineCartesianLayer.Point(
-                            component = ShapeComponent(
-                                Fill(dataset.color.copy(alpha = 0.5f)),
-                                CircleShape,
-                            ),
-                        )
-                    ),
+    val lines = remember(segmentsByDataset) {
+        segmentsByDataset.flatMap { (dataset, segments) ->
+            val historicalLine = LineCartesianLayer.Line(
+                fill = LineCartesianLayer.LineFill.single(Fill(dataset.color)),
+                stroke = LineCartesianLayer.LineStroke.Continuous(thickness = 2.dp),
+                pointProvider = LineCartesianLayer.PointProvider.single(
+                    LineCartesianLayer.Point(
+                        component = ShapeComponent(Fill(dataset.color), CircleShape),
+                    )
                 ),
             )
+            val currentLine = LineCartesianLayer.Line(
+                fill = LineCartesianLayer.LineFill.single(Fill(dataset.color.copy(alpha = 0.5f))),
+                stroke = LineCartesianLayer.LineStroke.Continuous(thickness = 2.dp),
+                pointProvider = LineCartesianLayer.PointProvider.single(
+                    LineCartesianLayer.Point(
+                        component = ShapeComponent(
+                            Fill(dataset.color.copy(alpha = 0.5f)),
+                            CircleShape,
+                        ),
+                    )
+                ),
+            )
+            val segmentLines = if (segments.isNotEmpty()) {
+                List(segments.size) { historicalLine }
+            } else {
+                listOf(historicalLine)
+            }
+            segmentLines + currentLine
         }
     }
 

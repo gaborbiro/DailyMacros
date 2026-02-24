@@ -8,22 +8,22 @@ import kotlin.uuid.ExperimentalUuidApi
 internal class AppPrefs(context: Context) {
 
     companion object {
-        const val AGGREGATION_MODE_CALENDAR_DAYS = "aggregation_mode_calendar_days"
-        const val AGGREGATION_MODE_LOGGED_DAYS = "aggregation_mode_logged_days"
-        const val AGGREGATION_MODE_QUALIFIED_DAYS = "aggregation_mode_qualified_days"
+        const val DAY_QUALIFICATION_MODE_ALL_CALENDAR_DAYS = "aggregation_mode_calendar_days"
+        const val DAY_QUALIFICATION_MODE_ONLY_LOGGED_DAYS = "aggregation_mode_logged_days"
+        const val DAY_QUALIFICATION_MODE_ONLY_QUALIFIED_DAYS = "aggregation_mode_qualified_days"
 
         @StringDef(
-            AGGREGATION_MODE_CALENDAR_DAYS,
-            AGGREGATION_MODE_LOGGED_DAYS,
-            AGGREGATION_MODE_QUALIFIED_DAYS,
+            DAY_QUALIFICATION_MODE_ALL_CALENDAR_DAYS,
+            DAY_QUALIFICATION_MODE_ONLY_LOGGED_DAYS,
+            DAY_QUALIFICATION_MODE_ONLY_QUALIFIED_DAYS,
         )
         @Retention(AnnotationRetention.SOURCE)
-        annotation class AggregationMode
+        annotation class DayQualificationMode
 
-        private const val KEY_AGGREGATION_MODE = "aggregation_mode"
+        private const val KEY_DAY_QUALIFICATION_MODE = "aggregation_mode"
         private const val KEY_USER_UUID = "user_uuid_3"
         private const val KEY_SHOW_COACH_MARK = "show_coach_mark"
-        private const val KEY_QUALIFIED_AGGREGATION_THRESHOLD = "qualified_aggregation_threshold"
+        private const val KEY_QUALIFYING_CALORIE_THRESHOLD = "qualified_aggregation_threshold"
     }
 
     private val prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
@@ -43,13 +43,13 @@ internal class AppPrefs(context: Context) {
             return newUuid
         }
 
-    var aggregationMode: String
-        @AggregationMode get() = prefs.getString(KEY_AGGREGATION_MODE, AGGREGATION_MODE_CALENDAR_DAYS)!!
-        set(@AggregationMode value) = prefs.edit { putString(KEY_AGGREGATION_MODE, value) }
+    var dayQualificationMode: String
+        @DayQualificationMode get() = prefs.getString(KEY_DAY_QUALIFICATION_MODE, DAY_QUALIFICATION_MODE_ALL_CALENDAR_DAYS)!!
+        set(@DayQualificationMode value) = prefs.edit { putString(KEY_DAY_QUALIFICATION_MODE, value) }
 
-    var qualifiedAggregationThreshold: Long
-        get() = prefs.getLong(KEY_QUALIFIED_AGGREGATION_THRESHOLD, 800L)
-        set(value) = prefs.edit { putLong(KEY_QUALIFIED_AGGREGATION_THRESHOLD, value) }
+    var qualifyingCalorieThreshold: Long
+        get() = prefs.getLong(KEY_QUALIFYING_CALORIE_THRESHOLD, 800L)
+        set(value) = prefs.edit { putLong(KEY_QUALIFYING_CALORIE_THRESHOLD, value) }
 
     fun clear(key: String) {
         prefs.edit { remove(key) }

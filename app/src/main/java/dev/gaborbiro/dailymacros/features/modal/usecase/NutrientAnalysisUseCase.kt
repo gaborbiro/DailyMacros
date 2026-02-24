@@ -62,12 +62,13 @@ internal class NutrientAnalysisUseCase(
                     throw it
                 }
 
-            nutrientsResponse.getOrNull()?.let {
-                val (nutrients: Pair<NutrientBreakdown, TopContributors>?, error: String?) = recordsMapper.mapNutrientAnalysisResponse(it)
+            nutrientsResponse.getOrNull()?.let { nutrientsResponse ->
+                val (nutrients: Pair<NutrientBreakdown, TopContributors>?, error: String?) = recordsMapper.mapNutrientAnalysisResponse(nutrientsResponse)
                 recordsRepository.updateTemplate(
                     templateId = record.template.dbId,
                     nutrients = nutrients,
                 )
+                val cachedTokensMessage = "Cached tokens: ${nutrientsResponse.cachedTokens}"
                 nutrients
                     ?.let {
                         val macrosStr = nutrientsUIMapper.mapMacrosPrintout(nutrients.first)
@@ -75,7 +76,7 @@ internal class NutrientAnalysisUseCase(
                             id = 123000L + recordId,
                             recordId = recordId,
                             title = null,
-                            message = listOfNotNull(record.template.name, macrosStr, error).joinToString("\n"),
+                            message = listOfNotNull(record.template.name, macrosStr, error, cachedTokensMessage).joinToString("\n"),
                         )
                     }
                     ?: run {
@@ -85,7 +86,7 @@ internal class NutrientAnalysisUseCase(
                                     id = 123000L + recordId,
                                     recordId = recordId,
                                     title = null,
-                                    message = listOfNotNull(record.template.name, error).joinToString("\n"),
+                                    message = listOfNotNull(record.template.name, error, cachedTokensMessage).joinToString("\n"),
                                 )
                             }
                             ?: run {
@@ -93,7 +94,7 @@ internal class NutrientAnalysisUseCase(
                                     id = 123000L + recordId,
                                     recordId = recordId,
                                     title = null,
-                                    message = listOfNotNull(record.template.name, "Something went wrong while fetching macros. Please try again later.").joinToString("\n"),
+                                    message = listOfNotNull(record.template.name, "Something went wrong while fetching macros. Please try again later.", cachedTokensMessage).joinToString("\n"),
                                 )
                             }
                     }

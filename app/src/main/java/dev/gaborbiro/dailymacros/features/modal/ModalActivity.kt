@@ -183,7 +183,7 @@ class ModalActivity : AppCompatActivity() {
             saveImageUseCase = SaveImageUseCase(this, imageStore),
             getRecordImageUseCase = GetRecordImageUseCase(recordsRepository),
             getTemplateImageUseCase = GetTemplateImageUseCase(recordsRepository),
-            foodRecognitionUseCase = FoodRecognitionUseCase(imageStore, chatGPTRepository, recordsMapper),
+            foodRecognitionUseCase = FoodRecognitionUseCase(this, imageStore, chatGPTRepository, recordsMapper),
             nutrientsUIMapper = nutrientsUIMapper,
             deleteRecordUseCase = deleteRecordUseCase,
             analyticsLogger = analyticsLogger,

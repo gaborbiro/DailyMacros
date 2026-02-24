@@ -19,7 +19,7 @@ internal interface RecordsRepository {
 
     suspend fun getRecordsByTemplate(templateId: Long): List<Record>
 
-    fun getFlowBySearchTerm(search: String? = null, sinceEpochMillis: Long = 0L): Flow<List<Record>>
+    fun observeRecords(searchTerm: String? = null, sinceEpochMillis: Long = 0L): Flow<List<Record>>
 
     suspend fun get(recordId: Long): Record?
 

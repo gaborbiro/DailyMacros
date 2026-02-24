@@ -32,15 +32,15 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
-import dev.gaborbiro.dailymacros.features.trends.model.DailyAggregationMode
+import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun TrendsSettingsBottomSheet(
-    dailyAggregationMode: DailyAggregationMode,
+    dayQualifier: DayQualifier,
     qualifiedDaysThreshold: Long,
-    onAggregationModeChanged: (DailyAggregationMode) -> Unit,
+    onAggregationModeChanged: (DayQualifier) -> Unit,
     onThresholdChanged: (Long) -> Unit,
     onDismissRequested: () -> Unit,
 ) {
@@ -78,12 +78,12 @@ internal fun TrendsSettingsBottomSheet(
             )
 
             var expanded by remember { mutableStateOf(false) }
-            var selectedMode by remember { mutableStateOf(dailyAggregationMode) }
+            var selectedMode by remember { mutableStateOf(dayQualifier) }
             val selectedModeLabel = remember(selectedMode) {
                 when (selectedMode) {
-                    DailyAggregationMode.CALENDAR_DAYS -> "All days"
-                    DailyAggregationMode.LOGGED_DAYS -> "Days with anything logged"
-                    DailyAggregationMode.QUALIFIED_DAYS -> "Days that have enough calories logged"
+                    DayQualifier.ALL_CALENDAR_DAYS -> "All days"
+                    DayQualifier.ONLY_LOGGED_DAYS -> "Days with anything logged"
+                    DayQualifier.ONLY_QUALIFIED_DAYS -> "Days that have enough calories logged"
                 }
             }
             var customThresholdValue by remember { mutableStateOf(qualifiedDaysThreshold.toString()) }
@@ -123,7 +123,7 @@ internal fun TrendsSettingsBottomSheet(
                             Text(text = "All days")
                         },
                         onClick = {
-                            selectedMode = DailyAggregationMode.CALENDAR_DAYS
+                            selectedMode = DayQualifier.ALL_CALENDAR_DAYS
                             expanded = false
                             onAggregationModeChanged(selectedMode)
                         },
@@ -133,7 +133,7 @@ internal fun TrendsSettingsBottomSheet(
                             Text(text = "Days with anything logged")
                         },
                         onClick = {
-                            selectedMode = DailyAggregationMode.LOGGED_DAYS
+                            selectedMode = DayQualifier.ONLY_LOGGED_DAYS
                             expanded = false
                             onAggregationModeChanged(selectedMode)
                         },
@@ -143,7 +143,7 @@ internal fun TrendsSettingsBottomSheet(
                             Text(text = "Days that have enough calories logged")
                         },
                         onClick = {
-                            selectedMode = DailyAggregationMode.QUALIFIED_DAYS
+                            selectedMode = DayQualifier.ONLY_QUALIFIED_DAYS
                             expanded = false
                             onAggregationModeChanged(selectedMode)
                         },
@@ -151,7 +151,7 @@ internal fun TrendsSettingsBottomSheet(
                 }
             }
 
-            if (selectedMode == DailyAggregationMode.QUALIFIED_DAYS) {
+            if (selectedMode == DayQualifier.ONLY_QUALIFIED_DAYS) {
                 var isError by remember { mutableStateOf(false) }
                 OutlinedTextField(
                     modifier = Modifier
@@ -196,7 +196,7 @@ internal fun TrendsSettingsBottomSheet(
 private fun TrendsSettingsBottomSheetQualifiedPreview() {
     ViewPreviewContext {
         TrendsSettingsBottomSheet(
-            dailyAggregationMode = DailyAggregationMode.QUALIFIED_DAYS,
+            dayQualifier = DayQualifier.ONLY_QUALIFIED_DAYS,
             qualifiedDaysThreshold = 800,
             onDismissRequested = {},
             onAggregationModeChanged = {},
@@ -211,7 +211,7 @@ private fun TrendsSettingsBottomSheetQualifiedPreview() {
 private fun TrendsSettingsBottomSheetLoggedPreview() {
     ViewPreviewContext {
         TrendsSettingsBottomSheet(
-            dailyAggregationMode = DailyAggregationMode.LOGGED_DAYS,
+            dayQualifier = DayQualifier.ONLY_LOGGED_DAYS,
             qualifiedDaysThreshold = 800,
             onDismissRequested = {},
             onAggregationModeChanged = {},

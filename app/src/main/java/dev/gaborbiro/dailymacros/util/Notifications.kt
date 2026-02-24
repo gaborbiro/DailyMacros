@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import dev.gaborbiro.dailymacros.R
-import dev.gaborbiro.dailymacros.features.main.MainActivity
 import dev.gaborbiro.dailymacros.features.modal.getViewRecordDetailsIntent
 
 private const val CHANNEL_ID_GENERAL = "general"
@@ -57,6 +56,26 @@ fun Context.showMacroResultsNotification(
                 NotificationCompat.BigTextStyle()
                     .bigText(message)
                     .setSummaryText(title ?: "")
+            )
+    }
+    getSystemService(NotificationManager::class.java).notify(
+        id.toInt(),
+        builder.build()
+    )
+}
+
+fun Context.showTextNotification(
+    id: Long,
+    message: String?,
+) {
+    var builder = NotificationCompat.Builder(this, CHANNEL_ID_GENERAL)
+        .setSmallIcon(R.drawable.ic_nutrition)
+        .setAutoCancel(true)
+    message?.let {
+        builder = builder.setContentText(message)
+            .setStyle(
+                NotificationCompat.BigTextStyle()
+                    .bigText(message)
             )
     }
     getSystemService(NotificationManager::class.java).notify(

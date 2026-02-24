@@ -16,7 +16,7 @@ data class ChartDataPoint(val index: Int, val label: String, val value: Double?)
 sealed class TrendsSettingsUIModel {
     data object Hidden : TrendsSettingsUIModel()
     data class Show(
-        val dailyAggregationMode: DailyAggregationMode,
+        val dayQualifier: DayQualifier,
         val qualifiedDaysThreshold: Long,
     ) : TrendsSettingsUIModel()
 }

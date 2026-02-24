@@ -73,7 +73,7 @@ internal class OverviewViewModel(
         collectionJob?.cancel()
         collectionJob = viewModelScope.launch {
             val sinceMillis = if (search.isNullOrBlank()) sinceEpochMillis else 0L
-            recordsRepository.getFlowBySearchTerm(search, sinceEpochMillis = sinceMillis)
+            recordsRepository.observeRecords(search, sinceEpochMillis = sinceMillis)
                 .combine(flowOf(settingsRepository.get()))
                 .map { (records: List<Record>, targets: Targets) ->
                     if (search.isNullOrBlank()) {

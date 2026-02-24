@@ -21,7 +21,7 @@ internal class RecordsMapper {
     fun mapRecognisedFood(response: FoodRecognitionResponse): RecognisedFood {
         return RecognisedFood(
             title = response.title,
-            description = response.description
+            description = response.description,
         )
     }
 

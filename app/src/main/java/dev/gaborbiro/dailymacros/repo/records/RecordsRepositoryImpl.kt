@@ -51,15 +51,15 @@ internal class RecordsRepositoryImpl(
         .getByTemplate(templateId)
         .let(mapper::map)
 
-    override fun getFlowBySearchTerm(
-        search: String?, /* = null */
+    override fun observeRecords(
+        searchTerm: String?, /* = null */
         sinceEpochMillis: Long, /* = 0L */
     ): Flow<List<Record>> {
         return try {
-            val raw: Flow<List<RecordJoined>> = if (search.isNullOrEmpty()) {
+            val raw: Flow<List<RecordJoined>> = if (searchTerm.isNullOrEmpty()) {
                 recordsDAO.getFlow(sinceEpochMillis)
             } else {
-                recordsDAO.getFlowBySearchTerm(search)
+                recordsDAO.getFlowBySearchTerm(searchTerm)
             }
             raw
                 .distinctUntilChanged()

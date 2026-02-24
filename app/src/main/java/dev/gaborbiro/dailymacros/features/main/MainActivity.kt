@@ -47,7 +47,7 @@ import dev.gaborbiro.dailymacros.features.settings.export.SharePublicUriLauncher
 import dev.gaborbiro.dailymacros.features.settings.export.StreamWriter
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
 import dev.gaborbiro.dailymacros.features.settings.targets.TargetsSettingsViewModel
-import dev.gaborbiro.dailymacros.features.trends.TrendsMapper
+import dev.gaborbiro.dailymacros.features.trends.TrendsUiMapper
 import dev.gaborbiro.dailymacros.features.trends.TrendsNavigatorImpl
 import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
 import dev.gaborbiro.dailymacros.features.trends.TrendsViewModel
@@ -148,7 +148,7 @@ class MainActivity : ComponentActivity() {
                         navigator = trendsNavigator,
                         recordsRepository = recordsRepository,
                         appPrefs = appPrefs,
-                        mapper = TrendsMapper(),
+                        mapper = TrendsUiMapper(appPrefs),
                     )
                 }
 

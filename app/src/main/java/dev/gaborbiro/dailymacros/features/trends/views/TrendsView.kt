@@ -46,7 +46,7 @@ import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
 import dev.gaborbiro.dailymacros.features.trends.model.ChartDataPoint
 import dev.gaborbiro.dailymacros.features.trends.model.ChartDataset
-import dev.gaborbiro.dailymacros.features.trends.model.DailyAggregationMode
+import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
 import dev.gaborbiro.dailymacros.features.trends.model.Timescale
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsChartUiModel
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsSettingsUIModel
@@ -63,7 +63,7 @@ internal fun TrendsView(
     onBackNavigate: () -> Unit,
     onSettingsActionButtonClicked: () -> Unit,
     onSettingsCloseRequested: () -> Unit,
-    onSettingsAggregationModeChanged: (DailyAggregationMode, Timescale) -> Unit,
+    onSettingsAggregationModeChanged: (DayQualifier, Timescale) -> Unit,
     onSettingsThresholdChanged: (Long, Timescale) -> Unit,
 ) {
     Scaffold(
@@ -187,7 +187,7 @@ internal fun TrendsView(
 
         if (viewState.settings is TrendsSettingsUIModel.Show) {
             TrendsSettingsBottomSheet(
-                dailyAggregationMode = viewState.settings.dailyAggregationMode,
+                dayQualifier = viewState.settings.dayQualifier,
                 qualifiedDaysThreshold = viewState.settings.qualifiedDaysThreshold,
                 onDismissRequested = onSettingsCloseRequested,
                 onAggregationModeChanged = { onSettingsAggregationModeChanged(it, timescale) },

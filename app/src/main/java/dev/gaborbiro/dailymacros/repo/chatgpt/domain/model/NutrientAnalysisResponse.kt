@@ -4,6 +4,7 @@ data class NutrientAnalysisResponse(
     val nutrients: NutrientsApiModel?,
     val error: String?,
     val description: String?,
+    val cachedTokens: Int?,
 )
 
 data class NutrientsApiModel(

@@ -116,6 +116,8 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(): NutrientAnalysisRespo
         }
         ?.text
 
+    val cachedTokens = this.usage.inputTokensDetails.cachedTokens
+
     // temporary helper classes
 
     data class Nutrient(
@@ -183,5 +185,6 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(): NutrientAnalysisRespo
         nutrients = nutrients,
         error = response.error,
         description = descriptionItems.joinToString("\nComponents:\n").takeIf { it.isNotBlank() },
+        cachedTokens = cachedTokens,
     )
 }
