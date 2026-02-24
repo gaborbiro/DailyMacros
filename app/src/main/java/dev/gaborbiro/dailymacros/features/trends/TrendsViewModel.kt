@@ -79,7 +79,7 @@ internal class TrendsViewModel(
     }
 
     private fun observeRecords(timescale: Timescale): Job {
-        // Re-launch collection each time scale changes
+        // Re-launch collection each timescale changes
         return viewModelScope.launch {
             // Use the same flow as overview (no search term = all records)
             recordsRepository.getFlowBySearchTerm(null).collect { records ->
@@ -127,8 +127,6 @@ internal class TrendsViewModel(
             }
         }
 
-        val today = LocalDate.now()
-
         return buildCharts(
             periods = days,
             recordsByPeriod = grouped,
@@ -141,7 +139,7 @@ internal class TrendsViewModel(
                 )
             },
             labelProvider = ::dayLabel,
-            isCurrentPeriod = { it == today },
+            isCurrentPeriod = { false },
         )
     }
 
@@ -188,6 +186,23 @@ internal class TrendsViewModel(
                     aggregationMode = aggregationMode,
                 )
             },
+            elapsedDaysInCurrentPeriodProvider = { weekStart: LocalDate ->
+                if (today in weekStart..weekStart.plusDays(6)) {
+                    val elapsedCalendarDays: List<LocalDate> =
+                        generateSequence(weekStart) { it.plusDays(1) }
+                            .takeWhile { it <= today }
+                            .toList()
+
+                    daysInPeriodForMode(
+                        period = weekStart,
+                        recordsByPeriod = grouped,
+                        calendarDays = elapsedCalendarDays,
+                        aggregationMode = aggregationMode,
+                    )
+                } else {
+                    emptyList()
+                }
+            },
             labelProvider = ::weekLabel,
             isCurrentPeriod = { start ->
                 today in start..start.plusDays(6)
@@ -211,6 +226,7 @@ internal class TrendsViewModel(
             ym.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
 
         val thisMonth = YearMonth.now()
+        val todayDate = LocalDate.now()
 
         return buildCharts(
             periods = months,
@@ -226,6 +242,22 @@ internal class TrendsViewModel(
                     aggregationMode = aggregationMode,
                 )
             },
+            elapsedDaysInCurrentPeriodProvider = { ym: YearMonth ->
+                if (ym == thisMonth) {
+                    val elapsedCalendarDays: List<LocalDate> =
+                        (1..todayDate.dayOfMonth)
+                            .map { day -> ym.atDay(day) }
+
+                    daysInPeriodForMode(
+                        period = ym,
+                        recordsByPeriod = recordsByPeriod,
+                        calendarDays = elapsedCalendarDays,
+                        aggregationMode = aggregationMode,
+                    )
+                } else {
+                    emptyList()
+                }
+            },
             labelProvider = ::monthLabel,
             isCurrentPeriod = { ym ->
                 ym == thisMonth
@@ -237,6 +269,7 @@ internal class TrendsViewModel(
         periods: List<K>,
         recordsByPeriod: Map<K, List<Record>>,
         daysInPeriodProvider: (K) -> List<LocalDate>,
+        elapsedDaysInCurrentPeriodProvider: ((K) -> List<LocalDate>)? = null,
         labelProvider: (K) -> String,
         isCurrentPeriod: (K) -> Boolean,
     ): List<TrendsChartUiModel> {
@@ -246,6 +279,7 @@ internal class TrendsViewModel(
                 periods = periods,
                 recordsByPeriod = recordsByPeriod,
                 daysInPeriodProvider = daysInPeriodProvider,
+                elapsedDaysInCurrentPeriodProvider = elapsedDaysInCurrentPeriodProvider,
                 valueProvider = valueProvider,
                 labelProvider = labelProvider,
                 isCurrentPeriod = isCurrentPeriod,
@@ -317,33 +351,32 @@ internal class TrendsViewModel(
     /**
      * Computes the average daily nutrient intake per time period, producing chart-ready data points.
      *
-     * For each period in [periods], this function:
-     * 1. Extracts the selected nutrient value from every [Record] in that period via [valueProvider].
-     * 2. Groups those values by date and sums them to get daily totals.
-     * 3. Computes the average daily total across all days returned by [daysInPeriodProvider]
-     *    (days with no records contribute 0).
+     * Completed periods:
+     * - Average is computed over days returned by [daysInPeriodProvider]
+     *   (days with no records contribute 0).
      *
-     * The last period is treated specially: if [isCurrentPeriod] returns `true` for it, it is
-     * separated out as a "current" (in-progress) data point so the chart can render it differently
-     * (e.g. with a distinct style or marker). Otherwise, all periods are returned as completed points.
+     * Current (in-progress) period:
+     * - Value is computed as a *projection* by averaging over elapsed days only
+     *   (returned by [elapsedDaysInCurrentPeriodProvider]).
+     * - This prevents the current bucket being artificially deflated by future days being treated as 0.
      *
      * @param K the type of period key (e.g. [YearMonth], [LocalDate], or an iso-week pair).
      * @param periods ordered list of period keys defining the x-axis of the chart.
      * @param recordsByPeriod records pre-grouped by the same period keys.
-     * @param daysInPeriodProvider returns the days that contribute to the average for a given period.
-     *   This controls the denominator of the average and depends on the active
-     *   [DailyAggregationMode] (calendar days, logged days, or qualified days).
-     * @param valueProvider extracts the nutrient value from a [Record], or `null` if the record has no
-     *   value for that nutrient.
+     * @param daysInPeriodProvider days that contribute to completed-period averages (denominator).
+     * @param elapsedDaysInCurrentPeriodProvider days elapsed so far for current period (projection denominator).
+     * @param minElapsedDaysForPrediction minimum elapsed days required to show a projected value.
+     * @param valueProvider extracts the nutrient value from a [Record], or `null` if the record has no value.
      * @param labelProvider produces the human-readable x-axis label for a period.
-     * @param isCurrentPeriod returns `true` if the given period represents the current (incomplete)
-     *   time period.
+     * @param isCurrentPeriod returns `true` if the given period represents the current (incomplete) time period.
      * @return a pair of (completed data points, current-period data point or `null`).
      */
     private fun <K> computePeriodAverages(
         periods: List<K>,
         recordsByPeriod: Map<K, List<Record>>,
         daysInPeriodProvider: (K) -> List<LocalDate>,
+        elapsedDaysInCurrentPeriodProvider: ((K) -> List<LocalDate>)?,
+        minElapsedDaysForPrediction: Int = 2,
         valueProvider: (Record) -> Float?,
         labelProvider: (K) -> String,
         isCurrentPeriod: (K) -> Boolean,
@@ -360,12 +393,28 @@ internal class TrendsViewModel(
                     ?.mapValues { (_, values) -> values.sum() }
                     ?: emptyMap()
 
-            val contributingValues =
-                daysInPeriodProvider(key).map { day -> dailyTotals[day] ?: 0f }
+            val contributingDays: List<LocalDate> =
+                if (isCurrentPeriod(key)) {
+                    elapsedDaysInCurrentPeriodProvider!!.invoke(key)
+                } else {
+                    daysInPeriodProvider(key)
+                }
 
-            val avg = contributingValues
-                .takeIf { it.isNotEmpty() }
-                ?.average()
+            val contributingValues: List<Float> =
+                contributingDays.map { day -> dailyTotals[day] ?: 0f }
+
+            val avg: Double? =
+                if (isCurrentPeriod(key)) {
+                    if (contributingValues.size >= minElapsedDaysForPrediction) {
+                        contributingValues.average()
+                    } else {
+                        null
+                    }
+                } else {
+                    contributingValues
+                        .takeIf { it.isNotEmpty() }
+                        ?.average()
+                }
 
             key to ChartDataPoint(
                 index = index,

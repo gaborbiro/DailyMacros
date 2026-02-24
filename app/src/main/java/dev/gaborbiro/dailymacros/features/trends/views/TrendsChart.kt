@@ -1,6 +1,5 @@
 package dev.gaborbiro.dailymacros.features.trends.views
 
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -109,16 +108,6 @@ internal fun TrendsChart(
         LineCartesianLayer.LineProvider.series(lines)
     }
 
-    val averages = remember(chartData.datasets) {
-        chartData.datasets.associateBy(
-            keySelector = { it.name },
-            valueTransform = { dataset ->
-                val nonNullValues = dataset.set.mapNotNull { it.value }
-                nonNullValues.takeIf { it.isNotEmpty() }?.average()?.toInt() ?: 0
-            }
-        )
-    }
-
     val markerValueFormatter = remember {
         DefaultCartesianMarker.ValueFormatter { _, targets ->
             val values = targets
@@ -190,17 +179,12 @@ internal fun TrendsChart(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(end = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = dataset.name,
                     style = MaterialTheme.typography.titleMedium,
                     color = dataset.color
-                )
-                Text(
-                    "Average: ${averages[dataset.name]}",
-                    style = MaterialTheme.typography.labelSmall
                 )
             }
         }
