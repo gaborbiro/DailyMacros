@@ -1,13 +1,11 @@
-package dev.gaborbiro.dailymacros.repo.chatgpt
+package dev.gaborbiro.dailymacros.repo.chatgpt.prompts.food
 
-import android.util.Log
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
-import dev.gaborbiro.dailymacros.features.modal.sha256
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientsApiModel
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientAnalysisResponse
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientApiModel
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientsApiModel
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTRequest
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTResponse
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ContentEntry
@@ -16,35 +14,34 @@ import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContent
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.Role
 
 
-internal fun NutrientAnalysisRequest.toApiModel(): ChatGPTRequest {
-    val request = ChatGPTRequest(
-        model = model,
-        input = listOf(
-            ContentEntry(
-                role = Role.system,
-                content = listOf(InputContent.Text(sharedSystemPrompt())),
-            ),
-            ContentEntry(
-                role = Role.user,
-                content = base64Images.map {
-                    InputContent.Image(it)
-                },
-            ),
-            ContentEntry(
-                role = Role.user,
-                content = listOf(
-                    InputContent.Text(
-"""
+internal fun NutrientAnalysisRequest.toApiModel() = ChatGPTRequest(
+    model = llmModel,
+    input = listOf(
+        ContentEntry(
+            role = Role.system,
+            content = listOf(InputContent.Text(sharedSystemPrompt())),
+        ),
+        ContentEntry(
+            role = Role.user,
+            content = this.base64Images.map {
+                InputContent.Image(it)
+            },
+        ),
+        ContentEntry(
+            role = Role.user,
+            content = listOf(
+                InputContent.Text(
+                    """
 TASK: NUTRIENT_ESTIMATION
 
 Use both images and provided text.
 If text contradicts image, prefer text.
 
 Title:
-$title
+${this.title}
 
 Description:
-$description
+${this.description}
 
 Output format:
 {
@@ -98,18 +95,15 @@ If estimation is not possible:
   "error": "<one short, specific sentence explaining what is missing or unclear>"
 }
 """
-                    )
                 )
             )
         )
     )
-    Log.i("Request SHA-256", request.input.take(2).joinToString().sha256())
-    return request
-}
-
-private val gson = GsonBuilder().create()
+)
 
 internal fun ChatGPTResponse.toNutrientAnalysisResponse(): NutrientAnalysisResponse {
+    val gson = GsonBuilder().create()
+
     val resultJson: String? = this.output
         .lastOrNull {
             it.role == Role.assistant &&
@@ -121,6 +115,8 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(): NutrientAnalysisRespo
             it.text.isNotBlank()
         }
         ?.text
+
+    // temporary helper classes
 
     data class Nutrient(
         @SerializedName("grams") val grams: Number?,

@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.features.trends.views
 
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -60,12 +61,12 @@ internal fun TrendsChart(
                         y = mainPoints.map { it.value!! },
                     )
 
-                    val nowPoint = dataset.now?.takeIf { it.value != null }
+                    val currentPoint = dataset.current?.takeIf { it.value != null }
                     val lastHistorical = dataset.set.lastOrNull { it.value != null }
-                    if (nowPoint != null && lastHistorical != null) {
+                    if (currentPoint != null && lastHistorical != null) {
                         series(
-                            x = listOf(lastHistorical.index.toDouble(), nowPoint.index.toDouble()),
-                            y = listOf(lastHistorical.value!!, nowPoint.value!!),
+                            x = listOf(lastHistorical.index.toDouble(), currentPoint.index.toDouble()),
+                            y = listOf(lastHistorical.value!!, currentPoint.value!!),
                         )
                     } else {
                         series(y = listOf(0))
@@ -87,6 +88,7 @@ internal fun TrendsChart(
                         )
                     ),
                 ),
+                // current
                 LineCartesianLayer.Line(
                     fill = LineCartesianLayer.LineFill.single(Fill(dataset.color.copy(alpha = 0.5f))),
                     stroke = LineCartesianLayer.LineStroke.Continuous(thickness = 2.dp),
@@ -158,7 +160,7 @@ internal fun TrendsChart(
         val dataset = chartData.datasets.firstOrNull()
         val labelByIndex = buildMap {
             dataset?.set?.forEach { put(it.index, it.label) }
-            dataset?.now?.let { put(it.index, it.label) }
+            dataset?.current?.let { put(it.index, it.label) }
         }
         CartesianValueFormatter { _, value, _ ->
             labelByIndex[value.roundToInt()] ?: value.roundToInt().toString()

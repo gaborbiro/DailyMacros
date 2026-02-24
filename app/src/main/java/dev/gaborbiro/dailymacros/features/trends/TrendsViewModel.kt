@@ -4,11 +4,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.features.common.AppPrefs
-import dev.gaborbiro.dailymacros.features.trends.model.DailyAggregationMode
-import dev.gaborbiro.dailymacros.features.trends.model.TrendsChartUiModel
 import dev.gaborbiro.dailymacros.features.trends.model.ChartDataPoint
 import dev.gaborbiro.dailymacros.features.trends.model.ChartDataset
-import dev.gaborbiro.dailymacros.features.trends.model.TimeScale
+import dev.gaborbiro.dailymacros.features.trends.model.DailyAggregationMode
+import dev.gaborbiro.dailymacros.features.trends.model.Timescale
+import dev.gaborbiro.dailymacros.features.trends.model.TrendsChartUiModel
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsSettingsUIModel
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsViewState
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
@@ -41,12 +41,12 @@ internal class TrendsViewModel(
     val viewState: StateFlow<TrendsViewState> = _viewState.asStateFlow()
 
     init {
-        recordsJob = observeRecords(TimeScale.DAYS)
+        recordsJob = observeRecords(Timescale.DAYS)
     }
 
-    fun onTimeScaleSelected(timeScale: TimeScale) {
+    fun onTimescaleSelected(timescale: Timescale) {
         recordsJob.cancel()
-        recordsJob = observeRecords(timeScale)
+        recordsJob = observeRecords(timescale)
     }
 
     fun onBackNavigate() {
@@ -66,19 +66,19 @@ internal class TrendsViewModel(
         _viewState.value = _viewState.value.copy(settings = TrendsSettingsUIModel.Hidden)
     }
 
-    fun onAggregationModeChanged(dailyAggregationMode: DailyAggregationMode, timeScale: TimeScale) {
+    fun onAggregationModeChanged(dailyAggregationMode: DailyAggregationMode, timescale: Timescale) {
         appPrefs.aggregationMode = mapper.map(dailyAggregationMode)
         recordsJob.cancel()
-        recordsJob = observeRecords(timeScale)
+        recordsJob = observeRecords(timescale)
     }
 
-    fun onAggregationThresholdChanged(threshold: Long, timeScale: TimeScale) {
+    fun onAggregationThresholdChanged(threshold: Long, timescale: Timescale) {
         appPrefs.qualifiedAggregationThreshold = threshold
         recordsJob.cancel()
-        recordsJob = observeRecords(timeScale)
+        recordsJob = observeRecords(timescale)
     }
 
-    private fun observeRecords(timeScale: TimeScale): Job {
+    private fun observeRecords(timescale: Timescale): Job {
         // Re-launch collection each time scale changes
         return viewModelScope.launch {
             // Use the same flow as overview (no search term = all records)
@@ -87,10 +87,10 @@ internal class TrendsViewModel(
                     _viewState.value = _viewState.value.copy(charts = emptyList())
                 } else {
                     val aggregationMode = mapper.map(appPrefs.aggregationMode)
-                    val charts = when (timeScale) {
-                        TimeScale.DAYS -> buildForDays(records, aggregationMode)
-                        TimeScale.WEEKS -> buildForWeeks(records, aggregationMode)
-                        TimeScale.MONTHS -> buildForMonths(records, aggregationMode)
+                    val charts = when (timescale) {
+                        Timescale.DAYS -> buildForDays(records, aggregationMode)
+                        Timescale.WEEKS -> buildForWeeks(records, aggregationMode)
+                        Timescale.MONTHS -> buildForMonths(records, aggregationMode)
                     }
                     _viewState.value = _viewState.value.copy(charts = charts)
                 }
@@ -130,18 +130,18 @@ internal class TrendsViewModel(
         val today = LocalDate.now()
 
         return buildCharts(
-            buckets = days,
-            grouped = grouped,
-            daysInBucket = { day: LocalDate ->
-                daysInKeyForMode(
-                    key = day,
-                    grouped = grouped,
+            periods = days,
+            recordsByPeriod = grouped,
+            daysInPeriodProvider = { day: LocalDate ->
+                daysInPeriodForMode(
+                    period = day,
+                    recordsByPeriod = grouped,
                     calendarDays = listOf(day),
                     aggregationMode = aggregationMode,
                 )
             },
-            labelFor = ::dayLabel,
-            isOngoing = { it == today },
+            labelProvider = ::dayLabel,
+            isCurrentPeriod = { it == today },
         )
     }
 
@@ -176,20 +176,20 @@ internal class TrendsViewModel(
         val today = LocalDate.now()
 
         return buildCharts(
-            buckets = weeks,
-            grouped = grouped,
-            daysInBucket = { weekStart: LocalDate ->
+            periods = weeks,
+            recordsByPeriod = grouped,
+            daysInPeriodProvider = { weekStart: LocalDate ->
                 val calendarDays = (0L..6L).map { weekStart.plusDays(it) }
 
-                daysInKeyForMode(
-                    key = weekStart,
-                    grouped = grouped,
+                daysInPeriodForMode(
+                    period = weekStart,
+                    recordsByPeriod = grouped,
                     calendarDays = calendarDays,
                     aggregationMode = aggregationMode,
                 )
             },
-            labelFor = ::weekLabel,
-            isOngoing = { start ->
+            labelProvider = ::weekLabel,
+            isCurrentPeriod = { start ->
                 today in start..start.plusDays(6)
             },
         )
@@ -199,11 +199,11 @@ internal class TrendsViewModel(
         records: List<Record>,
         aggregationMode: DailyAggregationMode,
     ): List<TrendsChartUiModel> {
-        val grouped = records.groupBy { YearMonth.from(it.timestamp.toLocalDate()) }
+        val recordsByPeriod = records.groupBy { YearMonth.from(it.timestamp.toLocalDate()) }
 
         val months: List<YearMonth> = generateSequence(
-            from = grouped.keys.minOrNull(),
-            to = grouped.keys.maxOrNull(),
+            from = recordsByPeriod.keys.minOrNull(),
+            to = recordsByPeriod.keys.maxOrNull(),
             step = { it.plusMonths(1) }
         )
 
@@ -213,42 +213,42 @@ internal class TrendsViewModel(
         val thisMonth = YearMonth.now()
 
         return buildCharts(
-            buckets = months,
-            grouped = grouped,
-            daysInBucket = { ym: YearMonth ->
+            periods = months,
+            recordsByPeriod = recordsByPeriod,
+            daysInPeriodProvider = { ym: YearMonth ->
                 val calendarDays =
                     (1..ym.lengthOfMonth()).map { day -> ym.atDay(day) }
 
-                daysInKeyForMode(
-                    key = ym,
-                    grouped = grouped,
+                daysInPeriodForMode(
+                    period = ym,
+                    recordsByPeriod = recordsByPeriod,
                     calendarDays = calendarDays,
                     aggregationMode = aggregationMode,
                 )
             },
-            labelFor = ::monthLabel,
-            isOngoing = { ym ->
+            labelProvider = ::monthLabel,
+            isCurrentPeriod = { ym ->
                 ym == thisMonth
             },
         )
     }
 
     private fun <K : Comparable<K>> buildCharts(
-        buckets: List<K>,
-        grouped: Map<K, List<Record>>,
-        daysInBucket: (K) -> List<LocalDate>,
-        labelFor: (K) -> String,
-        isOngoing: (K) -> Boolean,
+        periods: List<K>,
+        recordsByPeriod: Map<K, List<Record>>,
+        daysInPeriodProvider: (K) -> List<LocalDate>,
+        labelProvider: (K) -> String,
+        isCurrentPeriod: (K) -> Boolean,
     ): List<TrendsChartUiModel> {
 
-        fun agg(selector: (Record) -> Float?) =
-            aggregateSeries(
-                keys = buckets,
-                grouped = grouped,
-                daysInKey = daysInBucket,
-                selector = selector,
-                makeLabel = labelFor,
-                isOngoing = isOngoing,
+        fun agg(valueProvider: (Record) -> Float?) =
+            computePeriodAverages(
+                periods = periods,
+                recordsByPeriod = recordsByPeriod,
+                daysInPeriodProvider = daysInPeriodProvider,
+                valueProvider = valueProvider,
+                labelProvider = labelProvider,
+                isCurrentPeriod = isCurrentPeriod,
             )
 
         return datasetsOf(
@@ -276,25 +276,25 @@ internal class TrendsViewModel(
         )
     }
 
-    private fun <K> daysInKeyForMode(
-        key: K,
-        grouped: Map<K, List<Record>>,
+    private fun <K> daysInPeriodForMode(
+        period: K,
+        recordsByPeriod: Map<K, List<Record>>,
         calendarDays: List<LocalDate>,
         aggregationMode: DailyAggregationMode,
     ): List<LocalDate> {
-        val recordsForKey = grouped[key].orEmpty()
+        val recordsForPeriod = recordsByPeriod[period].orEmpty()
 
         return when (aggregationMode) {
             DailyAggregationMode.CALENDAR_DAYS ->
                 calendarDays
 
             DailyAggregationMode.LOGGED_DAYS ->
-                recordsForKey
+                recordsForPeriod
                     .map { it.timestamp.toLocalDate() }
                     .distinct()
 
             DailyAggregationMode.QUALIFIED_DAYS -> {
-                val calorieTotals = calorieTotalsByDay(recordsForKey)
+                val calorieTotals = calorieTotalsByDay(recordsForPeriod)
 
                 calorieTotals
                     .filterValues { it >= appPrefs.qualifiedAggregationThreshold }   // ← hardcoded threshold
@@ -314,20 +314,45 @@ internal class TrendsViewModel(
             .groupBy({ it.first }, { it.second })
             .mapValues { (_, values) -> values.sum() }
 
-
-    private fun <K> aggregateSeries(
-        keys: List<K>,
-        grouped: Map<K, List<Record>>,
-        daysInKey: (K) -> List<LocalDate>,
-        selector: (Record) -> Float?,
-        makeLabel: (K) -> String,
-        isOngoing: (K) -> Boolean,
+    /**
+     * Computes the average daily nutrient intake per time period, producing chart-ready data points.
+     *
+     * For each period in [periods], this function:
+     * 1. Extracts the selected nutrient value from every [Record] in that period via [valueProvider].
+     * 2. Groups those values by date and sums them to get daily totals.
+     * 3. Computes the average daily total across all days returned by [daysInPeriodProvider]
+     *    (days with no records contribute 0).
+     *
+     * The last period is treated specially: if [isCurrentPeriod] returns `true` for it, it is
+     * separated out as a "current" (in-progress) data point so the chart can render it differently
+     * (e.g. with a distinct style or marker). Otherwise, all periods are returned as completed points.
+     *
+     * @param K the type of period key (e.g. [YearMonth], [LocalDate], or an iso-week pair).
+     * @param periods ordered list of period keys defining the x-axis of the chart.
+     * @param recordsByPeriod records pre-grouped by the same period keys.
+     * @param daysInPeriodProvider returns the days that contribute to the average for a given period.
+     *   This controls the denominator of the average and depends on the active
+     *   [DailyAggregationMode] (calendar days, logged days, or qualified days).
+     * @param valueProvider extracts the nutrient value from a [Record], or `null` if the record has no
+     *   value for that nutrient.
+     * @param labelProvider produces the human-readable x-axis label for a period.
+     * @param isCurrentPeriod returns `true` if the given period represents the current (incomplete)
+     *   time period.
+     * @return a pair of (completed data points, current-period data point or `null`).
+     */
+    private fun <K> computePeriodAverages(
+        periods: List<K>,
+        recordsByPeriod: Map<K, List<Record>>,
+        daysInPeriodProvider: (K) -> List<LocalDate>,
+        valueProvider: (Record) -> Float?,
+        labelProvider: (K) -> String,
+        isCurrentPeriod: (K) -> Boolean,
     ): Pair<List<ChartDataPoint>, ChartDataPoint?> {
-        val points = keys.mapIndexed { index, key ->
+        val points: List<Pair<K, ChartDataPoint>> = periods.mapIndexed { index, key ->
             val dailyTotals: Map<LocalDate, Float> =
-                grouped[key]
+                recordsByPeriod[key]
                     ?.mapNotNull { r ->
-                        selector(r)?.let { value ->
+                        valueProvider(r)?.let { value ->
                             r.timestamp.toLocalDate() to value
                         }
                     }
@@ -336,7 +361,7 @@ internal class TrendsViewModel(
                     ?: emptyMap()
 
             val contributingValues =
-                daysInKey(key).map { day -> dailyTotals[day] ?: 0f }
+                daysInPeriodProvider(key).map { day -> dailyTotals[day] ?: 0f }
 
             val avg = contributingValues
                 .takeIf { it.isNotEmpty() }
@@ -344,14 +369,14 @@ internal class TrendsViewModel(
 
             key to ChartDataPoint(
                 index = index,
-                label = makeLabel(key),
+                label = labelProvider(key),
                 value = avg
             )
         }
 
         val last = points.lastOrNull() ?: return emptyList<ChartDataPoint>() to null
 
-        return if (isOngoing(last.first)) {
+        return if (isCurrentPeriod(last.first)) {
             points.dropLast(1).map { it.second } to last.second
         } else {
             points.map { it.second } to null
@@ -364,12 +389,12 @@ internal class TrendsViewModel(
         return tuples.map { chartConfig ->
             TrendsChartUiModel(
                 chartConfig.map { (name, color, points) ->
-                    val (set: List<ChartDataPoint>, last) = points
+                    val (set: List<ChartDataPoint>, current) = points
                     ChartDataset(
                         name = name,
                         color = color,
                         set = set,
-                        now = last
+                        current = current,
                     )
                 }
             )

@@ -1,6 +1,5 @@
-package dev.gaborbiro.dailymacros.repo.chatgpt
+package dev.gaborbiro.dailymacros.repo.chatgpt.prompts.food
 
-const val model = "gpt-5-nano-2025-08-07"
 
 internal fun sharedSystemPrompt(): String {
     return """

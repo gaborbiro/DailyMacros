@@ -14,7 +14,7 @@ internal fun TrendsScreen(
     val state: TrendsViewState by viewModel.viewState.collectAsStateWithLifecycle()
     TrendsView(
         viewState = state,
-        onTimeScaleSelected = viewModel::onTimeScaleSelected,
+        onTimescaleSelected = viewModel::onTimescaleSelected,
         onBackNavigate = viewModel::onBackNavigate,
         onSettingsActionButtonClicked = viewModel::onSettingsActionButtonClicked,
         onSettingsCloseRequested = viewModel::onSettingsCloseRequested,

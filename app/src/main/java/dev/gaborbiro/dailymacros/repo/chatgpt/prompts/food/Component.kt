@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.repo.chatgpt
+package dev.gaborbiro.dailymacros.repo.chatgpt.prompts.food
 
 import com.google.gson.annotations.SerializedName
 

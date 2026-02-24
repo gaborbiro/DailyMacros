@@ -1,9 +1,7 @@
-package dev.gaborbiro.dailymacros.repo.chatgpt
+package dev.gaborbiro.dailymacros.repo.chatgpt.prompts.food
 
-import android.util.Log
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
-import dev.gaborbiro.dailymacros.features.modal.sha256
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodRecognitionRequest
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodRecognitionResponse
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTApiError
@@ -14,25 +12,24 @@ import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.InputContent
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.OutputContent
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.Role
 
-internal fun FoodRecognitionRequest.toApiModel(): ChatGPTRequest {
-    val request = ChatGPTRequest(
-        model = model,
-        input = listOf(
-            ContentEntry(
-                role = Role.system,
-                content = listOf(InputContent.Text(sharedSystemPrompt())),
-            ),
-            ContentEntry(
-                role = Role.user,
-                content = base64Images.map {
-                    InputContent.Image(it)
-                }
-            ),
-            ContentEntry(
-                role = Role.user,
-                content = listOf(
-                    InputContent.Text(
-                        """
+internal fun FoodRecognitionRequest.toApiModel() = ChatGPTRequest(
+    model = llmModel,
+    input = listOf(
+        ContentEntry(
+            role = Role.system,
+            content = listOf(InputContent.Text(sharedSystemPrompt())),
+        ),
+        ContentEntry(
+            role = Role.user,
+            content = base64Images.map {
+                InputContent.Image(it)
+            }
+        ),
+        ContentEntry(
+            role = Role.user,
+            content = listOf(
+                InputContent.Text(
+                    """
 TASK: RECOGNITION
 
 Return structured food breakdown suitable for later nutrient estimation.
@@ -54,18 +51,15 @@ If food cannot be determined:
   "error": "<one short sentence explaining clearly why food cannot be determined>"
 }
 """
-                    )
                 )
             )
         )
     )
-    Log.i("Request SHA-256", request.input.take(2).joinToString().sha256())
-    return request
-}
-
-private val gson = GsonBuilder().create()
+)
 
 internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionResponse {
+    val gson = GsonBuilder().create()
+
     val resultJson: String? = this.output
         .lastOrNull {
             it.role == Role.assistant &&
@@ -77,6 +71,8 @@ internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionRespons
             it.text.isNotBlank()
         }
         ?.text
+
+    // temporary helper class
 
     class FoodDescription(
         @SerializedName("title") val title: String?,

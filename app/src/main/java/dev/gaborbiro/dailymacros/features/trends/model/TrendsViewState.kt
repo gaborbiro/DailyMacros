@@ -7,10 +7,10 @@ internal data class TrendsViewState(
     val settings: TrendsSettingsUIModel = TrendsSettingsUIModel.Hidden,
 )
 
-enum class TimeScale { DAYS, WEEKS, MONTHS }
+enum class Timescale { DAYS, WEEKS, MONTHS }
 
 data class TrendsChartUiModel(val datasets: List<ChartDataset>)
-data class ChartDataset(val name: String, val color: Color, val set: List<ChartDataPoint>, val now: ChartDataPoint?)
+data class ChartDataset(val name: String, val color: Color, val set: List<ChartDataPoint>, val current: ChartDataPoint?)
 data class ChartDataPoint(val index: Int, val label: String, val value: Double?)
 
 sealed class TrendsSettingsUIModel {

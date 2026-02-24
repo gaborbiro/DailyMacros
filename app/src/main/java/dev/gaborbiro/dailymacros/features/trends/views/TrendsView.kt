@@ -47,7 +47,7 @@ import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
 import dev.gaborbiro.dailymacros.features.trends.model.ChartDataPoint
 import dev.gaborbiro.dailymacros.features.trends.model.ChartDataset
 import dev.gaborbiro.dailymacros.features.trends.model.DailyAggregationMode
-import dev.gaborbiro.dailymacros.features.trends.model.TimeScale
+import dev.gaborbiro.dailymacros.features.trends.model.Timescale
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsChartUiModel
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsSettingsUIModel
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsViewState
@@ -59,12 +59,12 @@ import kotlin.math.roundToInt
 @Composable
 internal fun TrendsView(
     viewState: TrendsViewState,
-    onTimeScaleSelected: (scale: TimeScale) -> Unit,
+    onTimescaleSelected: (scale: Timescale) -> Unit,
     onBackNavigate: () -> Unit,
     onSettingsActionButtonClicked: () -> Unit,
     onSettingsCloseRequested: () -> Unit,
-    onSettingsAggregationModeChanged: (DailyAggregationMode, TimeScale) -> Unit,
-    onSettingsThresholdChanged: (Long, TimeScale) -> Unit,
+    onSettingsAggregationModeChanged: (DailyAggregationMode, Timescale) -> Unit,
+    onSettingsThresholdChanged: (Long, Timescale) -> Unit,
 ) {
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
@@ -92,8 +92,8 @@ internal fun TrendsView(
             )
         },
     ) { paddingValues ->
-        var timeScale by remember {
-            mutableStateOf(TimeScale.DAYS)
+        var timescale by remember {
+            mutableStateOf(Timescale.DAYS)
         }
 
         Column(
@@ -110,28 +110,28 @@ internal fun TrendsView(
             ) {
                 ScaleButton(
                     label = "Days",
-                    selected = timeScale == TimeScale.DAYS,
+                    selected = timescale == Timescale.DAYS,
                     onClick = {
-                        onTimeScaleSelected(TimeScale.DAYS)
-                        timeScale = TimeScale.DAYS
+                        onTimescaleSelected(Timescale.DAYS)
+                        timescale = Timescale.DAYS
                     },
                     modifier = Modifier.weight(1f),
                 )
                 ScaleButton(
                     label = "Weeks",
-                    selected = timeScale == TimeScale.WEEKS,
+                    selected = timescale == Timescale.WEEKS,
                     onClick = {
-                        onTimeScaleSelected(TimeScale.WEEKS)
-                        timeScale = TimeScale.WEEKS
+                        onTimescaleSelected(Timescale.WEEKS)
+                        timescale = Timescale.WEEKS
                     },
                     modifier = Modifier.weight(1f),
                 )
                 ScaleButton(
                     label = "Months",
-                    selected = timeScale == TimeScale.MONTHS,
+                    selected = timescale == Timescale.MONTHS,
                     onClick = {
-                        onTimeScaleSelected(TimeScale.MONTHS)
-                        timeScale = TimeScale.MONTHS
+                        onTimescaleSelected(Timescale.MONTHS)
+                        timescale = Timescale.MONTHS
                     },
                     modifier = Modifier.weight(1f),
                 )
@@ -144,12 +144,12 @@ internal fun TrendsView(
                 },
             )
 
-            val showEveryXLabel = when (timeScale) {
-                TimeScale.WEEKS -> 2
+            val showEveryXLabel = when (timescale) {
+                Timescale.WEEKS -> 2
                 else -> 1
             }
 
-            key(timeScale) {
+            key(timescale) {
                 var chartsVisible by remember { mutableStateOf(false) }
 
                 LaunchedEffect(Unit) {
@@ -190,8 +190,8 @@ internal fun TrendsView(
                 dailyAggregationMode = viewState.settings.dailyAggregationMode,
                 qualifiedDaysThreshold = viewState.settings.qualifiedDaysThreshold,
                 onDismissRequested = onSettingsCloseRequested,
-                onAggregationModeChanged = { onSettingsAggregationModeChanged(it, timeScale) },
-                onThresholdChanged = { onSettingsThresholdChanged(it, timeScale) },
+                onAggregationModeChanged = { onSettingsAggregationModeChanged(it, timescale) },
+                onThresholdChanged = { onSettingsThresholdChanged(it, timescale) },
             )
         }
     }
@@ -206,7 +206,7 @@ private fun TrendsViewPreview() {
             viewState = TrendsViewState(
                 charts = previewData,
             ),
-            onTimeScaleSelected = {},
+            onTimescaleSelected = {},
             onBackNavigate = {},
             onSettingsActionButtonClicked = {},
             onSettingsCloseRequested = {},
@@ -226,7 +226,7 @@ private val previewData = listOf(
                     ChartDataPoint(1, "test", 1.0),
                     ChartDataPoint(2, "test", 2.0)
                 ),
-                now = ChartDataPoint(3, "test", 3.0),
+                current = ChartDataPoint(3, "test", 3.0),
             ),
         )
     ),
@@ -239,7 +239,7 @@ private val previewData = listOf(
                     ChartDataPoint(1, "test", 3.0),
                     ChartDataPoint(2, "test", 2.0)
                 ),
-                now = ChartDataPoint(3, "test", 1.0),
+                current = ChartDataPoint(3, "test", 1.0),
             )
         )
     )
