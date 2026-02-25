@@ -1,7 +1,6 @@
 package dev.gaborbiro.dailymacros.features.widgetDiary.views
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.glance.GlanceModifier
 import androidx.glance.action.Action
 import androidx.glance.action.action
@@ -32,16 +31,11 @@ internal fun ListItemQuickPick(
     imageTapActionProvider: Action,
     bodyTapActionProvider: Action,
 ) {
-    val extraPadding = remember { (WidgetImageSize - WidgetTemplateImageSize) / 2 }
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clickable(bodyTapActionProvider)
-            .background(quickPickBackground)
-            .then(
-                GlanceModifier
-                    .padding(start = extraPadding)
-            ),
+            .background(QuickPickBackground),
         verticalAlignment = Alignment.Vertical.CenterVertically,
     ) {
         quickPickEntry.images.firstOrNull()
@@ -49,33 +43,33 @@ internal fun ListItemQuickPick(
                 LocalImage(
                     it,
                     modifier = GlanceModifier
-                        .size(WidgetTemplateImageSize)
+                        .size(WidgetImageSize)
                         .clickable(imageTapActionProvider)
                         .cornerRadius(ListItemImageCornerRadius),
                     contentScale = ContentScale.Crop,
                 )
             }
             ?: run {
-                Spacer(modifier = GlanceModifier.size(WidgetTemplateImageSize))
+                Spacer(modifier = GlanceModifier.size(WidgetImageSize))
             }
         Column {
             Text(
                 modifier = GlanceModifier
                     .wrapContentHeight()
-                    .padding(start = PaddingWidgetDefault + extraPadding, end = PaddingWidgetDefault),
+                    .padding(start = PaddingWidgetDefault, end = PaddingWidgetDefault),
                 text = quickPickEntry.title,
                 maxLines = 3,
-                style = titleTextStyle,
+                style = TitleTextStyle,
             )
             quickPickEntry.nutrients?.calories
                 ?.let {
                     Text(
                         modifier = GlanceModifier
                             .wrapContentHeight()
-                            .padding(start = PaddingWidgetDefault + extraPadding, end = PaddingWidgetDefault),
+                            .padding(start = PaddingWidgetDefault, end = PaddingWidgetDefault),
                         text = it,
                         maxLines = 1,
-                        style = descriptionTextStyle,
+                        style = DescriptionTextStyle,
                     )
                 }
         }

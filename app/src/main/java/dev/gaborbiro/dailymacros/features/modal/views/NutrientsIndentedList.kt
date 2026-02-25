@@ -11,16 +11,17 @@ import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.LocalExtraColorScheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingDouble
+import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
-import dev.gaborbiro.dailymacros.features.modal.model.NutrientsBreakdownUiModel
+import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 
 @Composable
 internal fun NutrientsIndentedList(
-    nutrientsBreakdown: NutrientsBreakdownUiModel,
+    nutrientBreakdown: NutrientBreakdownUiModel,
 ) {
-    nutrientsBreakdown.calories?.let {
-        PillLabel(
+    nutrientBreakdown.calories?.let {
+        OutlinedText(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(top = PaddingQuarter),
@@ -32,8 +33,8 @@ internal fun NutrientsIndentedList(
         )
     }
 
-    nutrientsBreakdown.protein?.let {
-        PillLabel(
+    nutrientBreakdown.protein?.let {
+        OutlinedText(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(top = PaddingQuarter),
@@ -45,8 +46,8 @@ internal fun NutrientsIndentedList(
         )
     }
 
-    nutrientsBreakdown.fat?.let {
-        PillLabel(
+    nutrientBreakdown.fat?.let {
+        OutlinedText(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(top = PaddingQuarter),
@@ -58,21 +59,21 @@ internal fun NutrientsIndentedList(
         )
     }
 
-    nutrientsBreakdown.ofWhichSaturated?.let {
-        PillLabel(
+    nutrientBreakdown.ofWhichSaturated?.let {
+        OutlinedText(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(start = PaddingDefault, top = PaddingQuarter),
             text = it,
             contentColor = Color.Black,
-            backgroundColor = LocalExtraColorScheme.current.caloriesColor,
+            backgroundColor = LocalExtraColorScheme.current.fatColor,
             border = null,
             elevation = 0.dp,
         )
     }
 
-    nutrientsBreakdown.carbs?.let {
-        PillLabel(
+    nutrientBreakdown.carbs?.let {
+        OutlinedText(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(top = PaddingQuarter),
@@ -84,8 +85,8 @@ internal fun NutrientsIndentedList(
         )
     }
 
-    nutrientsBreakdown.ofWhichSugar?.let {
-        PillLabel(
+    nutrientBreakdown.ofWhichSugar?.let {
+        OutlinedText(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(start = PaddingDefault, top = PaddingQuarter),
@@ -97,8 +98,8 @@ internal fun NutrientsIndentedList(
         )
     }
 
-    nutrientsBreakdown.ofWhichAddedSugar?.let {
-        PillLabel(
+    nutrientBreakdown.ofWhichAddedSugar?.let {
+        OutlinedText(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(start = PaddingDouble, top = PaddingQuarter),
@@ -110,8 +111,8 @@ internal fun NutrientsIndentedList(
         )
     }
 
-    nutrientsBreakdown.salt?.let {
-        PillLabel(
+    nutrientBreakdown.salt?.let {
+        OutlinedText(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(top = PaddingQuarter),
@@ -123,8 +124,8 @@ internal fun NutrientsIndentedList(
         )
     }
 
-    nutrientsBreakdown.fibre?.let {
-        PillLabel(
+    nutrientBreakdown.fibre?.let {
+        OutlinedText(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(top = PaddingQuarter),
@@ -136,14 +137,12 @@ internal fun NutrientsIndentedList(
         )
     }
 
-    nutrientsBreakdown.notes?.let {
-        PillLabel(
+    nutrientBreakdown.notes?.let {
+        OutlinedText(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
-                .padding(top = PaddingQuarter),
+                .padding(top = PaddingHalf),
             text = it,
-            contentColor = MaterialTheme.colorScheme.surface,
-            backgroundColor = MaterialTheme.colorScheme.onSurface,
             border = null,
             elevation = 0.dp,
         )
@@ -156,7 +155,7 @@ internal fun NutrientsIndentedList(
 private fun NutrientsIndentedListPreview() {
     ViewPreviewContext {
         NutrientsIndentedList(
-            nutrientsBreakdown = NutrientsBreakdownUiModel(
+            nutrientBreakdown = NutrientBreakdownUiModel(
                 calories = "Calories: 2100 cal",
                 protein = "Protein: 150g",
                 fat = "Fat 100g",

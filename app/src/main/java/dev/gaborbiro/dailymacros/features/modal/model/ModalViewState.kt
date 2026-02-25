@@ -57,7 +57,7 @@ sealed class DialogHandle {
 
         data class View(
             val recordId: Long,
-            val nutrientBreakdown: NutrientsBreakdownUiModel?,
+            val nutrientBreakdown: NutrientBreakdownUiModel?,
             val allowEdit: Boolean,
             override val titleHint: String,
             override val titleValidationError: String? = null,
@@ -103,7 +103,7 @@ sealed class ImageInputType {
     data object BrowseImages : ImageInputType()
 }
 
-data class NutrientsBreakdownUiModel(
+data class NutrientBreakdownUiModel(
     val calories: String?,
     val protein: String?,
     val fat: String?,

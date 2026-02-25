@@ -55,7 +55,8 @@ fun ListItemRecord(
 
     Row(
         modifier = modifier
-            .padding(start = PaddingHalf),
+            .padding(start = PaddingHalf)
+            .clickable(onClick = onBodyTapped),
         verticalAlignment = Alignment.Top,
     ) {
         RecordImage(
@@ -72,7 +73,6 @@ fun ListItemRecord(
         )
         RecordTextContent(
             modifier = Modifier
-                .clickable(onClick = onBodyTapped)
                 .padding(end = PaddingHalf)
                 .weight(1f),
             record = record

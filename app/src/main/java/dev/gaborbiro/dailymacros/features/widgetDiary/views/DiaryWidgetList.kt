@@ -8,7 +8,7 @@ import androidx.glance.action.action
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.lazy.itemsIndexed
 import androidx.glance.background
-import androidx.glance.layout.Column
+import androidx.glance.layout.Box
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
@@ -17,7 +17,7 @@ import androidx.glance.layout.padding
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
-import dev.gaborbiro.dailymacros.design.PaddingWidgetHalf
+import dev.gaborbiro.dailymacros.design.PaddingWidgetDouble
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPick
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPickFooter
@@ -38,76 +38,52 @@ internal fun DiaryWidgetList(
         modifier = GlanceModifier
             .fillMaxSize(),
     ) {
+        item { Spacer(modifier = GlanceModifier.height(PaddingWidgetDefault)) }
         itemsIndexed(
             items = items,
             itemId = { _, item -> item.listItemId },
         ) { _, item ->
             when (item) {
-                is ListUiModelRecord -> {
-                    Column(
-                        modifier = GlanceModifier
-                            .fillMaxWidth()
-                            .background(recordBackground)
-                    ) {
-                        Spacer(
-                            modifier = GlanceModifier
-                                .height(PaddingWidgetDefault)
-                        )
-                        ListItemRecord(
-                            record = item,
-                            imageTappedActionProvider = recordImageTapActionProvider(item.listItemId),
-                            bodyTappedActionProvider = recordBodyTapActionProvider(item.listItemId),
-                        )
-                    }
-                }
+                is ListUiModelRecord -> ListItemRecord(
+                    modifier = GlanceModifier
+                        .padding(start = PaddingWidgetDouble)
+                        .padding(vertical = PaddingWidgetDefault),
+                    record = item,
+                    imageTappedActionProvider = recordImageTapActionProvider(item.listItemId),
+                    bodyTappedActionProvider = recordBodyTapActionProvider(item.listItemId),
+                )
 
-                is ListUiModelQuickPickHeader -> {
-                    Column(
-                        modifier = GlanceModifier
-                            .fillMaxWidth()
-                            .background(quickPickBackground)
-                    ) {
-                        Spacer(
-                            modifier = GlanceModifier
-                                .height(PaddingWidgetDefault)
-                        )
-                        ListItemQuickPickHeader()
-                    }
-                }
+                is ListUiModelQuickPickHeader -> ListItemQuickPickHeader(
+                    modifier = GlanceModifier
+                        .padding(top = PaddingWidgetDefault)
+                )
 
-                is ListUiModelQuickPick -> {
-                    Column(
-                        modifier = GlanceModifier
-                            .fillMaxWidth()
-                    ) {
-                        ListItemQuickPick(
-                            modifier = GlanceModifier
-                                .padding(horizontal = PaddingWidgetDefault, vertical = PaddingWidgetHalf),
-                            quickPickEntry = item,
-                            imageTapActionProvider = quickPickImageTapActionProvider(item.templateId),
-                            bodyTapActionProvider = quickPickBodyTapActionProvider(item.templateId),
-                        )
-                    }
-                }
+                is ListUiModelQuickPick -> ListItemQuickPick(
+                    modifier = GlanceModifier
+                        .padding(horizontal = PaddingWidgetDouble, vertical = PaddingWidgetDefault),
+                    quickPickEntry = item,
+                    imageTapActionProvider = quickPickImageTapActionProvider(item.templateId),
+                    bodyTapActionProvider = quickPickBodyTapActionProvider(item.templateId),
+                )
 
-                is ListUiModelQuickPickFooter -> {
-                    Column(
+                is ListUiModelQuickPickFooter -> Box(
+                    modifier = GlanceModifier
+                        .fillMaxWidth()
+                        .padding(bottom = PaddingWidgetDefault)
+                ) {
+                    Spacer(
                         modifier = GlanceModifier
                             .fillMaxWidth()
-                            .background(quickPickBackground)
-                    ) {
-                        Spacer(
-                            modifier = GlanceModifier
-                                .height(PaddingWidgetHalf)
-                        )
-                    }
+                            .background(QuickPickBackground)
+                            .height(PaddingWidgetDefault)
+                    )
                 }
             }
         }
         item {
             Spacer(
                 modifier = GlanceModifier
-                    .height(56.dp)
+                    .height(58.dp)
             )
         }
     }

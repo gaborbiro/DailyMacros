@@ -23,6 +23,7 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
+import dev.gaborbiro.dailymacros.design.PaddingWidgetDouble
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPick
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
@@ -70,8 +71,7 @@ internal fun DiaryWidgetView(
             ) {}
             Box(
                 modifier = GlanceModifier
-                    .size(56.dp)
-                    .padding(PaddingWidgetDefault),
+                    .padding(PaddingWidgetDouble),
                 contentAlignment = Alignment.Center,
             ) {
                 Image(
@@ -80,7 +80,7 @@ internal fun DiaryWidgetView(
                         .background(GlanceTheme.colors.tertiaryContainer)
                         .padding(12.dp)
                         .clickable(actionProvider.openApp())
-                        .fillMaxSize(),
+                        .size(48.dp),
                     colorFilter = ColorFilter.tint(GlanceTheme.colors.onTertiaryContainer),
                     provider = ImageProvider(R.drawable.ic_open_in_new),
                     contentDescription = "open app",

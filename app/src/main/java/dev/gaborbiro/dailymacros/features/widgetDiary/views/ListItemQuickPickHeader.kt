@@ -6,7 +6,9 @@ import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
+import androidx.glance.background
 import androidx.glance.layout.Alignment
+import androidx.glance.layout.Box
 import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
 import androidx.glance.layout.fillMaxWidth
@@ -23,31 +25,37 @@ import dev.gaborbiro.dailymacros.features.widgetDiary.util.WidgetPreviewContext
 fun ListItemQuickPickHeader(
     modifier: GlanceModifier = GlanceModifier,
 ) {
-    Row(
+    Box(
         modifier = modifier
-            .fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Image(
-            provider = ImageProvider(R.drawable.ic_star),
-            contentDescription = "Favorite",
-            contentScale = ContentScale.Fit,
-            colorFilter = ColorFilter.tint(GlanceTheme.colors.primary),
-        )
-        Text(
+        Row(
             modifier = GlanceModifier
-                .padding(PaddingWidgetDefault)
-                .wrapContentWidth(),
-            text = "Tap to Quick Pick",
-            style = sectionTitleTextStyle,
-        )
-        Image(
-            provider = ImageProvider(R.drawable.ic_star),
-            contentDescription = "Favorite",
-            contentScale = ContentScale.Fit,
-            colorFilter = ColorFilter.tint(GlanceTheme.colors.primary),
-        )
+                .background(QuickPickBackground)
+                .padding(top = PaddingWidgetDefault)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Image(
+                provider = ImageProvider(R.drawable.ic_star),
+                contentDescription = "Favorite",
+                contentScale = ContentScale.Fit,
+                colorFilter = ColorFilter.tint(GlanceTheme.colors.primary),
+            )
+            Text(
+                modifier = GlanceModifier
+                    .padding(PaddingWidgetDefault)
+                    .wrapContentWidth(),
+                text = "Tap to Quick Pick",
+                style = SectionTitleTextStyle,
+            )
+            Image(
+                provider = ImageProvider(R.drawable.ic_star),
+                contentDescription = "Favorite",
+                contentScale = ContentScale.Fit,
+                colorFilter = ColorFilter.tint(GlanceTheme.colors.primary),
+            )
+        }
     }
 }
 

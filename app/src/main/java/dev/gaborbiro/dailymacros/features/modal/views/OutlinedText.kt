@@ -22,7 +22,7 @@ import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 
 @Composable
-internal fun PillLabel(
+internal fun OutlinedText(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
     text: String,
@@ -62,9 +62,9 @@ internal fun PillLabel(
 @Preview
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-private fun PillLabelPreview() {
+private fun OutlinedTextPreview() {
     ViewPreviewContext {
-        PillLabel(
+        OutlinedText(
             text = "This is a label",
         )
     }
@@ -73,9 +73,9 @@ private fun PillLabelPreview() {
 @Preview
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-private fun PillLabelPreviewLong() {
+private fun OutlinedTextPreviewLong() {
     ViewPreviewContext {
-        PillLabel(
+        OutlinedText(
             text = "A packaged meal of chicken teriyaki with jasmine rice and oriental mix, high in carbs and protein,  with 484 kcal.",
         )
     }

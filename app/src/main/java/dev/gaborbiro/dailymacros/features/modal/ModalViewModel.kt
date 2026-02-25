@@ -20,7 +20,7 @@ import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUIUpdates
 import dev.gaborbiro.dailymacros.features.modal.model.ModalViewState
-import dev.gaborbiro.dailymacros.features.modal.model.NutrientsBreakdownUiModel
+import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
@@ -144,35 +144,37 @@ internal class ModalViewModel(
         recordDetailsJob = runSafely {
             recordsRepository.observe(recordId)
                 .collect { record ->
-                    val calories = nutrientsUIMapper.formatCalories(value = record.template.nutrientBreakdown.calories, isShort = false, withLabel = true)
-                    val protein = nutrientsUIMapper.formatProtein(value = record.template.nutrientBreakdown.protein, isShort = false, withLabel = true)
-                    val topProteinContributors = nutrientsUIMapper.formatTopContributorText(record.template.topContributors.topProteinContributors)
-                    val fat = nutrientsUIMapper.formatFat(value = record.template.nutrientBreakdown.fat, saturated = null, isShort = false, withLabel = true)
-                    val topFatContributors = nutrientsUIMapper.formatTopContributorText(record.template.topContributors.topFatContributors)
-                    val ofWhichSaturated = nutrientsUIMapper.formatSaturatedFat(value = record.template.nutrientBreakdown.ofWhichSaturated, isShort = false, withLabel = true)
-                    val topSaturatedFatContributors = nutrientsUIMapper.formatTopContributorText(record.template.topContributors.topSaturatedFatContributors)
-                    val carbs = nutrientsUIMapper.formatCarbs(value = record.template.nutrientBreakdown.carbs, sugar = null, addedSugar = null, isShort = false, withLabel = true)
-                    val topCarbsContributors = nutrientsUIMapper.formatTopContributorText(record.template.topContributors.topCarbsContributors)
-                    val ofWhichSugar = nutrientsUIMapper.formatSugar(value = record.template.nutrientBreakdown.ofWhichSugar, isShort = false, withLabel = true)
-                    val topSugarContributors = nutrientsUIMapper.formatTopContributorText(record.template.topContributors.topSugarContributors)
-                    val ofWhichAddedSugar = nutrientsUIMapper.formatAddedSugar(value = record.template.nutrientBreakdown.ofWhichAddedSugar, isShort = false, withLabel = true)
-                    val topAddedSugarContributors = nutrientsUIMapper.formatTopContributorText(record.template.topContributors.topAddedSugarContributors)
-                    val salt = nutrientsUIMapper.formatSalt(value = record.template.nutrientBreakdown.salt, isShort = false, withLabel = true)
-                    val topSaltContributors = nutrientsUIMapper.formatTopContributorText(record.template.topContributors.topSaltContributors)
-                    val fibre = nutrientsUIMapper.formatFibre(value = record.template.nutrientBreakdown.fibre, isShort = false, withLabel = true)
-                    val topFibreContributors = nutrientsUIMapper.formatTopContributorText(record.template.topContributors.topFibreContributors)
-                    val notes = record.template.nutrientBreakdown.notes
+                    val nutrientBreakdown = record.template.nutrientBreakdown
+                    val topContributors = record.template.topContributors
+                    val calories = nutrientsUIMapper.formatCalories(value = nutrientBreakdown.calories, isShort = false, withLabel = true)
+                    val protein = nutrientsUIMapper.formatProtein(value = nutrientBreakdown.protein, isShort = false, withLabel = true)
+                    val topProteinContributors = nutrientsUIMapper.formatTopContributorText(topContributors.topProteinContributors)
+                    val fat = nutrientsUIMapper.formatFat(value = nutrientBreakdown.fat, saturated = null, isShort = false, withLabel = true)
+                    val topFatContributors = nutrientsUIMapper.formatTopContributorText(topContributors.topFatContributors)
+                    val ofWhichSaturated = nutrientsUIMapper.formatSaturatedFat(value = nutrientBreakdown.ofWhichSaturated, isShort = false, withLabel = true)
+                    val topSaturatedFatContributors = nutrientsUIMapper.formatTopContributorText(topContributors.topSaturatedFatContributors)
+                    val carbs = nutrientsUIMapper.formatCarbs(value = nutrientBreakdown.carbs, sugar = null, addedSugar = null, isShort = false, withLabel = true)
+                    val topCarbsContributors = nutrientsUIMapper.formatTopContributorText(topContributors.topCarbsContributors)
+                    val ofWhichSugar = nutrientsUIMapper.formatSugar(value = nutrientBreakdown.ofWhichSugar, isShort = false, withLabel = true)
+                    val topSugarContributors = nutrientsUIMapper.formatTopContributorText(topContributors.topSugarContributors)
+                    val ofWhichAddedSugar = nutrientsUIMapper.formatAddedSugar(value = nutrientBreakdown.ofWhichAddedSugar, isShort = false, withLabel = true)
+                    val topAddedSugarContributors = nutrientsUIMapper.formatTopContributorText(topContributors.topAddedSugarContributors)
+                    val salt = nutrientsUIMapper.formatSalt(value = nutrientBreakdown.salt, isShort = false, withLabel = true)
+                    val topSaltContributors = nutrientsUIMapper.formatTopContributorText(topContributors.topSaltContributors)
+                    val fibre = nutrientsUIMapper.formatFibre(value = nutrientBreakdown.fibre, isShort = false, withLabel = true)
+                    val topFibreContributors = nutrientsUIMapper.formatTopContributorText(topContributors.topFibreContributors)
+                    val notes = nutrientBreakdown.notes
 
-                    val nutrientBreakdown = NutrientsBreakdownUiModel(
+                    val nutrientBreakdownUiModel = NutrientBreakdownUiModel(
                         calories = calories,
-                        protein = protein + topProteinContributors,
-                        fat = fat + topFatContributors,
-                        ofWhichSaturated = ofWhichSaturated + topSaturatedFatContributors,
-                        carbs = carbs + topCarbsContributors,
-                        ofWhichSugar = ofWhichSugar + topSugarContributors,
-                        ofWhichAddedSugar = ofWhichAddedSugar + topAddedSugarContributors,
-                        salt = salt + topSaltContributors,
-                        fibre = fibre + topFibreContributors,
+                        protein = protein?.let { it + topProteinContributors },
+                        fat = fat?.let { it + topFatContributors },
+                        ofWhichSaturated = ofWhichSaturated?.let { it + topSaturatedFatContributors },
+                        carbs = carbs?.let { it + topCarbsContributors },
+                        ofWhichSugar = ofWhichSugar?.let { it + topSugarContributors },
+                        ofWhichAddedSugar = ofWhichAddedSugar?.let { it + topAddedSugarContributors },
+                        salt = salt?.let { it + topSaltContributors },
+                        fibre = fibre?.let { it + topFibreContributors },
                         notes = notes,
                     )
                     val dialog = DialogHandle.RecordDetailsDialog.View(
@@ -180,7 +182,7 @@ internal class ModalViewModel(
                         title = TextFieldValue(record.template.name),
                         description = TextFieldValue(record.template.description),
                         images = record.template.images,
-                        nutrientBreakdown = nutrientBreakdown,
+                        nutrientBreakdown = nutrientBreakdownUiModel,
                         allowEdit = edit,
                         titleHint = "Describe your meal",
                         titleValidationError = null,

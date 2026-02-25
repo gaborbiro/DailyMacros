@@ -12,17 +12,15 @@ import androidx.glance.text.TextStyle
 
 val WidgetImageSize = 64.dp
 
-val WidgetTemplateImageSize = 48.dp
-
 val ListItemImageCornerRadius = 6.dp
 
-val quickPickBackground
+val QuickPickBackground
     @Composable get() = GlanceTheme.colors.primaryContainer
 
-val recordBackground
+val RecordBackground
     @Composable get() = GlanceTheme.colors.widgetBackground
 
-val sectionTitleTextStyle: TextStyle
+val SectionTitleTextStyle: TextStyle
     @Composable get() = TextStyle(
         fontWeight = FontWeight.Bold,
         fontSize = 14.sp,
@@ -30,7 +28,7 @@ val sectionTitleTextStyle: TextStyle
         color = GlanceTheme.colors.onSecondaryContainer
     )
 
-val titleTextStyle: TextStyle
+val TitleTextStyle: TextStyle
     @Composable get() = TextStyle(
         fontWeight = FontWeight.Normal,
         fontSize = 13.sp,
@@ -38,7 +36,7 @@ val titleTextStyle: TextStyle
         color = GlanceTheme.colors.onBackground,
     )
 
-val descriptionTextStyle: TextStyle
+val DescriptionTextStyle: TextStyle
     @Composable get() = TextStyle(
         fontWeight = FontWeight.Normal,
         fontSize = 11.sp,
@@ -46,7 +44,7 @@ val descriptionTextStyle: TextStyle
         color = GlanceTheme.colors.onBackground,
     )
 
-val dateTextStyle: TextStyle
+val DateTextStyle: TextStyle
     @Composable get() = TextStyle(
         fontWeight = FontWeight.Normal,
         fontSize = 10.sp,
@@ -54,7 +52,7 @@ val dateTextStyle: TextStyle
         color = GlanceTheme.colors.onBackground,
     )
 
-val loadingTextStyle: TextStyle
+val LoadingTextStyle: TextStyle
     @Composable get() = TextStyle(
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,

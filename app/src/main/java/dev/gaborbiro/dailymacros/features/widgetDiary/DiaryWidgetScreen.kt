@@ -88,7 +88,7 @@ class DiaryWidgetScreen : GlanceAppWidget() {
                         val recordsUIMapper = RecordsUIMapper(nutrientsUIMapper, dateUIMapper)
                         val widgetUIMapper = WidgetUIMapper(nutrientsUIMapper)
 
-                        val topTemplates = widgetUIMapper.map(
+                        val quickPicks = widgetUIMapper.map(
                             runCatching { widgetPrefs.retrieveTopTemplates() }.getOrNull() ?: emptyList()
                         )
 
@@ -99,11 +99,11 @@ class DiaryWidgetScreen : GlanceAppWidget() {
                         }.getOrNull() ?: emptyList()
 
                         val items = buildList {
-                            if (recentRecords.isNotEmpty() || topTemplates.isNotEmpty()) {
+                            if (recentRecords.isNotEmpty() || quickPicks.isNotEmpty()) {
                                 addAll(recentRecords.take(3))
-                                if (topTemplates.isNotEmpty()) {
+                                if (quickPicks.isNotEmpty()) {
                                     add(ListUiModelQuickPickHeader)
-                                    addAll(topTemplates)
+                                    addAll(quickPicks)
                                     add(ListUiModelQuickPickFooter)
                                 }
                                 addAll(recentRecords.drop(3))

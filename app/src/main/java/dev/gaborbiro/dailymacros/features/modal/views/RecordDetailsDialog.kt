@@ -42,7 +42,7 @@ import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
-import dev.gaborbiro.dailymacros.features.modal.model.NutrientsBreakdownUiModel
+import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.RecognisedFood
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -75,7 +75,7 @@ internal fun RecordDetailsDialog(
     val showProgressIndicator = (dialogHandle as? DialogHandle.RecordDetailsDialog.Edit)
         ?.showProgressIndicator
     val description = dialogHandle.description
-    val macros = (dialogHandle as? DialogHandle.RecordDetailsDialog.View)
+    val nutrientBreakdown = (dialogHandle as? DialogHandle.RecordDetailsDialog.View)
         ?.nutrientBreakdown
     val allowEdit = (dialogHandle as? DialogHandle.RecordDetailsDialog.View)
         ?.allowEdit
@@ -107,7 +107,7 @@ internal fun RecordDetailsDialog(
                 description = description,
                 titleErrorMessage = dialogHandle.titleValidationError,
                 allowEdit = allowEdit,
-                macros = macros,
+                nutrientBreakdown = nutrientBreakdown,
                 onImageTapped = onImageTapped,
                 onImageDeleteTapped = onImageDeleteTapped,
                 onAddImageViaCameraTapped = onAddImageViaCameraTapped,
@@ -173,7 +173,7 @@ private fun ColumnScope.RecordDetailsDialogContent(
     description: TextFieldValue,
     titleErrorMessage: String?,
     allowEdit: Boolean,
-    macros: NutrientsBreakdownUiModel?,
+    nutrientBreakdown: NutrientBreakdownUiModel?,
     onImageTapped: (String) -> Unit,
     onImageDeleteTapped: (String) -> Unit,
     onAddImageViaCameraTapped: () -> Unit,
@@ -264,23 +264,6 @@ private fun ColumnScope.RecordDetailsDialogContent(
             )
         }
 
-//    if (showProgressIndicator) {
-//        Text(
-//            modifier = Modifier
-//                .padding(horizontal = PaddingDefault, vertical = PaddingHalf)
-//                .fillMaxWidth(),
-//            text = "Analyzing images…",
-//            style = MaterialTheme.typography.bodyMedium,
-//            textAlign = TextAlign.Center,
-//        )
-//
-//        CircularProgressIndicator(
-//            modifier = Modifier
-//                .size(25.dp)
-//                .align(Alignment.CenterHorizontally)
-//        )
-//    }
-
     Spacer(
         modifier = Modifier
             .height(PaddingDefault)
@@ -357,7 +340,7 @@ private fun ColumnScope.RecordDetailsDialogContent(
                         color = Color.Gray,
                     )
                 }
-                PillLabel(
+                OutlinedText(
                     modifier = Modifier
                         .padding(horizontal = PaddingDefault),
                     text = description,
@@ -365,12 +348,14 @@ private fun ColumnScope.RecordDetailsDialogContent(
             }
         }
 
-    macros?.let {
+    nutrientBreakdown?.let {
         Spacer(
             modifier = Modifier
                 .height(PaddingDefault)
         )
-        NutrientsIndentedList(nutrientsBreakdown = macros)
+
+        NutrientsIndentedList(nutrientBreakdown = nutrientBreakdown)
+
         Spacer(
             modifier = Modifier
                 .height(PaddingDefault)
@@ -381,17 +366,17 @@ private fun ColumnScope.RecordDetailsDialogContent(
 @Preview
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-private fun NoteInputDialogContentPreviewEdit() {
+private fun NoteInputDialogContentPreviewView() {
     ViewPreviewContext {
         RecordDetailsDialog(
             dialogHandle = DialogHandle.RecordDetailsDialog.View(
                 recordId = 1L,
-                title = TextFieldValue(),
+                title = TextFieldValue("Apple"),
                 titleHint = "Describe your meal (or pick a suggestion from below)",
-                description = TextFieldValue(),
+                description = TextFieldValue("I ate an apple"),
                 images = listOf("1", "2"),
                 allowEdit = true,
-                nutrientBreakdown = NutrientsBreakdownUiModel(
+                nutrientBreakdown = NutrientBreakdownUiModel(
                     calories = "Calories: 2100 cal",
                     protein = "Protein: 150g",
                     fat = "Fat 100g",

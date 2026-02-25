@@ -6,6 +6,7 @@ import androidx.glance.action.Action
 import androidx.glance.action.action
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.cornerRadius
+import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.ContentScale
@@ -25,14 +26,15 @@ import dev.gaborbiro.dailymacros.features.widgetDiary.util.WidgetPreviewContext
 
 @Composable
 fun ListItemRecord(
+    modifier: GlanceModifier = GlanceModifier,
     record: ListUiModelRecord,
     imageTappedActionProvider: Action,
     bodyTappedActionProvider: Action,
 ) {
     Row(
-        modifier = GlanceModifier
+        modifier = modifier
             .fillMaxSize()
-            .padding(start = PaddingWidgetDefault),
+            .background(RecordBackground),
     ) {
         record.images.firstOrNull()
             ?.let {
@@ -59,20 +61,20 @@ fun ListItemRecord(
             Text(
                 text = record.title,
                 maxLines = if (record.showLoadingIndicator) 2 else 3,
-                style = titleTextStyle,
+                style = TitleTextStyle,
             )
             if (record.showLoadingIndicator) {
                 Text(
                     text = "Analyzing…",
                     maxLines = 1,
-                    style = loadingTextStyle,
+                    style = LoadingTextStyle,
                 )
             } else {
                 val nutrient = record.nutrients?.calories?.let { " ($it)" }
                 Text(
                     text = record.timestamp + nutrient,
                     maxLines = 1,
-                    style = dateTextStyle,
+                    style = DateTextStyle,
                 )
             }
         }
