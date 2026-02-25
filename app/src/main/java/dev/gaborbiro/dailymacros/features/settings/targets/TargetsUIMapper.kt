@@ -3,7 +3,7 @@ package dev.gaborbiro.dailymacros.features.settings.targets
 import dev.gaborbiro.dailymacros.features.settings.targets.model.FieldErrors
 import dev.gaborbiro.dailymacros.features.settings.targets.model.MacroType
 import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetUIModel
-import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsViewState
+import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsUiState
 import dev.gaborbiro.dailymacros.repo.settings.model.THEORETICAL_CALORIES_MAX
 import dev.gaborbiro.dailymacros.repo.settings.model.THEORETICAL_CARBS_MAX
 import dev.gaborbiro.dailymacros.repo.settings.model.THEORETICAL_FAT_MAX
@@ -23,8 +23,8 @@ internal class TargetsUIMapper {
         canSave: Boolean = false,
         showExitDialog: Boolean = false,
         errors: Map<MacroType, FieldErrors> = emptyMap(),
-    ): TargetsViewState {
-        return TargetsViewState(
+    ): TargetsUiState {
+        return TargetsUiState(
             targets = buildMap {
                 put(MacroType.CALORIES, map(MacroType.CALORIES, targets.calories))
                 put(MacroType.PROTEIN, map(MacroType.PROTEIN, targets.protein))
@@ -64,8 +64,8 @@ internal class TargetsUIMapper {
         }
     }
 
-    fun map(targetsViewState: TargetsViewState): Targets {
-        val targets: Map<MacroType, Target> = targetsViewState.targets.mapValues { (_, target) ->
+    fun map(targetsUiState: TargetsUiState): Targets {
+        val targets: Map<MacroType, Target> = targetsUiState.targets.mapValues { (_, target) ->
             map(target)
         }
         return Targets(

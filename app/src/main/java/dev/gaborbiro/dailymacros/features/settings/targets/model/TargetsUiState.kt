@@ -1,8 +1,6 @@
 package dev.gaborbiro.dailymacros.features.settings.targets.model
 
-import dev.gaborbiro.dailymacros.features.settings.targets.model.MacroType
-
-internal data class TargetsViewState(
+internal data class TargetsUiState(
     val targets: Map<MacroType, TargetUIModel>,
     val canReset: Boolean = false,
     val canSave: Boolean = false,

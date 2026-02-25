@@ -54,8 +54,8 @@ import dev.gaborbiro.dailymacros.features.common.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.features.settings.targets.model.FieldErrors
 import dev.gaborbiro.dailymacros.features.settings.targets.model.MacroType
 import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetUIModel
-import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsSettingsEvents
-import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsViewState
+import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsSettingsUiEvents
+import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsUiState
 import dev.gaborbiro.dailymacros.features.settings.targets.model.ValidationError
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -63,8 +63,8 @@ import kotlinx.coroutines.flow.emptyFlow
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun TargetsSettingsBottomSheet(
-    viewState: TargetsViewState,
-    events: Flow<TargetsSettingsEvents>,
+    viewState: TargetsUiState,
+    events: Flow<TargetsSettingsUiEvents>,
     onDismissRequested: () -> Unit,
     onTargetChanged: (MacroType, TargetUIModel) -> Unit,
     onResetTapped: () -> Unit,
@@ -79,12 +79,12 @@ internal fun TargetsSettingsBottomSheet(
     LaunchedEffect(Unit) {
         events.collect { event ->
             when (event) {
-                TargetsSettingsEvents.Show -> sheetState.show()
-                TargetsSettingsEvents.Hide -> {
+                TargetsSettingsUiEvents.Show -> sheetState.show()
+                TargetsSettingsUiEvents.Hide -> {
                     sheetState.hide()
                     onDismissRequested()
                 }
-                TargetsSettingsEvents.Close -> {
+                TargetsSettingsUiEvents.Close -> {
                     // handled by parent container
                 }
             }
@@ -319,7 +319,7 @@ private fun ExitConfirmationDialog(
 private fun TargetsSettingsBottomSheetPreview_Default() {
     PreviewContext {
         TargetsSettingsBottomSheet(
-            viewState = TargetsViewState(
+            viewState = TargetsUiState(
                 targets = dummyTargets(),
                 canReset = false,
                 canSave = false,
@@ -342,7 +342,7 @@ private fun TargetsSettingsBottomSheetPreview_Default() {
 private fun TargetsSettingsBottomSheetPreview_DirtyValid() {
     PreviewContext {
         TargetsSettingsBottomSheet(
-            viewState = TargetsViewState(
+            viewState = TargetsUiState(
                 targets = dummyTargets(calories = 1800 to 2000, protein = 60 to 120),
                 canReset = true,
                 canSave = true,
@@ -365,7 +365,7 @@ private fun TargetsSettingsBottomSheetPreview_DirtyValid() {
 private fun TargetsSettingsBottomSheetPreview_DirtyInvalid() {
     PreviewContext {
         TargetsSettingsBottomSheet(
-            viewState = TargetsViewState(
+            viewState = TargetsUiState(
                 targets = dummyTargets(calories = 2200 to 2000), // min > max
                 canReset = true,
                 canSave = false,

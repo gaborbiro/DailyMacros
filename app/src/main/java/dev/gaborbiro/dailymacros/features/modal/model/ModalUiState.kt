@@ -2,7 +2,7 @@ package dev.gaborbiro.dailymacros.features.modal.model
 
 import androidx.compose.ui.text.input.TextFieldValue
 
-data class ModalViewState(
+data class ModalUiState(
     val rootDialog: DialogHandle? = null,
     val overlayDialog: DialogHandle? = null,
     val close: Boolean = false,

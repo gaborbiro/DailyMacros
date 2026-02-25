@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.features.settings.targets.model.FieldErrors
 import dev.gaborbiro.dailymacros.features.settings.targets.model.MacroType
 import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetUIModel
-import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsSettingsEvents
-import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsViewState
+import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsSettingsUiEvents
+import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsUiState
 import dev.gaborbiro.dailymacros.features.settings.targets.model.ValidationError
 import dev.gaborbiro.dailymacros.repo.settings.SettingsRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -21,17 +21,17 @@ internal class TargetsSettingsViewModel(
     private val mapper: TargetsUIMapper = TargetsUIMapper(),
 ) : ViewModel() {
 
-    private val _viewState = MutableStateFlow(
-        TargetsViewState(
+    private val _uiState = MutableStateFlow(
+        TargetsUiState(
             targets = emptyMap(),
         )
     )
-    val viewState: StateFlow<TargetsViewState> = _viewState.asStateFlow()
-    private val _events = MutableSharedFlow<TargetsSettingsEvents>()
-    val events = _events.asSharedFlow()
+    val uiState: StateFlow<TargetsUiState> = _uiState.asStateFlow()
+    private val _uiEvents = MutableSharedFlow<TargetsSettingsUiEvents>()
+    val uiEvents = _uiEvents.asSharedFlow()
 
 
-    private var savedTargets: TargetsViewState? = null
+    private var savedTargets: TargetsUiState? = null
 
     init {
         load()
@@ -41,11 +41,11 @@ internal class TargetsSettingsViewModel(
         val loaded = repo.get()
         val targets = mapper.map(targets = loaded)
         savedTargets = targets
-        _viewState.value = targets
+        _uiState.value = targets
     }
 
     fun onTargetChanged(type: MacroType, target: TargetUIModel) {
-        val current = _viewState.value.targets
+        val current = _uiState.value.targets
         val targets = current + (type to target)
 
         // validate all
@@ -69,19 +69,19 @@ internal class TargetsSettingsViewModel(
         }
 
         val dirty = current != savedTargets
-        val updated = TargetsViewState(
+        val updated = TargetsUiState(
             targets = targets,
             canReset = dirty,
             canSave = dirty,
-            showExitDialog = _viewState.value.showExitDialog,
+            showExitDialog = _uiState.value.showExitDialog,
             errors = errors,
         )
 
-        _viewState.value = updated
+        _uiState.value = updated
     }
 
     fun onSaveTapped() {
-        val current = _viewState.value
+        val current = _uiState.value
         if (!current.canSave) {
             // Either nothing to save, or errors present
             return
@@ -90,51 +90,51 @@ internal class TargetsSettingsViewModel(
         repo.save(mapper.map(current))
         savedTargets = current
 
-        _viewState.value = current.copy(
+        _uiState.value = current.copy(
             canReset = false,
             canSave = false,
             showExitDialog = false,
             errors = emptyMap()
         )
         viewModelScope.launch {
-            _events.emit(TargetsSettingsEvents.Hide)
+            _uiEvents.emit(TargetsSettingsUiEvents.Hide)
         }
     }
 
     fun onUnsavedTargetsDiscardTapped() {
         onTargetsResetTapped()
-        _viewState.value = _viewState.value.copy(
+        _uiState.value = _uiState.value.copy(
             showExitDialog = false,
         )
         viewModelScope.launch {
-            _events.emit(TargetsSettingsEvents.Close)
+            _uiEvents.emit(TargetsSettingsUiEvents.Close)
         }
     }
 
     fun onUnsavedTargetsDismissRequested() {
-        _viewState.value = _viewState.value.copy(
+        _uiState.value = _uiState.value.copy(
             showExitDialog = false,
         )
         viewModelScope.launch {
-            _events.emit(TargetsSettingsEvents.Show)
+            _uiEvents.emit(TargetsSettingsUiEvents.Show)
         }
     }
 
     fun onTargetsResetTapped() {
         val saved = mapper.map(repo.get())
         savedTargets = saved
-        _viewState.value = saved
+        _uiState.value = saved
     }
 
     fun onBottomSheetDismissRequested() {
-        val dirty = _viewState.value.canReset
+        val dirty = _uiState.value.canReset
         if (dirty) {
-            _viewState.value = _viewState.value.copy(
+            _uiState.value = _uiState.value.copy(
                 showExitDialog = true,
             )
         } else {
             viewModelScope.launch {
-                _events.emit(TargetsSettingsEvents.Close)
+                _uiEvents.emit(TargetsSettingsUiEvents.Close)
             }
         }
     }

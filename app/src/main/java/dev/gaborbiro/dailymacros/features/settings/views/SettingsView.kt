@@ -34,12 +34,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
-import dev.gaborbiro.dailymacros.features.settings.model.SettingsViewState
+import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SettingsView(
-    viewState: SettingsViewState,
+    viewState: SettingsUiState,
     onBackNavigateRequested: () -> Unit,
     onTargetsSettingTapped: () -> Unit,
     onExportSettingTapped: () -> Unit,
@@ -114,7 +114,7 @@ private fun SettingRow(
 private fun SettingsViewPreview() {
     PreviewContext {
         SettingsView(
-            viewState = SettingsViewState(
+            viewState = SettingsUiState(
                 showTargetsSettings = true,
                 bottomLabel = "Bottom Label",
             ),

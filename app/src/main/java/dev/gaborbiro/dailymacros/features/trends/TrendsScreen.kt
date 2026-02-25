@@ -3,7 +3,7 @@ package dev.gaborbiro.dailymacros.features.trends
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.gaborbiro.dailymacros.features.trends.model.TrendsViewState
+import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiState
 import dev.gaborbiro.dailymacros.features.trends.views.TrendsView
 
 
@@ -11,7 +11,7 @@ import dev.gaborbiro.dailymacros.features.trends.views.TrendsView
 internal fun TrendsScreen(
     viewModel: TrendsViewModel,
 ) {
-    val state: TrendsViewState by viewModel.viewState.collectAsStateWithLifecycle()
+    val state: TrendsUiState by viewModel.uiState.collectAsStateWithLifecycle()
     TrendsView(
         viewState = state,
         onTimescaleSelected = viewModel::onTimescaleSelected,

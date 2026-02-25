@@ -12,15 +12,13 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.QuickPickOverrideEntity
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
-import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.message
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUIUpdates
-import dev.gaborbiro.dailymacros.features.modal.model.ModalViewState
-import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
+import dev.gaborbiro.dailymacros.features.modal.model.ModalUiState
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
@@ -66,8 +64,8 @@ internal class ModalViewModel(
     private val getTemplateImageUseCase: GetTemplateImageUseCase,
     private val foodRecognitionUseCase: FoodRecognitionUseCase,
     private val deleteRecordUseCase: DeleteRecordUseCase,
-    private val nutrientsUIMapper: NutrientsUIMapper,
     private val analyticsLogger: AnalyticsLogger,
+    private val modalMapper: ModalMapper,
 ) : ViewModel() {
 
     companion object {
@@ -76,8 +74,8 @@ internal class ModalViewModel(
         }
     }
 
-    private val _viewState: MutableStateFlow<ModalViewState> = MutableStateFlow(ModalViewState())
-    val viewState: StateFlow<ModalViewState> = _viewState.asStateFlow()
+    private val _uiState: MutableStateFlow<ModalUiState> = MutableStateFlow(ModalUiState())
+    val uiState: StateFlow<ModalUiState> = _uiState.asStateFlow()
 
     private val _uiUpdates = Channel<ModalUIUpdates>(Channel.BUFFERED)
     val uiUpdates: Flow<ModalUIUpdates> = _uiUpdates.receiveAsFlow()
@@ -117,7 +115,7 @@ internal class ModalViewModel(
                     setRoot(imageDialog)
                 }
                 ?: run {
-                    _viewState.update { it.copy(close = true) }
+                    _uiState.update { it.copy(close = true) }
                 }
         }
     }
@@ -129,7 +127,7 @@ internal class ModalViewModel(
                     setRoot(imageDialog)
                 }
                 ?: run {
-                    _viewState.update { it.copy(close = true) }
+                    _uiState.update { it.copy(close = true) }
                 }
         }
     }
@@ -144,45 +142,13 @@ internal class ModalViewModel(
         recordDetailsJob = runSafely {
             recordsRepository.observe(recordId)
                 .collect { record ->
-                    val nutrientBreakdown = record.template.nutrientBreakdown
-                    val topContributors = record.template.topContributors
-                    val calories = nutrientsUIMapper.formatCalories(value = nutrientBreakdown.calories, isShort = false, withLabel = true)
-                    val protein = nutrientsUIMapper.formatProtein(value = nutrientBreakdown.protein, isShort = false, withLabel = true)
-                    val topProteinContributors = nutrientsUIMapper.formatTopContributorText(topContributors.topProteinContributors)
-                    val fat = nutrientsUIMapper.formatFat(value = nutrientBreakdown.fat, saturated = null, isShort = false, withLabel = true)
-                    val topFatContributors = nutrientsUIMapper.formatTopContributorText(topContributors.topFatContributors)
-                    val ofWhichSaturated = nutrientsUIMapper.formatSaturatedFat(value = nutrientBreakdown.ofWhichSaturated, isShort = false, withLabel = true)
-                    val topSaturatedFatContributors = nutrientsUIMapper.formatTopContributorText(topContributors.topSaturatedFatContributors)
-                    val carbs = nutrientsUIMapper.formatCarbs(value = nutrientBreakdown.carbs, sugar = null, addedSugar = null, isShort = false, withLabel = true)
-                    val topCarbsContributors = nutrientsUIMapper.formatTopContributorText(topContributors.topCarbsContributors)
-                    val ofWhichSugar = nutrientsUIMapper.formatSugar(value = nutrientBreakdown.ofWhichSugar, isShort = false, withLabel = true)
-                    val topSugarContributors = nutrientsUIMapper.formatTopContributorText(topContributors.topSugarContributors)
-                    val ofWhichAddedSugar = nutrientsUIMapper.formatAddedSugar(value = nutrientBreakdown.ofWhichAddedSugar, isShort = false, withLabel = true)
-                    val topAddedSugarContributors = nutrientsUIMapper.formatTopContributorText(topContributors.topAddedSugarContributors)
-                    val salt = nutrientsUIMapper.formatSalt(value = nutrientBreakdown.salt, isShort = false, withLabel = true)
-                    val topSaltContributors = nutrientsUIMapper.formatTopContributorText(topContributors.topSaltContributors)
-                    val fibre = nutrientsUIMapper.formatFibre(value = nutrientBreakdown.fibre, isShort = false, withLabel = true)
-                    val topFibreContributors = nutrientsUIMapper.formatTopContributorText(topContributors.topFibreContributors)
-                    val notes = nutrientBreakdown.notes
 
-                    val nutrientBreakdownUiModel = NutrientBreakdownUiModel(
-                        calories = calories,
-                        protein = protein?.let { it + topProteinContributors },
-                        fat = fat?.let { it + topFatContributors },
-                        ofWhichSaturated = ofWhichSaturated?.let { it + topSaturatedFatContributors },
-                        carbs = carbs?.let { it + topCarbsContributors },
-                        ofWhichSugar = ofWhichSugar?.let { it + topSugarContributors },
-                        ofWhichAddedSugar = ofWhichAddedSugar?.let { it + topAddedSugarContributors },
-                        salt = salt?.let { it + topSaltContributors },
-                        fibre = fibre?.let { it + topFibreContributors },
-                        notes = notes,
-                    )
                     val dialog = DialogHandle.RecordDetailsDialog.View(
                         recordId = recordId,
                         title = TextFieldValue(record.template.name),
                         description = TextFieldValue(record.template.description),
                         images = record.template.images,
-                        nutrientBreakdown = nutrientBreakdownUiModel,
+                        nutrientBreakdown = modalMapper.mapNutrientBreakdowns(record),
                         allowEdit = edit,
                         titleHint = "Describe your meal",
                         titleValidationError = null,
@@ -217,7 +183,7 @@ internal class ModalViewModel(
                 saveImageUseCase.execute(it)
             }
 
-            when (val root = _viewState.value.rootDialog) {
+            when (val root = _uiState.value.rootDialog) {
                 is DialogHandle.RecordDetailsDialog.Edit -> {
                     val updatedImages = root.images + persistedFilenames
                     setRoot(
@@ -289,8 +255,6 @@ internal class ModalViewModel(
                     it.copy(
                         recognisedFood = recognisedFood,
                         title = title,
-                        showProgressIndicator = false,
-                        showRunAIButton = true,
                     )
                 }
             } catch (e: CancellationException) {
@@ -301,7 +265,10 @@ internal class ModalViewModel(
             } finally {
                 if (!currentCoroutineContext().job.isCancelled) {
                     updateRoot<DialogHandle.RecordDetailsDialog.Edit> {
-                        it.copy(showProgressIndicator = false)
+                        it.copy(
+                            showProgressIndicator = false,
+                            showRunAIButton = true,
+                        )
                     }
                 }
             }
@@ -309,7 +276,7 @@ internal class ModalViewModel(
     }
 
     fun onNoImageSelected() {
-        if (_viewState.value.overlayDialog is DialogHandle.ImageInput) {
+        if (_uiState.value.overlayDialog is DialogHandle.ImageInput) {
             popOverlay()
         } else {
             closeAll()
@@ -383,7 +350,7 @@ internal class ModalViewModel(
 
     @UiThread
     fun onDialogDismissRequested(dialog: DialogHandle) {
-        if (dialog == _viewState.value.overlayDialog) {
+        if (dialog == _uiState.value.overlayDialog) {
             popOverlay()
         } else {
             closeAll()
@@ -415,7 +382,7 @@ internal class ModalViewModel(
 
     @UiThread
     fun onImageTapped(image: String) {
-        val root = _viewState.value.rootDialog
+        val root = _uiState.value.rootDialog
         val allImages = (root as? DialogHandle.RecordDetailsDialog)?.images ?: listOf(image)
         val index = allImages.indexOf(image).coerceAtLeast(0)
         pushOverlay(DialogHandle.ViewImageDialog("", allImages, index))
@@ -443,7 +410,7 @@ internal class ModalViewModel(
 
     @UiThread
     fun onSubmitButtonTapped() {
-        (_viewState.value.rootDialog as? DialogHandle.RecordDetailsDialog)
+        (_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog)
             ?.let {
                 runSafely {
                     when (it) {
@@ -466,7 +433,7 @@ internal class ModalViewModel(
     fun onRunAIButtonTapped() {
         updateRoot<DialogHandle.RecordDetailsDialog.Edit> {
             runFoodRecognition(it.images)
-            it.copy(showProgressIndicator = true)
+            it
         }
     }
 
@@ -559,7 +526,7 @@ internal class ModalViewModel(
 
     @UiThread
     fun onEditTargetConfirmed(target: ChangeImagesTarget) {
-        (_viewState.value.overlayDialog as? DialogHandle.EditTargetConfirmationDialog)
+        (_uiState.value.overlayDialog as? DialogHandle.EditTargetConfirmationDialog)
             ?.let {
                 val recordId = it.recordId
                 val images = it.images
@@ -623,19 +590,19 @@ internal class ModalViewModel(
     }
 
     private fun setRoot(dialog: DialogHandle) {
-        _viewState.update {
+        _uiState.update {
             it.copy(rootDialog = dialog, overlayDialog = null)
         }
     }
 
     private fun pushOverlay(dialog: DialogHandle) {
-        _viewState.update {
+        _uiState.update {
             it.copy(overlayDialog = dialog)
         }
     }
 
     private fun popOverlay() {
-        _viewState.update {
+        _uiState.update {
             it.copy(overlayDialog = null)
         }
     }
@@ -643,13 +610,13 @@ internal class ModalViewModel(
     private fun closeAll() {
         recogniseFoodJob?.cancel()
         recordDetailsJob?.cancel()
-        _viewState.update {
+        _uiState.update {
             it.copy(rootDialog = null, overlayDialog = null, close = true)
         }
     }
 
     private inline fun <reified T : DialogHandle> updateRoot(transform: (T) -> DialogHandle) {
-        _viewState.update {
+        _uiState.update {
             val root = it.rootDialog
             if (root is T) {
                 it.copy(rootDialog = transform(root))

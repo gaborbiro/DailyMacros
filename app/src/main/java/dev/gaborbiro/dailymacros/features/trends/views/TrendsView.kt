@@ -50,7 +50,7 @@ import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
 import dev.gaborbiro.dailymacros.features.trends.model.Timescale
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsChartUiModel
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsSettingsUIModel
-import dev.gaborbiro.dailymacros.features.trends.model.TrendsViewState
+import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiState
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
@@ -58,7 +58,7 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 internal fun TrendsView(
-    viewState: TrendsViewState,
+    viewState: TrendsUiState,
     onTimescaleSelected: (scale: Timescale) -> Unit,
     onBackNavigate: () -> Unit,
     onSettingsActionButtonClicked: () -> Unit,
@@ -203,7 +203,7 @@ internal fun TrendsView(
 private fun TrendsViewPreview() {
     PreviewContext {
         TrendsView(
-            viewState = TrendsViewState(
+            viewState = TrendsUiState(
                 charts = previewData,
             ),
             onTimescaleSelected = {},

@@ -2,7 +2,7 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import android.content.Context
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
-import dev.gaborbiro.dailymacros.features.modal.RecordsMapper
+import dev.gaborbiro.dailymacros.features.modal.ModalMapper
 import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
 import dev.gaborbiro.dailymacros.features.modal.model.RecognisedFood
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.ChatGPTRepository
@@ -15,7 +15,7 @@ internal class FoodRecognitionUseCase(
     private val appContext: Context,
     private val imageStore: ImageStore,
     private val chatGPTRepository: ChatGPTRepository,
-    private val mapper: RecordsMapper,
+    private val mapper: ModalMapper,
 ) {
 
     suspend fun execute(images: List<String>): RecognisedFood {

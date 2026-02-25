@@ -6,7 +6,7 @@ import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
 import dev.gaborbiro.dailymacros.features.trends.model.Timescale
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsSettingsUIModel
-import dev.gaborbiro.dailymacros.features.trends.model.TrendsViewState
+import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiState
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,11 +24,11 @@ internal class TrendsViewModel(
 
     private var recordsJob: Job
 
-    private val _viewState: MutableStateFlow<TrendsViewState> =
+    private val _uiState: MutableStateFlow<TrendsUiState> =
         MutableStateFlow(
-            TrendsViewState()
+            TrendsUiState()
         )
-    val viewState: StateFlow<TrendsViewState> = _viewState.asStateFlow()
+    val uiState: StateFlow<TrendsUiState> = _uiState.asStateFlow()
 
     init {
         recordsJob = observeRecords(Timescale.DAYS)
@@ -44,7 +44,7 @@ internal class TrendsViewModel(
     }
 
     fun onSettingsActionButtonClicked() {
-        _viewState.value = _viewState.value.copy(
+        _uiState.value = _uiState.value.copy(
             settings = TrendsSettingsUIModel.Show(
                 dayQualifier = mapper.map(appPrefs.dayQualificationMode),
                 qualifiedDaysThreshold = appPrefs.qualifyingCalorieThreshold,
@@ -53,7 +53,7 @@ internal class TrendsViewModel(
     }
 
     fun onSettingsCloseRequested() {
-        _viewState.value = _viewState.value.copy(settings = TrendsSettingsUIModel.Hidden)
+        _uiState.value = _uiState.value.copy(settings = TrendsSettingsUIModel.Hidden)
     }
 
     fun onAggregationModeChanged(dayQualifier: DayQualifier, timescale: Timescale) {
@@ -74,7 +74,7 @@ internal class TrendsViewModel(
             // Use the same flow as overview (no search term = all records)
             recordsRepository.observeRecords(null).collect { records ->
                 if (records.isEmpty()) {
-                    _viewState.value = _viewState.value.copy(charts = emptyList())
+                    _uiState.value = _uiState.value.copy(charts = emptyList())
                 } else {
                     val aggregationMode = mapper.map(appPrefs.dayQualificationMode)
                     val charts = when (timescale) {
@@ -82,7 +82,7 @@ internal class TrendsViewModel(
                         Timescale.WEEKS -> mapper.mapWeeksCharts(records, aggregationMode)
                         Timescale.MONTHS -> mapper.mapMonthsCharts(records, aggregationMode)
                     }
-                    _viewState.value = _viewState.value.copy(charts = charts)
+                    _uiState.value = _uiState.value.copy(charts = charts)
                 }
             }
         }

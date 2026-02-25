@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.BuildConfig
 import dev.gaborbiro.dailymacros.features.common.AppPrefs
-import dev.gaborbiro.dailymacros.features.settings.model.SettingsViewState
+import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,16 +17,16 @@ internal class SettingsViewModel(
     private val exportFoodDiaryUseCase: ExportFoodDiaryUseCase,
 ) : ViewModel() {
 
-    private val _viewState = MutableStateFlow(
-        SettingsViewState(
+    private val _uiState = MutableStateFlow(
+        SettingsUiState(
             showTargetsSettings = false,
             bottomLabel = bottomLabel,
         )
     )
-    val viewState: StateFlow<SettingsViewState> = _viewState.asStateFlow()
+    val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
     fun onBackNavigateRequested() {
-        _viewState.value = SettingsViewState(
+        _uiState.value = SettingsUiState(
             showTargetsSettings = false,
             bottomLabel = bottomLabel,
         )
@@ -34,13 +34,13 @@ internal class SettingsViewModel(
     }
 
     fun onTargetsSettingsTapped() {
-        _viewState.value = _viewState.value.copy(
+        _uiState.value = _uiState.value.copy(
             showTargetsSettings = true,
         )
     }
 
     fun onTargetsSettingsCloseRequested() {
-        _viewState.value = _viewState.value.copy(
+        _uiState.value = _uiState.value.copy(
             showTargetsSettings = false,
         )
     }

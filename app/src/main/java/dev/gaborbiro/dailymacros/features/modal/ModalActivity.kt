@@ -161,9 +161,9 @@ class ModalActivity : AppCompatActivity() {
             service = retrofit.create(ChatGPTService::class.java)
         )
 
-        val recordsMapper = RecordsMapper()
         val dateUIMapper = DateUIMapper()
         val nutrientsUIMapper = NutrientsUIMapper(dateUIMapper)
+        val modalMapper = ModalMapper(nutrientsUIMapper)
         val deleteRecordUseCase = DeleteRecordUseCase(recordsRepository)
         val createRecordFromTemplateUseCase = CreateRecordFromTemplateUseCase(recordsRepository)
         val createTemplateUseCase = CreateTemplateUseCase(recordsRepository)
@@ -183,9 +183,9 @@ class ModalActivity : AppCompatActivity() {
             saveImageUseCase = SaveImageUseCase(this, imageStore),
             getRecordImageUseCase = GetRecordImageUseCase(recordsRepository),
             getTemplateImageUseCase = GetTemplateImageUseCase(recordsRepository),
-            foodRecognitionUseCase = FoodRecognitionUseCase(this, imageStore, chatGPTRepository, recordsMapper),
-            nutrientsUIMapper = nutrientsUIMapper,
+            foodRecognitionUseCase = FoodRecognitionUseCase(this, imageStore, chatGPTRepository, modalMapper),
             deleteRecordUseCase = deleteRecordUseCase,
+            modalMapper = modalMapper,
             analyticsLogger = analyticsLogger,
         )
     }
@@ -215,7 +215,7 @@ class ModalActivity : AppCompatActivity() {
             }
 
         setContent {
-            val viewState by viewModel.viewState.collectAsStateWithLifecycle()
+            val viewState by viewModel.uiState.collectAsStateWithLifecycle()
 
             AppTheme {
                 CompositionLocalProvider(LocalImageStore provides imageStore) {

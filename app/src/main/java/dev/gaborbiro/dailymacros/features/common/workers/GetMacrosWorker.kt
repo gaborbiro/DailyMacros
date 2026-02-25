@@ -23,7 +23,7 @@ import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.modal.ModalActivity.Companion.REQUEST_TIMEOUT_IN_SECONDS
-import dev.gaborbiro.dailymacros.features.modal.RecordsMapper
+import dev.gaborbiro.dailymacros.features.modal.ModalMapper
 import dev.gaborbiro.dailymacros.features.modal.usecase.NutrientAnalysisUseCase
 import dev.gaborbiro.dailymacros.repo.chatgpt.AuthInterceptor
 import dev.gaborbiro.dailymacros.repo.chatgpt.ChatGPTRepositoryImpl
@@ -77,7 +77,7 @@ class GetMacrosWorker(
         RequestStatusRepositoryImpl(database.requestStatusDAO())
     }
 
-    private val nutrientanalysisUseCase: NutrientAnalysisUseCase by lazy {
+    private val nutrientAnalysisUseCase: NutrientAnalysisUseCase by lazy {
         val logger = HttpLoggingInterceptor().also {
             it.level = HttpLoggingInterceptor.Level.BODY
         }
@@ -113,14 +113,15 @@ class GetMacrosWorker(
             service = retrofit.create(ChatGPTService::class.java)
         )
         val dateUIMapper = DateUIMapper()
+        val nutrientsUIMapper = NutrientsUIMapper(dateUIMapper)
 
         NutrientAnalysisUseCase(
             appContext = appContext,
             imageStore = imageStore,
             chatGPTRepository = chatGPTRepository,
             recordsRepository = recordsRepository,
-            recordsMapper = RecordsMapper(),
-            nutrientsUIMapper = NutrientsUIMapper(dateUIMapper),
+            modalMapper = ModalMapper(nutrientsUIMapper),
+            nutrientsUIMapper = nutrientsUIMapper,
             requestStatusRepository = requestStatusRepository,
         )
     }
@@ -179,7 +180,7 @@ class GetMacrosWorker(
             if (recordId == -1L) {
                 Result.failure()
             } else {
-                nutrientanalysisUseCase.execute(
+                nutrientAnalysisUseCase.execute(
                     recordId = recordId,
                 )
                 cancelWorkRequest(

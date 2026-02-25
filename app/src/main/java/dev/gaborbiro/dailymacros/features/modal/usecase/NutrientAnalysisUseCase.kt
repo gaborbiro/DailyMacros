@@ -5,7 +5,7 @@ import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
-import dev.gaborbiro.dailymacros.features.modal.RecordsMapper
+import dev.gaborbiro.dailymacros.features.modal.ModalMapper
 import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
 import dev.gaborbiro.dailymacros.features.widgetDiary.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.ChatGPTRepository
@@ -23,7 +23,7 @@ internal class NutrientAnalysisUseCase(
     private val imageStore: ImageStore,
     private val chatGPTRepository: ChatGPTRepository,
     private val recordsRepository: RecordsRepository,
-    private val recordsMapper: RecordsMapper,
+    private val modalMapper: ModalMapper,
     private val nutrientsUIMapper: NutrientsUIMapper,
     private val requestStatusRepository: RequestStatusRepository,
 ) {
@@ -42,7 +42,7 @@ internal class NutrientAnalysisUseCase(
             DiaryWidgetScreen.reload()
             val nutrientsResponse = runCatching {
                 chatGPTRepository.analyseNutrients(
-                    request = recordsMapper.mapToNutrientAnalysisRequest(
+                    request = modalMapper.mapToNutrientAnalysisRequest(
                         record = record,
                         base64Images = base64Images,
                     )
@@ -63,7 +63,7 @@ internal class NutrientAnalysisUseCase(
                 }
 
             nutrientsResponse.getOrNull()?.let { nutrientsResponse ->
-                val (nutrients: Pair<NutrientBreakdown, TopContributors>?, error: String?) = recordsMapper.mapNutrientAnalysisResponse(nutrientsResponse)
+                val (nutrients: Pair<NutrientBreakdown, TopContributors>?, error: String?) = modalMapper.mapNutrientAnalysisResponse(nutrientsResponse)
                 recordsRepository.updateTemplate(
                     templateId = record.template.dbId,
                     nutrients = nutrients,
