@@ -38,25 +38,23 @@ internal class ExportFoodDiaryUseCase(
         val records = recordRepository
             .getRecords()
         val entries = records
-            .mapNotNull {
-                it.template.nutrientBreakdown
-                    ?.let { macros ->
-                        LlmFoodEntry(
-                            timestamp = it.timestamp.toString(),
-                            title = it.template.name,
-                            description = it.template.description,
-                            calories_kcal = macros.calories,
-                            protein_g = macros.protein,
-                            fat_g = macros.fat,
-                            saturated_fat_g = macros.ofWhichSaturated,
-                            carbs_g = macros.carbs,
-                            sugars_g = macros.ofWhichSugar,
-                            fibre_g = macros.fibre,
-                            salt_g = macros.salt,
-                            notes = macros.notes,
-                        )
-                    }
-            }
+            .map {
+                val nutrients = it.template.nutrients
+                LlmFoodEntry(
+                    timestamp = it.timestamp.toString(),
+                    title = it.template.name,
+                    description = it.template.description,
+                    calories_kcal = nutrients.calories,
+                    protein_g = nutrients.protein,
+                    fat_g = nutrients.fat,
+                    saturated_fat_g = nutrients.ofWhichSaturated,
+                    carbs_g = nutrients.carbs,
+                    sugars_g = nutrients.ofWhichSugar,
+                    fibre_g = nutrients.fibre,
+                    salt_g = nutrients.salt,
+                    notes = it.template.notes,
+                )
+            } 
 
         val from = records.minOf { it.timestamp }.toLocalDate()
         val to = ZonedDateTime.now().toLocalDate()

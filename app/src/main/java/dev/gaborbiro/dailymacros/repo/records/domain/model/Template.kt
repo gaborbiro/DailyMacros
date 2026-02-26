@@ -6,7 +6,8 @@ data class Template(
     val name: String,
     val description: String,
     val isPending: Boolean,
-    val nutrientBreakdown: NutrientBreakdown,
+    val nutrients: NutrientBreakdown,
+    val notes: String,
     val topContributors: TopContributors,
     val quickPickOverride: QuickPickOverride?,
 ) {

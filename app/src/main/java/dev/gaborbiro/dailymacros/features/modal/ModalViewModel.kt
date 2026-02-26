@@ -65,7 +65,7 @@ internal class ModalViewModel(
     private val foodRecognitionUseCase: FoodRecognitionUseCase,
     private val deleteRecordUseCase: DeleteRecordUseCase,
     private val analyticsLogger: AnalyticsLogger,
-    private val modalMapper: ModalMapper,
+    private val uiMapper: ModalUIMapper,
 ) : ViewModel() {
 
     companion object {
@@ -99,7 +99,7 @@ internal class ModalViewModel(
         setRoot(
             DialogHandle.RecordDetailsDialog.Edit(
                 title = TextFieldValue(),
-                titleHint = "Describe your meal (or snap a photo)",
+                titleHint = "Give your meal a title (or let AI figure it out from photo)",
                 description = TextFieldValue(),
                 images = emptyList(),
                 recognisedFood = null,
@@ -148,9 +148,9 @@ internal class ModalViewModel(
                         title = TextFieldValue(record.template.name),
                         description = TextFieldValue(record.template.description),
                         images = record.template.images,
-                        nutrientBreakdown = modalMapper.mapNutrientBreakdowns(record),
+                        nutrientBreakdown = uiMapper.mapNutrientBreakdowns(record),
                         allowEdit = edit,
-                        titleHint = "Describe your meal",
+                        titleHint = "Give your meal a title",
                         titleValidationError = null,
                     )
                     setRoot(dialog)
@@ -205,7 +205,7 @@ internal class ModalViewModel(
                     setRoot(
                         DialogHandle.RecordDetailsDialog.Edit(
                             title = TextFieldValue(),
-                            titleHint = "Describe your meal (or tap one of the AI suggestions)",
+                            titleHint = "Give your meal a title (or wait a bit for the AI to figure it out)",
                             description = TextFieldValue(),
                             images = persistedFilenames,
                             recognisedFood = null,
@@ -227,7 +227,7 @@ internal class ModalViewModel(
             setRoot(
                 DialogHandle.RecordDetailsDialog.Edit(
                     title = TextFieldValue(),
-                    titleHint = "Describe your meal (or tap one of the AI suggestions)",
+                    titleHint = "Give yur meal a title (or wait a bit for the AI to figure it out)",
                     description = TextFieldValue(),
                     images = persistedFilenames,
                     recognisedFood = null,
@@ -427,7 +427,9 @@ internal class ModalViewModel(
     }
 
     fun onImagesInfoButtonTapped() {
-        pushOverlay(DialogHandle.InfoDialog("You can add as many images as you like. Nutritional labels are particularly useful to the AI. You can also add more photos or update things later, don't worry about gathering all info right away."))
+        pushOverlay(DialogHandle.InfoDialog("You can add multiple photos.\nPhotos of nutritional labels are especially helpful." +
+                "\n\nYou can edit the entry later. You don’t need to collect all details up front." +
+                "\n\nLogging the meal is more important than the exact time. Just don’t leave it for the next day - dates can’t be changed retroactively."))
     }
 
     fun onRunAIButtonTapped() {

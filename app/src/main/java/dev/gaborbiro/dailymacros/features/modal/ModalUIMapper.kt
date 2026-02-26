@@ -12,14 +12,14 @@ import dev.gaborbiro.dailymacros.repo.records.domain.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.TopContributors
 
-internal class ModalMapper(
+internal class ModalUIMapper(
     private val nutrientsUIMapper: NutrientsUIMapper,
 ) {
 
     fun mapNutrientBreakdowns(
         record: Record,
     ): NutrientBreakdownUiModel {
-        val nutrientBreakdown = record.template.nutrientBreakdown
+        val nutrientBreakdown = record.template.nutrients
         val topContributors = record.template.topContributors
         val calories = nutrientsUIMapper.formatCalories(value = nutrientBreakdown.calories, isShort = false, withLabel = true)
         val protein = nutrientsUIMapper.formatProtein(value = nutrientBreakdown.protein, isShort = false, withLabel = true)
@@ -38,7 +38,7 @@ internal class ModalMapper(
         val topSaltContributors = nutrientsUIMapper.formatTopContributorText(topContributors.topSaltContributors)
         val fibre = nutrientsUIMapper.formatFibre(value = nutrientBreakdown.fibre, isShort = false, withLabel = true)
         val topFibreContributors = nutrientsUIMapper.formatTopContributorText(topContributors.topFibreContributors)
-        val notes = nutrientBreakdown.notes
+        val notes = record.template.notes
 
         return NutrientBreakdownUiModel(
             calories = calories,
@@ -77,13 +77,13 @@ internal class ModalMapper(
 
     fun mapNutrientAnalysisResponse(response: NutrientAnalysisResponse): Pair<Pair<NutrientBreakdown, TopContributors>?, String?> {
         val nutrients = response.nutrients?.let {
-            mapBreakdown(it, response.description) to mapContributors(it)
+            mapBreakdown(it) to mapContributors(it)
         }
 
         return nutrients to response.error
     }
 
-    private fun mapBreakdown(nutrientsApiModel: NutrientsApiModel, notes: String?): NutrientBreakdown {
+    private fun mapBreakdown(nutrientsApiModel: NutrientsApiModel): NutrientBreakdown {
         return NutrientBreakdown(
             calories = nutrientsApiModel.calories,
             protein = nutrientsApiModel.protein?.grams,
@@ -94,7 +94,6 @@ internal class ModalMapper(
             ofWhichAddedSugar = nutrientsApiModel.ofWhichAddedSugar?.grams,
             salt = nutrientsApiModel.salt?.grams,
             fibre = nutrientsApiModel.fibre?.grams,
-            notes = notes,
         )
     }
 

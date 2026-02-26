@@ -19,20 +19,20 @@ internal class NutrientsUIMapper(
         targets: Targets,
     ): ListUiModelDailySummary {
         val records = day.records
-        val totalCalories = records.sumOf { it.template.nutrientBreakdown.calories ?: 0 }
+        val totalCalories = records.sumOf { it.template.nutrients.calories ?: 0 }
         val totalProtein =
-            records.sumOf { it.template.nutrientBreakdown.protein?.toDouble() ?: 0.0 }.toFloat()
+            records.sumOf { it.template.nutrients.protein?.toDouble() ?: 0.0 }.toFloat()
         val totalCarbs =
-            records.sumOf { it.template.nutrientBreakdown.carbs?.toDouble() ?: 0.0 }.toFloat()
+            records.sumOf { it.template.nutrients.carbs?.toDouble() ?: 0.0 }.toFloat()
         val totalSugar =
-            records.sumOf { it.template.nutrientBreakdown.ofWhichSugar?.toDouble() ?: 0.0 }.toFloat()
+            records.sumOf { it.template.nutrients.ofWhichSugar?.toDouble() ?: 0.0 }.toFloat()
         val totalAddedSugar =
-            records.sumOf { it.template.nutrientBreakdown.ofWhichAddedSugar?.toDouble() ?: 0.0 }.toFloat()
-        val totalFat = records.sumOf { it.template.nutrientBreakdown.fat?.toDouble() ?: 0.0 }.toFloat()
+            records.sumOf { it.template.nutrients.ofWhichAddedSugar?.toDouble() ?: 0.0 }.toFloat()
+        val totalFat = records.sumOf { it.template.nutrients.fat?.toDouble() ?: 0.0 }.toFloat()
         val totalSaturated =
-            records.sumOf { it.template.nutrientBreakdown.ofWhichSaturated?.toDouble() ?: 0.0 }.toFloat()
-        val totalSalt = records.sumOf { it.template.nutrientBreakdown.salt?.toDouble() ?: 0.0 }.toFloat()
-        val totalFibre = records.sumOf { it.template.nutrientBreakdown.fibre?.toDouble() ?: 0.0 }.toFloat()
+            records.sumOf { it.template.nutrients.ofWhichSaturated?.toDouble() ?: 0.0 }.toFloat()
+        val totalSalt = records.sumOf { it.template.nutrients.salt?.toDouble() ?: 0.0 }.toFloat()
+        val totalFibre = records.sumOf { it.template.nutrients.fibre?.toDouble() ?: 0.0 }.toFloat()
 
         val totalNutrientBreakdown = NutrientBreakdown(
             calories = totalCalories,
@@ -44,7 +44,6 @@ internal class NutrientsUIMapper(
             ofWhichAddedSugar = totalAddedSugar,
             salt = totalSalt,
             fibre = totalFibre,
-            notes = null,
         )
 
         val progressItems = buildNutrientProgressItems(totalNutrientBreakdown, targets)

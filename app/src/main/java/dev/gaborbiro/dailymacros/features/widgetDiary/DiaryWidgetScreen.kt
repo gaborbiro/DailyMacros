@@ -22,7 +22,6 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import androidx.work.WorkManager
-import com.google.gson.reflect.TypeToken
 import dev.gaborbiro.dailymacros.AnalyticsLogger
 import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
@@ -31,16 +30,12 @@ import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.design.WidgetColorScheme
 import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
-import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
+import dev.gaborbiro.dailymacros.features.common.SharedRecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPickFooter
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPickHeader
-import dev.gaborbiro.dailymacros.features.widgetDiary.views.LocalImageStoreWidget
 import dev.gaborbiro.dailymacros.features.widgetDiary.views.DiaryWidgetView
-import dev.gaborbiro.dailymacros.features.widgetDiary.workers.ReloadWorker
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
-import dev.gaborbiro.dailymacros.util.gson
+import dev.gaborbiro.dailymacros.features.widgetDiary.views.LocalImageStoreWidget
 
 class DiaryWidgetScreen : GlanceAppWidget() {
 
@@ -85,17 +80,20 @@ class DiaryWidgetScreen : GlanceAppWidget() {
                         val imageStore: ImageStore = ImageStoreImpl(fileStore)
                         val dateUIMapper = DateUIMapper()
                         val nutrientsUIMapper = NutrientsUIMapper(dateUIMapper)
-                        val recordsUIMapper = RecordsUIMapper(nutrientsUIMapper, dateUIMapper)
+                        val recordsUIMapper = SharedRecordsUIMapper(nutrientsUIMapper, dateUIMapper)
                         val widgetUIMapper = WidgetUIMapper(nutrientsUIMapper)
 
-                        val quickPicks = widgetUIMapper.map(
-                            runCatching { widgetPrefs.retrieveTopTemplates() }.getOrNull() ?: emptyList()
-                        )
+                        val quickPicks = runCatching {
+                            val recordsJSON = widgetPrefs[stringPreferencesKey(PREFS_QUICK_PICKS)]
+                            widgetUIMapper.map(
+                                PersistenceMapper.deserializeTemplates(recordsJSON)
+                            )
+                        }.getOrNull() ?: emptyList()
 
                         val recentRecords = runCatching {
-                            widgetPrefs.retrieveRecentRecords().map {
-                                recordsUIMapper.map(record = it, forceDay = true)
-                            }
+                            val recordsJSON = widgetPrefs[stringPreferencesKey(PREFS_RECENT_RECORDS)]
+                            PersistenceMapper.deserializeRecords(recordsJSON)
+                                .map(recordsUIMapper::map)
                         }.getOrNull() ?: emptyList()
 
                         val items = buildList {
@@ -142,7 +140,7 @@ class DiaryWidgetScreen : GlanceAppWidget() {
         }
     }
 
-    sealed interface WidgetUiState {
+    private sealed interface WidgetUiState {
         data class Success(val items: List<ListUiModelBase>, val imageStore: ImageStore) :
             WidgetUiState
 
@@ -167,24 +165,4 @@ class DiaryWidgetScreen : GlanceAppWidget() {
     override suspend fun onDelete(context: Context, glanceId: GlanceId) {
         cleanup(context)
     }
-}
-
-private fun Preferences.retrieveRecentRecords(): List<Record> {
-    val recordsJSON = this[stringPreferencesKey(DiaryWidgetScreen.PREFS_RECENT_RECORDS)]
-    return recordsJSON
-        ?.let {
-            val itemType = object : TypeToken<List<Record>>() {}.type
-            gson.fromJson(recordsJSON, itemType)
-        }
-        ?: emptyList()
-}
-
-private fun Preferences.retrieveTopTemplates(): List<Template> {
-    val recordsJSON = this[stringPreferencesKey(DiaryWidgetScreen.PREFS_QUICK_PICKS)]
-    return recordsJSON
-        ?.let {
-            val itemType = object : TypeToken<List<Template>>() {}.type
-            gson.fromJson(recordsJSON, itemType)
-        }
-        ?: emptyList()
 }

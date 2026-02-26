@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.data.db.model.entity.QuickPickOverrideEntity
 import dev.gaborbiro.dailymacros.features.common.AppPrefs
-import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
@@ -34,9 +33,8 @@ internal class OverviewViewModel(
     private val navigator: OverviewNavigator,
     private val recordsRepository: RecordsRepository,
     private val repeatRecordUseCase: RepeatRecordUseCase,
-    private val recordsUIMapper: RecordsUIMapper,
-    private val overviewUIMapper: OverviewUIMapper,
     private val settingsRepository: SettingsRepository,
+    private val uiMapper: OverviewUIMapper,
     private val appPrefs: AppPrefs,
 ) : ViewModel() {
 
@@ -74,16 +72,12 @@ internal class OverviewViewModel(
         collectionJob = viewModelScope.launch {
             val sinceMillis = if (search.isNullOrBlank()) sinceEpochMillis else 0L
             recordsRepository.observeRecords(search, sinceEpochMillis = sinceMillis)
-                .combine(flowOf(settingsRepository.get()))
+                .combine(flowOf(settingsRepository.getTargets()))
                 .map { (records: List<Record>, targets: Targets) ->
                     if (search.isNullOrBlank()) {
-                        overviewUIMapper.map(records, targets, showDay = false)
+                        uiMapper.map(records, targets)
                     } else {
-                        records
-                            .map {
-                                recordsUIMapper.map(record = it, forceDay = true)
-                            }
-                            .reversed()
+                        uiMapper.mapSearchResults(records)
                     }
                 }
                 .collect { records: List<ListUiModelBase> ->

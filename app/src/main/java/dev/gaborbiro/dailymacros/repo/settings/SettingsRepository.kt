@@ -12,7 +12,7 @@ internal class SettingsRepository(
 ) {
     private val prefs = context.getSharedPreferences("settings2", Context.MODE_PRIVATE)
 
-    fun save(targets: Targets) {
+    fun setTargets(targets: Targets) {
         val json = mapper.map(targets)
         prefs.edit {
             putString(KEY_TARGETS, json)
@@ -30,7 +30,7 @@ internal class SettingsRepository(
         ofWhichSugar = Target(enabled = false)
     )
 
-    fun get(): Targets {
+    fun getTargets(): Targets {
         val json = prefs.getString(KEY_TARGETS, null) ?: return defaultTargets
         return mapper.map(json)
     }

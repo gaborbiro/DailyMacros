@@ -4,14 +4,14 @@ import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
 
-internal class RecordsUIMapper(
+internal class SharedRecordsUIMapper(
     private val nutrientsUIMapper: NutrientsUIMapper,
     private val dateUIMapper: DateUIMapper,
 ) {
-    fun map(record: Record, forceDay: Boolean): ListUiModelRecord {
-        val timestampStr = dateUIMapper.mapRecordTimestamp(record.timestamp, forceDay)
+    fun map(record: Record, timeOnly: Boolean = false): ListUiModelRecord {
+        val timestampStr = dateUIMapper.mapRecordTimestamp(record.timestamp, timeOnly)
 
-        val nutrients = nutrientsUIMapper.map(record.template.nutrientBreakdown)
+        val nutrients = nutrientsUIMapper.map(record.template.nutrients)
 
         return ListUiModelRecord(
             recordId = record.recordId,

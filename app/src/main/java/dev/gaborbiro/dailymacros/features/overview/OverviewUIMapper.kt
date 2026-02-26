@@ -2,7 +2,7 @@ package dev.gaborbiro.dailymacros.features.overview
 
 import android.icu.text.DecimalFormat
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
-import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
+import dev.gaborbiro.dailymacros.features.common.SharedRecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.TravelDay
 import dev.gaborbiro.dailymacros.features.common.model.ChangeDirection
 import dev.gaborbiro.dailymacros.features.common.model.ChangeIndicator
@@ -20,13 +20,19 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 internal class OverviewUIMapper(
-    private val recordsUIMapper: RecordsUIMapper,
+    private val recordsUIMapper: SharedRecordsUIMapper,
     private val nutrientsUIMapper: NutrientsUIMapper,
 ) {
+
+    fun mapSearchResults(
+        records: List<Record>,
+    ) = records
+        .map(recordsUIMapper::map)
+        .reversed()
+
     fun map(
         records: List<Record>,
         targets: Targets,
-        showDay: Boolean,
     ): List<ListUiModelBase> {
         val weekFields = WeekFields.of(Locale.getDefault())
         val firstDayOfWeek = weekFields.firstDayOfWeek
@@ -39,7 +45,7 @@ internal class OverviewUIMapper(
 
         grouped.forEachIndexed { index, travelDay ->
             currentWeek += travelDay
-            result += travelDay.records.map { recordsUIMapper.map(record = it, forceDay = showDay) }
+            result += travelDay.records.map { recordsUIMapper.map(record = it, timeOnly = true) }
             result += nutrientsUIMapper.mapDailyNutrientProgressTable(travelDay, targets)
 
             val lookAhead = grouped.getOrNull(index + 1)
@@ -80,7 +86,7 @@ internal class OverviewUIMapper(
 
         fun computeDailyTotals(days: List<TravelDay>): List<DayTotal> {
             return days.mapNotNull { day ->
-                val dayNutrients = day.records.map { it.template.nutrientBreakdown }
+                val dayNutrients = day.records.map { it.template.nutrients }
                 if (dayNutrients.isEmpty()) return@mapNotNull null
 
                 val sum = dayNutrients.reduce { acc, nutrients ->
@@ -94,7 +100,6 @@ internal class OverviewUIMapper(
                         ofWhichAddedSugar = (acc.ofWhichAddedSugar ?: 0f) + (nutrients.ofWhichAddedSugar ?: 0f),
                         salt = (acc.salt ?: 0f) + (nutrients.salt ?: 0f),
                         fibre = (acc.fibre ?: 0f) + (nutrients.fibre ?: 0f),
-                        notes = null,
                     )
                 }
 
@@ -130,7 +135,6 @@ internal class OverviewUIMapper(
                 ofWhichAddedSugar = weightedAvg(dailyTotals) { it.ofWhichAddedSugar }?.toFloat(),
                 salt = weightedAvg(dailyTotals) { it.salt }?.toFloat(),
                 fibre = weightedAvg(dailyTotals) { it.fibre }?.toFloat(),
-                notes = null,
             )
         }
 

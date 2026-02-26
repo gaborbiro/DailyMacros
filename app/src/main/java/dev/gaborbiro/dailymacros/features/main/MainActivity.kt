@@ -31,7 +31,7 @@ import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
-import dev.gaborbiro.dailymacros.features.common.RecordsUIMapper
+import dev.gaborbiro.dailymacros.features.common.SharedRecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.viewModelFactory
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
@@ -111,15 +111,15 @@ class MainActivity : ComponentActivity() {
                         navController = navController,
                     )
                 }
-                val recordsUIMapper = RecordsUIMapper(nutrientsUIMapper, dateUIMapper)
+                val recordsUIMapper = SharedRecordsUIMapper(nutrientsUIMapper, dateUIMapper)
+                val overviewUIMapper = OverviewUIMapper(recordsUIMapper, nutrientsUIMapper)
                 val overviewViewModel = viewModelFactory {
                     OverviewViewModel(
                         navigator = overviewNavigator,
                         recordsRepository = recordsRepository,
                         repeatRecordUseCase = repeatRecordUseCase,
-                        recordsUIMapper = recordsUIMapper,
-                        overviewUIMapper = OverviewUIMapper(recordsUIMapper, nutrientsUIMapper),
                         settingsRepository = settingsRepository,
+                        uiMapper = overviewUIMapper,
                         appPrefs = appPrefs,
                     )
                 }

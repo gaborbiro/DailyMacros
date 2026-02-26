@@ -190,9 +190,22 @@ private fun ColumnScope.RecordDetailsDialogContent(
         }
     }
 
+    ImageStrip(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = PaddingDefault)
+            .padding(bottom = PaddingDefault),
+        showAddPhotoButtons = allowEdit,
+        images = images,
+        onImageTapped = onImageTapped,
+        onImageDeleteTapped = onImageDeleteTapped,
+        onAddImageViaCameraTapped = onAddImageViaCameraTapped,
+        onAddImageViaPickerTapped = onAddImageViaPickerTapped,
+        onInfoButtonTapped = onImagesInfoButtonTapped,
+    )
+
     TextField(
         modifier = Modifier
-            .padding(top = PaddingDefault)
             .padding(horizontal = PaddingDefault)
             .fillMaxWidth()
             .wrapContentHeight()
@@ -267,19 +280,6 @@ private fun ColumnScope.RecordDetailsDialogContent(
     Spacer(
         modifier = Modifier
             .height(PaddingDefault)
-    )
-
-    ImageStrip(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = PaddingDefault),
-        showAddPhotoButtons = allowEdit,
-        images = images,
-        onImageTapped = onImageTapped,
-        onImageDeleteTapped = onImageDeleteTapped,
-        onAddImageViaCameraTapped = onAddImageViaCameraTapped,
-        onAddImageViaPickerTapped = onAddImageViaPickerTapped,
-        onInfoButtonTapped = onImagesInfoButtonTapped,
     )
 
     TextField(
@@ -372,7 +372,7 @@ private fun NoteInputDialogContentPreviewView() {
             dialogHandle = DialogHandle.RecordDetailsDialog.View(
                 recordId = 1L,
                 title = TextFieldValue("Apple"),
-                titleHint = "Describe your meal (or pick a suggestion from below)",
+                titleHint = "Give your meal a title",
                 description = TextFieldValue("I ate an apple"),
                 images = listOf("1", "2"),
                 allowEdit = true,
@@ -412,7 +412,7 @@ private fun NoteInputDialogContentPreviewSuggestion() {
         RecordDetailsDialog(
             dialogHandle = DialogHandle.RecordDetailsDialog.Edit(
                 title = TextFieldValue(),
-                titleHint = "Describe your meal",
+                titleHint = "Give your meal a title",
                 description = TextFieldValue(),
                 images = listOf("1", "2"),
                 recognisedFood = RecognisedFood(
@@ -444,7 +444,7 @@ private fun NoteInputDialogContentPreview() {
         RecordDetailsDialog(
             dialogHandle = DialogHandle.RecordDetailsDialog.Edit(
                 title = TextFieldValue(),
-                titleHint = "Describe your meal (or pick a suggestion from below)",
+                titleHint = "What did you eat?",
                 description = TextFieldValue(),
                 images = listOf("1", "2"),
                 showProgressIndicator = true,
@@ -473,7 +473,7 @@ private fun NoteInputDialogContentPreviewError() {
         RecordDetailsDialog(
             dialogHandle = DialogHandle.RecordDetailsDialog.Edit(
                 title = TextFieldValue(),
-                titleHint = "Describe your meal",
+                titleHint = "Give your meal a title",
                 titleValidationError = "error",
                 description = TextFieldValue(),
                 images = listOf("1", "2"),

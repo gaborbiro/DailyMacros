@@ -28,7 +28,8 @@ internal class RecordsApiMapper {
             images = orderedImages,
             name = template.entity.name,
             description = template.entity.description,
-            nutrientBreakdown = template.macros?.let(::map) ?: NutrientBreakdown(),
+            nutrients = template.macros?.let(::map) ?: NutrientBreakdown(),
+            notes = template.macros?.notes ?: "",
             topContributors = template.topContributors?.let(::map) ?: TopContributors(),
             isPending = template.requestStatus?.status == RequestStatusEntity.Status.PENDING,
             quickPickOverride = map(template.quickPickOverride),
@@ -56,7 +57,6 @@ internal class RecordsApiMapper {
             ofWhichAddedSugar = template.ofWhichAddedSugar,
             salt = template.salt,
             fibre = template.fibre,
-            notes = template.notes,
         )
     }
 
@@ -110,6 +110,7 @@ internal class RecordsApiMapper {
     // Domain Macros -> MacrosEntity (templateId set by caller via .copy)
     fun map(
         nutrientBreakdown: NutrientBreakdown,
+        notes: String?,
         id: Long?,
         templateId: Long
     ): MacrosEntity {
@@ -124,7 +125,7 @@ internal class RecordsApiMapper {
             ofWhichSaturated = nutrientBreakdown.ofWhichSaturated,
             salt = nutrientBreakdown.salt,
             fibre = nutrientBreakdown.fibre,
-            notes = nutrientBreakdown.notes,
+            notes = notes,
         ).also {
             it.id = id
         }

@@ -163,7 +163,7 @@ class ModalActivity : AppCompatActivity() {
 
         val dateUIMapper = DateUIMapper()
         val nutrientsUIMapper = NutrientsUIMapper(dateUIMapper)
-        val modalMapper = ModalMapper(nutrientsUIMapper)
+        val modalUIMapper = ModalUIMapper(nutrientsUIMapper)
         val deleteRecordUseCase = DeleteRecordUseCase(recordsRepository)
         val createRecordFromTemplateUseCase = CreateRecordFromTemplateUseCase(recordsRepository)
         val createTemplateUseCase = CreateTemplateUseCase(recordsRepository)
@@ -183,9 +183,9 @@ class ModalActivity : AppCompatActivity() {
             saveImageUseCase = SaveImageUseCase(this, imageStore),
             getRecordImageUseCase = GetRecordImageUseCase(recordsRepository),
             getTemplateImageUseCase = GetTemplateImageUseCase(recordsRepository),
-            foodRecognitionUseCase = FoodRecognitionUseCase(this, imageStore, chatGPTRepository, modalMapper),
+            foodRecognitionUseCase = FoodRecognitionUseCase(this, imageStore, chatGPTRepository, modalUIMapper),
             deleteRecordUseCase = deleteRecordUseCase,
-            modalMapper = modalMapper,
+            uiMapper = modalUIMapper,
             analyticsLogger = analyticsLogger,
         )
     }

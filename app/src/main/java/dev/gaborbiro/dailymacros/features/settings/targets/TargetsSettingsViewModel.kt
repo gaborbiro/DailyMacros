@@ -38,7 +38,7 @@ internal class TargetsSettingsViewModel(
     }
 
     private fun load() {
-        val loaded = repo.get()
+        val loaded = repo.getTargets()
         val targets = mapper.map(targets = loaded)
         savedTargets = targets
         _uiState.value = targets
@@ -87,7 +87,7 @@ internal class TargetsSettingsViewModel(
             return
         }
 
-        repo.save(mapper.map(current))
+        repo.setTargets(mapper.map(current))
         savedTargets = current
 
         _uiState.value = current.copy(
@@ -121,7 +121,7 @@ internal class TargetsSettingsViewModel(
     }
 
     fun onTargetsResetTapped() {
-        val saved = mapper.map(repo.get())
+        val saved = mapper.map(repo.getTargets())
         savedTargets = saved
         _uiState.value = saved
     }

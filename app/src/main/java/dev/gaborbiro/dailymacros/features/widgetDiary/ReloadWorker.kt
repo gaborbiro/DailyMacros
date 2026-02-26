@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widgetDiary.workers
+package dev.gaborbiro.dailymacros.features.widgetDiary
 
 import android.content.Context
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -14,13 +14,11 @@ import dev.gaborbiro.dailymacros.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
-import dev.gaborbiro.dailymacros.features.widgetDiary.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repo.records.RecordsApiMapper
 import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repo.requestStatus.RequestStatusRepositoryImpl
-import dev.gaborbiro.dailymacros.util.gson
 import java.time.ZonedDateTime
 
 internal class ReloadWorker(
@@ -29,7 +27,7 @@ internal class ReloadWorker(
 ) : CoroutineWorker(appContext, workerParameters) {
 
     private val analyticsLogger = AnalyticsLogger()
-    private val database by lazy { AppDatabase.getInstance() }
+    private val database by lazy { AppDatabase.Companion.getInstance() }
     private val fileStore by lazy { FileStoreFactoryImpl(appContext).getStore("public", keepFiles = true) }
     private val recordsRepository by lazy {
         RecordsRepositoryImpl(
@@ -102,17 +100,18 @@ internal class ReloadWorker(
     ) {
         val recentRecordsPrefsKey =
             stringPreferencesKey(workerParameters.inputData.getString(PREFS_RECENT_RECORDS_KEY)!!)
-        val topTemplatesPrefsKey =
+        val quickPicksPrefsKey =
             stringPreferencesKey(workerParameters.inputData.getString(PREFS_QUICK_PICKS_KEY)!!)
 
         val glanceIds = GlanceAppWidgetManager(context)
             .getGlanceIds(DiaryWidgetScreen::class.java)
-        val recordsJson = gson.toJson(records)
-        val templatesJson = gson.toJson(quickPicks)
+
+        val recordsJson = PersistenceMapper.serializeRecords(records)
+        val templatesJson = PersistenceMapper.serializeTemplates(quickPicks)
         glanceIds.forEach { glanceId ->
             updateAppWidgetState(context, glanceId) { widgetPrefs ->
                 widgetPrefs[recentRecordsPrefsKey] = recordsJson
-                widgetPrefs[topTemplatesPrefsKey] = templatesJson
+                widgetPrefs[quickPicksPrefsKey] = templatesJson
             }
         }
         DiaryWidgetScreen().updateAll(context)

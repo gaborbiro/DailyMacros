@@ -159,8 +159,9 @@ internal class RecordsRepositoryImpl(
         } else {
             val macros: MacrosEntity = mapper.map(
                 nutrientBreakdown = nutrients.first,
+                notes = oldTemplate.macros?.notes,
                 id = oldTemplate.macros?.id,
-                templateId = templateId
+                templateId = templateId,
             )
             templatesDAO.insertOrUpdate(macros)
 
