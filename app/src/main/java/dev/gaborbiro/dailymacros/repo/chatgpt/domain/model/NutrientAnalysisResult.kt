@@ -1,10 +1,11 @@
 package dev.gaborbiro.dailymacros.repo.chatgpt.domain.model
 
-data class NutrientAnalysisResponse(
+data class NutrientAnalysisResult(
     val nutrients: NutrientsApiModel?,
-    val error: String?,
-    val description: String?,
+    val title: String?,
+    val notes: String?,
     val cachedTokens: Int?,
+    val error: String?,
 )
 
 data class NutrientsApiModel(

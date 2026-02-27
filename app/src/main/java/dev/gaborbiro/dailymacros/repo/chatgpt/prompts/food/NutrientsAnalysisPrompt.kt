@@ -3,7 +3,7 @@ package dev.gaborbiro.dailymacros.repo.chatgpt.prompts.food
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientAnalysisRequest
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientAnalysisResponse
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientAnalysisResult
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientApiModel
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientsApiModel
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTRequest
@@ -87,7 +87,8 @@ Output format:
       "confidence": "high|medium|low"
     }
   ],
-  "description": ""
+  "title": "",
+  "notes": ""
 }
 
 If estimation is not possible:
@@ -101,7 +102,7 @@ If estimation is not possible:
     )
 )
 
-internal fun ChatGPTResponse.toNutrientAnalysisResponse(): NutrientAnalysisResponse {
+internal fun ChatGPTResponse.toNutrientAnalysisResponse(): NutrientAnalysisResult {
     val gson = GsonBuilder().create()
 
     val resultJson: String? = this.output
@@ -125,7 +126,7 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(): NutrientAnalysisRespo
         @SerializedName("topContributorIngredients") val topContributorIngredients: String?,
     )
 
-    class Nutrients(
+    data class Nutrients(
         @SerializedName("calories") val calories: Number?,
         @SerializedName("protein") val protein: Nutrient?,
         @SerializedName("fat") val fat: Nutrient?,
@@ -137,9 +138,10 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(): NutrientAnalysisRespo
         @SerializedName("fibre") val fibre: Nutrient?,
     )
 
-    class Response(
+    data class Response(
         @SerializedName("nutrients") val nutrients: Nutrients?,
-        @SerializedName("description") val description: String?,
+        @SerializedName("title") val title: String?,
+        @SerializedName("notes") val notes: String?,
         @SerializedName("components") val components: List<Component>?,
         @SerializedName("error") val error: String?,
     )
@@ -176,15 +178,16 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(): NutrientAnalysisRespo
         }
         "${component.estimatedAmount} ${component.name} ${confidence?.let { "($it)" } ?: ""}"
     }
-    val descriptionItems = listOfNotNull(
-        response.description.takeIf { it.isNullOrBlank().not() },
-        componentStr
+    val notesItems = listOfNotNull(
+        response.notes.takeIf { it.isNullOrBlank().not() },
+        componentStr?.let { "Components:\n$it" }
     )
 
-    return NutrientAnalysisResponse(
+    return NutrientAnalysisResult(
         nutrients = nutrients,
-        error = response.error,
-        description = descriptionItems.joinToString("\nComponents:\n").takeIf { it.isNotBlank() },
+        title = response.title,
+        notes = notesItems.joinToString("\n").takeIf { it.isNotBlank() },
         cachedTokens = cachedTokens,
+        error = response.error,
     )
 }

@@ -1,11 +1,11 @@
 package dev.gaborbiro.dailymacros.repo.records.domain
 
 import dev.gaborbiro.dailymacros.data.db.model.entity.QuickPickOverrideEntity
-import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
-import dev.gaborbiro.dailymacros.repo.records.domain.model.TopContributors
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
+import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateToSave
+import dev.gaborbiro.dailymacros.repo.records.domain.model.TopContributors
 import kotlinx.coroutines.flow.Flow
 import java.time.ZonedDateTime
 
@@ -51,7 +51,8 @@ internal interface RecordsRepository {
         name: String? = null,
         description: String? = null,
         images: List<String>? = null,
-        nutrients: Pair<NutrientBreakdown, TopContributors>? = null,
+        nutrients: Pair<TemplateNutrientBreakdown, TopContributors>? = null,
+        notes: String? = null,
     )
 
     suspend fun addQuickPickOverride(templateId: Long, type: QuickPickOverrideEntity.OverrideType)

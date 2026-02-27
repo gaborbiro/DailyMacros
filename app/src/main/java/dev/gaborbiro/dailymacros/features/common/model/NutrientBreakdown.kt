@@ -1,7 +1,5 @@
 package dev.gaborbiro.dailymacros.features.common.model
 
-import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateNutrientBreakdown
-
 /**
  * null doesn't mean 0 for that nutrient. It means it's unknown.
  */
@@ -17,18 +15,6 @@ data class NutrientBreakdown(
     val fibre: Float? = null,
 ) {
     companion object {
-        fun fromTemplate(template: TemplateNutrientBreakdown): NutrientBreakdown {
-            return NutrientBreakdown(
-                calories = template.calories,
-                protein = template.protein,
-                fat = template.fat,
-                ofWhichSaturated = template.ofWhichSaturated,
-                carbs = template.carbs,
-                ofWhichSugar = template.ofWhichSugar,
-                ofWhichAddedSugar = template.ofWhichAddedSugar,
-                salt = template.salt,
-                fibre = template.fibre,
-            )
-        }
+
     }
 }

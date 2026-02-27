@@ -13,11 +13,11 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TopContributorsEntity
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
-import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
-import dev.gaborbiro.dailymacros.repo.records.domain.model.TopContributors
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
+import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateToSave
+import dev.gaborbiro.dailymacros.repo.records.domain.model.TopContributors
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
@@ -129,8 +129,9 @@ internal class RecordsRepositoryImpl(
         templateId: Long,
         name: String?, /* = null */
         description: String?, /* = null */
-        images: List<String>?,
-        nutrients: Pair<NutrientBreakdown, TopContributors>?,
+        images: List<String>?, /* = null */
+        nutrients: Pair<TemplateNutrientBreakdown, TopContributors>?, /* = null */
+        notes: String?, /* = null */
     ) {
         val oldTemplate = templatesDAO.getTemplateById(templateId)
 
@@ -157,20 +158,21 @@ internal class RecordsRepositoryImpl(
         if (nutrients == null) {
             templatesDAO.deleteMacrosForTemplate(templateId)
         } else {
-            val macros: MacrosEntity = mapper.map(
-                nutrientBreakdown = nutrients.first,
-                notes = oldTemplate.macros?.notes,
+            val (nutrients, topContributors) = nutrients
+            val macrosEntity: MacrosEntity = mapper.map(
+                nutrientBreakdown = nutrients,
+                notes = notes ?: oldTemplate.macros?.notes,
                 id = oldTemplate.macros?.id,
                 templateId = templateId,
             )
-            templatesDAO.insertOrUpdate(macros)
+            templatesDAO.insertOrUpdate(macrosEntity)
 
-            val topContributors: TopContributorsEntity = mapper.map(
-                topContributors = nutrients.second,
+            val topContributorsEntity: TopContributorsEntity = mapper.map(
+                topContributors = topContributors,
                 id = oldTemplate.macros?.id,
                 templateId = templateId
             )
-            templatesDAO.insertOrUpdate(topContributors)
+            templatesDAO.insertOrUpdate(topContributorsEntity)
         }
     }
 

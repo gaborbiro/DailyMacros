@@ -207,29 +207,7 @@ internal class NutrientsUIMapper(
         }
     }
 
-    fun mapMacrosPrintout(nutrientBreakdown: NutrientBreakdown?, isShort: Boolean = false): String? {
-        return listOfNotNull(
-            nutrientBreakdown?.calories?.let { formatCalories(it, isShort, withLabel = true) },
-            nutrientBreakdown?.protein?.let { formatProtein(it, isShort, withLabel = true) },
-            nutrientBreakdown?.fat?.let { formatFat(it, nutrientBreakdown.ofWhichSaturated, isShort, withLabel = true) },
-            if (!isShort) {
-                nutrientBreakdown?.ofWhichSaturated?.let { formatSaturatedFat(it, isShort = false, withLabel = true) }
-            } else null,
-            nutrientBreakdown?.carbs?.let { formatCarbs(it, nutrientBreakdown.ofWhichSugar, nutrientBreakdown.ofWhichAddedSugar, isShort, withLabel = true) },
-            if (!isShort) {
-                nutrientBreakdown?.ofWhichSugar?.let { formatSugar(it, isShort = false, withLabel = true) }
-            } else null,
-            if (!isShort) {
-                nutrientBreakdown?.ofWhichAddedSugar?.let { formatAddedSugar(it, isShort = false, withLabel = true) }
-            } else null,
-            nutrientBreakdown?.salt?.let { formatSalt(it, isShort, withLabel = true) },
-            nutrientBreakdown?.fibre?.let { formatFibre(it, isShort, withLabel = true) }
-        )
-            .joinToString()
-            .takeIf { it.isNotBlank() }
-    }
-
-    fun map(nutrientBreakdown: NutrientBreakdown): NutrientsUiModel {
+    fun map(nutrientBreakdown: TemplateNutrientBreakdown): NutrientsUiModel {
         return NutrientsUiModel(
             calories = formatCalories(nutrientBreakdown.calories, isShort = true, withLabel = true),
             protein = formatProtein(nutrientBreakdown.protein, isShort = true, withLabel = true),
@@ -253,7 +231,7 @@ internal class NutrientsUIMapper(
             withLabel = withLabel,
             decimalCount = 0,
         )
-        return formatMacroAmount(value, shortFormat, longFormat, isShort, allowDecimal = false)
+        return formatMacroAmount(value, shortFormat, longFormat, isShort)
     }
 
     fun formatProtein(
@@ -269,7 +247,7 @@ internal class NutrientsUIMapper(
             withLabel = withLabel,
             decimalCount = 0,
         )
-        return formatMacroAmount(value, shortFormat, longFormat, isShort, allowDecimal = false)
+        return formatMacroAmount(value, shortFormat, longFormat, isShort)
     }
 
     fun formatCarbs(
@@ -287,7 +265,7 @@ internal class NutrientsUIMapper(
             withLabel = withLabel,
             decimalCount = 0,
         )
-        return formatMacroAmount(value, shortFormat, longFormat, isShort, allowDecimal = false) {
+        return formatMacroAmount(value, shortFormat, longFormat, isShort) {
             sugar?.let {
                 val sugar = formatSugar(sugar, isShort, withLabel = false)
                 val addedSugar = addedSugar?.let {
@@ -311,7 +289,7 @@ internal class NutrientsUIMapper(
             withLabel = withLabel,
             decimalCount = 0,
         )
-        return formatMacroAmount(value, shortFormat, longFormat, isShort, allowDecimal = false)
+        return formatMacroAmount(value, shortFormat, longFormat, isShort)
     }
 
     fun formatAddedSugar(
@@ -327,7 +305,7 @@ internal class NutrientsUIMapper(
             withLabel = withLabel,
             decimalCount = 0,
         )
-        return formatMacroAmount(value, shortFormat, longFormat, isShort, allowDecimal = false)
+        return formatMacroAmount(value, shortFormat, longFormat, isShort)
     }
 
     fun formatFat(
@@ -344,7 +322,7 @@ internal class NutrientsUIMapper(
             withLabel = withLabel,
             decimalCount = 0,
         )
-        return formatMacroAmount(value, shortFormat, longFormat, isShort, allowDecimal = false) {
+        return formatMacroAmount(value, shortFormat, longFormat, isShort) {
             saturated?.let {
                 formatSaturatedFat(saturated, isShort, withLabel = false)
             }
@@ -364,7 +342,7 @@ internal class NutrientsUIMapper(
             withLabel = withLabel,
             decimalCount = 0,
         )
-        return formatMacroAmount(value, shortFormat, longFormat, isShort, allowDecimal = false)
+        return formatMacroAmount(value, shortFormat, longFormat, isShort)
     }
 
     fun formatSalt(
@@ -380,7 +358,7 @@ internal class NutrientsUIMapper(
             withLabel = withLabel,
             decimalCount = 2,
         )
-        return formatMacroAmount(value, shortFormat, longFormat, isShort, allowDecimal = true)
+        return formatMacroAmount(value, shortFormat, longFormat, isShort)
     }
 
     fun formatFibre(
@@ -396,7 +374,7 @@ internal class NutrientsUIMapper(
             withLabel = withLabel,
             decimalCount = 0,
         )
-        return formatMacroAmount(value, shortFormat, longFormat, isShort, allowDecimal = false)
+        return formatMacroAmount(value, shortFormat, longFormat, isShort)
     }
 
     fun targetProgress(target: Target, total: Float): Float? = target.max?.let { total / it }
@@ -416,21 +394,14 @@ internal class NutrientsUIMapper(
         shortFormat: SafeNumberFormatter,
         longFormat: SafeNumberFormatter,
         isShort: Boolean = false,
-        allowDecimal: Boolean,
         extraValue: (() -> String?)? = null,
     ): String? {
-        return value
-            .takeIf {
-                if (allowDecimal) true else it.toInt() > 0f
-            }
-            ?.let {
-                val formatted = if (isShort) {
-                    shortFormat.format(value)
-                } else {
-                    longFormat.format(value)
-                }
-                formatted + (extraValue?.invoke()?.let { "($it)" } ?: "")
-            }
+        val formatted = if (isShort) {
+            shortFormat.format(value)
+        } else {
+            longFormat.format(value)
+        }
+        return formatted + (extraValue?.invoke()?.let { "($it)" } ?: "")
     }
 
     private fun decimalFormat(decimals: Int, fixed: Boolean = false): String {

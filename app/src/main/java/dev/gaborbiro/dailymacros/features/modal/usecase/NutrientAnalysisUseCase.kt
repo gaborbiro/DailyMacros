@@ -3,17 +3,17 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 import android.content.Context
 import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
-import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
+import dev.gaborbiro.dailymacros.features.common.RecordsMapper
+import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
-import dev.gaborbiro.dailymacros.features.modal.ModalUIMapper
 import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
 import dev.gaborbiro.dailymacros.features.widgetDiary.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repo.chatgpt.toDomainModel
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
-import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repo.records.domain.model.TopContributors
 import dev.gaborbiro.dailymacros.repo.requestStatus.domain.RequestStatusRepository
 import dev.gaborbiro.dailymacros.util.showMacroResultsNotification
@@ -23,9 +23,8 @@ internal class NutrientAnalysisUseCase(
     private val imageStore: ImageStore,
     private val chatGPTRepository: ChatGPTRepository,
     private val recordsRepository: RecordsRepository,
-    private val modalUIMapper: ModalUIMapper,
-    private val nutrientsUIMapper: NutrientsUIMapper,
     private val requestStatusRepository: RequestStatusRepository,
+    private val recordsMapper: RecordsMapper,
 ) {
 
     suspend fun execute(
@@ -42,7 +41,7 @@ internal class NutrientAnalysisUseCase(
             DiaryWidgetScreen.reload()
             val nutrientsResponse = runCatching {
                 chatGPTRepository.analyseNutrients(
-                    request = modalUIMapper.mapToNutrientAnalysisRequest(
+                    request = recordsMapper.mapToNutrientAnalysisRequest(
                         record = record,
                         base64Images = base64Images,
                     )
@@ -63,15 +62,21 @@ internal class NutrientAnalysisUseCase(
                 }
 
             nutrientsResponse.getOrNull()?.let { nutrientsResponse ->
-                val (nutrients: Pair<NutrientBreakdown, TopContributors>?, error: String?) = modalUIMapper.mapNutrientAnalysisResponse(nutrientsResponse)
+                val (nutrients: Pair<NutrientBreakdown, TopContributors>?, error: String?) = recordsMapper.mapNutrientAnalysisResponse(nutrientsResponse)
+                val templateNutrients: Pair<TemplateNutrientBreakdown, TopContributors>? = nutrients?.let {
+                    recordsMapper.map(nutrients.first) to nutrients.second
+                }
                 recordsRepository.updateTemplate(
                     templateId = record.template.dbId,
-                    nutrients = nutrients,
+                    // the user can start analysis without having specified a name
+                    name = record.template.name.takeIf { it.isNotBlank() } ?: nutrientsResponse.title,
+                    nutrients = templateNutrients,
+                    notes = nutrientsResponse.notes,
                 )
                 val cachedTokensMessage = "Cached tokens: ${nutrientsResponse.cachedTokens}"
                 nutrients
                     ?.let {
-                        val macrosStr = nutrientsUIMapper.mapMacrosPrintout(nutrients.first)
+                        val macrosStr = recordsMapper.mapMacrosPrintout(nutrients.first)
                         appContext.showMacroResultsNotification(
                             id = 123000L + recordId,
                             recordId = recordId,

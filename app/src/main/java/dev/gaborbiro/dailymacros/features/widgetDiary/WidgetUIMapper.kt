@@ -2,7 +2,6 @@ package dev.gaborbiro.dailymacros.features.widgetDiary
 
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPick
-import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
 
 internal class WidgetUIMapper(
@@ -16,7 +15,7 @@ internal class WidgetUIMapper(
     }
 
     private fun map(template: Template): ListUiModelQuickPick {
-        val nutrients = nutrientsUIMapper.map(NutrientBreakdown.fromTemplate(template.nutrients))
+        val nutrients = nutrientsUIMapper.map(template.nutrients)
         return ListUiModelQuickPick(
             templateId = template.dbId,
             images = template.images,

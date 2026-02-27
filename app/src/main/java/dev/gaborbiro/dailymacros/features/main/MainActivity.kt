@@ -31,8 +31,9 @@ import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
-import dev.gaborbiro.dailymacros.features.common.SharedRecordsUIMapper
+import dev.gaborbiro.dailymacros.features.common.RecordsMapper
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
+import dev.gaborbiro.dailymacros.features.common.SharedRecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.viewModelFactory
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.overview.OverviewNavigatorImpl
@@ -47,9 +48,9 @@ import dev.gaborbiro.dailymacros.features.settings.export.SharePublicUriLauncher
 import dev.gaborbiro.dailymacros.features.settings.export.StreamWriter
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
 import dev.gaborbiro.dailymacros.features.settings.targets.TargetsSettingsViewModel
-import dev.gaborbiro.dailymacros.features.trends.TrendsUiMapper
 import dev.gaborbiro.dailymacros.features.trends.TrendsNavigatorImpl
 import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
+import dev.gaborbiro.dailymacros.features.trends.TrendsUiMapper
 import dev.gaborbiro.dailymacros.features.trends.TrendsViewModel
 import dev.gaborbiro.dailymacros.repo.records.RecordsApiMapper
 import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
@@ -112,7 +113,8 @@ class MainActivity : ComponentActivity() {
                     )
                 }
                 val recordsUIMapper = SharedRecordsUIMapper(nutrientsUIMapper, dateUIMapper)
-                val overviewUIMapper = OverviewUIMapper(recordsUIMapper, nutrientsUIMapper)
+                val recordsMapper = RecordsMapper(nutrientsUIMapper)
+                val overviewUIMapper = OverviewUIMapper(recordsUIMapper, nutrientsUIMapper, recordsMapper)
                 val overviewViewModel = viewModelFactory {
                     OverviewViewModel(
                         navigator = overviewNavigator,

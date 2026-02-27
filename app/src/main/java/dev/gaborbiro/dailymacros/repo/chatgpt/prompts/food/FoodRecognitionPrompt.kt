@@ -3,7 +3,7 @@ package dev.gaborbiro.dailymacros.repo.chatgpt.prompts.food
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodRecognitionRequest
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodRecognitionResponse
+import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodRecognitionResult
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTRequest
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTResponse
@@ -57,7 +57,7 @@ If food cannot be determined:
     )
 )
 
-internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionResponse {
+internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionResult {
     val gson = GsonBuilder().create()
 
     val resultJson: String? = this.output
@@ -102,13 +102,13 @@ internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionRespons
                 componentStr
             )
 
-            FoodRecognitionResponse(
+            FoodRecognitionResult(
                 title = foodDescription.title.takeIf { it.isNullOrBlank().not() },
                 description = descriptionItems.joinToString("\nComponents:\n").takeIf { it.isNotBlank() },
                 cachedTokens = cachedTokens,
             )
         }
-        ?: FoodRecognitionResponse(
+        ?: FoodRecognitionResult(
             title = null,
             description = null,
             cachedTokens = cachedTokens,

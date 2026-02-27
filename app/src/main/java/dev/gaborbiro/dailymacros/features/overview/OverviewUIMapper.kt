@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.features.overview
 
 import android.icu.text.DecimalFormat
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
+import dev.gaborbiro.dailymacros.features.common.RecordsMapper
 import dev.gaborbiro.dailymacros.features.common.SharedRecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.TravelDay
 import dev.gaborbiro.dailymacros.features.common.model.ChangeDirection
@@ -22,6 +23,7 @@ import kotlin.math.roundToInt
 internal class OverviewUIMapper(
     private val recordsUIMapper: SharedRecordsUIMapper,
     private val nutrientsUIMapper: NutrientsUIMapper,
+    private val recordsMapper: RecordsMapper,
 ) {
 
     fun mapSearchResults(
@@ -86,7 +88,7 @@ internal class OverviewUIMapper(
 
         fun computeDailyTotals(days: List<TravelDay>): List<DayTotal> {
             return days.mapNotNull { day ->
-                val dayNutrients = day.records.map { NutrientBreakdown.fromTemplate(it.template.nutrients) }
+                val dayNutrients = day.records.map { recordsMapper.map(it.template.nutrients) }
                 if (dayNutrients.isEmpty()) return@mapNotNull null
 
                 val sum = dayNutrients.reduce { acc, nutrients ->

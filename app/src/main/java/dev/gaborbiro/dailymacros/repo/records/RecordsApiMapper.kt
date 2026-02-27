@@ -8,7 +8,6 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatusEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TopContributorsEntity
-import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateNutrientBreakdown
@@ -110,7 +109,7 @@ internal class RecordsApiMapper {
 
     // Domain Macros -> MacrosEntity (templateId set by caller via .copy)
     fun map(
-        nutrientBreakdown: NutrientBreakdown,
+        nutrientBreakdown: TemplateNutrientBreakdown,
         notes: String?,
         id: Long?,
         templateId: Long

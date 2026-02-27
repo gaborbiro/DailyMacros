@@ -45,6 +45,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
+import dev.gaborbiro.dailymacros.features.common.RecordsMapper
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
@@ -163,6 +164,7 @@ class ModalActivity : AppCompatActivity() {
 
         val dateUIMapper = DateUIMapper()
         val nutrientsUIMapper = NutrientsUIMapper(dateUIMapper)
+        val recordsMapper = RecordsMapper(nutrientsUIMapper)
         val modalUIMapper = ModalUIMapper(nutrientsUIMapper)
         val deleteRecordUseCase = DeleteRecordUseCase(recordsRepository)
         val createRecordFromTemplateUseCase = CreateRecordFromTemplateUseCase(recordsRepository)
@@ -183,7 +185,7 @@ class ModalActivity : AppCompatActivity() {
             saveImageUseCase = SaveImageUseCase(this, imageStore),
             getRecordImageUseCase = GetRecordImageUseCase(recordsRepository),
             getTemplateImageUseCase = GetTemplateImageUseCase(recordsRepository),
-            foodRecognitionUseCase = FoodRecognitionUseCase(this, imageStore, chatGPTRepository, modalUIMapper),
+            foodRecognitionUseCase = FoodRecognitionUseCase(this, imageStore, chatGPTRepository, recordsMapper),
             deleteRecordUseCase = deleteRecordUseCase,
             uiMapper = modalUIMapper,
             analyticsLogger = analyticsLogger,
