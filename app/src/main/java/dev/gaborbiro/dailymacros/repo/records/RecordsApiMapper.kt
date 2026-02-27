@@ -8,11 +8,12 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatusEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TopContributorsEntity
-import dev.gaborbiro.dailymacros.repo.records.domain.model.NutrientBreakdown
-import dev.gaborbiro.dailymacros.repo.records.domain.model.TopContributors
+import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
+import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateToSave
+import dev.gaborbiro.dailymacros.repo.records.domain.model.TopContributors
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -28,7 +29,7 @@ internal class RecordsApiMapper {
             images = orderedImages,
             name = template.entity.name,
             description = template.entity.description,
-            nutrients = template.macros?.let(::map) ?: NutrientBreakdown(),
+            nutrients = template.macros?.let(::map) ?: TemplateNutrientBreakdown(),
             notes = template.macros?.notes ?: "",
             topContributors = template.topContributors?.let(::map) ?: TopContributors(),
             isPending = template.requestStatus?.status == RequestStatusEntity.Status.PENDING,
@@ -46,8 +47,8 @@ internal class RecordsApiMapper {
 
     // -------- Domain <— DB: Macros --------
 
-    private fun map(template: MacrosEntity): NutrientBreakdown {
-        return NutrientBreakdown(
+    private fun map(template: MacrosEntity): TemplateNutrientBreakdown {
+        return TemplateNutrientBreakdown(
             calories = template.calories,
             protein = template.protein,
             fat = template.fat,

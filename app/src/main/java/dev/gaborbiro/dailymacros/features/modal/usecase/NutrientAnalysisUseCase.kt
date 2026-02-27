@@ -12,7 +12,7 @@ import dev.gaborbiro.dailymacros.repo.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repo.chatgpt.toDomainModel
 import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
-import dev.gaborbiro.dailymacros.repo.records.domain.model.NutrientBreakdown
+import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.TopContributors
 import dev.gaborbiro.dailymacros.repo.requestStatus.domain.RequestStatusRepository

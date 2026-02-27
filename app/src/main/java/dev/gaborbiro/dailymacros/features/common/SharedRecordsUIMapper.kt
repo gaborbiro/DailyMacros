@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.common
 
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
+import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
 
@@ -11,7 +12,7 @@ internal class SharedRecordsUIMapper(
     fun map(record: Record, timeOnly: Boolean = false): ListUiModelRecord {
         val timestampStr = dateUIMapper.mapRecordTimestamp(record.timestamp, timeOnly)
 
-        val nutrients = nutrientsUIMapper.map(record.template.nutrients)
+        val nutrients = nutrientsUIMapper.map(NutrientBreakdown.fromTemplate(record.template.nutrients))
 
         return ListUiModelRecord(
             recordId = record.recordId,

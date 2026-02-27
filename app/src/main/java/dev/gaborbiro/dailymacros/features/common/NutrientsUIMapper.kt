@@ -4,8 +4,9 @@ import android.icu.text.DecimalFormat
 import android.util.Range
 import dev.gaborbiro.dailymacros.features.common.model.DailySummaryEntry
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelDailySummary
+import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.common.model.NutrientsUiModel
-import dev.gaborbiro.dailymacros.repo.records.domain.model.NutrientBreakdown
+import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repo.settings.model.Target
 import dev.gaborbiro.dailymacros.repo.settings.model.Targets
 import kotlin.math.absoluteValue
@@ -26,8 +27,6 @@ internal class NutrientsUIMapper(
             records.sumOf { it.template.nutrients.carbs?.toDouble() ?: 0.0 }.toFloat()
         val totalSugar =
             records.sumOf { it.template.nutrients.ofWhichSugar?.toDouble() ?: 0.0 }.toFloat()
-        val totalAddedSugar =
-            records.sumOf { it.template.nutrients.ofWhichAddedSugar?.toDouble() ?: 0.0 }.toFloat()
         val totalFat = records.sumOf { it.template.nutrients.fat?.toDouble() ?: 0.0 }.toFloat()
         val totalSaturated =
             records.sumOf { it.template.nutrients.ofWhichSaturated?.toDouble() ?: 0.0 }.toFloat()
@@ -41,7 +40,7 @@ internal class NutrientsUIMapper(
             ofWhichSaturated = totalSaturated,
             carbs = totalCarbs,
             ofWhichSugar = totalSugar,
-            ofWhichAddedSugar = totalAddedSugar,
+            // added sugar is not displayed in daily summary
             salt = totalSalt,
             fibre = totalFibre,
         )

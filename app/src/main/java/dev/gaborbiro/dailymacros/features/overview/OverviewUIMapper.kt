@@ -8,8 +8,8 @@ import dev.gaborbiro.dailymacros.features.common.model.ChangeDirection
 import dev.gaborbiro.dailymacros.features.common.model.ChangeIndicator
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelWeeklySummary
-import dev.gaborbiro.dailymacros.features.common.model.WeeklySummaryEntry
-import dev.gaborbiro.dailymacros.repo.records.domain.model.NutrientBreakdown
+import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
+import dev.gaborbiro.dailymacros.features.common.model.NutrientSummaryStatEntry
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.settings.model.Target
 import dev.gaborbiro.dailymacros.repo.settings.model.Targets
@@ -86,7 +86,7 @@ internal class OverviewUIMapper(
 
         fun computeDailyTotals(days: List<TravelDay>): List<DayTotal> {
             return days.mapNotNull { day ->
-                val dayNutrients = day.records.map { it.template.nutrients }
+                val dayNutrients = day.records.map { NutrientBreakdown.fromTemplate(it.template.nutrients) }
                 if (dayNutrients.isEmpty()) return@mapNotNull null
 
                 val sum = dayNutrients.reduce { acc, nutrients ->
@@ -166,25 +166,25 @@ internal class OverviewUIMapper(
 
         return ListUiModelWeeklySummary(
             listItemId = weekStart.toEpochDay(),
-            entries = buildWeeklySummaryMacroItems(avgNutrients, targets, previousWeekMacros),
+            entries = buildWeeklySummaryEntries(avgNutrients, targets, previousWeekMacros),
             averageAdherence100Percentage = (avgAdherence * 100).roundToInt(),
             adherenceChange = calculateChangeIndicator(avgAdherence, prevWeekAvgAdherence),
         )
     }
 
     /**
-     * Builds weekly summary nutrient breakdown items with change indicators.
+     * Builds nutrient change indicators.
      * Change is calculated relative to previous week (showing week-over-week change).
      */
-    private fun buildWeeklySummaryMacroItems(
+    private fun buildWeeklySummaryEntries(
         nutrientBreakdown: NutrientBreakdown,
         targets: Targets,
         previousWeekNutrientBreakdown: NutrientBreakdown? = null,
-    ): List<WeeklySummaryEntry> {
+    ): List<NutrientSummaryStatEntry> {
         return buildList {
             targets.calories.takeIf { it.enabled }?.let {
                 add(
-                    WeeklySummaryEntry(
+                    NutrientSummaryStatEntry(
                         title = "Calories",
                         progress0to1 = nutrientsUIMapper.targetProgress(it, nutrientBreakdown.calories?.toFloat() ?: 0f) ?: 0f,
                         progressLabel = nutrientsUIMapper.formatCalories(nutrientBreakdown.calories, isShort = false, withLabel = false) ?: "0",
@@ -199,7 +199,7 @@ internal class OverviewUIMapper(
             }
             targets.protein.takeIf { it.enabled }?.let {
                 add(
-                    WeeklySummaryEntry(
+                    NutrientSummaryStatEntry(
                         title = "Protein",
                         progress0to1 = nutrientsUIMapper.targetProgress(it, nutrientBreakdown.protein ?: 0f) ?: 0f,
                         progressLabel = nutrientsUIMapper.formatProtein(nutrientBreakdown.protein, isShort = false, withLabel = false) ?: "0g",
@@ -214,7 +214,7 @@ internal class OverviewUIMapper(
             }
             targets.salt.takeIf { it.enabled }?.let {
                 add(
-                    WeeklySummaryEntry(
+                    NutrientSummaryStatEntry(
                         title = "Salt",
                         progress0to1 = nutrientsUIMapper.targetProgress(it, nutrientBreakdown.salt ?: 0f) ?: 0f,
                         progressLabel = nutrientsUIMapper.formatSalt(nutrientBreakdown.salt, isShort = false, withLabel = false) ?: "0.0g",
@@ -229,7 +229,7 @@ internal class OverviewUIMapper(
             }
             targets.fibre.takeIf { it.enabled }?.let {
                 add(
-                    WeeklySummaryEntry(
+                    NutrientSummaryStatEntry(
                         title = "Fibre",
                         progress0to1 = nutrientsUIMapper.targetProgress(it, nutrientBreakdown.fibre ?: 0f) ?: 0f,
                         progressLabel = nutrientsUIMapper.formatFibre(nutrientBreakdown.fibre, isShort = false, withLabel = false) ?: "0g",
@@ -244,7 +244,7 @@ internal class OverviewUIMapper(
             }
             targets.carbs.takeIf { it.enabled }?.let {
                 add(
-                    WeeklySummaryEntry(
+                    NutrientSummaryStatEntry(
                         title = "Carbs",
                         progress0to1 = nutrientsUIMapper.targetProgress(it, nutrientBreakdown.carbs ?: 0f) ?: 0f,
                         progressLabel = nutrientsUIMapper.formatCarbs(nutrientBreakdown.carbs, sugar = null, addedSugar = null, isShort = false, withLabel = false)
@@ -260,7 +260,7 @@ internal class OverviewUIMapper(
             }
             targets.ofWhichSugar.takeIf { it.enabled }?.let {
                 add(
-                    WeeklySummaryEntry(
+                    NutrientSummaryStatEntry(
                         title = "sugar",
                         progress0to1 = nutrientsUIMapper.targetProgress(it, nutrientBreakdown.ofWhichSugar ?: 0f) ?: 0f,
                         progressLabel = nutrientsUIMapper.formatSugar(nutrientBreakdown.ofWhichSugar, isShort = false, withLabel = false) ?: "0g",
@@ -275,7 +275,7 @@ internal class OverviewUIMapper(
             }
             targets.fat.takeIf { it.enabled }?.let {
                 add(
-                    WeeklySummaryEntry(
+                    NutrientSummaryStatEntry(
                         title = "Fat",
                         progress0to1 = nutrientsUIMapper.targetProgress(it, nutrientBreakdown.fat ?: 0f) ?: 0f,
                         progressLabel = nutrientsUIMapper.formatFat(nutrientBreakdown.fat, saturated = null, isShort = false, withLabel = false)
@@ -291,7 +291,7 @@ internal class OverviewUIMapper(
             }
             targets.ofWhichSaturated.takeIf { it.enabled }?.let {
                 add(
-                    WeeklySummaryEntry(
+                    NutrientSummaryStatEntry(
                         title = "saturated",
                         progress0to1 = nutrientsUIMapper.targetProgress(it, nutrientBreakdown.ofWhichSaturated ?: 0f) ?: 0f,
                         progressLabel = nutrientsUIMapper.formatSaturatedFat(nutrientBreakdown.ofWhichSaturated, isShort = false, withLabel = false) ?: "0g",

@@ -8,7 +8,7 @@ import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodRecognitionRespon
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientAnalysisResponse
 import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientsApiModel
-import dev.gaborbiro.dailymacros.repo.records.domain.model.NutrientBreakdown
+import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.TopContributors
 

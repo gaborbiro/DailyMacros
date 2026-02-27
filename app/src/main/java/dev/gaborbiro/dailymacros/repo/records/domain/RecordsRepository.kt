@@ -1,7 +1,7 @@
 package dev.gaborbiro.dailymacros.repo.records.domain
 
 import dev.gaborbiro.dailymacros.data.db.model.entity.QuickPickOverrideEntity
-import dev.gaborbiro.dailymacros.repo.records.domain.model.NutrientBreakdown
+import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.repo.records.domain.model.TopContributors
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repo.records.domain.model.Template

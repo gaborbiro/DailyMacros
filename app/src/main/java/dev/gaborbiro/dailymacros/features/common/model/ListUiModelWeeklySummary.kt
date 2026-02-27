@@ -6,16 +6,15 @@ import dev.gaborbiro.dailymacros.design.ExtraColorScheme
 
 internal data class ListUiModelWeeklySummary(
     override val listItemId: Long,
-    val entries: List<WeeklySummaryEntry>,
+    val entries: List<NutrientSummaryStatEntry>,
     val averageAdherence100Percentage: Int,
     val adherenceChange: ChangeIndicator?,
 ) : ListUiModelBase(listItemId = listItemId, contentType = "weekly summary")
 
 /**
- * Model for weekly summary macro items with change indicators.
- * This is separate from MacroProgressItem to allow different display logic.
+ * Represents a single nutrient statistic within the weekly summary.
  */
-internal data class WeeklySummaryEntry(
+internal data class NutrientSummaryStatEntry(
     val title: String,
     val progress0to1: Float,
     val progressLabel: String,

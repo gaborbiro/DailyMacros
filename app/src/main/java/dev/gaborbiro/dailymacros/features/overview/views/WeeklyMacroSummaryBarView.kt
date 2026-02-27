@@ -25,13 +25,13 @@ import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.common.model.ChangeDirection
 import dev.gaborbiro.dailymacros.features.common.model.ChangeIndicator
-import dev.gaborbiro.dailymacros.features.common.model.WeeklySummaryEntry
+import dev.gaborbiro.dailymacros.features.common.model.NutrientSummaryStatEntry
 import kotlinx.coroutines.delay
 
 @Composable
 internal fun WeeklyMacroSummaryBarView(
     modifier: Modifier,
-    model: WeeklySummaryEntry,
+    model: NutrientSummaryStatEntry,
     rowIndex: Int,
     totalRowCount: Int,
 ) {
@@ -110,7 +110,7 @@ internal fun WeeklyMacroSummaryBarView(
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun WeeklyMacroSummaryBarViewPreview() {
-    val macro1 = WeeklySummaryEntry(
+    val macro1 = NutrientSummaryStatEntry(
         title = "Calories",
         progress0to1 = .15f,
         progressLabel = "1005kcal",
@@ -121,7 +121,7 @@ private fun WeeklyMacroSummaryBarViewPreview() {
         ),
         color = { it.caloriesColor },
     )
-    val macro2 = WeeklySummaryEntry(
+    val macro2 = NutrientSummaryStatEntry(
         title = "Salt",
         progress0to1 = 1.5f,
         progressLabel = "110g",

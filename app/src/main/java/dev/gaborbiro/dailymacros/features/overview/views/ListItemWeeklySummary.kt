@@ -24,7 +24,7 @@ import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.common.model.ChangeDirection
 import dev.gaborbiro.dailymacros.features.common.model.ChangeIndicator
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelWeeklySummary
-import dev.gaborbiro.dailymacros.features.common.model.WeeklySummaryEntry
+import dev.gaborbiro.dailymacros.features.common.model.NutrientSummaryStatEntry
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -148,7 +148,7 @@ private fun ListItemWeeklySummaryPreview() {
             model = ListUiModelWeeklySummary(
                 listItemId = 1L,
                 entries = listOf(
-                    WeeklySummaryEntry(
+                    NutrientSummaryStatEntry(
                         title = "Calories",
                         progress0to1 = .15f,
                         progressLabel = "1005kcal",
@@ -156,7 +156,7 @@ private fun ListItemWeeklySummaryPreview() {
                         changeIndicator = ChangeIndicator(ChangeDirection.UP, "+5.2%"),
                         color = { it.caloriesColor },
                     ),
-                    WeeklySummaryEntry(
+                    NutrientSummaryStatEntry(
                         title = "Protein",
                         progress0to1 = .0809f,
                         progressLabel = "110g",
@@ -164,7 +164,7 @@ private fun ListItemWeeklySummaryPreview() {
                         changeIndicator = ChangeIndicator(ChangeDirection.DOWN, "-3.1%"),
                         color = { it.proteinColor },
                     ),
-                    WeeklySummaryEntry(
+                    NutrientSummaryStatEntry(
                         title = "Fat",
                         progress0to1 = .2121f,
                         progressLabel = "30g",
@@ -172,7 +172,7 @@ private fun ListItemWeeklySummaryPreview() {
                         changeIndicator = ChangeIndicator(ChangeDirection.NEUTRAL, "0%"),
                         color = { it.fatColor },
                     ),
-                    WeeklySummaryEntry(
+                    NutrientSummaryStatEntry(
                         title = "Carbs",
                         progress0to1 = .4818f,
                         progressLabel = "105g",
@@ -180,7 +180,7 @@ private fun ListItemWeeklySummaryPreview() {
                         changeIndicator = ChangeIndicator(ChangeDirection.UP, "+2.5%"),
                         color = { it.carbsColor },
                     ),
-                    WeeklySummaryEntry(
+                    NutrientSummaryStatEntry(
                         title = "Sugar",
                         progress0to1 = .2955f,
                         progressLabel = "35g",
@@ -188,7 +188,7 @@ private fun ListItemWeeklySummaryPreview() {
                         changeIndicator = ChangeIndicator(ChangeDirection.DOWN, "-1.8%"),
                         color = { it.carbsColor },
                     ),
-                    WeeklySummaryEntry(
+                    NutrientSummaryStatEntry(
                         title = "Salt",
                         progress0to1 = 1.2f,
                         progressLabel = "6g",
@@ -196,7 +196,7 @@ private fun ListItemWeeklySummaryPreview() {
                         changeIndicator = ChangeIndicator(ChangeDirection.UP, "+8.3%"),
                         color = { it.saltColor },
                     ),
-                    WeeklySummaryEntry(
+                    NutrientSummaryStatEntry(
                         title = "Fibre",
                         progress0to1 = .0f,
                         progressLabel = "0g",
