@@ -8,7 +8,8 @@ import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
-import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
+import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiEvents
+import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiState
 import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
@@ -19,8 +20,11 @@ import dev.gaborbiro.dailymacros.util.combine
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -30,17 +34,19 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.seconds
 
 internal class OverviewViewModel(
-    private val navigator: OverviewNavigator,
     private val recordsRepository: RecordsRepository,
     private val repeatRecordUseCase: RepeatRecordUseCase,
     private val settingsRepository: SettingsRepository,
-    private val uiMapper: OverviewUIMapper,
+    private val uiMapper: OverviewUiMapper,
     private val appPrefs: AppPrefs,
 ) : ViewModel() {
 
-    private val _viewState: MutableStateFlow<OverviewViewState> =
-        MutableStateFlow(OverviewViewState())
-    val viewState: StateFlow<OverviewViewState> = _viewState.asStateFlow()
+    private val _viewState: MutableStateFlow<OverviewUiState> =
+        MutableStateFlow(OverviewUiState())
+    val viewState: StateFlow<OverviewUiState> = _viewState.asStateFlow()
+
+    private val _uiEvents = MutableSharedFlow<OverviewUiEvents>()
+    val uiEvents: SharedFlow<OverviewUiEvents> = _uiEvents.asSharedFlow()
 
     private companion object {
         val PAGE_SIZE = 14.days
@@ -156,7 +162,9 @@ internal class OverviewViewModel(
     }
 
     fun onDetailsMenuItemTapped(recordId: Long) {
-        navigator.editRecord(recordId = recordId)
+        viewModelScope.launch {
+            _uiEvents.emit(OverviewUiEvents.EditRecord(recordId))
+        }
     }
 
     fun onAddToQuickPicksMenuItemTapped(recordId: Long) {
@@ -185,11 +193,15 @@ internal class OverviewViewModel(
     }
 
     fun onRecordImageTapped(recordId: Long) {
-        navigator.viewImage(recordId)
+        viewModelScope.launch {
+            _uiEvents.emit(OverviewUiEvents.ViewImage(recordId))
+        }
     }
 
     fun onRecordBodyTapped(recordId: Long) {
-        navigator.editRecord(recordId)
+        viewModelScope.launch {
+            _uiEvents.emit(OverviewUiEvents.EditRecord(recordId))
+        }
     }
 
     fun onUndoDeleteTapped() {
@@ -214,7 +226,9 @@ internal class OverviewViewModel(
     }
 
     fun onSettingsButtonTapped() {
-        navigator.openSettingsScreen()
+        viewModelScope.launch {
+            _uiEvents.emit(OverviewUiEvents.OpenSettingsScreen)
+        }
         _viewState.update {
             it.copy(
                 showCoachMark = false
@@ -223,7 +237,9 @@ internal class OverviewViewModel(
     }
 
     fun onTrendsButtonTapped() {
-        navigator.openTrendsScreen()
+        viewModelScope.launch {
+            _uiEvents.emit(OverviewUiEvents.OpenTrendsScreen)
+        }
     }
 
     private fun deleteTemplate(templateId: Long) {

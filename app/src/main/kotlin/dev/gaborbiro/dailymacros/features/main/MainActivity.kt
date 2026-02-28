@@ -14,6 +14,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.ActivityCompat
@@ -39,10 +40,11 @@ import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.SharedRecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.viewModelFactory
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
-import dev.gaborbiro.dailymacros.features.overview.OverviewNavigatorImpl
+import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiEvents
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
-import dev.gaborbiro.dailymacros.features.overview.OverviewUIMapper
+import dev.gaborbiro.dailymacros.features.overview.OverviewUiMapper
 import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
+import dev.gaborbiro.dailymacros.features.modal.ModalActivity
 import dev.gaborbiro.dailymacros.features.settings.SettingsUiEvents
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
@@ -110,18 +112,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme(statusBarOverlay = { StatusBarOverlay() }) {
                 val navController: NavHostController = rememberNavController()
-                val overviewNavigator = remember {
-                    OverviewNavigatorImpl(
-                        appContext = this@MainActivity,
-                        navController = navController,
-                    )
-                }
                 val recordsUIMapper = SharedRecordsUIMapper(nutrientsUIMapper, dateUIMapper)
                 val recordsMapper = RecordsMapper(nutrientsUIMapper)
-                val overviewUIMapper = OverviewUIMapper(recordsUIMapper, nutrientsUIMapper, recordsMapper)
+                val overviewUIMapper = OverviewUiMapper(recordsUIMapper, nutrientsUIMapper, recordsMapper)
                 val overviewViewModel = viewModelFactory {
                     OverviewViewModel(
-                        navigator = overviewNavigator,
                         recordsRepository = recordsRepository,
                         repeatRecordUseCase = repeatRecordUseCase,
                         settingsRepository = settingsRepository,
@@ -163,6 +158,17 @@ class MainActivity : ComponentActivity() {
                     composable(
                         route = OVERVIEW_ROUTE,
                     ) {
+                        val context = LocalContext.current
+                        LaunchedEffect(overviewViewModel) {
+                            overviewViewModel.uiEvents.collect { event ->
+                                when (event) {
+                                    is OverviewUiEvents.EditRecord -> ModalActivity.launchViewRecordDetails(context, event.recordId)
+                                    is OverviewUiEvents.ViewImage -> ModalActivity.launchToShowRecordImage(context, event.recordId)
+                                    OverviewUiEvents.OpenSettingsScreen -> navController.navigate(SETTINGS_ROUTE)
+                                    OverviewUiEvents.OpenTrendsScreen -> navController.navigate(TRENDS_ROUTE)
+                                }
+                            }
+                        }
                         CompositionLocalProvider(LocalImageStore provides imageStore) {
                             OverviewScreen(overviewViewModel)
                         }

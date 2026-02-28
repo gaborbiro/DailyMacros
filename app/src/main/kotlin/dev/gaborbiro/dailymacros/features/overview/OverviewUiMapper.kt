@@ -20,7 +20,7 @@ import java.time.temporal.WeekFields
 import java.util.Locale
 import kotlin.math.roundToInt
 
-internal class OverviewUIMapper(
+internal class OverviewUiMapper(
     private val recordsUIMapper: SharedRecordsUIMapper,
     private val nutrientsUIMapper: NutrientsUIMapper,
     private val recordsMapper: RecordsMapper,

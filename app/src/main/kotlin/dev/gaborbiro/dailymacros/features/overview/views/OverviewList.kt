@@ -56,12 +56,12 @@ import dev.gaborbiro.dailymacros.features.common.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.common.views.CoachMarkOverlay
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.common.views.coachMarkOverlayAnchor
-import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
+import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiState
 import kotlinx.coroutines.launch
 
 @Composable
 internal fun OverviewList(
-    viewState: OverviewViewState,
+    viewState: OverviewUiState,
     paddingValues: PaddingValues,
     expandedId: Long? = null,
     onRepeatMenuItemTapped: (recordId: Long) -> Unit,
@@ -340,7 +340,7 @@ private fun OverviewListPreview() {
         OverviewList(
             paddingValues = PaddingValues(),
             expandedId = 3L,
-            viewState = OverviewViewState(
+            viewState = OverviewUiState(
                 showSettingsButton = true,
                 showTrendsButton = true,
                 items = listOf(

@@ -4,7 +4,7 @@ import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 
 
-data class OverviewViewState(
+data class OverviewUiState(
     val items: List<ListUiModelBase> = emptyList(),
     val isLoadingMore: Boolean = false,
     val hasMoreData: Boolean = true,

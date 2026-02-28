@@ -33,12 +33,12 @@ import dev.gaborbiro.dailymacros.features.common.model.DailySummaryEntry
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelDailySummary
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.NutrientsUiModel
-import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
+import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiState
 import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetReceiver
 
 @Composable
 internal fun OverviewView(
-    viewState: OverviewViewState,
+    viewState: OverviewUiState,
     onRepeatMenuItemTapped: (recordId: Long) -> Unit,
     onAnalyseMacrosMenuItemTapped: (recordId: Long) -> Unit,
     onDetailsMenuItemTapped: (recordId: Long) -> Unit,
@@ -149,7 +149,7 @@ fun AddWidgetButton() {
 private fun OverviewListPreview() {
     PreviewContext {
         OverviewView(
-            viewState = OverviewViewState(
+            viewState = OverviewUiState(
                 items = listOf(
                     ListUiModelDailySummary(
                         listItemId = 1L,
@@ -274,7 +274,7 @@ private fun OverviewListPreview() {
 private fun OverviewListPreviewEmpty() {
     PreviewContext {
         OverviewView(
-            viewState = OverviewViewState(
+            viewState = OverviewUiState(
                 items = emptyList(),
                 showAddWidgetButton = true,
             ),
