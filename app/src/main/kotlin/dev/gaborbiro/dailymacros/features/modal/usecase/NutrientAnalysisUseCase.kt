@@ -15,7 +15,7 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
-import dev.gaborbiro.dailymacros.repositories.requestStatus.domain.RequestStatusRepository
+import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusRepository
 import dev.gaborbiro.dailymacros.util.showMacroResultsNotification
 
 internal class NutrientAnalysisUseCase(

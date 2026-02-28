@@ -4,16 +4,16 @@ import dev.gaborbiro.dailymacros.features.settings.targets.model.FieldErrors
 import dev.gaborbiro.dailymacros.features.settings.targets.model.MacroType
 import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetUIModel
 import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsUiState
-import dev.gaborbiro.dailymacros.repositories.settings.model.THEORETICAL_CALORIES_MAX
-import dev.gaborbiro.dailymacros.repositories.settings.model.THEORETICAL_CARBS_MAX
-import dev.gaborbiro.dailymacros.repositories.settings.model.THEORETICAL_FAT_MAX
-import dev.gaborbiro.dailymacros.repositories.settings.model.THEORETICAL_FIBRE_MAX
-import dev.gaborbiro.dailymacros.repositories.settings.model.THEORETICAL_PROTEIN_MAX
-import dev.gaborbiro.dailymacros.repositories.settings.model.THEORETICAL_SALT_MAX
-import dev.gaborbiro.dailymacros.repositories.settings.model.THEORETICAL_SATURATED_MAX
-import dev.gaborbiro.dailymacros.repositories.settings.model.THEORETICAL_SUGAR_MAX
-import dev.gaborbiro.dailymacros.repositories.settings.model.Target
-import dev.gaborbiro.dailymacros.repositories.settings.model.Targets
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.THEORETICAL_CALORIES_MAX
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.THEORETICAL_CARBS_MAX
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.THEORETICAL_FAT_MAX
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.THEORETICAL_FIBRE_MAX
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.THEORETICAL_PROTEIN_MAX
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.THEORETICAL_SALT_MAX
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.THEORETICAL_SATURATED_MAX
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.THEORETICAL_SUGAR_MAX
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 
 internal class TargetsUIMapper {
 

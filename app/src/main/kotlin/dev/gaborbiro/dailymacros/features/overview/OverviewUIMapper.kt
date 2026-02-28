@@ -12,8 +12,8 @@ import dev.gaborbiro.dailymacros.features.common.model.ListUiModelWeeklySummary
 import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.common.model.NutrientSummaryStatEntry
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
-import dev.gaborbiro.dailymacros.repositories.settings.model.Target
-import dev.gaborbiro.dailymacros.repositories.settings.model.Targets
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import java.time.Duration
 import java.time.LocalDate
 import java.time.temporal.WeekFields

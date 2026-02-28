@@ -34,7 +34,7 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.OutputConten
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.OutputContentDeserializer
 import dev.gaborbiro.dailymacros.repositories.records.RecordsApiMapper
 import dev.gaborbiro.dailymacros.repositories.records.RecordsRepositoryImpl
-import dev.gaborbiro.dailymacros.repositories.requestStatus.RequestStatusRepositoryImpl
+import dev.gaborbiro.dailymacros.repositories.records.RequestStatusRepositoryImpl
 import dev.gaborbiro.dailymacros.util.CHANNEL_ID_FOREGROUND
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.time.delay

@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
-import dev.gaborbiro.dailymacros.data.db.model.entity.QuickPickOverrideEntity
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
@@ -33,6 +32,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCas
 import dev.gaborbiro.dailymacros.features.widgetDiary.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.DomainError
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import ellipsize
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -320,7 +320,7 @@ internal class ModalViewModel(
     fun onRemoveFromQuickPicksTapped(templateId: Long) {
         closeAll()
         runSafely {
-            recordsRepository.addQuickPickOverride(templateId, QuickPickOverrideEntity.OverrideType.EXCLUDE)
+            recordsRepository.addQuickPickOverride(templateId, Template.QuickPickOverride.EXCLUDE)
             DiaryWidgetScreen.reload()
         }
     }
@@ -330,7 +330,7 @@ internal class ModalViewModel(
         closeAll()
         runSafely {
             val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return@runSafely
-            recordsRepository.addQuickPickOverride(templateId, QuickPickOverrideEntity.OverrideType.INCLUDE)
+            recordsRepository.addQuickPickOverride(templateId, Template.QuickPickOverride.INCLUDE)
             DiaryWidgetScreen.reload()
         }
     }

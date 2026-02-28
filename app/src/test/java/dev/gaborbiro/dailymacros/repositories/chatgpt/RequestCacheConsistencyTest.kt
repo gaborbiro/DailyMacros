@@ -3,7 +3,7 @@ package dev.gaborbiro.dailymacros.repositories.chatgpt
 import dev.gaborbiro.dailymacros.features.modal.sha256
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
-import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.food.toApiModel
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toApiModel
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

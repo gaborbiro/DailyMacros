@@ -54,9 +54,9 @@ import dev.gaborbiro.dailymacros.features.trends.TrendsUiMapper
 import dev.gaborbiro.dailymacros.features.trends.TrendsViewModel
 import dev.gaborbiro.dailymacros.repositories.records.RecordsApiMapper
 import dev.gaborbiro.dailymacros.repositories.records.RecordsRepositoryImpl
-import dev.gaborbiro.dailymacros.repositories.requestStatus.RequestStatusRepositoryImpl
+import dev.gaborbiro.dailymacros.repositories.records.RequestStatusRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.settings.SettingsMapper
-import dev.gaborbiro.dailymacros.repositories.settings.SettingsRepository
+import dev.gaborbiro.dailymacros.repositories.settings.SettingsRepositoryImpl
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -82,7 +82,7 @@ class MainActivity : ComponentActivity() {
         val dateUIMapper = DateUIMapper()
         val nutrientsUIMapper = NutrientsUIMapper(dateUIMapper)
 
-        val settingsRepository = SettingsRepository(this@MainActivity, SettingsMapper())
+        val settingsRepository = SettingsRepositoryImpl(this@MainActivity, SettingsMapper())
         val appPrefs = AppPrefs(this@MainActivity)
         analyticsLogger.setUserId(appPrefs.userUUID)
         lifecycleScope.launch {

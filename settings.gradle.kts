@@ -22,5 +22,10 @@ dependencyResolutionManagement {
 rootProject.name = "DailyMacros"
 include(":app")
 include(":core:analytics")
-include(":repositories")
+include(":repositories:chatgpt:domain")
+include(":repositories:chatgpt")
+include(":repositories:records:domain")
+include(":repositories:records")
+include(":repositories:settings:domain")
+include(":repositories:settings")
 include(":data")

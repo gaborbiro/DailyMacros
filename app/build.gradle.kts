@@ -73,7 +73,9 @@ android {
 
 dependencies {
     implementation(project(":core:analytics"))
-    implementation(project(":repositories"))
+    implementation(project(":repositories:chatgpt"))
+    implementation(project(":repositories:records"))
+    implementation(project(":repositories:settings"))
     implementation(project(":data"))
 
     implementation(libs.androidx.core.ktx)

@@ -8,7 +8,7 @@ import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetUIModel
 import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsSettingsUiEvents
 import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsUiState
 import dev.gaborbiro.dailymacros.features.settings.targets.model.ValidationError
-import dev.gaborbiro.dailymacros.repositories.settings.SettingsRepository
+import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

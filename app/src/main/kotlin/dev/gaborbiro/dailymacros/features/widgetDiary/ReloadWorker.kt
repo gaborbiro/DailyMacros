@@ -18,7 +18,7 @@ import dev.gaborbiro.dailymacros.repositories.records.RecordsApiMapper
 import dev.gaborbiro.dailymacros.repositories.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
-import dev.gaborbiro.dailymacros.repositories.requestStatus.RequestStatusRepositoryImpl
+import dev.gaborbiro.dailymacros.repositories.records.RequestStatusRepositoryImpl
 import java.time.ZonedDateTime
 
 internal class ReloadWorker(

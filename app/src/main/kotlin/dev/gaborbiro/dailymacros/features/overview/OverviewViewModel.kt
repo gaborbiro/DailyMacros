@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.App
-import dev.gaborbiro.dailymacros.data.db.model.entity.QuickPickOverrideEntity
 import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
@@ -13,8 +12,9 @@ import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
 import dev.gaborbiro.dailymacros.features.widgetDiary.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
-import dev.gaborbiro.dailymacros.repositories.settings.SettingsRepository
-import dev.gaborbiro.dailymacros.repositories.settings.model.Targets
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
+import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import dev.gaborbiro.dailymacros.util.combine
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
@@ -162,7 +162,7 @@ internal class OverviewViewModel(
     fun onAddToQuickPicksMenuItemTapped(recordId: Long) {
         viewModelScope.launch {
             val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return@launch
-            recordsRepository.addQuickPickOverride(templateId, QuickPickOverrideEntity.OverrideType.INCLUDE)
+            recordsRepository.addQuickPickOverride(templateId, Template.QuickPickOverride.INCLUDE)
             DiaryWidgetScreen.reload()
         }
     }

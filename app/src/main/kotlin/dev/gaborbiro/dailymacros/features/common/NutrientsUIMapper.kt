@@ -7,8 +7,8 @@ import dev.gaborbiro.dailymacros.features.common.model.ListUiModelDailySummary
 import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.common.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
-import dev.gaborbiro.dailymacros.repositories.settings.model.Target
-import dev.gaborbiro.dailymacros.repositories.settings.model.Targets
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import kotlin.math.absoluteValue
 
 internal class NutrientsUIMapper(

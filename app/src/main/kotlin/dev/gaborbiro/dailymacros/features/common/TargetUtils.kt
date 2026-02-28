@@ -1,10 +1,10 @@
 package dev.gaborbiro.dailymacros.features.common
 
-import dev.gaborbiro.dailymacros.repositories.settings.model.Targets
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import kotlin.math.roundToInt
 
 fun Targets.scaleBy(factor: Float): Targets {
-    fun dev.gaborbiro.dailymacros.repositories.settings.model.Target?.scaled(): dev.gaborbiro.dailymacros.repositories.settings.model.Target? {
+    fun dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target?.scaled(): dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target? {
         if (this == null) return null
         val scaledMin = this.min?.let { (it * factor).roundToInt().coerceAtLeast(0) }
         val scaledMax = this.max?.let { (it * factor).roundToInt().coerceAtLeast(scaledMin ?: 0) }
