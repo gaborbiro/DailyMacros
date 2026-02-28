@@ -2,8 +2,6 @@ package dev.gaborbiro.dailymacros.features.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.gaborbiro.dailymacros.BuildConfig
-import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,16 +9,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-internal class SettingsViewModel(
+class SettingsViewModel(
     private val navigator: SettingsNavigator,
-    private val appPrefs: AppPrefs,
+    private val appInfo: SettingsAppInfo,
     private val exportFoodDiaryUseCase: ExportFoodDiaryUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
         SettingsUiState(
             showTargetsSettings = false,
-            bottomLabel = bottomLabel,
+            bottomLabel = appInfo.versionLabel,
         )
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
@@ -28,7 +26,7 @@ internal class SettingsViewModel(
     fun onBackNavigateRequested() {
         _uiState.value = SettingsUiState(
             showTargetsSettings = false,
-            bottomLabel = bottomLabel,
+            bottomLabel = appInfo.versionLabel,
         )
         navigator.navigateBack()
     }
@@ -50,9 +48,4 @@ internal class SettingsViewModel(
             exportFoodDiaryUseCase.execute()
         }
     }
-
-    private val bottomLabel: String
-        get() {
-            return "v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})  |  UserID: ${appPrefs.userUUID}"
-        }
 }

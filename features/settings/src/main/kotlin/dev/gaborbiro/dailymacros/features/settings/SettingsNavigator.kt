@@ -6,7 +6,7 @@ interface SettingsNavigator {
     fun navigateBack()
 }
 
-internal class SettingsNavigatorImpl(
+class SettingsNavigatorImpl(
     private val navController: NavHostController,
 ) : SettingsNavigator {
 

@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-internal class TargetsSettingsViewModel(
+class TargetsSettingsViewModel(
     private val repo: SettingsRepository,
     private val mapper: TargetsUIMapper = TargetsUIMapper(),
 ) : ViewModel() {
@@ -48,7 +48,6 @@ internal class TargetsSettingsViewModel(
         val current = _uiState.value.targets
         val targets = current + (type to target)
 
-        // validate all
         val errors = targets.mapValues { (_, t) ->
             var minErr: ValidationError? = null
             var maxErr: ValidationError? = null
@@ -60,7 +59,6 @@ internal class TargetsSettingsViewModel(
                 maxErr = ValidationError.Empty
             }
             if (t.min != null && t.max != null && t.min > t.max) {
-                // mark both fields, so user knows they conflict
                 minErr = ValidationError.MinGreaterThanMax
                 maxErr = ValidationError.MinGreaterThanMax
             }
@@ -83,7 +81,6 @@ internal class TargetsSettingsViewModel(
     fun onSaveTapped() {
         val current = _uiState.value
         if (!current.canSave) {
-            // Either nothing to save, or errors present
             return
         }
 

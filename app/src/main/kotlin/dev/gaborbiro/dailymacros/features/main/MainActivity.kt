@@ -22,6 +22,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import dev.gaborbiro.dailymacros.BuildConfig
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
@@ -44,6 +45,7 @@ import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
 import dev.gaborbiro.dailymacros.features.settings.SettingsNavigatorImpl
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
+import dev.gaborbiro.dailymacros.features.settings.SettingsAppInfo
 import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCaseImpl
 import dev.gaborbiro.dailymacros.features.settings.export.SharePublicUriLauncher
 import dev.gaborbiro.dailymacros.features.settings.export.StreamWriter
@@ -128,10 +130,16 @@ class MainActivity : ComponentActivity() {
                 }
 
                 val settingsNavigator = remember { SettingsNavigatorImpl(navController) }
+                val settingsAppInfo = remember {
+                    object : SettingsAppInfo {
+                        override val versionLabel: String
+                            get() = "v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})  |  UserID: ${appPrefs.userUUID}"
+                    }
+                }
                 val settingsViewModel = viewModelFactory {
                     SettingsViewModel(
                         navigator = settingsNavigator,
-                        appPrefs = appPrefs,
+                        appInfo = settingsAppInfo,
                         exportFoodDiaryUseCase = exportFoodDiaryUseCase,
                     )
                 }

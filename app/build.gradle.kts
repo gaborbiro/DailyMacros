@@ -74,6 +74,7 @@ android {
 dependencies {
     implementation(project(":core:analytics"))
     implementation(project(":core:design"))
+    implementation(project(":features:settings"))
     implementation(project(":repositories:chatgpt"))
     implementation(project(":repositories:records"))
     implementation(project(":repositories:settings"))

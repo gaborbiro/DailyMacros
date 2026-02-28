@@ -8,7 +8,7 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import java.io.OutputStream
 import java.time.ZonedDateTime
 
-internal class ExportFoodDiaryUseCase(
+class ExportFoodDiaryUseCase(
     private val recordRepository: RecordsRepository,
     private val createPublicDocumentUseCase: CreatePublicDocumentUseCase,
     private val streamWriter: StreamWriter,
@@ -54,7 +54,7 @@ internal class ExportFoodDiaryUseCase(
                     salt_g = nutrients.salt,
                     notes = it.template.notes,
                 )
-            } 
+            }
 
         val from = records.minOf { it.timestamp }.toLocalDate()
         val to = ZonedDateTime.now().toLocalDate()
@@ -72,14 +72,14 @@ internal class ExportFoodDiaryUseCase(
 
 private data class LlmFoodDiary(
     val schemaVersion: Int = 1,
-    val exportedAt: String,         // ISO-8601
+    val exportedAt: String,
     val entries: List<LlmFoodEntry>,
 )
 
 private data class LlmFoodEntry(
-    val timestamp: String,          // ISO-8601
-    val title: String,              // template.name
-    val description: String,        // template.description
+    val timestamp: String,
+    val title: String,
+    val description: String,
     val calories_kcal: Int?,
     val protein_g: Float?,
     val fat_g: Float?,

@@ -17,7 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
+import dev.gaborbiro.dailymacros.features.settings.views.SettingsViewPreviewContext
 
 
 @Composable
@@ -28,19 +28,14 @@ internal fun TargetsHeader(
     onSaveTapped: () -> Unit,
     onResetTapped: () -> Unit,
 ) {
-    Column(
-        modifier = modifier
-    ) {
+    Column(modifier = modifier) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
+                modifier = Modifier.padding(end = 16.dp),
                 text = "Daily Targets",
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.headlineMedium,
@@ -48,14 +43,13 @@ internal fun TargetsHeader(
             )
             if (resetButtonVisible) {
                 TextButton(
-                    modifier = Modifier
-                        .padding(end = 8.dp),
+                    modifier = Modifier.padding(end = 8.dp),
                     onClick = onResetTapped,
                     contentPadding = ButtonDefaults.TextButtonContentPadding
                 ) {
                     Text(
                         text = "Reset",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold ),
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                     )
                 }
             }
@@ -66,14 +60,13 @@ internal fun TargetsHeader(
             ) {
                 Text(
                     text = "Save",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold ),
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                 )
             }
         }
 
         Row(
-            modifier = Modifier
-                .padding(top = 8.dp)
+            modifier = Modifier.padding(top = 8.dp)
         ) {
             Text(
                 text = "Feel free to disable the ones you don't care about",
@@ -86,10 +79,9 @@ internal fun TargetsHeader(
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun TargetsHeaderPreview() {
-    ViewPreviewContext {
+    SettingsViewPreviewContext {
         TargetsHeader(
-            modifier = Modifier
-                .padding(horizontal = 16.dp),
+            modifier = Modifier.padding(horizontal = 16.dp),
             saveButtonEnabled = false,
             resetButtonVisible = false,
             onSaveTapped = {},
@@ -102,7 +94,7 @@ private fun TargetsHeaderPreview() {
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun TargetsHeaderPreviewStrict() {
-    ViewPreviewContext {
+    SettingsViewPreviewContext {
         TargetsHeader(
             modifier = Modifier
                 .padding(top = 16.dp)

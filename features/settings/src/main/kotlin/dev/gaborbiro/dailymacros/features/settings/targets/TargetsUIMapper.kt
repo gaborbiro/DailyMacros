@@ -15,7 +15,7 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.model.THEORETICAL_
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 
-internal class TargetsUIMapper {
+class TargetsUIMapper {
 
     fun map(
         targets: Targets,

@@ -33,7 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -112,7 +111,7 @@ private fun SettingRow(
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun SettingsViewPreview() {
-    PreviewContext {
+    SettingsPreviewContext {
         SettingsView(
             viewState = SettingsUiState(
                 showTargetsSettings = true,

@@ -1,6 +1,6 @@
 package dev.gaborbiro.dailymacros.features.settings.targets.model
 
-internal data class TargetsUiState(
+data class TargetsUiState(
     val targets: Map<MacroType, TargetUIModel>,
     val canReset: Boolean = false,
     val canSave: Boolean = false,
@@ -8,9 +8,9 @@ internal data class TargetsUiState(
     val errors: Map<MacroType, FieldErrors> = emptyMap(),
 )
 
-internal data class TargetUIModel(
+data class TargetUIModel(
     val enabled: Boolean,
-    val min: Int?,  // calories in cal, others in g
+    val min: Int?,
     val max: Int?,
     val theoreticalMax: Int,
 )
@@ -21,6 +21,6 @@ data class FieldErrors(
 )
 
 sealed interface ValidationError {
-    object Empty : ValidationError
-    object MinGreaterThanMax : ValidationError
+    data object Empty : ValidationError
+    data object MinGreaterThanMax : ValidationError
 }

@@ -10,30 +10,29 @@ import kotlinx.coroutines.flow.Flow
 
 @Composable
 internal fun TargetsSettingsRoute(
+    viewModel: TargetsSettingsViewModel,
     onCloseRequested: () -> Unit,
-    viewModel: TargetsSettingsViewModel
 ) {
-    LaunchedEffect(Unit) {
-        viewModel.uiEvents.collect { event ->
-            when (event) {
-                TargetsSettingsUiEvents.Close -> onCloseRequested()
-                TargetsSettingsUiEvents.Hide, TargetsSettingsUiEvents.Show -> {
-                    // handled in TargetsBottomSheet
-                }
-            }
-        }
-    }
     val viewState by viewModel.uiState.collectAsStateWithLifecycle()
-    val events: Flow<TargetsSettingsUiEvents> = viewModel.uiEvents
+    val events = viewModel.uiEvents
 
     TargetsSettingsBottomSheet(
         viewState = viewState,
         events = events,
-        onDismissRequested = viewModel::onBottomSheetDismissRequested,
+        onDismissRequested = onCloseRequested,
         onTargetChanged = viewModel::onTargetChanged,
         onResetTapped = viewModel::onTargetsResetTapped,
         onSaveTapped = viewModel::onSaveTapped,
         onUnsavedTargetsDiscardTapped = viewModel::onUnsavedTargetsDiscardTapped,
         onUnsavedTargetsDismissRequested = viewModel::onUnsavedTargetsDismissRequested,
     )
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvents.collect { event ->
+            when (event) {
+                TargetsSettingsUiEvents.Close -> onCloseRequested()
+                else -> { }
+            }
+        }
+    }
 }

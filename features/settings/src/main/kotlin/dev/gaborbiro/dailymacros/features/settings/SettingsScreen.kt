@@ -8,7 +8,7 @@ import dev.gaborbiro.dailymacros.features.settings.targets.TargetsSettingsViewMo
 import dev.gaborbiro.dailymacros.features.settings.views.SettingsView
 
 @Composable
-internal fun SettingsScreen(
+fun SettingsScreen(
     settingsViewModel: SettingsViewModel,
     targetsViewModel: TargetsSettingsViewModel,
 ) {

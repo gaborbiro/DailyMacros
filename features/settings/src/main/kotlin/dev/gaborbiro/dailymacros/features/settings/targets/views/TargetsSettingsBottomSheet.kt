@@ -48,15 +48,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
-import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
-import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
-import dev.gaborbiro.dailymacros.features.common.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.features.settings.targets.model.FieldErrors
 import dev.gaborbiro.dailymacros.features.settings.targets.model.MacroType
 import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetUIModel
 import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsSettingsUiEvents
 import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsUiState
 import dev.gaborbiro.dailymacros.features.settings.targets.model.ValidationError
+import dev.gaborbiro.dailymacros.features.settings.util.verticalScrollWithBar
+import dev.gaborbiro.dailymacros.features.settings.views.SettingsPreviewContext
+import dev.gaborbiro.dailymacros.features.settings.views.SettingsViewPreviewContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
@@ -84,9 +84,7 @@ internal fun TargetsSettingsBottomSheet(
                     sheetState.hide()
                     onDismissRequested()
                 }
-                TargetsSettingsUiEvents.Close -> {
-                    // handled by parent container
-                }
+                TargetsSettingsUiEvents.Close -> { }
             }
         }
     }
@@ -183,7 +181,6 @@ private fun MacroRow(
             }
             Text(
                 modifier = Modifier
-                    .weight(1f)
                     .padding(vertical = PaddingDefault),
                 text = label,
                 style = style
@@ -250,7 +247,7 @@ private fun MacroRow(
                         value = target.min?.toString() ?: "",
                         onValueChange = { onChange(target.copy(min = it.toIntOrNull())) },
                         modifier = Modifier
-                            .weight(1f)
+                            .fillMaxWidth(0.48f)
                             .padding(end = 8.dp),
                         singleLine = true,
                         isError = fieldErrors.minError != null,
@@ -267,7 +264,7 @@ private fun MacroRow(
                         value = target.max?.toString() ?: "",
                         onValueChange = { onChange(target.copy(max = it.toIntOrNull())) },
                         modifier = Modifier
-                            .weight(1f)
+                            .fillMaxWidth(0.48f)
                             .padding(start = 8.dp),
                         singleLine = true,
                         isError = fieldErrors.maxError != null,
@@ -286,7 +283,6 @@ private fun MacroRow(
         }
     }
 }
-
 
 @Composable
 private fun ExitConfirmationDialog(
@@ -317,7 +313,7 @@ private fun ExitConfirmationDialog(
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun TargetsSettingsBottomSheetPreview_Default() {
-    PreviewContext {
+    SettingsPreviewContext {
         TargetsSettingsBottomSheet(
             viewState = TargetsUiState(
                 targets = dummyTargets(),
@@ -340,7 +336,7 @@ private fun TargetsSettingsBottomSheetPreview_Default() {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun TargetsSettingsBottomSheetPreview_DirtyValid() {
-    PreviewContext {
+    SettingsPreviewContext {
         TargetsSettingsBottomSheet(
             viewState = TargetsUiState(
                 targets = dummyTargets(calories = 1800 to 2000, protein = 60 to 120),
@@ -363,10 +359,10 @@ private fun TargetsSettingsBottomSheetPreview_DirtyValid() {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun TargetsSettingsBottomSheetPreview_DirtyInvalid() {
-    PreviewContext {
+    SettingsPreviewContext {
         TargetsSettingsBottomSheet(
             viewState = TargetsUiState(
-                targets = dummyTargets(calories = 2200 to 2000), // min > max
+                targets = dummyTargets(calories = 2200 to 2000),
                 canReset = true,
                 canSave = false,
                 showExitDialog = false,
@@ -386,7 +382,7 @@ private fun TargetsSettingsBottomSheetPreview_DirtyInvalid() {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun ExitDialogPreview_Valid() {
-    ViewPreviewContext {
+    SettingsViewPreviewContext {
         ExitConfirmationDialog(
             canSave = true,
             onSaveTapped = {},
@@ -400,7 +396,7 @@ private fun ExitDialogPreview_Valid() {
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun ExitDialogPreview_Invalid() {
-    ViewPreviewContext {
+    SettingsViewPreviewContext {
         ExitConfirmationDialog(
             canSave = false,
             onSaveTapped = {},
