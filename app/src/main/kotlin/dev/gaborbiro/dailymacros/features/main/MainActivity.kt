@@ -52,7 +52,7 @@ import dev.gaborbiro.dailymacros.features.settings.export.SharePublicUriLauncher
 import dev.gaborbiro.dailymacros.features.settings.export.StreamWriter
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsViewModel
-import dev.gaborbiro.dailymacros.features.trends.TrendsNavigatorImpl
+import dev.gaborbiro.dailymacros.features.trends.TrendsUiEvents
 import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
 import dev.gaborbiro.dailymacros.features.trends.TrendsUiMapper
 import dev.gaborbiro.dailymacros.features.trends.TrendsViewModel
@@ -148,14 +148,8 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
-                val trendsNavigator = remember {
-                    TrendsNavigatorImpl(
-                        navController = navController,
-                    )
-                }
                 val trendsViewModel = viewModelFactory {
                     TrendsViewModel(
-                        navigator = trendsNavigator,
                         recordsRepository = recordsRepository,
                         appPrefs = appPrefs,
                         mapper = TrendsUiMapper(appPrefs),
@@ -219,6 +213,13 @@ class MainActivity : ComponentActivity() {
                             )
                         },
                     ) {
+                        LaunchedEffect(trendsViewModel) {
+                            trendsViewModel.uiEvents.collect { event ->
+                                when (event) {
+                                    TrendsUiEvents.NavigateBack -> navController.popBackStack()
+                                }
+                            }
+                        }
                         TrendsScreen(trendsViewModel)
                     }
                 }
