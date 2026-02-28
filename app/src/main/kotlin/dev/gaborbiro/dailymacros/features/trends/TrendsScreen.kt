@@ -12,6 +12,7 @@ internal fun TrendsScreen(
     viewModel: TrendsViewModel,
 ) {
     val state: TrendsUiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     TrendsView(
         viewState = state,
         onTimescaleSelected = viewModel::onTimescaleSelected,

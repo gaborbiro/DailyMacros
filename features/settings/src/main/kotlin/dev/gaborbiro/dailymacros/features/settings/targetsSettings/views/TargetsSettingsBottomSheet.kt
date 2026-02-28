@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.settings.targets.views
+package dev.gaborbiro.dailymacros.features.settings.targetsSettings.views
 
 import android.content.res.Configuration
 import androidx.compose.animation.animateContentSize
@@ -48,12 +48,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
-import dev.gaborbiro.dailymacros.features.settings.targets.model.FieldErrors
-import dev.gaborbiro.dailymacros.features.settings.targets.model.MacroType
-import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetUIModel
-import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsSettingsUiEvents
-import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsUiState
-import dev.gaborbiro.dailymacros.features.settings.targets.model.ValidationError
+import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.FieldErrors
+import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.MacroType
+import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetUiModel
+import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetsSettingsUiEvents
+import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetsSettingsUiState
+import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.ValidationError
 import dev.gaborbiro.dailymacros.features.settings.util.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.features.settings.views.SettingsPreviewContext
 import dev.gaborbiro.dailymacros.features.settings.views.SettingsViewPreviewContext
@@ -63,10 +63,10 @@ import kotlinx.coroutines.flow.emptyFlow
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun TargetsSettingsBottomSheet(
-    viewState: TargetsUiState,
+    viewState: TargetsSettingsUiState,
     events: Flow<TargetsSettingsUiEvents>,
     onDismissRequested: () -> Unit,
-    onTargetChanged: (MacroType, TargetUIModel) -> Unit,
+    onTargetChanged: (MacroType, TargetUiModel) -> Unit,
     onResetTapped: () -> Unit,
     onSaveTapped: () -> Unit,
     onUnsavedTargetsDiscardTapped: () -> Unit,
@@ -84,7 +84,9 @@ internal fun TargetsSettingsBottomSheet(
                     sheetState.hide()
                     onDismissRequested()
                 }
-                TargetsSettingsUiEvents.Close -> { }
+                TargetsSettingsUiEvents.Close -> {
+                    // nothing to do
+                }
             }
         }
     }
@@ -155,9 +157,9 @@ internal fun TargetsSettingsBottomSheet(
 private fun MacroRow(
     label: String,
     unit: String,
-    target: TargetUIModel,
+    target: TargetUiModel,
     error: FieldErrors?,
-    onChange: (TargetUIModel) -> Unit,
+    onChange: (TargetUiModel) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -315,7 +317,7 @@ private fun ExitConfirmationDialog(
 private fun TargetsSettingsBottomSheetPreview_Default() {
     SettingsPreviewContext {
         TargetsSettingsBottomSheet(
-            viewState = TargetsUiState(
+            viewState = TargetsSettingsUiState(
                 targets = dummyTargets(),
                 canReset = false,
                 canSave = false,
@@ -338,7 +340,7 @@ private fun TargetsSettingsBottomSheetPreview_Default() {
 private fun TargetsSettingsBottomSheetPreview_DirtyValid() {
     SettingsPreviewContext {
         TargetsSettingsBottomSheet(
-            viewState = TargetsUiState(
+            viewState = TargetsSettingsUiState(
                 targets = dummyTargets(calories = 1800 to 2000, protein = 60 to 120),
                 canReset = true,
                 canSave = true,
@@ -361,7 +363,7 @@ private fun TargetsSettingsBottomSheetPreview_DirtyValid() {
 private fun TargetsSettingsBottomSheetPreview_DirtyInvalid() {
     SettingsPreviewContext {
         TargetsSettingsBottomSheet(
-            viewState = TargetsUiState(
+            viewState = TargetsSettingsUiState(
                 targets = dummyTargets(calories = 2200 to 2000),
                 canReset = true,
                 canSave = false,
@@ -415,14 +417,14 @@ private fun dummyTargets(
     saturated: Pair<Int, Int> = 0 to 21,
     carbs: Pair<Int, Int> = 150 to 200,
     sugar: Pair<Int, Int> = 0 to 40,
-): Map<MacroType, TargetUIModel> =
+): Map<MacroType, TargetUiModel> =
     mapOf(
-        MacroType.CALORIES to TargetUIModel(true, calories.first, calories.second, 4000),
-        MacroType.PROTEIN to TargetUIModel(true, protein.first, protein.second, 300),
-        MacroType.SALT to TargetUIModel(false, salt.first, salt.second, 20),
-        MacroType.FAT to TargetUIModel(true, fat.first, fat.second, 200),
-        MacroType.FIBRE to TargetUIModel(true, fibre.first, fibre.second, 100),
-        MacroType.SATURATED to TargetUIModel(true, saturated.first, saturated.second, 100),
-        MacroType.CARBS to TargetUIModel(true, carbs.first, carbs.second, 600),
-        MacroType.SUGAR to TargetUIModel(true, sugar.first, sugar.second, 200),
+        MacroType.CALORIES to TargetUiModel(true, calories.first, calories.second, 4000),
+        MacroType.PROTEIN to TargetUiModel(true, protein.first, protein.second, 300),
+        MacroType.SALT to TargetUiModel(false, salt.first, salt.second, 20),
+        MacroType.FAT to TargetUiModel(true, fat.first, fat.second, 200),
+        MacroType.FIBRE to TargetUiModel(true, fibre.first, fibre.second, 100),
+        MacroType.SATURATED to TargetUiModel(true, saturated.first, saturated.second, 100),
+        MacroType.CARBS to TargetUiModel(true, carbs.first, carbs.second, 600),
+        MacroType.SUGAR to TargetUiModel(true, sugar.first, sugar.second, 200),
     )

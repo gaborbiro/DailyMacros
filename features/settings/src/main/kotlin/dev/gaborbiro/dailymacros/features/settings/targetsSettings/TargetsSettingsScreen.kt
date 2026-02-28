@@ -1,24 +1,22 @@
-package dev.gaborbiro.dailymacros.features.settings.targets
+package dev.gaborbiro.dailymacros.features.settings.targetsSettings
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsSettingsUiEvents
-import dev.gaborbiro.dailymacros.features.settings.targets.views.TargetsSettingsBottomSheet
-import kotlinx.coroutines.flow.Flow
+import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetsSettingsUiEvents
+import dev.gaborbiro.dailymacros.features.settings.targetsSettings.views.TargetsSettingsBottomSheet
 
 @Composable
-internal fun TargetsSettingsRoute(
+internal fun TargetsSettingsScreen(
     viewModel: TargetsSettingsViewModel,
     onCloseRequested: () -> Unit,
 ) {
     val viewState by viewModel.uiState.collectAsStateWithLifecycle()
-    val events = viewModel.uiEvents
 
     TargetsSettingsBottomSheet(
         viewState = viewState,
-        events = events,
+        events = viewModel.uiEvents,
         onDismissRequested = onCloseRequested,
         onTargetChanged = viewModel::onTargetChanged,
         onResetTapped = viewModel::onTargetsResetTapped,
@@ -27,11 +25,13 @@ internal fun TargetsSettingsRoute(
         onUnsavedTargetsDismissRequested = viewModel::onUnsavedTargetsDismissRequested,
     )
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(viewModel) {
         viewModel.uiEvents.collect { event ->
             when (event) {
                 TargetsSettingsUiEvents.Close -> onCloseRequested()
-                else -> { }
+                else -> {
+                    // nothing to do
+                }
             }
         }
     }

@@ -3,8 +3,8 @@ package dev.gaborbiro.dailymacros.features.settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.gaborbiro.dailymacros.features.settings.targets.TargetsSettingsRoute
-import dev.gaborbiro.dailymacros.features.settings.targets.TargetsSettingsViewModel
+import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsScreen
+import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsViewModel
 import dev.gaborbiro.dailymacros.features.settings.views.SettingsView
 
 @Composable
@@ -22,7 +22,7 @@ fun SettingsScreen(
     )
 
     if (settingsUiState.showTargetsSettings) {
-        TargetsSettingsRoute(
+        TargetsSettingsScreen(
             viewModel = targetsViewModel,
             onCloseRequested = settingsViewModel::onTargetsSettingsCloseRequested,
         )

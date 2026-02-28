@@ -1,9 +1,9 @@
-package dev.gaborbiro.dailymacros.features.settings.targets
+package dev.gaborbiro.dailymacros.features.settings.targetsSettings
 
-import dev.gaborbiro.dailymacros.features.settings.targets.model.FieldErrors
-import dev.gaborbiro.dailymacros.features.settings.targets.model.MacroType
-import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetUIModel
-import dev.gaborbiro.dailymacros.features.settings.targets.model.TargetsUiState
+import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.FieldErrors
+import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.MacroType
+import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetUiModel
+import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetsSettingsUiState
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.THEORETICAL_CALORIES_MAX
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.THEORETICAL_CARBS_MAX
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.THEORETICAL_FAT_MAX
@@ -15,7 +15,7 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.model.THEORETICAL_
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 
-class TargetsUIMapper {
+class TargetsSettingsUIMapper {
 
     fun map(
         targets: Targets,
@@ -23,8 +23,8 @@ class TargetsUIMapper {
         canSave: Boolean = false,
         showExitDialog: Boolean = false,
         errors: Map<MacroType, FieldErrors> = emptyMap(),
-    ): TargetsUiState {
-        return TargetsUiState(
+    ): TargetsSettingsUiState {
+        return TargetsSettingsUiState(
             targets = buildMap {
                 put(MacroType.CALORIES, map(MacroType.CALORIES, targets.calories))
                 put(MacroType.PROTEIN, map(MacroType.PROTEIN, targets.protein))
@@ -42,8 +42,8 @@ class TargetsUIMapper {
         )
     }
 
-    private fun map(type: MacroType, target: Target): TargetUIModel {
-        return TargetUIModel(
+    private fun map(type: MacroType, target: Target): TargetUiModel {
+        return TargetUiModel(
             enabled = target.enabled,
             min = target.min,
             max = target.max,
@@ -64,8 +64,8 @@ class TargetsUIMapper {
         }
     }
 
-    fun map(targetsUiState: TargetsUiState): Targets {
-        val targets: Map<MacroType, Target> = targetsUiState.targets.mapValues { (_, target) ->
+    fun map(targetsSettingsUiState: TargetsSettingsUiState): Targets {
+        val targets: Map<MacroType, Target> = targetsSettingsUiState.targets.mapValues { (_, target) ->
             map(target)
         }
         return Targets(
@@ -80,7 +80,7 @@ class TargetsUIMapper {
         )
     }
 
-    private fun map(uiTarget: TargetUIModel): Target {
+    private fun map(uiTarget: TargetUiModel): Target {
         return Target(
             enabled = uiTarget.enabled,
             min = uiTarget.min,

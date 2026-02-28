@@ -74,7 +74,7 @@ internal class ModalViewModel(
         }
     }
 
-    private val _uiState: MutableStateFlow<ModalUiState> = MutableStateFlow(ModalUiState())
+    private val _uiState = MutableStateFlow(ModalUiState())
     val uiState: StateFlow<ModalUiState> = _uiState.asStateFlow()
 
     private val _uiUpdates = Channel<ModalUIUpdates>(Channel.BUFFERED)

@@ -12,6 +12,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -42,7 +43,7 @@ import dev.gaborbiro.dailymacros.features.overview.OverviewNavigatorImpl
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewUIMapper
 import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
-import dev.gaborbiro.dailymacros.features.settings.SettingsNavigatorImpl
+import dev.gaborbiro.dailymacros.features.settings.SettingsUiEvents
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
 import dev.gaborbiro.dailymacros.features.settings.SettingsAppInfo
@@ -50,7 +51,7 @@ import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUs
 import dev.gaborbiro.dailymacros.features.settings.export.SharePublicUriLauncher
 import dev.gaborbiro.dailymacros.features.settings.export.StreamWriter
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
-import dev.gaborbiro.dailymacros.features.settings.targets.TargetsSettingsViewModel
+import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsViewModel
 import dev.gaborbiro.dailymacros.features.trends.TrendsNavigatorImpl
 import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
 import dev.gaborbiro.dailymacros.features.trends.TrendsUiMapper
@@ -129,7 +130,6 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
-                val settingsNavigator = remember { SettingsNavigatorImpl(navController) }
                 val settingsAppInfo = remember {
                     object : SettingsAppInfo {
                         override val versionLabel: String
@@ -138,7 +138,6 @@ class MainActivity : ComponentActivity() {
                 }
                 val settingsViewModel = viewModelFactory {
                     SettingsViewModel(
-                        navigator = settingsNavigator,
                         appInfo = settingsAppInfo,
                         exportFoodDiaryUseCase = exportFoodDiaryUseCase,
                     )
@@ -191,6 +190,13 @@ class MainActivity : ComponentActivity() {
                             )
                         },
                     ) {
+                        LaunchedEffect(settingsViewModel) {
+                            settingsViewModel.uiEvents.collect { event ->
+                                when (event) {
+                                    SettingsUiEvents.NavigateBack -> navController.popBackStack()
+                                }
+                            }
+                        }
                         SettingsScreen(
                             settingsViewModel = settingsViewModel,
                             targetsViewModel = targetsViewModel,

@@ -12,6 +12,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 
@@ -24,10 +25,7 @@ internal class TrendsViewModel(
 
     private var recordsJob: Job
 
-    private val _uiState: MutableStateFlow<TrendsUiState> =
-        MutableStateFlow(
-            TrendsUiState()
-        )
+    private val _uiState = MutableStateFlow(TrendsUiState())
     val uiState: StateFlow<TrendsUiState> = _uiState.asStateFlow()
 
     init {
@@ -44,16 +42,20 @@ internal class TrendsViewModel(
     }
 
     fun onSettingsActionButtonClicked() {
-        _uiState.value = _uiState.value.copy(
-            settings = TrendsSettingsUIModel.Show(
-                dayQualifier = mapper.map(appPrefs.dayQualificationMode),
-                qualifiedDaysThreshold = appPrefs.qualifyingCalorieThreshold,
+        _uiState.update {
+            it.copy(
+                settings = TrendsSettingsUIModel.Show(
+                    dayQualifier = mapper.map(appPrefs.dayQualificationMode),
+                    qualifiedDaysThreshold = appPrefs.qualifyingCalorieThreshold,
+                )
             )
-        )
+        }
     }
 
     fun onSettingsCloseRequested() {
-        _uiState.value = _uiState.value.copy(settings = TrendsSettingsUIModel.Hidden)
+        _uiState.update {
+            it.copy(settings = TrendsSettingsUIModel.Hidden)
+        }
     }
 
     fun onAggregationModeChanged(dayQualifier: DayQualifier, timescale: Timescale) {
@@ -74,7 +76,9 @@ internal class TrendsViewModel(
             // Use the same flow as overview (no search term = all records)
             recordsRepository.observeRecords(null).collect { records ->
                 if (records.isEmpty()) {
-                    _uiState.value = _uiState.value.copy(charts = emptyList())
+                    _uiState.update {
+                        it.copy(charts = emptyList())
+                    }
                 } else {
                     val aggregationMode = mapper.map(appPrefs.dayQualificationMode)
                     val charts = when (timescale) {
@@ -82,7 +86,9 @@ internal class TrendsViewModel(
                         Timescale.WEEKS -> mapper.mapWeeksCharts(records, aggregationMode)
                         Timescale.MONTHS -> mapper.mapMonthsCharts(records, aggregationMode)
                     }
-                    _uiState.value = _uiState.value.copy(charts = charts)
+                    _uiState.update {
+                        it.copy(charts = charts)
+                    }
                 }
             }
         }

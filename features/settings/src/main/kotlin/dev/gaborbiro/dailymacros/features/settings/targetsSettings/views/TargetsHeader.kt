@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.settings.targets.views
+package dev.gaborbiro.dailymacros.features.settings.targetsSettings.views
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
