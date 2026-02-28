@@ -21,14 +21,17 @@ General principles:
 - If vegetables, grains, legumes or seeds are present, estimate fibre.
 - Only return valid JSON.
 
-PRIORITY ORDER:
-1. If nutritional values are clearly visible on packaging in the image, you MUST extract and use those exact values.
+ACCURACY RULES:
+1. For any nutritional values that are clearly visible on packaging in the image, you MUST extract and use those exact values.
    - Do NOT estimate.
    - Do NOT adjust values.
    - Do NOT reinterpret.
    - Copy values exactly as shown (convert units if necessary).
 
-2. Only if packaging nutritional values are not visible or not legible may you estimate using typical averages.
+2. If some required macronutrients are NOT shown on packaging:
+   - You MUST estimate the missing values using typical nutritional knowledge.
+   - Missing values must NEVER default to 0 unless the packaging explicitly states 0.
+   - Clearly indicate in "notes" which values were taken from packaging and which were estimated.
 
 LANGUAGE RULES:
 - All output (including titles, descriptions, notes and error messages) MUST be in English.
