@@ -1,17 +1,11 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
 plugins {
-    alias(libs.plugins.android.library)
+    id("AndroidLibraryConvention")
 }
 
 android {
     namespace = "dev.gaborbiro.dailymacros.repositories"
-    compileSdk = libs.versions.android.sdk.compile.get().toInt()
-
-    defaultConfig {
-        minSdk = libs.versions.android.sdk.min.get().toInt()
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
 
     val localProperties = gradleLocalProperties(rootDir, providers)
     val chatGptApiKeyKey = "CHATGPT_API_KEY"
@@ -29,10 +23,6 @@ android {
             buildConfigField("String", chatGptApiKeyKey, "\"$chatGptApiKey\"")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.toVersion(libs.versions.java.get())
-        targetCompatibility = JavaVersion.toVersion(libs.versions.java.get())
     }
     buildFeatures {
         buildConfig = true
