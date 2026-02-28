@@ -61,7 +61,7 @@
         </activity>
 
         <receiver
-            android:name=".features.widgetDiary.DiaryWidgetReceiver"
+            android:name=".features.widget.DiaryWidgetReceiver"
             android:enabled="@bool/glance_appwidget_available"
             android:exported="false">
             <intent-filter>

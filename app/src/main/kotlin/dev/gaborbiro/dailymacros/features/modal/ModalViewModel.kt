@@ -29,7 +29,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
-import dev.gaborbiro.dailymacros.features.widgetDiary.DiaryWidgetScreen
+import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.DomainError
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template

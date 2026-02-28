@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widgetDiary.views
+package dev.gaborbiro.dailymacros.features.widget.views
 
 import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Composable
@@ -19,7 +19,7 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDouble
-import dev.gaborbiro.dailymacros.features.widgetDiary.util.WidgetPreviewContext
+import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreviewContext
 
 @Composable
 fun ButtonLayout(

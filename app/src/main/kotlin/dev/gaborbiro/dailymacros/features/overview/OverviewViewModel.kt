@@ -9,7 +9,7 @@ import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
-import dev.gaborbiro.dailymacros.features.widgetDiary.DiaryWidgetScreen
+import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template

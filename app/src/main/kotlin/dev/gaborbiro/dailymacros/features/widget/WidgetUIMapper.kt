@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widgetDiary
+package dev.gaborbiro.dailymacros.features.widget
 
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPick

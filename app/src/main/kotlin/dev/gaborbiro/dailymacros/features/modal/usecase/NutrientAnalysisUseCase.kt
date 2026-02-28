@@ -7,7 +7,7 @@ import dev.gaborbiro.dailymacros.features.common.RecordsMapper
 import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
-import dev.gaborbiro.dailymacros.features.widgetDiary.DiaryWidgetScreen
+import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repositories.chatgpt.toDomainModel

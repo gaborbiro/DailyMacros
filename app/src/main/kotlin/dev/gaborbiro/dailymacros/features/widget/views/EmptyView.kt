@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widgetDiary.views
+package dev.gaborbiro.dailymacros.features.widget.views
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
@@ -28,7 +28,7 @@ import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingHalf
-import dev.gaborbiro.dailymacros.features.widgetDiary.util.WidgetPreviewContext
+import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreviewContext
 
 @Composable
 internal fun EmptyView() {

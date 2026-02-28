@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widgetDiary
+package dev.gaborbiro.dailymacros.features.widget
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder

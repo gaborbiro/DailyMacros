@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widgetDiary.views
+package dev.gaborbiro.dailymacros.features.widget.views
 
 import androidx.compose.runtime.Composable
 import androidx.glance.GlanceModifier
@@ -22,7 +22,7 @@ import androidx.glance.text.Text
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.NutrientsUiModel
-import dev.gaborbiro.dailymacros.features.widgetDiary.util.WidgetPreviewContext
+import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreviewContext
 
 @Composable
 fun ListItemRecord(

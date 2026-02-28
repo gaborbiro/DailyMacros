@@ -34,7 +34,7 @@ import dev.gaborbiro.dailymacros.features.common.model.ListUiModelDailySummary
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
-import dev.gaborbiro.dailymacros.features.widgetDiary.DiaryWidgetReceiver
+import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetReceiver
 
 @Composable
 internal fun OverviewView(

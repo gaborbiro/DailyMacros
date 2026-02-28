@@ -39,7 +39,7 @@ import dev.gaborbiro.dailymacros.design.darkExtraColorScheme
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.common.views.LocalImage
-import dev.gaborbiro.dailymacros.features.widgetDiary.views.ListItemImageCornerRadius
+import dev.gaborbiro.dailymacros.features.widget.views.ListItemImageCornerRadius
 
 
 @Composable
