@@ -32,7 +32,6 @@ android {
 dependencies {
     api(project(":repositories:chatgpt:domain"))
     implementation(project(":core:analytics"))
-    implementation(project(":data"))
 
     implementation(libs.androidx.core.ktx)
 

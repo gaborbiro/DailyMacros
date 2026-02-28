@@ -9,7 +9,8 @@ android {
 dependencies {
     api(project(":repositories:records:domain"))
     implementation(project(":core:analytics"))
-    implementation(project(":data"))
+    implementation(project(":data:db"))
+    implementation(project(":data:image"))
 
     implementation(libs.androidx.core.ktx)
 }

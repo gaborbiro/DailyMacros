@@ -76,7 +76,9 @@ dependencies {
     implementation(project(":repositories:chatgpt"))
     implementation(project(":repositories:records"))
     implementation(project(":repositories:settings"))
-    implementation(project(":data"))
+    implementation(project(":data:db"))
+    implementation(project(":data:file"))
+    implementation(project(":data:image"))
 
     implementation(libs.androidx.core.ktx)
 
