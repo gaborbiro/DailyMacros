@@ -27,6 +27,7 @@ import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.AppTheme
+import dev.gaborbiro.dailymacros.features.common.StatusBarOverlay
 import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.common.DateUIMapper
@@ -104,7 +105,7 @@ class MainActivity : ComponentActivity() {
         )
 
         setContent {
-            AppTheme {
+            AppTheme(statusBarOverlay = { StatusBarOverlay() }) {
                 val navController: NavHostController = rememberNavController()
                 val overviewNavigator = remember {
                     OverviewNavigatorImpl(

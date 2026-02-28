@@ -11,9 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.glance.color.ColorProviders
+import androidx.glance.color.ColorProviders as GlanceColorProviders
 import androidx.glance.material3.ColorProviders
-import dev.gaborbiro.dailymacros.features.common.StatusBarOverlay
 
 
 val DarkColors = darkColorScheme(
@@ -47,6 +46,7 @@ val LightColors = lightColorScheme(
 fun AppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = false,
+    statusBarOverlay: @Composable () -> Unit = {},
     content: @Composable () -> Unit,
 ) {
     val colorScheme = when {
@@ -71,7 +71,7 @@ fun AppTheme(
             typography = Typography,
             content = {
                 content()
-                StatusBarOverlay()
+                statusBarOverlay()
             },
         )
     }
@@ -83,7 +83,7 @@ object WidgetColorScheme {
     fun colors(
         context: Context? = null,
         dynamicColor: Boolean = false,
-    ): ColorProviders {
+    ): GlanceColorProviders {
         val (light, dark) = when {
             dynamicColor -> {
                 context
@@ -98,9 +98,6 @@ object WidgetColorScheme {
             else -> LightColors to DarkColors
         }
 
-        return ColorProviders(
-            light = light,
-            dark = dark,
-        )
+        return ColorProviders(light, dark)
     }
 }

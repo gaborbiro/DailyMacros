@@ -29,6 +29,7 @@ import dev.gaborbiro.dailymacros.data.file.domain.FileStore
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.AppTheme
+import dev.gaborbiro.dailymacros.features.common.StatusBarOverlay
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.common.DateUIMapper
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
@@ -219,7 +220,7 @@ class ModalActivity : AppCompatActivity() {
         setContent {
             val viewState by viewModel.uiState.collectAsStateWithLifecycle()
 
-            AppTheme {
+            AppTheme(statusBarOverlay = { StatusBarOverlay() }) {
                 CompositionLocalProvider(LocalImageStore provides imageStore) {
                     val errorMessages = remember {
                         viewModel.uiUpdates
@@ -417,21 +418,6 @@ private fun ImageInputView(
             }
         }
 
-//        ImageInputType.QuickPhoto -> {
-//            val activity = LocalActivity.current!!
-//            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-//                val filename = "temp.$DefaultFoodPicExt"
-//                val uri = cacheFileStore.getOrCreateFile(filename).toUri()
-//                val file = cacheFileStore.resolveFile(filename)
-//                QuickCaptureScreen(file = file) {
-//                    viewModel.onImageSelected(uri, imageInput)
-//                }
-//            } else {
-//                ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.CAMERA), 1001)
-//                viewModel.onNoImageSelected()
-//            }
-//        }
-
         is ImageInputType.BrowseImages -> {
             val launcher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.PickMultipleVisualMedia(),
@@ -449,110 +435,3 @@ private fun ImageInputView(
         }
     }
 }
-
-//@Composable
-//fun QuickCaptureScreen(
-//    modifier: Modifier = Modifier,
-//    file: File,
-//    onImageCaptured: () -> Unit,
-//) {
-//    val context = LocalContext.current
-//    val lifecycleOwner = LocalLifecycleOwner.current
-//    var imageCapture: ImageCapture? by remember { mutableStateOf(null) }
-//
-//    Box(modifier = modifier.fillMaxSize()) {
-//
-//        AndroidView(
-//            modifier = Modifier.fillMaxSize(),
-//            factory = { ctx ->
-//                val previewView = PreviewView(ctx).apply {
-//                    layoutParams = ViewGroup.LayoutParams(
-//                        ViewGroup.LayoutParams.MATCH_PARENT,
-//                        ViewGroup.LayoutParams.MATCH_PARENT
-//                    )
-//                    // force cropping to fill
-//                    scaleType = PreviewView.ScaleType.FILL_CENTER
-//                }
-//
-//                val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
-//                cameraProviderFuture.addListener({
-//                    val cameraProvider = cameraProviderFuture.get()
-//
-//                    val metrics = ctx.resources.displayMetrics
-//                    val screenSize = Size(metrics.widthPixels, metrics.heightPixels)
-//                    val rotation = previewView.display?.rotation ?: Surface.ROTATION_0
-//
-//                    val preview = Preview.Builder()
-//                        .setTargetResolution(screenSize)
-//                        .setTargetRotation(rotation)
-//                        .build()
-//                        .also { it.surfaceProvider = previewView.surfaceProvider }
-//
-//                    imageCapture = ImageCapture.Builder()
-//                        .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-//                        .setTargetResolution(screenSize)
-//                        .setTargetRotation(rotation)
-//                        .build()
-//
-//                    try {
-//                        cameraProvider.unbindAll()
-//                        cameraProvider.bindToLifecycle(
-//                            lifecycleOwner,
-//                            CameraSelector.DEFAULT_BACK_CAMERA,
-//                            preview,
-//                            imageCapture
-//                        )
-//                    } catch (exc: Exception) {
-//                        exc.printStackTrace()
-//                    }
-//                }, ContextCompat.getMainExecutor(ctx))
-//
-//                previewView
-//            }
-//        )
-//
-//        DisposableEffect(imageCapture) {
-//            val listener = object : OrientationEventListener(context) {
-//                override fun onOrientationChanged(orientation: Int) {
-//                    val rotation = when (orientation) {
-//                        in 45..134 -> Surface.ROTATION_270
-//                        in 135..224 -> Surface.ROTATION_180
-//                        in 225..314 -> Surface.ROTATION_90
-//                        else -> Surface.ROTATION_0
-//                    }
-//                    imageCapture?.targetRotation = rotation
-//                }
-//            }
-//            listener.enable()
-//
-//            onDispose { listener.disable() }
-//        }
-//
-//        Button(
-//            onClick = {
-//                val outputOptions = ImageCapture.OutputFileOptions.Builder(file).build()
-//                imageCapture?.takePicture(
-//                    outputOptions,
-//                    ContextCompat.getMainExecutor(context),
-//                    object : ImageCapture.OnImageSavedCallback {
-//                        override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-//                            onImageCaptured()
-//                        }
-//
-//                        override fun onError(exc: ImageCaptureException) {
-//                            exc.printStackTrace()
-//                        }
-//                    }
-//                )
-//            },
-//            modifier = Modifier
-//                .align(Alignment.BottomCenter)
-//                .padding(32.dp)
-//                .size(80.dp),
-//            shape = CircleShape,
-//            contentPadding = PaddingValues(0.dp),
-//        ) {
-//            Text("●", fontSize = 32.sp)
-//        }
-//    }
-//}

@@ -11,10 +11,8 @@ import androidx.glance.appwidget.action.actionRunCallback
 import dev.gaborbiro.dailymacros.features.main.MainActivity
 import dev.gaborbiro.dailymacros.features.modal.ModalActivity
 
-
 private const val PREFS_KEY_RECORD = "recordId"
 private const val PREFS_KEY_TEMPLATE = "templateId"
-
 
 internal interface WidgetActionProvider {
 

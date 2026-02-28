@@ -4,61 +4,12 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Matrix
 import android.graphics.Paint
 import android.util.DisplayMetrics
-import android.view.Surface
 import androidx.compose.ui.unit.Dp
 import androidx.core.graphics.createBitmap
 import kotlin.math.pow
 import kotlin.random.Random
-
-
-fun correctBitmap(
-    currentScreenRotation: Int,
-    bitmap: Bitmap,
-    correctRotation: Boolean,
-    scaleDown: Boolean,
-): Bitmap {
-    val rotateAngle = if (correctRotation) {
-        when (currentScreenRotation) {
-            Surface.ROTATION_0 -> 0f
-            Surface.ROTATION_90 -> 90f
-            Surface.ROTATION_180 -> 180f
-            Surface.ROTATION_270 -> 90f
-            else -> 0f
-        }
-    } else {
-        0f
-    }
-    return modifyImage(
-        bitmap,
-        rotateAngle,
-        if (scaleDown) 640 else null
-    )
-}
-
-fun modifyImage(source: Bitmap, rotateAngle: Float, maxWidthPx: Int?): Bitmap {
-    val matrix = Matrix()
-    if (rotateAngle != 0f) {
-        matrix.postRotate(rotateAngle)
-    }
-    if (maxWidthPx != null) {
-        val scale = maxWidthPx / source.width.toFloat()
-        if (scale < 1f) {
-            matrix.postScale(scale, scale)
-        }
-    }
-    return Bitmap.createBitmap(
-        source,
-        0,
-        0,
-        source.width,
-        source.height,
-        matrix,
-        true
-    )
-}
 
 fun Dp.px(context: Context): Float {
     return context.dpToPixel(this.value)
@@ -113,6 +64,7 @@ fun bestContrastingTextColor(
         contrastWithWhite >= minContrastRatio || contrastWithBlack >= minContrastRatio -> {
             if (contrastWithWhite >= contrastWithBlack) white else black
         }
+
         else -> {
             // Neither meets the threshold: pick the better one anyway.
             if (contrastWithWhite >= contrastWithBlack) white else black
@@ -144,6 +96,7 @@ fun relativeLuminance(color: Int): Double {
             ((srgb + 0.055) / 1.055).pow(2.4)
         }
     }
+
     val r = channel(Color.red(color))
     val g = channel(Color.green(color))
     val b = channel(Color.blue(color))
