@@ -16,7 +16,7 @@ import dev.gaborbiro.dailymacros.features.common.message
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
-import dev.gaborbiro.dailymacros.features.modal.model.ModalUIUpdates
+import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiState
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateValidationResult
@@ -77,8 +77,8 @@ internal class ModalViewModel(
     private val _uiState = MutableStateFlow(ModalUiState())
     val uiState: StateFlow<ModalUiState> = _uiState.asStateFlow()
 
-    private val _uiUpdates = Channel<ModalUIUpdates>(Channel.BUFFERED)
-    val uiUpdates: Flow<ModalUIUpdates> = _uiUpdates.receiveAsFlow()
+    private val _uiUpdates = Channel<ModalUiUpdates>(Channel.BUFFERED)
+    val uiUpdates: Flow<ModalUiUpdates> = _uiUpdates.receiveAsFlow()
 
     private var recogniseFoodJob: Job? = null
 
@@ -581,7 +581,7 @@ internal class ModalViewModel(
         }
         viewModelScope.launch {
             _uiUpdates.send(
-                ModalUIUpdates.Error(
+                ModalUiUpdates.Error(
                     message?.ellipsize(
                         300
                     )

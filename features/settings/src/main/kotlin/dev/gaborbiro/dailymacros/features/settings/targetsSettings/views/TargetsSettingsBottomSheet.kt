@@ -51,7 +51,7 @@ import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.FieldErrors
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.MacroType
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetUiModel
-import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetsSettingsUiEvents
+import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetsSettingsUiUpdates
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetsSettingsUiState
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.ValidationError
 import dev.gaborbiro.dailymacros.features.settings.util.verticalScrollWithBar
@@ -64,7 +64,7 @@ import kotlinx.coroutines.flow.emptyFlow
 @Composable
 internal fun TargetsSettingsBottomSheet(
     viewState: TargetsSettingsUiState,
-    events: Flow<TargetsSettingsUiEvents>,
+    events: Flow<TargetsSettingsUiUpdates>,
     onDismissRequested: () -> Unit,
     onTargetChanged: (MacroType, TargetUiModel) -> Unit,
     onResetTapped: () -> Unit,
@@ -79,12 +79,12 @@ internal fun TargetsSettingsBottomSheet(
     LaunchedEffect(Unit) {
         events.collect { event ->
             when (event) {
-                TargetsSettingsUiEvents.Show -> sheetState.show()
-                TargetsSettingsUiEvents.Hide -> {
+                TargetsSettingsUiUpdates.Show -> sheetState.show()
+                TargetsSettingsUiUpdates.Hide -> {
                     sheetState.hide()
                     onDismissRequested()
                 }
-                TargetsSettingsUiEvents.Close -> {
+                TargetsSettingsUiUpdates.Close -> {
                     // nothing to do
                 }
             }

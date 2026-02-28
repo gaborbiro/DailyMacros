@@ -39,7 +39,7 @@ import dev.gaborbiro.dailymacros.features.common.views.InfoDialog
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
-import dev.gaborbiro.dailymacros.features.modal.model.ModalUIUpdates
+import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
@@ -224,7 +224,7 @@ class ModalActivity : AppCompatActivity() {
                 CompositionLocalProvider(LocalImageStore provides imageStore) {
                     val errorMessages = remember {
                         viewModel.uiUpdates
-                            .filterIsInstance<ModalUIUpdates.Error>()
+                            .filterIsInstance<ModalUiUpdates.Error>()
                             .map { it.message }
                     }
                     listOfNotNull(viewState.rootDialog, viewState.overlayDialog).forEach {

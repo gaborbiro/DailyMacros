@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetsSettingsUiEvents
+import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetsSettingsUiUpdates
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.views.TargetsSettingsBottomSheet
 
 @Composable
@@ -16,7 +16,7 @@ internal fun TargetsSettingsScreen(
 
     TargetsSettingsBottomSheet(
         viewState = viewState,
-        events = viewModel.uiEvents,
+        events = viewModel.uiUpdates,
         onDismissRequested = onCloseRequested,
         onTargetChanged = viewModel::onTargetChanged,
         onResetTapped = viewModel::onTargetsResetTapped,
@@ -26,9 +26,9 @@ internal fun TargetsSettingsScreen(
     )
 
     LaunchedEffect(viewModel) {
-        viewModel.uiEvents.collect { event ->
+        viewModel.uiUpdates.collect { event ->
             when (event) {
-                TargetsSettingsUiEvents.Close -> onCloseRequested()
+                TargetsSettingsUiUpdates.Close -> onCloseRequested()
                 else -> {
                     // nothing to do
                 }

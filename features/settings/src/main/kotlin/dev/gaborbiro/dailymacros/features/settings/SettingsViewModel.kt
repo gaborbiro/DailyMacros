@@ -26,8 +26,8 @@ class SettingsViewModel(
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
-    private val _uiEvents = MutableSharedFlow<SettingsUiEvents>()
-    val uiEvents: SharedFlow<SettingsUiEvents> = _uiEvents.asSharedFlow()
+    private val _uiUpdates = MutableSharedFlow<SettingsUiUpdates>()
+    val uiUpdates: SharedFlow<SettingsUiUpdates> = _uiUpdates.asSharedFlow()
 
     fun onBackNavigateRequested() {
         _uiState.value = SettingsUiState(
@@ -35,7 +35,7 @@ class SettingsViewModel(
             bottomLabel = appInfo.versionLabel,
         )
         viewModelScope.launch {
-            _uiEvents.emit(SettingsUiEvents.NavigateBack)
+            _uiUpdates.emit(SettingsUiUpdates.NavigateBack)
         }
     }
 

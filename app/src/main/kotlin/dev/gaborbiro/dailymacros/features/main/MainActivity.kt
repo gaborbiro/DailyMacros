@@ -40,12 +40,12 @@ import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.SharedRecordsUIMapper
 import dev.gaborbiro.dailymacros.features.common.viewModelFactory
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
-import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiEvents
+import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiUpdates
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewUiMapper
 import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
 import dev.gaborbiro.dailymacros.features.modal.ModalActivity
-import dev.gaborbiro.dailymacros.features.settings.SettingsUiEvents
+import dev.gaborbiro.dailymacros.features.settings.SettingsUiUpdates
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
 import dev.gaborbiro.dailymacros.features.settings.SettingsAppInfo
@@ -54,7 +54,7 @@ import dev.gaborbiro.dailymacros.features.settings.export.SharePublicUriLauncher
 import dev.gaborbiro.dailymacros.features.settings.export.StreamWriter
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsViewModel
-import dev.gaborbiro.dailymacros.features.trends.TrendsUiEvents
+import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiUpdates
 import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
 import dev.gaborbiro.dailymacros.features.trends.TrendsUiMapper
 import dev.gaborbiro.dailymacros.features.trends.TrendsViewModel
@@ -160,12 +160,12 @@ class MainActivity : ComponentActivity() {
                     ) {
                         val context = LocalContext.current
                         LaunchedEffect(overviewViewModel) {
-                            overviewViewModel.uiEvents.collect { event ->
+                            overviewViewModel.uiUpdates.collect { event ->
                                 when (event) {
-                                    is OverviewUiEvents.EditRecord -> ModalActivity.launchViewRecordDetails(context, event.recordId)
-                                    is OverviewUiEvents.ViewImage -> ModalActivity.launchToShowRecordImage(context, event.recordId)
-                                    OverviewUiEvents.OpenSettingsScreen -> navController.navigate(SETTINGS_ROUTE)
-                                    OverviewUiEvents.OpenTrendsScreen -> navController.navigate(TRENDS_ROUTE)
+                                    is OverviewUiUpdates.EditRecord -> ModalActivity.launchViewRecordDetails(context, event.recordId)
+                                    is OverviewUiUpdates.ViewImage -> ModalActivity.launchToShowRecordImage(context, event.recordId)
+                                    OverviewUiUpdates.OpenSettingsScreen -> navController.navigate(SETTINGS_ROUTE)
+                                    OverviewUiUpdates.OpenTrendsScreen -> navController.navigate(TRENDS_ROUTE)
                                 }
                             }
                         }
@@ -191,9 +191,9 @@ class MainActivity : ComponentActivity() {
                         },
                     ) {
                         LaunchedEffect(settingsViewModel) {
-                            settingsViewModel.uiEvents.collect { event ->
+                            settingsViewModel.uiUpdates.collect { event ->
                                 when (event) {
-                                    SettingsUiEvents.NavigateBack -> navController.popBackStack()
+                                    SettingsUiUpdates.NavigateBack -> navController.popBackStack()
                                 }
                             }
                         }
@@ -220,9 +220,9 @@ class MainActivity : ComponentActivity() {
                         },
                     ) {
                         LaunchedEffect(trendsViewModel) {
-                            trendsViewModel.uiEvents.collect { event ->
+                            trendsViewModel.uiUpdates.collect { event ->
                                 when (event) {
-                                    TrendsUiEvents.NavigateBack -> navController.popBackStack()
+                                    TrendsUiUpdates.NavigateBack -> navController.popBackStack()
                                 }
                             }
                         }

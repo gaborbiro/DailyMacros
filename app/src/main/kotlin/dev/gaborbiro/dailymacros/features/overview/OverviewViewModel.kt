@@ -8,7 +8,7 @@ import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
-import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiEvents
+import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiUpdates
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiState
 import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
@@ -45,8 +45,8 @@ internal class OverviewViewModel(
         MutableStateFlow(OverviewUiState())
     val viewState: StateFlow<OverviewUiState> = _viewState.asStateFlow()
 
-    private val _uiEvents = MutableSharedFlow<OverviewUiEvents>()
-    val uiEvents: SharedFlow<OverviewUiEvents> = _uiEvents.asSharedFlow()
+    private val _uiUpdates = MutableSharedFlow<OverviewUiUpdates>()
+    val uiUpdates: SharedFlow<OverviewUiUpdates> = _uiUpdates.asSharedFlow()
 
     private companion object {
         val PAGE_SIZE = 14.days
@@ -163,7 +163,7 @@ internal class OverviewViewModel(
 
     fun onDetailsMenuItemTapped(recordId: Long) {
         viewModelScope.launch {
-            _uiEvents.emit(OverviewUiEvents.EditRecord(recordId))
+            _uiUpdates.emit(OverviewUiUpdates.EditRecord(recordId))
         }
     }
 
@@ -194,13 +194,13 @@ internal class OverviewViewModel(
 
     fun onRecordImageTapped(recordId: Long) {
         viewModelScope.launch {
-            _uiEvents.emit(OverviewUiEvents.ViewImage(recordId))
+            _uiUpdates.emit(OverviewUiUpdates.ViewImage(recordId))
         }
     }
 
     fun onRecordBodyTapped(recordId: Long) {
         viewModelScope.launch {
-            _uiEvents.emit(OverviewUiEvents.EditRecord(recordId))
+            _uiUpdates.emit(OverviewUiUpdates.EditRecord(recordId))
         }
     }
 
@@ -227,7 +227,7 @@ internal class OverviewViewModel(
 
     fun onSettingsButtonTapped() {
         viewModelScope.launch {
-            _uiEvents.emit(OverviewUiEvents.OpenSettingsScreen)
+            _uiUpdates.emit(OverviewUiUpdates.OpenSettingsScreen)
         }
         _viewState.update {
             it.copy(
@@ -238,7 +238,7 @@ internal class OverviewViewModel(
 
     fun onTrendsButtonTapped() {
         viewModelScope.launch {
-            _uiEvents.emit(OverviewUiEvents.OpenTrendsScreen)
+            _uiUpdates.emit(OverviewUiUpdates.OpenTrendsScreen)
         }
     }
 

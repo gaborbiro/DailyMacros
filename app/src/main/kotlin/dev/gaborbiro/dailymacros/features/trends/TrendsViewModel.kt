@@ -6,6 +6,7 @@ import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
 import dev.gaborbiro.dailymacros.features.trends.model.Timescale
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsSettingsUIModel
+import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiUpdates
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiState
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import kotlinx.coroutines.Job
@@ -30,8 +31,8 @@ internal class TrendsViewModel(
     private val _uiState = MutableStateFlow(TrendsUiState())
     val uiState: StateFlow<TrendsUiState> = _uiState.asStateFlow()
 
-    private val _uiEvents = MutableSharedFlow<TrendsUiEvents>()
-    val uiEvents: SharedFlow<TrendsUiEvents> = _uiEvents.asSharedFlow()
+    private val _uiUpdates = MutableSharedFlow<TrendsUiUpdates>()
+    val uiUpdates: SharedFlow<TrendsUiUpdates> = _uiUpdates.asSharedFlow()
 
     init {
         recordsJob = observeRecords(Timescale.DAYS)
@@ -44,7 +45,7 @@ internal class TrendsViewModel(
 
     fun onBackNavigate() {
         viewModelScope.launch {
-            _uiEvents.emit(TrendsUiEvents.NavigateBack)
+            _uiUpdates.emit(TrendsUiUpdates.NavigateBack)
         }
     }
 

@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.FieldErrors
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.MacroType
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetUiModel
-import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetsSettingsUiEvents
+import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetsSettingsUiUpdates
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetsSettingsUiState
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.ValidationError
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
@@ -25,8 +25,8 @@ class TargetsSettingsViewModel(
     private val _uiState = MutableStateFlow(TargetsSettingsUiState())
     val uiState: StateFlow<TargetsSettingsUiState> = _uiState.asStateFlow()
 
-    private val _uiEvents = MutableSharedFlow<TargetsSettingsUiEvents>()
-    val uiEvents = _uiEvents.asSharedFlow()
+    private val _uiUpdates = MutableSharedFlow<TargetsSettingsUiUpdates>()
+    val uiUpdates = _uiUpdates.asSharedFlow()
 
     private var savedTargets: TargetsSettingsUiState? = null
 
@@ -91,7 +91,7 @@ class TargetsSettingsViewModel(
             errors = emptyMap()
         )
         viewModelScope.launch {
-            _uiEvents.emit(TargetsSettingsUiEvents.Hide)
+            _uiUpdates.emit(TargetsSettingsUiUpdates.Hide)
         }
     }
 
@@ -101,7 +101,7 @@ class TargetsSettingsViewModel(
             it.copy(showExitDialog = false)
         }
         viewModelScope.launch {
-            _uiEvents.emit(TargetsSettingsUiEvents.Close)
+            _uiUpdates.emit(TargetsSettingsUiUpdates.Close)
         }
     }
 
@@ -110,7 +110,7 @@ class TargetsSettingsViewModel(
             it.copy(showExitDialog = false)
         }
         viewModelScope.launch {
-            _uiEvents.emit(TargetsSettingsUiEvents.Show)
+            _uiUpdates.emit(TargetsSettingsUiUpdates.Show)
         }
     }
 
@@ -128,7 +128,7 @@ class TargetsSettingsViewModel(
             }
         } else {
             viewModelScope.launch {
-                _uiEvents.emit(TargetsSettingsUiEvents.Close)
+                _uiUpdates.emit(TargetsSettingsUiUpdates.Close)
             }
         }
     }
