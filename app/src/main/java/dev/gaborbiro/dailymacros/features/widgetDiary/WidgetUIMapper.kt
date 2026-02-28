@@ -2,7 +2,7 @@ package dev.gaborbiro.dailymacros.features.widgetDiary
 
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPick
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 
 internal class WidgetUIMapper(
     private val nutrientsUIMapper: NutrientsUIMapper,

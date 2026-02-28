@@ -5,9 +5,9 @@ import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.RecordsMapper
 import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
 import dev.gaborbiro.dailymacros.features.modal.model.RecognisedFood
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.ChatGPTRepository
-import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTApiError
-import dev.gaborbiro.dailymacros.repo.chatgpt.toDomainModel
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
+import dev.gaborbiro.dailymacros.repositories.chatgpt.toDomainModel
 import dev.gaborbiro.dailymacros.util.showTextNotification
 import kotlin.random.Random
 

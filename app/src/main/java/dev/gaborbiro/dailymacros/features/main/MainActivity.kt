@@ -22,7 +22,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import dev.gaborbiro.dailymacros.AnalyticsLogger
+import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
@@ -52,11 +52,11 @@ import dev.gaborbiro.dailymacros.features.trends.TrendsNavigatorImpl
 import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
 import dev.gaborbiro.dailymacros.features.trends.TrendsUiMapper
 import dev.gaborbiro.dailymacros.features.trends.TrendsViewModel
-import dev.gaborbiro.dailymacros.repo.records.RecordsApiMapper
-import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
-import dev.gaborbiro.dailymacros.repo.requestStatus.RequestStatusRepositoryImpl
-import dev.gaborbiro.dailymacros.repo.settings.SettingsMapper
-import dev.gaborbiro.dailymacros.repo.settings.SettingsRepository
+import dev.gaborbiro.dailymacros.repositories.records.RecordsApiMapper
+import dev.gaborbiro.dailymacros.repositories.records.RecordsRepositoryImpl
+import dev.gaborbiro.dailymacros.repositories.requestStatus.RequestStatusRepositoryImpl
+import dev.gaborbiro.dailymacros.repositories.settings.SettingsMapper
+import dev.gaborbiro.dailymacros.repositories.settings.SettingsRepository
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {

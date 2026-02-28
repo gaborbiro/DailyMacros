@@ -2,7 +2,7 @@ package dev.gaborbiro.dailymacros.features.modal
 
 import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 
 internal class ModalUIMapper(
     private val nutrientsUIMapper: NutrientsUIMapper,

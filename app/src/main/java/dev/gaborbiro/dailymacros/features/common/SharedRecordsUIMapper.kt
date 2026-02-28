@@ -1,8 +1,8 @@
 package dev.gaborbiro.dailymacros.features.common
 
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 
 internal class SharedRecordsUIMapper(
     private val nutrientsUIMapper: NutrientsUIMapper,

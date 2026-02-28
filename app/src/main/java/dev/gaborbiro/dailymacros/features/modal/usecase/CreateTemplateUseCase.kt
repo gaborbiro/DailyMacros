@@ -1,8 +1,8 @@
 package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import androidx.annotation.UiThread
-import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
-import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateToSave
+import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
 
 internal class CreateTemplateUseCase(
     private val recordsRepository: RecordsRepository,

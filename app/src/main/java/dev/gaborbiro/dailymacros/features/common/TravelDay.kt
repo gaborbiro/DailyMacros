@@ -1,6 +1,6 @@
 package dev.gaborbiro.dailymacros.features.common
 
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import java.time.Duration
 import java.time.LocalDate
 import java.time.ZoneId

@@ -6,9 +6,9 @@ import dev.gaborbiro.dailymacros.features.common.model.DailySummaryEntry
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelDailySummary
 import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.common.model.NutrientsUiModel
-import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateNutrientBreakdown
-import dev.gaborbiro.dailymacros.repo.settings.model.Target
-import dev.gaborbiro.dailymacros.repo.settings.model.Targets
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
+import dev.gaborbiro.dailymacros.repositories.settings.model.Target
+import dev.gaborbiro.dailymacros.repositories.settings.model.Targets
 import kotlin.math.absoluteValue
 
 internal class NutrientsUIMapper(
@@ -66,13 +66,15 @@ internal class NutrientsUIMapper(
 
         return buildList {
             targets.calories.takeIf { it.enabled }?.let {
-                val min = if (it.min != null) {
-                    DecimalFormat(".#").format(it.min / 1000f)
+                val minVal = it.min
+                val maxVal = it.max
+                val min = if (minVal != null) {
+                    DecimalFormat(".#").format(minVal / 1000f)
                 } else {
                     "?"
                 }
-                val max = if (it.max != null) {
-                    DecimalFormat(".#").format(it.max / 1000f)
+                val max = if (maxVal != null) {
+                    DecimalFormat(".#").format(maxVal / 1000f)
                 } else {
                     "?"
                 }
@@ -379,15 +381,18 @@ internal class NutrientsUIMapper(
 
     fun targetProgress(target: Target, total: Float): Float? = target.max?.let { total / it }
 
-    fun targetRange(target: Target): Range<Float> =
-        Range(
-            /* lower = */ if (target.min != null && target.max != null) {
-                target.min.toFloat() / target.max.toFloat()
+    fun targetRange(target: Target): Range<Float> {
+        val min = target.min
+        val max = target.max
+        return Range(
+            /* lower = */ if (min != null && max != null) {
+                min.toFloat() / max.toFloat()
             } else {
                 0f
             },
             /* upper = */ 1f
         )
+    }
 
     private fun formatMacroAmount(
         value: Number,

@@ -4,7 +4,7 @@ import com.google.gson.GsonBuilder
 import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.SharePublicUriLauncher
 import dev.gaborbiro.dailymacros.features.settings.export.StreamWriter
-import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import java.io.OutputStream
 import java.time.ZonedDateTime
 

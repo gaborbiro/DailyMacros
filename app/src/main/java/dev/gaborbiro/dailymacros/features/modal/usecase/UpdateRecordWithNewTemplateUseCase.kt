@@ -1,8 +1,8 @@
 package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import androidx.annotation.UiThread
-import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 
 /**
  * Creates a new template and updates the specified record with it.

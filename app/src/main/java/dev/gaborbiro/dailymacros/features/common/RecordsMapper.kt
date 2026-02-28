@@ -2,14 +2,14 @@ package dev.gaborbiro.dailymacros.features.common
 
 import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.modal.model.RecognisedFood
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodRecognitionRequest
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.FoodRecognitionResult
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientAnalysisRequest
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientAnalysisResult
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.model.NutrientsApiModel
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
-import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateNutrientBreakdown
-import dev.gaborbiro.dailymacros.repo.records.domain.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisResult
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientsApiModel
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
 
 internal class RecordsMapper(
     private val nutrientsUIMapper: NutrientsUIMapper,

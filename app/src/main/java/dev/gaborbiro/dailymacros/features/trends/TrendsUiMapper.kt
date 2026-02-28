@@ -6,7 +6,7 @@ import dev.gaborbiro.dailymacros.features.trends.model.ChartDataPoint
 import dev.gaborbiro.dailymacros.features.trends.model.ChartDataset
 import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsChartUiModel
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle

@@ -20,3 +20,6 @@ dependencyResolutionManagement {
 }
 rootProject.name = "DailyMacros"
 include(":app")
+include(":core:analytics")
+include(":repositories")
+include(":data")

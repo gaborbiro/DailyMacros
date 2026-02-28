@@ -1,6 +1,3 @@
-import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.ksp)
@@ -11,12 +8,12 @@ plugins {
 
 android {
     namespace = "dev.gaborbiro.dailymacros"
-    compileSdk = 36
+    compileSdk = libs.versions.android.sdk.compile.get().toInt()
 
     defaultConfig {
         applicationId = "dev.gaborbiro.dailymacros"
-        minSdk = 31
-        targetSdk = 35
+        minSdk = libs.versions.android.sdk.min.get().toInt()
+        targetSdk = libs.versions.android.sdk.target.get().toInt()
         versionName = "1.9.1"
         versionCode = 23
 
@@ -25,13 +22,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
-
-        ksp {
-            arg("room.schemaLocation", "$projectDir/schemas")
-        }
     }
-
-    val localProperties = gradleLocalProperties(rootDir, providers)
 
     signingConfigs {
         getByName("debug") {
@@ -42,18 +33,11 @@ android {
         }
     }
 
-    val chatGptApiKeyKey = "CHATGPT_API_KEY"
-    val chatGptApiKey = System.getenv(chatGptApiKeyKey)
-        ?: localProperties.getProperty(chatGptApiKeyKey)
-        ?: "missing $chatGptApiKeyKey"
-
     buildTypes {
         debug {
             isMinifyEnabled = false
             isShrinkResources = false
             isDebuggable = true
-
-            buildConfigField("String", chatGptApiKeyKey, "\"$chatGptApiKey\"")
 
             signingConfig = signingConfigs.getByName("debug")
         }
@@ -62,7 +46,6 @@ android {
             isShrinkResources = true
             isDebuggable = false
 
-            buildConfigField("String", chatGptApiKeyKey, "\"$chatGptApiKey\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -71,15 +54,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(
-                JvmTarget.JVM_17
-            )
-        }
+        sourceCompatibility = JavaVersion.toVersion(libs.versions.java.get())
+        targetCompatibility = JavaVersion.toVersion(libs.versions.java.get())
     }
     buildFeatures {
         compose = true
@@ -96,6 +72,10 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:analytics"))
+    implementation(project(":repositories"))
+    implementation(project(":data"))
+
     implementation(libs.androidx.core.ktx)
 
     implementation(platform(libs.androidx.compose.bom))
@@ -132,26 +112,11 @@ dependencies {
 
     implementation(libs.accompanist.navigation.animation)
 
-    implementation(libs.network.gson)
-
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
-
-    implementation(libs.network.retrofit)
-    implementation(libs.network.retrofit.converter.gson)
-    implementation(libs.network.okhttp)
-    implementation(libs.network.okhttp.logging.interceptor)
-    implementation(libs.network.okhttp.cookiejar)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.google.mlkit.image.labeling)
 
     implementation(libs.kotlinx.coroutines.guava)
     implementation(libs.google.guava)
-
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.crashlytics)
-    implementation(libs.firebase.analytics)
 
     implementation(libs.vico.compose)
     implementation(libs.vico.compose.m3)

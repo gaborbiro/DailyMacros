@@ -8,14 +8,14 @@ import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
 import dev.gaborbiro.dailymacros.features.widgetDiary.DiaryWidgetScreen
-import dev.gaborbiro.dailymacros.repo.chatgpt.domain.ChatGPTRepository
-import dev.gaborbiro.dailymacros.repo.chatgpt.service.model.ChatGPTApiError
-import dev.gaborbiro.dailymacros.repo.chatgpt.toDomainModel
-import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
-import dev.gaborbiro.dailymacros.repo.records.domain.model.TemplateNutrientBreakdown
-import dev.gaborbiro.dailymacros.repo.records.domain.model.TopContributors
-import dev.gaborbiro.dailymacros.repo.requestStatus.domain.RequestStatusRepository
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
+import dev.gaborbiro.dailymacros.repositories.chatgpt.toDomainModel
+import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.requestStatus.domain.RequestStatusRepository
 import dev.gaborbiro.dailymacros.util.showMacroResultsNotification
 
 internal class NutrientAnalysisUseCase(

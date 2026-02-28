@@ -10,15 +10,15 @@ import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkRequest
 import androidx.work.WorkerParameters
-import dev.gaborbiro.dailymacros.AnalyticsLogger
+import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
-import dev.gaborbiro.dailymacros.repo.records.RecordsApiMapper
-import dev.gaborbiro.dailymacros.repo.records.RecordsRepositoryImpl
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Template
-import dev.gaborbiro.dailymacros.repo.requestStatus.RequestStatusRepositoryImpl
+import dev.gaborbiro.dailymacros.repositories.records.RecordsApiMapper
+import dev.gaborbiro.dailymacros.repositories.records.RecordsRepositoryImpl
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
+import dev.gaborbiro.dailymacros.repositories.requestStatus.RequestStatusRepositoryImpl
 import java.time.ZonedDateTime
 
 internal class ReloadWorker(
@@ -27,7 +27,7 @@ internal class ReloadWorker(
 ) : CoroutineWorker(appContext, workerParameters) {
 
     private val analyticsLogger = AnalyticsLogger()
-    private val database by lazy { AppDatabase.Companion.getInstance() }
+    private val database by lazy { AppDatabase.getInstance() }
     private val fileStore by lazy { FileStoreFactoryImpl(appContext).getStore("public", keepFiles = true) }
     private val recordsRepository by lazy {
         RecordsRepositoryImpl(

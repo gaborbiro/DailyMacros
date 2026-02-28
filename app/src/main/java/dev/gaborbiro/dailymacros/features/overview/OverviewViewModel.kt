@@ -11,10 +11,10 @@ import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewViewState
 import dev.gaborbiro.dailymacros.features.widgetDiary.DiaryWidgetScreen
-import dev.gaborbiro.dailymacros.repo.records.domain.RecordsRepository
-import dev.gaborbiro.dailymacros.repo.records.domain.model.Record
-import dev.gaborbiro.dailymacros.repo.settings.SettingsRepository
-import dev.gaborbiro.dailymacros.repo.settings.model.Targets
+import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repositories.settings.SettingsRepository
+import dev.gaborbiro.dailymacros.repositories.settings.model.Targets
 import dev.gaborbiro.dailymacros.util.combine
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job

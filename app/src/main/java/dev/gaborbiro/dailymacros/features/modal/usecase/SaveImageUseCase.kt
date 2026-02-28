@@ -3,9 +3,9 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 import android.content.Context
 import android.graphics.ImageDecoder
 import android.net.Uri
-import dev.gaborbiro.dailymacros.FoodPicMaxSize
+import dev.gaborbiro.dailymacros.data.FoodPicMaxSize
+import dev.gaborbiro.dailymacros.data.generateFoodPicFilename
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
-import dev.gaborbiro.dailymacros.generateFoodPicFilename
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
