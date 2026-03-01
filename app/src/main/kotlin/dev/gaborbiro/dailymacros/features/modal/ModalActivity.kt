@@ -31,9 +31,9 @@ import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.features.common.StatusBarOverlay
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
-import dev.gaborbiro.dailymacros.features.common.DateUIMapper
+import dev.gaborbiro.dailymacros.features.common.DateUiMapper
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
-import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
+import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.views.InfoDialog
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
@@ -163,10 +163,10 @@ class ModalActivity : AppCompatActivity() {
             service = retrofit.create(ChatGPTService::class.java)
         )
 
-        val dateUIMapper = DateUIMapper()
-        val nutrientsUIMapper = NutrientsUIMapper(dateUIMapper)
-        val recordsMapper = RecordsMapper(nutrientsUIMapper)
-        val modalUIMapper = ModalUIMapper(nutrientsUIMapper)
+        val dateUiMapper = DateUiMapper()
+        val nutrientsUiMapper = NutrientsUiMapper(dateUiMapper)
+        val recordsMapper = RecordsMapper(nutrientsUiMapper)
+        val modalUiMapper = ModalUiMapper(nutrientsUiMapper)
         val deleteRecordUseCase = DeleteRecordUseCase(recordsRepository)
         val createRecordFromTemplateUseCase = CreateRecordFromTemplateUseCase(recordsRepository)
         val createTemplateUseCase = CreateTemplateUseCase(recordsRepository)
@@ -188,7 +188,7 @@ class ModalActivity : AppCompatActivity() {
             getTemplateImageUseCase = GetTemplateImageUseCase(recordsRepository),
             foodRecognitionUseCase = FoodRecognitionUseCase(this, imageStore, chatGPTRepository, recordsMapper),
             deleteRecordUseCase = deleteRecordUseCase,
-            uiMapper = modalUIMapper,
+            uiMapper = modalUiMapper,
             analyticsLogger = analyticsLogger,
         )
     }

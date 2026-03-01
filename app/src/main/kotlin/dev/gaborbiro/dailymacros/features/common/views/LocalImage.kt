@@ -8,19 +8,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
-import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
-
-val LocalImageStore = staticCompositionLocalOf<ImageStore> {
-    error("LocalImageStore not provided")
-}
-
 @Composable
 fun LocalImage(
     name: String,

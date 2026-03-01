@@ -1,7 +1,6 @@
 package dev.gaborbiro.dailymacros.features.trends
 
 import androidx.compose.ui.graphics.Color
-import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.trends.model.ChartDataPoint
 import dev.gaborbiro.dailymacros.features.trends.model.ChartDataset
 import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
@@ -13,8 +12,8 @@ import java.time.format.TextStyle
 import java.time.temporal.WeekFields
 import java.util.Locale
 
-internal class TrendsUiMapper(
-    private val appPrefs: AppPrefs,
+class TrendsUiMapper(
+    private val preferences: TrendsPreferences,
 ) {
 
     fun mapDaysCharts(
@@ -235,19 +234,6 @@ internal class TrendsUiMapper(
         )
     }
 
-    /**
-     * Returns the days within a period that should count toward the average (i.e. the denominator).
-     *
-     * Which days "count" depends on [dayQualifier]:
-     * - [DayQualifier.ALL_CALENDAR_DAYS]: every calendar day in the period.
-     * - [DayQualifier.ONLY_LOGGED_DAYS]: only days that have at least one record.
-     * - [DayQualifier.ONLY_QUALIFIED_DAYS]: only days whose total calories meet [AppPrefs.qualifyingCalorieThreshold]
-     *
-     * @param records records from the given [calendarDays].
-     * @param calendarDays the full set of calendar days to be considered.
-     * @param dayQualifier which filtering strategy to apply.
-     * @return the subset of days that contribute to the period's average.
-     */
     private fun contributingDays(
         records: List<Record>,
         calendarDays: List<LocalDate>,
@@ -267,7 +253,7 @@ internal class TrendsUiMapper(
                 val calorieTotals = calorieTotalsByDay(records)
 
                 calorieTotals
-                    .filterValues { it >= appPrefs.qualifyingCalorieThreshold }
+                    .filterValues { it >= preferences.qualifyingCalorieThreshold }
                     .keys
                     .toList()
             }
@@ -284,30 +270,6 @@ internal class TrendsUiMapper(
             .groupBy({ it.first }, { it.second })
             .mapValues { (_, values) -> values.sum() }
 
-    /**
-     * Computes the average daily nutrient intake per time period, producing chart-ready data points.
-     *
-     * Completed periods:
-     * - Average is computed over days returned by [contributingDaysProvider]
-     *   (days with no or below threshold records contribute 0).
-     *
-     * Current (in-progress) period behavior depends on [currentPeriodCalculationMode]:
-     * - [CurrentPeriodCalculationMode.Hidden]: the current period is excluded (returned as `null`).
-     * - [CurrentPeriodCalculationMode.Default]: averaged the same way as completed periods.
-     * - [CurrentPeriodCalculationMode.Projected]: averaged over elapsed days only
-     *   (returned by [CurrentPeriodCalculationMode.Projected.elapsedDaysProvider]).
-     *   Requires at least [CurrentPeriodCalculationMode.Projected.minElapsedDays] days; otherwise `null`.
-     *   This prevents the current period being artificially deflated by future days being treated as 0.
-     *
-     * @param K the type of period key (e.g. [YearMonth], [LocalDate], or an iso-week pair).
-     * @param timeRange ordered list of time period keys defining the x-axis of the chart.
-     * @param records records pre-grouped by the same period keys.
-     * @param contributingDaysProvider days that contribute to completed-period averages (denominator).
-     * @param currentPeriodCalculationMode controls how the current period is handled. See [CurrentPeriodCalculationMode].
-     * @param valueProvider extracts the nutrient value from a [Record], or `null` if absent.
-     * @param labelProvider produces the human-readable x-axis label for a period.
-     * @return a pair of (completed data points, current-period data point or `null`).
-     */
     private fun <K> computePeriodAverages(
         timeRange: List<K>,
         records: Map<K, List<Record>>,
@@ -391,17 +353,14 @@ internal class TrendsUiMapper(
     private sealed class CurrentPeriodCalculationMode<K>(
         open val isCurrentPeriod: (K) -> Boolean,
     ) {
-        /** Don't show the current period at all. */
         data class Hidden<K>(
             override val isCurrentPeriod: (K) -> Boolean,
         ) : CurrentPeriodCalculationMode<K>(isCurrentPeriod)
 
-        /** Show the raw average so far, same calculation as completed periods. */
         data class Default<K>(
             override val isCurrentPeriod: (K) -> Boolean,
         ) : CurrentPeriodCalculationMode<K>(isCurrentPeriod)
 
-        /** Extrapolate from elapsed days to project a full-period average. */
         data class Projected<K>(
             val elapsedDaysProvider: (@UnsafeVariance K) -> List<LocalDate>,
             val minElapsedDays: Int = 2,
@@ -424,17 +383,17 @@ internal class TrendsUiMapper(
 
     fun map(mode: DayQualifier): String {
         return when (mode) {
-            DayQualifier.ALL_CALENDAR_DAYS -> AppPrefs.DAY_QUALIFICATION_MODE_ALL_CALENDAR_DAYS
-            DayQualifier.ONLY_LOGGED_DAYS -> AppPrefs.DAY_QUALIFICATION_MODE_ONLY_LOGGED_DAYS
-            DayQualifier.ONLY_QUALIFIED_DAYS -> AppPrefs.DAY_QUALIFICATION_MODE_ONLY_QUALIFIED_DAYS
+            DayQualifier.ALL_CALENDAR_DAYS -> TrendsPreferences.MODE_ALL_CALENDAR_DAYS
+            DayQualifier.ONLY_LOGGED_DAYS -> TrendsPreferences.MODE_ONLY_LOGGED_DAYS
+            DayQualifier.ONLY_QUALIFIED_DAYS -> TrendsPreferences.MODE_ONLY_QUALIFIED_DAYS
         }
     }
 
-    fun map(@AppPrefs.Companion.DayQualificationMode mode: String): DayQualifier {
+    fun map(mode: String): DayQualifier {
         return when (mode) {
-            AppPrefs.DAY_QUALIFICATION_MODE_ALL_CALENDAR_DAYS -> DayQualifier.ALL_CALENDAR_DAYS
-            AppPrefs.DAY_QUALIFICATION_MODE_ONLY_LOGGED_DAYS -> DayQualifier.ONLY_LOGGED_DAYS
-            AppPrefs.DAY_QUALIFICATION_MODE_ONLY_QUALIFIED_DAYS -> DayQualifier.ONLY_QUALIFIED_DAYS
+            TrendsPreferences.MODE_ALL_CALENDAR_DAYS -> DayQualifier.ALL_CALENDAR_DAYS
+            TrendsPreferences.MODE_ONLY_LOGGED_DAYS -> DayQualifier.ONLY_LOGGED_DAYS
+            TrendsPreferences.MODE_ONLY_QUALIFIED_DAYS -> DayQualifier.ONLY_QUALIFIED_DAYS
             else -> error("Unexpected day qualification mode: $mode")
         }
     }

@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 
 class TargetsSettingsViewModel(
     private val repo: SettingsRepository,
-    private val mapper: TargetsSettingsUIMapper = TargetsSettingsUIMapper(),
+    private val uiMapper: TargetsSettingsUiMapper = TargetsSettingsUiMapper(),
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TargetsSettingsUiState())
@@ -36,7 +36,7 @@ class TargetsSettingsViewModel(
 
     private fun load() {
         val loaded = repo.getTargets()
-        val targets = mapper.map(targets = loaded)
+        val targets = uiMapper.map(targets = loaded)
         savedTargets = targets
         _uiState.value = targets
     }
@@ -81,7 +81,7 @@ class TargetsSettingsViewModel(
             return
         }
 
-        repo.setTargets(mapper.map(current))
+        repo.setTargets(uiMapper.map(current))
         savedTargets = current
 
         _uiState.value = current.copy(
@@ -115,7 +115,7 @@ class TargetsSettingsViewModel(
     }
 
     fun onTargetsResetTapped() {
-        val saved = mapper.map(repo.getTargets())
+        val saved = uiMapper.map(repo.getTargets())
         savedTargets = saved
         _uiState.value = saved
     }

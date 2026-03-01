@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -34,9 +35,8 @@ import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
 internal fun TrendsSettingsBottomSheet(
     dayQualifier: DayQualifier,
     qualifiedDaysThreshold: Long,
@@ -114,7 +114,7 @@ internal fun TrendsSettingsBottomSheet(
                         ExposedDropdownMenuDefaults.textFieldColors(),
                 )
 
-                ExposedDropdownMenu(
+                DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
                 ) {

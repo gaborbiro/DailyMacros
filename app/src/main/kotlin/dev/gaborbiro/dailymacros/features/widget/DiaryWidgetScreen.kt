@@ -28,9 +28,9 @@ import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.design.WidgetColorScheme
-import dev.gaborbiro.dailymacros.features.common.DateUIMapper
-import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
-import dev.gaborbiro.dailymacros.features.common.SharedRecordsUIMapper
+import dev.gaborbiro.dailymacros.features.common.DateUiMapper
+import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
+import dev.gaborbiro.dailymacros.features.common.SharedRecordsUiMapper
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPickFooter
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPickHeader
@@ -78,14 +78,14 @@ class DiaryWidgetScreen : GlanceAppWidget() {
                         val fileStore =
                             FileStoreFactoryImpl(context).getStore("public", keepFiles = true)
                         val imageStore: ImageStore = ImageStoreImpl(fileStore)
-                        val dateUIMapper = DateUIMapper()
-                        val nutrientsUIMapper = NutrientsUIMapper(dateUIMapper)
-                        val recordsUIMapper = SharedRecordsUIMapper(nutrientsUIMapper, dateUIMapper)
-                        val widgetUIMapper = WidgetUIMapper(nutrientsUIMapper)
+                        val dateUiMapper = DateUiMapper()
+                        val nutrientsUiMapper = NutrientsUiMapper(dateUiMapper)
+                        val recordsUiMapper = SharedRecordsUiMapper(nutrientsUiMapper, dateUiMapper)
+                        val widgetUiMapper = WidgetUiMapper(nutrientsUiMapper)
 
                         val quickPicks = runCatching {
                             val recordsJSON = widgetPrefs[stringPreferencesKey(PREFS_QUICK_PICKS)]
-                            widgetUIMapper.map(
+                            widgetUiMapper.map(
                                 PersistenceMapper.deserializeTemplates(recordsJSON)
                             )
                         }.getOrNull() ?: emptyList()
@@ -93,7 +93,7 @@ class DiaryWidgetScreen : GlanceAppWidget() {
                         val recentRecords = runCatching {
                             val recordsJSON = widgetPrefs[stringPreferencesKey(PREFS_RECENT_RECORDS)]
                             PersistenceMapper.deserializeRecords(recordsJSON)
-                                .map(recordsUIMapper::map)
+                                .map(recordsUiMapper::map)
                         }.getOrNull() ?: emptyList()
 
                         val items = buildList {

@@ -12,9 +12,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.ActivityCompat
@@ -33,19 +31,16 @@ import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.features.common.StatusBarOverlay
 import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
-import dev.gaborbiro.dailymacros.features.common.DateUIMapper
-import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
+import dev.gaborbiro.dailymacros.features.common.DateUiMapper
+import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsMapper
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
-import dev.gaborbiro.dailymacros.features.common.SharedRecordsUIMapper
+import dev.gaborbiro.dailymacros.features.common.SharedRecordsUiMapper
 import dev.gaborbiro.dailymacros.features.common.viewModelFactory
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
-import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiUpdates
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewUiMapper
 import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
-import dev.gaborbiro.dailymacros.features.modal.ModalActivity
-import dev.gaborbiro.dailymacros.features.settings.SettingsUiUpdates
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
 import dev.gaborbiro.dailymacros.features.settings.SettingsAppInfo
@@ -54,7 +49,7 @@ import dev.gaborbiro.dailymacros.features.settings.export.SharePublicUriLauncher
 import dev.gaborbiro.dailymacros.features.settings.export.StreamWriter
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsViewModel
-import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiUpdates
+import dev.gaborbiro.dailymacros.features.trends.TrendsPreferencesImpl
 import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
 import dev.gaborbiro.dailymacros.features.trends.TrendsUiMapper
 import dev.gaborbiro.dailymacros.features.trends.TrendsViewModel
@@ -85,8 +80,8 @@ class MainActivity : ComponentActivity() {
             imageStore = imageStore,
             analyticsLogger = analyticsLogger,
         )
-        val dateUIMapper = DateUIMapper()
-        val nutrientsUIMapper = NutrientsUIMapper(dateUIMapper)
+        val dateUiMapper = DateUiMapper()
+        val nutrientsUiMapper = NutrientsUiMapper(dateUiMapper)
 
         val settingsRepository = SettingsRepositoryImpl(this@MainActivity, SettingsMapper())
         val appPrefs = AppPrefs(this@MainActivity)
@@ -112,15 +107,15 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme(statusBarOverlay = { StatusBarOverlay() }) {
                 val navController: NavHostController = rememberNavController()
-                val recordsUIMapper = SharedRecordsUIMapper(nutrientsUIMapper, dateUIMapper)
-                val recordsMapper = RecordsMapper(nutrientsUIMapper)
-                val overviewUIMapper = OverviewUiMapper(recordsUIMapper, nutrientsUIMapper, recordsMapper)
+                val recordsUiMapper = SharedRecordsUiMapper(nutrientsUiMapper, dateUiMapper)
+                val recordsMapper = RecordsMapper(nutrientsUiMapper)
+                val overviewUiMapper = OverviewUiMapper(recordsUiMapper, nutrientsUiMapper, recordsMapper)
                 val overviewViewModel = viewModelFactory {
                     OverviewViewModel(
                         recordsRepository = recordsRepository,
                         repeatRecordUseCase = repeatRecordUseCase,
                         settingsRepository = settingsRepository,
-                        uiMapper = overviewUIMapper,
+                        uiMapper = overviewUiMapper,
                         appPrefs = appPrefs,
                     )
                 }
@@ -143,11 +138,14 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
+                val trendsPreferences = remember {
+                    TrendsPreferencesImpl(this@MainActivity.applicationContext)
+                }
                 val trendsViewModel = viewModelFactory {
                     TrendsViewModel(
                         recordsRepository = recordsRepository,
-                        appPrefs = appPrefs,
-                        mapper = TrendsUiMapper(appPrefs),
+                        preferences = trendsPreferences,
+                        mapper = TrendsUiMapper(trendsPreferences),
                     )
                 }
 
@@ -158,19 +156,11 @@ class MainActivity : ComponentActivity() {
                     composable(
                         route = OVERVIEW_ROUTE,
                     ) {
-                        val context = LocalContext.current
-                        LaunchedEffect(overviewViewModel) {
-                            overviewViewModel.uiUpdates.collect { event ->
-                                when (event) {
-                                    is OverviewUiUpdates.EditRecord -> ModalActivity.launchViewRecordDetails(context, event.recordId)
-                                    is OverviewUiUpdates.ViewImage -> ModalActivity.launchToShowRecordImage(context, event.recordId)
-                                    OverviewUiUpdates.OpenSettingsScreen -> navController.navigate(SETTINGS_ROUTE)
-                                    OverviewUiUpdates.OpenTrendsScreen -> navController.navigate(TRENDS_ROUTE)
-                                }
-                            }
-                        }
                         CompositionLocalProvider(LocalImageStore provides imageStore) {
-                            OverviewScreen(overviewViewModel)
+                            OverviewScreen(
+                                viewModel = overviewViewModel,
+                                navController = navController,
+                            )
                         }
                     }
                     composable(
@@ -190,16 +180,10 @@ class MainActivity : ComponentActivity() {
                             )
                         },
                     ) {
-                        LaunchedEffect(settingsViewModel) {
-                            settingsViewModel.uiUpdates.collect { event ->
-                                when (event) {
-                                    SettingsUiUpdates.NavigateBack -> navController.popBackStack()
-                                }
-                            }
-                        }
                         SettingsScreen(
                             settingsViewModel = settingsViewModel,
                             targetsViewModel = targetsViewModel,
+                            navController = navController,
                         )
                     }
                     composable(
@@ -219,14 +203,10 @@ class MainActivity : ComponentActivity() {
                             )
                         },
                     ) {
-                        LaunchedEffect(trendsViewModel) {
-                            trendsViewModel.uiUpdates.collect { event ->
-                                when (event) {
-                                    TrendsUiUpdates.NavigateBack -> navController.popBackStack()
-                                }
-                            }
-                        }
-                        TrendsScreen(trendsViewModel)
+                        TrendsScreen(
+                            viewModel = trendsViewModel,
+                            navController = navController,
+                        )
                     }
                 }
             }

@@ -11,8 +11,8 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import kotlin.math.absoluteValue
 
-internal class NutrientsUIMapper(
-    private val dateUIMapper: DateUIMapper,
+internal class NutrientsUiMapper(
+    private val dateUiMapper: DateUiMapper,
 ) {
 
     fun mapDailyNutrientProgressTable(
@@ -51,7 +51,7 @@ internal class NutrientsUIMapper(
 
         return ListUiModelDailySummary(
             listItemId = day.day.atStartOfDay(day.startZone).toInstant().toEpochMilli(),
-            dayTitle = dateUIMapper.mapDayTitleTimestamp(day.day),
+            dayTitle = dateUiMapper.mapDayTitleTimestamp(day.day),
             infoMessage = infoMessage,
             entries = progressItems,
         )

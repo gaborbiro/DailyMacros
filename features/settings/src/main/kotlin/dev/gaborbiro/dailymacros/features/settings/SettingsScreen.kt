@@ -1,8 +1,11 @@
 package dev.gaborbiro.dailymacros.features.settings
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHostController
+import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsViewModel
 import dev.gaborbiro.dailymacros.features.settings.views.SettingsView
@@ -11,7 +14,16 @@ import dev.gaborbiro.dailymacros.features.settings.views.SettingsView
 fun SettingsScreen(
     settingsViewModel: SettingsViewModel,
     targetsViewModel: TargetsSettingsViewModel,
+    navController: NavHostController,
 ) {
+    LaunchedEffect(settingsViewModel) {
+        settingsViewModel.uiUpdates.collect { event ->
+            when (event) {
+                SettingsUiUpdates.NavigateBack -> navController.popBackStack()
+            }
+        }
+    }
+
     val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
 
     SettingsView(

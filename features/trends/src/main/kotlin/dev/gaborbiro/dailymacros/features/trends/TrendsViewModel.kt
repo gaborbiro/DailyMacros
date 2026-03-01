@@ -2,7 +2,6 @@ package dev.gaborbiro.dailymacros.features.trends
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.gaborbiro.dailymacros.features.common.AppPrefs
 import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
 import dev.gaborbiro.dailymacros.features.trends.model.Timescale
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsSettingsUIModel
@@ -19,10 +18,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-
-internal class TrendsViewModel(
+class TrendsViewModel(
     private val recordsRepository: RecordsRepository,
-    private val appPrefs: AppPrefs,
+    private val preferences: TrendsPreferences,
     private val mapper: TrendsUiMapper,
 ) : ViewModel() {
 
@@ -53,8 +51,8 @@ internal class TrendsViewModel(
         _uiState.update {
             it.copy(
                 settings = TrendsSettingsUIModel.Show(
-                    dayQualifier = mapper.map(appPrefs.dayQualificationMode),
-                    qualifiedDaysThreshold = appPrefs.qualifyingCalorieThreshold,
+                    dayQualifier = mapper.map(preferences.dayQualificationMode),
+                    qualifiedDaysThreshold = preferences.qualifyingCalorieThreshold,
                 )
             )
         }
@@ -67,28 +65,26 @@ internal class TrendsViewModel(
     }
 
     fun onAggregationModeChanged(dayQualifier: DayQualifier, timescale: Timescale) {
-        appPrefs.dayQualificationMode = mapper.map(dayQualifier)
+        preferences.dayQualificationMode = mapper.map(dayQualifier)
         recordsJob.cancel()
         recordsJob = observeRecords(timescale)
     }
 
     fun onAggregationThresholdChanged(threshold: Long, timescale: Timescale) {
-        appPrefs.qualifyingCalorieThreshold = threshold
+        preferences.qualifyingCalorieThreshold = threshold
         recordsJob.cancel()
         recordsJob = observeRecords(timescale)
     }
 
     private fun observeRecords(timescale: Timescale): Job {
-        // Re-launch collection each timescale changes
         return viewModelScope.launch {
-            // Use the same flow as overview (no search term = all records)
             recordsRepository.observeRecords(null).collect { records ->
                 if (records.isEmpty()) {
                     _uiState.update {
                         it.copy(charts = emptyList())
                     }
                 } else {
-                    val aggregationMode = mapper.map(appPrefs.dayQualificationMode)
+                    val aggregationMode = mapper.map(preferences.dayQualificationMode)
                     val charts = when (timescale) {
                         Timescale.DAYS -> mapper.mapDaysCharts(records, aggregationMode)
                         Timescale.WEEKS -> mapper.mapWeeksCharts(records, aggregationMode)

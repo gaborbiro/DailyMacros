@@ -1,9 +1,9 @@
 package dev.gaborbiro.dailymacros.features.overview
 
 import android.icu.text.DecimalFormat
-import dev.gaborbiro.dailymacros.features.common.NutrientsUIMapper
+import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsMapper
-import dev.gaborbiro.dailymacros.features.common.SharedRecordsUIMapper
+import dev.gaborbiro.dailymacros.features.common.SharedRecordsUiMapper
 import dev.gaborbiro.dailymacros.features.common.TravelDay
 import dev.gaborbiro.dailymacros.features.common.model.ChangeDirection
 import dev.gaborbiro.dailymacros.features.common.model.ChangeIndicator
@@ -21,15 +21,15 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 internal class OverviewUiMapper(
-    private val recordsUIMapper: SharedRecordsUIMapper,
-    private val nutrientsUIMapper: NutrientsUIMapper,
+    private val recordsUiMapper: SharedRecordsUiMapper,
+    private val nutrientsUiMapper: NutrientsUiMapper,
     private val recordsMapper: RecordsMapper,
 ) {
 
     fun mapSearchResults(
         records: List<Record>,
     ) = records
-        .map(recordsUIMapper::map)
+        .map(recordsUiMapper::map)
         .reversed()
 
     fun map(
@@ -47,8 +47,8 @@ internal class OverviewUiMapper(
 
         grouped.forEachIndexed { index, travelDay ->
             currentWeek += travelDay
-            result += travelDay.records.map { recordsUIMapper.map(record = it, timeOnly = true) }
-            result += nutrientsUIMapper.mapDailyNutrientProgressTable(travelDay, targets)
+            result += travelDay.records.map { recordsUiMapper.map(record = it, timeOnly = true) }
+            result += nutrientsUiMapper.mapDailyNutrientProgressTable(travelDay, targets)
 
             val lookAhead = grouped.getOrNull(index + 1)
             val weekEnded =
@@ -188,9 +188,9 @@ internal class OverviewUiMapper(
                 add(
                     NutrientSummaryStatEntry(
                         title = "Calories",
-                        progress0to1 = nutrientsUIMapper.targetProgress(it, nutrientBreakdown.calories?.toFloat() ?: 0f) ?: 0f,
-                        progressLabel = nutrientsUIMapper.formatCalories(nutrientBreakdown.calories, isShort = false, withLabel = false) ?: "0",
-                        targetRange0to1 = nutrientsUIMapper.targetRange(it),
+                        progress0to1 = nutrientsUiMapper.targetProgress(it, nutrientBreakdown.calories?.toFloat() ?: 0f) ?: 0f,
+                        progressLabel = nutrientsUiMapper.formatCalories(nutrientBreakdown.calories, isShort = false, withLabel = false) ?: "0",
+                        targetRange0to1 = nutrientsUiMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
                             current = nutrientBreakdown.calories?.toFloat(),
                             previous = previousWeekNutrientBreakdown?.calories?.toFloat(),
@@ -203,9 +203,9 @@ internal class OverviewUiMapper(
                 add(
                     NutrientSummaryStatEntry(
                         title = "Protein",
-                        progress0to1 = nutrientsUIMapper.targetProgress(it, nutrientBreakdown.protein ?: 0f) ?: 0f,
-                        progressLabel = nutrientsUIMapper.formatProtein(nutrientBreakdown.protein, isShort = false, withLabel = false) ?: "0g",
-                        targetRange0to1 = nutrientsUIMapper.targetRange(it),
+                        progress0to1 = nutrientsUiMapper.targetProgress(it, nutrientBreakdown.protein ?: 0f) ?: 0f,
+                        progressLabel = nutrientsUiMapper.formatProtein(nutrientBreakdown.protein, isShort = false, withLabel = false) ?: "0g",
+                        targetRange0to1 = nutrientsUiMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
                             current = nutrientBreakdown.protein,
                             previous = previousWeekNutrientBreakdown?.protein,
@@ -218,9 +218,9 @@ internal class OverviewUiMapper(
                 add(
                     NutrientSummaryStatEntry(
                         title = "Salt",
-                        progress0to1 = nutrientsUIMapper.targetProgress(it, nutrientBreakdown.salt ?: 0f) ?: 0f,
-                        progressLabel = nutrientsUIMapper.formatSalt(nutrientBreakdown.salt, isShort = false, withLabel = false) ?: "0.0g",
-                        targetRange0to1 = nutrientsUIMapper.targetRange(it),
+                        progress0to1 = nutrientsUiMapper.targetProgress(it, nutrientBreakdown.salt ?: 0f) ?: 0f,
+                        progressLabel = nutrientsUiMapper.formatSalt(nutrientBreakdown.salt, isShort = false, withLabel = false) ?: "0.0g",
+                        targetRange0to1 = nutrientsUiMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
                             current = nutrientBreakdown.salt,
                             previous = previousWeekNutrientBreakdown?.salt,
@@ -233,9 +233,9 @@ internal class OverviewUiMapper(
                 add(
                     NutrientSummaryStatEntry(
                         title = "Fibre",
-                        progress0to1 = nutrientsUIMapper.targetProgress(it, nutrientBreakdown.fibre ?: 0f) ?: 0f,
-                        progressLabel = nutrientsUIMapper.formatFibre(nutrientBreakdown.fibre, isShort = false, withLabel = false) ?: "0g",
-                        targetRange0to1 = nutrientsUIMapper.targetRange(it),
+                        progress0to1 = nutrientsUiMapper.targetProgress(it, nutrientBreakdown.fibre ?: 0f) ?: 0f,
+                        progressLabel = nutrientsUiMapper.formatFibre(nutrientBreakdown.fibre, isShort = false, withLabel = false) ?: "0g",
+                        targetRange0to1 = nutrientsUiMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
                             current = nutrientBreakdown.fibre,
                             previous = previousWeekNutrientBreakdown?.fibre,
@@ -248,10 +248,10 @@ internal class OverviewUiMapper(
                 add(
                     NutrientSummaryStatEntry(
                         title = "Carbs",
-                        progress0to1 = nutrientsUIMapper.targetProgress(it, nutrientBreakdown.carbs ?: 0f) ?: 0f,
-                        progressLabel = nutrientsUIMapper.formatCarbs(nutrientBreakdown.carbs, sugar = null, addedSugar = null, isShort = false, withLabel = false)
+                        progress0to1 = nutrientsUiMapper.targetProgress(it, nutrientBreakdown.carbs ?: 0f) ?: 0f,
+                        progressLabel = nutrientsUiMapper.formatCarbs(nutrientBreakdown.carbs, sugar = null, addedSugar = null, isShort = false, withLabel = false)
                             ?: "0g",
-                        targetRange0to1 = nutrientsUIMapper.targetRange(it),
+                        targetRange0to1 = nutrientsUiMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
                             current = nutrientBreakdown.carbs,
                             previous = previousWeekNutrientBreakdown?.carbs,
@@ -264,9 +264,9 @@ internal class OverviewUiMapper(
                 add(
                     NutrientSummaryStatEntry(
                         title = "sugar",
-                        progress0to1 = nutrientsUIMapper.targetProgress(it, nutrientBreakdown.ofWhichSugar ?: 0f) ?: 0f,
-                        progressLabel = nutrientsUIMapper.formatSugar(nutrientBreakdown.ofWhichSugar, isShort = false, withLabel = false) ?: "0g",
-                        targetRange0to1 = nutrientsUIMapper.targetRange(it),
+                        progress0to1 = nutrientsUiMapper.targetProgress(it, nutrientBreakdown.ofWhichSugar ?: 0f) ?: 0f,
+                        progressLabel = nutrientsUiMapper.formatSugar(nutrientBreakdown.ofWhichSugar, isShort = false, withLabel = false) ?: "0g",
+                        targetRange0to1 = nutrientsUiMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
                             current = nutrientBreakdown.ofWhichSugar,
                             previous = previousWeekNutrientBreakdown?.ofWhichSugar,
@@ -279,10 +279,10 @@ internal class OverviewUiMapper(
                 add(
                     NutrientSummaryStatEntry(
                         title = "Fat",
-                        progress0to1 = nutrientsUIMapper.targetProgress(it, nutrientBreakdown.fat ?: 0f) ?: 0f,
-                        progressLabel = nutrientsUIMapper.formatFat(nutrientBreakdown.fat, saturated = null, isShort = false, withLabel = false)
+                        progress0to1 = nutrientsUiMapper.targetProgress(it, nutrientBreakdown.fat ?: 0f) ?: 0f,
+                        progressLabel = nutrientsUiMapper.formatFat(nutrientBreakdown.fat, saturated = null, isShort = false, withLabel = false)
                             ?: "0g",
-                        targetRange0to1 = nutrientsUIMapper.targetRange(it),
+                        targetRange0to1 = nutrientsUiMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
                             current = nutrientBreakdown.fat,
                             previous = previousWeekNutrientBreakdown?.fat,
@@ -295,9 +295,9 @@ internal class OverviewUiMapper(
                 add(
                     NutrientSummaryStatEntry(
                         title = "saturated",
-                        progress0to1 = nutrientsUIMapper.targetProgress(it, nutrientBreakdown.ofWhichSaturated ?: 0f) ?: 0f,
-                        progressLabel = nutrientsUIMapper.formatSaturatedFat(nutrientBreakdown.ofWhichSaturated, isShort = false, withLabel = false) ?: "0g",
-                        targetRange0to1 = nutrientsUIMapper.targetRange(it),
+                        progress0to1 = nutrientsUiMapper.targetProgress(it, nutrientBreakdown.ofWhichSaturated ?: 0f) ?: 0f,
+                        progressLabel = nutrientsUiMapper.formatSaturatedFat(nutrientBreakdown.ofWhichSaturated, isShort = false, withLabel = false) ?: "0g",
+                        targetRange0to1 = nutrientsUiMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
                             current = nutrientBreakdown.ofWhichSaturated,
                             previous = previousWeekNutrientBreakdown?.ofWhichSaturated,

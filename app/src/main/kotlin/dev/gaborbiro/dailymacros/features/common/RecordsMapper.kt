@@ -12,7 +12,7 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutri
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
 
 internal class RecordsMapper(
-    private val nutrientsUIMapper: NutrientsUIMapper,
+    private val nutrientsUiMapper: NutrientsUiMapper,
 ) {
 
     fun mapToFoodRecognitionRequest(base64Images: List<String>): FoodRecognitionRequest {
@@ -73,21 +73,21 @@ internal class RecordsMapper(
 
     fun mapMacrosPrintout(nutrientBreakdown: NutrientBreakdown?, isShort: Boolean = false): String? {
         return listOfNotNull(
-            nutrientBreakdown?.calories?.let { nutrientsUIMapper.formatCalories(it, isShort, withLabel = true) },
-            nutrientBreakdown?.protein?.let { nutrientsUIMapper.formatProtein(it, isShort, withLabel = true) },
-            nutrientBreakdown?.fat?.let { nutrientsUIMapper.formatFat(it, nutrientBreakdown.ofWhichSaturated, isShort, withLabel = true) },
+            nutrientBreakdown?.calories?.let { nutrientsUiMapper.formatCalories(it, isShort, withLabel = true) },
+            nutrientBreakdown?.protein?.let { nutrientsUiMapper.formatProtein(it, isShort, withLabel = true) },
+            nutrientBreakdown?.fat?.let { nutrientsUiMapper.formatFat(it, nutrientBreakdown.ofWhichSaturated, isShort, withLabel = true) },
             if (!isShort) {
-                nutrientBreakdown?.ofWhichSaturated?.let { nutrientsUIMapper.formatSaturatedFat(it, isShort = false, withLabel = true) }
+                nutrientBreakdown?.ofWhichSaturated?.let { nutrientsUiMapper.formatSaturatedFat(it, isShort = false, withLabel = true) }
             } else null,
-            nutrientBreakdown?.carbs?.let { nutrientsUIMapper.formatCarbs(it, nutrientBreakdown.ofWhichSugar, nutrientBreakdown.ofWhichAddedSugar, isShort, withLabel = true) },
+            nutrientBreakdown?.carbs?.let { nutrientsUiMapper.formatCarbs(it, nutrientBreakdown.ofWhichSugar, nutrientBreakdown.ofWhichAddedSugar, isShort, withLabel = true) },
             if (!isShort) {
-                nutrientBreakdown?.ofWhichSugar?.let { nutrientsUIMapper.formatSugar(it, isShort = false, withLabel = true) }
+                nutrientBreakdown?.ofWhichSugar?.let { nutrientsUiMapper.formatSugar(it, isShort = false, withLabel = true) }
             } else null,
             if (!isShort) {
-                nutrientBreakdown?.ofWhichAddedSugar?.let { nutrientsUIMapper.formatAddedSugar(it, isShort = false, withLabel = true) }
+                nutrientBreakdown?.ofWhichAddedSugar?.let { nutrientsUiMapper.formatAddedSugar(it, isShort = false, withLabel = true) }
             } else null,
-            nutrientBreakdown?.salt?.let { nutrientsUIMapper.formatSalt(it, isShort, withLabel = true) },
-            nutrientBreakdown?.fibre?.let { nutrientsUIMapper.formatFibre(it, isShort, withLabel = true) }
+            nutrientBreakdown?.salt?.let { nutrientsUiMapper.formatSalt(it, isShort, withLabel = true) },
+            nutrientBreakdown?.fibre?.let { nutrientsUiMapper.formatFibre(it, isShort, withLabel = true) }
         )
             .joinToString()
             .takeIf { it.isNotBlank() }

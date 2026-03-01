@@ -65,7 +65,7 @@ internal class ModalViewModel(
     private val foodRecognitionUseCase: FoodRecognitionUseCase,
     private val deleteRecordUseCase: DeleteRecordUseCase,
     private val analyticsLogger: AnalyticsLogger,
-    private val uiMapper: ModalUIMapper,
+    private val uiMapper: ModalUiMapper,
 ) : ViewModel() {
 
     companion object {

@@ -4,12 +4,12 @@ plugins {
 }
 
 android {
-    namespace = "dev.gaborbiro.dailymacros.features.settings"
+    namespace = "dev.gaborbiro.dailymacros.features.trends"
 }
 
 dependencies {
     implementation(project(":core:design"))
-    implementation(project(":repositories:settings"))
+    implementation(project(":features:common"))
     implementation(project(":repositories:records"))
 
     implementation(libs.androidx.core.ktx)
@@ -24,5 +24,8 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
 
-    implementation(libs.network.gson)
+    implementation(libs.vico.compose)
+    implementation(libs.vico.compose.m3)
+
+    debugImplementation(libs.androidx.compose.ui.tooling)
 }

@@ -4,7 +4,7 @@ import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-internal class DateUIMapper {
+internal class DateUiMapper {
 
     fun mapRecordTimestamp(timestamp: ZonedDateTime, timeOnly: Boolean): String {
         return if (timeOnly) {

@@ -109,31 +109,34 @@ internal fun TrendsView(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 ScaleButton(
+                    modifier = Modifier
+                        .weight(1f),
                     label = "Days",
                     selected = timescale == Timescale.DAYS,
                     onClick = {
                         onTimescaleSelected(Timescale.DAYS)
                         timescale = Timescale.DAYS
                     },
-                    modifier = Modifier.weight(1f),
                 )
                 ScaleButton(
+                    modifier = Modifier
+                        .weight(1f),
                     label = "Weeks",
                     selected = timescale == Timescale.WEEKS,
                     onClick = {
                         onTimescaleSelected(Timescale.WEEKS)
                         timescale = Timescale.WEEKS
                     },
-                    modifier = Modifier.weight(1f),
                 )
                 ScaleButton(
+                    modifier = Modifier
+                        .weight(1f),
                     label = "Months",
                     selected = timescale == Timescale.MONTHS,
                     onClick = {
                         onTimescaleSelected(Timescale.MONTHS)
                         timescale = Timescale.MONTHS
                     },
-                    modifier = Modifier.weight(1f),
                 )
             }
 

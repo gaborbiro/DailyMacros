@@ -15,14 +15,10 @@ import dev.gaborbiro.dailymacros.design.AppTheme
 fun PreviewContext(content: @Composable ColumnScope.() -> Unit) {
     AppTheme {
         Surface(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-            ) {
+            Column(modifier = Modifier.fillMaxSize()) {
                 CompositionLocalProvider(LocalImageStore provides DummyImageStore) {
                     content()
                 }
@@ -35,14 +31,10 @@ fun PreviewContext(content: @Composable ColumnScope.() -> Unit) {
 fun ViewPreviewContext(content: @Composable ColumnScope.() -> Unit) {
     AppTheme {
         Surface(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.background
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
                 CompositionLocalProvider(LocalImageStore provides DummyImageStore) {
                     content()
                 }

@@ -2,7 +2,7 @@ package dev.gaborbiro.dailymacros.features.trends.model
 
 import androidx.compose.ui.graphics.Color
 
-internal data class TrendsUiState(
+data class TrendsUiState(
     val charts: List<TrendsChartUiModel> = emptyList(),
     val settings: TrendsSettingsUIModel = TrendsSettingsUIModel.Hidden,
 )
