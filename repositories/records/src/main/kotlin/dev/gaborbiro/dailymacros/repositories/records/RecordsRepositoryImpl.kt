@@ -166,7 +166,7 @@ class RecordsRepositoryImpl(
 
             val topContributorsEntity: TopContributorsEntity = mapper.map(
                 topContributors = topContributors,
-                id = oldTemplate.macros?.id,
+                id = oldTemplate.topContributors?.id,
                 templateId = templateId
             )
             templatesDAO.insertOrUpdate(topContributorsEntity)
