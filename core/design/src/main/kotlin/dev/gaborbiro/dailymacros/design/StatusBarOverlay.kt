@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.common
+package dev.gaborbiro.dailymacros.design
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme

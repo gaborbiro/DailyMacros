@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.common
+package dev.gaborbiro.dailymacros.util
 
 object ThreeWordId {
     private val fruits = listOf(

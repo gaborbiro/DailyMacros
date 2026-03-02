@@ -1,9 +1,6 @@
 package dev.gaborbiro.dailymacros.features.common
 
 import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
-import dev.gaborbiro.dailymacros.features.modal.model.RecognisedFood
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientsApiModel
@@ -14,19 +11,6 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributo
 internal class RecordsMapper(
     private val nutrientsUiMapper: NutrientsUiMapper,
 ) {
-
-    fun mapToFoodRecognitionRequest(base64Images: List<String>): FoodRecognitionRequest {
-        return FoodRecognitionRequest(
-            base64Images = base64Images,
-        )
-    }
-
-    fun mapRecognisedFood(response: FoodRecognitionResult): RecognisedFood {
-        return RecognisedFood(
-            title = response.title,
-            description = response.description,
-        )
-    }
 
     fun mapToNutrientAnalysisRequest(record: Record, base64Images: List<String>): NutrientAnalysisRequest {
         return NutrientAnalysisRequest(

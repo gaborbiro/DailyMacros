@@ -32,9 +32,7 @@ import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
-import dev.gaborbiro.dailymacros.features.common.RecordsMapper
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
-import dev.gaborbiro.dailymacros.features.common.StatusBarOverlay
 import dev.gaborbiro.dailymacros.features.common.views.InfoDialog
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
@@ -164,7 +162,6 @@ class ModalActivity : AppCompatActivity() {
         )
 
         val nutrientsUiMapper = NutrientsUiMapper()
-        val recordsMapper = RecordsMapper(nutrientsUiMapper)
         val modalUiMapper = ModalUiMapper(nutrientsUiMapper)
         val deleteRecordUseCase = DeleteRecordUseCase(recordsRepository)
         val createRecordFromTemplateUseCase = CreateRecordFromTemplateUseCase(recordsRepository)
@@ -185,7 +182,7 @@ class ModalActivity : AppCompatActivity() {
             saveImageUseCase = SaveImageUseCase(this, imageStore),
             getRecordImageUseCase = GetRecordImageUseCase(recordsRepository),
             getTemplateImageUseCase = GetTemplateImageUseCase(recordsRepository),
-            foodRecognitionUseCase = FoodRecognitionUseCase(this, imageStore, chatGPTRepository, recordsMapper),
+            foodRecognitionUseCase = FoodRecognitionUseCase(this, imageStore, chatGPTRepository),
             deleteRecordUseCase = deleteRecordUseCase,
             uiMapper = modalUiMapper,
             analyticsLogger = analyticsLogger,
@@ -219,7 +216,7 @@ class ModalActivity : AppCompatActivity() {
         setContent {
             val viewState by viewModel.uiState.collectAsStateWithLifecycle()
 
-            AppTheme(statusBarOverlay = { StatusBarOverlay() }) {
+            AppTheme {
                 CompositionLocalProvider(LocalImageStore provides imageStore) {
                     val errorMessages = remember {
                         viewModel.uiUpdates

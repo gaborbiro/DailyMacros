@@ -11,8 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.glance.color.ColorProviders as GlanceColorProviders
 import androidx.glance.material3.ColorProviders
+import androidx.glance.color.ColorProviders as GlanceColorProviders
 
 
 val DarkColors = darkColorScheme(
@@ -46,7 +46,6 @@ val LightColors = lightColorScheme(
 fun AppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = false,
-    statusBarOverlay: @Composable () -> Unit = {},
     content: @Composable () -> Unit,
 ) {
     val colorScheme = when {
@@ -71,7 +70,7 @@ fun AppTheme(
             typography = Typography,
             content = {
                 content()
-                statusBarOverlay()
+                StatusBarOverlay()
             },
         )
     }

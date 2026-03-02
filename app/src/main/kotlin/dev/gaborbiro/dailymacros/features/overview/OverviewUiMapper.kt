@@ -4,7 +4,7 @@ import android.icu.text.DecimalFormat
 import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsMapper
 import dev.gaborbiro.dailymacros.features.common.SharedRecordsUiMapper
-import dev.gaborbiro.dailymacros.features.common.TravelDay
+import dev.gaborbiro.dailymacros.features.common.model.TravelDay
 import dev.gaborbiro.dailymacros.features.common.model.ChangeDirection
 import dev.gaborbiro.dailymacros.features.common.model.ChangeIndicator
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase

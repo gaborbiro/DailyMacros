@@ -1,5 +1,7 @@
 package dev.gaborbiro.dailymacros.features.common
 
+import android.content.Context
+import android.util.DisplayMetrics
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ScrollState
@@ -24,7 +26,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.LocalExtraColorScheme
-import dev.gaborbiro.dailymacros.util.px
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.time.debounce
 import java.time.Duration
@@ -213,4 +214,9 @@ fun Modifier.horizontalScrollWithBar(
             }
         }
         .horizontalScroll(scrollState)
+}
+
+private fun Dp.px(context: Context): Float {
+    val metrics: DisplayMetrics = context.resources.displayMetrics
+    return value * (metrics.densityDpi / 160f)
 }

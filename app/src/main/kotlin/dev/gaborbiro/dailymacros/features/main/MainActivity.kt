@@ -22,20 +22,18 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import dev.gaborbiro.dailymacros.AppPrefs
 import dev.gaborbiro.dailymacros.BuildConfig
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.AppTheme
-import dev.gaborbiro.dailymacros.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsMapper
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.SharedRecordsUiMapper
-import dev.gaborbiro.dailymacros.features.common.StatusBarOverlay
-import dev.gaborbiro.dailymacros.features.common.viewModelFactory
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.overview.OverviewPrefs
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
@@ -58,6 +56,7 @@ import dev.gaborbiro.dailymacros.repositories.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.records.RequestStatusRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.settings.SettingsMapper
 import dev.gaborbiro.dailymacros.repositories.settings.SettingsRepositoryImpl
+import dev.gaborbiro.dailymacros.util.viewModelFactory
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -109,7 +108,7 @@ class MainActivity : ComponentActivity() {
         val overviewUiMapper = OverviewUiMapper(recordsUiMapper, nutrientsUiMapper, recordsMapper)
 
         setContent {
-            AppTheme(statusBarOverlay = { StatusBarOverlay() }) {
+            AppTheme {
                 val navController: NavHostController = rememberNavController()
                 val overviewViewModel = viewModelFactory {
                     OverviewViewModel(

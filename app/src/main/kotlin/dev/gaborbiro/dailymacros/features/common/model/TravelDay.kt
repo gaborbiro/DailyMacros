@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.common
+package dev.gaborbiro.dailymacros.features.common.model
 
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import java.time.Duration

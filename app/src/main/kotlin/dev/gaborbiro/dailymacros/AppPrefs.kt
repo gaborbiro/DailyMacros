@@ -2,7 +2,7 @@ package dev.gaborbiro.dailymacros
 
 import android.content.Context
 import androidx.core.content.edit
-import dev.gaborbiro.dailymacros.features.common.ThreeWordId
+import dev.gaborbiro.dailymacros.util.ThreeWordId
 import kotlin.uuid.ExperimentalUuidApi
 
 internal class AppPrefs(context: Context) {
