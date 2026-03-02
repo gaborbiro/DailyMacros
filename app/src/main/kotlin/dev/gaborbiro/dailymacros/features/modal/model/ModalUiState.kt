@@ -5,7 +5,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 data class ModalUiState(
     val rootDialog: DialogHandle? = null,
     val overlayDialog: DialogHandle? = null,
-    val close: Boolean = false,
 )
 
 sealed class DialogHandle {

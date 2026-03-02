@@ -10,16 +10,16 @@ import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
-import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.message
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
-import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiState
+import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateValidationResult
+import dev.gaborbiro.dailymacros.features.modal.usecase.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
@@ -115,7 +115,7 @@ internal class ModalViewModel(
                     setRoot(imageDialog)
                 }
                 ?: run {
-                    _uiState.update { it.copy(close = true) }
+                    _uiUpdates.send(ModalUiUpdates.Close)
                 }
         }
     }
@@ -127,7 +127,7 @@ internal class ModalViewModel(
                     setRoot(imageDialog)
                 }
                 ?: run {
-                    _uiState.update { it.copy(close = true) }
+                    _uiUpdates.send(ModalUiUpdates.Close)
                 }
         }
     }
@@ -427,9 +427,13 @@ internal class ModalViewModel(
     }
 
     fun onImagesInfoButtonTapped() {
-        pushOverlay(DialogHandle.InfoDialog("You can add multiple photos.\nPhotos of nutritional labels are especially helpful." +
-                "\n\nYou can edit the entry later. You don’t need to collect all details up front." +
-                "\n\nLogging the meal is more important than the exact time. Just don’t leave it for the next day - dates can’t be changed retroactively."))
+        pushOverlay(
+            DialogHandle.InfoDialog(
+                "You can add multiple photos.\nPhotos of nutritional labels are especially helpful." +
+                        "\n\nYou can edit the entry later. You don’t need to collect all details up front." +
+                        "\n\nLogging the meal is more important than the exact time. Just don’t leave it for the next day - dates can’t be changed retroactively."
+            )
+        )
     }
 
     fun onRunAIButtonTapped() {
@@ -613,7 +617,13 @@ internal class ModalViewModel(
         recogniseFoodJob?.cancel()
         recordDetailsJob?.cancel()
         _uiState.update {
-            it.copy(rootDialog = null, overlayDialog = null, close = true)
+            it.copy(
+                rootDialog = null,
+                overlayDialog = null,
+            )
+        }
+        viewModelScope.launch {
+            _uiUpdates.send(ModalUiUpdates.Close)
         }
     }
 

@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.common
+package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import android.util.Log
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository

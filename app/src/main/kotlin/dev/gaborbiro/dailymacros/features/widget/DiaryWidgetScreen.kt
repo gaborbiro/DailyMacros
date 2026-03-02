@@ -78,8 +78,7 @@ class DiaryWidgetScreen : GlanceAppWidget() {
                             FileStoreFactoryImpl(context).getStore("public", keepFiles = true)
                         val imageStore: ImageStore = ImageStoreImpl(fileStore)
                         val nutrientsUiMapper = NutrientsUiMapper()
-                        val dateUiMapper = DateUiMapper()
-                        val recordsUiMapper = SharedRecordsUiMapper(nutrientsUiMapper, dateUiMapper)
+                        val recordsUiMapper = SharedRecordsUiMapper(nutrientsUiMapper)
                         val widgetUiMapper = WidgetUiMapper(nutrientsUiMapper)
 
                         val quickPicks = runCatching {
