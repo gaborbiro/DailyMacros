@@ -4,12 +4,12 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.App
-import dev.gaborbiro.dailymacros.features.common.AppPrefs
+import dev.gaborbiro.dailymacros.features.overview.OverviewPrefs
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
-import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiUpdates
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiState
+import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiUpdates
 import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
@@ -38,7 +38,7 @@ internal class OverviewViewModel(
     private val repeatRecordUseCase: RepeatRecordUseCase,
     private val settingsRepository: SettingsRepository,
     private val uiMapper: OverviewUiMapper,
-    private val appPrefs: AppPrefs,
+    private val overviewPrefs: OverviewPrefs,
 ) : ViewModel() {
 
     private val _viewState: MutableStateFlow<OverviewUiState> =
@@ -118,8 +118,8 @@ internal class OverviewViewModel(
                             )
                         }
                     }
-                    if (records.size == 2 && appPrefs.showCoachMark) {
-                        appPrefs.showCoachMark = false
+                    if (records.size == 2 && overviewPrefs.showCoachMark) {
+                        overviewPrefs.showCoachMark = false
                         delay(2.seconds)
                         _viewState.update {
                             it.copy(

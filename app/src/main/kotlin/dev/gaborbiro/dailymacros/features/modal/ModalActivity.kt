@@ -23,18 +23,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
-import dev.gaborbiro.dailymacros.data.image.DefaultFoodPicExt
 import dev.gaborbiro.dailymacros.data.db.AppDatabase
-import dev.gaborbiro.dailymacros.data.file.domain.FileStore
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
+import dev.gaborbiro.dailymacros.data.file.domain.FileStore
+import dev.gaborbiro.dailymacros.data.image.DefaultFoodPicExt
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.AppTheme
-import dev.gaborbiro.dailymacros.features.common.StatusBarOverlay
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
-import dev.gaborbiro.dailymacros.features.common.DateUiMapper
 import dev.gaborbiro.dailymacros.features.common.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
+import dev.gaborbiro.dailymacros.features.common.RecordsMapper
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
+import dev.gaborbiro.dailymacros.features.common.StatusBarOverlay
 import dev.gaborbiro.dailymacros.features.common.views.InfoDialog
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
@@ -46,7 +46,6 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
-import dev.gaborbiro.dailymacros.features.common.RecordsMapper
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
@@ -163,8 +162,7 @@ class ModalActivity : AppCompatActivity() {
             service = retrofit.create(ChatGPTService::class.java)
         )
 
-        val dateUiMapper = DateUiMapper()
-        val nutrientsUiMapper = NutrientsUiMapper(dateUiMapper)
+        val nutrientsUiMapper = NutrientsUiMapper()
         val recordsMapper = RecordsMapper(nutrientsUiMapper)
         val modalUiMapper = ModalUiMapper(nutrientsUiMapper)
         val deleteRecordUseCase = DeleteRecordUseCase(recordsRepository)

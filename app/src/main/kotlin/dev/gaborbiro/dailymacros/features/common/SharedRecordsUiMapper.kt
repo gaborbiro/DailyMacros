@@ -3,13 +3,14 @@ package dev.gaborbiro.dailymacros.features.common
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 internal class SharedRecordsUiMapper(
     private val nutrientsUiMapper: NutrientsUiMapper,
-    private val dateUiMapper: DateUiMapper,
 ) {
     fun map(record: Record, timeOnly: Boolean = false): ListUiModelRecord {
-        val timestampStr = dateUiMapper.mapRecordTimestamp(record.timestamp, timeOnly)
+        val timestampStr = mapRecordTimestamp(record.timestamp, timeOnly)
 
         val nutrients = nutrientsUiMapper.map(record.template.nutrients)
 
@@ -32,4 +33,15 @@ internal class SharedRecordsUiMapper(
             null -> true
         }
     }
+
+    private fun mapRecordTimestamp(timestamp: ZonedDateTime, timeOnly: Boolean): String {
+        return if (timeOnly) {
+            timestamp.formatTimeOnly()
+        } else {
+            timestamp.format()
+        }
+    }
+
+    private fun ZonedDateTime.format(): String = format(DateTimeFormatter.ofPattern("dd MMM, H:mm"))
+    private fun ZonedDateTime.formatTimeOnly(): String = format(DateTimeFormatter.ofPattern("H:mm"))
 }

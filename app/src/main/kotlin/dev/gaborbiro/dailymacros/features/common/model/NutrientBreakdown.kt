@@ -13,8 +13,4 @@ data class NutrientBreakdown(
     val ofWhichAddedSugar: Float? = null,
     val salt: Float? = null,
     val fibre: Float? = null,
-) {
-    companion object {
-
-    }
-}
+)

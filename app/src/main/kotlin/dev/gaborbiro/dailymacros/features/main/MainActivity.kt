@@ -28,22 +28,22 @@ import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.AppTheme
-import dev.gaborbiro.dailymacros.features.common.StatusBarOverlay
-import dev.gaborbiro.dailymacros.features.common.AppPrefs
+import dev.gaborbiro.dailymacros.AppPrefs
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
-import dev.gaborbiro.dailymacros.features.common.DateUiMapper
 import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsMapper
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.SharedRecordsUiMapper
+import dev.gaborbiro.dailymacros.features.common.StatusBarOverlay
 import dev.gaborbiro.dailymacros.features.common.viewModelFactory
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
+import dev.gaborbiro.dailymacros.features.overview.OverviewPrefs
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewUiMapper
 import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
+import dev.gaborbiro.dailymacros.features.settings.SettingsAppInfo
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
-import dev.gaborbiro.dailymacros.features.settings.SettingsAppInfo
 import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCaseImpl
 import dev.gaborbiro.dailymacros.features.settings.export.SharePublicUriLauncher
 import dev.gaborbiro.dailymacros.features.settings.export.StreamWriter
@@ -80,11 +80,11 @@ class MainActivity : ComponentActivity() {
             imageStore = imageStore,
             analyticsLogger = analyticsLogger,
         )
-        val dateUiMapper = DateUiMapper()
-        val nutrientsUiMapper = NutrientsUiMapper(dateUiMapper)
+        val nutrientsUiMapper = NutrientsUiMapper()
 
         val settingsRepository = SettingsRepositoryImpl(this@MainActivity, SettingsMapper())
         val appPrefs = AppPrefs(this@MainActivity)
+        val overviewPrefs = OverviewPrefs(this@MainActivity)
         analyticsLogger.setUserId(appPrefs.userUUID)
         lifecycleScope.launch {
             RequestStatusRepositoryImpl(db.requestStatusDAO()).deleteStale()
@@ -104,19 +104,20 @@ class MainActivity : ComponentActivity() {
             sharePublicUriLauncher = sharePublicUriLauncher,
         )
 
+        val recordsUiMapper = SharedRecordsUiMapper(nutrientsUiMapper)
+        val recordsMapper = RecordsMapper(nutrientsUiMapper)
+        val overviewUiMapper = OverviewUiMapper(recordsUiMapper, nutrientsUiMapper, recordsMapper)
+
         setContent {
             AppTheme(statusBarOverlay = { StatusBarOverlay() }) {
                 val navController: NavHostController = rememberNavController()
-                val recordsUiMapper = SharedRecordsUiMapper(nutrientsUiMapper, dateUiMapper)
-                val recordsMapper = RecordsMapper(nutrientsUiMapper)
-                val overviewUiMapper = OverviewUiMapper(recordsUiMapper, nutrientsUiMapper, recordsMapper)
                 val overviewViewModel = viewModelFactory {
                     OverviewViewModel(
                         recordsRepository = recordsRepository,
                         repeatRecordUseCase = repeatRecordUseCase,
                         settingsRepository = settingsRepository,
                         uiMapper = overviewUiMapper,
-                        appPrefs = appPrefs,
+                        overviewPrefs = overviewPrefs,
                     )
                 }
 

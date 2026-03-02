@@ -28,7 +28,6 @@ import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.design.WidgetColorScheme
-import dev.gaborbiro.dailymacros.features.common.DateUiMapper
 import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.common.SharedRecordsUiMapper
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
@@ -78,8 +77,8 @@ class DiaryWidgetScreen : GlanceAppWidget() {
                         val fileStore =
                             FileStoreFactoryImpl(context).getStore("public", keepFiles = true)
                         val imageStore: ImageStore = ImageStoreImpl(fileStore)
+                        val nutrientsUiMapper = NutrientsUiMapper()
                         val dateUiMapper = DateUiMapper()
-                        val nutrientsUiMapper = NutrientsUiMapper(dateUiMapper)
                         val recordsUiMapper = SharedRecordsUiMapper(nutrientsUiMapper, dateUiMapper)
                         val widgetUiMapper = WidgetUiMapper(nutrientsUiMapper)
 

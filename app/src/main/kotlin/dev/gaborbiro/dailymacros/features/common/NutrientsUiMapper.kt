@@ -9,11 +9,11 @@ import dev.gaborbiro.dailymacros.features.common.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import kotlin.math.absoluteValue
 
-internal class NutrientsUiMapper(
-    private val dateUiMapper: DateUiMapper,
-) {
+internal class NutrientsUiMapper {
 
     fun mapDailyNutrientProgressTable(
         day: TravelDay,
@@ -51,7 +51,7 @@ internal class NutrientsUiMapper(
 
         return ListUiModelDailySummary(
             listItemId = day.day.atStartOfDay(day.startZone).toInstant().toEpochMilli(),
-            dayTitle = dateUiMapper.mapDayTitleTimestamp(day.day),
+            dayTitle = mapDayTitleTimestamp(day.day),
             infoMessage = infoMessage,
             entries = progressItems,
         )
@@ -476,5 +476,9 @@ internal class NutrientsUiMapper(
         fun format(value: Number?): String = value?.let { format.format(it) } ?: nullFormat()
 
         abstract fun nullFormat(): String
+    }
+
+    private fun mapDayTitleTimestamp(localDate: LocalDate): String {
+        return localDate.format(DateTimeFormatter.ofPattern("E, dd MMM"))
     }
 }
