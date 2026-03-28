@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.features.modal
 
+import dev.gaborbiro.dailymacros.features.common.NutrientDisplayLine
 import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
@@ -30,56 +31,56 @@ internal class ModalUiMapper(
             protein = protein?.let {
                 it + nutrientsUiMapper.formatTopContributorSuffix(
                     amount = nutrientBreakdown.protein,
-                    gramDecimalPlaces = 0,
+                    line = NutrientDisplayLine.Protein,
                     contributorText = topContributors.topProteinContributors,
                 )
             },
             fat = fat?.let {
                 it + nutrientsUiMapper.formatTopContributorSuffix(
                     amount = nutrientBreakdown.fat,
-                    gramDecimalPlaces = 0,
+                    line = NutrientDisplayLine.Fat,
                     contributorText = topContributors.topFatContributors,
                 )
             },
             ofWhichSaturated = ofWhichSaturated?.let {
                 it + nutrientsUiMapper.formatTopContributorSuffix(
                     amount = nutrientBreakdown.ofWhichSaturated,
-                    gramDecimalPlaces = 0,
+                    line = NutrientDisplayLine.OfWhichSaturated,
                     contributorText = topContributors.topSaturatedFatContributors,
                 )
             },
             carbs = carbs?.let {
                 it + nutrientsUiMapper.formatTopContributorSuffix(
                     amount = nutrientBreakdown.carbs,
-                    gramDecimalPlaces = 0,
+                    line = NutrientDisplayLine.Carb,
                     contributorText = topContributors.topCarbsContributors,
                 )
             },
             ofWhichSugar = ofWhichSugar?.let {
                 it + nutrientsUiMapper.formatTopContributorSuffix(
                     amount = nutrientBreakdown.ofWhichSugar,
-                    gramDecimalPlaces = 0,
+                    line = NutrientDisplayLine.OfWhichSugar,
                     contributorText = topContributors.topSugarContributors,
                 )
             },
             ofWhichAddedSugar = ofWhichAddedSugar?.let {
                 it + nutrientsUiMapper.formatTopContributorSuffix(
                     amount = nutrientBreakdown.ofWhichAddedSugar,
-                    gramDecimalPlaces = 0,
+                    line = NutrientDisplayLine.OfWhichAddedSugar,
                     contributorText = topContributors.topAddedSugarContributors,
                 )
             },
             salt = salt?.let {
                 it + nutrientsUiMapper.formatTopContributorSuffix(
                     amount = nutrientBreakdown.salt,
-                    gramDecimalPlaces = 2,
+                    line = NutrientDisplayLine.Salt,
                     contributorText = topContributors.topSaltContributors,
                 )
             },
             fibre = fibre?.let {
                 it + nutrientsUiMapper.formatTopContributorSuffix(
                     amount = nutrientBreakdown.fibre,
-                    gramDecimalPlaces = 0,
+                    line = NutrientDisplayLine.Fibre,
                     contributorText = topContributors.topFibreContributors,
                 )
             },

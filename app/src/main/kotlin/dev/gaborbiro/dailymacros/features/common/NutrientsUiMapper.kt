@@ -10,11 +10,10 @@ import dev.gaborbiro.dailymacros.features.common.model.TravelDay
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
-import java.math.BigDecimal
-import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.absoluteValue
+import kotlin.math.pow
 
 internal class NutrientsUiMapper {
 
@@ -233,7 +232,7 @@ internal class NutrientsUiMapper {
         val format = generateFormat(
             label = label,
             unit = "kcal",
-            decimalCount = 0,
+            decimalCount = NutrientDisplayLine.Calories.decimalCount,
         )
         return formatMacroAmount(value, format)
     }
@@ -248,7 +247,7 @@ internal class NutrientsUiMapper {
         val format = generateFormat(
             label = label,
             unit = "g",
-            decimalCount = 0,
+            decimalCount = NutrientDisplayLine.Protein.decimalCount,
         )
         return formatMacroAmount(value, format)
     }
@@ -265,7 +264,7 @@ internal class NutrientsUiMapper {
         val format = generateFormat(
             label = label,
             unit = "g",
-            decimalCount = 0,
+            decimalCount = NutrientDisplayLine.Carb.decimalCount,
         )
         return formatMacroAmount(value, format) {
             sugar?.let {
@@ -289,7 +288,7 @@ internal class NutrientsUiMapper {
         val format = generateFormat(
             label = label,
             unit = "g",
-            decimalCount = 0,
+            decimalCount = NutrientDisplayLine.OfWhichSugar.decimalCount,
         )
         return formatMacroAmount(value, format)
     }
@@ -305,7 +304,7 @@ internal class NutrientsUiMapper {
         val format = generateFormat(
             label = label,
             unit = "g",
-            decimalCount = 0,
+            decimalCount = NutrientDisplayLine.OfWhichAddedSugar.decimalCount,
         )
         return formatMacroAmount(value, format)
     }
@@ -321,7 +320,7 @@ internal class NutrientsUiMapper {
         val format = generateFormat(
             label = label,
             unit = "g",
-            decimalCount = 0,
+            decimalCount = NutrientDisplayLine.Fat.decimalCount,
         )
         return formatMacroAmount(value, format) {
             saturated?.let {
@@ -341,7 +340,7 @@ internal class NutrientsUiMapper {
         val format = generateFormat(
             label = label,
             unit = "g",
-            decimalCount = 0,
+            decimalCount = NutrientDisplayLine.OfWhichSaturated.decimalCount,
         )
         return formatMacroAmount(value, format)
     }
@@ -356,7 +355,7 @@ internal class NutrientsUiMapper {
         val format = generateFormat(
             label = label,
             unit = "g",
-            decimalCount = 2,
+            decimalCount = NutrientDisplayLine.Salt.decimalCount,
         )
         return formatMacroAmount(value, format)
     }
@@ -371,7 +370,7 @@ internal class NutrientsUiMapper {
         val format = generateFormat(
             label = label,
             unit = "g",
-            decimalCount = 0,
+            decimalCount = NutrientDisplayLine.Fibre.decimalCount,
         )
         return formatMacroAmount(value, format)
     }
@@ -452,22 +451,22 @@ internal class NutrientsUiMapper {
     }
 
     /**
-     * Appends contributor text only when [amount] is non-null and does not round to zero
-     * at [gramDecimalPlaces] (same precision as the matching `format*` gram helpers).
+     * Appends contributor text only when [amount] is non-null and at least the smallest
+     * display step for [line] (`1 / 10^decimalCount` in the same units as formatted).
      */
     fun formatTopContributorSuffix(
         amount: Number?,
-        gramDecimalPlaces: Int,
+        line: NutrientDisplayLine,
         contributorText: String?,
     ): String {
-        if (amount == null || gramAmountRoundsToZero(amount, gramDecimalPlaces)) return ""
+        if (amount == null || amount.toDouble() < minimumAmountForContributorVisibility(line.decimalCount)) {
+            return ""
+        }
         return formatTopContributorText(contributorText)
     }
 
-    private fun gramAmountRoundsToZero(amount: Number, decimalPlaces: Int): Boolean =
-        BigDecimal.valueOf(amount.toDouble())
-            .setScale(decimalPlaces, RoundingMode.HALF_EVEN)
-            .compareTo(BigDecimal.ZERO) == 0
+    private fun minimumAmountForContributorVisibility(decimalCount: Int): Double =
+        1.0 / 10.0.pow(decimalCount.toDouble())
 
     private abstract class SafeNumberFormatter(
         private val format: DecimalFormat,
