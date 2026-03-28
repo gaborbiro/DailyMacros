@@ -10,6 +10,8 @@ import dev.gaborbiro.dailymacros.features.common.model.TravelDay
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.absoluteValue
@@ -46,7 +48,7 @@ internal class NutrientsUiMapper {
             fibre = totalFibre,
         )
 
-        val progressItems = buildNutrientProgressItems(totalNutrientBreakdown, targets)
+        val progressItems = buildDailyNutrientProgressItems(totalNutrientBreakdown, targets)
 
         val infoMessage = buildTimezoneInfo(day)
 
@@ -58,7 +60,7 @@ internal class NutrientsUiMapper {
         )
     }
 
-    fun buildNutrientProgressItems(
+    fun buildDailyNutrientProgressItems(
         nutrientBreakdown: NutrientBreakdown,
         targets: Targets,
     ): List<DailySummaryEntry> {
@@ -84,7 +86,7 @@ internal class NutrientsUiMapper {
                     DailySummaryEntry(
                         title = "Calories",
                         progress0to1 = targetProgress(it, nutrientBreakdown.calories?.toFloat() ?: 0f) ?: 0f,
-                        progressLabel = formatCalories(nutrientBreakdown.calories, isShort = false, withLabel = false) ?: "0",
+                        progressLabel = formatCalories(nutrientBreakdown.calories, isShort = true, withLabel = false) ?: "0",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = rangeLabel,
                         color = { it.caloriesColor },
@@ -96,7 +98,7 @@ internal class NutrientsUiMapper {
                     DailySummaryEntry(
                         title = "Protein",
                         progress0to1 = targetProgress(it, nutrientBreakdown.protein ?: 0f) ?: 0f,
-                        progressLabel = formatProtein(nutrientBreakdown.protein, isShort = false, withLabel = false) ?: "0g",
+                        progressLabel = formatProtein(nutrientBreakdown.protein, isShort = true, withLabel = false) ?: "0g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.proteinColor },
@@ -108,7 +110,7 @@ internal class NutrientsUiMapper {
                     DailySummaryEntry(
                         title = "Salt",
                         progress0to1 = targetProgress(it, nutrientBreakdown.salt ?: 0f) ?: 0f,
-                        progressLabel = formatSalt(nutrientBreakdown.salt, isShort = false, withLabel = false) ?: "0.00g",
+                        progressLabel = formatSalt(nutrientBreakdown.salt, isShort = true, withLabel = false) ?: "0.00g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.saltColor },
@@ -120,7 +122,7 @@ internal class NutrientsUiMapper {
                     DailySummaryEntry(
                         title = "Fibre",
                         progress0to1 = targetProgress(it, nutrientBreakdown.fibre ?: 0f) ?: 0f,
-                        progressLabel = formatFibre(nutrientBreakdown.fibre, isShort = false, withLabel = false) ?: "0g",
+                        progressLabel = formatFibre(nutrientBreakdown.fibre, isShort = true, withLabel = false) ?: "0g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.fibreColor },
@@ -132,7 +134,7 @@ internal class NutrientsUiMapper {
                     DailySummaryEntry(
                         title = "Carbs",
                         progress0to1 = targetProgress(it, nutrientBreakdown.carbs ?: 0f) ?: 0f,
-                        progressLabel = formatCarbs(nutrientBreakdown.carbs, sugar = null, addedSugar = null, isShort = false, withLabel = false)
+                        progressLabel = formatCarbs(nutrientBreakdown.carbs, sugar = null, addedSugar = null, isShort = true, withLabel = false)
                             ?: "0g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
@@ -145,7 +147,7 @@ internal class NutrientsUiMapper {
                     DailySummaryEntry(
                         title = "sugar",
                         progress0to1 = targetProgress(it, nutrientBreakdown.ofWhichSugar ?: 0f) ?: 0f,
-                        progressLabel = formatSugar(nutrientBreakdown.ofWhichSugar, isShort = false, withLabel = false) ?: "0g",
+                        progressLabel = formatSugar(nutrientBreakdown.ofWhichSugar, isShort = true, withLabel = false) ?: "0g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.carbsColor },
@@ -157,7 +159,7 @@ internal class NutrientsUiMapper {
                     DailySummaryEntry(
                         title = "Fat",
                         progress0to1 = targetProgress(it, nutrientBreakdown.fat ?: 0f) ?: 0f,
-                        progressLabel = formatFat(nutrientBreakdown.fat, saturated = null, isShort = false, withLabel = false)
+                        progressLabel = formatFat(nutrientBreakdown.fat, saturated = null, isShort = true, withLabel = false)
                             ?: "0g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
@@ -170,7 +172,7 @@ internal class NutrientsUiMapper {
                     DailySummaryEntry(
                         title = "saturated",
                         progress0to1 = targetProgress(it, nutrientBreakdown.ofWhichSaturated ?: 0f) ?: 0f,
-                        progressLabel = formatSaturatedFat(nutrientBreakdown.ofWhichSaturated, isShort = false, withLabel = false) ?: "0g",
+                        progressLabel = formatSaturatedFat(nutrientBreakdown.ofWhichSaturated, isShort = true, withLabel = false) ?: "0g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.fatColor },
@@ -212,12 +214,12 @@ internal class NutrientsUiMapper {
 
     fun map(nutrientBreakdown: TemplateNutrientBreakdown): NutrientsUiModel {
         return NutrientsUiModel(
-            calories = formatCalories(nutrientBreakdown.calories, isShort = true, withLabel = true),
-            protein = formatProtein(nutrientBreakdown.protein, isShort = true, withLabel = true),
-            fat = formatFat(nutrientBreakdown.fat, nutrientBreakdown.ofWhichSaturated, isShort = true, withLabel = true),
-            carbs = formatCarbs(nutrientBreakdown.carbs, nutrientBreakdown.ofWhichSugar, nutrientBreakdown.ofWhichAddedSugar, isShort = true, withLabel = true),
-            salt = formatSalt(nutrientBreakdown.salt, isShort = true, withLabel = true),
-            fibre = formatFibre(nutrientBreakdown.fibre, isShort = true, withLabel = true),
+            calories = formatCalories(nutrientBreakdown.calories, isShort = true, withLabel = false),
+            protein = formatProtein(nutrientBreakdown.protein, isShort = true, withLabel = false),
+            fat = formatFat(nutrientBreakdown.fat, nutrientBreakdown.ofWhichSaturated, isShort = true, withLabel = false),
+            carbs = formatCarbs(nutrientBreakdown.carbs, nutrientBreakdown.ofWhichSugar, nutrientBreakdown.ofWhichAddedSugar, isShort = true, withLabel = false),
+            salt = formatSalt(nutrientBreakdown.salt, isShort = true, withLabel = false),
+            fibre = formatFibre(nutrientBreakdown.fibre, isShort = true, withLabel = false),
         )
     }
 
@@ -227,14 +229,13 @@ internal class NutrientsUiMapper {
         withLabel: Boolean,
     ): String? {
         value ?: return null
-        val (shortFormat, longFormat) = generateFormats(
-            shortLabel = "",  // no short label because "kcal" makes this value recognizable enough
-            longLabel = "Calories:",
+        val label = if (withLabel) (if (isShort) "" else "Calories:") else null
+        val format = generateFormat(
+            label = label,
             unit = "kcal",
-            withLabel = withLabel,
             decimalCount = 0,
         )
-        return formatMacroAmount(value, shortFormat, longFormat, isShort)
+        return formatMacroAmount(value, format)
     }
 
     fun formatProtein(
@@ -243,14 +244,13 @@ internal class NutrientsUiMapper {
         withLabel: Boolean,
     ): String? {
         value ?: return null
-        val (shortFormat, longFormat) = generateFormats(
-            shortLabel = "Protein",
-            longLabel = "Protein:",
+        val label = if (withLabel) (if (isShort) "Protein" else "Protein:") else null
+        val format = generateFormat(
+            label = label,
             unit = "g",
-            withLabel = withLabel,
             decimalCount = 0,
         )
-        return formatMacroAmount(value, shortFormat, longFormat, isShort)
+        return formatMacroAmount(value, format)
     }
 
     fun formatCarbs(
@@ -261,18 +261,17 @@ internal class NutrientsUiMapper {
         withLabel: Boolean,
     ): String? {
         value ?: return null
-        val (shortFormat, longFormat) = generateFormats(
-            shortLabel = "Carb",
-            longLabel = "Carb:",
+        val label = if (withLabel) (if (isShort) "Carb" else "Carb:") else null
+        val format = generateFormat(
+            label = label,
             unit = "g",
-            withLabel = withLabel,
             decimalCount = 0,
         )
-        return formatMacroAmount(value, shortFormat, longFormat, isShort) {
+        return formatMacroAmount(value, format) {
             sugar?.let {
-                val sugar = formatSugar(sugar, isShort, withLabel = false)
+                val sugar = formatSugar(sugar, isShort = true, withLabel = false)
                 val addedSugar = addedSugar?.let {
-                    formatAddedSugar(addedSugar, isShort, withLabel = false)
+                    formatAddedSugar(addedSugar, isShort = true, withLabel = false)
                 }
                 "${sugar}${addedSugar?.let { "/$it" } ?: ""}"
             }
@@ -285,14 +284,14 @@ internal class NutrientsUiMapper {
         withLabel: Boolean,
     ): String? {
         value ?: return null
-        val (shortFormat, longFormat) = generateFormats(
-            shortLabel = "",  // no short label because in short mode sugar is displayed after carbs in parenthesis
-            longLabel = "of which sugar:",
+        // no short label because in short mode sugar is displayed after carbs in parenthesis
+        val label = if (withLabel) (if (isShort) "" else "of which sugar:") else null
+        val format = generateFormat(
+            label = label,
             unit = "g",
-            withLabel = withLabel,
             decimalCount = 0,
         )
-        return formatMacroAmount(value, shortFormat, longFormat, isShort)
+        return formatMacroAmount(value, format)
     }
 
     fun formatAddedSugar(
@@ -301,14 +300,14 @@ internal class NutrientsUiMapper {
         withLabel: Boolean,
     ): String? {
         value ?: return null
-        val (shortFormat, longFormat) = generateFormats(
-            shortLabel = "",  // no short label because in short mode sugar is displayed after carbs in parenthesis
-            longLabel = "of which added sugar:",
+        val label = if (withLabel) (if (isShort) "" else "of which added sugar:") else null
+        // no short label because in short mode sugar is displayed after carbs in parenthesis
+        val format = generateFormat(
+            label = label,
             unit = "g",
-            withLabel = withLabel,
             decimalCount = 0,
         )
-        return formatMacroAmount(value, shortFormat, longFormat, isShort)
+        return formatMacroAmount(value, format)
     }
 
     fun formatFat(
@@ -318,16 +317,15 @@ internal class NutrientsUiMapper {
         withLabel: Boolean,
     ): String? {
         value ?: return null
-        val (shortFormat, longFormat) = generateFormats(
-            shortLabel = "Fat",
-            longLabel = "Fat:",
+        val label = if (withLabel) (if (isShort) "Fat" else "Fat:") else null
+        val format = generateFormat(
+            label = label,
             unit = "g",
-            withLabel = withLabel,
             decimalCount = 0,
         )
-        return formatMacroAmount(value, shortFormat, longFormat, isShort) {
+        return formatMacroAmount(value, format) {
             saturated?.let {
-                formatSaturatedFat(saturated, isShort, withLabel = false)
+                formatSaturatedFat(saturated, isShort = true, withLabel = false)
             }
         }
     }
@@ -338,14 +336,14 @@ internal class NutrientsUiMapper {
         withLabel: Boolean,
     ): String? {
         value ?: return null
-        val (shortFormat, longFormat) = generateFormats(
-            shortLabel = "", // no short label because in short mode saturated fats are displayed after fat in parenthesis
-            longLabel = "of which saturated:",
+        // no short label because in short mode saturated fats are displayed after fat in parenthesis
+        val label = if (withLabel) (if (isShort) "" else "of which saturated:") else null
+        val format = generateFormat(
+            label = label,
             unit = "g",
-            withLabel = withLabel,
             decimalCount = 0,
         )
-        return formatMacroAmount(value, shortFormat, longFormat, isShort)
+        return formatMacroAmount(value, format)
     }
 
     fun formatSalt(
@@ -354,14 +352,13 @@ internal class NutrientsUiMapper {
         withLabel: Boolean,
     ): String? {
         value ?: return null
-        val (shortFormat, longFormat) = generateFormats(
-            shortLabel = "Salt",
-            longLabel = "Salt:",
+        val label = if (withLabel) (if (isShort) "Salt" else "Salt:") else null
+        val format = generateFormat(
+            label = label,
             unit = "g",
-            withLabel = withLabel,
             decimalCount = 2,
         )
-        return formatMacroAmount(value, shortFormat, longFormat, isShort)
+        return formatMacroAmount(value, format)
     }
 
     fun formatFibre(
@@ -370,14 +367,13 @@ internal class NutrientsUiMapper {
         withLabel: Boolean,
     ): String? {
         value ?: return null
-        val (shortFormat, longFormat) = generateFormats(
-            shortLabel = "Fibre",
-            longLabel = "Fibre:",
+        val label = if (withLabel) (if (isShort) "Fibre" else "Fibre:") else null
+        val format = generateFormat(
+            label = label,
             unit = "g",
-            withLabel = withLabel,
             decimalCount = 0,
         )
-        return formatMacroAmount(value, shortFormat, longFormat, isShort)
+        return formatMacroAmount(value, format)
     }
 
     fun targetProgress(target: Target, total: Float): Float? = target.max?.let { total / it }
@@ -397,61 +393,45 @@ internal class NutrientsUiMapper {
 
     private fun formatMacroAmount(
         value: Number,
-        shortFormat: SafeNumberFormatter,
-        longFormat: SafeNumberFormatter,
-        isShort: Boolean = false,
+        format: SafeNumberFormatter,
         extraValue: (() -> String?)? = null,
-    ): String? {
-        val formatted = if (isShort) {
-            shortFormat.format(value)
-        } else {
-            longFormat.format(value)
-        }
-        return formatted + (extraValue?.invoke()?.let { "($it)" } ?: "")
+    ): String {
+        return format.format(value) + (extraValue?.invoke()?.let { "($it)" } ?: "")
     }
 
-    private fun decimalFormat(decimals: Int, fixed: Boolean = false): String {
+    private fun generateFormat(
+        label: String?,
+        unit: String,
+        decimalCount: Int,
+    ): SafeNumberFormatter {
+        val decimalPattern = "${decimalFormat(decimalCount)}${unit.literal()}"
+
+
+        val format = if (label != null) {
+            val labelLiteral = "$label ".literal()
+            DecimalFormat("$labelLiteral$decimalPattern")
+        } else {
+            DecimalFormat(decimalPattern)
+        }
+
+        val safeFormatter = object : SafeNumberFormatter(format) {
+            override fun nullFormat(): String = label ?: ""
+        }
+
+        return safeFormatter
+    }
+
+    private fun decimalFormat(decimals: Int, dropTrailingZeroes: Boolean = true): String {
         require(decimals >= 0)
         val pattern = buildString {
             append("0")
             if (decimals > 0) {
                 append('.')
-                val ch = if (fixed) '0' else '#'
+                val ch = if (dropTrailingZeroes) '#' else '0'
                 repeat(decimals) { append(ch) }
             }
         }
         return pattern
-    }
-
-    private fun generateFormats(
-        shortLabel: String,
-        longLabel: String,
-        unit: String,
-        withLabel: Boolean,
-        decimalCount: Int,
-    ): Pair<SafeNumberFormatter, SafeNumberFormatter> {
-        val unitLiteral = unit.literal()
-        val longDecimalFormat = "${decimalFormat(decimalCount)}$unitLiteral"
-        val shortDecimalFormat = if (decimalCount > 0) longDecimalFormat else "#$unitLiteral"
-        val shortLabelLiteral = "$shortLabel ".literal()
-        val longLabelLiteral = "$longLabel ".literal()
-        val shortFormat = if (withLabel) {
-            DecimalFormat("$shortLabelLiteral$shortDecimalFormat")
-        } else {
-            DecimalFormat(shortDecimalFormat)
-        }
-        val longFormat = if (withLabel) {
-            DecimalFormat("$longLabelLiteral$longDecimalFormat")
-        } else {
-            DecimalFormat(longDecimalFormat)
-        }
-        val shortSafeFormatter = object : SafeNumberFormatter(shortFormat) {
-            override fun nullFormat(): String = shortLabel
-        }
-        val longSafeFormatter = object : SafeNumberFormatter(longFormat) {
-            override fun nullFormat(): String = longLabel
-        }
-        return shortSafeFormatter to longSafeFormatter
     }
 
     /**
@@ -470,6 +450,24 @@ internal class NutrientsUiMapper {
                 "\n    ($it)"
             } ?: ""
     }
+
+    /**
+     * Appends contributor text only when [amount] is non-null and does not round to zero
+     * at [gramDecimalPlaces] (same precision as the matching `format*` gram helpers).
+     */
+    fun formatTopContributorSuffix(
+        amount: Number?,
+        gramDecimalPlaces: Int,
+        contributorText: String?,
+    ): String {
+        if (amount == null || gramAmountRoundsToZero(amount, gramDecimalPlaces)) return ""
+        return formatTopContributorText(contributorText)
+    }
+
+    private fun gramAmountRoundsToZero(amount: Number, decimalPlaces: Int): Boolean =
+        BigDecimal.valueOf(amount.toDouble())
+            .setScale(decimalPlaces, RoundingMode.HALF_EVEN)
+            .compareTo(BigDecimal.ZERO) == 0
 
     private abstract class SafeNumberFormatter(
         private val format: DecimalFormat,

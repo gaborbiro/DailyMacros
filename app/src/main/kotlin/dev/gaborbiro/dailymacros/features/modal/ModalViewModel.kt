@@ -244,14 +244,15 @@ internal class ModalViewModel(
             }
             try {
                 val recognisedFood = foodRecognitionUseCase.execute(images)
-                updateRoot<DialogHandle.RecordDetailsDialog.Edit> {
-                    val title = recognisedFood.title
-                        ?.takeIf { it.isNotBlank() }
-                        ?.let {
-                            TextFieldValue(it, selection = TextRange(it.length))
-                        }
-                        ?: it.title
-                    it.copy(
+                updateRoot<DialogHandle.RecordDetailsDialog.Edit> { currentUiState ->
+                    val title = currentUiState.title.takeIf { it.text.isNotBlank() }
+                        ?: recognisedFood.title
+                            ?.takeIf { it.isNotBlank() }
+                            ?.let {
+                                TextFieldValue(it, selection = TextRange(it.length))
+                            }
+                        ?: TextFieldValue()
+                    currentUiState.copy(
                         recognisedFood = recognisedFood,
                         title = title,
                     )
@@ -438,7 +439,9 @@ internal class ModalViewModel(
     fun onRunAIButtonTapped() {
         updateRoot<DialogHandle.RecordDetailsDialog.Edit> {
             runFoodRecognition(it.images)
-            it
+            it.copy(
+                title = TextFieldValue()
+            )
         }
     }
 
