@@ -18,6 +18,7 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
 import dev.gaborbiro.dailymacros.util.showMacroResultsNotification
+import ellipsize
 
 internal class NutrientAnalysisUseCase(
     private val appContext: Context,
@@ -67,10 +68,11 @@ internal class NutrientAnalysisUseCase(
                 val templateNutrients: Pair<TemplateNutrientBreakdown, TopContributors>? = nutrients?.let {
                     recordsMapper.map(nutrients.first) to nutrients.second
                 }
+                val name = record.template.name.takeIf { it.isNotBlank() } ?: nutrientsResponse.title
                 recordsRepository.updateTemplate(
                     templateId = record.template.dbId,
                     // the user can start analysis without having specified a name
-                    name = record.template.name.takeIf { it.isNotBlank() } ?: nutrientsResponse.title,
+                    name = name,
                     nutrients = templateNutrients,
                     notes = nutrientsResponse.notes,
                 )
@@ -78,31 +80,37 @@ internal class NutrientAnalysisUseCase(
                 nutrients
                     ?.let {
                         val macrosStr = recordsMapper.mapMacrosPrintout(nutrients.first)
-                        appContext.showMacroResultsNotification(
-                            id = 123000L + recordId,
-                            recordId = recordId,
-                            title = null,
-                            message = listOfNotNull(record.template.name, macrosStr, error, cachedTokensMessage).joinToString("\n"),
-                            isError = false,
-                        )
+                        val message = listOfNotNull(name.ellipsize(50), macrosStr, error, cachedTokensMessage).joinToString("\n").trim()
+                        message.takeIf { it.isNotBlank() }?.let {
+                            appContext.showMacroResultsNotification(
+                                id = 123000L + recordId,
+                                recordId = recordId,
+                                title = null,
+                                message = message,
+                                isError = false,
+                            )
+                        }
                     }
                     ?: run {
                         error
                             ?.let {
-                                appContext.showMacroResultsNotification(
-                                    id = 123000L + recordId,
-                                    recordId = recordId,
-                                    title = null,
-                                    message = listOfNotNull(record.template.name, error, cachedTokensMessage).joinToString("\n"),
-                                    isError = true,
-                                )
+                                val message = listOfNotNull(name.ellipsize(50), error, cachedTokensMessage).joinToString("\n").trim()
+                                message.takeIf { it.isNotBlank() }?.let {
+                                    appContext.showMacroResultsNotification(
+                                        id = 123000L + recordId,
+                                        recordId = recordId,
+                                        title = null,
+                                        message = message,
+                                        isError = true,
+                                    )
+                                }
                             }
                             ?: run {
                                 appContext.showMacroResultsNotification(
                                     id = 123000L + recordId,
                                     recordId = recordId,
                                     title = null,
-                                    message = listOfNotNull(record.template.name, "Something went wrong while fetching macros. Please try again later.", cachedTokensMessage).joinToString("\n"),
+                                    message = listOfNotNull(name.ellipsize(50), "Something went wrong while fetching macros. Please try again later.", cachedTokensMessage).joinToString("\n"),
                                     isError = true,
                                 )
                             }
