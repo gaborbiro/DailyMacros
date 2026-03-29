@@ -93,7 +93,7 @@ fun SelectTemplateActionDialog(
                         contentDescription = null,
                     )
                     Spacer(Modifier.width(8.dp))
-                    Text(text = "Repeat")
+                    Text(text = "Add")
                 }
 
                 Spacer(modifier = Modifier.height(PaddingDefault))

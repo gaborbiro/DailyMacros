@@ -6,17 +6,18 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnaly
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientApiModel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientsApiModel
-import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.food.llmModel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTResponse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ContentEntry
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.InputContent
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.OutputContent
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ReasoningLevel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.Role
 
 
 internal fun NutrientAnalysisRequest.toApiModel() = ChatGPTRequest(
-    model = llmModel,
+    model = nutrientAnalysisModel,
+    reasoning = ReasoningLevel(nutrientAnalysisReasoningEffort),
     input = listOf(
         ContentEntry(
             role = Role.system,
@@ -91,6 +92,8 @@ Output format:
   "title": "",
   "notes": ""
 }
+
+In topContributorIngredients list out those ingredients that meaningfully contributed to the estimation, in decreasing order of significance. Be brief, For ex "bread" instead of "whole-grain sourdough bread".
 
 If estimation is not possible:
 {

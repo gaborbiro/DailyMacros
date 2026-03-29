@@ -78,7 +78,7 @@ fun SelectRecordActionDialog(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(Modifier.width(8.dp))
-                    Text(text = "Repeat")
+                    Text(text = "Add")
                 }
 
                 Spacer(modifier = Modifier.height(PaddingDefault))

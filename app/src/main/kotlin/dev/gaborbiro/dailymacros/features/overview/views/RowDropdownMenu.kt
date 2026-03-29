@@ -55,7 +55,7 @@ fun RowDropdownMenu(
                 onRepeatTapped?.let {
                     DropdownMenuItem(
                         leadingIcon = { Icon(icons.repeat, null) },
-                        text = { Text("Repeat") },
+                        text = { Text("Add") },
                         onClick = { onDismiss(); onRepeatTapped() }
                     )
                 }

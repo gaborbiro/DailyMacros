@@ -4,17 +4,18 @@ import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
-import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.food.llmModel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTResponse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ContentEntry
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.InputContent
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.OutputContent
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ReasoningLevel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.Role
 
 internal fun FoodRecognitionRequest.toApiModel() = ChatGPTRequest(
-    model = llmModel,
+    model = foodPhotoRecognitionModel,
+    reasoning = ReasoningLevel(foodPhotoRecognitionReasoningEffort),
     input = listOf(
         ContentEntry(
             role = Role.system,
