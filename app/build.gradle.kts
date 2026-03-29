@@ -14,8 +14,8 @@ android {
         applicationId = "dev.gaborbiro.dailymacros"
         minSdk = libs.versions.android.sdk.min.get().toInt()
         targetSdk = libs.versions.android.sdk.target.get().toInt()
-        versionName = "1.9.1"
-        versionCode = 23
+        versionName = "1.10.0"
+        versionCode = 24
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
