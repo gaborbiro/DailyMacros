@@ -6,6 +6,8 @@ import dev.gaborbiro.dailymacros.features.trends.model.ChartDataset
 import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsChartUiModel
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -19,6 +21,7 @@ class TrendsUiMapper(
     fun mapDaysCharts(
         records: List<Record>,
         dayQualifier: DayQualifier,
+        targets: Targets,
     ): List<TrendsChartUiModel> {
         val recordsByPeriod = records.groupBy { it.timestamp.toLocalDate() }
 
@@ -61,12 +64,14 @@ class TrendsUiMapper(
                 isCurrentPeriod = { it == today }
             ),
             labelProvider = ::dayLabel,
+            targets = targets,
         )
     }
 
     fun mapWeeksCharts(
         records: List<Record>,
         dayQualifier: DayQualifier,
+        targets: Targets,
     ): List<TrendsChartUiModel> {
         val weekFields = WeekFields.of(Locale.getDefault())
 
@@ -131,12 +136,14 @@ class TrendsUiMapper(
                 },
             ),
             labelProvider = ::weekLabel,
+            targets = targets,
         )
     }
 
     fun mapMonthsCharts(
         records: List<Record>,
         aggregationMode: DayQualifier,
+        targets: Targets,
     ): List<TrendsChartUiModel> {
         val recordsByPeriod = records.groupBy { YearMonth.from(it.timestamp.toLocalDate()) }
 
@@ -188,6 +195,7 @@ class TrendsUiMapper(
                 },
             ),
             labelProvider = ::monthLabel,
+            targets = targets,
         )
     }
 
@@ -197,6 +205,7 @@ class TrendsUiMapper(
         contributingDaysProvider: (K) -> List<LocalDate>,
         currentPeriodCalculationMode: CurrentPeriodCalculationMode<K>,
         labelProvider: (K) -> String,
+        targets: Targets,
     ): List<TrendsChartUiModel> {
 
         fun agg(valueProvider: (Record) -> Float?) =
@@ -209,29 +218,50 @@ class TrendsUiMapper(
                 labelProvider = labelProvider,
             )
 
+        val noTarget = Target(enabled = false)
+
         return datasetsOf(
             listOf(
-                Triple("Calories (kcal)", Color(0xFF8AB4F8), agg { it.template.nutrients.calories?.toFloat() })
+                series("Calories (kcal)", Color(0xFF8AB4F8), agg { it.template.nutrients.calories?.toFloat() }, targets.calories),
             ),
             listOf(
-                Triple("Protein (g)", Color(0xFF81C995), agg { it.template.nutrients.protein })
+                series("Protein (g)", Color(0xFF81C995), agg { it.template.nutrients.protein }, targets.protein),
             ),
             listOf(
-                Triple("Carbs (g)", Color(0xFFFFC278), agg { it.template.nutrients.carbs }),
-                Triple("  └>of which sugar (g)", Color(0xFFFFB74D), agg { it.template.nutrients.ofWhichSugar }),
-                Triple("      └>of which added sugar (g)", Color(0xFFFF802C), agg { it.template.nutrients.ofWhichAddedSugar })
+                series("Carbs (g)", Color(0xFFFFC278), agg { it.template.nutrients.carbs }, targets.carbs),
+                series("  └>of which sugar (g)", Color(0xFFFFB74D), agg { it.template.nutrients.ofWhichSugar }, targets.ofWhichSugar),
+                series("      └>of which added sugar (g)", Color(0xFFFF802C), agg { it.template.nutrients.ofWhichAddedSugar }, noTarget),
             ),
             listOf(
-                Triple("Fat (g)", Color(0xFFFFA6A6), agg { it.template.nutrients.fat }),
-                Triple(" └>of which saturated fat (g)", Color(0xFFE57373), agg { it.template.nutrients.ofWhichSaturated })
+                series("Fat (g)", Color(0xFFFFA6A6), agg { it.template.nutrients.fat }, targets.fat),
+                series(" └>of which saturated fat (g)", Color(0xFFE57373), agg { it.template.nutrients.ofWhichSaturated }, targets.ofWhichSaturated),
             ),
             listOf(
-                Triple("Salt (g)", Color(0xFFB39DDB), agg { it.template.nutrients.salt })
+                series("Salt (g)", Color(0xFFB39DDB), agg { it.template.nutrients.salt }, targets.salt),
             ),
             listOf(
-                Triple("Fibre (g)", Color(0xFF4DB6AC), agg { it.template.nutrients.fibre })
+                series("Fibre (g)", Color(0xFF4DB6AC), agg { it.template.nutrients.fibre }, targets.fibre),
             ),
         )
+    }
+
+    private fun series(
+        name: String,
+        color: Color,
+        points: Pair<List<ChartDataPoint>, ChartDataPoint?>,
+        target: Target,
+    ): SeriesWithTarget = SeriesWithTarget(name, color, points, target)
+
+    private data class SeriesWithTarget(
+        val name: String,
+        val color: Color,
+        val data: Pair<List<ChartDataPoint>, ChartDataPoint?>,
+        val target: Target,
+    )
+
+    private fun targetHorizontalValues(target: Target): Pair<Double?, Double?> {
+        if (!target.enabled) return null to null
+        return target.min?.toDouble() to target.max?.toDouble()
     }
 
     private fun contributingDays(
@@ -333,19 +363,22 @@ class TrendsUiMapper(
     }
 
     private fun datasetsOf(
-        vararg tuples: List<Triple<String, Color, Pair<List<ChartDataPoint>, ChartDataPoint?>>>
+        vararg rows: List<SeriesWithTarget>,
     ): List<TrendsChartUiModel> {
-        return tuples.map { chartConfig ->
+        return rows.map { chartConfig ->
             TrendsChartUiModel(
-                chartConfig.map { (name, color, points) ->
-                    val (set: List<ChartDataPoint>, current) = points
+                chartConfig.map { spec ->
+                    val (set: List<ChartDataPoint>, current) = spec.data
+                    val (minY, maxY) = targetHorizontalValues(spec.target)
                     ChartDataset(
-                        name = name,
-                        color = color,
+                        name = spec.name,
+                        color = spec.color,
                         set = set,
                         current = current,
+                        targetMinY = minY,
+                        targetMaxY = maxY,
                     )
-                }
+                },
             )
         }
     }

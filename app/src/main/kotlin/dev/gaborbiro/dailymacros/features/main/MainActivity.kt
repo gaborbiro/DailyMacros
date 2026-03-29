@@ -144,6 +144,7 @@ class MainActivity : ComponentActivity() {
                 val trendsViewModel = viewModelFactory {
                     TrendsViewModel(
                         recordsRepository = recordsRepository,
+                        settingsRepository = settingsRepository,
                         preferences = trendsPreferences,
                         mapper = TrendsUiMapper(trendsPreferences),
                     )

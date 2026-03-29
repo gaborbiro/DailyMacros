@@ -9,6 +9,7 @@ android {
 
 dependencies {
     implementation(project(":core:design"))
+    implementation(project(":features:common"))
     implementation(project(":repositories:settings"))
     implementation(project(":repositories:records"))
 

@@ -14,6 +14,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.VicoScrollState
@@ -69,7 +70,14 @@ internal fun TrendsChart(
         }
     }
 
-    LaunchedEffect(segmentsByDataset) {
+    LaunchedEffect(segmentsByDataset, chartData.datasets) {
+        val maxXIndex = chartData.datasets.maxOf { ds ->
+            maxOf(
+                ds.set.maxOfOrNull { it.index } ?: 0,
+                ds.current?.index ?: 0,
+            )
+        }.toDouble().coerceAtLeast(1.0)
+
         modelProducer.runTransaction {
             lineSeries {
                 for ((dataset, segments) in segmentsByDataset) {
@@ -95,15 +103,32 @@ internal fun TrendsChart(
                         series(y = listOf(0))
                     }
                 }
+                for (dataset in chartData.datasets) {
+                    dataset.targetMaxY?.let { y ->
+                        series(
+                            x = listOf(0.0, maxXIndex),
+                            y = listOf(y, y),
+                        )
+                    }
+                    dataset.targetMinY?.let { y ->
+                        if (y != dataset.targetMaxY) {
+                            series(
+                                x = listOf(0.0, maxXIndex),
+                                y = listOf(y, y),
+                            )
+                        }
+                    }
+                }
             }
         }
     }
 
-    val lines = remember(segmentsByDataset) {
-        segmentsByDataset.flatMap { (dataset, segments) ->
+    val lines = remember(segmentsByDataset, chartData.datasets) {
+        val dataLineThickness = 2.dp
+        val dataLines = segmentsByDataset.flatMap { (dataset, segments) ->
             val historicalLine = LineCartesianLayer.Line(
                 fill = LineCartesianLayer.LineFill.single(Fill(dataset.color)),
-                stroke = LineCartesianLayer.LineStroke.Continuous(thickness = 2.dp),
+                stroke = LineCartesianLayer.LineStroke.Continuous(thickness = dataLineThickness),
                 pointProvider = LineCartesianLayer.PointProvider.single(
                     LineCartesianLayer.Point(
                         component = ShapeComponent(Fill(dataset.color), CircleShape),
@@ -112,7 +137,7 @@ internal fun TrendsChart(
             )
             val currentLine = LineCartesianLayer.Line(
                 fill = LineCartesianLayer.LineFill.single(Fill(dataset.color.copy(alpha = 0.5f))),
-                stroke = LineCartesianLayer.LineStroke.Continuous(thickness = 2.dp),
+                stroke = LineCartesianLayer.LineStroke.Continuous(thickness = dataLineThickness),
                 pointProvider = LineCartesianLayer.PointProvider.single(
                     LineCartesianLayer.Point(
                         component = ShapeComponent(
@@ -129,6 +154,22 @@ internal fun TrendsChart(
             }
             segmentLines + currentLine
         }
+        fun dashedTargetLine(color: Color) = LineCartesianLayer.Line(
+            fill = LineCartesianLayer.LineFill.single(Fill(color.copy(alpha = 0.88f))),
+            areaFill = null,
+            stroke = LineCartesianLayer.LineStroke.Dashed(
+                thickness = dataLineThickness,
+                dashLength = 6.dp,
+                gapLength = 4.dp,
+            ),
+        )
+        val targetLines = chartData.datasets.flatMap { d ->
+            buildList {
+                if (d.targetMaxY != null) add(dashedTargetLine(d.color))
+                if (d.targetMinY != null && d.targetMinY != d.targetMaxY) add(dashedTargetLine(d.color))
+            }
+        }
+        dataLines + targetLines
     }
 
     val lineProvider = remember(lines) {

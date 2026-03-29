@@ -1,9 +1,6 @@
-package dev.gaborbiro.dailymacros.features.common
+package dev.gaborbiro.dailymacros.features.common.views
 
-/**
- * Decimal precision for each nutrient line formatted in [NutrientsUiMapper].
- */
-internal enum class NutrientDisplayLine(val unit: String, val decimalCount: Int, val dropTrailingZeroes: Boolean) {
+enum class NutrientDisplayLine(val unit: String, val decimalCount: Int, val dropTrailingZeroes: Boolean) {
     Calories(unit = "kcal", decimalCount = 0, dropTrailingZeroes = true),
     Protein(unit = "g", decimalCount = 0, dropTrailingZeroes = true),
     Carb(unit = "g", decimalCount = 0, dropTrailingZeroes = true),

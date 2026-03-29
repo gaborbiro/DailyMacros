@@ -8,6 +8,7 @@ import dev.gaborbiro.dailymacros.features.trends.model.TrendsSettingsUIModel
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiUpdates
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiState
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +21,7 @@ import kotlinx.coroutines.launch
 
 class TrendsViewModel(
     private val recordsRepository: RecordsRepository,
+    private val settingsRepository: SettingsRepository,
     private val preferences: TrendsPreferences,
     private val mapper: TrendsUiMapper,
 ) : ViewModel() {
@@ -85,10 +87,11 @@ class TrendsViewModel(
                     }
                 } else {
                     val aggregationMode = mapper.map(preferences.dayQualificationMode)
+                    val targets = settingsRepository.getTargets()
                     val charts = when (timescale) {
-                        Timescale.DAYS -> mapper.mapDaysCharts(records, aggregationMode)
-                        Timescale.WEEKS -> mapper.mapWeeksCharts(records, aggregationMode)
-                        Timescale.MONTHS -> mapper.mapMonthsCharts(records, aggregationMode)
+                        Timescale.DAYS -> mapper.mapDaysCharts(records, aggregationMode, targets)
+                        Timescale.WEEKS -> mapper.mapWeeksCharts(records, aggregationMode, targets)
+                        Timescale.MONTHS -> mapper.mapMonthsCharts(records, aggregationMode, targets)
                     }
                     _uiState.update {
                         it.copy(charts = charts)

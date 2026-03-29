@@ -48,11 +48,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
+import dev.gaborbiro.dailymacros.features.common.views.NutrientDisplayLine
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.FieldErrors
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.MacroType
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetUiModel
-import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetsSettingsUiUpdates
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetsSettingsUiState
+import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetsSettingsUiUpdates
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.ValidationError
 import dev.gaborbiro.dailymacros.features.settings.util.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.features.settings.views.SettingsPreviewContext
@@ -84,6 +85,7 @@ internal fun TargetsSettingsBottomSheet(
                     sheetState.hide()
                     onDismissRequested()
                 }
+
                 TargetsSettingsUiUpdates.Close -> {
                     // nothing to do
                 }
@@ -118,14 +120,14 @@ internal fun TargetsSettingsBottomSheet(
                 .imePadding()
         ) {
             val ordered = listOf(
-                Triple(MacroType.CALORIES, "Calories", "kcal"),
-                Triple(MacroType.PROTEIN, "Protein", "g"),
-                Triple(MacroType.SALT, "Salt", "g"),
-                Triple(MacroType.FIBRE, "Fibre", "g"),
-                Triple(MacroType.FAT, "Fat", "g"),
-                Triple(MacroType.SATURATED, "of which saturated", "g"),
-                Triple(MacroType.CARBS, "Carbs", "g"),
-                Triple(MacroType.SUGAR, "of which sugar", "g"),
+                Triple(MacroType.CALORIES, "Calories ", NutrientDisplayLine.Calories.unit),
+                Triple(MacroType.PROTEIN, "Protein ", NutrientDisplayLine.Protein.unit),
+                Triple(MacroType.SALT, "Salt ", NutrientDisplayLine.Salt.unit),
+                Triple(MacroType.FIBRE, "Fibre ", NutrientDisplayLine.Fibre.unit),
+                Triple(MacroType.FAT, "Fat ", NutrientDisplayLine.Fat.unit),
+                Triple(MacroType.SATURATED, "of which saturated ", NutrientDisplayLine.OfWhichSaturated.unit),
+                Triple(MacroType.CARBS, "Carbs ", NutrientDisplayLine.Carb.unit),
+                Triple(MacroType.SUGAR, "of which sugar ", NutrientDisplayLine.OfWhichSugar.unit),
             )
 
             ordered.forEach { (type, label, unit) ->

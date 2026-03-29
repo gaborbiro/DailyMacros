@@ -11,6 +11,7 @@ dependencies {
     implementation(project(":core:design"))
     implementation(project(":features:common"))
     implementation(project(":repositories:records"))
+    implementation(project(":repositories:settings:domain"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

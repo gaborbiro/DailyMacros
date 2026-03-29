@@ -1,6 +1,6 @@
 package dev.gaborbiro.dailymacros.features.modal
 
-import dev.gaborbiro.dailymacros.features.common.NutrientDisplayLine
+import dev.gaborbiro.dailymacros.features.common.views.NutrientDisplayLine
 import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
