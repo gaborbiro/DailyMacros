@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Scaffold
@@ -23,18 +24,21 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import dev.gaborbiro.dailymacros.design.PaddingDefault
-import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
 import dev.gaborbiro.dailymacros.features.common.model.DailySummaryEntry
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelDailySummary
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.NutrientsUiModel
+import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiState
 import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetReceiver
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 internal fun OverviewView(
@@ -73,13 +77,24 @@ internal fun OverviewView(
         }
     }
 
+    val listState = rememberLazyListState()
+
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
         floatingActionButton = {
             if (!viewState.showAddWidgetButton) {
-                SearchFAB {
-                    onSearchTermChanged(it)
-                }
+                val coroutineScope = rememberCoroutineScope()
+                SearchFAB(
+                    onSearch = {
+                        onSearchTermChanged(it)
+                    },
+                    onSearchCleared = {
+                        coroutineScope.launch {
+                            delay(200)
+                            listState.scrollToItem(0)
+                        }
+                    }
+                )
             }
         },
         floatingActionButtonPosition = FabPosition.End,
@@ -92,6 +107,7 @@ internal fun OverviewView(
         if (viewState.items.isNotEmpty()) {
             OverviewList(
                 viewState = viewState,
+                listState = listState,
                 paddingValues = paddingValues,
                 onRepeatMenuItemTapped = onRepeatMenuItemTapped,
                 onAnalyseMacrosMenuItemTapped = onAnalyseMacrosMenuItemTapped,

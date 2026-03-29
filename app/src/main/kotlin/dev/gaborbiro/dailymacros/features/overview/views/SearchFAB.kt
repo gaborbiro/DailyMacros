@@ -29,7 +29,10 @@ import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 
 @Composable
-internal fun SearchFAB(onSearch: (String?) -> Unit) {
+internal fun SearchFAB(
+    onSearch: (String?) -> Unit,
+    onSearchCleared: () -> Unit,
+) {
     var fabExpanded by remember { mutableStateOf(false) }
     var text by remember(fabExpanded) {
         mutableStateOf("")
@@ -39,6 +42,7 @@ internal fun SearchFAB(onSearch: (String?) -> Unit) {
     if (fabExpanded) {
         BackHandler {
             onSearch(null)
+            onSearchCleared()
             fabExpanded = false
         }
     }
@@ -48,6 +52,7 @@ internal fun SearchFAB(onSearch: (String?) -> Unit) {
             fabExpanded = fabExpanded.not()
             if (fabExpanded.not()) {
                 onSearch(null)
+                onSearchCleared()
             }
         },
         containerColor = MaterialTheme.colorScheme.tertiaryContainer,

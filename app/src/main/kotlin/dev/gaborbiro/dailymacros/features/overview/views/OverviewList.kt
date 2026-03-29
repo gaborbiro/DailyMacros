@@ -47,7 +47,6 @@ import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
-import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.common.model.DailySummaryEntry
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelDailySummary
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
@@ -55,6 +54,7 @@ import dev.gaborbiro.dailymacros.features.common.model.ListUiModelWeeklySummary
 import dev.gaborbiro.dailymacros.features.common.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.common.views.CoachMarkOverlay
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
+import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.common.views.coachMarkOverlayAnchor
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiState
 import kotlinx.coroutines.launch
@@ -62,6 +62,7 @@ import kotlinx.coroutines.launch
 @Composable
 internal fun OverviewList(
     viewState: OverviewUiState,
+    listState: LazyListState,
     paddingValues: PaddingValues,
     expandedId: Long? = null,
     onRepeatMenuItemTapped: (recordId: Long) -> Unit,
@@ -76,8 +77,6 @@ internal fun OverviewList(
     onCoachMarkDismissed: () -> Unit,
     onLoadMore: () -> Unit = {},
 ) {
-    val listState = rememberLazyListState()
-
     val atTop by remember {
         derivedStateOf {
             listState.firstVisibleItemIndex == 0 &&
@@ -339,6 +338,7 @@ private fun OverviewListPreview() {
     ViewPreviewContext {
         OverviewList(
             paddingValues = PaddingValues(),
+            listState = rememberLazyListState(),
             expandedId = 3L,
             viewState = OverviewUiState(
                 showSettingsButton = true,
