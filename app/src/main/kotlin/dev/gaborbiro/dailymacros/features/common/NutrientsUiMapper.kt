@@ -85,7 +85,7 @@ internal class NutrientsUiMapper {
                     DailySummaryEntry(
                         title = "Calories",
                         progress0to1 = targetProgress(it, nutrientBreakdown.calories?.toFloat() ?: 0f) ?: 0f,
-                        progressLabel = formatCalories(nutrientBreakdown.calories, isShort = true, withLabel = false) ?: "0",
+                        progressLabel = formatCalories(nutrientBreakdown.calories, withLabel = false),
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = rangeLabel,
                         color = { it.caloriesColor },
@@ -97,7 +97,7 @@ internal class NutrientsUiMapper {
                     DailySummaryEntry(
                         title = "Protein",
                         progress0to1 = targetProgress(it, nutrientBreakdown.protein ?: 0f) ?: 0f,
-                        progressLabel = formatProtein(nutrientBreakdown.protein, isShort = true, withLabel = false) ?: "0g",
+                        progressLabel = formatProtein(nutrientBreakdown.protein, withLabel = false),
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.proteinColor },
@@ -109,8 +109,7 @@ internal class NutrientsUiMapper {
                     DailySummaryEntry(
                         title = "Fat",
                         progress0to1 = targetProgress(it, nutrientBreakdown.fat ?: 0f) ?: 0f,
-                        progressLabel = formatFat(nutrientBreakdown.fat, saturated = null, isShort = true, withLabel = false)
-                            ?: "0g",
+                        progressLabel = formatFat(nutrientBreakdown.fat, saturated = null, withLabel = false),
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.fatColor },
@@ -122,7 +121,7 @@ internal class NutrientsUiMapper {
                     DailySummaryEntry(
                         title = "saturated",
                         progress0to1 = targetProgress(it, nutrientBreakdown.ofWhichSaturated ?: 0f) ?: 0f,
-                        progressLabel = formatSaturatedFat(nutrientBreakdown.ofWhichSaturated, isShort = true, withLabel = false) ?: "0g",
+                        progressLabel = formatSaturatedFat(nutrientBreakdown.ofWhichSaturated, withLabel = false),
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.fatColor },
@@ -134,8 +133,7 @@ internal class NutrientsUiMapper {
                     DailySummaryEntry(
                         title = "Carbs",
                         progress0to1 = targetProgress(it, nutrientBreakdown.carbs ?: 0f) ?: 0f,
-                        progressLabel = formatCarbs(nutrientBreakdown.carbs, sugar = null, addedSugar = null, isShort = true, withLabel = false)
-                            ?: "0g",
+                        progressLabel = formatCarbs(nutrientBreakdown.carbs, sugar = null, addedSugar = null, withLabel = false),
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.carbsColor },
@@ -147,7 +145,7 @@ internal class NutrientsUiMapper {
                     DailySummaryEntry(
                         title = "sugar",
                         progress0to1 = targetProgress(it, nutrientBreakdown.ofWhichSugar ?: 0f) ?: 0f,
-                        progressLabel = formatSugar(nutrientBreakdown.ofWhichSugar, isShort = true, withLabel = false) ?: "0g",
+                        progressLabel = formatSugar(nutrientBreakdown.ofWhichSugar, withLabel = false),
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.carbsColor },
@@ -159,7 +157,7 @@ internal class NutrientsUiMapper {
                     DailySummaryEntry(
                         title = "Salt",
                         progress0to1 = targetProgress(it, nutrientBreakdown.salt ?: 0f) ?: 0f,
-                        progressLabel = formatSalt(nutrientBreakdown.salt, isShort = true, withLabel = false) ?: "0.00g",
+                        progressLabel = formatSalt(nutrientBreakdown.salt, withLabel = false),
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.saltColor },
@@ -171,7 +169,7 @@ internal class NutrientsUiMapper {
                     DailySummaryEntry(
                         title = "Fibre",
                         progress0to1 = targetProgress(it, nutrientBreakdown.fibre ?: 0f) ?: 0f,
-                        progressLabel = formatFibre(nutrientBreakdown.fibre, isShort = true, withLabel = false) ?: "0g",
+                        progressLabel = formatFibre(nutrientBreakdown.fibre, withLabel = false),
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.fibreColor },
@@ -213,64 +211,70 @@ internal class NutrientsUiMapper {
 
     fun mapRecordNutrients(nutrientBreakdown: TemplateNutrientBreakdown): NutrientsUiModel {
         return NutrientsUiModel(
-            calories = formatCalories(nutrientBreakdown.calories, isShort = true, withLabel = false),
-            protein = formatProtein(nutrientBreakdown.protein, isShort = true, withLabel = true),
-            fat = formatFat(nutrientBreakdown.fat, nutrientBreakdown.ofWhichSaturated, isShort = true, withLabel = true),
-            carbs = formatCarbs(nutrientBreakdown.carbs, nutrientBreakdown.ofWhichSugar, nutrientBreakdown.ofWhichAddedSugar, isShort = true, withLabel = true),
-            salt = formatSalt(nutrientBreakdown.salt, isShort = true, withLabel = true),
-            fibre = formatFibre(nutrientBreakdown.fibre, isShort = true, withLabel = true),
+            calories = nutrientBreakdown.calories?.let {
+                formatCalories(nutrientBreakdown.calories, withLabel = false)
+            },
+            protein = nutrientBreakdown.protein?.let {
+                formatProtein(nutrientBreakdown.protein, withLabel = true)
+            },
+            fat = nutrientBreakdown.fat?.let {
+                formatFat(nutrientBreakdown.fat, nutrientBreakdown.ofWhichSaturated, withLabel = true)
+            },
+            carbs = nutrientBreakdown.carbs?.let {
+                formatCarbs(nutrientBreakdown.carbs, nutrientBreakdown.ofWhichSugar, nutrientBreakdown.ofWhichAddedSugar, withLabel = true)
+            },
+            salt = nutrientBreakdown.salt?.let {
+                formatSalt(nutrientBreakdown.salt, withLabel = true)
+            },
+            fibre = nutrientBreakdown.fibre?.let {
+                formatFibre(nutrientBreakdown.fibre, withLabel = true)
+            },
         )
     }
 
     fun formatCalories(
         value: Number?,
-        isShort: Boolean,
         withLabel: Boolean,
-    ): String? {
-        value ?: return null
-        val label = if (withLabel) (if (isShort) "Calories" else "Calories:") else null
+    ): String {
+        val amount = value ?: 0
+        val label = if (withLabel) "Calories:" else null
         val format = generateFormat(
             label = label,
-            unit = "kcal",
-            decimalCount = NutrientDisplayLine.Calories.decimalCount,
+            line = NutrientDisplayLine.Calories,
         )
-        return formatMacroAmount(value, format)
+        return formatMacroAmount(amount, format)
     }
 
     fun formatProtein(
         value: Number?,
-        isShort: Boolean,
         withLabel: Boolean,
-    ): String? {
-        value ?: return null
-        val label = if (withLabel) (if (isShort) "Protein" else "Protein:") else null
+    ): String {
+        val amount = value ?: 0
+        val label = if (withLabel) "Protein:" else null
         val format = generateFormat(
             label = label,
-            unit = "g",
-            decimalCount = NutrientDisplayLine.Protein.decimalCount,
+            line = NutrientDisplayLine.Protein,
         )
-        return formatMacroAmount(value, format)
+        return formatMacroAmount(amount, format)
     }
 
     fun formatCarbs(
         value: Number?,
         sugar: Number?,
         addedSugar: Number?,
-        isShort: Boolean,
         withLabel: Boolean,
-    ): String? {
-        value ?: return null
-        val label = if (withLabel) (if (isShort) "Carb" else "Carb:") else null
+    ): String {
+        val amount = value ?: 0
+        val label = if (withLabel) "Carb:" else null
         val format = generateFormat(
             label = label,
-            unit = "g",
-            decimalCount = NutrientDisplayLine.Carb.decimalCount,
+            line = NutrientDisplayLine.Carb,
         )
-        return formatMacroAmount(value, format) {
+        return formatMacroAmount(amount, format) {
             sugar?.let {
-                val sugar = formatSugar(sugar, isShort = true, withLabel = false)
+                val sugar = formatSugar(sugar, withLabel = false)
                 val addedSugar = addedSugar?.let {
-                    formatAddedSugar(addedSugar, isShort = true, withLabel = false)
+                    formatAddedSugar(addedSugar, withLabel = false)
                 }
                 "${sugar}${addedSugar?.let { "/$it" } ?: ""}"
             }
@@ -279,100 +283,88 @@ internal class NutrientsUiMapper {
 
     fun formatSugar(
         value: Number?,
-        isShort: Boolean,
         withLabel: Boolean,
-    ): String? {
-        value ?: return null
-        // no short label because in short mode sugar is displayed after carbs in parenthesis
-        val label = if (withLabel) (if (isShort) "" else "of which sugar:") else null
+    ): String {
+        val amount = value ?: 0
+        // no short label because in short mode sugar is displayed after carbs in parentheses
+        val label = if (withLabel) "of which sugar:" else null
         val format = generateFormat(
             label = label,
-            unit = "g",
-            decimalCount = NutrientDisplayLine.OfWhichSugar.decimalCount,
+            line = NutrientDisplayLine.OfWhichSugar,
         )
-        return formatMacroAmount(value, format)
+        return formatMacroAmount(amount, format)
     }
 
     fun formatAddedSugar(
         value: Number?,
-        isShort: Boolean,
         withLabel: Boolean,
-    ): String? {
-        value ?: return null
-        val label = if (withLabel) (if (isShort) "" else "of which added sugar:") else null
-        // no short label because in short mode sugar is displayed after carbs in parenthesis
+    ): String {
+        val amount = value ?: 0
+        val label = if (withLabel) "of which added sugar:" else null
+        // no short label because in short mode sugar is displayed after carbs in parentheses
         val format = generateFormat(
             label = label,
-            unit = "g",
-            decimalCount = NutrientDisplayLine.OfWhichAddedSugar.decimalCount,
+            line = NutrientDisplayLine.OfWhichAddedSugar,
         )
-        return formatMacroAmount(value, format)
+        return formatMacroAmount(amount, format)
     }
 
     fun formatFat(
         value: Number?,
         saturated: Number?,
-        isShort: Boolean,
         withLabel: Boolean,
-    ): String? {
-        value ?: return null
-        val label = if (withLabel) (if (isShort) "Fat" else "Fat:") else null
+    ): String {
+        val amount = value ?: 0
+        val label = if (withLabel) "Fat:" else null
         val format = generateFormat(
             label = label,
-            unit = "g",
-            decimalCount = NutrientDisplayLine.Fat.decimalCount,
+            line = NutrientDisplayLine.Fat,
         )
-        return formatMacroAmount(value, format) {
+        return formatMacroAmount(amount, format) {
             saturated?.let {
-                formatSaturatedFat(saturated, isShort = true, withLabel = false)
+                formatSaturatedFat(saturated, withLabel = false)
             }
         }
     }
 
     fun formatSaturatedFat(
         value: Number?,
-        isShort: Boolean,
         withLabel: Boolean,
-    ): String? {
-        value ?: return null
-        // no short label because in short mode saturated fats are displayed after fat in parenthesis
-        val label = if (withLabel) (if (isShort) "" else "of which saturated:") else null
+    ): String {
+        val amount = value ?: 0
+        // no short label because in short mode saturated fats are displayed after fat in parentheses
+        val label = if (withLabel) "of which saturated:" else null
         val format = generateFormat(
             label = label,
-            unit = "g",
-            decimalCount = NutrientDisplayLine.OfWhichSaturated.decimalCount,
+            line = NutrientDisplayLine.OfWhichSaturated,
         )
-        return formatMacroAmount(value, format)
+        return formatMacroAmount(amount, format)
     }
 
     fun formatSalt(
         value: Number?,
-        isShort: Boolean,
         withLabel: Boolean,
-    ): String? {
-        value ?: return null
-        val label = if (withLabel) (if (isShort) "Salt" else "Salt:") else null
+    ): String {
+        val amount = value ?: 0
+        val label = if (withLabel) "Salt:" else null
         val format = generateFormat(
             label = label,
-            unit = "g",
-            decimalCount = NutrientDisplayLine.Salt.decimalCount,
+            line = NutrientDisplayLine.Salt,
         )
-        return formatMacroAmount(value, format)
+        return formatMacroAmount(amount, format)
     }
 
     fun formatFibre(
         value: Number?,
-        isShort: Boolean,
         withLabel: Boolean,
-    ): String? {
-        value ?: return null
-        val label = if (withLabel) (if (isShort) "Fibre" else "Fibre:") else null
+    ): String {
+        val amount = value ?: 0
+        val label = if (withLabel) "Fibre:" else null
         val format = generateFormat(
             label = label,
-            unit = "g",
-            decimalCount = NutrientDisplayLine.Fibre.decimalCount,
+            line = NutrientDisplayLine.Fibre,
         )
-        return formatMacroAmount(value, format)
+        return formatMacroAmount(amount, format)
     }
 
     fun targetProgress(target: Target, total: Float): Float? = target.max?.let { total / it }
@@ -400,11 +392,9 @@ internal class NutrientsUiMapper {
 
     private fun generateFormat(
         label: String?,
-        unit: String,
-        decimalCount: Int,
+        line: NutrientDisplayLine,
     ): SafeNumberFormatter {
-        val decimalPattern = "${decimalFormat(decimalCount)}${unit.literal()}"
-
+        val decimalPattern = "${decimalFormat(line.decimalCount, line.dropTrailingZeroes)}${line.unit.literal()}"
 
         val format = if (label != null) {
             val labelLiteral = "$label ".literal()

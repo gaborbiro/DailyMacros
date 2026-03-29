@@ -15,74 +15,75 @@ internal class ModalUiMapper(
         val nutrientBreakdown = record.template.nutrients
         val topContributors = record.template.topContributors
 
-        val calories = nutrientsUiMapper.formatCalories(value = nutrientBreakdown.calories, isShort = false, withLabel = true)
-        val protein = nutrientsUiMapper.formatProtein(value = nutrientBreakdown.protein, isShort = false, withLabel = true)
-        val fat = nutrientsUiMapper.formatFat(value = nutrientBreakdown.fat, saturated = null, isShort = false, withLabel = true)
-        val ofWhichSaturated = nutrientsUiMapper.formatSaturatedFat(value = nutrientBreakdown.ofWhichSaturated, isShort = false, withLabel = true)
-        val carbs = nutrientsUiMapper.formatCarbs(value = nutrientBreakdown.carbs, sugar = null, addedSugar = null, isShort = false, withLabel = true)
-        val ofWhichSugar = nutrientsUiMapper.formatSugar(value = nutrientBreakdown.ofWhichSugar, isShort = false, withLabel = true)
-        val ofWhichAddedSugar = nutrientsUiMapper.formatAddedSugar(value = nutrientBreakdown.ofWhichAddedSugar, isShort = false, withLabel = true)
-        val salt = nutrientsUiMapper.formatSalt(value = nutrientBreakdown.salt, isShort = false, withLabel = true)
-        val fibre = nutrientsUiMapper.formatFibre(value = nutrientBreakdown.fibre, isShort = false, withLabel = true)
         val notes = record.template.notes
 
         return NutrientBreakdownUiModel(
-            calories = calories,
-            protein = protein?.let {
-                it + nutrientsUiMapper.formatTopContributorSuffix(
-                    amount = nutrientBreakdown.protein,
-                    line = NutrientDisplayLine.Protein,
-                    contributorText = topContributors.topProteinContributors,
-                )
+            calories = nutrientBreakdown.calories?.let {
+                nutrientsUiMapper.formatCalories(value = it, withLabel = true)
             },
-            fat = fat?.let {
-                it + nutrientsUiMapper.formatTopContributorSuffix(
-                    amount = nutrientBreakdown.fat,
-                    line = NutrientDisplayLine.Fat,
-                    contributorText = topContributors.topFatContributors,
-                )
+            protein = nutrientBreakdown.protein?.let {
+                nutrientsUiMapper.formatProtein(value = it, withLabel = true) +
+                        nutrientsUiMapper.formatTopContributorSuffix(
+                            amount = it,
+                            line = NutrientDisplayLine.Protein,
+                            contributorText = topContributors.topProteinContributors,
+                        )
             },
-            ofWhichSaturated = ofWhichSaturated?.let {
-                it + nutrientsUiMapper.formatTopContributorSuffix(
-                    amount = nutrientBreakdown.ofWhichSaturated,
-                    line = NutrientDisplayLine.OfWhichSaturated,
-                    contributorText = topContributors.topSaturatedFatContributors,
-                )
+            fat = nutrientBreakdown.fat?.let {
+                nutrientsUiMapper.formatFat(value = it, saturated = null, withLabel = true) +
+                        nutrientsUiMapper.formatTopContributorSuffix(
+                            amount = it,
+                            line = NutrientDisplayLine.Fat,
+                            contributorText = topContributors.topFatContributors,
+                        )
             },
-            carbs = carbs?.let {
-                it + nutrientsUiMapper.formatTopContributorSuffix(
-                    amount = nutrientBreakdown.carbs,
-                    line = NutrientDisplayLine.Carb,
-                    contributorText = topContributors.topCarbsContributors,
-                )
+            ofWhichSaturated = nutrientBreakdown.ofWhichSaturated?.let {
+                nutrientsUiMapper.formatSaturatedFat(value = it, withLabel = true) +
+                        nutrientsUiMapper.formatTopContributorSuffix(
+                            amount = it,
+                            line = NutrientDisplayLine.OfWhichSaturated,
+                            contributorText = topContributors.topSaturatedFatContributors,
+                        )
             },
-            ofWhichSugar = ofWhichSugar?.let {
-                it + nutrientsUiMapper.formatTopContributorSuffix(
-                    amount = nutrientBreakdown.ofWhichSugar,
-                    line = NutrientDisplayLine.OfWhichSugar,
-                    contributorText = topContributors.topSugarContributors,
-                )
+            carbs = nutrientBreakdown.carbs?.let {
+                nutrientsUiMapper.formatCarbs(value = it, sugar = null, addedSugar = null, withLabel = true) +
+                        nutrientsUiMapper.formatTopContributorSuffix(
+                            amount = it,
+                            line = NutrientDisplayLine.Carb,
+                            contributorText = topContributors.topCarbsContributors,
+                        )
             },
-            ofWhichAddedSugar = ofWhichAddedSugar?.let {
-                it + nutrientsUiMapper.formatTopContributorSuffix(
-                    amount = nutrientBreakdown.ofWhichAddedSugar,
-                    line = NutrientDisplayLine.OfWhichAddedSugar,
-                    contributorText = topContributors.topAddedSugarContributors,
-                )
+            ofWhichSugar = nutrientBreakdown.ofWhichSugar?.let {
+                nutrientsUiMapper.formatSugar(value = it, withLabel = true) +
+                        nutrientsUiMapper.formatTopContributorSuffix(
+                            amount = it,
+                            line = NutrientDisplayLine.OfWhichSugar,
+                            contributorText = topContributors.topSugarContributors,
+                        )
             },
-            salt = salt?.let {
-                it + nutrientsUiMapper.formatTopContributorSuffix(
-                    amount = nutrientBreakdown.salt,
-                    line = NutrientDisplayLine.Salt,
-                    contributorText = topContributors.topSaltContributors,
-                )
+            ofWhichAddedSugar = nutrientBreakdown.ofWhichAddedSugar?.let {
+                nutrientsUiMapper.formatAddedSugar(value = it, withLabel = true) +
+                        nutrientsUiMapper.formatTopContributorSuffix(
+                            amount = it,
+                            line = NutrientDisplayLine.OfWhichAddedSugar,
+                            contributorText = topContributors.topAddedSugarContributors,
+                        )
             },
-            fibre = fibre?.let {
-                it + nutrientsUiMapper.formatTopContributorSuffix(
-                    amount = nutrientBreakdown.fibre,
-                    line = NutrientDisplayLine.Fibre,
-                    contributorText = topContributors.topFibreContributors,
-                )
+            salt = nutrientBreakdown.salt?.let {
+                nutrientsUiMapper.formatSalt(value = it, withLabel = true) +
+                        nutrientsUiMapper.formatTopContributorSuffix(
+                            amount = it,
+                            line = NutrientDisplayLine.Salt,
+                            contributorText = topContributors.topSaltContributors,
+                        )
+            },
+            fibre = nutrientBreakdown.fibre?.let {
+                nutrientsUiMapper.formatFibre(value = it, withLabel = true) +
+                        nutrientsUiMapper.formatTopContributorSuffix(
+                            amount = it,
+                            line = NutrientDisplayLine.Fibre,
+                            contributorText = topContributors.topFibreContributors,
+                        )
             },
             notes = notes,
         )
