@@ -70,7 +70,7 @@ fun ListItemRecord(
                     style = LoadingTextStyle,
                 )
             } else {
-                val nutrient = record.nutrients?.calories?.let { " ($it)" }
+                val nutrient = record.nutrients?.calories?.let { " ($it)" } ?: ""
                 Text(
                     text = record.timestamp + nutrient,
                     maxLines = 1,

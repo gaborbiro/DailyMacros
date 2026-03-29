@@ -34,7 +34,7 @@ fun EditTargetConfirmationDialogContent(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
-                text = "Update the whole series ($count) or just this one?",
+                text = "Update all entries ($count) or just this one?",
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier
@@ -67,7 +67,7 @@ fun EditTargetConfirmationDialogContent(
                 .fillMaxWidth()
                 .height(50.dp)
         ) {
-            Text(text = "Update single record")
+            Text(text = "Update this entry only")
         }
 
         Spacer(modifier = Modifier.height(PaddingDefault))
@@ -83,7 +83,7 @@ fun EditTargetConfirmationDialogContent(
                 .fillMaxWidth()
                 .height(50.dp)
         ) {
-            Text(text = "Update series")
+            Text(text = "Update all entries")
         }
     }
 }

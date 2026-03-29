@@ -8,14 +8,15 @@ import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
 import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
+import dev.gaborbiro.dailymacros.repositories.chatgpt.BuildConfig
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repositories.chatgpt.toDomainModel
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
-import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusRepository
 import dev.gaborbiro.dailymacros.util.showMacroResultsNotification
 
 internal class NutrientAnalysisUseCase(
@@ -73,7 +74,7 @@ internal class NutrientAnalysisUseCase(
                     nutrients = templateNutrients,
                     notes = nutrientsResponse.notes,
                 )
-                val cachedTokensMessage = "Cached tokens: ${nutrientsResponse.cachedTokens}"
+                val cachedTokensMessage = if (BuildConfig.DEBUG) "Cached tokens: ${nutrientsResponse.cachedTokens}" else null
                 nutrients
                     ?.let {
                         val macrosStr = recordsMapper.mapMacrosPrintout(nutrients.first)
@@ -82,6 +83,7 @@ internal class NutrientAnalysisUseCase(
                             recordId = recordId,
                             title = null,
                             message = listOfNotNull(record.template.name, macrosStr, error, cachedTokensMessage).joinToString("\n"),
+                            isError = false,
                         )
                     }
                     ?: run {
@@ -92,6 +94,7 @@ internal class NutrientAnalysisUseCase(
                                     recordId = recordId,
                                     title = null,
                                     message = listOfNotNull(record.template.name, error, cachedTokensMessage).joinToString("\n"),
+                                    isError = true,
                                 )
                             }
                             ?: run {
@@ -100,6 +103,7 @@ internal class NutrientAnalysisUseCase(
                                     recordId = recordId,
                                     title = null,
                                     message = listOfNotNull(record.template.name, "Something went wrong while fetching macros. Please try again later.", cachedTokensMessage).joinToString("\n"),
+                                    isError = true,
                                 )
                             }
                     }

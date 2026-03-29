@@ -60,16 +60,7 @@ internal class RecordsMapper(
             nutrientBreakdown?.calories?.let { nutrientsUiMapper.formatCalories(it, withLabel = true) },
             nutrientBreakdown?.protein?.let { nutrientsUiMapper.formatProtein(it, withLabel = true) },
             nutrientBreakdown?.fat?.let { nutrientsUiMapper.formatFat(it, nutrientBreakdown.ofWhichSaturated, withLabel = true) },
-            if (!isShort) {
-                nutrientBreakdown?.ofWhichSaturated?.let { nutrientsUiMapper.formatSaturatedFat(it, withLabel = true) }
-            } else null,
             nutrientBreakdown?.carbs?.let { nutrientsUiMapper.formatCarbs(it, nutrientBreakdown.ofWhichSugar, nutrientBreakdown.ofWhichAddedSugar, withLabel = true) },
-            if (!isShort) {
-                nutrientBreakdown?.ofWhichSugar?.let { nutrientsUiMapper.formatSugar(it, withLabel = true) }
-            } else null,
-            if (!isShort) {
-                nutrientBreakdown?.ofWhichAddedSugar?.let { nutrientsUiMapper.formatAddedSugar(it, withLabel = true) }
-            } else null,
             nutrientBreakdown?.salt?.let { nutrientsUiMapper.formatSalt(it, withLabel = true) },
             nutrientBreakdown?.fibre?.let { nutrientsUiMapper.formatFibre(it, withLabel = true) }
         )

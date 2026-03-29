@@ -10,6 +10,7 @@ import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.features.modal.getViewRecordDetailsIntent
 
 private const val CHANNEL_ID_GENERAL = "general"
+const val CHANNEL_ID_ERROR = "error"
 const val CHANNEL_ID_FOREGROUND = "foreground"
 
 fun Context.createNotificationChannels() {
@@ -17,6 +18,13 @@ fun Context.createNotificationChannels() {
         CHANNEL_ID_GENERAL,
         "General notifications",
         NotificationManager.IMPORTANCE_DEFAULT
+    ).also {
+        it.setShowBadge(false)
+    }
+    val errorChannel = NotificationChannel(
+        CHANNEL_ID_ERROR,
+        "Error notifications",
+        NotificationManager.IMPORTANCE_HIGH
     ).also {
         it.setShowBadge(false)
     }
@@ -35,7 +43,8 @@ fun Context.createNotificationChannels() {
     notificationManager.createNotificationChannels(
         listOf(
             generalChannel,
-            foregroundChannel
+            errorChannel,
+            foregroundChannel,
         )
     )
 }
@@ -45,11 +54,11 @@ fun Context.showMacroResultsNotification(
     recordId: Long,
     title: String?,
     message: String?,
+    isError: Boolean,
 ) {
-    var builder = NotificationCompat.Builder(this, CHANNEL_ID_GENERAL)
+    var builder = NotificationCompat.Builder(this, if (isError) CHANNEL_ID_ERROR else CHANNEL_ID_GENERAL)
         .setSmallIcon(R.drawable.ic_nutrition)
         .setContentIntent(openRecordDetailsIntent(recordId))
-//        .setAutoCancel(true)
     message?.let {
         builder = builder.setContentText(message)
             .setStyle(
