@@ -104,27 +104,28 @@ internal class NutrientsUiMapper {
                     )
                 )
             }
-            targets.salt.takeIf { it.enabled }?.let {
+            targets.fat.takeIf { it.enabled }?.let {
                 add(
                     DailySummaryEntry(
-                        title = "Salt",
-                        progress0to1 = targetProgress(it, nutrientBreakdown.salt ?: 0f) ?: 0f,
-                        progressLabel = formatSalt(nutrientBreakdown.salt, isShort = true, withLabel = false) ?: "0.00g",
+                        title = "Fat",
+                        progress0to1 = targetProgress(it, nutrientBreakdown.fat ?: 0f) ?: 0f,
+                        progressLabel = formatFat(nutrientBreakdown.fat, saturated = null, isShort = true, withLabel = false)
+                            ?: "0g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
-                        color = { it.saltColor },
+                        color = { it.fatColor },
                     )
                 )
             }
-            targets.fibre.takeIf { it.enabled }?.let {
+            targets.ofWhichSaturated.takeIf { it.enabled }?.let {
                 add(
                     DailySummaryEntry(
-                        title = "Fibre",
-                        progress0to1 = targetProgress(it, nutrientBreakdown.fibre ?: 0f) ?: 0f,
-                        progressLabel = formatFibre(nutrientBreakdown.fibre, isShort = true, withLabel = false) ?: "0g",
+                        title = "saturated",
+                        progress0to1 = targetProgress(it, nutrientBreakdown.ofWhichSaturated ?: 0f) ?: 0f,
+                        progressLabel = formatSaturatedFat(nutrientBreakdown.ofWhichSaturated, isShort = true, withLabel = false) ?: "0g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
-                        color = { it.fibreColor },
+                        color = { it.fatColor },
                     )
                 )
             }
@@ -153,28 +154,27 @@ internal class NutrientsUiMapper {
                     )
                 )
             }
-            targets.fat.takeIf { it.enabled }?.let {
+            targets.salt.takeIf { it.enabled }?.let {
                 add(
                     DailySummaryEntry(
-                        title = "Fat",
-                        progress0to1 = targetProgress(it, nutrientBreakdown.fat ?: 0f) ?: 0f,
-                        progressLabel = formatFat(nutrientBreakdown.fat, saturated = null, isShort = true, withLabel = false)
-                            ?: "0g",
+                        title = "Salt",
+                        progress0to1 = targetProgress(it, nutrientBreakdown.salt ?: 0f) ?: 0f,
+                        progressLabel = formatSalt(nutrientBreakdown.salt, isShort = true, withLabel = false) ?: "0.00g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
-                        color = { it.fatColor },
+                        color = { it.saltColor },
                     )
                 )
             }
-            targets.ofWhichSaturated.takeIf { it.enabled }?.let {
+            targets.fibre.takeIf { it.enabled }?.let {
                 add(
                     DailySummaryEntry(
-                        title = "saturated",
-                        progress0to1 = targetProgress(it, nutrientBreakdown.ofWhichSaturated ?: 0f) ?: 0f,
-                        progressLabel = formatSaturatedFat(nutrientBreakdown.ofWhichSaturated, isShort = true, withLabel = false) ?: "0g",
+                        title = "Fibre",
+                        progress0to1 = targetProgress(it, nutrientBreakdown.fibre ?: 0f) ?: 0f,
+                        progressLabel = formatFibre(nutrientBreakdown.fibre, isShort = true, withLabel = false) ?: "0g",
                         targetRange0to1 = targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
-                        color = { it.fatColor },
+                        color = { it.fibreColor },
                     )
                 )
             }
@@ -211,14 +211,14 @@ internal class NutrientsUiMapper {
         }
     }
 
-    fun map(nutrientBreakdown: TemplateNutrientBreakdown): NutrientsUiModel {
+    fun mapRecordNutrients(nutrientBreakdown: TemplateNutrientBreakdown): NutrientsUiModel {
         return NutrientsUiModel(
             calories = formatCalories(nutrientBreakdown.calories, isShort = true, withLabel = false),
-            protein = formatProtein(nutrientBreakdown.protein, isShort = true, withLabel = false),
-            fat = formatFat(nutrientBreakdown.fat, nutrientBreakdown.ofWhichSaturated, isShort = true, withLabel = false),
-            carbs = formatCarbs(nutrientBreakdown.carbs, nutrientBreakdown.ofWhichSugar, nutrientBreakdown.ofWhichAddedSugar, isShort = true, withLabel = false),
-            salt = formatSalt(nutrientBreakdown.salt, isShort = true, withLabel = false),
-            fibre = formatFibre(nutrientBreakdown.fibre, isShort = true, withLabel = false),
+            protein = formatProtein(nutrientBreakdown.protein, isShort = true, withLabel = true),
+            fat = formatFat(nutrientBreakdown.fat, nutrientBreakdown.ofWhichSaturated, isShort = true, withLabel = true),
+            carbs = formatCarbs(nutrientBreakdown.carbs, nutrientBreakdown.ofWhichSugar, nutrientBreakdown.ofWhichAddedSugar, isShort = true, withLabel = true),
+            salt = formatSalt(nutrientBreakdown.salt, isShort = true, withLabel = true),
+            fibre = formatFibre(nutrientBreakdown.fibre, isShort = true, withLabel = true),
         )
     }
 
@@ -228,7 +228,7 @@ internal class NutrientsUiMapper {
         withLabel: Boolean,
     ): String? {
         value ?: return null
-        val label = if (withLabel) (if (isShort) "" else "Calories:") else null
+        val label = if (withLabel) (if (isShort) "Calories" else "Calories:") else null
         val format = generateFormat(
             label = label,
             unit = "kcal",

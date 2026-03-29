@@ -12,7 +12,7 @@ internal class SharedRecordsUiMapper(
     fun map(record: Record, timeOnly: Boolean = false): ListUiModelRecord {
         val timestampStr = mapRecordTimestamp(record.timestamp, timeOnly)
 
-        val nutrients = nutrientsUiMapper.map(record.template.nutrients)
+        val nutrients = nutrientsUiMapper.mapRecordNutrients(record.template.nutrients)
 
         return ListUiModelRecord(
             recordId = record.recordId,

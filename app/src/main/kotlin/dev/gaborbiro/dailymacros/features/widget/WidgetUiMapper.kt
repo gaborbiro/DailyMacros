@@ -15,7 +15,7 @@ internal class WidgetUiMapper(
     }
 
     private fun map(template: Template): ListUiModelQuickPick {
-        val nutrients = nutrientsUiMapper.map(template.nutrients)
+        val nutrients = nutrientsUiMapper.mapRecordNutrients(template.nutrients)
         return ListUiModelQuickPick(
             templateId = template.dbId,
             images = template.images,
