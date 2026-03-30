@@ -13,12 +13,3 @@ data class ListUiModelRecord(
     val showLoadingIndicator: Boolean,
     val showAddToQuickPicksMenuItem: Boolean,
 ) : ListUiModelBase(listItemId = recordId, contentType = "record")
-
-data class NutrientsUiModel(
-    val calories: String?,
-    val protein: String?,
-    val fat: String?,
-    val carbs: String?,
-    val salt: String?,
-    val fibre: String?,
-)

@@ -6,6 +6,7 @@ import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.RecordsMapper
 import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
+import dev.gaborbiro.dailymacros.features.modal.ModalUiMapper
 import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
 import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.chatgpt.BuildConfig
@@ -27,6 +28,7 @@ internal class NutrientAnalysisUseCase(
     private val recordsRepository: RecordsRepository,
     private val requestStatusRepository: RequestStatusRepository,
     private val recordsMapper: RecordsMapper,
+    private val modalUiMapper: ModalUiMapper,
 ) {
 
     suspend fun execute(
@@ -79,7 +81,7 @@ internal class NutrientAnalysisUseCase(
                 val cachedTokensMessage = if (BuildConfig.DEBUG) "Cached tokens: ${nutrientsResponse.cachedTokens}" else null
                 nutrients
                     ?.let {
-                        val macrosStr = recordsMapper.mapMacrosPrintout(nutrients.first)
+                        val macrosStr = modalUiMapper.mapMacrosPrintout(nutrients.first)
                         val message = listOfNotNull(name.ellipsize(50), macrosStr, error, cachedTokensMessage).joinToString("\n").trim()
                         message.takeIf { it.isNotBlank() }?.let {
                             appContext.showMacroResultsNotification(

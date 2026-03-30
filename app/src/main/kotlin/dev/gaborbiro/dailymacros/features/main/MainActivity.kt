@@ -34,6 +34,7 @@ import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsMapper
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.SharedRecordsUiMapper
+import dev.gaborbiro.dailymacros.features.common.util.viewModelFactory
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.overview.OverviewPrefs
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
@@ -56,7 +57,6 @@ import dev.gaborbiro.dailymacros.repositories.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.records.RequestStatusRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.settings.SettingsMapper
 import dev.gaborbiro.dailymacros.repositories.settings.SettingsRepositoryImpl
-import dev.gaborbiro.dailymacros.features.common.util.viewModelFactory
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -104,7 +104,7 @@ class MainActivity : ComponentActivity() {
         )
 
         val recordsUiMapper = SharedRecordsUiMapper(nutrientsUiMapper)
-        val recordsMapper = RecordsMapper(nutrientsUiMapper)
+        val recordsMapper = RecordsMapper()
         val overviewUiMapper = OverviewUiMapper(recordsUiMapper, nutrientsUiMapper, recordsMapper)
 
         setContent {

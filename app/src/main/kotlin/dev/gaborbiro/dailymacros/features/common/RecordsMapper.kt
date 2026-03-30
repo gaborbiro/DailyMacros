@@ -8,9 +8,7 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
 
-internal class RecordsMapper(
-    private val nutrientsUiMapper: NutrientsUiMapper,
-) {
+internal class RecordsMapper {
 
     fun mapToNutrientAnalysisRequest(record: Record, base64Images: List<String>): NutrientAnalysisRequest {
         return NutrientAnalysisRequest(
@@ -53,19 +51,6 @@ internal class RecordsMapper(
             topSaltContributors = nutrientsApiModel.salt?.topContributors,
             topFibreContributors = nutrientsApiModel.fibre?.topContributors,
         )
-    }
-
-    fun mapMacrosPrintout(nutrientBreakdown: NutrientBreakdown?): String? {
-        return listOfNotNull(
-            nutrientBreakdown?.calories?.let { nutrientsUiMapper.formatCalories(it, withLabel = true) },
-            nutrientBreakdown?.protein?.let { nutrientsUiMapper.formatProtein(it, withLabel = true) },
-            nutrientBreakdown?.fat?.let { nutrientsUiMapper.formatFat(it, nutrientBreakdown.ofWhichSaturated, withLabel = true) },
-            nutrientBreakdown?.carbs?.let { nutrientsUiMapper.formatCarbs(it, nutrientBreakdown.ofWhichSugar, nutrientBreakdown.ofWhichAddedSugar, withLabel = true) },
-            nutrientBreakdown?.salt?.let { nutrientsUiMapper.formatSalt(it, withLabel = true) },
-            nutrientBreakdown?.fibre?.let { nutrientsUiMapper.formatFibre(it, withLabel = true) }
-        )
-            .joinToString()
-            .takeIf { it.isNotBlank() }
     }
 
     fun map(template: TemplateNutrientBreakdown): NutrientBreakdown {

@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.features.modal
 
 import dev.gaborbiro.dailymacros.features.common.views.NutrientDisplayLine
 import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
+import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 
@@ -87,5 +88,18 @@ internal class ModalUiMapper(
             },
             notes = notes,
         )
+    }
+
+    fun mapMacrosPrintout(nutrientBreakdown: NutrientBreakdown?): String? {
+        return listOfNotNull(
+            nutrientBreakdown?.calories?.let { nutrientsUiMapper.formatCalories(it, withLabel = true) },
+            nutrientBreakdown?.protein?.let { nutrientsUiMapper.formatProtein(it, withLabel = true) },
+            nutrientBreakdown?.fat?.let { nutrientsUiMapper.formatFat(it, nutrientBreakdown.ofWhichSaturated, withLabel = true) },
+            nutrientBreakdown?.carbs?.let { nutrientsUiMapper.formatCarbs(it, nutrientBreakdown.ofWhichSugar, nutrientBreakdown.ofWhichAddedSugar, withLabel = true) },
+            nutrientBreakdown?.salt?.let { nutrientsUiMapper.formatSalt(it, withLabel = true) },
+            nutrientBreakdown?.fibre?.let { nutrientsUiMapper.formatFibre(it, withLabel = true) }
+        )
+            .joinToString()
+            .takeIf { it.isNotBlank() }
     }
 }

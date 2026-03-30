@@ -23,6 +23,7 @@ import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsMapper
 import dev.gaborbiro.dailymacros.features.modal.ModalActivity.Companion.REQUEST_TIMEOUT_IN_SECONDS
+import dev.gaborbiro.dailymacros.features.modal.ModalUiMapper
 import dev.gaborbiro.dailymacros.features.modal.usecase.NutrientAnalysisUseCase
 import dev.gaborbiro.dailymacros.repositories.chatgpt.AuthInterceptor
 import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGPTRepositoryImpl
@@ -112,7 +113,7 @@ class GetMacrosWorker(
             service = retrofit.create(ChatGPTService::class.java)
         )
         val nutrientsUiMapper = NutrientsUiMapper()
-        val recordsMapper = RecordsMapper(nutrientsUiMapper)
+        val recordsMapper = RecordsMapper()
 
         NutrientAnalysisUseCase(
             appContext = appContext,
@@ -121,6 +122,7 @@ class GetMacrosWorker(
             recordsRepository = recordsRepository,
             requestStatusRepository = requestStatusRepository,
             recordsMapper = recordsMapper,
+            modalUiMapper = ModalUiMapper(nutrientsUiMapper),
         )
     }
 
