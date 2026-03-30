@@ -4,11 +4,11 @@ import android.icu.text.DecimalFormat
 import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsMapper
 import dev.gaborbiro.dailymacros.features.common.SharedRecordsUiMapper
-import dev.gaborbiro.dailymacros.features.common.model.DailySummaryEntry
+import dev.gaborbiro.dailymacros.features.overview.model.DailySummaryEntry
 import dev.gaborbiro.dailymacros.features.overview.model.ChangeDirection
 import dev.gaborbiro.dailymacros.features.overview.model.ChangeIndicator
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
-import dev.gaborbiro.dailymacros.features.common.model.ListUiModelDailySummary
+import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelDailySummary
 import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelWeeklySummary
 import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.overview.model.NutrientSummaryStatEntry

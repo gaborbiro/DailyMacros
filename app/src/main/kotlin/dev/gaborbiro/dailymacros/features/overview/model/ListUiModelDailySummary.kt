@@ -1,9 +1,10 @@
-package dev.gaborbiro.dailymacros.features.common.model
+package dev.gaborbiro.dailymacros.features.overview.model
 
 import android.util.Range
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import dev.gaborbiro.dailymacros.design.ExtraColorScheme
+import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
 
 @Stable
 internal data class ListUiModelDailySummary(

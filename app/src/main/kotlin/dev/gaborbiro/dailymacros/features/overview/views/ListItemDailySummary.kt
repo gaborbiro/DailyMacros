@@ -19,8 +19,8 @@ import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.PaddingDouble
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
-import dev.gaborbiro.dailymacros.features.common.model.DailySummaryEntry
-import dev.gaborbiro.dailymacros.features.common.model.ListUiModelDailySummary
+import dev.gaborbiro.dailymacros.features.overview.model.DailySummaryEntry
+import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelDailySummary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import dev.gaborbiro.dailymacros.design.PaddingHalf
-import dev.gaborbiro.dailymacros.features.common.model.DailySummaryEntry
+import dev.gaborbiro.dailymacros.features.overview.model.DailySummaryEntry
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

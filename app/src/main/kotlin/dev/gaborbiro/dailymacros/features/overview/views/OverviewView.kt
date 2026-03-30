@@ -30,8 +30,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import dev.gaborbiro.dailymacros.design.PaddingDefault
-import dev.gaborbiro.dailymacros.features.common.model.DailySummaryEntry
-import dev.gaborbiro.dailymacros.features.common.model.ListUiModelDailySummary
+import dev.gaborbiro.dailymacros.features.overview.model.DailySummaryEntry
+import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelDailySummary
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
