@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.util
+package dev.gaborbiro.dailymacros.features.common.util
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine

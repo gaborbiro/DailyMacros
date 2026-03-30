@@ -21,10 +21,10 @@ import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingDouble
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
-import dev.gaborbiro.dailymacros.features.common.model.ChangeDirection
-import dev.gaborbiro.dailymacros.features.common.model.ChangeIndicator
-import dev.gaborbiro.dailymacros.features.common.model.ListUiModelWeeklySummary
-import dev.gaborbiro.dailymacros.features.common.model.NutrientSummaryStatEntry
+import dev.gaborbiro.dailymacros.features.overview.model.ChangeDirection
+import dev.gaborbiro.dailymacros.features.overview.model.ChangeIndicator
+import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelWeeklySummary
+import dev.gaborbiro.dailymacros.features.overview.model.NutrientSummaryStatEntry
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

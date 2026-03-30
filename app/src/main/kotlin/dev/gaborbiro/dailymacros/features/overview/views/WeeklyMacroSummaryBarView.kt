@@ -23,9 +23,9 @@ import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.LocalExtraColorScheme
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
-import dev.gaborbiro.dailymacros.features.common.model.ChangeDirection
-import dev.gaborbiro.dailymacros.features.common.model.ChangeIndicator
-import dev.gaborbiro.dailymacros.features.common.model.NutrientSummaryStatEntry
+import dev.gaborbiro.dailymacros.features.overview.model.ChangeDirection
+import dev.gaborbiro.dailymacros.features.overview.model.ChangeIndicator
+import dev.gaborbiro.dailymacros.features.overview.model.NutrientSummaryStatEntry
 import kotlinx.coroutines.delay
 
 @Composable

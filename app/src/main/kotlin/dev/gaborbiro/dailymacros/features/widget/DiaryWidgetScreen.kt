@@ -31,8 +31,8 @@ import dev.gaborbiro.dailymacros.design.WidgetColorScheme
 import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.common.SharedRecordsUiMapper
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
-import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPickFooter
-import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPickHeader
+import dev.gaborbiro.dailymacros.features.widget.model.ListUiModelQuickPickFooter
+import dev.gaborbiro.dailymacros.features.widget.model.ListUiModelQuickPickHeader
 import dev.gaborbiro.dailymacros.features.widget.views.DiaryWidgetView
 import dev.gaborbiro.dailymacros.features.widget.views.LocalImageStoreWidget
 

@@ -24,7 +24,7 @@ import androidx.glance.preview.Preview
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDouble
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
-import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPick
+import dev.gaborbiro.dailymacros.features.widget.model.ListUiModelQuickPick
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.features.common.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.widget.WidgetActionProvider

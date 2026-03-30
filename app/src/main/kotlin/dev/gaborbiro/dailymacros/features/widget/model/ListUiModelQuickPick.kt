@@ -1,4 +1,7 @@
-package dev.gaborbiro.dailymacros.features.common.model
+package dev.gaborbiro.dailymacros.features.widget.model
+
+import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
+import dev.gaborbiro.dailymacros.features.common.model.NutrientsUiModel
 
 internal class ListUiModelQuickPick(
     val templateId: Long,

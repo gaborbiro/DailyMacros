@@ -56,7 +56,7 @@ import dev.gaborbiro.dailymacros.repositories.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.records.RequestStatusRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.settings.SettingsMapper
 import dev.gaborbiro.dailymacros.repositories.settings.SettingsRepositoryImpl
-import dev.gaborbiro.dailymacros.util.viewModelFactory
+import dev.gaborbiro.dailymacros.features.common.util.viewModelFactory
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {

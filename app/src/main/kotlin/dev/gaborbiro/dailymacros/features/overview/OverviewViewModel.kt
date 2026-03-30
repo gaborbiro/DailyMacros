@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.App
-import dev.gaborbiro.dailymacros.features.overview.OverviewPrefs
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
@@ -16,7 +15,7 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
-import dev.gaborbiro.dailymacros.util.combine
+import dev.gaborbiro.dailymacros.features.common.util.combine
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay

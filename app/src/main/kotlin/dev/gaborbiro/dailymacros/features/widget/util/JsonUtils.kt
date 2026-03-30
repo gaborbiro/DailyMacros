@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.util
+package dev.gaborbiro.dailymacros.features.widget.util
 
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer

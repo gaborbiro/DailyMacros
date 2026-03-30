@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
-import dev.gaborbiro.dailymacros.util.ZonedDateTimeAdapter
+import dev.gaborbiro.dailymacros.features.widget.util.ZonedDateTimeAdapter
 import java.time.ZonedDateTime
 
 object PersistenceMapper {

@@ -20,7 +20,7 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
-import dev.gaborbiro.dailymacros.features.common.model.ListUiModelQuickPick
+import dev.gaborbiro.dailymacros.features.widget.model.ListUiModelQuickPick
 import dev.gaborbiro.dailymacros.features.common.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreviewContext
 

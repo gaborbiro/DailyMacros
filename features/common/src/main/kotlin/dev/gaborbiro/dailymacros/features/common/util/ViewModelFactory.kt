@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.util
+package dev.gaborbiro.dailymacros.features.common.util
 
 
 import androidx.compose.runtime.Composable

@@ -14,8 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.features.common.model.ChangeDirection
-import dev.gaborbiro.dailymacros.features.common.model.ChangeIndicator
+import dev.gaborbiro.dailymacros.features.overview.model.ChangeDirection
+import dev.gaborbiro.dailymacros.features.overview.model.ChangeIndicator
 
 @Composable
 internal fun ChangeIndicatorView(

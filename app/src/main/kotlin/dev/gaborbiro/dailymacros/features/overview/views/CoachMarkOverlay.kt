@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.common.views
+package dev.gaborbiro.dailymacros.features.overview.views
 
 import android.view.MotionEvent
 import androidx.compose.animation.core.Animatable

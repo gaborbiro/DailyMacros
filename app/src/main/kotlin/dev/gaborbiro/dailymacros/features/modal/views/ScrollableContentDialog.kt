@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import dev.gaborbiro.dailymacros.design.PaddingDefault
-import dev.gaborbiro.dailymacros.features.common.verticalScrollWithBar
+import dev.gaborbiro.dailymacros.features.common.util.verticalScrollWithBar
 import kotlinx.coroutines.flow.Flow
 import kotlin.math.min
 

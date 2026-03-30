@@ -55,7 +55,7 @@ internal class RecordsMapper(
         )
     }
 
-    fun mapMacrosPrintout(nutrientBreakdown: NutrientBreakdown?, isShort: Boolean = false): String? {
+    fun mapMacrosPrintout(nutrientBreakdown: NutrientBreakdown?): String? {
         return listOfNotNull(
             nutrientBreakdown?.calories?.let { nutrientsUiMapper.formatCalories(it, withLabel = true) },
             nutrientBreakdown?.protein?.let { nutrientsUiMapper.formatProtein(it, withLabel = true) },

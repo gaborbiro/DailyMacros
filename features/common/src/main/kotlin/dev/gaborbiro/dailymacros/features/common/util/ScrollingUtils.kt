@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.common
+package dev.gaborbiro.dailymacros.features.common.util
 
 import android.content.Context
 import android.util.DisplayMetrics
