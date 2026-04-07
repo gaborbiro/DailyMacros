@@ -17,16 +17,20 @@ All commands require `JAVA_HOME` and `ANDROID_HOME` to be set (already in `~/.ba
 | Task | Command |
 |---|---|
 | Build debug APK | `./gradlew assembleDebug` |
+| Build release AAB | `./gradlew bundleRelease` |
 | Run unit tests | `./gradlew testDebugUnitTest` |
 | Lint | `./gradlew lintDebug` |
 | Update version catalog | `./gradlew versionCatalogUpdate` |
 
-### Known issues
+### CI/CD
 
-- The `:repositories:chatgpt:testDebugUnitTest` task has a pre-existing compilation error: the test file imports `dev.gaborbiro.dailymacros.features.modal.sha256` and `junit` but the module's `build.gradle.kts` does not declare `testImplementation` dependencies for JUnit or a dependency on the `:app` module. To run all other unit tests, exclude it: `./gradlew testDebugUnitTest -x :repositories:chatgpt:testDebugUnitTest`.
+- **CI** (`.github/workflows/android.yml`): runs on push/PR to `master` — tests, debug build, release build (unsigned), lint.
+- **Release** (`.github/workflows/release.yml`): triggered by `v*` tags — builds signed release AAB, publishes to GitHub Releases and Google Play internal testing track.
+- Release signing reads keystore from env vars (`RELEASE_KEYSTORE_PATH`, `RELEASE_KEYSTORE_PASSWORD`, `RELEASE_KEY_ALIAS`, `RELEASE_KEY_PASSWORD`). In CI, the base64-encoded keystore is decoded from the `RELEASE_KEYSTORE_BASE64` secret.
 
 ### Notes
 
 - The `CHATGPT_API_KEY` env var (or `local.properties` entry) is optional — the build succeeds without it, but AI food-recognition features will not work at runtime.
 - This is a purely client-side Android app; there is no emulator in the Cloud Agent VM, so "running the app" means building the APK. Manual UI testing requires an Android 12+ device/emulator.
 - Debug signing keystore is committed at `signing/keystore.jks` (password: `keystore`).
+- Release signing uses a separate production keystore, never committed to the repo.
