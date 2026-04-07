@@ -148,13 +148,20 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
 
+fun gitShortHash(): String = providers.exec {
+    commandLine("git", "rev-parse", "--short", "HEAD")
+}.standardOutput.asText.get().trim()
+
+fun artifactBaseName(buildType: String): String {
+    val versionName = android.defaultConfig.versionName ?: "unknown"
+    val versionCode = android.defaultConfig.versionCode
+    val commitHash = gitShortHash()
+    return "DailyMacros-v${versionName}(${versionCode})-${commitHash}-$buildType"
+}
+
 tasks.matching { it.name.startsWith("bundle") }.configureEach {
     doLast {
-        val taskName = name // e.g., "bundleDebug", "bundleRelease"
-        val buildType = taskName.removePrefix("bundle").lowercase()
-        val versionName = android.defaultConfig.versionName ?: "unknown"
-        val versionCode = android.defaultConfig.versionCode
-
+        val buildType = name.removePrefix("bundle").lowercase()
         val outputDir = File(buildDir, "outputs/bundle/$buildType")
         val original = File(outputDir, "app-$buildType.aab")
         if (!original.exists()) {
@@ -162,9 +169,23 @@ tasks.matching { it.name.startsWith("bundle") }.configureEach {
             return@doLast
         }
 
-        val newName = "DailyMacros-v${versionName}(${versionCode})-$buildType.aab"
-        val renamed = File(outputDir, newName)
+        val renamed = File(outputDir, "${artifactBaseName(buildType)}.aab")
+        if (original.renameTo(renamed)) {
+            println("✅ Renamed ${original.name} → ${renamed.name}")
+        } else {
+            println("❌ Failed to rename ${original.name}")
+        }
+    }
+}
 
+tasks.matching { it.name.startsWith("assemble") }.configureEach {
+    doLast {
+        val buildType = name.removePrefix("assemble").lowercase()
+        val outputDir = File(buildDir, "outputs/apk/$buildType")
+        val original = File(outputDir, "app-$buildType.apk")
+        if (!original.exists()) return@doLast
+
+        val renamed = File(outputDir, "${artifactBaseName(buildType)}.apk")
         if (original.renameTo(renamed)) {
             println("✅ Renamed ${original.name} → ${renamed.name}")
         } else {

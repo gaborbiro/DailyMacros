@@ -50,32 +50,12 @@ jobs:
       run: ./gradlew bundleRelease
 
     # ── Collect artifacts ──────────────────────────────────────
-    - name: Extract version info
-      id: version
+    - name: Collect release artifacts
       run: |
-        TAG="${GITHUB_REF#refs/tags/}"
-        echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-        VERSION_NAME=$(grep 'versionName' app/build.gradle.kts | head -1 | sed 's/.*"\(.*\)".*/\1/')
-        VERSION_CODE=$(grep 'versionCode' app/build.gradle.kts | head -1 | sed 's/[^0-9]//g')
-        echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
-        echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
-
-    - name: Rename artifacts for release
-      run: |
-        VERSION_NAME="${{ steps.version.outputs.version_name }}"
-        VERSION_CODE="${{ steps.version.outputs.version_code }}"
-        TAG="${{ steps.version.outputs.tag }}"
-
         mkdir -p release-artifacts
-
-        cp app/build/outputs/apk/debug/app-debug.apk \
-           "release-artifacts/DailyMacros-${TAG}-debug.apk"
-
-        AAB_DIR="app/build/outputs/bundle/release"
-        AAB=$(find "$AAB_DIR" -name '*.aab' | head -1)
-        if [ -n "$AAB" ]; then
-          cp "$AAB" "release-artifacts/DailyMacros-${TAG}-release.aab"
-        fi
+        cp app/build/outputs/apk/debug/DailyMacros-*.apk release-artifacts/ 2>/dev/null || true
+        cp app/build/outputs/bundle/release/DailyMacros-*.aab release-artifacts/ 2>/dev/null || true
+        ls -lh release-artifacts/
 
     # ── GitHub Release ─────────────────────────────────────────
     - name: Create GitHub Release
