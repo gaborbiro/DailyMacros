@@ -8,12 +8,12 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
-    - name: set up JDK 17
+
+    - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
@@ -22,7 +22,23 @@ jobs:
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
+
     - name: Run unit tests
+      env:
+        CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
       run: ./gradlew testDebugUnitTest --stacktrace
-    - name: Build debug
+
+    - name: Build debug APK
+      env:
+        CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
       run: ./gradlew assembleDebug
+
+    - name: Build release AAB (unsigned, verify only)
+      env:
+        CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
+      run: ./gradlew bundleRelease
+
+    - name: Lint
+      env:
+        CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
+      run: ./gradlew lintDebug
