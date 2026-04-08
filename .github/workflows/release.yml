@@ -59,16 +59,12 @@ jobs:
         ls -lh release-artifacts/
 
     # ── GitHub Release ─────────────────────────────────────────
+    # Tag matches Gradle: app.versionName in gradle.properties
     - name: Read app version for release tag
       run: |
-        VERSION=$(
-          grep -E 'versionName[[:space:]]*=' app/build.gradle.kts \
-            | grep -v 'android.defaultConfig' \
-            | head -1 \
-            | sed -E 's/.*versionName[[:space:]]*=[[:space:]]*"([^"]+)".*/\1/'
-        )
+        VERSION=$(grep -E '^app\.versionName=' gradle.properties | cut -d= -f2- | tr -d ' \r')
         if [ -z "$VERSION" ]; then
-          echo "Could not parse versionName from app/build.gradle.kts" >&2
+          echo "Set app.versionName in gradle.properties" >&2
           exit 1
         fi
         echo "APP_VERSION_NAME=$VERSION" >> "$GITHUB_ENV"

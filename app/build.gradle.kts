@@ -14,8 +14,12 @@ android {
         applicationId = "dev.gaborbiro.dailymacros"
         minSdk = libs.versions.android.sdk.min.get().toInt()
         targetSdk = libs.versions.android.sdk.target.get().toInt()
-        versionName = "1.10.0"
-        versionCode = 24
+        versionName = requireNotNull(findProperty("app.versionName")?.toString()) {
+            "Set app.versionName in gradle.properties"
+        }
+        versionCode = requireNotNull(findProperty("app.versionCode")?.toString()?.toIntOrNull()) {
+            "Set app.versionCode in gradle.properties (integer)"
+        }
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
