@@ -30,19 +30,23 @@ jobs:
         CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
       run: ./gradlew testDebugUnitTest --stacktrace
 
-    - name: Build debug APK
+    - name: Build minified debug-signed APK
       env:
         CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
-      run: ./gradlew assembleDebug
+      run: ./gradlew assembleMinifiedDebug
+
+    - name: Set short SHA for release tag
+      if: github.event_name == 'push'
+      run: echo "GIT_SHORT_SHA=${GITHUB_SHA:0:7}" >> "$GITHUB_ENV"
 
     - name: Create GitHub Release
       if: github.event_name == 'push'
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: build-${{ github.sha }}
-        name: "Master #${{ github.run_number }} (${{ github.sha }})"
+        tag_name: build-${{ env.GIT_SHORT_SHA }}
+        name: "Master #${{ github.run_number }} (${{ env.GIT_SHORT_SHA }})"
         generate_release_notes: true
-        # assembleDebug renames the APK (see app/build.gradle.kts); there is no app-debug.apk.
-        files: app/build/outputs/apk/debug/*.apk
+        # assembleMinifiedDebug renames the APK (see app/build.gradle.kts).
+        files: app/build/outputs/apk/minifiedDebug/*.apk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
