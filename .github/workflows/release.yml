@@ -59,11 +59,25 @@ jobs:
         ls -lh release-artifacts/
 
     # ── GitHub Release ─────────────────────────────────────────
+    - name: Read app version for release tag
+      run: |
+        VERSION=$(
+          grep -E 'versionName[[:space:]]*=' app/build.gradle.kts \
+            | grep -v 'android.defaultConfig' \
+            | head -1 \
+            | sed -E 's/.*versionName[[:space:]]*=[[:space:]]*"([^"]+)".*/\1/'
+        )
+        if [ -z "$VERSION" ]; then
+          echo "Could not parse versionName from app/build.gradle.kts" >&2
+          exit 1
+        fi
+        echo "APP_VERSION_NAME=$VERSION" >> "$GITHUB_ENV"
+
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: release-${{ github.sha }}
-        name: "Release #${{ github.run_number }} (${{ github.sha }})"
+        tag_name: v${{ env.APP_VERSION_NAME }}
+        name: v${{ env.APP_VERSION_NAME }}
         draft: false
         generate_release_notes: true
         files: release-artifacts/*
