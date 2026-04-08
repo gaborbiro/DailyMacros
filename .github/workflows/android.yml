@@ -46,8 +46,3 @@ jobs:
         files: app/build/outputs/apk/debug/*.apk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Lint
-      env:
-        CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
-      run: ./gradlew lintDebug

@@ -24,7 +24,7 @@ All commands require `JAVA_HOME` and `ANDROID_HOME` to be set (already in `~/.ba
 
 ### CI/CD
 
-- **CI** (`.github/workflows/android.yml`): runs on push/PR to `master` — tests, debug build, release build (unsigned), lint.
+- **CI** (`.github/workflows/android.yml`): runs on push/PR to `master` — tests, debug build; on push to `master` only, creates a GitHub Release with the debug APK.
 - **Release** (`.github/workflows/release.yml`): triggered by `v*` tags — builds signed release AAB, publishes to GitHub Releases and Google Play internal testing track.
 - Release signing reads keystore from env vars (`RELEASE_KEYSTORE_PATH`, `RELEASE_KEYSTORE_PASSWORD`, `RELEASE_KEY_ALIAS`, `RELEASE_KEY_PASSWORD`). In CI, the base64-encoded keystore is decoded from the `RELEASE_KEYSTORE_BASE64` secret.
 
