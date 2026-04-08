@@ -6,6 +6,10 @@ plugins {
     alias(libs.plugins.firebase.crashlytics)
 }
 
+// Bump here; GitHub release tag v{versionName} uses :app:printAppReleaseVersionName in CI.
+private val appVersionName = "1.10.0"
+private val appVersionCode = 24
+
 android {
     namespace = "dev.gaborbiro.dailymacros"
     compileSdk = libs.versions.android.sdk.compile.get().toInt()
@@ -14,12 +18,8 @@ android {
         applicationId = "dev.gaborbiro.dailymacros"
         minSdk = libs.versions.android.sdk.min.get().toInt()
         targetSdk = libs.versions.android.sdk.target.get().toInt()
-        versionName = requireNotNull(findProperty("app.versionName")?.toString()) {
-            "Set app.versionName in gradle.properties"
-        }
-        versionCode = requireNotNull(findProperty("app.versionCode")?.toString()?.toIntOrNull()) {
-            "Set app.versionCode in gradle.properties (integer)"
-        }
+        versionName = appVersionName
+        versionCode = appVersionCode
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -150,6 +150,24 @@ dependencies {
 
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+
+/** CI reads `app/build/release-version-name.txt` for the GitHub release tag `v{versionName}`. */
+tasks.register("writeAppReleaseVersionNameFile") {
+    group = "versioning"
+    description = "Writes build/release-version-name.txt from appVersionName (for GitHub Actions)"
+    val out = layout.buildDirectory.file("release-version-name.txt")
+    outputs.file(out)
+    doLast {
+        out.get().asFile.parentFile.mkdirs()
+        out.get().asFile.writeText(appVersionName)
+    }
+}
+
+afterEvaluate {
+    tasks.named("bundleRelease").configure {
+        dependsOn("writeAppReleaseVersionNameFile")
+    }
 }
 
 fun gitShortHash(): String = providers.exec {

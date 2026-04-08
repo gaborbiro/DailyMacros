@@ -51,23 +51,21 @@ jobs:
       run: ./gradlew bundleRelease
 
     # ── Collect artifacts ──────────────────────────────────────
+    # Tag matches app/build.gradle.kts (appVersionName); Gradle writes app/build/release-version-name.txt
     - name: Collect release artifacts
       run: |
+        VERSION=$(cat app/build/release-version-name.txt | tr -d ' \r\n\t')
+        if [ -z "$VERSION" ]; then
+          echo "Missing app/build/release-version-name.txt (bundleRelease should run writeAppReleaseVersionNameFile)" >&2
+          exit 1
+        fi
+        echo "APP_VERSION_NAME=$VERSION" >> "$GITHUB_ENV"
         mkdir -p release-artifacts
         cp app/build/outputs/apk/debug/DailyMacros-*.apk release-artifacts/ 2>/dev/null || true
         cp app/build/outputs/bundle/release/DailyMacros-*.aab release-artifacts/ 2>/dev/null || true
         ls -lh release-artifacts/
 
     # ── GitHub Release ─────────────────────────────────────────
-    # Tag matches Gradle: app.versionName in gradle.properties
-    - name: Read app version for release tag
-      run: |
-        VERSION=$(grep -E '^app\.versionName=' gradle.properties | cut -d= -f2- | tr -d ' \r')
-        if [ -z "$VERSION" ]; then
-          echo "Set app.versionName in gradle.properties" >&2
-          exit 1
-        fi
-        echo "APP_VERSION_NAME=$VERSION" >> "$GITHUB_ENV"
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
