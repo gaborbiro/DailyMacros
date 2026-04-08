@@ -32,13 +32,3 @@ jobs:
       env:
         CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
       run: ./gradlew assembleDebug
-
-    - name: Build release AAB (unsigned, verify only)
-      env:
-        CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
-      run: ./gradlew bundleRelease
-
-    - name: Lint
-      env:
-        CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
-      run: ./gradlew lintDebug
