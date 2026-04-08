@@ -28,11 +28,11 @@ jobs:
         CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
       run: ./gradlew testDebugUnitTest --stacktrace
 
-    # ── Debug APK ──────────────────────────────────────────────
-    - name: Build debug APK
+    # ── Minified debug-signed APK (same R8 setup as release, debug keystore) ──
+    - name: Build minified debug-signed APK
       env:
         CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
-      run: ./gradlew assembleDebug
+      run: ./gradlew assembleMinifiedDebug
 
     # ── Release AAB (signed) ───────────────────────────────────
     - name: Decode release keystore
@@ -61,7 +61,7 @@ jobs:
         fi
         echo "APP_VERSION_NAME=$VERSION" >> "$GITHUB_ENV"
         mkdir -p release-artifacts
-        cp app/build/outputs/apk/debug/DailyMacros-*.apk release-artifacts/ 2>/dev/null || true
+        cp app/build/outputs/apk/minifiedDebug/DailyMacros-*.apk release-artifacts/ 2>/dev/null || true
         cp app/build/outputs/bundle/release/DailyMacros-*.aab release-artifacts/ 2>/dev/null || true
         ls -lh release-artifacts/
 
