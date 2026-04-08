@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
     - uses: actions/checkout@v4
@@ -32,3 +34,20 @@ jobs:
       env:
         CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
       run: ./gradlew assembleDebug
+
+    - name: Create GitHub Release
+      if: github.event_name == 'push'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: build-${{ github.sha }}
+        name: "Master #${{ github.run_number }} (${{ github.sha }})"
+        generate_release_notes: true
+        # assembleDebug renames the APK (see app/build.gradle.kts); there is no app-debug.apk.
+        files: app/build/outputs/apk/debug/*.apk
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Lint
+      env:
+        CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
+      run: ./gradlew lintDebug
