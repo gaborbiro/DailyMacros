@@ -8,12 +8,14 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
     - uses: actions/checkout@v4
-    - name: set up JDK 17
+
+    - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
@@ -22,7 +24,25 @@ jobs:
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
+
     - name: Run unit tests
+      env:
+        CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
       run: ./gradlew testDebugUnitTest --stacktrace
-    - name: Build debug
+
+    - name: Build debug APK
+      env:
+        CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
       run: ./gradlew assembleDebug
+
+    - name: Create GitHub Release
+      if: github.event_name == 'push'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: build-${{ github.sha }}
+        name: "Master #${{ github.run_number }} (${{ github.sha }})"
+        generate_release_notes: true
+        # assembleDebug renames the APK (see app/build.gradle.kts); there is no app-debug.apk.
+        files: app/build/outputs/apk/debug/*.apk
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

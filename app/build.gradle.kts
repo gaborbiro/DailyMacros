@@ -6,6 +6,10 @@ plugins {
     alias(libs.plugins.firebase.crashlytics)
 }
 
+// Bump here; GitHub release tag v{versionName} uses :app:printAppReleaseVersionName in CI.
+private val appVersionName = "1.10.0"
+private val appVersionCode = 24
+
 android {
     namespace = "dev.gaborbiro.dailymacros"
     compileSdk = libs.versions.android.sdk.compile.get().toInt()
@@ -14,8 +18,8 @@ android {
         applicationId = "dev.gaborbiro.dailymacros"
         minSdk = libs.versions.android.sdk.min.get().toInt()
         targetSdk = libs.versions.android.sdk.target.get().toInt()
-        versionName = "1.10.0"
-        versionCode = 24
+        versionName = appVersionName
+        versionCode = appVersionCode
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -30,6 +34,15 @@ android {
             keyPassword = "keystore"
             storeFile = file("../signing/keystore.jks")
             storePassword = "keystore"
+        }
+        create("release") {
+            val keystorePath = System.getenv("RELEASE_KEYSTORE_PATH")
+            if (keystorePath != null) {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+                keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+            }
         }
     }
 
@@ -46,11 +59,15 @@ android {
             isShrinkResources = true
             isDebuggable = false
 
+            val releaseConfig = signingConfigs.getByName("release")
+            if (releaseConfig.storeFile != null) {
+                signingConfig = releaseConfig
+            }
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-
         }
     }
     compileOptions {
@@ -135,13 +152,38 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
 
+/** CI reads `app/build/release-version-name.txt` for the GitHub release tag `v{versionName}`. */
+tasks.register("writeAppReleaseVersionNameFile") {
+    group = "versioning"
+    description = "Writes build/release-version-name.txt from appVersionName (for GitHub Actions)"
+    val out = layout.buildDirectory.file("release-version-name.txt")
+    outputs.file(out)
+    doLast {
+        out.get().asFile.parentFile.mkdirs()
+        out.get().asFile.writeText(appVersionName)
+    }
+}
+
+afterEvaluate {
+    tasks.named("bundleRelease").configure {
+        dependsOn("writeAppReleaseVersionNameFile")
+    }
+}
+
+fun gitShortHash(): String = providers.exec {
+    commandLine("git", "rev-parse", "--short", "HEAD")
+}.standardOutput.asText.get().trim()
+
+fun artifactBaseName(buildType: String): String {
+    val versionName = android.defaultConfig.versionName ?: "unknown"
+    val versionCode = android.defaultConfig.versionCode
+    val commitHash = gitShortHash()
+    return "DailyMacros-v${versionName}(${versionCode})-${commitHash}-$buildType"
+}
+
 tasks.matching { it.name.startsWith("bundle") }.configureEach {
     doLast {
-        val taskName = name // e.g., "bundleDebug", "bundleRelease"
-        val buildType = taskName.removePrefix("bundle").lowercase()
-        val versionName = android.defaultConfig.versionName ?: "unknown"
-        val versionCode = android.defaultConfig.versionCode
-
+        val buildType = name.removePrefix("bundle").lowercase()
         val outputDir = File(buildDir, "outputs/bundle/$buildType")
         val original = File(outputDir, "app-$buildType.aab")
         if (!original.exists()) {
@@ -149,9 +191,23 @@ tasks.matching { it.name.startsWith("bundle") }.configureEach {
             return@doLast
         }
 
-        val newName = "DailyMacros-v${versionName}(${versionCode})-$buildType.aab"
-        val renamed = File(outputDir, newName)
+        val renamed = File(outputDir, "${artifactBaseName(buildType)}.aab")
+        if (original.renameTo(renamed)) {
+            println("✅ Renamed ${original.name} → ${renamed.name}")
+        } else {
+            println("❌ Failed to rename ${original.name}")
+        }
+    }
+}
 
+tasks.matching { it.name.startsWith("assemble") }.configureEach {
+    doLast {
+        val buildType = name.removePrefix("assemble").lowercase()
+        val outputDir = File(buildDir, "outputs/apk/$buildType")
+        val original = File(outputDir, "app-$buildType.apk")
+        if (!original.exists()) return@doLast
+
+        val renamed = File(outputDir, "${artifactBaseName(buildType)}.apk")
         if (original.renameTo(renamed)) {
             println("✅ Renamed ${original.name} → ${renamed.name}")
         } else {

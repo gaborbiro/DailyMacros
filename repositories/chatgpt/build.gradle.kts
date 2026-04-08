@@ -41,4 +41,6 @@ dependencies {
     api(libs.network.okhttp.logging.interceptor)
     api(libs.network.okhttp.cookiejar)
     api(libs.network.gson)
+
+    testImplementation(libs.test.junit)
 }
