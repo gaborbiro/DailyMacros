@@ -25,15 +25,26 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
+    # Actions only sees Settings → Secrets and variables → Actions (not Codespaces-only secrets).
+    - name: Ensure CHATGPT_API_KEY is available to Actions
+      if: github.event_name == 'push'
+      env:
+        CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
+      run: |
+        if [ -z "$CHATGPT_API_KEY" ]; then
+          echo "::error::CHATGPT_API_KEY is empty. Add a repository secret with this exact name under Settings → Secrets and variables → Actions (Codespaces secrets are not used by workflows)."
+          exit 1
+        fi
+
     - name: Run unit tests
       env:
         CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
       run: ./gradlew testDebugUnitTest --stacktrace
 
-    - name: Build minified debug-signed APK
+    - name: Build debug APK
       env:
         CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
-      run: ./gradlew assembleMinifiedDebug
+      run: ./gradlew assembleDebug
 
     - name: Set short SHA for release tag
       if: github.event_name == 'push'
@@ -46,7 +57,7 @@ jobs:
         tag_name: build-${{ env.GIT_SHORT_SHA }}
         name: "Master #${{ github.run_number }} (${{ env.GIT_SHORT_SHA }})"
         generate_release_notes: true
-        # assembleMinifiedDebug renames the APK (see app/build.gradle.kts).
-        files: app/build/outputs/apk/minifiedDebug/*.apk
+        # assembleDebug renames the APK (see app/build.gradle.kts); there is no app-debug.apk.
+        files: app/build/outputs/apk/debug/*.apk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

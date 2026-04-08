@@ -69,19 +69,6 @@ android {
                 "proguard-rules.pro"
             )
         }
-        // R8/ProGuard like release, signed with debug keystore (CI master builds, smaller than assembleDebug).
-        create("minifiedDebug") {
-            initWith(getByName("debug"))
-            isMinifyEnabled = true
-            isShrinkResources = true
-            isDebuggable = false
-            signingConfig = signingConfigs.getByName("debug")
-            matchingFallbacks += listOf("debug")
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.toVersion(libs.versions.java.get())
@@ -194,22 +181,17 @@ fun artifactBaseName(buildType: String): String {
     return "DailyMacros-v${versionName}(${versionCode})-${commitHash}-$buildType"
 }
 
-/** AGP output dirs use decapitalized variant names (e.g. minifiedDebug), not full lowercase. */
-fun agpOutputSegment(taskName: String, prefix: String): String =
-    taskName.removePrefix(prefix).replaceFirstChar { it.lowercaseChar() }
-
 tasks.matching { it.name.startsWith("bundle") }.configureEach {
     doLast {
-        val segment = agpOutputSegment(name, "bundle")
-        val outputDir = File(buildDir, "outputs/bundle/$segment")
-        val original = outputDir.listFiles()
-            ?.firstOrNull { f -> f.isFile && f.name.startsWith("app-") && f.name.endsWith(".aab") }
-        if (original == null || !original.exists()) {
-            println("⚠️ AAB not found under ${outputDir.absolutePath}")
+        val buildType = name.removePrefix("bundle").lowercase()
+        val outputDir = File(buildDir, "outputs/bundle/$buildType")
+        val original = File(outputDir, "app-$buildType.aab")
+        if (!original.exists()) {
+            println("⚠️ AAB not found: ${original.absolutePath}")
             return@doLast
         }
 
-        val renamed = File(outputDir, "${artifactBaseName(segment)}.aab")
+        val renamed = File(outputDir, "${artifactBaseName(buildType)}.aab")
         if (original.renameTo(renamed)) {
             println("✅ Renamed ${original.name} → ${renamed.name}")
         } else {
@@ -220,13 +202,12 @@ tasks.matching { it.name.startsWith("bundle") }.configureEach {
 
 tasks.matching { it.name.startsWith("assemble") }.configureEach {
     doLast {
-        val segment = agpOutputSegment(name, "assemble")
-        val outputDir = File(buildDir, "outputs/apk/$segment")
-        val original = outputDir.listFiles()
-            ?.firstOrNull { f -> f.isFile && f.name.startsWith("app-") && f.name.endsWith(".apk") }
-        if (original == null || !original.exists()) return@doLast
+        val buildType = name.removePrefix("assemble").lowercase()
+        val outputDir = File(buildDir, "outputs/apk/$buildType")
+        val original = File(outputDir, "app-$buildType.apk")
+        if (!original.exists()) return@doLast
 
-        val renamed = File(outputDir, "${artifactBaseName(segment)}.apk")
+        val renamed = File(outputDir, "${artifactBaseName(buildType)}.apk")
         if (original.renameTo(renamed)) {
             println("✅ Renamed ${original.name} → ${renamed.name}")
         } else {

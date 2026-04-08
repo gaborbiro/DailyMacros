@@ -23,16 +23,25 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
+    - name: Ensure CHATGPT_API_KEY is available to Actions
+      env:
+        CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
+      run: |
+        if [ -z "$CHATGPT_API_KEY" ]; then
+          echo "::error::CHATGPT_API_KEY is empty. Add it under Settings → Secrets and variables → Actions (same name: CHATGPT_API_KEY). Codespaces secrets are not used here."
+          exit 1
+        fi
+
     - name: Run unit tests
       env:
         CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
       run: ./gradlew testDebugUnitTest --stacktrace
 
-    # ── Minified debug-signed APK (same R8 setup as release, debug keystore) ──
-    - name: Build minified debug-signed APK
+    # ── Debug APK ──────────────────────────────────────────────
+    - name: Build debug APK
       env:
         CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
-      run: ./gradlew assembleMinifiedDebug
+      run: ./gradlew assembleDebug
 
     # ── Release AAB (signed) ───────────────────────────────────
     - name: Decode release keystore
@@ -61,7 +70,7 @@ jobs:
         fi
         echo "APP_VERSION_NAME=$VERSION" >> "$GITHUB_ENV"
         mkdir -p release-artifacts
-        cp app/build/outputs/apk/minifiedDebug/DailyMacros-*.apk release-artifacts/ 2>/dev/null || true
+        cp app/build/outputs/apk/debug/DailyMacros-*.apk release-artifacts/ 2>/dev/null || true
         cp app/build/outputs/bundle/release/DailyMacros-*.aab release-artifacts/ 2>/dev/null || true
         ls -lh release-artifacts/
 
