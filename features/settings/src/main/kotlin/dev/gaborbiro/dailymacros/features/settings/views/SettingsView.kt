@@ -81,7 +81,7 @@ internal fun SettingsView(
                 .verticalScroll(rememberScrollState())
                 .imePadding()
         ) {
-            SettingRow(title = "Daily Targets", onTapped = onTargetsSettingTapped)
+            SettingRow(title = "Daily targets", onTapped = onTargetsSettingTapped)
             SettingRow(title = "Export", onTapped = onExportSettingTapped)
         }
     }

@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ButtonDefaults
@@ -31,15 +32,17 @@ internal fun TargetsHeader(
     Column(modifier = modifier) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 modifier = Modifier.padding(end = 16.dp),
-                text = "Daily Targets",
+                text = "Daily targets",
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Start
+            )
+            Spacer(
+                modifier = Modifier.weight(1f)
             )
             if (resetButtonVisible) {
                 TextButton(
