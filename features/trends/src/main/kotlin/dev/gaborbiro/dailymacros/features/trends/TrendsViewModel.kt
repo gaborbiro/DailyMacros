@@ -66,9 +66,12 @@ class TrendsViewModel(
         }
     }
 
-    fun onEditTargetsFromChartsTapped() {
+    fun onDailyTargetsFromTrendsSettingsTapped() {
         _uiState.update {
-            it.copy(showTargetsSettings = true)
+            it.copy(
+                settings = TrendsSettingsUIModel.Hidden,
+                showTargetsSettings = true,
+            )
         }
     }
 

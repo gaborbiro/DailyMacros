@@ -41,7 +41,7 @@ fun TrendsScreen(
         onSettingsCloseRequested = trendsViewModel::onSettingsCloseRequested,
         onSettingsAggregationModeChanged = trendsViewModel::onAggregationModeChanged,
         onSettingsThresholdChanged = trendsViewModel::onAggregationThresholdChanged,
-        onTargetsSettingsTapped = trendsViewModel::onEditTargetsFromChartsTapped,
+        onDailyTargetsFromTrendsSettingsTapped = trendsViewModel::onDailyTargetsFromTrendsSettingsTapped,
     )
 
     if (state.showTargetsSettings) {

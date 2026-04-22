@@ -1,7 +1,9 @@
 package dev.gaborbiro.dailymacros.features.trends.views
 
 import android.content.res.Configuration
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,11 +11,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
@@ -26,6 +31,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -36,10 +42,11 @@ import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 internal fun TrendsSettingsBottomSheet(
     dayQualifier: DayQualifier,
     qualifiedDaysThreshold: Long,
+    onDailyTargetsTapped: () -> Unit,
     onAggregationModeChanged: (DayQualifier) -> Unit,
     onThresholdChanged: (Long) -> Unit,
     onDismissRequested: () -> Unit,
@@ -69,6 +76,36 @@ internal fun TrendsSettingsBottomSheet(
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.headlineMedium,
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onDailyTargetsTapped)
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Daily targets",
+                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Text(
+                        modifier = Modifier.padding(top = 4.dp),
+                        text = "Edit targets used as reference lines on charts",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
             Text(
                 modifier = Modifier
                     .padding(top = 8.dp),
@@ -88,10 +125,7 @@ internal fun TrendsSettingsBottomSheet(
             }
             var customThresholdValue by remember { mutableStateOf(qualifiedDaysThreshold.toString()) }
 
-            Spacer(
-                modifier = Modifier
-                    .height(16.dp)
-            )
+            Spacer(modifier = Modifier.height(8.dp))
 
             ExposedDropdownMenuBox(
                 expanded = expanded,
@@ -198,6 +232,7 @@ private fun TrendsSettingsBottomSheetQualifiedPreview() {
         TrendsSettingsBottomSheet(
             dayQualifier = DayQualifier.ONLY_QUALIFIED_DAYS,
             qualifiedDaysThreshold = 800,
+            onDailyTargetsTapped = {},
             onDismissRequested = {},
             onAggregationModeChanged = {},
             onThresholdChanged = {},
@@ -213,6 +248,7 @@ private fun TrendsSettingsBottomSheetLoggedPreview() {
         TrendsSettingsBottomSheet(
             dayQualifier = DayQualifier.ONLY_LOGGED_DAYS,
             qualifiedDaysThreshold = 800,
+            onDailyTargetsTapped = {},
             onDismissRequested = {},
             onAggregationModeChanged = {},
             onThresholdChanged = {},

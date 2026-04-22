@@ -6,12 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -240,10 +235,6 @@ internal fun TrendsChart(
             minZoom = Zoom.fixed(),
             maxZoom = Zoom.fixed(),
         )
-    }
-
-    val hasTargetBands = chartData.datasets.any {
-        it.targetMinY != null || it.targetMaxY != null
     }
 
     Column(

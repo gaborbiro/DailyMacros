@@ -65,6 +65,7 @@ internal fun TrendsView(
     onSettingsCloseRequested: () -> Unit,
     onSettingsAggregationModeChanged: (DayQualifier, Timescale) -> Unit,
     onSettingsThresholdChanged: (Long, Timescale) -> Unit,
+    onDailyTargetsFromTrendsSettingsTapped: () -> Unit,
 ) {
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
@@ -192,6 +193,7 @@ internal fun TrendsView(
             TrendsSettingsBottomSheet(
                 dayQualifier = viewState.settings.dayQualifier,
                 qualifiedDaysThreshold = viewState.settings.qualifiedDaysThreshold,
+                onDailyTargetsTapped = onDailyTargetsFromTrendsSettingsTapped,
                 onDismissRequested = onSettingsCloseRequested,
                 onAggregationModeChanged = { onSettingsAggregationModeChanged(it, timescale) },
                 onThresholdChanged = { onSettingsThresholdChanged(it, timescale) },
@@ -215,6 +217,7 @@ private fun TrendsViewPreview() {
             onSettingsCloseRequested = {},
             onSettingsAggregationModeChanged = { _, _ -> },
             onSettingsThresholdChanged = { _, _ -> },
+            onDailyTargetsFromTrendsSettingsTapped = {},
         )
     }
 }
