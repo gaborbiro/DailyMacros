@@ -206,6 +206,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         TrendsScreen(
                             viewModel = trendsViewModel,
+                            targetsViewModel = targetsViewModel,
                             navController = navController,
                         )
                     }

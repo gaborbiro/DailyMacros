@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.Color
 data class TrendsUiState(
     val charts: List<TrendsChartUiModel> = emptyList(),
     val settings: TrendsSettingsUIModel = TrendsSettingsUIModel.Hidden,
+    val showTargetsSettings: Boolean = false,
 )
 
 enum class Timescale { DAYS, WEEKS, MONTHS }

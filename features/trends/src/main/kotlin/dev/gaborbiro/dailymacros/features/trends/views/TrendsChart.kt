@@ -6,7 +6,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,6 +54,7 @@ internal fun TrendsChart(
     scrollState: VicoScrollState,
     startAxis: VerticalAxis<Axis.Position.Vertical.Start>,
     showEveryXLabel: Int,
+    onEditTargetsTapped: () -> Unit,
 ) {
     val modelProducer = remember { CartesianChartModelProducer() }
 
@@ -237,6 +243,10 @@ internal fun TrendsChart(
         )
     }
 
+    val hasTargetBands = chartData.datasets.any {
+        it.targetMinY != null || it.targetMaxY != null
+    }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -254,6 +264,26 @@ internal fun TrendsChart(
                     style = MaterialTheme.typography.titleMedium,
                     color = dataset.color
                 )
+            }
+        }
+
+        if (hasTargetBands) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(end = 8.dp),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(
+                    onClick = onEditTargetsTapped,
+                    modifier = Modifier.size(40.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit daily targets",
+                    )
+                }
             }
         }
 
