@@ -65,7 +65,6 @@ internal fun TrendsView(
     onSettingsCloseRequested: () -> Unit,
     onSettingsAggregationModeChanged: (DayQualifier, Timescale) -> Unit,
     onSettingsThresholdChanged: (Long, Timescale) -> Unit,
-    onEditTargetsFromChartsTapped: () -> Unit,
 ) {
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
@@ -174,7 +173,6 @@ internal fun TrendsView(
                             scrollState = scrollState,
                             startAxis = startAxis,
                             showEveryXLabel = showEveryXLabel,
-                            onEditTargetsTapped = onEditTargetsFromChartsTapped,
                         )
                     }
                 } else {
@@ -217,7 +215,6 @@ private fun TrendsViewPreview() {
             onSettingsCloseRequested = {},
             onSettingsAggregationModeChanged = { _, _ -> },
             onSettingsThresholdChanged = { _, _ -> },
-            onEditTargetsFromChartsTapped = {},
         )
     }
 }

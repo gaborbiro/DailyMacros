@@ -54,7 +54,6 @@ internal fun TrendsChart(
     scrollState: VicoScrollState,
     startAxis: VerticalAxis<Axis.Position.Vertical.Start>,
     showEveryXLabel: Int,
-    onEditTargetsTapped: () -> Unit,
 ) {
     val modelProducer = remember { CartesianChartModelProducer() }
 
@@ -264,26 +263,6 @@ internal fun TrendsChart(
                     style = MaterialTheme.typography.titleMedium,
                     color = dataset.color
                 )
-            }
-        }
-
-        if (hasTargetBands) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(end = 8.dp),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                IconButton(
-                    onClick = onEditTargetsTapped,
-                    modifier = Modifier.size(40.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Edit daily targets",
-                    )
-                }
             }
         }
 

@@ -132,7 +132,7 @@ class MainActivity : ComponentActivity() {
                         exportFoodDiaryUseCase = exportFoodDiaryUseCase,
                     )
                 }
-                val targetsViewModel = viewModelFactory {
+                val targetsSettingsViewModel = viewModelFactory {
                     TargetsSettingsViewModel(
                         repo = settingsRepository,
                     )
@@ -183,7 +183,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         SettingsScreen(
                             settingsViewModel = settingsViewModel,
-                            targetsViewModel = targetsViewModel,
+                            targetsSettingsViewModel = targetsSettingsViewModel,
                             navController = navController,
                         )
                     }
@@ -205,8 +205,8 @@ class MainActivity : ComponentActivity() {
                         },
                     ) {
                         TrendsScreen(
-                            viewModel = trendsViewModel,
-                            targetsViewModel = targetsViewModel,
+                            trendsViewModel = trendsViewModel,
+                            targetsSettingsViewModel = targetsSettingsViewModel,
                             navController = navController,
                         )
                     }

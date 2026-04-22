@@ -13,41 +13,41 @@ import dev.gaborbiro.dailymacros.features.trends.views.TrendsView
 
 @Composable
 fun TrendsScreen(
-    viewModel: TrendsViewModel,
-    targetsViewModel: TargetsSettingsViewModel,
+    trendsViewModel: TrendsViewModel,
+    targetsSettingsViewModel: TargetsSettingsViewModel,
     navController: NavHostController,
 ) {
-    LaunchedEffect(viewModel) {
-        viewModel.uiUpdates.collect { event ->
+    LaunchedEffect(trendsViewModel) {
+        trendsViewModel.uiUpdates.collect { event ->
             when (event) {
                 TrendsUiUpdates.NavigateBack -> navController.popBackStack()
             }
         }
     }
 
-    val state: TrendsUiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val state: TrendsUiState by trendsViewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(state.showTargetsSettings) {
         if (state.showTargetsSettings) {
-            targetsViewModel.reloadFromRepository()
+            targetsSettingsViewModel.reloadFromRepository()
         }
     }
 
     TrendsView(
         viewState = state,
-        onTimescaleSelected = viewModel::onTimescaleSelected,
-        onBackNavigate = viewModel::onBackNavigate,
-        onSettingsActionButtonClicked = viewModel::onSettingsActionButtonClicked,
-        onSettingsCloseRequested = viewModel::onSettingsCloseRequested,
-        onSettingsAggregationModeChanged = viewModel::onAggregationModeChanged,
-        onSettingsThresholdChanged = viewModel::onAggregationThresholdChanged,
-        onEditTargetsFromChartsTapped = viewModel::onEditTargetsFromChartsTapped,
+        onTimescaleSelected = trendsViewModel::onTimescaleSelected,
+        onBackNavigate = trendsViewModel::onBackNavigate,
+        onSettingsActionButtonClicked = trendsViewModel::onSettingsActionButtonClicked,
+        onSettingsCloseRequested = trendsViewModel::onSettingsCloseRequested,
+        onSettingsAggregationModeChanged = trendsViewModel::onAggregationModeChanged,
+        onSettingsThresholdChanged = trendsViewModel::onAggregationThresholdChanged,
+        onTargetsSettingsTapped = trendsViewModel::onEditTargetsFromChartsTapped,
     )
 
     if (state.showTargetsSettings) {
         TargetsSettingsScreen(
-            viewModel = targetsViewModel,
-            onCloseRequested = viewModel::onTargetsSettingsCloseRequested,
+            viewModel = targetsSettingsViewModel,
+            onCloseRequested = trendsViewModel::onTargetsSettingsCloseRequested,
         )
     }
 }
