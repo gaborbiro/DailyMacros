@@ -66,6 +66,21 @@ class TrendsViewModel(
         }
     }
 
+    fun onDailyTargetsFromTrendsSettingsTapped() {
+        _uiState.update {
+            it.copy(
+                settings = TrendsSettingsUIModel.Hidden,
+                showTargetsSettings = true,
+            )
+        }
+    }
+
+    fun onTargetsSettingsCloseRequested() {
+        _uiState.update {
+            it.copy(showTargetsSettings = false)
+        }
+    }
+
     fun onAggregationModeChanged(dayQualifier: DayQualifier, timescale: Timescale) {
         preferences.dayQualificationMode = mapper.map(dayQualifier)
         recordsJob.cancel()

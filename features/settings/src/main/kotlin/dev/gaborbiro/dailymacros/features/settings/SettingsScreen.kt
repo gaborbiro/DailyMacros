@@ -13,7 +13,7 @@ import dev.gaborbiro.dailymacros.features.settings.views.SettingsView
 @Composable
 fun SettingsScreen(
     settingsViewModel: SettingsViewModel,
-    targetsViewModel: TargetsSettingsViewModel,
+    targetsSettingsViewModel: TargetsSettingsViewModel,
     navController: NavHostController,
 ) {
     LaunchedEffect(settingsViewModel) {
@@ -35,7 +35,7 @@ fun SettingsScreen(
 
     if (settingsUiState.showTargetsSettings) {
         TargetsSettingsScreen(
-            viewModel = targetsViewModel,
+            viewModel = targetsSettingsViewModel,
             onCloseRequested = settingsViewModel::onTargetsSettingsCloseRequested,
         )
     }

@@ -41,6 +41,14 @@ class TargetsSettingsViewModel(
         _uiState.value = targets
     }
 
+    /**
+     * Reloads persisted targets into UI state. Use when opening the sheet from another screen
+     * so edits made elsewhere are visible.
+     */
+    fun reloadFromRepository() {
+        load()
+    }
+
     fun onTargetChanged(type: MacroType, target: TargetUiModel) {
         val current = _uiState.value.targets
         val targets = current + (type to target)
