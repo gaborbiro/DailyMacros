@@ -50,6 +50,9 @@ class RecordsRepositoryImpl(
         .getByTemplate(templateId)
         .let(mapper::map)
 
+    override suspend fun countRecordsForTemplate(templateId: Long): Int =
+        recordsDAO.countByTemplate(templateId)
+
     override fun observeRecords(
         searchTerm: String?, /* = null */
         sinceEpochMillis: Long, /* = 0L */
