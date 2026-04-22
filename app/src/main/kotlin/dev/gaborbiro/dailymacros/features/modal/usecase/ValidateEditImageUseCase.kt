@@ -8,11 +8,11 @@ internal class ValidateEditImageUseCase(
 
     suspend fun execute(recordId: Long): EditImageValidationResult {
         val templateId = repository.get(recordId)!!.template.dbId
-        val records = repository.getRecordsByTemplate(templateId)
-        return if (records.size < 2) {
+        val linkedCount = repository.countRecordsForTemplate(templateId)
+        return if (linkedCount < 2) {
             EditImageValidationResult.Valid
         } else {
-            EditImageValidationResult.AskConfirmation(records.size)
+            EditImageValidationResult.AskConfirmation(linkedCount)
         }
     }
 }

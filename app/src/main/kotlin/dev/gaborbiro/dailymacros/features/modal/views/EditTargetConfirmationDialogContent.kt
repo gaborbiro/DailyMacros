@@ -34,7 +34,7 @@ fun EditTargetConfirmationDialogContent(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
-                text = "Update all entries ($count) or just this one?",
+                text = "Update all $count linked entries (including this one), or only this one?",
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier

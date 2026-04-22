@@ -12,11 +12,11 @@ internal class ValidateEditRecordUseCase(
         }
         val template = repository.get(recordId)!!.template
         val templateId = template.dbId
-        val records = repository.getRecordsByTemplate(templateId)
-        return if (records.size < 2) {
+        val linkedCount = repository.countRecordsForTemplate(templateId)
+        return if (linkedCount < 2) {
             EditValidationResult.Valid
         } else {
-            EditValidationResult.ConfirmMultipleEdit(records.size)
+            EditValidationResult.ConfirmMultipleEdit(linkedCount)
         }
     }
 }

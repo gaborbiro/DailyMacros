@@ -18,6 +18,8 @@ interface RecordsRepository {
 
     suspend fun getRecordsByTemplate(templateId: Long): List<Record>
 
+    suspend fun countRecordsForTemplate(templateId: Long): Int
+
     fun observeRecords(searchTerm: String? = null, sinceEpochMillis: Long = 0L): Flow<List<Record>>
 
     suspend fun get(recordId: Long): Record?
