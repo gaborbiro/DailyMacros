@@ -31,6 +31,7 @@ fun SettingsScreen(
         onBackNavigateRequested = settingsViewModel::onBackNavigateRequested,
         onTargetsSettingTapped = settingsViewModel::onTargetsSettingsTapped,
         onExportSettingTapped = settingsViewModel::onExportSettingsTapped,
+        onVariabilityMiningPreviewTapped = settingsViewModel::onVariabilityMiningPreviewTapped,
     )
 
     if (settingsUiState.showTargetsSettings) {

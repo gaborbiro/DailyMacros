@@ -13,6 +13,11 @@ interface RecordsRepository {
 
     suspend fun getRecords(since: ZonedDateTime? = null): List<Record>
 
+    /**
+     * Most recent [limit] records (newest first), for batch jobs such as variability mining.
+     */
+    suspend fun getRecentRecords(limit: Int): List<Record>
+
     fun getMostRecentRecord(): Record?
 
     suspend fun getQuickPicks(count: Int): List<Template>

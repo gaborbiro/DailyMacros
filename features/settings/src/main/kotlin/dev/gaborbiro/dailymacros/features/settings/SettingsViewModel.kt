@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
+import dev.gaborbiro.dailymacros.features.settings.variability.MineMealVariabilityPreviewUseCase
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +18,7 @@ import kotlinx.coroutines.launch
 class SettingsViewModel(
     private val appInfo: SettingsAppInfo,
     private val exportFoodDiaryUseCase: ExportFoodDiaryUseCase,
+    private val mineMealVariabilityPreviewUseCase: MineMealVariabilityPreviewUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -34,6 +36,10 @@ class SettingsViewModel(
         _uiState.value = SettingsUiState(
             showTargetsSettings = false,
             bottomLabel = appInfo.versionLabel,
+            variabilityMiningLoading = false,
+            variabilityMiningError = null,
+            variabilityMiningRequestJson = null,
+            variabilityMiningResponseJson = null,
         )
         viewModelScope.launch {
             _uiUpdates.emit(SettingsUiUpdates.NavigateBack)
@@ -55,6 +61,37 @@ class SettingsViewModel(
     fun onExportSettingsTapped() {
         viewModelScope.launch {
             exportFoodDiaryUseCase.execute()
+        }
+    }
+
+    fun onVariabilityMiningPreviewTapped() {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    variabilityMiningLoading = true,
+                    variabilityMiningError = null,
+                    variabilityMiningRequestJson = null,
+                    variabilityMiningResponseJson = null,
+                )
+            }
+            runCatching { mineMealVariabilityPreviewUseCase.execute() }
+                .onSuccess { preview ->
+                    _uiState.update {
+                        it.copy(
+                            variabilityMiningLoading = false,
+                            variabilityMiningRequestJson = preview.requestJsonPretty,
+                            variabilityMiningResponseJson = preview.responseJsonPretty,
+                        )
+                    }
+                }
+                .onFailure { t ->
+                    _uiState.update {
+                        it.copy(
+                            variabilityMiningLoading = false,
+                            variabilityMiningError = t.message ?: t.toString(),
+                        )
+                    }
+                }
         }
     }
 }

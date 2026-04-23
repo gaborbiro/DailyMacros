@@ -12,6 +12,7 @@ dependencies {
     implementation(project(":features:common"))
     implementation(project(":repositories:settings"))
     implementation(project(":repositories:records"))
+    implementation(project(":repositories:chatgpt"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

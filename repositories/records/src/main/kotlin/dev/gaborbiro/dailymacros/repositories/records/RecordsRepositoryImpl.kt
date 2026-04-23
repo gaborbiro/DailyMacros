@@ -38,6 +38,9 @@ class RecordsRepositoryImpl(
         .get(since?.toInstant()?.toEpochMilli() ?: 0L)
         .map(mapper::map)
 
+    override suspend fun getRecentRecords(limit: Int): List<Record> =
+        recordsDAO.getRecent(limit).map(mapper::map)
+
     override fun getMostRecentRecord(): Record? {
         return recordsDAO.getMostRecentRecord()
             ?.let(mapper::map)

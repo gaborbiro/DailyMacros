@@ -4,9 +4,12 @@ import android.content.res.Configuration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
@@ -18,6 +21,8 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,6 +35,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -42,6 +48,7 @@ internal fun SettingsView(
     onBackNavigateRequested: () -> Unit,
     onTargetsSettingTapped: () -> Unit,
     onExportSettingTapped: () -> Unit,
+    onVariabilityMiningPreviewTapped: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -75,14 +82,72 @@ internal fun SettingsView(
         },
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
+        val jsonScroll = rememberScrollState()
         Column(
             modifier = Modifier
+                .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
                 .imePadding()
         ) {
             SettingRow(title = "Daily targets", onTapped = onTargetsSettingTapped)
             SettingRow(title = "Export", onTapped = onExportSettingTapped)
+            Button(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                onClick = onVariabilityMiningPreviewTapped,
+                enabled = !viewState.variabilityMiningLoading,
+            ) {
+                Text("Preview meal variability (AI)")
+            }
+            if (viewState.variabilityMiningLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .height(32.dp),
+                )
+            }
+            viewState.variabilityMiningError?.let { err ->
+                Text(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    text = err,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .verticalScroll(jsonScroll)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            ) {
+                if (viewState.variabilityMiningRequestJson != null) {
+                    Text(
+                        text = "Request JSON",
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    )
+                    Text(
+                        text = viewState.variabilityMiningRequestJson,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontFamily = FontFamily.Monospace,
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+                if (viewState.variabilityMiningResponseJson != null) {
+                    Text(
+                        text = "Response JSON",
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    )
+                    Text(
+                        text = viewState.variabilityMiningResponseJson,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontFamily = FontFamily.Monospace,
+                    )
+                }
+            }
         }
     }
 }
@@ -120,6 +185,7 @@ private fun SettingsViewPreview() {
             onBackNavigateRequested = {},
             onTargetsSettingTapped = {},
             onExportSettingTapped = {},
+            onVariabilityMiningPreviewTapped = {},
         )
     }
 }

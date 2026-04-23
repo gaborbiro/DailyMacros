@@ -19,6 +19,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
+import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -48,18 +50,37 @@ import dev.gaborbiro.dailymacros.features.settings.export.SharePublicUriLauncher
 import dev.gaborbiro.dailymacros.features.settings.export.StreamWriter
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsViewModel
+import dev.gaborbiro.dailymacros.features.settings.variability.MineMealVariabilityPreviewUseCase
 import dev.gaborbiro.dailymacros.features.trends.TrendsPreferencesImpl
 import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
 import dev.gaborbiro.dailymacros.features.trends.TrendsUiMapper
 import dev.gaborbiro.dailymacros.features.trends.TrendsViewModel
+import dev.gaborbiro.dailymacros.repositories.chatgpt.AuthInterceptor
+import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGPTRepositoryImpl
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.ChatGPTService
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ContentEntry
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ContentEntryOutputContentDeserializer
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.OutputContent
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.OutputContentDeserializer
 import dev.gaborbiro.dailymacros.repositories.records.RecordsApiMapper
 import dev.gaborbiro.dailymacros.repositories.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.records.RequestStatusRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.settings.SettingsMapper
 import dev.gaborbiro.dailymacros.repositories.settings.SettingsRepositoryImpl
 import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
+import okhttp3.java.net.cookiejar.JavaNetCookieJar
+import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import java.net.CookieManager
+import java.util.concurrent.TimeUnit.SECONDS
 
 class MainActivity : ComponentActivity() {
+
+    companion object {
+        private const val CHATGPT_REQUEST_TIMEOUT_SECONDS = 90L
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
@@ -103,6 +124,40 @@ class MainActivity : ComponentActivity() {
             sharePublicUriLauncher = sharePublicUriLauncher,
         )
 
+        val chatGptGson = GsonBuilder()
+            .registerTypeAdapter(OutputContent::class.java, OutputContentDeserializer())
+            .registerTypeAdapter(
+                object : TypeToken<ContentEntry<OutputContent>>() {}.type,
+                ContentEntryOutputContentDeserializer(),
+            )
+            .create()
+        val chatGptLogger = HttpLoggingInterceptor().also {
+            it.level = HttpLoggingInterceptor.Level.BASIC
+        }
+        val chatGptAuth = AuthInterceptor()
+        val chatGptClient = OkHttpClient.Builder()
+            .addNetworkInterceptor(chatGptLogger)
+            .addInterceptor(chatGptAuth)
+            .addNetworkInterceptor(chatGptAuth)
+            .callTimeout(CHATGPT_REQUEST_TIMEOUT_SECONDS, SECONDS)
+            .connectTimeout(CHATGPT_REQUEST_TIMEOUT_SECONDS, SECONDS)
+            .readTimeout(CHATGPT_REQUEST_TIMEOUT_SECONDS, SECONDS)
+            .writeTimeout(CHATGPT_REQUEST_TIMEOUT_SECONDS, SECONDS)
+            .cookieJar(JavaNetCookieJar(CookieManager()))
+            .build()
+        val chatGptRetrofit = Retrofit.Builder()
+            .baseUrl("https://api.openai.com/")
+            .client(chatGptClient)
+            .addConverterFactory(GsonConverterFactory.create(chatGptGson))
+            .build()
+        val chatGPTRepository = ChatGPTRepositoryImpl(
+            service = chatGptRetrofit.create(ChatGPTService::class.java),
+        )
+        val mineMealVariabilityPreviewUseCase = MineMealVariabilityPreviewUseCase(
+            recordsRepository = recordsRepository,
+            chatGPTRepository = chatGPTRepository,
+        )
+
         val recordsUiMapper = SharedRecordsUiMapper(nutrientsUiMapper)
         val recordsMapper = RecordsMapper()
         val overviewUiMapper = OverviewUiMapper(recordsUiMapper, nutrientsUiMapper, recordsMapper)
@@ -130,6 +185,7 @@ class MainActivity : ComponentActivity() {
                     SettingsViewModel(
                         appInfo = settingsAppInfo,
                         exportFoodDiaryUseCase = exportFoodDiaryUseCase,
+                        mineMealVariabilityPreviewUseCase = mineMealVariabilityPreviewUseCase,
                     )
                 }
                 val targetsSettingsViewModel = viewModelFactory {

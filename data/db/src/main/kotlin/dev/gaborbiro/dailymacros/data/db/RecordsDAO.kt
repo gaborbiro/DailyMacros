@@ -19,6 +19,10 @@ interface RecordsDAO {
     suspend fun get(sinceEpochMillis: Long): List<RecordJoined>
 
     @Transaction
+    @Query("SELECT * FROM records ORDER BY epochMillis DESC LIMIT :limit")
+    suspend fun getRecent(limit: Int): List<RecordJoined>
+
+    @Transaction
     @Query("SELECT * FROM records ORDER BY epochMillis DESC LIMIT 1")
     fun getMostRecentRecord(): RecordJoined?
 
