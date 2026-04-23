@@ -8,9 +8,6 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.OutputConten
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ReasoningLevel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.Role
 
-internal const val variabilityMiningModel = "gpt-5.4-mini"
-internal const val variabilityMiningReasoningEffort = "medium"
-
 private val variabilityMiningSystemPrompt = """
 You are a meal-pattern analyst for a personal food diary app. Your job is to UPDATE a compact VARIABILITY PROFILE from (a) an existing profile JSON, which may be null on first run, and (b) a batch of NEW diary entries in the user message. Photos are never provided; use only title, description, notes, structured components when present, and numeric macros.
 

@@ -75,11 +75,12 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.net.CookieManager
 import java.util.concurrent.TimeUnit.SECONDS
+import kotlin.time.Duration.Companion.seconds
 
 class MainActivity : ComponentActivity() {
 
     companion object {
-        private const val CHATGPT_REQUEST_TIMEOUT_SECONDS = 90L
+        private val CHATGPT_REQUEST_TIMEOUT = 180.seconds
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -132,17 +133,17 @@ class MainActivity : ComponentActivity() {
             )
             .create()
         val chatGptLogger = HttpLoggingInterceptor().also {
-            it.level = HttpLoggingInterceptor.Level.BASIC
+            it.level = HttpLoggingInterceptor.Level.BODY
         }
         val chatGptAuth = AuthInterceptor()
         val chatGptClient = OkHttpClient.Builder()
             .addNetworkInterceptor(chatGptLogger)
             .addInterceptor(chatGptAuth)
             .addNetworkInterceptor(chatGptAuth)
-            .callTimeout(CHATGPT_REQUEST_TIMEOUT_SECONDS, SECONDS)
-            .connectTimeout(CHATGPT_REQUEST_TIMEOUT_SECONDS, SECONDS)
-            .readTimeout(CHATGPT_REQUEST_TIMEOUT_SECONDS, SECONDS)
-            .writeTimeout(CHATGPT_REQUEST_TIMEOUT_SECONDS, SECONDS)
+            .callTimeout(CHATGPT_REQUEST_TIMEOUT.inWholeSeconds, SECONDS)
+            .connectTimeout(CHATGPT_REQUEST_TIMEOUT.inWholeSeconds, SECONDS)
+            .readTimeout(CHATGPT_REQUEST_TIMEOUT.inWholeSeconds, SECONDS)
+            .writeTimeout(CHATGPT_REQUEST_TIMEOUT.inWholeSeconds, SECONDS)
             .cookieJar(JavaNetCookieJar(CookieManager()))
             .build()
         val chatGptRetrofit = Retrofit.Builder()
