@@ -42,15 +42,6 @@ class MineMealVariabilityPreviewUseCase(
                 max_notes_chars_per_entry = MAX_NOTES_CHARS,
                 max_description_chars_per_entry = MAX_DESCRIPTION_CHARS,
             ),
-            task_hints = listOf(
-                "Aim for several meal families when data supports them: e.g. salad bowls, yogurt/fruit/granola bowls, pizza, " +
-                    "continental-style breakfast plates, protein shakes—do not collapse unrelated meals into one archetype.",
-                "Yogurt bowl archetype: exclude overnight oats / soaked-oats-jar fixed recipes (often long repeated description) " +
-                    "from the same cluster as ad-hoc yogurt+fruit+granola bowls.",
-                "For composite breakfasts/lunches: use separate slots (bread_base, spread, cheese_or_creamy_dairy, " +
-                    "tofu_or_quark, charcuterie, egg_style, etc.). Each variant_label must describe ONLY that slot's choice, " +
-                    "not a full ingredient stack string.",
-            ),
             meal_observations = records.map { it.toObservation() },
         )
         val userJson = compactGson.toJson(envelope)
@@ -114,7 +105,6 @@ private data class VariabilityMiningUserEnvelope(
     @SerializedName("merge_mode") val merge_mode: String,
     @SerializedName("existing_profile") val existing_profile: Any?,
     @SerializedName("constraints") val constraints: VariabilityConstraints,
-    @SerializedName("task_hints") val task_hints: List<String>,
     @SerializedName("meal_observations") val meal_observations: List<MealObservation>,
 )
 
