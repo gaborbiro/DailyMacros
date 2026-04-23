@@ -40,6 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
+import dev.gaborbiro.dailymacros.features.settings.util.verticalScrollWithBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,7 +83,6 @@ internal fun SettingsView(
         },
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
-        val jsonScroll = rememberScrollState()
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -119,33 +119,35 @@ internal fun SettingsView(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .verticalScroll(jsonScroll)
+                    .verticalScrollWithBar()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
             ) {
-                if (viewState.variabilityMiningRequestJson != null) {
-                    Text(
-                        text = "Request JSON",
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(bottom = 8.dp),
-                    )
-                    Text(
-                        text = viewState.variabilityMiningRequestJson,
-                        style = MaterialTheme.typography.bodySmall,
-                        fontFamily = FontFamily.Monospace,
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
+//                if (viewState.variabilityMiningRequestJson != null) {
+//                    Text(
+//                        text = "Request JSON",
+//                        style = MaterialTheme.typography.titleSmall,
+//                        modifier = Modifier.padding(bottom = 8.dp),
+//                    )
+//                    Text(
+//                        text = viewState.variabilityMiningRequestJson,
+//                        style = MaterialTheme.typography.bodySmall,
+//                        fontFamily = FontFamily.Monospace,
+//                    )
+//                    Spacer(modifier = Modifier.height(24.dp))
+//                }
                 if (viewState.variabilityMiningResponseJson != null) {
                     Text(
                         text = "Response JSON",
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier.padding(bottom = 8.dp),
                     )
-                    Text(
-                        text = viewState.variabilityMiningResponseJson,
-                        style = MaterialTheme.typography.bodySmall,
-                        fontFamily = FontFamily.Monospace,
-                    )
+                    SelectionContainer {
+                        Text(
+                            text = viewState.variabilityMiningResponseJson,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontFamily = FontFamily.Monospace,
+                        )
+                    }
                 }
             }
         }
