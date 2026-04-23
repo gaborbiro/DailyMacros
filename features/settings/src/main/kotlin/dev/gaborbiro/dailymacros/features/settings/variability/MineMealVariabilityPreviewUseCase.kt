@@ -36,10 +36,20 @@ class MineMealVariabilityPreviewUseCase(
             existing_profile = null,
             constraints = VariabilityConstraints(
                 max_archetypes = 50,
+                min_evidence_per_archetype = 2,
                 min_evidence_for_high_variability_slot = 2,
                 min_variants_per_slot = 2,
                 max_notes_chars_per_entry = MAX_NOTES_CHARS,
                 max_description_chars_per_entry = MAX_DESCRIPTION_CHARS,
+            ),
+            task_hints = listOf(
+                "Aim for several meal families when data supports them: e.g. salad bowls, yogurt/fruit/granola bowls, pizza, " +
+                    "continental-style breakfast plates, protein shakes—do not collapse unrelated meals into one archetype.",
+                "Yogurt bowl archetype: exclude overnight oats / soaked-oats-jar fixed recipes (often long repeated description) " +
+                    "from the same cluster as ad-hoc yogurt+fruit+granola bowls.",
+                "For composite breakfasts/lunches: use separate slots (bread_base, spread, cheese_or_creamy_dairy, " +
+                    "tofu_or_quark, charcuterie, egg_style, etc.). Each variant_label must describe ONLY that slot's choice, " +
+                    "not a full ingredient stack string.",
             ),
             meal_observations = records.map { it.toObservation() },
         )
@@ -104,11 +114,14 @@ private data class VariabilityMiningUserEnvelope(
     @SerializedName("merge_mode") val merge_mode: String,
     @SerializedName("existing_profile") val existing_profile: Any?,
     @SerializedName("constraints") val constraints: VariabilityConstraints,
+    @SerializedName("task_hints") val task_hints: List<String>,
     @SerializedName("meal_observations") val meal_observations: List<MealObservation>,
 )
 
 private data class VariabilityConstraints(
     @SerializedName("max_archetypes") val max_archetypes: Int,
+    /** Minimum distinct logged rows to emit an archetype (titles may cluster). */
+    @SerializedName("min_evidence_per_archetype") val min_evidence_per_archetype: Int,
     @SerializedName("min_evidence_for_high_variability_slot") val min_evidence_for_high_variability_slot: Int,
     /** Slots with fewer distinct variants than this must be omitted entirely. */
     @SerializedName("min_variants_per_slot") val min_variants_per_slot: Int,
