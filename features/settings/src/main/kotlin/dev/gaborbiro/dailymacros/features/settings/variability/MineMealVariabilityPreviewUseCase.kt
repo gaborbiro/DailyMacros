@@ -36,7 +36,9 @@ class MineMealVariabilityPreviewUseCase(
             existing_profile = null,
             constraints = VariabilityConstraints(
                 max_archetypes = 50,
-                min_evidence_for_high_variability_slot = 3,
+                min_evidence_per_archetype = 2,
+                min_evidence_for_high_variability_slot = 2,
+                min_variants_per_slot = 2,
                 max_notes_chars_per_entry = MAX_NOTES_CHARS,
                 max_description_chars_per_entry = MAX_DESCRIPTION_CHARS,
             ),
@@ -108,7 +110,11 @@ private data class VariabilityMiningUserEnvelope(
 
 private data class VariabilityConstraints(
     @SerializedName("max_archetypes") val max_archetypes: Int,
+    /** Minimum distinct logged rows to emit an archetype (titles may cluster). */
+    @SerializedName("min_evidence_per_archetype") val min_evidence_per_archetype: Int,
     @SerializedName("min_evidence_for_high_variability_slot") val min_evidence_for_high_variability_slot: Int,
+    /** Slots with fewer distinct variants than this must be omitted entirely. */
+    @SerializedName("min_variants_per_slot") val min_variants_per_slot: Int,
     @SerializedName("max_notes_chars_per_entry") val max_notes_chars_per_entry: Int,
     @SerializedName("max_description_chars_per_entry") val max_description_chars_per_entry: Int,
 )

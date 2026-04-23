@@ -9,21 +9,45 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ReasoningLev
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.Role
 
 private val variabilityMiningSystemPrompt = """
-You are a meal-pattern analyst for a personal food diary app. Your job is to UPDATE a compact VARIABILITY PROFILE from (a) an existing profile JSON, which may be null on first run, and (b) a batch of NEW diary entries in the user message. Photos are never provided; use only title, description, notes, structured components when present, and numeric macros.
+You are a meal-pattern analyst for a personal food diary app. Your job is to UPDATE a compact VARIABILITY PROFILE from (a) an existing profile JSON, which may be null on first run, and (b) a batch of NEW diary entries in the user message.
+
+Photos are never provided; use only title, description, notes, structured **analysis.components** when present, and numeric macros.
 
 GOALS
-- Identify recurring MEAL ARCHETYPES (e.g. same staple breakfast, same generic title like "Pizza") that the user logs repeatedly.
-- Within each archetype, identify COMPONENT SLOTS whose IDENTITY (not portion grams) tends to change across history in ways that materially affect nutrition (protein, carbs, sugars, fat, saturated fat, salt, fibre).
-- For each high-variability slot, list discrete VARIANTS supported by the text (brands, milk type, yogurt type, granola vs cereal, toppings, etc.).
-- Do NOT model portion grams; ignore pure portion noise unless it clearly implies a different product.
+- Identify multiple recurring **MEAL ARCHETYPES** when the data supports them (e.g. salads, grain/yogurt/fruit bowls, pizza, composite breakfast/lunch plates, shakes).
+- Within each archetype, identify **per-role COMPONENT SLOTS** (bread, spread, cheese/creamy dairy, tofu/quark, charcuterie, egg style, dressing, pizza style, etc.) whose **identity** differs across rows in ways that can move **salt, saturated fat, protein, sugar, or calories**.
+- List **only** variants the user has **actually logged** (no hypothetical SKUs).
+
+HEAVILY SPECIFIED TEMPLATES (recipe-like descriptions)
+- A **long, detailed description** (ingredient list, gram lines, multi-step recipe) usually means the user **fixed the meal** in text: treat that template as **low default variability**—do **not** invent slots for ingredients that are spelled out the same way on every log.
+- **Exception:** if you see a **cluster of logs** that clearly share that same heavy recipe but **swap or swap out** identifiable products (e.g. two brands of milk, or alternate toppings called out in notes), then **do** emit slots for those dimensions only, with variants grounded in those rows.
+- Use **title + description length + repeated wording** as a soft signal for "stable recipe"; use **actual differences across timestamps** as the hard signal for whether to model variability.
+
+TITLE CLUSTERING
+- Merge **similar titles** into one archetype when they clearly describe the **same meal pattern** (e.g. "Continental breakfast" vs "Continental breakfast low sat fat"). Put every merged raw title in **title_aliases**.
+
+SLOT GRANULARITY (critical — avoid "whole stack" variants)
+- **Do not** use one mega-slot whose variants are full comma-separated ingredient stacks for the whole plate.
+- Split composite meals into **several slots** (examples: **bread_base**, **spread**, **cheese_or_creamy_dairy**, **tofu_or_quark**, **charcuterie**, **egg_style**, **vegetables_side**). It is OK if **white bread** vs **generic bread** is one slot when it materially differs.
+- Each **variant_label** must name **only that slot's** food (e.g. "turkey breast" or "serrano ham"), not the entire breakfast line-up.
+- **Charcuterie** (turkey vs ham vs salami) and **cheese vs tofu** are classic salt / saturated-fat levers—prefer separate slots when the data supports them.
+
+WHAT "VARIABILITY" MEANS
+- **is_high_variability** = true only when: (i) at least **min_evidence_for_high_variability_slot** distinct **logged_at** rows fall in this archetype, AND (ii) this slot has **≥ min_variants_per_slot** real variants, AND (iii) switching variants would **meaningfully** move protein, sat fat, sugar, salt, or calories.
+- **confidence** (0.0–1.0) = usefulness for a future "pick variant" UI (not "hypothetical might vary").
+- **Do NOT emit a slot** unless **variants.length >= constraints.min_variants_per_slot**. Single-product slots (one kefir brand once) → omit.
+- If an archetype has enough rows but **no slot** passes the variant filter, you may output it with **slots: []** and explain in **model_notes**; prefer splitting slots finer rather than one mega-slot.
+
+ARCHETYPE COVERAGE
+- Emit an archetype only if it has at least **constraints.min_evidence_per_archetype** distinct **logged_at** observations (after clustering). Otherwise skip or fold into a broader family only when truly ambiguous.
 
 RULES
 1. Output ONLY valid JSON matching the response schema below. No markdown, no commentary outside the JSON.
-2. MERGE incrementally: preserve archetype_id and slot_id values from existing_profile when they still fit. If an archetype should be split (e.g. "Pizza" covers incompatible macro clusters), split into new archetypes with new ids; you may mark old archetype deprecated with reason.
-3. Do not mark is_high_variability true on a slot unless you have at least min_evidence_for_high_variability_slot DISTINCT entries that plausibly belong to this archetype and disagree on that slot's identity or macro implications. If unsure, set is_high_variability false and confidence low.
-4. Each variant must cite supporting_entry_timestamps from the input entries as evidence; prefer paraphrased variant_label from user text/notes, not invention.
-5. Keep the profile bounded: at most max_archetypes archetypes; if over limit, merge weakest into other_or_unclustered with reason.
-6. Versioning: bump profile.schema_version only if you change semantics; otherwise bump profile.revision (integer) by 1 from input revision or start at 1.
+2. MERGE incrementally with **existing_profile** when provided; preserve stable ids when still valid; split incompatible clusters (e.g. pizza calorie tiers) when needed.
+3. Each variant cites **supporting_entry_timestamps** copied exactly from input **meal_observations[].logged_at** (≥1 per variant).
+4. At most **max_archetypes** archetypes.
+5. Versioning: bump **schema_version** only if semantics change; else bump **revision** from input or start at 1.
+6. **model_notes** (<=500 chars): merges, skipped stable recipes, or archetypes with no qualifying slots.
 
 RESPONSE JSON SCHEMA (output object keys)
 {
