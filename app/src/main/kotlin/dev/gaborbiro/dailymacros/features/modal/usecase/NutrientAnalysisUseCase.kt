@@ -11,10 +11,13 @@ import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
 import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.chatgpt.BuildConfig
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.MealAnalysisComponent
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repositories.chatgpt.toDomainModel
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusRepository
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.ComponentConfidence
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
@@ -77,6 +80,7 @@ internal class NutrientAnalysisUseCase(
                     name = name,
                     nutrients = templateNutrients,
                     notes = nutrientsResponse.notes,
+                    mealComponents = templateNutrients?.let { nutrientsResponse.components.toMealComponents() },
                 )
                 val cachedTokensMessage = if (BuildConfig.DEBUG) "Cached tokens: ${nutrientsResponse.cachedTokens}" else null
                 nutrients
@@ -129,3 +133,16 @@ internal class NutrientAnalysisUseCase(
         }
     }
 }
+
+private fun List<MealAnalysisComponent>.toMealComponents(): List<MealComponent> =
+    map { component ->
+        MealComponent(
+            name = component.name,
+            estimatedAmount = component.estimatedAmount,
+            confidence = when (component.confidence.lowercase()) {
+                "medium" -> ComponentConfidence.MEDIUM
+                "low" -> ComponentConfidence.LOW
+                else -> ComponentConfidence.HIGH
+            },
+        )
+    }
