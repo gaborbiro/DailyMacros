@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.repositories.chatgpt.prompts
 
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.MealAnalysisComponent
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientApiModel
@@ -174,7 +175,16 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(): NutrientAnalysisResul
         )
     }
 
-    val componentStr = response.components?.joinToString("\n") { component ->
+    val structuredComponents = response.components.orEmpty().mapNotNull { component ->
+        val name = component.name?.trim().orEmpty()
+        if (name.isEmpty()) return@mapNotNull null
+        MealAnalysisComponent(
+            name = name,
+            estimatedAmount = component.estimatedAmount?.trim().orEmpty(),
+            confidence = component.confidence?.trim().orEmpty().ifEmpty { "high" },
+        )
+    }
+    val componentStr = structuredComponents.joinToString("\n") { component ->
         val confidence = when (component.confidence) {
             "medium" -> "?"
             "low" -> "??"
@@ -191,6 +201,7 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(): NutrientAnalysisResul
         nutrients = nutrients,
         title = response.title,
         notes = notesItems.joinToString("\n").takeIf { it.isNotBlank() },
+        components = structuredComponents,
         cachedTokens = cachedTokens,
         error = response.error,
     )

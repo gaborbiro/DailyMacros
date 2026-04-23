@@ -28,7 +28,7 @@ import java.time.ZoneId
         RequestStatusEntity::class,
         QuickPickOverrideEntity::class,
     ],
-    version = 8,
+    version = 9,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -63,8 +63,9 @@ abstract class AppDatabase : RoomDatabase() {
                 .addMigrations(MIGRATION_3_4)
                 .addMigrations(MIGRATION_4_5)
                 .addMigrations(MIGRATION_5_6)
-                .addMigrations(MIGRATION_6_7)
-                .build()
+            .addMigrations(MIGRATION_6_7)
+            .addMigrations(MIGRATION_8_9)
+            .build()
         }
     }
 }
@@ -134,6 +135,14 @@ val MIGRATION_6_7 = object : Migration(6, 7) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL(
             "ALTER TABLE QuickPickOverride ADD COLUMN sortOrder INTEGER DEFAULT NULL"
+        )
+    }
+}
+
+val MIGRATION_8_9 = object : Migration(8, 9) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "ALTER TABLE macros ADD COLUMN analysisComponentsJson TEXT DEFAULT NULL"
         )
     }
 }

@@ -13,4 +13,5 @@ dependencies {
     implementation(project(":data:image"))
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.network.gson)
 }

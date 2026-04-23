@@ -8,6 +8,8 @@ data class Template(
     val isPending: Boolean,
     val nutrients: TemplateNutrientBreakdown,
     val notes: String,
+    /** Parsed from persisted AI analysis; empty if none or legacy data. */
+    val mealComponents: List<MealComponent>,
     val topContributors: TopContributors,
     val quickPickOverride: QuickPickOverride?,
 ) {

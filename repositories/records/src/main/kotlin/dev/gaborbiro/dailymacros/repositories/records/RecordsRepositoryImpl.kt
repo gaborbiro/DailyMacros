@@ -12,6 +12,7 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TopContributorsEntity
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
@@ -132,6 +133,7 @@ class RecordsRepositoryImpl(
         images: List<String>?, /* = null */
         nutrients: Pair<TemplateNutrientBreakdown, TopContributors>?, /* = null */
         notes: String?, /* = null */
+        mealComponents: List<MealComponent>?,
     ) {
         val oldTemplate = templatesDAO.getTemplateById(templateId)
 
@@ -141,6 +143,10 @@ class RecordsRepositoryImpl(
                 description = description ?: oldTemplate.entity.description,
             ).apply { id = templateId }
         )
+
+        if (name == null && description == null && images == null && nutrients == null && notes == null && mealComponents == null) {
+            return
+        }
 
         images?.let {
             templatesDAO.deleteAllImagesForTemplate(templateId)
@@ -155,13 +161,16 @@ class RecordsRepositoryImpl(
             }
         }
 
-        if (nutrients == null) {
-            templatesDAO.deleteMacrosForTemplate(templateId)
-        } else {
+        if (nutrients != null) {
             val (nutrients, topContributors) = nutrients
+            val componentsJson = when {
+                mealComponents != null -> encodeMealComponentsJson(mealComponents)
+                else -> oldTemplate.macros?.analysisComponentsJson
+            }
             val macrosEntity: MacrosEntity = mapper.map(
                 nutrientBreakdown = nutrients,
                 notes = notes ?: oldTemplate.macros?.notes,
+                analysisComponentsJson = componentsJson,
                 id = oldTemplate.macros?.id,
                 templateId = templateId,
             )

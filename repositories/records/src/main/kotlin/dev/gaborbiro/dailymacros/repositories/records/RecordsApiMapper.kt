@@ -30,6 +30,7 @@ class RecordsApiMapper {
             description = template.entity.description,
             nutrients = template.macros?.let(::map) ?: TemplateNutrientBreakdown(),
             notes = template.macros?.notes ?: "",
+            mealComponents = decodeMealComponentsJson(template.macros?.analysisComponentsJson),
             topContributors = template.topContributors?.let(::map) ?: TopContributors(),
             isPending = template.requestStatus?.status == RequestStatusEntity.Status.PENDING,
             quickPickOverride = map(template.quickPickOverride),
@@ -45,6 +46,8 @@ class RecordsApiMapper {
     }
 
     // -------- Domain <— DB: Macros --------
+
+    fun mapToTemplateNutrients(macros: MacrosEntity): TemplateNutrientBreakdown = map(macros)
 
     private fun map(template: MacrosEntity): TemplateNutrientBreakdown {
         return TemplateNutrientBreakdown(
@@ -111,6 +114,7 @@ class RecordsApiMapper {
     fun map(
         nutrientBreakdown: TemplateNutrientBreakdown,
         notes: String?,
+        analysisComponentsJson: String?,
         id: Long?,
         templateId: Long
     ): MacrosEntity {
@@ -126,6 +130,7 @@ class RecordsApiMapper {
             salt = nutrientBreakdown.salt,
             fibre = nutrientBreakdown.fibre,
             notes = notes,
+            analysisComponentsJson = analysisComponentsJson,
         ).also {
             it.id = id
         }

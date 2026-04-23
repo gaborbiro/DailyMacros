@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.repositories.records.domain
 
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
@@ -54,6 +55,8 @@ interface RecordsRepository {
         images: List<String>? = null,
         nutrients: Pair<TemplateNutrientBreakdown, TopContributors>? = null,
         notes: String? = null,
+        /** When non-null and [nutrients] is non-null, replaces stored analysis components. When null, preserves existing JSON. */
+        mealComponents: List<MealComponent>? = null,
     )
 
     suspend fun addQuickPickOverride(templateId: Long, type: Template.QuickPickOverride)
