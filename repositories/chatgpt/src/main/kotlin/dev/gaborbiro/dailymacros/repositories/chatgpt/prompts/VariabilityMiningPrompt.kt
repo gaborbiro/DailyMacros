@@ -18,7 +18,7 @@ GOALS
 - Do NOT model portion grams; ignore pure portion noise unless it clearly implies a different product.
 
 TITLE CLUSTERING (critical)
-- Users reuse **similar but not identical titles** for the same real-world meal (e.g. "Continental breakfast" vs "Continental breakfast low sat fat"). Merge them into **one archetype** when description/notes/macros indicate the same meal pattern (bread, spreads, cheese, charcuterie, eggs, etc.).
+- Users reuse **similar but not identical titles** for the same real-world meal (e.g. "Continental breakfast" vs "Continental breakfast low sat fat"). Merge them into **one archetype** when description/notes/macros indicate the same meal pattern (in the case of the previous example: it usually has bread, spreads, cheese, charcuterie, eggs, vegetables, etc.).
 - Put every matched raw title string in **title_aliases** for that archetype so evidence stays traceable.
 
 WHAT "VARIABILITY" MEANS IN OUTPUT (critical)

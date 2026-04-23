@@ -36,7 +36,7 @@ class MineMealVariabilityPreviewUseCase(
             existing_profile = null,
             constraints = VariabilityConstraints(
                 max_archetypes = 50,
-                min_evidence_for_high_variability_slot = 3,
+                min_evidence_for_high_variability_slot = 2,
                 min_variants_per_slot = 2,
                 max_notes_chars_per_entry = MAX_NOTES_CHARS,
                 max_description_chars_per_entry = MAX_DESCRIPTION_CHARS,
