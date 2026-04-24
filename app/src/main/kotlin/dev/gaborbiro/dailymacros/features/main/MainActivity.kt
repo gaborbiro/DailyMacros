@@ -43,6 +43,7 @@ import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewUiMapper
 import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
 import dev.gaborbiro.dailymacros.features.settings.SettingsAppInfo
+import dev.gaborbiro.dailymacros.features.settings.SettingsPrefs
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
 import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCaseImpl
@@ -80,7 +81,7 @@ import kotlin.time.Duration.Companion.seconds
 class MainActivity : ComponentActivity() {
 
     companion object {
-        private val CHATGPT_REQUEST_TIMEOUT = 180.seconds
+        private val CHATGPT_REQUEST_TIMEOUT = 360.seconds
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -105,6 +106,7 @@ class MainActivity : ComponentActivity() {
 
         val settingsRepository = SettingsRepositoryImpl(this@MainActivity, SettingsMapper())
         val appPrefs = AppPrefs(this@MainActivity)
+        val settingsPrefs = SettingsPrefs(this@MainActivity)
         val overviewPrefs = OverviewPrefs(this@MainActivity)
         analyticsLogger.setUserId(appPrefs.userUUID)
         lifecycleScope.launch {
@@ -185,6 +187,7 @@ class MainActivity : ComponentActivity() {
                 val settingsViewModel = viewModelFactory {
                     SettingsViewModel(
                         appInfo = settingsAppInfo,
+                        settingsPrefs = settingsPrefs,
                         exportFoodDiaryUseCase = exportFoodDiaryUseCase,
                         mineMealVariabilityPreviewUseCase = mineMealVariabilityPreviewUseCase,
                     )

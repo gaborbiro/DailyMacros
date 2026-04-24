@@ -21,6 +21,8 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,9 +35,11 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -122,34 +126,58 @@ internal fun SettingsView(
                     .verticalScrollWithBar()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
             ) {
-//                if (viewState.variabilityMiningRequestJson != null) {
-//                    Text(
-//                        text = "Request JSON",
-//                        style = MaterialTheme.typography.titleSmall,
-//                        modifier = Modifier.padding(bottom = 8.dp),
-//                    )
-//                    Text(
-//                        text = viewState.variabilityMiningRequestJson,
-//                        style = MaterialTheme.typography.bodySmall,
-//                        fontFamily = FontFamily.Monospace,
-//                    )
-//                    Spacer(modifier = Modifier.height(24.dp))
-//                }
-                if (viewState.variabilityMiningResponseJson != null) {
-                    Text(
-                        text = "Response JSON",
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(bottom = 8.dp),
+                if (
+                    viewState.variabilityMiningRequestJson != null ||
+                    viewState.variabilityMiningResponseJson != null
+                ) {
+                    val hasRequestJson = viewState.variabilityMiningRequestJson != null
+                    val hasResponseJson = viewState.variabilityMiningResponseJson != null
+
+                    CollapsibleJsonRow(
+                        title = "Request JSON",
+                        json = viewState.variabilityMiningRequestJson,
                     )
-                    SelectionContainer {
-                        Text(
-                            text = viewState.variabilityMiningResponseJson,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontFamily = FontFamily.Monospace,
-                        )
+                    if (hasRequestJson && hasResponseJson) {
+                        Spacer(modifier = Modifier.height(12.dp))
                     }
+                    CollapsibleJsonRow(
+                        title = "Response JSON",
+                        json = viewState.variabilityMiningResponseJson,
+                    )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun CollapsibleJsonRow(
+    title: String,
+    json: String?,
+) {
+    if (json == null) return
+
+    var expanded by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { expanded = !expanded }
+            .padding(vertical = 8.dp),
+    ) {
+        Text(
+            modifier = Modifier.weight(1f),
+            text = title,
+            style = MaterialTheme.typography.titleSmall,
+        )
+        Icon(
+            imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+            contentDescription = if (expanded) "Collapse $title" else "Expand $title",
+        )
+    }
+    if (expanded) {
+        if (json.isNotBlank()) {
+            InteractiveJsonViewer(json = json)
         }
     }
 }

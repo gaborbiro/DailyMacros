@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 
 class SettingsViewModel(
     private val appInfo: SettingsAppInfo,
+    private val settingsPrefs: SettingsPrefs,
     private val exportFoodDiaryUseCase: ExportFoodDiaryUseCase,
     private val mineMealVariabilityPreviewUseCase: MineMealVariabilityPreviewUseCase,
 ) : ViewModel() {
@@ -25,6 +26,8 @@ class SettingsViewModel(
         SettingsUiState(
             showTargetsSettings = false,
             bottomLabel = appInfo.versionLabel,
+            variabilityMiningRequestJson = settingsPrefs.variabilityMiningRequestJson,
+            variabilityMiningResponseJson = settingsPrefs.variabilityMiningResponseJson,
         )
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
@@ -33,14 +36,13 @@ class SettingsViewModel(
     val uiUpdates: SharedFlow<SettingsUiUpdates> = _uiUpdates.asSharedFlow()
 
     fun onBackNavigateRequested() {
-        _uiState.value = SettingsUiState(
-            showTargetsSettings = false,
-            bottomLabel = appInfo.versionLabel,
-            variabilityMiningLoading = false,
-            variabilityMiningError = null,
-            variabilityMiningRequestJson = null,
-            variabilityMiningResponseJson = null,
-        )
+        _uiState.update {
+            it.copy(
+                showTargetsSettings = false,
+                variabilityMiningLoading = false,
+                variabilityMiningError = null,
+            )
+        }
         viewModelScope.launch {
             _uiUpdates.emit(SettingsUiUpdates.NavigateBack)
         }
@@ -70,12 +72,12 @@ class SettingsViewModel(
                 it.copy(
                     variabilityMiningLoading = true,
                     variabilityMiningError = null,
-                    variabilityMiningRequestJson = null,
-                    variabilityMiningResponseJson = null,
                 )
             }
             runCatching { mineMealVariabilityPreviewUseCase.execute() }
                 .onSuccess { preview ->
+                    settingsPrefs.variabilityMiningRequestJson = preview.requestJsonPretty
+                    settingsPrefs.variabilityMiningResponseJson = preview.responseJsonPretty
                     _uiState.update {
                         it.copy(
                             variabilityMiningLoading = false,
