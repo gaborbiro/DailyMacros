@@ -18,6 +18,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
@@ -26,8 +27,9 @@ import com.google.gson.JsonParser
 
 @Composable
 internal fun InteractiveJsonViewer(
-    json: String,
     modifier: Modifier = Modifier,
+    json: String,
+    startExpanded: Boolean = false,
 ) {
     if (json.isBlank()) return
 
@@ -39,8 +41,8 @@ internal fun InteractiveJsonViewer(
     }
     val expandedState = remember(root) { mutableStateMapOf<String, Boolean>() }
 
-    LaunchedEffect(root) {
-        containerPaths.forEach { path -> expandedState[path] = false }
+    LaunchedEffect(root, startExpanded) {
+        containerPaths.forEach { path -> expandedState[path] = startExpanded }
     }
 
     fun setAllExpanded(expanded: Boolean) {
@@ -297,4 +299,12 @@ private fun formatJsonValue(element: JsonElement): String {
         primitive.isString -> "\"${primitive.asString}\""
         else -> primitive.toString()
     }
+}
+
+@Preview
+@Composable
+private fun InteractiveJsonViewerPreview() {
+    InteractiveJsonViewer(
+        json = "{\"list\": [] }",
+    )
 }

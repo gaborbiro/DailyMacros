@@ -76,12 +76,13 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.net.CookieManager
 import java.util.concurrent.TimeUnit.SECONDS
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 class MainActivity : ComponentActivity() {
 
     companion object {
-        private val CHATGPT_REQUEST_TIMEOUT = 360.seconds
+        private val CHATGPT_REQUEST_TIMEOUT = 10.minutes
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
