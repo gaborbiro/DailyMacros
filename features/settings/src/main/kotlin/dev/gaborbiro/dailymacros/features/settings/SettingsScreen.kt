@@ -1,8 +1,10 @@
 package dev.gaborbiro.dailymacros.features.settings
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
@@ -16,22 +18,27 @@ fun SettingsScreen(
     targetsSettingsViewModel: TargetsSettingsViewModel,
     navController: NavHostController,
 ) {
+    val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+
     LaunchedEffect(settingsViewModel) {
         settingsViewModel.uiUpdates.collect { event ->
             when (event) {
                 SettingsUiUpdates.NavigateBack -> navController.popBackStack()
+                is SettingsUiUpdates.ShowSnackbar -> snackbarHostState.showSnackbar(event.message)
             }
         }
     }
 
-    val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
-
     SettingsView(
         viewState = settingsUiState,
+        snackbarHostState = snackbarHostState,
         onBackNavigateRequested = settingsViewModel::onBackNavigateRequested,
         onTargetsSettingTapped = settingsViewModel::onTargetsSettingsTapped,
         onExportSettingTapped = settingsViewModel::onExportSettingsTapped,
         onVariabilityMiningPreviewTapped = settingsViewModel::onVariabilityMiningPreviewTapped,
+        onCopyVariabilityRequestJson = settingsViewModel::onCopyVariabilityRequestJson,
+        onCopyVariabilityResponseJson = settingsViewModel::onCopyVariabilityResponseJson,
     )
 
     if (settingsUiState.showTargetsSettings) {

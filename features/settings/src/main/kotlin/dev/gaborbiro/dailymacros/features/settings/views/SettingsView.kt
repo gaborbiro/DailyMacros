@@ -50,12 +50,14 @@ import dev.gaborbiro.dailymacros.features.settings.util.verticalScrollWithBar
 @Composable
 internal fun SettingsView(
     viewState: SettingsUiState,
+    snackbarHostState: SnackbarHostState,
     onBackNavigateRequested: () -> Unit,
     onTargetsSettingTapped: () -> Unit,
     onExportSettingTapped: () -> Unit,
     onVariabilityMiningPreviewTapped: () -> Unit,
+    onCopyVariabilityRequestJson: () -> Unit,
+    onCopyVariabilityResponseJson: () -> Unit,
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
@@ -136,6 +138,7 @@ internal fun SettingsView(
                     CollapsibleJsonRow(
                         title = "Request JSON",
                         json = viewState.variabilityMiningRequestJson,
+                        onCopyAll = onCopyVariabilityRequestJson,
                     )
                     if (hasRequestJson && hasResponseJson) {
                         Spacer(modifier = Modifier.height(12.dp))
@@ -143,6 +146,7 @@ internal fun SettingsView(
                     CollapsibleJsonRow(
                         title = "Response JSON",
                         json = viewState.variabilityMiningResponseJson,
+                        onCopyAll = onCopyVariabilityResponseJson,
                     )
                 }
             }
@@ -154,6 +158,7 @@ internal fun SettingsView(
 private fun CollapsibleJsonRow(
     title: String,
     json: String?,
+    onCopyAll: () -> Unit,
 ) {
     if (json == null) return
 
@@ -177,7 +182,10 @@ private fun CollapsibleJsonRow(
     }
     if (expanded) {
         if (json.isNotBlank()) {
-            InteractiveJsonViewer(json = json)
+            InteractiveJsonViewer(
+                json = json,
+                onCopyAll = onCopyAll,
+            )
         }
     }
 }
@@ -212,10 +220,13 @@ private fun SettingsViewPreview() {
                 showTargetsSettings = true,
                 bottomLabel = "Bottom Label",
             ),
+            snackbarHostState = remember { SnackbarHostState() },
             onBackNavigateRequested = {},
             onTargetsSettingTapped = {},
             onExportSettingTapped = {},
             onVariabilityMiningPreviewTapped = {},
+            onCopyVariabilityRequestJson = {},
+            onCopyVariabilityResponseJson = {},
         )
     }
 }

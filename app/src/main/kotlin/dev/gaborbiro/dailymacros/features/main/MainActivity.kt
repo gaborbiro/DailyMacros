@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.main
 
 import android.Manifest
+import android.app.Application
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -187,6 +188,7 @@ class MainActivity : ComponentActivity() {
                 }
                 val settingsViewModel = viewModelFactory {
                     SettingsViewModel(
+                        application = applicationContext as Application,
                         appInfo = settingsAppInfo,
                         settingsPrefs = settingsPrefs,
                         exportFoodDiaryUseCase = exportFoodDiaryUseCase,

@@ -29,6 +29,7 @@ import com.google.gson.JsonParser
 internal fun InteractiveJsonViewer(
     modifier: Modifier = Modifier,
     json: String,
+    onCopyAll: () -> Unit,
     startExpanded: Boolean = false,
 ) {
     if (json.isBlank()) return
@@ -51,6 +52,7 @@ internal fun InteractiveJsonViewer(
 
     JsonViewerHeader(
         modifier = modifier.fillMaxWidth(),
+        onCopyAll = onCopyAll,
         onCollapseAll = { setAllExpanded(false) },
         onExpandAll = { setAllExpanded(true) },
     )
@@ -69,6 +71,7 @@ internal fun InteractiveJsonViewer(
 @Composable
 private fun JsonViewerHeader(
     modifier: Modifier = Modifier,
+    onCopyAll: () -> Unit,
     onCollapseAll: () -> Unit,
     onExpandAll: () -> Unit,
 ) {
@@ -76,6 +79,12 @@ private fun JsonViewerHeader(
         modifier = modifier,
         horizontalArrangement = Arrangement.End,
     ) {
+        TextButton(
+            onClick = onCopyAll,
+            contentPadding = ButtonDefaults.TextButtonWithIconContentPadding,
+        ) {
+            Text("Copy all")
+        }
         TextButton(
             onClick = onCollapseAll,
             contentPadding = ButtonDefaults.TextButtonWithIconContentPadding,
@@ -306,5 +315,6 @@ private fun formatJsonValue(element: JsonElement): String {
 private fun InteractiveJsonViewerPreview() {
     InteractiveJsonViewer(
         json = "{\"list\": [] }",
+        onCopyAll = {},
     )
 }
