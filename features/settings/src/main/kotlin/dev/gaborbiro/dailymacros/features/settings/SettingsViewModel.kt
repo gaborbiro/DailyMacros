@@ -1,5 +1,9 @@
 package dev.gaborbiro.dailymacros.features.settings
 
+import android.app.Application
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
@@ -16,6 +20,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class SettingsViewModel(
+    private val application: Application,
     private val appInfo: SettingsAppInfo,
     private val settingsPrefs: SettingsPrefs,
     private val exportFoodDiaryUseCase: ExportFoodDiaryUseCase,
@@ -95,5 +100,26 @@ class SettingsViewModel(
                     }
                 }
         }
+    }
+
+    fun onCopyVariabilityRequestJson() {
+        val text = _uiState.value.variabilityMiningRequestJson ?: return
+        copyJsonToClipboard(text)
+        viewModelScope.launch {
+            _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Request JSON copied"))
+        }
+    }
+
+    fun onCopyVariabilityResponseJson() {
+        val text = _uiState.value.variabilityMiningResponseJson ?: return
+        copyJsonToClipboard(text)
+        viewModelScope.launch {
+            _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Response JSON copied"))
+        }
+    }
+
+    private fun copyJsonToClipboard(text: String) {
+        val clipboard = application.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(ClipData.newPlainText("application/json", text))
     }
 }
