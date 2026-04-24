@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.settings.views
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -58,13 +59,15 @@ internal fun InteractiveJsonViewer(
     )
     Spacer(modifier = Modifier.height(8.dp))
     SelectionContainer {
-        JsonNode(
-            element = root,
-            key = null,
-            path = "root",
-            indent = 0,
-            expandedState = expandedState,
-        )
+        Column {
+            JsonNode(
+                element = root,
+                key = null,
+                path = "root",
+                indent = 0,
+                expandedState = expandedState,
+            )
+        }
     }
 }
 
