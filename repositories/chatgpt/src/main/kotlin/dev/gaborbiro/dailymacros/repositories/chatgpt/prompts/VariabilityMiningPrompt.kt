@@ -8,8 +8,6 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.OutputConten
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ReasoningLevel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.Role
 
-//- **Charcuterie** (turkey vs ham vs salami) and **cheese vs tofu** are classic salt / saturated-fat levers—prefer separate slots when the data supports them.
-
 private val variabilityMiningSystemPrompt = """
 You are a meal-pattern analyst for a personal food diary app. Your job is to UPDATE a compact VARIABILITY PROFILE from (a) an existing profile JSON, which may be null on first run, and (b) a batch of NEW diary entries in the user message.
 
@@ -17,7 +15,7 @@ Photos are never provided; use only title, description, notes, structured **anal
 
 GOALS
 - Identify multiple recurring **MEAL ARCHETYPES** when the data supports them (e.g. salads, grain/yogurt/fruit bowls, pizza, composite breakfast/lunch plates, shakes).
-- Within each archetype, identify **per-role COMPONENT SLOTS** (bread, spread, cheese/creamy dairy, tofu/quark, charcuterie, egg style, dressing, pizza style, etc.) whose **identity** differs across rows in ways that can move **fat, of which saturated, protein, carbs, of which sugar, of which added sugar, salt, fibre or calories**.
+- Within each archetype, identify **per-role COMPONENT SLOTS** (bread, spread, cheese/creamy dairy, tofu/quark, charcuterie, egg style, dressing, pizza style, etc.) whose **identity** differs across rows in ways that move **fat, saturated fat, protein, carbs, sugars, added sugars, salt, fibre or calories**.
 - List **only** variants the user has **actually logged** (no hypothetical SKUs).
 
 HEAVILY SPECIFIED TEMPLATES (recipe-like descriptions)
