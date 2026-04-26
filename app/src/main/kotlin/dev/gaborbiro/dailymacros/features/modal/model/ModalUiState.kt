@@ -12,6 +12,7 @@ sealed class DialogHandle {
         val recordId: Long,
         val count: Int,
         val images: List<String>,
+        val coverPhotoByImageIndex: List<Boolean>,
         val title: String,
         val description: String,
     ) : DialogHandle()
@@ -36,6 +37,7 @@ sealed class DialogHandle {
             override val titleValidationError: String? = null,
             override val description: TextFieldValue,
             override val images: List<String>,
+            val coverPhotoByImageIndex: List<Boolean> = emptyList(),
             val showProgressIndicator: Boolean = false,
             val showRunAIButton: Boolean = false,
             val recognisedFood: RecognisedFood?,
@@ -52,6 +54,13 @@ sealed class DialogHandle {
             override fun withTitle(title: TextFieldValue) = copy(title = title)
             override fun withDescription(description: TextFieldValue) =
                 copy(description = description)
+
+            fun withAlignedCoverFlags(): Edit {
+                val n = images.size
+                val aligned = coverPhotoByImageIndex.take(n) +
+                    List((n - coverPhotoByImageIndex.size).coerceAtLeast(0)) { false }
+                return copy(coverPhotoByImageIndex = aligned)
+            }
         }
 
         data class View(
@@ -63,6 +72,7 @@ sealed class DialogHandle {
             override val title: TextFieldValue,
             override val description: TextFieldValue,
             override val images: List<String>,
+            val coverPhotoByImageIndex: List<Boolean> = emptyList(),
         ) : RecordDetailsDialog(
             titleHint = titleHint,
             titleValidationError = titleValidationError,
@@ -76,6 +86,13 @@ sealed class DialogHandle {
             override fun withTitle(title: TextFieldValue) = copy(title = title)
             override fun withDescription(description: TextFieldValue) =
                 copy(description = description)
+
+            fun withAlignedCoverFlags(): View {
+                val n = images.size
+                val aligned = coverPhotoByImageIndex.take(n) +
+                    List((n - coverPhotoByImageIndex.size).coerceAtLeast(0)) { false }
+                return copy(coverPhotoByImageIndex = aligned)
+            }
         }
 
         abstract fun withTitleValidationError(titleValidationError: String?): RecordDetailsDialog
@@ -95,6 +112,7 @@ sealed class DialogHandle {
 data class RecognisedFood(
     val title: String?,
     val description: String?,
+    val coverPhotoByImageIndex: List<Boolean> = emptyList(),
 )
 
 sealed class ImageInputType {
