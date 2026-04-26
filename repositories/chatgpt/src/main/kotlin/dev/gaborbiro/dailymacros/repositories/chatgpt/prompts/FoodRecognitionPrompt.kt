@@ -46,8 +46,10 @@ Output format:
     }
   ],
   "title": "",
-  "description": ""
+  "description": "",
+  "cover_photo": [ true, false ]
 }
+The "cover_photo" array MUST have the same length and order as the user-submitted meal photos (index 0 = first photo, etc.). Each entry is true if that photo clearly shows the prepared dish or at least some food that belongs to that dish; false for nutrition labels only, packaging-only shots, unrelated scenes, receipts, people, empty plates, or when it is unclear.
 If food cannot be determined:
 {
   "error": "<one short sentence explaining clearly why food cannot be determined>"
@@ -59,7 +61,7 @@ If food cannot be determined:
     )
 )
 
-internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionResult {
+internal fun ChatGPTResponse.toFoodRecognitionResponse(imageCount: Int): FoodRecognitionResult {
     val gson = GsonBuilder().create()
 
     val resultJson: String? = this.output
@@ -81,7 +83,8 @@ internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionResult 
     class FoodDescription(
         @SerializedName("title") val title: String?,
         @SerializedName("description") val description: String?,
-        @SerializedName("components") val components: List<Component>,
+        @SerializedName("components") val components: List<Component>?,
+        @SerializedName("cover_photo") val coverPhoto: List<Boolean>?,
         @SerializedName("error") val error: String?,
     )
 
@@ -91,7 +94,8 @@ internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionResult 
             if (foodDescription.error != null) {
                 throw ChatGPTApiError.GenericApiError(foodDescription.error)
             }
-            val componentStr = foodDescription.components.joinToString("\n") { component ->
+            val components = foodDescription.components.orEmpty()
+            val componentStr = components.joinToString("\n") { component ->
                 val confidence = when (component.confidence) {
                     "medium" -> "?"
                     "low" -> "??"
@@ -107,12 +111,23 @@ internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionResult 
             FoodRecognitionResult(
                 title = foodDescription.title.takeIf { it.isNullOrBlank().not() },
                 description = descriptionItems.joinToString("\nComponents:\n").takeIf { it.isNotBlank() },
+                coverPhotoByImageIndex = normalizeCoverPhotoFlags(
+                    imageCount = imageCount,
+                    fromModel = foodDescription.coverPhoto,
+                ),
                 cachedTokens = cachedTokens,
             )
         }
         ?: FoodRecognitionResult(
             title = null,
             description = null,
+            coverPhotoByImageIndex = List(imageCount) { false },
             cachedTokens = cachedTokens,
         )
+}
+
+private fun normalizeCoverPhotoFlags(imageCount: Int, fromModel: List<Boolean>?): List<Boolean> {
+    if (imageCount <= 0) return emptyList()
+    val raw = fromModel.orEmpty()
+    return List(imageCount) { index -> raw.getOrNull(index) ?: false }
 }

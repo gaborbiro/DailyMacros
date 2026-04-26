@@ -101,6 +101,7 @@ internal class ModalViewModel(
                 titleHint = "Give your meal a title (or let AI figure it out from photo)",
                 description = TextFieldValue(),
                 images = emptyList(),
+                coverPhotoByImageIndex = emptyList(),
                 recognisedFood = null,
                 showProgressIndicator = false,
             )
@@ -147,6 +148,7 @@ internal class ModalViewModel(
                         title = TextFieldValue(record.template.name),
                         description = TextFieldValue(record.template.description),
                         images = record.template.images,
+                        coverPhotoByImageIndex = record.template.coverPhotoByImageIndex,
                         nutrientBreakdown = uiMapper.mapNutrientBreakdowns(record),
                         allowEdit = edit,
                         titleHint = "Give your meal a title",
@@ -185,9 +187,12 @@ internal class ModalViewModel(
             when (val root = _uiState.value.rootDialog) {
                 is DialogHandle.RecordDetailsDialog.Edit -> {
                     val updatedImages = root.images + persistedFilenames
+                    val extendedCover = root.coverPhotoByImageIndex +
+                        List(persistedFilenames.size) { false }
                     setRoot(
                         root.copy(
                             images = updatedImages,
+                            coverPhotoByImageIndex = extendedCover,
                             recognisedFood = null,
                         )
                     )
@@ -197,7 +202,14 @@ internal class ModalViewModel(
                 }
 
                 is DialogHandle.RecordDetailsDialog.View -> {
-                    setRoot(root.copy(images = root.images + persistedFilenames))
+                    val extendedCover = root.coverPhotoByImageIndex +
+                        List(persistedFilenames.size) { false }
+                    setRoot(
+                        root.copy(
+                            images = root.images + persistedFilenames,
+                            coverPhotoByImageIndex = extendedCover,
+                        )
+                    )
                 }
 
                 else -> {
@@ -207,6 +219,7 @@ internal class ModalViewModel(
                             titleHint = "Give your meal a title (or wait a bit for the AI to figure it out)",
                             description = TextFieldValue(),
                             images = persistedFilenames,
+                            coverPhotoByImageIndex = List(persistedFilenames.size) { false },
                             recognisedFood = null,
                         )
                     )
@@ -229,6 +242,7 @@ internal class ModalViewModel(
                     titleHint = "Give yur meal a title (or wait a bit for the AI to figure it out)",
                     description = TextFieldValue(),
                     images = persistedFilenames,
+                    coverPhotoByImageIndex = List(persistedFilenames.size) { false },
                     recognisedFood = null,
                 )
             )
@@ -252,9 +266,13 @@ internal class ModalViewModel(
                                 TextFieldValue(it, selection = TextRange(it.length))
                             }
                         ?: TextFieldValue()
+                    val newCover = List(currentUiState.images.size) { i ->
+                        recognisedFood.coverPhotoByImageIndex.getOrNull(i) ?: false
+                    }
                     currentUiState.copy(
                         recognisedFood = recognisedFood,
                         title = title,
+                        coverPhotoByImageIndex = newCover,
                     )
                 }
             } catch (e: CancellationException) {
@@ -392,8 +410,26 @@ internal class ModalViewModel(
     fun onImageDeleteTapped(image: String) {
         updateRoot<DialogHandle.RecordDetailsDialog> {
             when (it) {
-                is DialogHandle.RecordDetailsDialog.View -> it.copy(images = it.images - image)
-                is DialogHandle.RecordDetailsDialog.Edit -> it.copy(images = it.images - image)
+                is DialogHandle.RecordDetailsDialog.View -> {
+                    val idx = it.images.indexOf(image)
+                    val newImages = it.images - image
+                    val newCover = if (idx >= 0) {
+                        it.coverPhotoByImageIndex.filterIndexed { i, _ -> i != idx }
+                    } else {
+                        it.coverPhotoByImageIndex.take(newImages.size)
+                    }
+                    it.copy(images = newImages, coverPhotoByImageIndex = newCover)
+                }
+                is DialogHandle.RecordDetailsDialog.Edit -> {
+                    val idx = it.images.indexOf(image)
+                    val newImages = it.images - image
+                    val newCover = if (idx >= 0) {
+                        it.coverPhotoByImageIndex.filterIndexed { i, _ -> i != idx }
+                    } else {
+                        it.coverPhotoByImageIndex.take(newImages.size)
+                    }
+                    it.copy(images = newImages, coverPhotoByImageIndex = newCover)
+                }
             }
         }
     }
@@ -446,7 +482,7 @@ internal class ModalViewModel(
     }
 
     private suspend fun handleCreateRecordDetailsSubmitted(
-        dialogHandle: DialogHandle.RecordDetailsDialog,
+        dialogHandle: DialogHandle.RecordDetailsDialog.Edit,
     ) {
         val title = dialogHandle.title.text.trim()
         val description = dialogHandle.description.text.trim()
@@ -469,6 +505,7 @@ internal class ModalViewModel(
                     images = images,
                     title = title,
                     description = description,
+                    coverPhotoByImageIndex = dialogHandle.withAlignedCoverFlags().coverPhotoByImageIndex,
                 )
                 DiaryWidgetScreen.reload()
                 GetMacrosWorker.setWorkRequest(
@@ -485,6 +522,7 @@ internal class ModalViewModel(
     ) {
         val title = dialogHandle.title.text.trim()
         val description = dialogHandle.description.text.trim()
+        val coverFlags = dialogHandle.withAlignedCoverFlags().coverPhotoByImageIndex
 
         val result = validateEditRecordUseCase.execute(
             recordId = dialogHandle.recordId,
@@ -497,6 +535,7 @@ internal class ModalViewModel(
                     DialogHandle.EditTargetConfirmationDialog(
                         recordId = dialogHandle.recordId,
                         images = dialogHandle.images,
+                        coverPhotoByImageIndex = coverFlags,
                         count = result.count,
                         title = title,
                         description = description,
@@ -511,6 +550,7 @@ internal class ModalViewModel(
                     images = dialogHandle.images,
                     title = title,
                     description = description,
+                    coverPhotoByImageIndex = coverFlags,
                 )
                 DiaryWidgetScreen.reload()
                 GetMacrosWorker.setWorkRequest(
@@ -538,6 +578,7 @@ internal class ModalViewModel(
             ?.let {
                 val recordId = it.recordId
                 val images = it.images
+                val coverFlags = it.coverPhotoByImageIndex
                 val title = it.title
                 val description = it.description
                 runSafely {
@@ -548,6 +589,7 @@ internal class ModalViewModel(
                                 images = images,
                                 title = title,
                                 description = description,
+                                coverPhotoByImageIndex = coverFlags,
                             )
                         }
 
@@ -558,6 +600,7 @@ internal class ModalViewModel(
                                 images = images,
                                 title = title,
                                 description = description,
+                                coverPhotoByImageIndex = coverFlags,
                             )
                         }
                     }

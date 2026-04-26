@@ -13,9 +13,11 @@ internal class CreateTemplateUseCase(
         images: List<String>,
         title: String,
         description: String,
+        coverPhotoByImageIndex: List<Boolean> = emptyList(),
     ): Long {
         val template = TemplateToSave(
             images = images,
+            coverPhotoByImageIndex = coverPhotoByImageIndex,
             name = title,
             description = description,
         )

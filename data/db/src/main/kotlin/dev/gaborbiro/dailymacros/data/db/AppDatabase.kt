@@ -28,7 +28,7 @@ import java.time.ZoneId
         RequestStatusEntity::class,
         QuickPickOverrideEntity::class,
     ],
-    version = 9,
+    version = 10,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -65,6 +65,7 @@ abstract class AppDatabase : RoomDatabase() {
                 .addMigrations(MIGRATION_5_6)
             .addMigrations(MIGRATION_6_7)
             .addMigrations(MIGRATION_8_9)
+            .addMigrations(MIGRATION_9_10)
             .build()
         }
     }
@@ -143,6 +144,14 @@ val MIGRATION_8_9 = object : Migration(8, 9) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL(
             "ALTER TABLE macros ADD COLUMN analysisComponentsJson TEXT DEFAULT NULL"
+        )
+    }
+}
+
+val MIGRATION_9_10 = object : Migration(9, 10) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "ALTER TABLE template_images ADD COLUMN coverPhoto INTEGER NOT NULL DEFAULT 0"
         )
     }
 }

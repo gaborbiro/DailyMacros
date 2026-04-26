@@ -100,6 +100,7 @@ class RecordsRepositoryImpl(
                     templateId = templateId,
                     image = image,
                     sortOrder = index,
+                    coverPhoto = templateToSave.coverPhotoByImageIndex.getOrNull(index) ?: false,
                 )
             )
         }
@@ -134,6 +135,7 @@ class RecordsRepositoryImpl(
         name: String?, /* = null */
         description: String?, /* = null */
         images: List<String>?, /* = null */
+        coverPhotoByImageIndex: List<Boolean>?,
         nutrients: Pair<TemplateNutrientBreakdown, TopContributors>?, /* = null */
         notes: String?, /* = null */
         mealComponents: List<MealComponent>?,
@@ -147,7 +149,7 @@ class RecordsRepositoryImpl(
             ).apply { id = templateId }
         )
 
-        if (name == null && description == null && images == null && nutrients == null && notes == null && mealComponents == null) {
+        if (name == null && description == null && images == null && nutrients == null && notes == null && mealComponents == null && coverPhotoByImageIndex == null) {
             return
         }
 
@@ -159,6 +161,7 @@ class RecordsRepositoryImpl(
                         templateId = templateId,
                         image = image,
                         sortOrder = index,
+                        coverPhoto = coverPhotoByImageIndex?.getOrNull(index) ?: false,
                     )
                 )
             }
