@@ -1,23 +1,29 @@
 package dev.gaborbiro.dailymacros.features.settings.views
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -31,7 +37,8 @@ internal fun InteractiveJsonViewer(
     modifier: Modifier = Modifier,
     json: String,
     onCopyAll: () -> Unit,
-    startExpanded: Boolean = false,
+    expandedBits: String = "",
+    onExpandedBitsChange: (String) -> Unit = {},
 ) {
     if (json.isBlank()) return
 
@@ -41,21 +48,12 @@ internal fun InteractiveJsonViewer(
             collectContainerPaths(root = root, path = "root", out = this)
         }
     }
-    val expandedState = remember(root) { mutableStateMapOf<String, Boolean>() }
-
-    LaunchedEffect(root, startExpanded) {
-        containerPaths.forEach { path -> expandedState[path] = startExpanded }
-    }
-
-    fun setAllExpanded(expanded: Boolean) {
-        containerPaths.forEach { path -> expandedState[path] = expanded }
-    }
 
     JsonViewerHeader(
         modifier = modifier.fillMaxWidth(),
         onCopyAll = onCopyAll,
-        onCollapseAll = { setAllExpanded(false) },
-        onExpandAll = { setAllExpanded(true) },
+        onCollapseAll = { onExpandedBitsChange(allCollapsedBits(containerPaths)) },
+        onExpandAll = { onExpandedBitsChange(allExpandedBits(containerPaths)) },
     )
     Spacer(modifier = Modifier.height(8.dp))
     SelectionContainer {
@@ -65,7 +63,9 @@ internal fun InteractiveJsonViewer(
                 key = null,
                 path = "root",
                 indent = 0,
-                expandedState = expandedState,
+                containerPaths = containerPaths,
+                expandedBits = expandedBits,
+                onExpandedBitsChange = onExpandedBitsChange,
             )
         }
     }
@@ -109,7 +109,9 @@ private fun JsonNode(
     key: String?,
     path: String,
     indent: Int,
-    expandedState: MutableMap<String, Boolean>,
+    containerPaths: List<String>,
+    expandedBits: String,
+    onExpandedBitsChange: (String) -> Unit,
 ) {
     when {
         element.isJsonObject -> JsonObjectNode(
@@ -117,7 +119,9 @@ private fun JsonNode(
             obj = element.asJsonObject,
             path = path,
             indent = indent,
-            expandedState = expandedState,
+            containerPaths = containerPaths,
+            expandedBits = expandedBits,
+            onExpandedBitsChange = onExpandedBitsChange,
         )
 
         element.isJsonArray -> JsonArrayNode(
@@ -125,7 +129,9 @@ private fun JsonNode(
             array = element.asJsonArray,
             path = path,
             indent = indent,
-            expandedState = expandedState,
+            containerPaths = containerPaths,
+            expandedBits = expandedBits,
+            onExpandedBitsChange = onExpandedBitsChange,
         )
 
         else -> JsonPrimitiveNode(
@@ -142,16 +148,20 @@ private fun JsonObjectNode(
     obj: JsonObject,
     path: String,
     indent: Int,
-    expandedState: MutableMap<String, Boolean>,
+    containerPaths: List<String>,
+    expandedBits: String,
+    onExpandedBitsChange: (String) -> Unit,
 ) {
-    val expanded = expandedState[path] == true
+    val expanded = isPathExpandedInBits(containerPaths, expandedBits, path)
     JsonContainerHeader(
         indent = indent,
         key = key,
         openBracket = "{",
         closeBracket = "}",
         expanded = expanded,
-        onToggle = { expandedState[path] = !expanded },
+        onToggle = {
+            onExpandedBitsChange(flipExpansionBit(containerPaths, expandedBits, path))
+        },
     )
 
     if (!expanded) return
@@ -162,7 +172,9 @@ private fun JsonObjectNode(
             key = childKey,
             path = "$path.$childKey",
             indent = indent + 1,
-            expandedState = expandedState,
+            containerPaths = containerPaths,
+            expandedBits = expandedBits,
+            onExpandedBitsChange = onExpandedBitsChange,
         )
     }
     JsonLine(indent = indent, text = "}")
@@ -174,16 +186,20 @@ private fun JsonArrayNode(
     array: JsonArray,
     path: String,
     indent: Int,
-    expandedState: MutableMap<String, Boolean>,
+    containerPaths: List<String>,
+    expandedBits: String,
+    onExpandedBitsChange: (String) -> Unit,
 ) {
-    val expanded = expandedState[path] == true
+    val expanded = isPathExpandedInBits(containerPaths, expandedBits, path)
     JsonContainerHeader(
         indent = indent,
         key = key,
         openBracket = "[",
         closeBracket = "]",
         expanded = expanded,
-        onToggle = { expandedState[path] = !expanded },
+        onToggle = {
+            onExpandedBitsChange(flipExpansionBit(containerPaths, expandedBits, path))
+        },
     )
 
     if (!expanded) return
@@ -194,7 +210,9 @@ private fun JsonArrayNode(
             key = null,
             path = "$path[$index]",
             indent = indent + 1,
-            expandedState = expandedState,
+            containerPaths = containerPaths,
+            expandedBits = expandedBits,
+            onExpandedBitsChange = onExpandedBitsChange,
         )
     }
     JsonLine(indent = indent, text = "]")
@@ -213,6 +231,7 @@ private fun JsonContainerHeader(
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = (indent * 12).dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = buildString {
@@ -227,25 +246,36 @@ private fun JsonContainerHeader(
             expanded = expanded,
             onClick = onToggle,
         )
-        Text(
-            text = " $closeBracket",
-            style = MaterialTheme.typography.bodySmall,
-            fontFamily = FontFamily.Monospace,
-        )
+        if (!expanded) {
+            Text(
+                text = " $closeBracket",
+                style = MaterialTheme.typography.bodySmall,
+                fontFamily = FontFamily.Monospace,
+            )
+        }
     }
 }
 
 @Composable
-private fun JsonToggleButton(
+internal fun JsonToggleButton(
     expanded: Boolean,
     onClick: () -> Unit,
 ) {
-    TextButton(
-        modifier = Modifier.size(32.dp),
-        onClick = onClick,
-        contentPadding = ButtonDefaults.TextButtonContentPadding,
+    val labelStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace)
+    val chipShape = RoundedCornerShape(3.dp)
+    val chipColor = MaterialTheme.colorScheme.surfaceVariant
+    Box(
+        modifier = Modifier
+            .clip(chipShape)
+            .background(chipColor)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 6.dp),
+        contentAlignment = Alignment.Center,
     ) {
-        Text(if (expanded) "-" else "+")
+        Text(
+            text = if (expanded) "-" else "+",
+            style = labelStyle,
+        )
     }
 }
 
@@ -260,7 +290,7 @@ private fun JsonPrimitiveNode(
         text = buildString {
             if (key != null) append("\"$key\": ")
             append(value)
-        }
+        },
     )
 }
 
@@ -316,8 +346,11 @@ private fun formatJsonValue(element: JsonElement): String {
 @Preview
 @Composable
 private fun InteractiveJsonViewerPreview() {
+    var bits by remember { mutableStateOf("") }
     InteractiveJsonViewer(
         json = "{\"list\": [] }",
         onCopyAll = {},
+        expandedBits = bits,
+        onExpandedBitsChange = { bits = it },
     )
 }

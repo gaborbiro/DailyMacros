@@ -8,8 +8,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
-import dev.gaborbiro.dailymacros.features.settings.variability.MineMealVariabilityPreviewUseCase
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
+import dev.gaborbiro.dailymacros.features.settings.variability.MineMealVariabilityPreviewUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -18,10 +18,14 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 class SettingsViewModel(
     private val application: Application,
-    private val appInfo: SettingsAppInfo,
+    appInfo: SettingsAppInfo,
     private val settingsPrefs: SettingsPrefs,
     private val exportFoodDiaryUseCase: ExportFoodDiaryUseCase,
     private val mineMealVariabilityPreviewUseCase: MineMealVariabilityPreviewUseCase,
@@ -33,6 +37,13 @@ class SettingsViewModel(
             bottomLabel = appInfo.versionLabel,
             variabilityMiningRequestJson = settingsPrefs.variabilityMiningRequestJson,
             variabilityMiningResponseJson = settingsPrefs.variabilityMiningResponseJson,
+            variabilityMiningGeneratedAt = generatedAtDisplayLine(
+                settingsPrefs.variabilityMiningGeneratedAtEpochMs.takeIf { it > 0L },
+            ),
+            variabilityMiningRequestJsonExpansionBits = settingsPrefs.variabilityMiningRequestJsonExpansionBits,
+            variabilityMiningResponseJsonExpansionBits = settingsPrefs.variabilityMiningResponseJsonExpansionBits,
+            variabilityMiningRequestJsonSectionExpanded = settingsPrefs.variabilityMiningRequestJsonSectionExpanded,
+            variabilityMiningResponseJsonSectionExpanded = settingsPrefs.variabilityMiningResponseJsonSectionExpanded,
         )
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
@@ -81,13 +92,25 @@ class SettingsViewModel(
             }
             runCatching { mineMealVariabilityPreviewUseCase.execute() }
                 .onSuccess { preview ->
+                    val generatedAt = System.currentTimeMillis()
                     settingsPrefs.variabilityMiningRequestJson = preview.requestJsonPretty
                     settingsPrefs.variabilityMiningResponseJson = preview.responseJsonPretty
+                    settingsPrefs.variabilityMiningGeneratedAtEpochMs = generatedAt
+                    settingsPrefs.variabilityMiningRequestJsonExpansionBits = ""
+                    settingsPrefs.variabilityMiningResponseJsonExpansionBits = ""
+                    settingsPrefs.variabilityMiningRequestJsonSectionExpanded = false
+                    settingsPrefs.variabilityMiningResponseJsonSectionExpanded = false
                     _uiState.update {
                         it.copy(
                             variabilityMiningLoading = false,
                             variabilityMiningRequestJson = preview.requestJsonPretty,
                             variabilityMiningResponseJson = preview.responseJsonPretty,
+                            variabilityMiningGeneratedAt =
+                                generatedAtDisplayLine(generatedAt),
+                            variabilityMiningRequestJsonExpansionBits = "",
+                            variabilityMiningResponseJsonExpansionBits = "",
+                            variabilityMiningRequestJsonSectionExpanded = false,
+                            variabilityMiningResponseJsonSectionExpanded = false,
                         )
                     }
                 }
@@ -118,8 +141,37 @@ class SettingsViewModel(
         }
     }
 
+    fun onVariabilityMiningRequestJsonExpansionBitsChange(bits: String) {
+        settingsPrefs.variabilityMiningRequestJsonExpansionBits = bits
+        _uiState.update { it.copy(variabilityMiningRequestJsonExpansionBits = bits) }
+    }
+
+    fun onVariabilityMiningResponseJsonExpansionBitsChange(bits: String) {
+        settingsPrefs.variabilityMiningResponseJsonExpansionBits = bits
+        _uiState.update { it.copy(variabilityMiningResponseJsonExpansionBits = bits) }
+    }
+
+    fun onVariabilityMiningRequestJsonSectionExpandedChange(expanded: Boolean) {
+        settingsPrefs.variabilityMiningRequestJsonSectionExpanded = expanded
+        _uiState.update { it.copy(variabilityMiningRequestJsonSectionExpanded = expanded) }
+    }
+
+    fun onVariabilityMiningResponseJsonSectionExpandedChange(expanded: Boolean) {
+        settingsPrefs.variabilityMiningResponseJsonSectionExpanded = expanded
+        _uiState.update { it.copy(variabilityMiningResponseJsonSectionExpanded = expanded) }
+    }
+
     private fun copyJsonToClipboard(text: String) {
         val clipboard = application.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText("application/json", text))
+    }
+
+    private fun generatedAtDisplayLine(epochMs: Long?, zoneId: ZoneId = ZoneId.systemDefault()): String? {
+        val ms = epochMs ?: return null
+        if (ms <= 0L) return null
+        val formatted = Instant.ofEpochMilli(ms)
+            .atZone(zoneId)
+            .format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM))
+        return "Generated at: $formatted"
     }
 }

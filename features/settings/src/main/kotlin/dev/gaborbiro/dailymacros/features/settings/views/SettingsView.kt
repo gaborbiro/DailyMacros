@@ -16,13 +16,9 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,10 +31,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -57,6 +51,10 @@ internal fun SettingsView(
     onVariabilityMiningPreviewTapped: () -> Unit,
     onCopyVariabilityRequestJson: () -> Unit,
     onCopyVariabilityResponseJson: () -> Unit,
+    onVariabilityMiningRequestJsonExpansionBitsChange: (String) -> Unit,
+    onVariabilityMiningResponseJsonExpansionBitsChange: (String) -> Unit,
+    onVariabilityMiningRequestJsonSectionExpandedChange: (Boolean) -> Unit,
+    onVariabilityMiningResponseJsonSectionExpandedChange: (Boolean) -> Unit,
 ) {
 
     Scaffold(
@@ -135,10 +133,23 @@ internal fun SettingsView(
                     val hasRequestJson = viewState.variabilityMiningRequestJson != null
                     val hasResponseJson = viewState.variabilityMiningResponseJson != null
 
+                    viewState.variabilityMiningGeneratedAt?.let { line ->
+                        Text(
+                            modifier = Modifier.padding(bottom = 8.dp),
+                            text = line,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+
                     CollapsibleJsonRow(
                         title = "Request JSON",
                         json = viewState.variabilityMiningRequestJson,
                         onCopyAll = onCopyVariabilityRequestJson,
+                        jsonExpansionBits = viewState.variabilityMiningRequestJsonExpansionBits,
+                        onJsonExpansionBitsChange = onVariabilityMiningRequestJsonExpansionBitsChange,
+                        sectionExpanded = viewState.variabilityMiningRequestJsonSectionExpanded,
+                        onSectionExpandedChange = onVariabilityMiningRequestJsonSectionExpandedChange,
                     )
                     if (hasRequestJson && hasResponseJson) {
                         Spacer(modifier = Modifier.height(12.dp))
@@ -147,6 +158,10 @@ internal fun SettingsView(
                         title = "Response JSON",
                         json = viewState.variabilityMiningResponseJson,
                         onCopyAll = onCopyVariabilityResponseJson,
+                        jsonExpansionBits = viewState.variabilityMiningResponseJsonExpansionBits,
+                        onJsonExpansionBitsChange = onVariabilityMiningResponseJsonExpansionBitsChange,
+                        sectionExpanded = viewState.variabilityMiningResponseJsonSectionExpanded,
+                        onSectionExpandedChange = onVariabilityMiningResponseJsonSectionExpandedChange,
                     )
                 }
             }
@@ -159,32 +174,38 @@ private fun CollapsibleJsonRow(
     title: String,
     json: String?,
     onCopyAll: () -> Unit,
+    jsonExpansionBits: String,
+    onJsonExpansionBitsChange: (String) -> Unit,
+    sectionExpanded: Boolean,
+    onSectionExpandedChange: (Boolean) -> Unit,
 ) {
     if (json == null) return
-
-    var expanded by remember { mutableStateOf(false) }
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { expanded = !expanded }
             .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .clickable { onSectionExpandedChange(!sectionExpanded) },
             text = title,
             style = MaterialTheme.typography.titleSmall,
         )
-        Icon(
-            imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-            contentDescription = if (expanded) "Collapse $title" else "Expand $title",
+        JsonToggleButton(
+            expanded = sectionExpanded,
+            onClick = { onSectionExpandedChange(!sectionExpanded) },
         )
     }
-    if (expanded) {
+    if (sectionExpanded) {
         if (json.isNotBlank()) {
             InteractiveJsonViewer(
                 json = json,
                 onCopyAll = onCopyAll,
+                expandedBits = jsonExpansionBits,
+                onExpandedBitsChange = onJsonExpansionBitsChange,
             )
         }
     }
@@ -227,6 +248,10 @@ private fun SettingsViewPreview() {
             onVariabilityMiningPreviewTapped = {},
             onCopyVariabilityRequestJson = {},
             onCopyVariabilityResponseJson = {},
+            onVariabilityMiningRequestJsonExpansionBitsChange = {},
+            onVariabilityMiningResponseJsonExpansionBitsChange = {},
+            onVariabilityMiningRequestJsonSectionExpandedChange = {},
+            onVariabilityMiningResponseJsonSectionExpandedChange = {},
         )
     }
 }

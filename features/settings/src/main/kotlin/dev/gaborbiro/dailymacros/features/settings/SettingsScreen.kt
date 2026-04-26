@@ -39,6 +39,14 @@ fun SettingsScreen(
         onVariabilityMiningPreviewTapped = settingsViewModel::onVariabilityMiningPreviewTapped,
         onCopyVariabilityRequestJson = settingsViewModel::onCopyVariabilityRequestJson,
         onCopyVariabilityResponseJson = settingsViewModel::onCopyVariabilityResponseJson,
+        onVariabilityMiningRequestJsonExpansionBitsChange =
+            settingsViewModel::onVariabilityMiningRequestJsonExpansionBitsChange,
+        onVariabilityMiningResponseJsonExpansionBitsChange =
+            settingsViewModel::onVariabilityMiningResponseJsonExpansionBitsChange,
+        onVariabilityMiningRequestJsonSectionExpandedChange =
+            settingsViewModel::onVariabilityMiningRequestJsonSectionExpandedChange,
+        onVariabilityMiningResponseJsonSectionExpandedChange =
+            settingsViewModel::onVariabilityMiningResponseJsonSectionExpandedChange,
     )
 
     if (settingsUiState.showTargetsSettings) {
