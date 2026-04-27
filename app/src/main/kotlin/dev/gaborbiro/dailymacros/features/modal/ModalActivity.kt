@@ -117,9 +117,10 @@ class ModalActivity : AppCompatActivity() {
 
     private val viewModel by lazy {
         val analyticsLogger = AnalyticsLogger()
+        val db = AppDatabase.getInstance()
         val recordsRepository = RecordsRepositoryImpl(
-            templatesDAO = AppDatabase.getInstance().templatesDAO(),
-            recordsDAO = AppDatabase.getInstance().recordsDAO(),
+            templatesDAO = db.templatesDAO(),
+            recordsDAO = db.recordsDAO(),
             mapper = RecordsApiMapper(),
             imageStore = imageStore,
             analyticsLogger = analyticsLogger,

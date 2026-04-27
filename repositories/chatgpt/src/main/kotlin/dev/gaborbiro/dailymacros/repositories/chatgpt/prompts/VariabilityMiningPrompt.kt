@@ -43,7 +43,7 @@ ARCHETYPE COVERAGE
 RULES
 1. Output ONLY valid JSON matching the response schema below. No markdown, no commentary outside the JSON.
 2. MERGE incrementally with **existing_profile** when provided; preserve stable ids when still valid; split incompatible clusters (e.g. pizza calorie tiers) when needed.
-3. Each variant cites **supporting_entry_timestamps** copied exactly from input **meal_observations[].logged_at** (≥1 per variant).
+3. Each variant cites **supporting_entry_evidence**: an array of objects `{ "logged_at": "<same string as meal_observations[].logged_at>", "template_id": <number from meal_observations[].template_id> }`, one per supporting log (≥1 per variant). Use the exact `logged_at` and `template_id` from the observation rows that justify that variant.
 4. At most **max_archetypes** archetypes.
 5. Versioning: bump **schema_version** only if semantics change; else bump **revision** from input or start at 1.
 6. **model_notes** (<=500 chars): merges, skipped stable recipes, or archetypes with no qualifying slots.
@@ -77,7 +77,9 @@ RESPONSE JSON SCHEMA (output object keys)
             {
               "variant_id": "string",
               "variant_label": "string",
-              "supporting_entry_timestamps": ["string"],
+              "supporting_entry_evidence": [
+                { "logged_at": "string", "template_id": 0 }
+              ],
               "typical_macros": {
                 "calories_kcal": 0,
                 "protein_g": 0.0,

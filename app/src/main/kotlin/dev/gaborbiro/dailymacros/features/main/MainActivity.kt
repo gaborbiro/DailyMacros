@@ -52,7 +52,11 @@ import dev.gaborbiro.dailymacros.features.settings.export.SharePublicUriLauncher
 import dev.gaborbiro.dailymacros.features.settings.export.StreamWriter
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsViewModel
+import com.google.gson.Gson
 import dev.gaborbiro.dailymacros.features.settings.variability.MineMealVariabilityPreviewUseCase
+import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfileMapper
+import dev.gaborbiro.dailymacros.repositories.records.VariabilityRepositoryImpl
+import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
 import dev.gaborbiro.dailymacros.features.trends.TrendsPreferencesImpl
 import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
 import dev.gaborbiro.dailymacros.features.trends.TrendsUiMapper
@@ -158,9 +162,14 @@ class MainActivity : ComponentActivity() {
         val chatGPTRepository = ChatGPTRepositoryImpl(
             service = chatGptRetrofit.create(ChatGPTService::class.java),
         )
+        val variabilityRepository: VariabilityRepository = VariabilityRepositoryImpl(
+            variabilityDao = db.variabilityDao(),
+            profileMapper = VariabilityProfileMapper(Gson()),
+        )
         val mineMealVariabilityPreviewUseCase = MineMealVariabilityPreviewUseCase(
             recordsRepository = recordsRepository,
             chatGPTRepository = chatGPTRepository,
+            variabilityRepository = variabilityRepository,
         )
 
         val recordsUiMapper = SharedRecordsUiMapper(nutrientsUiMapper)
@@ -193,6 +202,7 @@ class MainActivity : ComponentActivity() {
                         settingsPrefs = settingsPrefs,
                         exportFoodDiaryUseCase = exportFoodDiaryUseCase,
                         mineMealVariabilityPreviewUseCase = mineMealVariabilityPreviewUseCase,
+                        variabilityRepository = variabilityRepository,
                     )
                 }
                 val targetsSettingsViewModel = viewModelFactory {

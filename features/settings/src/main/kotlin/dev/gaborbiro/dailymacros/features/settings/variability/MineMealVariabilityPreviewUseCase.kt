@@ -2,10 +2,12 @@ package dev.gaborbiro.dailymacros.features.settings.variability
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonElement
 import com.google.gson.JsonParser
 import com.google.gson.annotations.SerializedName
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.ComponentConfidence
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 
@@ -23,6 +25,7 @@ data class VariabilityMiningPreview(
 class MineMealVariabilityPreviewUseCase(
     private val recordsRepository: RecordsRepository,
     private val chatGPTRepository: ChatGPTRepository,
+    private val variabilityRepository: VariabilityRepository,
 ) {
 
     private val compactGson: Gson = GsonBuilder().create()
@@ -30,10 +33,15 @@ class MineMealVariabilityPreviewUseCase(
 
     suspend fun execute(): VariabilityMiningPreview {
         val records = recordsRepository.getRecentRecords(MAX_RECORDS)
+        val existingProfile: JsonElement? =
+            variabilityRepository.getLatestProfile()
+                ?.profileJson
+                ?.takeIf { it.isNotBlank() }
+                ?.let { JsonParser.parseString(it) }
         val envelope = VariabilityMiningUserEnvelope(
             schema_version = "1.0",
             merge_mode = "incremental",
-            existing_profile = null,
+            existing_profile = existingProfile,
             constraints = VariabilityConstraints(
                 max_archetypes = 50,
                 min_evidence_per_archetype = 2,
@@ -44,6 +52,8 @@ class MineMealVariabilityPreviewUseCase(
         )
         val userJson = compactGson.toJson(envelope)
         val result = chatGPTRepository.mineMealVariability(userJson)
+        val minedAt = System.currentTimeMillis()
+        variabilityRepository.replaceProfileFromModelJson(result.profileJson, minedAt)
         return VariabilityMiningPreview(
             requestJsonPretty = prettyPrintJson(userJson),
             responseJsonPretty = prettyPrintJson(result.profileJson),
