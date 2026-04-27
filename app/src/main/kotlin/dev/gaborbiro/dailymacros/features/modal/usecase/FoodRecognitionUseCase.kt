@@ -17,6 +17,27 @@ internal class FoodRecognitionUseCase(
     private val chatGPTRepository: ChatGPTRepository,
 ) {
 
+    private val coverPhotoLock = Any()
+    private var lastCoverPhotoSnapshot: CoverPhotoSnapshot? = null
+
+    /**
+     * Returns [List] aligned to [images] for persisting on `template_images.coverPhoto`.
+     * Clears any remembered recognition for this save path. Not shown in the UI.
+     */
+    fun consumeCoverPhotoFlagsForSave(images: List<String>): List<Boolean> {
+        synchronized(coverPhotoLock) {
+            val snap = lastCoverPhotoSnapshot ?: return List(images.size) { false }
+            lastCoverPhotoSnapshot = null
+            return snap.flagsForSave(images)
+        }
+    }
+
+    fun discardRememberedCoverPhotoFlags() {
+        synchronized(coverPhotoLock) {
+            lastCoverPhotoSnapshot = null
+        }
+    }
+
     suspend fun execute(images: List<String>): RecognisedFood {
         val response = try {
             val base64Images = images.map {
@@ -34,10 +55,36 @@ internal class FoodRecognitionUseCase(
         }
         val cachedTokens = "Cached tokens: ${response.cachedTokens}"
         appContext.showTextNotification(Random(564).nextLong(), cachedTokens)
+        synchronized(coverPhotoLock) {
+            lastCoverPhotoSnapshot = CoverPhotoSnapshot(
+                images = images.toList(),
+                flags = response.coverPhotoByImageIndex,
+            )
+        }
         return RecognisedFood(
             title = response.title,
             description = response.description,
-            coverPhotoByImageIndex = response.coverPhotoByImageIndex,
         )
+    }
+
+    private data class CoverPhotoSnapshot(
+        val images: List<String>,
+        val flags: List<Boolean>,
+    ) {
+        fun flagsForSave(images: List<String>): List<Boolean> {
+            if (images.isEmpty()) return emptyList()
+            return when {
+                this.images == images -> alignFlags(flags, images.size)
+                images.size < this.images.size &&
+                    this.images.take(images.size) == images -> alignFlags(flags, images.size)
+                images.size > this.images.size &&
+                    images.take(this.images.size) == this.images -> alignFlags(flags, this.images.size) +
+                    List(images.size - this.images.size) { false }
+                else -> List(images.size) { false }
+            }
+        }
+
+        private fun alignFlags(flags: List<Boolean>, size: Int): List<Boolean> =
+            List(size) { i -> flags.getOrNull(i) ?: false }
     }
 }
