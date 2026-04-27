@@ -147,6 +147,8 @@ internal class ModalViewModel(
                         title = TextFieldValue(record.template.name),
                         description = TextFieldValue(record.template.description),
                         images = record.template.images,
+                        coverPhotoByImageIndex = record.template.coverPhotoByImageIndex,
+                        foodRecognitionImageIds = null,
                         nutrientBreakdown = uiMapper.mapNutrientBreakdowns(record),
                         allowEdit = edit,
                         titleHint = "Give your meal a title",
@@ -185,9 +187,13 @@ internal class ModalViewModel(
             when (val root = _uiState.value.rootDialog) {
                 is DialogHandle.RecordDetailsDialog.Edit -> {
                     val updatedImages = root.images + persistedFilenames
+                    val extendedCover = root.coverPhotoByImageIndex +
+                        List(persistedFilenames.size) { null }
                     setRoot(
                         root.copy(
                             images = updatedImages,
+                            coverPhotoByImageIndex = extendedCover,
+                            foodRecognitionImageIds = null,
                             recognisedFood = null,
                         )
                     )
@@ -197,7 +203,15 @@ internal class ModalViewModel(
                 }
 
                 is DialogHandle.RecordDetailsDialog.View -> {
-                    setRoot(root.copy(images = root.images + persistedFilenames))
+                    val extendedCover = root.coverPhotoByImageIndex +
+                        List(persistedFilenames.size) { null }
+                    setRoot(
+                        root.copy(
+                            images = root.images + persistedFilenames,
+                            coverPhotoByImageIndex = extendedCover,
+                            foodRecognitionImageIds = null,
+                        )
+                    )
                 }
 
                 else -> {
@@ -252,9 +266,15 @@ internal class ModalViewModel(
                                 TextFieldValue(it, selection = TextRange(it.length))
                             }
                         ?: TextFieldValue()
+                    val ids = currentUiState.images
+                    val flags = List(ids.size) { i ->
+                        recognisedFood.coverPhotoByImageIndex.getOrNull(i)
+                    }
                     currentUiState.copy(
                         recognisedFood = recognisedFood,
                         title = title,
+                        foodRecognitionImageIds = ids,
+                        coverPhotoByImageIndex = flags,
                     )
                 }
             } catch (e: CancellationException) {
@@ -356,7 +376,6 @@ internal class ModalViewModel(
             closeAll()
         }
         (dialog as? DialogHandle.RecordDetailsDialog.Edit)?.let {
-            foodRecognitionUseCase.discardRememberedCoverPhotoFlags()
             runSafely {
                 dialog.images.forEach {
                     imageStore.delete(it)
@@ -393,8 +412,34 @@ internal class ModalViewModel(
     fun onImageDeleteTapped(image: String) {
         updateRoot<DialogHandle.RecordDetailsDialog> {
             when (it) {
-                is DialogHandle.RecordDetailsDialog.View -> it.copy(images = it.images - image)
-                is DialogHandle.RecordDetailsDialog.Edit -> it.copy(images = it.images - image)
+                is DialogHandle.RecordDetailsDialog.View -> {
+                    val idx = it.images.indexOf(image)
+                    val newImages = it.images - image
+                    val newCover = if (idx >= 0) {
+                        it.coverPhotoByImageIndex.filterIndexed { i, _ -> i != idx }
+                    } else {
+                        it.coverPhotoByImageIndex.take(newImages.size)
+                    }
+                    it.copy(
+                        images = newImages,
+                        coverPhotoByImageIndex = newCover,
+                        foodRecognitionImageIds = null,
+                    )
+                }
+                is DialogHandle.RecordDetailsDialog.Edit -> {
+                    val idx = it.images.indexOf(image)
+                    val newImages = it.images - image
+                    val newCover = if (idx >= 0) {
+                        it.coverPhotoByImageIndex.filterIndexed { i, _ -> i != idx }
+                    } else {
+                        it.coverPhotoByImageIndex.take(newImages.size)
+                    }
+                    it.copy(
+                        images = newImages,
+                        coverPhotoByImageIndex = newCover,
+                        foodRecognitionImageIds = null,
+                    )
+                }
             }
         }
     }
@@ -447,7 +492,7 @@ internal class ModalViewModel(
     }
 
     private suspend fun handleCreateRecordDetailsSubmitted(
-        dialogHandle: DialogHandle.RecordDetailsDialog,
+        dialogHandle: DialogHandle.RecordDetailsDialog.Edit,
     ) {
         val title = dialogHandle.title.text.trim()
         val description = dialogHandle.description.text.trim()
@@ -470,8 +515,11 @@ internal class ModalViewModel(
                     images = images,
                     title = title,
                     description = description,
-                    coverPhotoByImageIndex = foodRecognitionUseCase.consumeCoverPhotoFlagsForSave(images)
-                        ?: emptyList(),
+                    coverPhotoByImageIndex = coverPhotoFlagsForTemplateSave(
+                        images = images,
+                        foodRecognitionImageIds = dialogHandle.foodRecognitionImageIds,
+                        coverPhotoByImageIndex = dialogHandle.coverPhotoByImageIndex,
+                    ),
                 )
                 DiaryWidgetScreen.reload()
                 GetMacrosWorker.setWorkRequest(
@@ -500,6 +548,8 @@ internal class ModalViewModel(
                     DialogHandle.EditTargetConfirmationDialog(
                         recordId = dialogHandle.recordId,
                         images = dialogHandle.images,
+                        foodRecognitionImageIds = dialogHandle.foodRecognitionImageIds,
+                        coverPhotoByImageIndex = dialogHandle.coverPhotoByImageIndex,
                         count = result.count,
                         title = title,
                         description = description,
@@ -514,9 +564,11 @@ internal class ModalViewModel(
                     images = dialogHandle.images,
                     title = title,
                     description = description,
-                    coverPhotoByImageIndex = foodRecognitionUseCase.consumeCoverPhotoFlagsForSave(
-                        dialogHandle.images,
-                    ) ?: emptyList(),
+                    coverPhotoByImageIndex = coverPhotoFlagsForTemplateSave(
+                        images = dialogHandle.images,
+                        foodRecognitionImageIds = dialogHandle.foodRecognitionImageIds,
+                        coverPhotoByImageIndex = dialogHandle.coverPhotoByImageIndex,
+                    ),
                 )
                 DiaryWidgetScreen.reload()
                 GetMacrosWorker.setWorkRequest(
@@ -546,8 +598,11 @@ internal class ModalViewModel(
                 val images = it.images
                 val title = it.title
                 val description = it.description
-                val coverFlags =
-                    foodRecognitionUseCase.consumeCoverPhotoFlagsForSave(images) ?: emptyList()
+                val coverFlags = coverPhotoFlagsForTemplateSave(
+                    images = images,
+                    foodRecognitionImageIds = it.foodRecognitionImageIds,
+                    coverPhotoByImageIndex = it.coverPhotoByImageIndex,
+                )
                 runSafely {
                     when (target) {
                         ChangeImagesTarget.RECORD -> {
@@ -628,7 +683,6 @@ internal class ModalViewModel(
     private fun closeAll() {
         recogniseFoodJob?.cancel()
         recordDetailsJob?.cancel()
-        foodRecognitionUseCase.discardRememberedCoverPhotoFlags()
         _uiState.update {
             it.copy(
                 rootDialog = null,
@@ -649,5 +703,21 @@ internal class ModalViewModel(
                 it
             }
         }
+    }
+
+    /**
+     * List aligned to [images] for [TemplateToSave]; unknown indices are null (DB null).
+     * Recognition data is only applied when [foodRecognitionImageIds] equals [images].
+     */
+    private fun coverPhotoFlagsForTemplateSave(
+        images: List<String>,
+        foodRecognitionImageIds: List<String>?,
+        coverPhotoByImageIndex: List<Boolean?>,
+    ): List<Boolean?> {
+        if (images.isEmpty()) return emptyList()
+        if (foodRecognitionImageIds != images) {
+            return List(images.size) { null }
+        }
+        return List(images.size) { i -> coverPhotoByImageIndex.getOrNull(i) }
     }
 }

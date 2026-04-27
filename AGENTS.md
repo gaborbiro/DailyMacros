@@ -28,6 +28,10 @@ All commands require `JAVA_HOME` and `ANDROID_HOME` to be set (already in `~/.ba
 - **Release** (`.github/workflows/release.yml`): triggered by **push to `release`** (e.g. after merging a PR into that branch; protect `release` from direct pushes in GitHub). Builds signed release AAB, creates a GitHub Release with tag **`v` + `appVersionName`** from **`app/build.gradle.kts`** (via `:app:writeAppReleaseVersionNameFile`), publishes to Google Play internal testing track. Bump **`appVersionName`** / **`appVersionCode`** in **`app/build.gradle.kts`** before merging to `release`; reusing a tag will fail the release step.
 - Release signing reads keystore from env vars (`RELEASE_KEYSTORE_PATH`, `RELEASE_KEYSTORE_PASSWORD`, `RELEASE_KEY_ALIAS`, `RELEASE_KEY_PASSWORD`). In CI, the base64-encoded keystore is decoded from the `RELEASE_KEYSTORE_BASE64` secret.
 
+### Code conventions
+
+- **Use cases**: Each use case class exposes **exactly one** entry point named **`execute`**. Do not add extra public methods on use cases or pack unrelated behavior into them; keep each use case focused on a single responsibility. UI-held state (e.g. flags for a form) belongs in the **ViewModel / UI state models**, not in a use case.
+
 ### Notes
 
 - **`CHATGPT_API_KEY`**: workflows expect a repository secret with that **exact** name under **Settings → Secrets and variables → Actions**. Secrets stored only under **Codespaces** are **not** available to GitHub Actions; duplicate the value there if CI builds need the key. Locally, `local.properties` can define the same key for builds.
