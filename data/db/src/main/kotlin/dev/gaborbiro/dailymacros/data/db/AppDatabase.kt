@@ -28,7 +28,7 @@ import java.time.ZoneId
         RequestStatusEntity::class,
         QuickPickOverrideEntity::class,
     ],
-    version = 11,
+    version = 10,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -66,7 +66,6 @@ abstract class AppDatabase : RoomDatabase() {
             .addMigrations(MIGRATION_6_7)
             .addMigrations(MIGRATION_8_9)
             .addMigrations(MIGRATION_9_10)
-            .addMigrations(MIGRATION_10_11)
             .build()
         }
     }
@@ -152,41 +151,7 @@ val MIGRATION_8_9 = object : Migration(8, 9) {
 val MIGRATION_9_10 = object : Migration(9, 10) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL(
-            "ALTER TABLE template_images ADD COLUMN coverPhoto INTEGER NOT NULL DEFAULT 0"
-        )
-    }
-}
-
-val MIGRATION_10_11 = object : Migration(10, 11) {
-    override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL(
-            """
-            CREATE TABLE IF NOT EXISTS `template_images_new` (
-                `templateId` INTEGER NOT NULL,
-                `image` TEXT NOT NULL,
-                `sortOrder` INTEGER NOT NULL,
-                `coverPhoto` INTEGER,
-                `_id` INTEGER PRIMARY KEY AUTOINCREMENT,
-                FOREIGN KEY(`templateId`) REFERENCES `templates`(`_id`) ON UPDATE NO ACTION ON DELETE CASCADE
-            )
-            """.trimIndent()
-        )
-        db.execSQL(
-            """
-            INSERT INTO `template_images_new` (`templateId`, `image`, `sortOrder`, `coverPhoto`, `_id`)
-            SELECT `templateId`, `image`, `sortOrder`, NULL, `_id` FROM `template_images`
-            """.trimIndent()
-        )
-        db.execSQL("DROP TABLE `template_images`")
-        db.execSQL("ALTER TABLE `template_images_new` RENAME TO `template_images`")
-        db.execSQL(
-            "CREATE INDEX IF NOT EXISTS `index_template_images_templateId` ON `template_images` (`templateId`)"
-        )
-        db.execSQL(
-            "CREATE INDEX IF NOT EXISTS `index_template_images_image` ON `template_images` (`image`)"
-        )
-        db.execSQL(
-            "CREATE UNIQUE INDEX IF NOT EXISTS `index_template_images_templateId_sortOrder` ON `template_images` (`templateId`, `sortOrder`)"
+            "ALTER TABLE template_images ADD COLUMN coverPhoto INTEGER DEFAULT NULL"
         )
     }
 }
