@@ -18,6 +18,9 @@ interface RecordsRepository {
      */
     suspend fun getRecentRecords(limit: Int): List<Record>
 
+    /** Latest merged meal-variability profile JSON from DB, or null if none. */
+    suspend fun getLatestVariabilityProfileJson(): String?
+
     fun getMostRecentRecord(): Record?
 
     suspend fun getQuickPicks(count: Int): List<Template>

@@ -52,7 +52,9 @@ import dev.gaborbiro.dailymacros.features.settings.export.SharePublicUriLauncher
 import dev.gaborbiro.dailymacros.features.settings.export.StreamWriter
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsViewModel
+import com.google.gson.Gson
 import dev.gaborbiro.dailymacros.features.settings.variability.MineMealVariabilityPreviewUseCase
+import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfilePersister
 import dev.gaborbiro.dailymacros.features.trends.TrendsPreferencesImpl
 import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
 import dev.gaborbiro.dailymacros.features.trends.TrendsUiMapper
@@ -100,6 +102,7 @@ class MainActivity : ComponentActivity() {
         val recordsRepository = RecordsRepositoryImpl(
             templatesDAO = db.templatesDAO(),
             recordsDAO = db.recordsDAO(),
+            variabilityDao = db.variabilityDao(),
             mapper = RecordsApiMapper(),
             imageStore = imageStore,
             analyticsLogger = analyticsLogger,
@@ -158,9 +161,14 @@ class MainActivity : ComponentActivity() {
         val chatGPTRepository = ChatGPTRepositoryImpl(
             service = chatGptRetrofit.create(ChatGPTService::class.java),
         )
+        val variabilityProfilePersister = VariabilityProfilePersister(
+            gson = Gson(),
+            variabilityDao = db.variabilityDao(),
+        )
         val mineMealVariabilityPreviewUseCase = MineMealVariabilityPreviewUseCase(
             recordsRepository = recordsRepository,
             chatGPTRepository = chatGPTRepository,
+            variabilityProfilePersister = variabilityProfilePersister,
         )
 
         val recordsUiMapper = SharedRecordsUiMapper(nutrientsUiMapper)

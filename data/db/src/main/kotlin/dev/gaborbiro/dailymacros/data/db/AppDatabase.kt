@@ -15,6 +15,11 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatusEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TopContributorsEntity
+import dev.gaborbiro.dailymacros.data.db.model.entity.VariabilityArchetypeEntity
+import dev.gaborbiro.dailymacros.data.db.model.entity.VariabilitySnapshotEntity
+import dev.gaborbiro.dailymacros.data.db.model.entity.VariabilitySlotEntity
+import dev.gaborbiro.dailymacros.data.db.model.entity.VariabilityVariantEntity
+import dev.gaborbiro.dailymacros.data.db.model.entity.VariabilityVariantEvidenceEntity
 import java.time.LocalDateTime
 import java.time.ZoneId
 
@@ -27,8 +32,13 @@ import java.time.ZoneId
         ImageEntity::class,
         RequestStatusEntity::class,
         QuickPickOverrideEntity::class,
+        VariabilitySnapshotEntity::class,
+        VariabilityArchetypeEntity::class,
+        VariabilitySlotEntity::class,
+        VariabilityVariantEntity::class,
+        VariabilityVariantEvidenceEntity::class,
     ],
-    version = 10,
+    version = 11,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -41,6 +51,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun recordsDAO(): RecordsDAO
     abstract fun templatesDAO(): TemplatesDAO
     abstract fun requestStatusDAO(): RequestStatusDAO
+    abstract fun variabilityDao(): VariabilityDao
 
     companion object {
 
@@ -66,6 +77,7 @@ abstract class AppDatabase : RoomDatabase() {
             .addMigrations(MIGRATION_6_7)
             .addMigrations(MIGRATION_8_9)
             .addMigrations(MIGRATION_9_10)
+            .addMigrations(MIGRATION_10_11)
             .build()
         }
     }
@@ -152,6 +164,95 @@ val MIGRATION_9_10 = object : Migration(9, 10) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL(
             "ALTER TABLE template_images ADD COLUMN isRepresentativeMealPhoto INTEGER DEFAULT NULL"
+        )
+    }
+}
+
+val MIGRATION_10_11 = object : Migration(10, 11) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `variability_snapshots` (
+                `_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `minedAtEpochMs` INTEGER NOT NULL,
+                `profileJson` TEXT NOT NULL
+            )
+            """.trimIndent()
+        )
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `variability_archetypes` (
+                `_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `snapshotId` INTEGER NOT NULL,
+                `archetypeKey` TEXT NOT NULL,
+                `displayName` TEXT NOT NULL,
+                `titleAliasesJson` TEXT NOT NULL,
+                `evidenceCount` INTEGER NOT NULL,
+                `lastSeenTimestamp` TEXT,
+                `archetypeNotes` TEXT,
+                `deprecated` INTEGER NOT NULL,
+                `deprecatedReason` TEXT,
+                `sortOrder` INTEGER NOT NULL,
+                FOREIGN KEY(`snapshotId`) REFERENCES `variability_snapshots`(`_id`) ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+            """.trimIndent()
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_variability_archetypes_snapshotId` ON `variability_archetypes` (`snapshotId`)"
+        )
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `variability_slots` (
+                `_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `archetypeId` INTEGER NOT NULL,
+                `slotKey` TEXT NOT NULL,
+                `role` TEXT NOT NULL,
+                `nutritionalLeversJson` TEXT NOT NULL,
+                `isHighVariability` INTEGER NOT NULL,
+                `confidence` REAL NOT NULL,
+                `rationale` TEXT NOT NULL,
+                `sortOrder` INTEGER NOT NULL,
+                FOREIGN KEY(`archetypeId`) REFERENCES `variability_archetypes`(`_id`) ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+            """.trimIndent()
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_variability_slots_archetypeId` ON `variability_slots` (`archetypeId`)"
+        )
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `variability_variants` (
+                `_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `slotId` INTEGER NOT NULL,
+                `variantKey` TEXT NOT NULL,
+                `variantLabel` TEXT NOT NULL,
+                `macroSource` TEXT NOT NULL,
+                `notesExcerpt` TEXT NOT NULL,
+                `typicalMacrosJson` TEXT NOT NULL,
+                `sortOrder` INTEGER NOT NULL,
+                FOREIGN KEY(`slotId`) REFERENCES `variability_slots`(`_id`) ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+            """.trimIndent()
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_variability_variants_slotId` ON `variability_variants` (`slotId`)"
+        )
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `variability_variant_evidence` (
+                `_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `variantId` INTEGER NOT NULL,
+                `loggedAt` TEXT NOT NULL,
+                `templateId` INTEGER,
+                FOREIGN KEY(`variantId`) REFERENCES `variability_variants`(`_id`) ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+            """.trimIndent()
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_variability_variant_evidence_variantId` ON `variability_variant_evidence` (`variantId`)"
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_variability_variant_evidence_templateId` ON `variability_variant_evidence` (`templateId`)"
         )
     }
 }
