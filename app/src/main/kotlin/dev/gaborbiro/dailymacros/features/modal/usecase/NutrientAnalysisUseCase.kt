@@ -74,6 +74,9 @@ internal class NutrientAnalysisUseCase(
                     recordsMapper.map(nutrients.first) to nutrients.second
                 }
                 val name = record.template.name.takeIf { it.isNotBlank() } ?: nutrientsResponse.title
+                val coverForDb = List(record.template.images.size) { i ->
+                    nutrientsResponse.coverPhotoByImageIndex.getOrNull(i)
+                }
                 recordsRepository.updateTemplate(
                     templateId = record.template.dbId,
                     // the user can start analysis without having specified a name
@@ -81,6 +84,7 @@ internal class NutrientAnalysisUseCase(
                     nutrients = templateNutrients,
                     notes = nutrientsResponse.notes,
                     mealComponents = templateNutrients?.let { nutrientsResponse.components.toMealComponents() },
+                    coverPhotoByImageIndex = templateNutrients?.let { coverForDb },
                 )
                 val cachedTokensMessage = if (BuildConfig.DEBUG) "Cached tokens: ${nutrientsResponse.cachedTokens}" else null
                 nutrients

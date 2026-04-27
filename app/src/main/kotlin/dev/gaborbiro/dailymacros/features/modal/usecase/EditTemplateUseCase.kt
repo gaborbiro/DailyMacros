@@ -11,14 +11,12 @@ internal class EditTemplateUseCase(
         images: List<String>,
         title: String,
         description: String,
-        coverPhotoByImageIndex: List<Boolean?>? = null,
     ) {
         repository.updateTemplate(
             templateId = templateId,
             name = title,
             description = description,
             images = images,
-            coverPhotoByImageIndex = coverPhotoByImageIndex,
         )
     }
 }

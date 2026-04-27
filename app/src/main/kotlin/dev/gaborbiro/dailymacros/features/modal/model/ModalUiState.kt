@@ -12,9 +12,6 @@ sealed class DialogHandle {
         val recordId: Long,
         val count: Int,
         val images: List<String>,
-        /** When non-null and equal to [images], [coverPhotoByImageIndex] came from food recognition. */
-        val foodRecognitionImageIds: List<String>?,
-        val coverPhotoByImageIndex: List<Boolean?>,
         val title: String,
         val description: String,
     ) : DialogHandle()
@@ -39,12 +36,6 @@ sealed class DialogHandle {
             override val titleValidationError: String? = null,
             override val description: TextFieldValue,
             override val images: List<String>,
-            /**
-             * Per-image cover hint from food recognition; only valid while [foodRecognitionImageIds]
-             * matches [images] (same length and order). Otherwise treat as unknown (null) for save.
-             */
-            val coverPhotoByImageIndex: List<Boolean?> = emptyList(),
-            val foodRecognitionImageIds: List<String>? = null,
             val showProgressIndicator: Boolean = false,
             val showRunAIButton: Boolean = false,
             val recognisedFood: RecognisedFood?,
@@ -72,8 +63,6 @@ sealed class DialogHandle {
             override val title: TextFieldValue,
             override val description: TextFieldValue,
             override val images: List<String>,
-            val coverPhotoByImageIndex: List<Boolean?> = emptyList(),
-            val foodRecognitionImageIds: List<String>? = null,
         ) : RecordDetailsDialog(
             titleHint = titleHint,
             titleValidationError = titleValidationError,
@@ -106,7 +95,6 @@ sealed class DialogHandle {
 data class RecognisedFood(
     val title: String?,
     val description: String?,
-    val coverPhotoByImageIndex: List<Boolean?> = emptyList(),
 )
 
 sealed class ImageInputType {

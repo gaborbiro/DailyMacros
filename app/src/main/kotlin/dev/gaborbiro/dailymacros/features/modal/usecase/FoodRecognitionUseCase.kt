@@ -37,7 +37,6 @@ internal class FoodRecognitionUseCase(
         return RecognisedFood(
             title = response.title,
             description = response.description,
-            coverPhotoByImageIndex = response.coverPhotoByImageIndex,
         )
     }
 }

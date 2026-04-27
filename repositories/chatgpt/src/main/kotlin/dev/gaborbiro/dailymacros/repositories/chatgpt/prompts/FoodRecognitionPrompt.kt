@@ -46,10 +46,8 @@ Output format:
     }
   ],
   "title": "",
-  "description": "",
-  "cover_photo": [ true, false ]
+  "description": ""
 }
-The "cover_photo" array MUST have the same length and order as the user-submitted meal photos (index 0 = first photo, etc.). Each entry is true if that photo clearly shows the prepared dish or at least some food that belongs to that dish; false for nutrition labels only, packaging-only shots, unrelated scenes, receipts, people, empty plates, or when it is unclear.
 If food cannot be determined:
 {
   "error": "<one short sentence explaining clearly why food cannot be determined>"
@@ -61,7 +59,7 @@ If food cannot be determined:
     )
 )
 
-internal fun ChatGPTResponse.toFoodRecognitionResponse(imageCount: Int): FoodRecognitionResult {
+internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionResult {
     val gson = GsonBuilder().create()
 
     val resultJson: String? = this.output
@@ -78,13 +76,10 @@ internal fun ChatGPTResponse.toFoodRecognitionResponse(imageCount: Int): FoodRec
 
     val cachedTokens = this.usage.inputTokensDetails.cachedTokens
 
-    // temporary helper class
-
     class FoodDescription(
         @SerializedName("title") val title: String?,
         @SerializedName("description") val description: String?,
         @SerializedName("components") val components: List<Component>?,
-        @SerializedName("cover_photo") val coverPhoto: List<Boolean>?,
         @SerializedName("error") val error: String?,
     )
 
@@ -111,23 +106,12 @@ internal fun ChatGPTResponse.toFoodRecognitionResponse(imageCount: Int): FoodRec
             FoodRecognitionResult(
                 title = foodDescription.title.takeIf { it.isNullOrBlank().not() },
                 description = descriptionItems.joinToString("\nComponents:\n").takeIf { it.isNotBlank() },
-                coverPhotoByImageIndex = normalizeCoverPhotoFlags(
-                    imageCount = imageCount,
-                    fromModel = foodDescription.coverPhoto,
-                ),
                 cachedTokens = cachedTokens,
             )
         }
         ?: FoodRecognitionResult(
             title = null,
             description = null,
-            coverPhotoByImageIndex = List(imageCount) { null },
             cachedTokens = cachedTokens,
         )
-}
-
-private fun normalizeCoverPhotoFlags(imageCount: Int, fromModel: List<Boolean>?): List<Boolean?> {
-    if (imageCount <= 0) return emptyList()
-    if (fromModel == null) return List(imageCount) { null }
-    return List(imageCount) { index -> fromModel.getOrNull(index) }
 }

@@ -31,6 +31,7 @@ All commands require `JAVA_HOME` and `ANDROID_HOME` to be set (already in `~/.ba
 ### Code conventions
 
 - **Use cases**: Each use case class exposes **exactly one** entry point named **`execute`**. Do not add extra public methods on use cases or pack unrelated behavior into them; keep each use case focused on a single responsibility. UI-held state (e.g. flags for a form) belongs in the **ViewModel / UI state models**, not in a use case.
+- **Product / architecture**: Prefer a **wider view of the app** over local patches. If the user’s request can be met more simply or more reliably elsewhere (e.g. another API call that already persists to the DB), **say so** and recommend the alternative even when it implies a larger or more invasive change.
 
 ### Notes
 

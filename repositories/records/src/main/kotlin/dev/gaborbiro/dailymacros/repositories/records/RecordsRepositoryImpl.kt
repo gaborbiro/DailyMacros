@@ -100,7 +100,6 @@ class RecordsRepositoryImpl(
                     templateId = templateId,
                     image = image,
                     sortOrder = index,
-                    coverPhoto = templateToSave.coverPhotoByImageIndex.getOrNull(index),
                 )
             )
         }
@@ -188,6 +187,15 @@ class RecordsRepositoryImpl(
                 templateId = templateId
             )
             templatesDAO.insertOrUpdate(topContributorsEntity)
+
+            if (coverPhotoByImageIndex != null) {
+                val rows = templatesDAO.getImagesForTemplate(templateId).sortedBy { it.sortOrder }
+                rows.forEachIndexed { index, row ->
+                    templatesDAO.upsertImage(
+                        row.copy(coverPhoto = coverPhotoByImageIndex.getOrNull(index))
+                    )
+                }
+            }
         }
     }
 
