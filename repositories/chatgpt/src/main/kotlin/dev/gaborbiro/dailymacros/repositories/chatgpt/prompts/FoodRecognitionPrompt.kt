@@ -121,13 +121,13 @@ internal fun ChatGPTResponse.toFoodRecognitionResponse(imageCount: Int): FoodRec
         ?: FoodRecognitionResult(
             title = null,
             description = null,
-            coverPhotoByImageIndex = List(imageCount) { false },
+            coverPhotoByImageIndex = List(imageCount) { null },
             cachedTokens = cachedTokens,
         )
 }
 
-private fun normalizeCoverPhotoFlags(imageCount: Int, fromModel: List<Boolean>?): List<Boolean> {
+private fun normalizeCoverPhotoFlags(imageCount: Int, fromModel: List<Boolean>?): List<Boolean?> {
     if (imageCount <= 0) return emptyList()
-    val raw = fromModel.orEmpty()
-    return List(imageCount) { index -> raw.getOrNull(index) ?: false }
+    if (fromModel == null) return List(imageCount) { null }
+    return List(imageCount) { index -> fromModel.getOrNull(index) }
 }

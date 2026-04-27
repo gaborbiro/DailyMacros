@@ -3,7 +3,7 @@ package dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model
 data class FoodRecognitionResult(
     val title: String?,
     val description: String?,
-    /** One flag per submitted photo index (0..n-1); from model `cover_photo` array. */
-    val coverPhotoByImageIndex: List<Boolean>,
+    /** One entry per submitted photo index; null when model omitted `cover_photo` or that index. */
+    val coverPhotoByImageIndex: List<Boolean?>,
     val cachedTokens: Int,
 )

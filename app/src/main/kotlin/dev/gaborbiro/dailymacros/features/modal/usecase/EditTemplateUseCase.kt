@@ -11,7 +11,7 @@ internal class EditTemplateUseCase(
         images: List<String>,
         title: String,
         description: String,
-        coverPhotoByImageIndex: List<Boolean>? = null,
+        coverPhotoByImageIndex: List<Boolean?>? = null,
     ) {
         repository.updateTemplate(
             templateId = templateId,

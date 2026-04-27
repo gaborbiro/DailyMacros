@@ -13,7 +13,7 @@ internal class CreateRecordWithNewTemplateUseCase(
         images: List<String>,
         title: String,
         description: String,
-        coverPhotoByImageIndex: List<Boolean> = emptyList(),
+        coverPhotoByImageIndex: List<Boolean?> = emptyList(),
     ): Long {
         val templateId = createTemplateUseCase.execute(
             images = images,

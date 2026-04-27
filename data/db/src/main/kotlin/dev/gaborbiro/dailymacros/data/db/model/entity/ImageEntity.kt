@@ -25,8 +25,11 @@ data class ImageEntity(
     @ColumnInfo(name = COLUMN_TEMPLATE_ID) val templateId: Long,
     val image: String,
     val sortOrder: Int,
-    /** From food recognition: true when the photo shows the dish or food in it (not e.g. label-only). */
-    val coverPhoto: Boolean = false,
+    /**
+     * From food recognition when available: true/false per model.
+     * Null means never classified (no usable recognition for this row).
+     */
+    val coverPhoto: Boolean? = null,
 ) : BaseEntity() {
     companion object {
         const val COLUMN_TEMPLATE_ID = "templateId"

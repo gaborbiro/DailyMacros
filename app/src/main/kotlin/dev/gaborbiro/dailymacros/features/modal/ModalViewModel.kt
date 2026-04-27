@@ -470,7 +470,8 @@ internal class ModalViewModel(
                     images = images,
                     title = title,
                     description = description,
-                    coverPhotoByImageIndex = foodRecognitionUseCase.consumeCoverPhotoFlagsForSave(images),
+                    coverPhotoByImageIndex = foodRecognitionUseCase.consumeCoverPhotoFlagsForSave(images)
+                        ?: emptyList(),
                 )
                 DiaryWidgetScreen.reload()
                 GetMacrosWorker.setWorkRequest(
@@ -515,7 +516,7 @@ internal class ModalViewModel(
                     description = description,
                     coverPhotoByImageIndex = foodRecognitionUseCase.consumeCoverPhotoFlagsForSave(
                         dialogHandle.images,
-                    ),
+                    ) ?: emptyList(),
                 )
                 DiaryWidgetScreen.reload()
                 GetMacrosWorker.setWorkRequest(
@@ -545,7 +546,8 @@ internal class ModalViewModel(
                 val images = it.images
                 val title = it.title
                 val description = it.description
-                val coverFlags = foodRecognitionUseCase.consumeCoverPhotoFlagsForSave(images)
+                val coverFlags =
+                    foodRecognitionUseCase.consumeCoverPhotoFlagsForSave(images) ?: emptyList()
                 runSafely {
                     when (target) {
                         ChangeImagesTarget.RECORD -> {
