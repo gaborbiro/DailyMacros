@@ -30,6 +30,7 @@ All commands require `JAVA_HOME` and `ANDROID_HOME` to be set (already in `~/.ba
 
 ### Code conventions
 
+- **Room database version**: Do **not** bump `AppDatabase` **`version`** or add a new **`Migration(n, n+1)`** while a change set is still on an **unmerged** branch or PR. Fold all schema edits for that work into the **single** migration that will ship with the merge (e.g. extend the existing `9 → 10` step instead of adding `10 → 11`). After merge to `master`, the next feature may introduce a new version/migration as usual. (If you already ran an older draft migration locally, clear app data or uninstall once before retesting.)
 - **Use cases**: Each use case class exposes **exactly one** entry point named **`execute`**. Do not add extra public methods on use cases or pack unrelated behavior into them; keep each use case focused on a single responsibility. UI-held state (e.g. flags for a form) belongs in the **ViewModel / UI state models**, not in a use case.
 - **Product / architecture**: Prefer a **wider view of the app** over local patches. If the user’s request can be met more simply or more reliably elsewhere (e.g. another API call that already persists to the DB), **say so** and recommend the alternative even when it implies a larger or more invasive change.
 
