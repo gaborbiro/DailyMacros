@@ -155,18 +155,6 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(imageCount: Int): Nutrie
         @SerializedName("error") val error: String?,
     )
 
-    if (resultJson.isNullOrBlank()) {
-        return NutrientAnalysisResult(
-            nutrients = null,
-            title = null,
-            notes = null,
-            components = emptyList(),
-            coverPhotoByImageIndex = List(imageCount.coerceAtLeast(0)) { null },
-            cachedTokens = cachedTokens,
-            error = null,
-        )
-    }
-
     val response = gson.fromJson(resultJson, Response::class.java)
 
     fun map(nutrient: Nutrient?): NutrientApiModel {
