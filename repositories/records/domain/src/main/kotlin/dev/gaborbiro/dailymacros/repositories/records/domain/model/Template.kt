@@ -3,6 +3,8 @@ package dev.gaborbiro.dailymacros.repositories.records.domain.model
 data class Template(
     val dbId: Long,
     val images: List<String>,
+    /** Same order as [images]; null = never classified (legacy row or no analysis). */
+    val isRepresentativeOfMealByImageIndex: List<Boolean?>,
     val name: String,
     val description: String,
     val isPending: Boolean,

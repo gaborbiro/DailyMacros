@@ -58,6 +58,8 @@ interface RecordsRepository {
         name: String? = null,
         description: String? = null,
         images: List<String>? = null,
+        /** When [images] is non-null; null entry = DB null; param null = all DB null for new rows. */
+        isRepresentativeOfMealByImageIndex: List<Boolean?>? = null,
         nutrients: Pair<TemplateNutrientBreakdown, TopContributors>? = null,
         notes: String? = null,
         /** When non-null and [nutrients] is non-null, replaces stored analysis components. When null, preserves existing JSON. */

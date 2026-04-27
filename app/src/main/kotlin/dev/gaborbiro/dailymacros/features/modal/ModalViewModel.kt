@@ -446,7 +446,7 @@ internal class ModalViewModel(
     }
 
     private suspend fun handleCreateRecordDetailsSubmitted(
-        dialogHandle: DialogHandle.RecordDetailsDialog,
+        dialogHandle: DialogHandle.RecordDetailsDialog.Edit,
     ) {
         val title = dialogHandle.title.text.trim()
         val description = dialogHandle.description.text.trim()

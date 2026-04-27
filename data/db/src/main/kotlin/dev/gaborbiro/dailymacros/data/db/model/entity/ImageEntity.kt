@@ -25,6 +25,11 @@ data class ImageEntity(
     @ColumnInfo(name = COLUMN_TEMPLATE_ID) val templateId: Long,
     val image: String,
     val sortOrder: Int,
+    /**
+     * From nutrient analysis when available: whether this photo represents the meal (vs label-only, etc.).
+     * Null means never classified.
+     */
+    val isRepresentativeMealPhoto: Boolean? = null,
 ) : BaseEntity() {
     companion object {
         const val COLUMN_TEMPLATE_ID = "templateId"

@@ -134,6 +134,7 @@ class RecordsRepositoryImpl(
         name: String?, /* = null */
         description: String?, /* = null */
         images: List<String>?, /* = null */
+        isRepresentativeOfMealByImageIndex: List<Boolean?>?,
         nutrients: Pair<TemplateNutrientBreakdown, TopContributors>?, /* = null */
         notes: String?, /* = null */
         mealComponents: List<MealComponent>?,
@@ -147,7 +148,7 @@ class RecordsRepositoryImpl(
             ).apply { id = templateId }
         )
 
-        if (name == null && description == null && images == null && nutrients == null && notes == null && mealComponents == null) {
+        if (name == null && description == null && images == null && nutrients == null && notes == null && mealComponents == null && isRepresentativeOfMealByImageIndex == null) {
             return
         }
 
@@ -159,6 +160,7 @@ class RecordsRepositoryImpl(
                         templateId = templateId,
                         image = image,
                         sortOrder = index,
+                        isRepresentativeMealPhoto = isRepresentativeOfMealByImageIndex?.getOrNull(index),
                     )
                 )
             }
@@ -185,6 +187,15 @@ class RecordsRepositoryImpl(
                 templateId = templateId
             )
             templatesDAO.insertOrUpdate(topContributorsEntity)
+
+            if (isRepresentativeOfMealByImageIndex != null) {
+                val rows = templatesDAO.getImagesForTemplate(templateId).sortedBy { it.sortOrder }
+                rows.forEachIndexed { index, row ->
+                    templatesDAO.upsertImage(
+                        row.copy(isRepresentativeMealPhoto = isRepresentativeOfMealByImageIndex.getOrNull(index))
+                    )
+                }
+            }
         }
     }
 

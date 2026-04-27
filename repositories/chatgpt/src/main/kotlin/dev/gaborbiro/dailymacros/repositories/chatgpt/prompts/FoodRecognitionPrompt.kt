@@ -76,12 +76,10 @@ internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionResult 
 
     val cachedTokens = this.usage.inputTokensDetails.cachedTokens
 
-    // temporary helper class
-
     class FoodDescription(
         @SerializedName("title") val title: String?,
         @SerializedName("description") val description: String?,
-        @SerializedName("components") val components: List<Component>,
+        @SerializedName("components") val components: List<Component>?,
         @SerializedName("error") val error: String?,
     )
 
@@ -91,7 +89,8 @@ internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionResult 
             if (foodDescription.error != null) {
                 throw ChatGPTApiError.GenericApiError(foodDescription.error)
             }
-            val componentStr = foodDescription.components.joinToString("\n") { component ->
+            val components = foodDescription.components.orEmpty()
+            val componentStr = components.joinToString("\n") { component ->
                 val confidence = when (component.confidence) {
                     "medium" -> "?"
                     "low" -> "??"

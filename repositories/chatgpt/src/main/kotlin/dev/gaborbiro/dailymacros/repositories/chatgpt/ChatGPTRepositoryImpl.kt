@@ -36,7 +36,7 @@ class ChatGPTRepositoryImpl(
                 request = request.toApiModel(),
             )
             return@runCatching parse(response)
-                .toNutrientAnalysisResponse()
+                .toNutrientAnalysisResponse(imageCount = request.base64Images.size)
         }
     }
 
