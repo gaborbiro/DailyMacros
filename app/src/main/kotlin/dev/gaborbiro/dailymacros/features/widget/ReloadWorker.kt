@@ -33,7 +33,6 @@ internal class ReloadWorker(
         RecordsRepositoryImpl(
             templatesDAO = database.templatesDAO(),
             recordsDAO = database.recordsDAO(),
-            variabilityDao = database.variabilityDao(),
             mapper = RecordsApiMapper(),
             imageStore = ImageStoreImpl(fileStore),
             analyticsLogger = analyticsLogger,

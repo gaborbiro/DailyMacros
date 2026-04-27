@@ -68,7 +68,6 @@ class GetMacrosWorker(
         RecordsRepositoryImpl(
             templatesDAO = database.templatesDAO(),
             recordsDAO = database.recordsDAO(),
-            variabilityDao = database.variabilityDao(),
             mapper = RecordsApiMapper(),
             imageStore = imageStore,
             analyticsLogger = analyticsLogger,

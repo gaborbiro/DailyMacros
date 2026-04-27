@@ -3,7 +3,6 @@ package dev.gaborbiro.dailymacros.repositories.records
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.db.RecordsDAO
 import dev.gaborbiro.dailymacros.data.db.TemplatesDAO
-import dev.gaborbiro.dailymacros.data.db.VariabilityDao
 import dev.gaborbiro.dailymacros.data.db.model.RecordJoined
 import dev.gaborbiro.dailymacros.data.db.model.entity.ImageEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.MacrosEntity
@@ -28,7 +27,6 @@ import java.time.ZonedDateTime
 class RecordsRepositoryImpl(
     private val templatesDAO: TemplatesDAO,
     private val recordsDAO: RecordsDAO,
-    private val variabilityDao: VariabilityDao,
     private val mapper: RecordsApiMapper,
     private val imageStore: ImageStore,
     private val analyticsLogger: AnalyticsLogger,
@@ -42,9 +40,6 @@ class RecordsRepositoryImpl(
 
     override suspend fun getRecentRecords(limit: Int): List<Record> =
         recordsDAO.getRecent(limit).map(mapper::map)
-
-    override suspend fun getLatestVariabilityProfileJson(): String? =
-        variabilityDao.getLatestProfileJson()
 
     override fun getMostRecentRecord(): Record? {
         return recordsDAO.getMostRecentRecord()

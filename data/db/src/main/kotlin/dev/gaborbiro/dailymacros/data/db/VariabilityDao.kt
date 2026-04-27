@@ -13,8 +13,8 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.VariabilityVariantEvidence
 @Dao
 abstract class VariabilityDao {
 
-    @Query("SELECT profileJson FROM variability_snapshots ORDER BY minedAtEpochMs DESC LIMIT 1")
-    abstract suspend fun getLatestProfileJson(): String?
+    @Query("SELECT * FROM variability_snapshots ORDER BY minedAtEpochMs DESC LIMIT 1")
+    abstract suspend fun getLatestSnapshot(): VariabilitySnapshotEntity?
 
     @Query("DELETE FROM variability_snapshots")
     abstract suspend fun deleteAllSnapshots()

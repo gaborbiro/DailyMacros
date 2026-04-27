@@ -121,7 +121,6 @@ class ModalActivity : AppCompatActivity() {
         val recordsRepository = RecordsRepositoryImpl(
             templatesDAO = db.templatesDAO(),
             recordsDAO = db.recordsDAO(),
-            variabilityDao = db.variabilityDao(),
             mapper = RecordsApiMapper(),
             imageStore = imageStore,
             analyticsLogger = analyticsLogger,
