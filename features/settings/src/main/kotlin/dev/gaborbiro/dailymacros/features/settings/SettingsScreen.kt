@@ -37,6 +37,7 @@ fun SettingsScreen(
         onTargetsSettingTapped = settingsViewModel::onTargetsSettingsTapped,
         onExportSettingTapped = settingsViewModel::onExportSettingsTapped,
         onVariabilityMiningPreviewTapped = settingsViewModel::onVariabilityMiningPreviewTapped,
+        onClearVariabilityProfileTapped = settingsViewModel::onClearVariabilityProfileTapped,
         onCopyVariabilityRequestJson = settingsViewModel::onCopyVariabilityRequestJson,
         onCopyVariabilityResponseJson = settingsViewModel::onCopyVariabilityResponseJson,
         onVariabilityMiningRequestJsonExpansionBitsChange =

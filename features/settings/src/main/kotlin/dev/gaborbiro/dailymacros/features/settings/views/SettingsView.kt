@@ -20,6 +20,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -49,6 +50,7 @@ internal fun SettingsView(
     onTargetsSettingTapped: () -> Unit,
     onExportSettingTapped: () -> Unit,
     onVariabilityMiningPreviewTapped: () -> Unit,
+    onClearVariabilityProfileTapped: () -> Unit,
     onCopyVariabilityRequestJson: () -> Unit,
     onCopyVariabilityResponseJson: () -> Unit,
     onVariabilityMiningRequestJsonExpansionBitsChange: (String) -> Unit,
@@ -103,6 +105,15 @@ internal fun SettingsView(
                 enabled = !viewState.variabilityMiningLoading,
             ) {
                 Text("Preview meal variability (AI)")
+            }
+            OutlinedButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                onClick = onClearVariabilityProfileTapped,
+                enabled = !viewState.variabilityMiningLoading,
+            ) {
+                Text("Clear meal variability profile")
             }
             if (viewState.variabilityMiningLoading) {
                 CircularProgressIndicator(
@@ -246,6 +257,7 @@ private fun SettingsViewPreview() {
             onTargetsSettingTapped = {},
             onExportSettingTapped = {},
             onVariabilityMiningPreviewTapped = {},
+            onClearVariabilityProfileTapped = {},
             onCopyVariabilityRequestJson = {},
             onCopyVariabilityResponseJson = {},
             onVariabilityMiningRequestJsonExpansionBitsChange = {},

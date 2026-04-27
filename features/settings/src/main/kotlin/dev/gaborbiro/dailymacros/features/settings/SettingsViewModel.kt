@@ -10,6 +10,7 @@ import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDia
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
 import dev.gaborbiro.dailymacros.features.settings.variability.MineMealVariabilityPreviewUseCase
+import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -29,6 +30,7 @@ class SettingsViewModel(
     private val settingsPrefs: SettingsPrefs,
     private val exportFoodDiaryUseCase: ExportFoodDiaryUseCase,
     private val mineMealVariabilityPreviewUseCase: MineMealVariabilityPreviewUseCase,
+    private val variabilityRepository: VariabilityRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -120,6 +122,35 @@ class SettingsViewModel(
                             variabilityMiningLoading = false,
                             variabilityMiningError = t.message ?: t.toString(),
                         )
+                    }
+                }
+        }
+    }
+
+    fun onClearVariabilityProfileTapped() {
+        viewModelScope.launch {
+            runCatching {
+                variabilityRepository.clearProfile()
+                settingsPrefs.clearVariabilityMiningDebugCache()
+            }
+                .onSuccess {
+                    _uiState.update {
+                        it.copy(
+                            variabilityMiningRequestJson = null,
+                            variabilityMiningResponseJson = null,
+                            variabilityMiningGeneratedAt = null,
+                            variabilityMiningRequestJsonExpansionBits = "",
+                            variabilityMiningResponseJsonExpansionBits = "",
+                            variabilityMiningRequestJsonSectionExpanded = false,
+                            variabilityMiningResponseJsonSectionExpanded = false,
+                            variabilityMiningError = null,
+                        )
+                    }
+                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Meal variability profile cleared"))
+                }
+                .onFailure { t ->
+                    _uiState.update {
+                        it.copy(variabilityMiningError = t.message ?: t.toString())
                     }
                 }
         }

@@ -26,4 +26,8 @@ class VariabilityRepositoryImpl(
     override suspend fun replaceProfileFromModelJson(profileJson: String, minedAtEpochMs: Long) {
         replaceProfile(profileMapper.parseProfileJson(profileJson, minedAtEpochMs))
     }
+
+    override suspend fun clearProfile() {
+        variabilityDao.deleteAllSnapshots()
+    }
 }

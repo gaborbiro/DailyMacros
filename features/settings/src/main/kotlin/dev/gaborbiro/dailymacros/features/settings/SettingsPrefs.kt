@@ -43,6 +43,18 @@ class SettingsPrefs(
         get() = prefs.getBoolean(KEY_VARIABILITY_MINING_RESPONSE_JSON_SECTION_EXPANDED, false)
         set(value) = prefs.edit { putBoolean(KEY_VARIABILITY_MINING_RESPONSE_JSON_SECTION_EXPANDED, value) }
 
+    fun clearVariabilityMiningDebugCache() {
+        prefs.edit {
+            remove(KEY_VARIABILITY_MINING_REQUEST_JSON)
+            remove(KEY_VARIABILITY_MINING_RESPONSE_JSON)
+            putLong(KEY_VARIABILITY_MINING_GENERATED_AT_EPOCH_MS, 0L)
+            putString(KEY_VARIABILITY_MINING_REQUEST_JSON_EXPANSION_BITS, "")
+            putString(KEY_VARIABILITY_MINING_RESPONSE_JSON_EXPANSION_BITS, "")
+            putBoolean(KEY_VARIABILITY_MINING_REQUEST_JSON_SECTION_EXPANDED, false)
+            putBoolean(KEY_VARIABILITY_MINING_RESPONSE_JSON_SECTION_EXPANDED, false)
+        }
+    }
+
     private companion object {
         private const val KEY_VARIABILITY_MINING_REQUEST_JSON = "variability_mining_request_json_1"
         private const val KEY_VARIABILITY_MINING_RESPONSE_JSON = "variability_mining_response_json_1"

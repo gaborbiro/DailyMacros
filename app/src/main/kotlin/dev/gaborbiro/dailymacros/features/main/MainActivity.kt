@@ -202,6 +202,7 @@ class MainActivity : ComponentActivity() {
                         settingsPrefs = settingsPrefs,
                         exportFoodDiaryUseCase = exportFoodDiaryUseCase,
                         mineMealVariabilityPreviewUseCase = mineMealVariabilityPreviewUseCase,
+                        variabilityRepository = variabilityRepository,
                     )
                 }
                 val targetsSettingsViewModel = viewModelFactory {
