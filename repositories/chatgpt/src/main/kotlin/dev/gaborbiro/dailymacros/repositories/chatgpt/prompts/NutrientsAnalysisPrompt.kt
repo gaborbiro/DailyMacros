@@ -92,10 +92,10 @@ Output format:
   ],
   "title": "",
   "notes": "",
-  "cover_photo": [ true, false ]
+  "representative_of_meal": [ true, false ]
 }
 
-The "cover_photo" array MUST have the same length and order as the user-submitted meal photos (index 0 = first photo). Each entry is true if that photo clearly shows the prepared dish or at least some food that belongs to that dish; false for nutrition labels only, packaging-only shots, unrelated scenes, receipts, people, empty plates, or when unclear. If you omit "cover_photo", every image is treated as unknown for cover classification downstream.
+The "representative_of_meal" array MUST have the same length and order as the user-submitted meal photos (index 0 = first photo). Each entry is true if that photo clearly shows the prepared dish or at least some food that belongs to that dish; false for nutrition labels only, packaging-only shots, unrelated scenes, receipts, people, empty plates, or when unclear. If you omit "representative_of_meal", every image is treated as unknown for that classification downstream.
 
 In topContributorIngredients list out those ingredients that meaningfully contributed to the estimation, in decreasing order of significance. Be brief, For ex "bread" instead of "whole-grain sourdough bread".
 
@@ -151,7 +151,7 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(imageCount: Int): Nutrie
         @SerializedName("title") val title: String?,
         @SerializedName("notes") val notes: String?,
         @SerializedName("components") val components: List<Component>?,
-        @SerializedName("cover_photo") val coverPhoto: List<Boolean>?,
+        @SerializedName("representative_of_meal") val representativeOfMeal: List<Boolean>?,
         @SerializedName("error") val error: String?,
     )
 
@@ -201,20 +201,21 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(imageCount: Int): Nutrie
         componentStr?.let { "Components:\n$it" }
     )
 
-    val coverFlags = normalizeNutrientCoverPhotoFlags(imageCount, response.coverPhoto)
+    val representativeFlags =
+        normalizeRepresentativeOfMealFlags(imageCount, response.representativeOfMeal)
 
     return NutrientAnalysisResult(
         nutrients = nutrients,
         title = response.title,
         notes = notesItems.joinToString("\n").takeIf { it.isNotBlank() },
         components = structuredComponents,
-        coverPhotoByImageIndex = coverFlags,
+        isRepresentativeOfMealByImageIndex = representativeFlags,
         cachedTokens = cachedTokens,
         error = response.error,
     )
 }
 
-private fun normalizeNutrientCoverPhotoFlags(imageCount: Int, fromModel: List<Boolean>?): List<Boolean?> {
+private fun normalizeRepresentativeOfMealFlags(imageCount: Int, fromModel: List<Boolean>?): List<Boolean?> {
     if (imageCount <= 0) return emptyList()
     if (fromModel == null) return List(imageCount) { null }
     return List(imageCount) { index -> fromModel.getOrNull(index) }

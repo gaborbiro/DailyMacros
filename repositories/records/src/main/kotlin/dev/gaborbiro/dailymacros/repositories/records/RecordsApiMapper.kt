@@ -24,11 +24,11 @@ class RecordsApiMapper {
     fun map(template: TemplateJoined): Template {
         val ordered = template.images.sortedBy { it.sortOrder }
         val orderedImages = ordered.map { it.image }
-        val coverFlags = ordered.map { it.coverPhoto }
+        val representativeFlags = ordered.map { it.isRepresentativeMealPhoto }
         return Template(
             dbId = requireNotNull(template.entity.id) { "Template db id null" },
             images = orderedImages,
-            coverPhotoByImageIndex = coverFlags,
+            isRepresentativeOfMealByImageIndex = representativeFlags,
             name = template.entity.name,
             description = template.entity.description,
             nutrients = template.macros?.let(::map) ?: TemplateNutrientBreakdown(),

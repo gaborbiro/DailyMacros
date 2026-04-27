@@ -26,10 +26,10 @@ data class ImageEntity(
     val image: String,
     val sortOrder: Int,
     /**
-     * From food recognition when available: true/false per model.
-     * Null means never classified (no usable recognition for this row).
+     * From nutrient analysis when available: whether this photo represents the meal (vs label-only, etc.).
+     * Null means never classified.
      */
-    val coverPhoto: Boolean? = null,
+    val isRepresentativeMealPhoto: Boolean? = null,
 ) : BaseEntity() {
     companion object {
         const val COLUMN_TEMPLATE_ID = "templateId"

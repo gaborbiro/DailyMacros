@@ -134,7 +134,7 @@ class RecordsRepositoryImpl(
         name: String?, /* = null */
         description: String?, /* = null */
         images: List<String>?, /* = null */
-        coverPhotoByImageIndex: List<Boolean?>?,
+        isRepresentativeOfMealByImageIndex: List<Boolean?>?,
         nutrients: Pair<TemplateNutrientBreakdown, TopContributors>?, /* = null */
         notes: String?, /* = null */
         mealComponents: List<MealComponent>?,
@@ -148,7 +148,7 @@ class RecordsRepositoryImpl(
             ).apply { id = templateId }
         )
 
-        if (name == null && description == null && images == null && nutrients == null && notes == null && mealComponents == null && coverPhotoByImageIndex == null) {
+        if (name == null && description == null && images == null && nutrients == null && notes == null && mealComponents == null && isRepresentativeOfMealByImageIndex == null) {
             return
         }
 
@@ -160,7 +160,7 @@ class RecordsRepositoryImpl(
                         templateId = templateId,
                         image = image,
                         sortOrder = index,
-                        coverPhoto = coverPhotoByImageIndex?.getOrNull(index),
+                        isRepresentativeMealPhoto = isRepresentativeOfMealByImageIndex?.getOrNull(index),
                     )
                 )
             }
@@ -188,11 +188,11 @@ class RecordsRepositoryImpl(
             )
             templatesDAO.insertOrUpdate(topContributorsEntity)
 
-            if (coverPhotoByImageIndex != null) {
+            if (isRepresentativeOfMealByImageIndex != null) {
                 val rows = templatesDAO.getImagesForTemplate(templateId).sortedBy { it.sortOrder }
                 rows.forEachIndexed { index, row ->
                     templatesDAO.upsertImage(
-                        row.copy(coverPhoto = coverPhotoByImageIndex.getOrNull(index))
+                        row.copy(isRepresentativeMealPhoto = isRepresentativeOfMealByImageIndex.getOrNull(index))
                     )
                 }
             }
