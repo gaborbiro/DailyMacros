@@ -182,6 +182,7 @@ class GetMacrosWorker(
             } else {
                 nutrientAnalysisUseCase.execute(
                     recordId = recordId,
+                    notifyOnFailure = true,
                 )
                 cancelWorkRequest(
                     appContext = applicationContext,

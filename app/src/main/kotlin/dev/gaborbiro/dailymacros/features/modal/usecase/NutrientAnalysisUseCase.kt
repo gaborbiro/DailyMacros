@@ -7,10 +7,12 @@ import dev.gaborbiro.dailymacros.features.common.RecordsMapper
 import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.features.modal.ModalUiMapper
+import dev.gaborbiro.dailymacros.features.modal.message
 import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
 import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.chatgpt.BuildConfig
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.DomainError
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.MealAnalysisComponent
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repositories.chatgpt.toDomainModel
@@ -36,6 +38,8 @@ internal class NutrientAnalysisUseCase(
 
     suspend fun execute(
         recordId: Long,
+        /** When true (e.g. [GetMacrosWorker]), show a high-importance notification if the API fails. */
+        notifyOnFailure: Boolean = false,
     ) {
         val record: Record = recordsRepository.get(recordId)!!
         try {
@@ -127,9 +131,31 @@ internal class NutrientAnalysisUseCase(
                     }
             }
         } catch (apiError: ChatGPTApiError) {
-            throw apiError
-                .toDomainModel()
+            val domainError = apiError.toDomainModel()
+            if (notifyOnFailure) {
+                appContext.showMacroResultsNotification(
+                    id = 123000L + recordId,
+                    recordId = recordId,
+                    title = "Couldn't fetch macros",
+                    message = domainError.message(),
+                    isError = true,
+                )
+            }
+            throw domainError
         } catch (t: Throwable) {
+            if (notifyOnFailure) {
+                val message = (t as? DomainError)?.message()
+                    ?: t.message
+                    ?: t.cause?.message
+                    ?: "Something went wrong while fetching macros. Please try again later."
+                appContext.showMacroResultsNotification(
+                    id = 123000L + recordId,
+                    recordId = recordId,
+                    title = "Couldn't fetch macros",
+                    message = message,
+                    isError = true,
+                )
+            }
             throw t
         } finally {
             requestStatusRepository.unmark(record.template.dbId)

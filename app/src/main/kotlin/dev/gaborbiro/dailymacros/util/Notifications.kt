@@ -59,6 +59,9 @@ fun Context.showMacroResultsNotification(
     var builder = NotificationCompat.Builder(this, if (isError) CHANNEL_ID_ERROR else CHANNEL_ID_GENERAL)
         .setSmallIcon(R.drawable.ic_nutrition)
         .setContentIntent(openRecordDetailsIntent(recordId))
+    title?.takeIf { it.isNotBlank() }?.let {
+        builder = builder.setContentTitle(it)
+    }
     message?.let {
         builder = builder.setContentText(message)
             .setStyle(
