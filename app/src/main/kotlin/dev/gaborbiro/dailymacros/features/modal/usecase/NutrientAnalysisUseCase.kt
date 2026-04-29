@@ -23,7 +23,6 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
-import dev.gaborbiro.dailymacros.util.CHANNEL_ID_MACRO_FETCH_ERROR
 import dev.gaborbiro.dailymacros.util.showMacroResultsNotification
 import ellipsize
 
@@ -140,7 +139,6 @@ internal class NutrientAnalysisUseCase(
                     title = "Couldn't fetch macros",
                     message = domainError.message(),
                     isError = true,
-                    notificationChannelId = CHANNEL_ID_MACRO_FETCH_ERROR,
                 )
             }
             throw domainError
@@ -156,7 +154,6 @@ internal class NutrientAnalysisUseCase(
                     title = "Couldn't fetch macros",
                     message = message,
                     isError = true,
-                    notificationChannelId = CHANNEL_ID_MACRO_FETCH_ERROR,
                 )
             }
             throw t

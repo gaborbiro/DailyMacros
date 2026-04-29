@@ -12,7 +12,6 @@ import dev.gaborbiro.dailymacros.features.modal.getViewRecordDetailsIntent
 private const val CHANNEL_ID_GENERAL = "general"
 const val CHANNEL_ID_ERROR = "error"
 /** High-importance channel only for failed background macro / AI nutrient requests (e.g. [GetMacrosWorker]). */
-const val CHANNEL_ID_MACRO_FETCH_ERROR = "macro_fetch_error"
 const val CHANNEL_ID_FOREGROUND = "foreground"
 
 fun Context.createNotificationChannels() {
@@ -30,15 +29,6 @@ fun Context.createNotificationChannels() {
     ).also {
         it.setShowBadge(false)
     }
-    val macroFetchErrorChannel = NotificationChannel(
-        CHANNEL_ID_MACRO_FETCH_ERROR,
-        "Macro fetch failures",
-        NotificationManager.IMPORTANCE_HIGH
-    ).apply {
-        setShowBadge(false)
-        description =
-            "Shown when macro nutrients could not be fetched in the background (for example after adding a meal), including AI or network errors."
-    }
     val foregroundChannel = NotificationChannel(
         CHANNEL_ID_FOREGROUND,
         "Background process",
@@ -55,7 +45,6 @@ fun Context.createNotificationChannels() {
         listOf(
             generalChannel,
             errorChannel,
-            macroFetchErrorChannel,
             foregroundChannel,
         )
     )
@@ -67,14 +56,8 @@ fun Context.showMacroResultsNotification(
     title: String?,
     message: String?,
     isError: Boolean,
-    /**
-     * When non-null, this channel id is used instead of the default mapping from [isError].
-     * Use [CHANNEL_ID_MACRO_FETCH_ERROR] for background worker failures so users can tune that category separately.
-     */
-    notificationChannelId: String? = null,
 ) {
-    val channelId = notificationChannelId
-        ?: if (isError) CHANNEL_ID_ERROR else CHANNEL_ID_GENERAL
+    val channelId = if (isError) CHANNEL_ID_ERROR else CHANNEL_ID_GENERAL
     var builder = NotificationCompat.Builder(this, channelId)
         .setSmallIcon(R.drawable.ic_nutrition)
         .setContentIntent(openRecordDetailsIntent(recordId))
