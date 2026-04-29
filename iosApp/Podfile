@@ -1,0 +1,6 @@
+platform :ios, '15.0'
+
+target 'DailyMacrosApp' do
+  use_frameworks!
+  pod 'DailyMacrosShared', :path => '../shared'
+end

@@ -71,6 +71,10 @@ lint/intermediates/
 lint/generated/
 lint/outputs/
 lint/tmp/
+
+# CocoaPods (generated on macOS CI / local Xcode)
+iosApp/Pods/
+
 # lint/reports/
 
 # Maven

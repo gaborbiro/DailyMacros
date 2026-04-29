@@ -20,6 +20,7 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "DailyMacros"
+include(":shared")
 include(":app")
 include(":core:analytics")
 include(":core:design")
