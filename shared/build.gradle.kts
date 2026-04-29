@@ -24,5 +24,5 @@ kotlin {
 
 // iOS + CocoaPods only configure on macOS (Kotlin/Native). Keeps Linux/Android CI valid.
 if (System.getProperty("os.name").lowercase().contains("mac")) {
-    apply(from = "sharedIos.gradle.kts")
+    apply(from = "sharedIos.gradle")
 }

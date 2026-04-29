@@ -1,11 +1,11 @@
-plugins {
-    id("org.jetbrains.kotlin.native.cocoapods") version "2.3.20"
-}
+// macOS only — applied from shared/build.gradle.kts when os.name contains "mac".
+// Applied scripts cannot use plugins {} or compile kotlin {} as Kotlin DSL (isolated classpath).
+
+plugins.apply("org.jetbrains.kotlin.native.cocoapods")
 
 kotlin {
     iosArm64()
     iosSimulatorArm64()
-
     cocoapods {
         podfile = rootProject.file("iosApp/Podfile")
         version = "1.0.0"

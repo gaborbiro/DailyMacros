@@ -25,7 +25,7 @@ All commands require `JAVA_HOME` and `ANDROID_HOME` to be set (already in `~/.ba
 
 ### Kotlin Multiplatform / iOS shell
 
-- **`shared/`**: Kotlin Multiplatform library (`commonMain` + Android via `com.android.kotlin.multiplatform.library`). **iOS targets and CocoaPods** are applied only on **macOS** (`shared/sharedIos.gradle.kts`), so Linux/Android CI stays unchanged.
+- **`shared/`**: Kotlin Multiplatform library (`commonMain` + Android via `com.android.kotlin.multiplatform.library`). **iOS targets and CocoaPods** are applied only on **macOS** (`shared/sharedIos.gradle`), so Linux/Android CI stays unchanged.
 - **`iosApp/`**: Minimal SwiftUI app that consumes the **`Shared`** framework via CocoaPods (`pod 'DailyMacrosShared', :path => '../shared'`). Full Xcode integration runs **`pod install`** first (CI does this via `./gradlew :shared:podInstall`).
 - **Workflow** (`.github/workflows/ios.yml`): runs on **GitHub-hosted macOS**, installs CocoaPods, runs **`podInstall`**, then **`xcodebuild`** for the **iOS Simulator** (unsigned smoke build). Putting builds on a physical iPhone or **TestFlight** requires Apple code signing credentials and extra steps (Apple Developer Program).
 
