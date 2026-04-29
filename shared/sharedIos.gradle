@@ -6,6 +6,8 @@ plugins.apply("org.jetbrains.kotlin.native.cocoapods")
 kotlin {
     iosArm64()
     iosSimulatorArm64()
+    // Intel Mac / legacy simulator slice — needed for GitHub-hosted macOS runners that use x86_64 simulators.
+    iosSimulatorX64()
     cocoapods {
         podfile = rootProject.file("iosApp/Podfile")
         version = "1.0.0"
