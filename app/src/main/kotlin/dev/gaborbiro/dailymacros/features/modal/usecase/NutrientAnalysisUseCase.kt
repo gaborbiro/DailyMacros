@@ -85,6 +85,9 @@ internal class NutrientAnalysisUseCase(
                     templateId = record.template.dbId,
                     // the user can start analysis without having specified a name
                     name = name,
+                    // Must pass filenames so image rows are (re)written with isRepresentativeMealPhoto;
+                    // the nutrients-only branch updates existing rows and skips when none exist yet.
+                    images = templateNutrients?.let { record.template.images },
                     nutrients = templateNutrients,
                     notes = nutrientsResponse.notes,
                     mealComponents = templateNutrients?.let { nutrientsResponse.components.toMealComponents() },
