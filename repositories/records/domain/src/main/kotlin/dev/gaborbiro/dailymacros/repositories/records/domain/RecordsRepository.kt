@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.repositories.records.domain
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
@@ -57,9 +58,8 @@ interface RecordsRepository {
         templateId: Long,
         name: String? = null,
         description: String? = null,
-        images: List<String>? = null,
-        /** When [images] is non-null; null entry = DB null; param null = all DB null for new rows. */
-        isRepresentativeOfMealByImageIndex: List<Boolean?>? = null,
+        /** When non-null, replaces all image rows for the template (order = list order). */
+        templateImages: List<TemplateImageUpdate>? = null,
         nutrients: Pair<TemplateNutrientBreakdown, TopContributors>? = null,
         notes: String? = null,
         /** When non-null and [nutrients] is non-null, replaces stored analysis components. When null, preserves existing JSON. */

@@ -15,6 +15,7 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
@@ -133,8 +134,7 @@ class RecordsRepositoryImpl(
         templateId: Long,
         name: String?, /* = null */
         description: String?, /* = null */
-        images: List<String>?, /* = null */
-        isRepresentativeOfMealByImageIndex: List<Boolean?>?,
+        templateImages: List<TemplateImageUpdate>?, /* = null */
         nutrients: Pair<TemplateNutrientBreakdown, TopContributors>?, /* = null */
         notes: String?, /* = null */
         mealComponents: List<MealComponent>?,
@@ -148,19 +148,19 @@ class RecordsRepositoryImpl(
             ).apply { id = templateId }
         )
 
-        if (name == null && description == null && images == null && nutrients == null && notes == null && mealComponents == null && isRepresentativeOfMealByImageIndex == null) {
+        if (name == null && description == null && templateImages == null && nutrients == null && notes == null && mealComponents == null) {
             return
         }
 
-        images?.let {
+        templateImages?.let { rows ->
             templatesDAO.deleteAllImagesForTemplate(templateId)
-            images.forEachIndexed { index, image ->
+            rows.forEachIndexed { index, row ->
                 templatesDAO.upsertImage(
                     ImageEntity(
                         templateId = templateId,
-                        image = image,
+                        image = row.filename,
                         sortOrder = index,
-                        isRepresentativeMealPhoto = isRepresentativeOfMealByImageIndex?.getOrNull(index),
+                        isRepresentativeMealPhoto = row.isRepresentativeOfMeal,
                     )
                 )
             }
@@ -187,15 +187,6 @@ class RecordsRepositoryImpl(
                 templateId = templateId
             )
             templatesDAO.insertOrUpdate(topContributorsEntity)
-
-            if (isRepresentativeOfMealByImageIndex != null) {
-                val rows = templatesDAO.getImagesForTemplate(templateId).sortedBy { it.sortOrder }
-                rows.forEachIndexed { index, row ->
-                    templatesDAO.upsertImage(
-                        row.copy(isRepresentativeMealPhoto = isRepresentativeOfMealByImageIndex.getOrNull(index))
-                    )
-                }
-            }
         }
     }
 

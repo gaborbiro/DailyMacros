@@ -21,6 +21,7 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusReposi
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.ComponentConfidence
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
 import dev.gaborbiro.dailymacros.util.showMacroResultsNotification
@@ -78,17 +79,22 @@ internal class NutrientAnalysisUseCase(
                     recordsMapper.map(nutrients.first) to nutrients.second
                 }
                 val name = record.template.name.takeIf { it.isNotBlank() } ?: nutrientsResponse.title
-                val representativeForDb = List(record.template.images.size) { i ->
-                    nutrientsResponse.isRepresentativeOfMealByImageIndex.getOrNull(i)
+                val templateImagesWhenSavingMacros = templateNutrients?.let {
+                    record.template.images.mapIndexed { index, filename ->
+                        TemplateImageUpdate(
+                            filename = filename,
+                            isRepresentativeOfMeal = nutrientsResponse.isRepresentativeOfMealByImageIndex.getOrNull(index),
+                        )
+                    }
                 }
                 recordsRepository.updateTemplate(
                     templateId = record.template.dbId,
                     // the user can start analysis without having specified a name
                     name = name,
+                    templateImages = templateImagesWhenSavingMacros,
                     nutrients = templateNutrients,
                     notes = nutrientsResponse.notes,
                     mealComponents = templateNutrients?.let { nutrientsResponse.components.toMealComponents() },
-                    isRepresentativeOfMealByImageIndex = templateNutrients?.let { representativeForDb },
                 )
                 val cachedTokensMessage = if (BuildConfig.DEBUG) "Cached tokens: ${nutrientsResponse.cachedTokens}" else null
                 nutrients
