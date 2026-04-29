@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
 
 internal class EditTemplateUseCase(
     private val repository: RecordsRepository,
@@ -16,7 +17,7 @@ internal class EditTemplateUseCase(
             templateId = templateId,
             name = title,
             description = description,
-            images = images,
+            templateImages = images.map { TemplateImageUpdate(filename = it) },
         )
     }
 }
