@@ -31,6 +31,7 @@ class RecordsApiMapper {
             isRepresentativeOfMealByImageIndex = representativeFlags,
             name = template.entity.name,
             description = template.entity.description,
+            parentTemplateId = template.entity.parentTemplateId,
             nutrients = template.macros?.let(::map) ?: TemplateNutrientBreakdown(),
             notes = template.macros?.notes ?: "",
             mealComponents = decodeMealComponentsJson(template.macros?.analysisComponentsJson),
@@ -110,6 +111,7 @@ class RecordsApiMapper {
         return TemplateEntity(
             name = template.name,
             description = template.description,
+            parentTemplateId = template.parentTemplateId,
         )
     }
 
