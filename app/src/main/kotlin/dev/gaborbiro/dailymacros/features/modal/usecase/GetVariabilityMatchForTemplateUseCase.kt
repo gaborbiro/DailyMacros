@@ -1,12 +1,14 @@
-package dev.gaborbiro.dailymacros.repositories.records
+package dev.gaborbiro.dailymacros.features.modal.usecase
 
+import dev.gaborbiro.dailymacros.repositories.records.TemplateVariabilityPreviewMapper
+import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfileMapper
 import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
 
 /**
  * Produces a multi-line summary of variability archetypes/slots/variants linked to [templateId]
  * via variant evidence [templateId] fields.
  */
-class GetVariabilityMatchForTemplateUseCase(
+internal class GetVariabilityMatchForTemplateUseCase(
     private val variabilityRepository: VariabilityRepository,
     private val profileMapper: VariabilityProfileMapper,
     private val previewMapper: TemplateVariabilityPreviewMapper = TemplateVariabilityPreviewMapper(),

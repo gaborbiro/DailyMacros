@@ -45,6 +45,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.GetVariabilityMatchForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
@@ -62,7 +63,6 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ContentEntry
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ContentEntryOutputContentDeserializer
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.OutputContent
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.OutputContentDeserializer
-import dev.gaborbiro.dailymacros.repositories.records.GetVariabilityMatchForTemplateUseCase
 import dev.gaborbiro.dailymacros.repositories.records.RecordsApiMapper
 import dev.gaborbiro.dailymacros.repositories.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfileMapper
