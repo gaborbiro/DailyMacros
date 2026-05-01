@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.App
-import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiState
@@ -34,7 +33,6 @@ import kotlin.time.Duration.Companion.seconds
 
 internal class OverviewViewModel(
     private val recordsRepository: RecordsRepository,
-    private val repeatRecordUseCase: RepeatRecordUseCase,
     private val settingsRepository: SettingsRepository,
     private val uiMapper: OverviewUiMapper,
     private val overviewPrefs: OverviewPrefs,
@@ -141,9 +139,9 @@ internal class OverviewViewModel(
 
     fun onRepeatMenuItemTapped(recordId: Long) {
         viewModelScope.launch {
-            repeatRecordUseCase.execute(recordId = recordId)
+            val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return@launch
+            _uiUpdates.emit(OverviewUiUpdates.AddFromTemplate(templateId))
         }
-        DiaryWidgetScreen.reload()
     }
 
     fun onAnalyseMacrosMenuItemTapped(recordId: Long) {

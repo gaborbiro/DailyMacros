@@ -30,6 +30,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseC
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.DomainError
+import dev.gaborbiro.dailymacros.repositories.records.GetVariabilityMatchForTemplateUseCase
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import ellipsize
@@ -51,6 +52,7 @@ import kotlinx.coroutines.launch
 internal class ModalViewModel(
     private val imageStore: ImageStore,
     private val recordsRepository: RecordsRepository,
+    private val getVariabilityMatchForTemplateUseCase: GetVariabilityMatchForTemplateUseCase,
     private val createRecordFromTemplateUseCase: CreateRecordFromTemplateUseCase,
     private val createRecordWithNewTemplateUseCase: CreateRecordWithNewTemplateUseCase,
     private val updateRecordWithNewTemplateUseCase: UpdateRecordWithNewTemplateUseCase,
@@ -176,6 +178,19 @@ internal class ModalViewModel(
     }
 
     @UiThread
+    fun onAddFromTemplateDeeplink(templateId: Long) {
+        runSafely {
+            val message = getVariabilityMatchForTemplateUseCase.execute(templateId)
+            setRoot(
+                DialogHandle.TemplateVariabilityPreviewDialog(
+                    templateId = templateId,
+                    message = message,
+                ),
+            )
+        }
+    }
+
+    @UiThread
     fun onImagesSelected(uris: List<Uri>) {
         runSafely {
             val persistedFilenames = uris.map {
@@ -294,10 +309,23 @@ internal class ModalViewModel(
 
     @UiThread
     fun onRepeatTemplateButtonTapped(templateId: Long) {
-        closeAll()
+        runSafely {
+            val message = getVariabilityMatchForTemplateUseCase.execute(templateId)
+            setRoot(
+                DialogHandle.TemplateVariabilityPreviewDialog(
+                    templateId = templateId,
+                    message = message,
+                ),
+            )
+        }
+    }
+
+    @UiThread
+    fun onTemplateVariabilityPreviewAddConfirmed(templateId: Long) {
         runSafely {
             createRecordFromTemplateUseCase.execute(templateId)
             DiaryWidgetScreen.reload()
+            closeAll()
         }
     }
 
