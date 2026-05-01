@@ -90,6 +90,11 @@ sealed class DialogHandle {
     data class SelectTemplateActionDialog(val templateId: Long, val title: String) : DialogHandle()
 
     data class InfoDialog(val message: String) : DialogHandle()
+
+    data class TemplateVariabilityPreviewDialog(
+        val templateId: Long,
+        val message: String,
+    ) : DialogHandle()
 }
 
 data class RecognisedFood(

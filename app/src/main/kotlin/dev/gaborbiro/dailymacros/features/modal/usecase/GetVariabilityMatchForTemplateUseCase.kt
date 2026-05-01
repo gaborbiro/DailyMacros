@@ -1,0 +1,31 @@
+package dev.gaborbiro.dailymacros.features.modal.usecase
+
+import dev.gaborbiro.dailymacros.repositories.records.TemplateVariabilityPreviewMapper
+import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfileMapper
+import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
+
+/**
+ * Produces a multi-line summary of variability archetypes/slots/variants linked to [templateId]
+ * via variant evidence [templateId] fields.
+ */
+internal class GetVariabilityMatchForTemplateUseCase(
+    private val variabilityRepository: VariabilityRepository,
+    private val profileMapper: VariabilityProfileMapper,
+    private val previewMapper: TemplateVariabilityPreviewMapper = TemplateVariabilityPreviewMapper(),
+) {
+
+    suspend fun execute(templateId: Long): String {
+        val snapshot = variabilityRepository.getLatestProfile()
+            ?: return "No variability profile is loaded yet. Run meal variability mining from Settings to see archetypes here."
+        val profile = profileMapper.parseProfileJson(
+            profileJson = snapshot.profileJson,
+            minedAtEpochMs = snapshot.minedAtEpochMs,
+        )
+        val lines = previewMapper.toPreviewLines(profile.archetypes, templateId)
+        return if (lines.isEmpty()) {
+            "No archetypes include this template in variant evidence yet. After the next mine, rows that reference this template id will appear here."
+        } else {
+            lines.joinToString("\n")
+        }
+    }
+}

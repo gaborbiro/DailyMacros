@@ -45,6 +45,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.GetVariabilityMatchForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
@@ -54,6 +55,7 @@ import dev.gaborbiro.dailymacros.features.modal.views.ImageDialog
 import dev.gaborbiro.dailymacros.features.modal.views.RecordDetailsDialog
 import dev.gaborbiro.dailymacros.features.modal.views.SelectRecordActionDialog
 import dev.gaborbiro.dailymacros.features.modal.views.SelectTemplateActionDialog
+import dev.gaborbiro.dailymacros.features.modal.views.TemplateVariabilityPreviewDialog
 import dev.gaborbiro.dailymacros.repositories.chatgpt.AuthInterceptor
 import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGPTRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.ChatGPTService
@@ -63,6 +65,9 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.OutputConten
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.OutputContentDeserializer
 import dev.gaborbiro.dailymacros.repositories.records.RecordsApiMapper
 import dev.gaborbiro.dailymacros.repositories.records.RecordsRepositoryImpl
+import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfileMapper
+import dev.gaborbiro.dailymacros.repositories.records.VariabilityRepositoryImpl
+import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
@@ -108,6 +113,10 @@ class ModalActivity : AppCompatActivity() {
             context.launchActivityInNewStack { it.getSelectTemplateActionIntent(templateId) }
         }
 
+        fun launchAddFromTemplateWithVariability(context: Context, templateId: Long) {
+            context.launchActivityInNewStack { it.getAddFromTemplateWithVariabilityIntent(templateId) }
+        }
+
         const val REQUEST_TIMEOUT_IN_SECONDS = 90L
     }
 
@@ -143,7 +152,7 @@ class ModalActivity : AppCompatActivity() {
             .cookieJar(JavaNetCookieJar(CookieManager()))
             .build()
 
-        val gson = GsonBuilder()
+        val chatGptGson = GsonBuilder()
             .registerTypeAdapter(OutputContent::class.java, OutputContentDeserializer())
             .registerTypeAdapter(
                 object : TypeToken<ContentEntry<OutputContent>>() {}.type,
@@ -151,11 +160,10 @@ class ModalActivity : AppCompatActivity() {
             )
             .create()
 
-
         val retrofit = Retrofit.Builder()
             .baseUrl("https://api.openai.com/")
             .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create(gson))
+            .addConverterFactory(GsonConverterFactory.create(chatGptGson))
             .build()
 
         val chatGPTRepository = ChatGPTRepositoryImpl(
@@ -169,10 +177,21 @@ class ModalActivity : AppCompatActivity() {
         val createTemplateUseCase = CreateTemplateUseCase(recordsRepository)
         val repeatRecordUseCase =
             RepeatRecordUseCase(recordsRepository, createRecordFromTemplateUseCase)
+        val profileGson = com.google.gson.Gson()
+        val variabilityProfileMapper = VariabilityProfileMapper(profileGson)
+        val variabilityRepository: VariabilityRepository = VariabilityRepositoryImpl(
+            variabilityDao = db.variabilityDao(),
+            profileMapper = variabilityProfileMapper,
+        )
+        val getVariabilityMatchForTemplateUseCase = GetVariabilityMatchForTemplateUseCase(
+            variabilityRepository = variabilityRepository,
+            profileMapper = variabilityProfileMapper,
+        )
 
         ModalViewModel(
             imageStore = imageStore,
             recordsRepository = recordsRepository,
+            getVariabilityMatchForTemplateUseCase = getVariabilityMatchForTemplateUseCase,
             createRecordFromTemplateUseCase = createRecordFromTemplateUseCase,
             createRecordWithNewTemplateUseCase = CreateRecordWithNewTemplateUseCase(createTemplateUseCase, createRecordFromTemplateUseCase),
             updateRecordWithNewTemplateUseCase = UpdateRecordWithNewTemplateUseCase(recordsRepository, createTemplateUseCase),
@@ -306,6 +325,11 @@ class ModalActivity : AppCompatActivity() {
                 val templateId = intent.getLongExtra(EXTRA_TEMPLATE_ID, -1L)
                 viewModel.onSelectTemplateActionDeeplink(templateId)
             }
+
+            Action.ADD_FROM_TEMPLATE -> {
+                val templateId = intent.getLongExtra(EXTRA_TEMPLATE_ID, -1L)
+                viewModel.onAddFromTemplateDeeplink(templateId)
+            }
         }
     }
 
@@ -380,6 +404,16 @@ class ModalActivity : AppCompatActivity() {
             is DialogHandle.InfoDialog -> {
                 InfoDialog(
                     message = dialogHandle.message,
+                    onDismissRequested = onDismissRequested,
+                )
+            }
+
+            is DialogHandle.TemplateVariabilityPreviewDialog -> {
+                TemplateVariabilityPreviewDialog(
+                    message = dialogHandle.message,
+                    onAddConfirmed = {
+                        viewModel.onTemplateVariabilityPreviewAddConfirmed(dialogHandle.templateId)
+                    },
                     onDismissRequested = onDismissRequested,
                 )
             }

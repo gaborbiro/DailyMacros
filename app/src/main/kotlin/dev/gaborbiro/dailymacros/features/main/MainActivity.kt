@@ -35,7 +35,6 @@ import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsMapper
-import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.SharedRecordsUiMapper
 import dev.gaborbiro.dailymacros.features.common.util.viewModelFactory
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
@@ -119,10 +118,6 @@ class MainActivity : ComponentActivity() {
             RequestStatusRepositoryImpl(db.requestStatusDAO()).deleteStale()
         }
         val createRecordFromTemplateUseCase = CreateRecordFromTemplateUseCase(recordsRepository)
-        val repeatRecordUseCase = RepeatRecordUseCase(
-            recordsRepository = recordsRepository,
-            createRecordFromTemplateUseCase = createRecordFromTemplateUseCase,
-        )
         val createJsonDocumentUseCase = CreatePublicDocumentUseCaseImpl(this@MainActivity)
         val streamWriter = StreamWriter(this@MainActivity)
         val sharePublicUriLauncher = SharePublicUriLauncher(this@MainActivity)
@@ -182,7 +177,6 @@ class MainActivity : ComponentActivity() {
                 val overviewViewModel = viewModelFactory {
                     OverviewViewModel(
                         recordsRepository = recordsRepository,
-                        repeatRecordUseCase = repeatRecordUseCase,
                         settingsRepository = settingsRepository,
                         uiMapper = overviewUiMapper,
                         overviewPrefs = overviewPrefs,
