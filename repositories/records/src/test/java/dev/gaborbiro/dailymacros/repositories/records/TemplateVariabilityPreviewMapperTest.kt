@@ -1,10 +1,16 @@
-package dev.gaborbiro.dailymacros.repositories.records.domain.model.variability
+package dev.gaborbiro.dailymacros.repositories.records
 
-import org.junit.Assert.assertEquals
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityEvidence
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilitySlot
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityVariant
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class VariabilityEvidenceMatchLinesTest {
+class TemplateVariabilityPreviewMapperTest {
+
+    private val mapper = TemplateVariabilityPreviewMapper()
 
     @Test
     fun `includes archetype slot and variant when template matches evidence`() {
@@ -52,7 +58,7 @@ class VariabilityEvidenceMatchLinesTest {
                 sortOrder = 0,
             ),
         )
-        val lines = buildTemplateVariabilityPreviewLines(archetypes, templateId = 42L)
+        val lines = mapper.toPreviewLines(archetypes, templateId = 42L)
         assertTrue(lines.any { it.contains("Toast breakfast") && it.contains("toast_breakfast") })
         assertTrue(lines.any { it.contains("Spread") && it.contains("spread") })
         assertTrue(lines.any { it.contains("Butter") && it.contains("butter") })
@@ -95,6 +101,6 @@ class VariabilityEvidenceMatchLinesTest {
                 sortOrder = 0,
             ),
         )
-        assertEquals(emptyList<String>(), buildTemplateVariabilityPreviewLines(archetypes, templateId = 999L))
+        assertEquals(emptyList<String>(), mapper.toPreviewLines(archetypes, templateId = 999L))
     }
 }

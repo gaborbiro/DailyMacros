@@ -1,7 +1,6 @@
 package dev.gaborbiro.dailymacros.repositories.records
 
 import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.buildTemplateVariabilityPreviewLines
 
 /**
  * Produces a multi-line summary of variability archetypes/slots/variants linked to [templateId]
@@ -10,6 +9,7 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.b
 class GetVariabilityMatchForTemplateUseCase(
     private val variabilityRepository: VariabilityRepository,
     private val profileMapper: VariabilityProfileMapper,
+    private val previewMapper: TemplateVariabilityPreviewMapper = TemplateVariabilityPreviewMapper(),
 ) {
 
     suspend fun execute(templateId: Long): String {
@@ -19,7 +19,7 @@ class GetVariabilityMatchForTemplateUseCase(
             profileJson = snapshot.profileJson,
             minedAtEpochMs = snapshot.minedAtEpochMs,
         )
-        val lines = buildTemplateVariabilityPreviewLines(profile.archetypes, templateId)
+        val lines = previewMapper.toPreviewLines(profile.archetypes, templateId)
         return if (lines.isEmpty()) {
             "No archetypes include this template in variant evidence yet. After the next mine, rows that reference this template id will appear here."
         } else {

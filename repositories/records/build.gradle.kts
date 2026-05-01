@@ -14,4 +14,6 @@ dependencies {
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.network.gson)
+
+    testImplementation(libs.test.junit)
 }
