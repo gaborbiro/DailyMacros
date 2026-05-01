@@ -16,10 +16,12 @@ internal class UpdateRecordWithNewTemplateUseCase(
     @UiThread
     suspend fun execute(recordId: Long, images: List<String>, title: String, description: String) {
         val record: Record = repository.get(recordId)!!
+        val parentTemplateId = record.template.dbId
         val newTemplateId = createTemplateUseCase.execute(
             images = images,
             title = title,
             description = description,
+            parentTemplateId = parentTemplateId,
         )
         val newTemplate = repository.getTemplate(newTemplateId)
         repository.updateRecord(record.copy(template = newTemplate))

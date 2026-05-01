@@ -7,6 +7,8 @@ data class Template(
     val isRepresentativeOfMealByImageIndex: List<Boolean?>,
     val name: String,
     val description: String,
+    /** When this template was created by forking from another template; null for roots or legacy rows. */
+    val parentTemplateId: Long? = null,
     val isPending: Boolean,
     val nutrients: TemplateNutrientBreakdown,
     val notes: String,

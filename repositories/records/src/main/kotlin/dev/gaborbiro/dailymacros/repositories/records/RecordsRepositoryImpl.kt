@@ -145,6 +145,7 @@ class RecordsRepositoryImpl(
             TemplateEntity(
                 name = name ?: oldTemplate.entity.name,
                 description = description ?: oldTemplate.entity.description,
+                parentTemplateId = oldTemplate.entity.parentTemplateId,
             ).apply { id = templateId }
         )
 
