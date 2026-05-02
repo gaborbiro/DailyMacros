@@ -46,6 +46,7 @@ import dev.gaborbiro.dailymacros.features.settings.SettingsAppInfo
 import dev.gaborbiro.dailymacros.features.settings.SettingsPrefs
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
+import dev.gaborbiro.dailymacros.features.settings.RetrofillParentTemplateIdsUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCaseImpl
 import dev.gaborbiro.dailymacros.features.settings.export.OpenPublicDocumentUseCaseImpl
 import dev.gaborbiro.dailymacros.features.settings.export.SharePublicUriLauncher
@@ -184,6 +185,9 @@ class MainActivity : ComponentActivity() {
             chatGPTRepository = chatGPTRepository,
             variabilityRepository = variabilityRepository,
         )
+        val retrofillParentTemplateIdsUseCase = RetrofillParentTemplateIdsUseCase(
+            recordsRepository = recordsRepository,
+        )
 
         val recordsUiMapper = SharedRecordsUiMapper(nutrientsUiMapper)
         val recordsMapper = RecordsMapper()
@@ -217,6 +221,7 @@ class MainActivity : ComponentActivity() {
                         importSqliteDatabaseUseCase = importSqliteDatabaseUseCase,
                         mineMealVariabilityPreviewUseCase = mineMealVariabilityPreviewUseCase,
                         variabilityRepository = variabilityRepository,
+                        retrofillParentTemplateIdsUseCase = retrofillParentTemplateIdsUseCase,
                     )
                 }
                 val targetsSettingsViewModel = viewModelFactory {
@@ -272,6 +277,7 @@ class MainActivity : ComponentActivity() {
                             settingsViewModel = settingsViewModel,
                             targetsSettingsViewModel = targetsSettingsViewModel,
                             navController = navController,
+                            showLineageRetrofillButton = BuildConfig.DEBUG,
                         )
                     }
                     composable(

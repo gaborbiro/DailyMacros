@@ -61,6 +61,8 @@ internal fun SettingsView(
     onVariabilityMiningResponseJsonExpansionBitsChange: (String) -> Unit,
     onVariabilityMiningRequestJsonSectionExpandedChange: (Boolean) -> Unit,
     onVariabilityMiningResponseJsonSectionExpandedChange: (Boolean) -> Unit,
+    showLineageRetrofillButton: Boolean,
+    onRetrofillParentLineageTapped: () -> Unit,
 ) {
 
     Scaffold(
@@ -129,12 +131,27 @@ internal fun SettingsView(
                     }
                 },
             )
+            if (showLineageRetrofillButton) {
+                OutlinedButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    onClick = onRetrofillParentLineageTapped,
+                    enabled = !viewState.retrofillParentLineageLoading &&
+                        !viewState.variabilityMiningLoading,
+                ) {
+                    Text(
+                        "Retrofill template parents (shared images, debug)",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 onClick = onVariabilityMiningPreviewTapped,
-                enabled = !viewState.variabilityMiningLoading,
+                enabled = !viewState.variabilityMiningLoading && !viewState.retrofillParentLineageLoading,
             ) {
                 Text("Preview meal variability (AI)")
             }
@@ -143,11 +160,11 @@ internal fun SettingsView(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 4.dp),
                 onClick = onClearVariabilityProfileTapped,
-                enabled = !viewState.variabilityMiningLoading,
+                enabled = !viewState.variabilityMiningLoading && !viewState.retrofillParentLineageLoading,
             ) {
                 Text("Clear meal variability profile")
             }
-            if (viewState.variabilityMiningLoading) {
+            if (viewState.variabilityMiningLoading || viewState.retrofillParentLineageLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier
                         .padding(16.dp)
@@ -307,6 +324,8 @@ private fun SettingsViewPreview() {
             onVariabilityMiningResponseJsonExpansionBitsChange = {},
             onVariabilityMiningRequestJsonSectionExpandedChange = {},
             onVariabilityMiningResponseJsonSectionExpandedChange = {},
+            showLineageRetrofillButton = true,
+            onRetrofillParentLineageTapped = {},
         )
     }
 }

@@ -14,6 +14,7 @@ import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.RetrofillParentLineageResult
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
@@ -217,6 +218,64 @@ class RecordsRepositoryImpl(
 
     override suspend fun removeQuickPickOverride(templateId: Long) {
         templatesDAO.deleteQuickPickOverride(templateId)
+    }
+
+    override suspend fun retrofillParentTemplateIdsFromSharedImages(): RetrofillParentLineageResult {
+        val firstSeenRows = recordsDAO.listFirstSeenEpochMillisByTemplate()
+        val firstSeenByTemplate = firstSeenRows.associate { it.templateId to it.firstSeenEpochMs }
+
+        var skippedNoRecordTimestamp = 0
+        var skippedNoSharedImageParent = 0
+        var skippedNoEligibleParent = 0
+        var templatesUpdated = 0
+
+        val candidateChildren = templatesDAO.listTemplateIdsWithNullParent().sorted()
+
+        for (childId in candidateChildren) {
+            val imageRows = templatesDAO.getImagesForTemplate(childId)
+            if (imageRows.isEmpty()) continue
+
+            val childFirst = firstSeenByTemplate[childId]
+            if (childFirst == null) {
+                skippedNoRecordTimestamp++
+                continue
+            }
+
+            val relevantFilenames = imageRows.map { it.image }.distinct()
+
+            val candidateParents = mutableSetOf<Long>()
+            for (filename in relevantFilenames) {
+                for (tid in templatesDAO.listTemplateIdsForImageFilename(filename)) {
+                    if (tid != childId) candidateParents.add(tid)
+                }
+            }
+
+            if (candidateParents.isEmpty()) {
+                skippedNoSharedImageParent++
+                continue
+            }
+
+            val validParents = candidateParents.mapNotNull { pid ->
+                val pf = firstSeenByTemplate[pid]
+                if (pf != null && pf < childFirst) pid to pf else null
+            }
+
+            if (validParents.isEmpty()) {
+                skippedNoEligibleParent++
+                continue
+            }
+
+            val parentId = validParents.minBy { it.second }.first
+            templatesDAO.updateParentTemplateId(templateId = childId, parentId = parentId)
+            templatesUpdated++
+        }
+
+        return RetrofillParentLineageResult(
+            templatesUpdated = templatesUpdated,
+            skippedNoRecordTimestamp = skippedNoRecordTimestamp,
+            skippedNoSharedImageParent = skippedNoSharedImageParent,
+            skippedNoEligibleParent = skippedNoEligibleParent,
+        )
     }
 
     private suspend fun deleteImageIfUnused(image: String): Boolean {

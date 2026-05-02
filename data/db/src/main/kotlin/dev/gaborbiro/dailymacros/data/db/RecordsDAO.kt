@@ -5,6 +5,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
 import dev.gaborbiro.dailymacros.data.db.model.RecordJoined
+import dev.gaborbiro.dailymacros.data.db.model.TemplateFirstSeenRow
 import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -76,4 +77,13 @@ interface RecordsDAO {
     @Transaction
     @Query("DELETE FROM records WHERE _id = :id")
     suspend fun delete(id: Long): Int
+
+    @Query(
+        """
+        SELECT templateId AS templateId, MIN(epochMillis) AS firstSeenEpochMs
+        FROM records
+        GROUP BY templateId
+        """,
+    )
+    suspend fun listFirstSeenEpochMillisByTemplate(): List<TemplateFirstSeenRow>
 }

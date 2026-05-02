@@ -36,6 +36,7 @@ class SettingsViewModel(
     private val importSqliteDatabaseUseCase: ImportSqliteDatabaseUseCase,
     private val mineMealVariabilityPreviewUseCase: MineMealVariabilityPreviewUseCase,
     private val variabilityRepository: VariabilityRepository,
+    private val retrofillParentTemplateIdsUseCase: RetrofillParentTemplateIdsUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -51,6 +52,7 @@ class SettingsViewModel(
             variabilityMiningResponseJsonExpansionBits = settingsPrefs.variabilityMiningResponseJsonExpansionBits,
             variabilityMiningRequestJsonSectionExpanded = settingsPrefs.variabilityMiningRequestJsonSectionExpanded,
             variabilityMiningResponseJsonSectionExpanded = settingsPrefs.variabilityMiningResponseJsonSectionExpanded,
+            retrofillParentLineageLoading = false,
         )
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
@@ -187,6 +189,32 @@ class SettingsViewModel(
                 .onFailure { t ->
                     _uiState.update {
                         it.copy(variabilityMiningError = t.message ?: t.toString())
+                    }
+                }
+        }
+    }
+
+    fun onRetrofillParentLineageTapped() {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(retrofillParentLineageLoading = true, variabilityMiningError = null)
+            }
+            runCatching { retrofillParentTemplateIdsUseCase.execute() }
+                .onSuccess { result ->
+                    _uiState.update { it.copy(retrofillParentLineageLoading = false) }
+                    val msg =
+                        "Lineage retrofill: updated ${result.templatesUpdated} templates. " +
+                            "No first log time: ${result.skippedNoRecordTimestamp}, " +
+                            "no shared image with older template: ${result.skippedNoSharedImageParent}, " +
+                            "no strictly older parent among candidates: ${result.skippedNoEligibleParent}."
+                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar(msg))
+                }
+                .onFailure { t ->
+                    _uiState.update {
+                        it.copy(
+                            retrofillParentLineageLoading = false,
+                            variabilityMiningError = t.message ?: t.toString(),
+                        )
                     }
                 }
         }

@@ -105,6 +105,12 @@ ORDER BY
     @Query("SELECT COUNT(*) FROM template_images WHERE image = :image")
     suspend fun countTemplatesByImage(image: String): Int
 
-    @Query("UPDATE template_images SET sortOrder = :sort WHERE _id = :imageId")
-    suspend fun setSortOrder(imageId: Long, sort: Int): Int
+    @Query("SELECT templateId FROM template_images WHERE image = :image")
+    suspend fun listTemplateIdsForImageFilename(image: String): List<Long>
+
+    @Query("SELECT _id FROM templates WHERE parentTemplateId IS NULL")
+    suspend fun listTemplateIdsWithNullParent(): List<Long>
+
+    @Query("UPDATE templates SET parentTemplateId = :parentId WHERE _id = :templateId")
+    suspend fun updateParentTemplateId(templateId: Long, parentId: Long): Int
 }

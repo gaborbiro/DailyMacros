@@ -18,6 +18,7 @@ fun SettingsScreen(
     settingsViewModel: SettingsViewModel,
     targetsSettingsViewModel: TargetsSettingsViewModel,
     navController: NavHostController,
+    showLineageRetrofillButton: Boolean = false,
 ) {
     val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -55,6 +56,8 @@ fun SettingsScreen(
             settingsViewModel::onVariabilityMiningRequestJsonSectionExpandedChange,
         onVariabilityMiningResponseJsonSectionExpandedChange =
             settingsViewModel::onVariabilityMiningResponseJsonSectionExpandedChange,
+        showLineageRetrofillButton = showLineageRetrofillButton,
+        onRetrofillParentLineageTapped = settingsViewModel::onRetrofillParentLineageTapped,
     )
 
     if (settingsUiState.showTargetsSettings) {

@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.repositories.records.domain
 
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.RetrofillParentLineageResult
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
@@ -69,4 +70,10 @@ interface RecordsRepository {
     suspend fun addQuickPickOverride(templateId: Long, type: Template.QuickPickOverride)
 
     suspend fun removeQuickPickOverride(templateId: Long)
+
+    /**
+     * One-off / debug: infer [Template.parentTemplateId] from shared image filenames only.
+     * Skips templates that already have a parent. Uses earliest record time per template to pick parent (strictly older).
+     */
+    suspend fun retrofillParentTemplateIdsFromSharedImages(): RetrofillParentLineageResult
 }

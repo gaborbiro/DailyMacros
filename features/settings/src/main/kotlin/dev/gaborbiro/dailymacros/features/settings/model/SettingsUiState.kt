@@ -16,4 +16,6 @@ data class SettingsUiState(
     val variabilityMiningResponseJsonExpansionBits: String = "",
     val variabilityMiningRequestJsonSectionExpanded: Boolean = false,
     val variabilityMiningResponseJsonSectionExpanded: Boolean = false,
+    /** Debug: running shared-image parent lineage retrofill. */
+    val retrofillParentLineageLoading: Boolean = false,
 )
