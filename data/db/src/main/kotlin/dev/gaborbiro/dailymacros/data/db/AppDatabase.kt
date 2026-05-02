@@ -254,9 +254,39 @@ val MIGRATION_9_10 = object : Migration(9, 10) {
 
 val MIGRATION_10_11 = object : Migration(10, 11) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("ALTER TABLE templates ADD COLUMN parentTemplateId INTEGER DEFAULT NULL")
+        // Room runs migrations inside a transaction. Rebuilding a parent table that other tables
+        // reference requires deferring FK checks until commit — PRAGMA foreign_keys=OFF is a no-op
+        // inside a transaction on SQLite.
+        db.execSQL("PRAGMA defer_foreign_keys = ON")
+        db.execSQL("ALTER TABLE `templates` RENAME TO `templates_old`")
+        db.execSQL(
+            """
+            CREATE TABLE `templates` (
+                `name` TEXT NOT NULL,
+                `description` TEXT NOT NULL,
+                `parentTemplateId` INTEGER,
+                `_id` INTEGER PRIMARY KEY AUTOINCREMENT,
+                FOREIGN KEY(`parentTemplateId`) REFERENCES `templates`(`_id`)
+                    ON UPDATE NO ACTION ON DELETE SET NULL
+            )
+            """.trimIndent(),
+        )
+        db.execSQL(
+            """
+            INSERT INTO `templates` (`name`, `description`, `parentTemplateId`, `_id`)
+            SELECT `name`, `description`, NULL, `_id` FROM `templates_old`
+            """.trimIndent(),
+        )
+        db.execSQL("DROP TABLE `templates_old`")
         db.execSQL(
             "CREATE INDEX IF NOT EXISTS `index_templates_parentTemplateId` ON `templates` (`parentTemplateId`)",
+        )
+        db.execSQL("DELETE FROM sqlite_sequence WHERE `name` = 'templates'")
+        db.execSQL(
+            """
+            INSERT INTO sqlite_sequence (`name`, `seq`)
+            SELECT 'templates', IFNULL(MAX(`_id`), 0) FROM `templates`
+            """.trimIndent(),
         )
     }
 }
