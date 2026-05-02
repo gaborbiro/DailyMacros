@@ -23,6 +23,8 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -78,6 +80,12 @@ internal fun OverviewView(
     }
 
     val listState = rememberLazyListState()
+    val listAtTop by remember {
+        derivedStateOf {
+            listState.firstVisibleItemIndex == 0 &&
+                listState.firstVisibleItemScrollOffset == 0
+        }
+    }
 
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
@@ -104,32 +112,42 @@ internal fun OverviewView(
             )
         },
     ) { paddingValues ->
-        if (viewState.items.isNotEmpty()) {
-            OverviewList(
-                viewState = viewState,
-                listState = listState,
-                paddingValues = paddingValues,
-                onRepeatMenuItemTapped = onRepeatMenuItemTapped,
-                onAnalyseMacrosMenuItemTapped = onAnalyseMacrosMenuItemTapped,
-                onDetailsMenuItemTapped = onDetailsMenuItemTapped,
-                onAddToQuickPicksMenuItemTapped = onAddToQuickPicksMenuItemTapped,
-                onDeleteMenuItemTapped = onDeleteMenuItemTapped,
-                onRecordImageTapped = onRecordImageTapped,
-                onRecordBodyTapped = onRecordBodyTapped,
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (viewState.items.isNotEmpty()) {
+                OverviewList(
+                    viewState = viewState,
+                    listState = listState,
+                    paddingValues = paddingValues,
+                    onRepeatMenuItemTapped = onRepeatMenuItemTapped,
+                    onAnalyseMacrosMenuItemTapped = onAnalyseMacrosMenuItemTapped,
+                    onDetailsMenuItemTapped = onDetailsMenuItemTapped,
+                    onAddToQuickPicksMenuItemTapped = onAddToQuickPicksMenuItemTapped,
+                    onDeleteMenuItemTapped = onDeleteMenuItemTapped,
+                    onRecordImageTapped = onRecordImageTapped,
+                    onRecordBodyTapped = onRecordBodyTapped,
+                    onLoadMore = onLoadMore,
+                )
+            } else if (viewState.showAddWidgetButton) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    AddWidgetButton()
+                }
+            }
+
+            OverviewListTopActions(
+                showSettingsButton = viewState.showSettingsButton,
+                showTrendsButton = viewState.showTrendsButton,
+                showCoachMark = viewState.showCoachMark,
+                listAtTop = listAtTop,
+                topContentPadding = paddingValues.calculateTopPadding(),
                 onSettingsButtonTapped = onSettingsButtonTapped,
                 onTrendsButtonTapped = onTrendsButtonTapped,
                 onCoachMarkDismissed = onCoachMarkDismissed,
-                onLoadMore = onLoadMore,
             )
-        } else if (viewState.showAddWidgetButton) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center,
-            ) {
-                AddWidgetButton()
-            }
         }
     }
 }

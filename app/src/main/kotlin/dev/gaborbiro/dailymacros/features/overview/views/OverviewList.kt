@@ -2,34 +2,20 @@ package dev.gaborbiro.dailymacros.features.overview.views
 
 import android.content.res.Configuration
 import android.util.Range
-import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -40,13 +26,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
-import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.overview.model.DailySummaryEntry
 import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelDailySummary
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
@@ -70,18 +54,8 @@ internal fun OverviewList(
     onDeleteMenuItemTapped: (recordId: Long) -> Unit,
     onRecordImageTapped: (recordId: Long) -> Unit,
     onRecordBodyTapped: (recordId: Long) -> Unit,
-    onSettingsButtonTapped: () -> Unit,
-    onTrendsButtonTapped: () -> Unit,
-    onCoachMarkDismissed: () -> Unit,
     onLoadMore: () -> Unit = {},
 ) {
-    val atTop by remember {
-        derivedStateOf {
-            listState.firstVisibleItemIndex == 0 &&
-                    listState.firstVisibleItemScrollOffset == 0
-        }
-    }
-
     // Detect when the user scrolls near the end of the list
     val shouldLoadMore by remember {
         derivedStateOf {
@@ -96,9 +70,6 @@ internal fun OverviewList(
             onLoadMore()
         }
     }
-
-    var targetBounds by remember { mutableStateOf<Rect?>(null) }
-    var showCoachMark by remember(viewState.showCoachMark) { mutableStateOf(viewState.showCoachMark) }
 
     Box(Modifier.fillMaxSize()) {
         val repeatIcon = painterResource(R.drawable.ic_exposure_plus_1)
@@ -195,77 +166,6 @@ internal fun OverviewList(
                         )
                     }
                 }
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = paddingValues.calculateTopPadding())
-        ) {
-            val buttonsOffset by animateDpAsState(
-                targetValue = if (atTop) 0.dp else (72).dp,
-                animationSpec = tween(
-                    durationMillis = 220,
-                    easing = FastOutSlowInEasing
-                ),
-                label = "ButtonsSlide"
-            )
-
-            Column(
-                modifier = Modifier
-                    .padding(PaddingHalf)
-                    .align(Alignment.TopEnd)
-                    .offset(x = buttonsOffset)
-            ) {
-                if (viewState.showSettingsButton) {
-                    IconButton(
-                        modifier = Modifier
-                            .coachMarkOverlayAnchor {
-                                targetBounds = it
-                            },
-                        colors = IconButtonDefaults.filledIconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                        ),
-                        onClick = onSettingsButtonTapped,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Settings Button",
-                        )
-                    }
-                }
-                if (viewState.showTrendsButton) {
-                    Spacer(modifier = Modifier.padding(PaddingHalf))
-                    IconButton(
-                        colors = IconButtonDefaults.filledIconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                        ),
-                        onClick = onTrendsButtonTapped,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.BarChart,
-                            contentDescription = "Trends Button",
-                        )
-                    }
-                }
-            }
-        }
-
-        if (showCoachMark) {
-            CoachMarkOverlay(
-                targetRect = targetBounds,
-                text = "Set some goals here",
-                onDismiss = {
-                    showCoachMark = false
-                    onCoachMarkDismissed()
-                }
-            )
-            BackHandler {
-                showCoachMark = false
-                onCoachMarkDismissed()
             }
         }
     }
@@ -447,9 +347,6 @@ private fun OverviewListPreview() {
             onRecordImageTapped = {},
             onRecordBodyTapped = {},
             onAnalyseMacrosMenuItemTapped = {},
-            onSettingsButtonTapped = {},
-            onTrendsButtonTapped = {},
-            onCoachMarkDismissed = {},
             onLoadMore = {},
         )
     }
