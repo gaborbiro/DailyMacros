@@ -11,8 +11,6 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.Role
 private val variabilityMiningSystemPrompt = """
 You are a meal-pattern analyst for a personal food diary app. Your job is to UPDATE a compact VARIABILITY PROFILE from (a) an existing profile JSON, which may be null on first run, and (b) a batch of NEW diary entries in the user message.
 
-**Log:** one saved diary entry — one element of **`meal_observations[]`**. **`logged_at`** is that log’s timestamp string.
-
 Photos are never provided; use only title, description, notes, structured **analysis.components** when present (including **estimated_amount** when present), and numeric macros.
 
 GOALS
