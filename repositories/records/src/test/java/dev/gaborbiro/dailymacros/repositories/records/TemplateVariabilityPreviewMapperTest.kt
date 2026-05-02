@@ -66,11 +66,13 @@ class TemplateVariabilityPreviewMapperTest {
         val slots = mapper.slotPreviewsForTemplate(archetypes, templateId = 42L)
         assertEquals(1, slots.size)
         assertEquals("spread", slots[0].slotKey)
-        assertEquals(1, slots[0].variants.count { it.variantKey == "butter" })
+        assertEquals(2, slots[0].variants.size)
+        assertTrue(slots[0].variants.any { it.variantKey == "butter" })
+        assertTrue(slots[0].variants.any { it.variantKey == "jam" })
     }
 
     @Test
-    fun `empty when no evidence matches template`() {
+    fun `slotPreviews empty when no slot cites template`() {
         val archetypes = listOf(
             VariabilityArchetype(
                 archetypeKey = "a",
@@ -107,5 +109,6 @@ class TemplateVariabilityPreviewMapperTest {
             ),
         )
         assertEquals(emptyList<String>(), mapper.toPreviewLines(archetypes, templateId = 999L))
+        assertTrue(mapper.slotPreviewsForTemplate(archetypes, templateId = 999L).isEmpty())
     }
 }

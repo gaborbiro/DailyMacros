@@ -10,6 +10,10 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.V
  */
 class TemplateVariabilityPreviewMapper {
 
+    /**
+     * Slots where at least one variant cites [templateId] in evidence; each row lists **all**
+     * variants in that slot (so the UI can offer full recombination, not only the current log’s variant).
+     */
     fun slotPreviewsForTemplate(
         archetypes: List<VariabilityArchetype>,
         templateId: Long,
@@ -21,18 +25,20 @@ class TemplateVariabilityPreviewMapper {
                 archetype.slots
                     .sortedBy { it.sortOrder }
                     .forEach { slot ->
-                        val matchingVariants = slot.variants
-                            .filter { v -> v.evidence.any { it.templateId == templateId } }
+                        val slotTouchesTemplate = slot.variants.any { v ->
+                            v.evidence.any { it.templateId == templateId }
+                        }
+                        if (!slotTouchesTemplate) return@forEach
+                        val allVariants = slot.variants
                             .sortedBy { it.sortOrder }
                             .distinctBy { it.variantKey }
-                        if (matchingVariants.isEmpty()) return@forEach
                         rows.add(
                             TemplateVariabilitySlotPreview(
                                 archetypeKey = archetype.archetypeKey,
                                 archetypeDisplayName = archetype.displayName,
                                 slotKey = slot.slotKey,
                                 role = slot.role,
-                                variants = matchingVariants.map { v ->
+                                variants = allVariants.map { v ->
                                     TemplateVariabilityVariantPreview(
                                         variantKey = v.variantKey,
                                         variantLabel = v.variantLabel.ifBlank { v.variantKey },
