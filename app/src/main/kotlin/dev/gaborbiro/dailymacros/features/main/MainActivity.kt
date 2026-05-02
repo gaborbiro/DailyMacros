@@ -23,6 +23,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.google.gson.Gson
 import dev.gaborbiro.dailymacros.AppPrefs
 import dev.gaborbiro.dailymacros.BuildConfig
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
@@ -30,12 +31,12 @@ import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.AppTheme
-import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsMapper
 import dev.gaborbiro.dailymacros.features.common.SharedRecordsUiMapper
 import dev.gaborbiro.dailymacros.features.common.util.viewModelFactory
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
+import dev.gaborbiro.dailymacros.features.common.workers.MineMealVariabilityWorker
 import dev.gaborbiro.dailymacros.features.overview.OverviewPrefs
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewUiMapper
@@ -52,11 +53,6 @@ import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDia
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportSqliteDatabaseUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseUseCase
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsViewModel
-import com.google.gson.Gson
-import dev.gaborbiro.dailymacros.features.common.workers.MineMealVariabilityWorker
-import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfileMapper
-import dev.gaborbiro.dailymacros.repositories.records.VariabilityRepositoryImpl
-import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
 import dev.gaborbiro.dailymacros.features.trends.TrendsPreferencesImpl
 import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
 import dev.gaborbiro.dailymacros.features.trends.TrendsUiMapper
@@ -65,6 +61,9 @@ import dev.gaborbiro.dailymacros.repositories.backup.BackupRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.records.RecordsApiMapper
 import dev.gaborbiro.dailymacros.repositories.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.records.RequestStatusRepositoryImpl
+import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfileMapper
+import dev.gaborbiro.dailymacros.repositories.records.VariabilityRepositoryImpl
+import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
 import dev.gaborbiro.dailymacros.repositories.settings.SettingsMapper
 import dev.gaborbiro.dailymacros.repositories.settings.SettingsRepositoryImpl
 import kotlinx.coroutines.launch
@@ -99,7 +98,6 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             RequestStatusRepositoryImpl(db.requestStatusDAO()).deleteStale()
         }
-        val createRecordFromTemplateUseCase = CreateRecordFromTemplateUseCase(recordsRepository)
         val createJsonDocumentUseCase = CreatePublicDocumentUseCaseImpl(this@MainActivity)
         val streamWriter = StreamWriter(this@MainActivity)
         val sharePublicUriLauncher = SharePublicUriLauncher(this@MainActivity)
