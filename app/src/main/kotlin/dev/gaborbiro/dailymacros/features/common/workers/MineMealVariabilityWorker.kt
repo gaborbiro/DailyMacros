@@ -5,13 +5,14 @@ import android.content.pm.ServiceInfo
 import androidx.core.app.NotificationCompat
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
-import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
 import androidx.work.ForegroundInfo
 import androidx.work.NetworkType
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkInfo
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import dev.gaborbiro.dailymacros.R
@@ -20,11 +21,11 @@ import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
-import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
-import dev.gaborbiro.dailymacros.features.common.RecordsMapper
 import dev.gaborbiro.dailymacros.features.common.ChatGptOkHttpTimeouts
-import dev.gaborbiro.dailymacros.features.modal.ModalUiMapper
-import dev.gaborbiro.dailymacros.features.modal.usecase.NutrientAnalysisUseCase
+import dev.gaborbiro.dailymacros.features.settings.SettingsPrefs
+import dev.gaborbiro.dailymacros.features.settings.variability.MEAL_VARIABILITY_MINING_OUTPUT_ERROR
+import dev.gaborbiro.dailymacros.features.settings.variability.MEAL_VARIABILITY_MINING_UNIQUE_WORK
+import dev.gaborbiro.dailymacros.features.settings.variability.MineMealVariabilityPreviewUseCase
 import dev.gaborbiro.dailymacros.repositories.chatgpt.AuthInterceptor
 import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGPTRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.ChatGPTService
@@ -34,8 +35,10 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.OutputConten
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.OutputContentDeserializer
 import dev.gaborbiro.dailymacros.repositories.records.RecordsApiMapper
 import dev.gaborbiro.dailymacros.repositories.records.RecordsRepositoryImpl
-import dev.gaborbiro.dailymacros.repositories.records.RequestStatusRepositoryImpl
+import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfileMapper
+import dev.gaborbiro.dailymacros.repositories.records.VariabilityRepositoryImpl
 import dev.gaborbiro.dailymacros.util.CHANNEL_ID_FOREGROUND
+import dev.gaborbiro.dailymacros.util.showTitleTextNotification
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.time.delay
 import okhttp3.OkHttpClient
@@ -44,18 +47,15 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.net.CookieManager
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
-class GetMacrosWorker(
+class MineMealVariabilityWorker(
     appContext: Context,
-    private val workerParameters: WorkerParameters,
+    workerParameters: WorkerParameters,
 ) : CoroutineWorker(appContext, workerParameters) {
 
-    private val analyticsLogger: AnalyticsLogger by lazy {
-        AnalyticsLogger()
-    }
+    private val analyticsLogger: AnalyticsLogger by lazy { AnalyticsLogger() }
 
     private val imageStore: ImageStore by lazy {
         val fileStore = FileStoreFactoryImpl(appContext).getStore("public", keepFiles = true)
@@ -63,6 +63,7 @@ class GetMacrosWorker(
     }
 
     private val database by lazy { AppDatabase.getInstance() }
+
     private val recordsRepository by lazy {
         RecordsRepositoryImpl(
             templatesDAO = database.templatesDAO(),
@@ -72,11 +73,8 @@ class GetMacrosWorker(
             analyticsLogger = analyticsLogger,
         )
     }
-    private val requestStatusRepository by lazy {
-        RequestStatusRepositoryImpl(database.requestStatusDAO())
-    }
 
-    private val nutrientAnalysisUseCase: NutrientAnalysisUseCase by lazy {
+    private val mineMealVariabilityPreviewUseCase: MineMealVariabilityPreviewUseCase by lazy {
         val logger = HttpLoggingInterceptor().also {
             it.level = HttpLoggingInterceptor.Level.BODY
         }
@@ -85,7 +83,7 @@ class GetMacrosWorker(
             .addNetworkInterceptor(logger)
             .addInterceptor(authInterceptor)
             .addNetworkInterceptor(authInterceptor)
-            .also { ChatGptOkHttpTimeouts.applyImageUploadTimeouts(it) }
+            .also { ChatGptOkHttpTimeouts.applyJsonBodyTimeouts(it) }
 
         val okHttpClient = builder
             .cookieJar(JavaNetCookieJar(CookieManager()))
@@ -95,7 +93,7 @@ class GetMacrosWorker(
             .registerTypeAdapter(OutputContent::class.java, OutputContentDeserializer())
             .registerTypeAdapter(
                 object : TypeToken<ContentEntry<OutputContent>>() {}.type,
-                ContentEntryOutputContentDeserializer()
+                ContentEntryOutputContentDeserializer(),
             )
             .create()
 
@@ -106,104 +104,87 @@ class GetMacrosWorker(
             .build()
 
         val chatGPTRepository = ChatGPTRepositoryImpl(
-            service = retrofit.create(ChatGPTService::class.java)
+            service = retrofit.create(ChatGPTService::class.java),
         )
-        val nutrientsUiMapper = NutrientsUiMapper()
-        val recordsMapper = RecordsMapper()
-
-        NutrientAnalysisUseCase(
-            appContext = appContext,
-            imageStore = imageStore,
-            chatGPTRepository = chatGPTRepository,
+        val variabilityRepository = VariabilityRepositoryImpl(
+            variabilityDao = database.variabilityDao(),
+            profileMapper = VariabilityProfileMapper(Gson()),
+        )
+        MineMealVariabilityPreviewUseCase(
             recordsRepository = recordsRepository,
-            requestStatusRepository = requestStatusRepository,
-            recordsMapper = recordsMapper,
-            modalUiMapper = ModalUiMapper(nutrientsUiMapper),
+            chatGPTRepository = chatGPTRepository,
+            variabilityRepository = variabilityRepository,
         )
-    }
-
-    companion object {
-        private const val ARGS_RECORD_ID = "record_id"
-
-        suspend fun setWorkRequest(
-            appContext: Context,
-            recordId: Long,
-            force: Boolean,
-        ) {
-            if (force) {
-                cancelWorkRequest(
-                    appContext = appContext,
-                    recordId = recordId,
-                )
-            }
-            val works = WorkManager.getInstance(appContext)
-                .getWorkInfosByTag(getTag(recordId)).await()
-            if (works.none { it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.RUNNING }) {
-                val workRequest = PeriodicWorkRequestBuilder<GetMacrosWorker>(
-                    repeatInterval = 15.minutes.toJavaDuration()
-                )
-                    .setConstraints(
-                        Constraints.Builder()
-                            .setRequiredNetworkType(NetworkType.CONNECTED)
-                            .build()
-                    )
-                    .setInputData(
-                        Data.Builder()
-                            .putLong(ARGS_RECORD_ID, recordId)
-                            .build()
-                    )
-                    .addTag(getTag(recordId))
-                    .build()
-                WorkManager.getInstance(appContext).enqueue(workRequest)
-            }
-        }
-
-        fun cancelWorkRequest(appContext: Context, recordId: Long) {
-            WorkManager.getInstance(appContext).cancelAllWorkByTag(getTag(recordId))
-        }
-
-        private fun getTag(recordId: Long): String {
-            return "fetch_$recordId"
-        }
     }
 
     override suspend fun doWork(): Result {
         return try {
-            delay(.5.seconds.toJavaDuration())
+            delay(0.5.seconds.toJavaDuration())
             setForegroundAsync(createForegroundInfo()).await()
-            val recordId = workerParameters.inputData
-                .getLong(ARGS_RECORD_ID, -1L)
-            if (recordId == -1L) {
-                Result.failure()
-            } else {
-                nutrientAnalysisUseCase.execute(
-                    recordId = recordId,
-                    notifyOnFailure = true,
-                )
-                cancelWorkRequest(
-                    appContext = applicationContext,
-                    recordId = recordId,
-                )
-                Result.success()
-            }
+            val preview = mineMealVariabilityPreviewUseCase.execute()
+            val generatedAt = System.currentTimeMillis()
+            val settingsPrefs = SettingsPrefs(applicationContext)
+            settingsPrefs.variabilityMiningRequestJson = preview.requestJsonPretty
+            settingsPrefs.variabilityMiningResponseJson = preview.responseJsonPretty
+            settingsPrefs.variabilityMiningGeneratedAtEpochMs = generatedAt
+            settingsPrefs.variabilityMiningRequestJsonExpansionBits = ""
+            settingsPrefs.variabilityMiningResponseJsonExpansionBits = ""
+            settingsPrefs.variabilityMiningRequestJsonSectionExpanded = false
+            settingsPrefs.variabilityMiningResponseJsonSectionExpanded = false
+            applicationContext.showTitleTextNotification(
+                id = NOTIFICATION_ID_RESULT,
+                title = applicationContext.getString(R.string.variability_mining_success_title),
+                text = applicationContext.getString(R.string.variability_mining_success_text),
+                isError = false,
+            )
+            Result.success()
         } catch (t: Throwable) {
             analyticsLogger.logError(t)
-            Result.failure()
+            val message = t.message?.takeIf { it.isNotBlank() } ?: t.toString()
+            applicationContext.showTitleTextNotification(
+                id = NOTIFICATION_ID_RESULT,
+                title = applicationContext.getString(R.string.variability_mining_failure_title),
+                text = message,
+                isError = true,
+            )
+            Result.failure(
+                workDataOf(MEAL_VARIABILITY_MINING_OUTPUT_ERROR to message),
+            )
         }
     }
 
     private fun createForegroundInfo(): ForegroundInfo {
         val notification =
             NotificationCompat.Builder(applicationContext, CHANNEL_ID_FOREGROUND)
-                .setContentTitle("Fetching macros…")
+                .setContentTitle(applicationContext.getString(R.string.variability_mining_foreground_title))
                 .setSmallIcon(R.drawable.ic_nutrition)
                 .setOngoing(true)
                 .build()
 
         return ForegroundInfo(
-            /* notificationId = */ 1,
-            /* notification = */ notification,
-            /* foregroundServiceType = */ ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC,
+            FOREGROUND_NOTIFICATION_ID,
+            notification,
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC,
         )
+    }
+
+    companion object {
+        private const val FOREGROUND_NOTIFICATION_ID = 124_010
+        private const val NOTIFICATION_ID_RESULT = 124_011
+
+        fun enqueue(context: Context) {
+            val request = OneTimeWorkRequestBuilder<MineMealVariabilityWorker>()
+                .setConstraints(
+                    Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build(),
+                )
+                .build()
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                MEAL_VARIABILITY_MINING_UNIQUE_WORK,
+                ExistingWorkPolicy.KEEP,
+                request,
+            )
+        }
     }
 }

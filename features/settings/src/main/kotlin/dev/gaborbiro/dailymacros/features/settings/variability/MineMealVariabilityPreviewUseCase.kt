@@ -39,14 +39,12 @@ class MineMealVariabilityPreviewUseCase(
                 ?.takeIf { it.isNotBlank() }
                 ?.let { JsonParser.parseString(it) }
         val envelope = VariabilityMiningUserEnvelope(
-            schema_version = "1.0",
+            schema_version = "2.0",
             merge_mode = "incremental",
             existing_profile = existingProfile,
             constraints = VariabilityConstraints(
                 max_archetypes = 50,
-                min_evidence_per_archetype = 2,
                 min_evidence_for_high_variability_slot = 2,
-                min_variants_per_slot = 2,
             ),
             meal_observations = records.map { it.toObservation() },
         )
@@ -65,6 +63,7 @@ class MineMealVariabilityPreviewUseCase(
         return MealObservation(
             record_id = recordId,
             template_id = t.dbId,
+            parent_template_id = t.parentTemplateId,
             logged_at = timestamp.toString(),
             title = t.name,
             description = t.description.take(MAX_DESCRIPTION_CHARS),
@@ -118,16 +117,15 @@ private data class VariabilityMiningUserEnvelope(
 
 private data class VariabilityConstraints(
     @SerializedName("max_archetypes") val max_archetypes: Int,
-    /** Minimum distinct logged rows to emit an archetype (titles may cluster). */
-    @SerializedName("min_evidence_per_archetype") val min_evidence_per_archetype: Int,
+    /** Distinct logged_at timestamps in archetype for is_high_variability on a slot. */
     @SerializedName("min_evidence_for_high_variability_slot") val min_evidence_for_high_variability_slot: Int,
-    /** Slots with fewer distinct variants than this must be omitted entirely. */
-    @SerializedName("min_variants_per_slot") val min_variants_per_slot: Int,
 )
 
 private data class MealObservation(
     @SerializedName("record_id") val record_id: Long,
     @SerializedName("template_id") val template_id: Long,
+    /** Set when the user forked this template from another; strong signal for mining. */
+    @SerializedName("parent_template_id") val parent_template_id: Long?,
     @SerializedName("logged_at") val logged_at: String,
     @SerializedName("title") val title: String,
     @SerializedName("description") val description: String,

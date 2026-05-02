@@ -10,9 +10,12 @@ import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDia
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportSqliteDatabaseUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseResult
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseUseCase
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
-import dev.gaborbiro.dailymacros.features.settings.variability.MineMealVariabilityPreviewUseCase
+import dev.gaborbiro.dailymacros.features.settings.variability.MEAL_VARIABILITY_MINING_OUTPUT_ERROR
+import dev.gaborbiro.dailymacros.features.settings.variability.MEAL_VARIABILITY_MINING_UNIQUE_WORK
 import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,8 +37,8 @@ class SettingsViewModel(
     private val exportFoodDiaryUseCase: ExportFoodDiaryUseCase,
     private val exportSqliteDatabaseUseCase: ExportSqliteDatabaseUseCase,
     private val importSqliteDatabaseUseCase: ImportSqliteDatabaseUseCase,
-    private val mineMealVariabilityPreviewUseCase: MineMealVariabilityPreviewUseCase,
     private val variabilityRepository: VariabilityRepository,
+    private val enqueueMealVariabilityMining: () -> Unit,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -57,6 +60,60 @@ class SettingsViewModel(
 
     private val _uiUpdates = MutableSharedFlow<SettingsUiUpdates>()
     val uiUpdates: SharedFlow<SettingsUiUpdates> = _uiUpdates.asSharedFlow()
+
+    init {
+        viewModelScope.launch {
+            WorkManager.getInstance(application)
+                .getWorkInfosForUniqueWorkFlow(MEAL_VARIABILITY_MINING_UNIQUE_WORK)
+                .collect { infos ->
+                    val info = infos.firstOrNull() ?: return@collect
+                    when (info.state) {
+                        WorkInfo.State.ENQUEUED, WorkInfo.State.RUNNING ->
+                            _uiState.update {
+                                it.copy(
+                                    variabilityMiningLoading = true,
+                                    variabilityMiningError = null,
+                                )
+                            }
+
+                        WorkInfo.State.SUCCEEDED ->
+                            _uiState.update {
+                                it.copy(
+                                    variabilityMiningLoading = false,
+                                    variabilityMiningError = null,
+                                    variabilityMiningRequestJson = settingsPrefs.variabilityMiningRequestJson,
+                                    variabilityMiningResponseJson = settingsPrefs.variabilityMiningResponseJson,
+                                    variabilityMiningGeneratedAt = generatedAtDisplayLine(
+                                        settingsPrefs.variabilityMiningGeneratedAtEpochMs.takeIf { it > 0L },
+                                    ),
+                                    variabilityMiningRequestJsonExpansionBits =
+                                        settingsPrefs.variabilityMiningRequestJsonExpansionBits,
+                                    variabilityMiningResponseJsonExpansionBits =
+                                        settingsPrefs.variabilityMiningResponseJsonExpansionBits,
+                                    variabilityMiningRequestJsonSectionExpanded =
+                                        settingsPrefs.variabilityMiningRequestJsonSectionExpanded,
+                                    variabilityMiningResponseJsonSectionExpanded =
+                                        settingsPrefs.variabilityMiningResponseJsonSectionExpanded,
+                                )
+                            }
+
+                        WorkInfo.State.FAILED -> {
+                            val message = info.outputData.getString(MEAL_VARIABILITY_MINING_OUTPUT_ERROR)
+                                ?: "Meal variability mining failed"
+                            _uiState.update {
+                                it.copy(
+                                    variabilityMiningLoading = false,
+                                    variabilityMiningError = message,
+                                )
+                            }
+                        }
+
+                        WorkInfo.State.CANCELLED, WorkInfo.State.BLOCKED ->
+                            _uiState.update { it.copy(variabilityMiningLoading = false) }
+                    }
+                }
+        }
+    }
 
     fun onBackNavigateRequested() {
         _uiState.update {
@@ -121,46 +178,7 @@ class SettingsViewModel(
     }
 
     fun onVariabilityMiningPreviewTapped() {
-        viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    variabilityMiningLoading = true,
-                    variabilityMiningError = null,
-                )
-            }
-            runCatching { mineMealVariabilityPreviewUseCase.execute() }
-                .onSuccess { preview ->
-                    val generatedAt = System.currentTimeMillis()
-                    settingsPrefs.variabilityMiningRequestJson = preview.requestJsonPretty
-                    settingsPrefs.variabilityMiningResponseJson = preview.responseJsonPretty
-                    settingsPrefs.variabilityMiningGeneratedAtEpochMs = generatedAt
-                    settingsPrefs.variabilityMiningRequestJsonExpansionBits = ""
-                    settingsPrefs.variabilityMiningResponseJsonExpansionBits = ""
-                    settingsPrefs.variabilityMiningRequestJsonSectionExpanded = false
-                    settingsPrefs.variabilityMiningResponseJsonSectionExpanded = false
-                    _uiState.update {
-                        it.copy(
-                            variabilityMiningLoading = false,
-                            variabilityMiningRequestJson = preview.requestJsonPretty,
-                            variabilityMiningResponseJson = preview.responseJsonPretty,
-                            variabilityMiningGeneratedAt =
-                                generatedAtDisplayLine(generatedAt),
-                            variabilityMiningRequestJsonExpansionBits = "",
-                            variabilityMiningResponseJsonExpansionBits = "",
-                            variabilityMiningRequestJsonSectionExpanded = false,
-                            variabilityMiningResponseJsonSectionExpanded = false,
-                        )
-                    }
-                }
-                .onFailure { t ->
-                    _uiState.update {
-                        it.copy(
-                            variabilityMiningLoading = false,
-                            variabilityMiningError = t.message ?: t.toString(),
-                        )
-                    }
-                }
-        }
+        enqueueMealVariabilityMining()
     }
 
     fun onClearVariabilityProfileTapped() {

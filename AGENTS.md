@@ -4,6 +4,10 @@
 
 This is a native Android app (Daily Macros) — there is no backend, no Docker, and no web server. Development tasks are build, test, and lint via Gradle.
 
+### Git workflow (agents)
+
+- **Before starting work** on an existing branch, run `git pull` (prefer `git pull --rebase origin <branch-name>` if the branch may have moved) so local work is based on the latest remote tip.
+
 ### Environment prerequisites
 
 - **JDK 17** (`JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64`)

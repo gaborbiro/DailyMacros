@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.modal.model
 
 import androidx.compose.ui.text.input.TextFieldValue
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityPreviewContent
 
 data class ModalUiState(
     val rootDialog: DialogHandle? = null,
@@ -93,7 +94,7 @@ sealed class DialogHandle {
 
     data class TemplateVariabilityPreviewDialog(
         val templateId: Long,
-        val message: String,
+        val preview: TemplateVariabilityPreviewContent,
     ) : DialogHandle()
 }
 

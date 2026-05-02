@@ -4,4 +4,8 @@
     <string name="shortcut_camera_name">Snap food</string>
     <string name="shortcut_image_name">Pick photo</string>
     <string name="shortcut_text_name">Text only</string>
+    <string name="variability_mining_foreground_title">Mining meal variability…</string>
+    <string name="variability_mining_success_title">Meal variability updated</string>
+    <string name="variability_mining_success_text">Mining finished. Open Settings to inspect the saved profile.</string>
+    <string name="variability_mining_failure_title">Meal variability mining failed</string>
 </resources>
