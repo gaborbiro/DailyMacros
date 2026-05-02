@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -35,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -99,8 +101,24 @@ internal fun SettingsView(
         ) {
             SettingRow(title = "Daily targets", onTapped = onTargetsSettingTapped)
             SettingRow(title = "Export summary JSON", onTapped = onExportSettingTapped)
-            SettingRow(title = "Export data", onTapped = onExportDbTapped)
-            SettingRow(title = "Import data (irreversible)", onTapped = onImportDbTapped)
+            SettingRow(
+                title = "Export data",
+                onTapped = onExportDbTapped,
+                enabled = !viewState.showBackupProgressIndicator,
+                trailing = {
+                    if (viewState.showBackupProgressIndicator) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                        )
+                    }
+                },
+            )
+            SettingRow(
+                title = "Import data (irreversible)",
+                onTapped = onImportDbTapped,
+                enabled = !viewState.showBackupProgressIndicator,
+            )
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -230,19 +248,28 @@ private fun CollapsibleJsonRow(
 private fun SettingRow(
     title: String,
     subtitle: String? = null,
+    enabled: Boolean = true,
+    trailing: @Composable (() -> Unit)? = null,
     onTapped: () -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onTapped),
+            .clickable(
+                enabled = enabled,
+                onClick = onTapped,
+            )
+            .alpha(if (enabled) 1f else 0.6f),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             modifier = Modifier
-                .fillMaxWidth()
+                .weight(1f)
                 .padding(16.dp),
             text = title,
         )
+        trailing?.invoke()
+        Spacer(modifier = Modifier.padding(end = 16.dp))
     }
 }
 

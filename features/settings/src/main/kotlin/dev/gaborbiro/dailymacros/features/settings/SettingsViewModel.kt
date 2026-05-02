@@ -91,17 +91,20 @@ class SettingsViewModel(
 
     fun onExportDbTapped() {
         viewModelScope.launch {
+            _uiState.update { it.copy(showBackupProgressIndicator = true) }
             runCatching { exportSqliteDatabaseUseCase.execute() }
                 .onFailure { t ->
                     _uiUpdates.emit(
                         SettingsUiUpdates.ShowSnackbar(t.message ?: t.toString()),
                     )
                 }
+            _uiState.update { it.copy(showBackupProgressIndicator = false) }
         }
     }
 
     fun onImportDbTapped() {
         viewModelScope.launch {
+            _uiState.update { it.copy(showBackupProgressIndicator = true) }
             when (val result = importSqliteDatabaseUseCase.execute()) {
                 ImportSqliteDatabaseResult.Cancelled -> Unit
                 ImportSqliteDatabaseResult.InvalidFile ->
@@ -113,6 +116,7 @@ class SettingsViewModel(
                 is ImportSqliteDatabaseResult.Error ->
                     _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar(result.message))
             }
+            _uiState.update { it.copy(showBackupProgressIndicator = false) }
         }
     }
 
