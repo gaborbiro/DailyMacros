@@ -90,7 +90,7 @@ import kotlin.time.Duration.Companion.seconds
 class MainActivity : ComponentActivity() {
 
     companion object {
-        private val CHATGPT_REQUEST_TIMEOUT = 10.minutes
+        private val CHATGPT_REQUEST_TIMEOUT = 60.minutes
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
