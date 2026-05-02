@@ -39,7 +39,7 @@ class MineMealVariabilityPreviewUseCase(
                 ?.takeIf { it.isNotBlank() }
                 ?.let { JsonParser.parseString(it) }
         val envelope = VariabilityMiningUserEnvelope(
-            schema_version = "1.0",
+            schema_version = "1.1",
             merge_mode = "incremental",
             existing_profile = existingProfile,
             constraints = VariabilityConstraints(
@@ -65,6 +65,7 @@ class MineMealVariabilityPreviewUseCase(
         return MealObservation(
             record_id = recordId,
             template_id = t.dbId,
+            parent_template_id = t.parentTemplateId,
             logged_at = timestamp.toString(),
             title = t.name,
             description = t.description.take(MAX_DESCRIPTION_CHARS),
@@ -128,6 +129,8 @@ private data class VariabilityConstraints(
 private data class MealObservation(
     @SerializedName("record_id") val record_id: Long,
     @SerializedName("template_id") val template_id: Long,
+    /** Set when the user forked this template from another; strong signal for mining. */
+    @SerializedName("parent_template_id") val parent_template_id: Long?,
     @SerializedName("logged_at") val logged_at: String,
     @SerializedName("title") val title: String,
     @SerializedName("description") val description: String,
