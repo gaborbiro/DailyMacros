@@ -12,7 +12,8 @@ class TemplateVariabilityPreviewMapper {
 
     /**
      * Slots where at least one variant cites [templateId] in evidence; each row lists **all**
-     * variants in that slot (so the UI can offer full recombination, not only the current log’s variant).
+     * variants in that slot (full recombination). Variants that cite this template are listed first
+     * so the preview dialog defaults to the starting template’s variant.
      */
     fun slotPreviewsForTemplate(
         archetypes: List<VariabilityArchetype>,
@@ -29,16 +30,25 @@ class TemplateVariabilityPreviewMapper {
                             v.evidence.any { it.templateId == templateId }
                         }
                         if (!slotTouchesTemplate) return@forEach
-                        val allVariants = slot.variants
+                        val sortedDistinct = slot.variants
                             .sortedBy { it.sortOrder }
                             .distinctBy { it.variantKey }
+                        val matchingThisTemplate = sortedDistinct.filter { v ->
+                            v.evidence.any { it.templateId == templateId }
+                        }
+                        val rest = sortedDistinct.filterNot { v ->
+                            v.evidence.any { it.templateId == templateId }
+                        }
+                        // Put variants that cite this template first so the dropdown defaults to the
+                        // current meal’s variant while still listing every option in the slot.
+                        val orderedForUi = matchingThisTemplate + rest
                         rows.add(
                             TemplateVariabilitySlotPreview(
                                 archetypeKey = archetype.archetypeKey,
                                 archetypeDisplayName = archetype.displayName,
                                 slotKey = slot.slotKey,
                                 role = slot.role,
-                                variants = allVariants.map { v ->
+                                variants = orderedForUi.map { v ->
                                     TemplateVariabilityVariantPreview(
                                         variantKey = v.variantKey,
                                         variantLabel = v.variantLabel.ifBlank { v.variantKey },

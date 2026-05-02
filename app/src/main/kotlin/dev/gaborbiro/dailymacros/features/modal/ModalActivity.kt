@@ -112,8 +112,9 @@ class ModalActivity : AppCompatActivity() {
             context.launchActivityInNewStack { it.getSelectTemplateActionIntent(templateId) }
         }
 
+        /** Same task as [MainActivity] so the overview is not cleared (avoid NEW_TASK|CLEAR_TASK). */
         fun launchAddFromTemplateWithVariability(context: Context, templateId: Long) {
-            context.launchActivityInNewStack { it.getAddFromTemplateWithVariabilityIntent(templateId) }
+            context.launchActivity { it.getAddFromTemplateWithVariabilityIntent(templateId) }
         }
 
     }

@@ -9,7 +9,10 @@ data class TemplateVariabilityVariantPreview(
 )
 
 /**
- * One slot row with variants that include [templateId] in evidence (for quick-pick preview).
+ * One slot row for quick-pick preview: the slot is included because at least one variant cites the
+ * template in evidence. [variants] lists every variant in the slot, ordered with variants that cite
+ * the starting template first (then the rest by profile sort order) so the UI can default the
+ * dropdown to the current meal’s choice.
  */
 data class TemplateVariabilitySlotPreview(
     val archetypeKey: String,

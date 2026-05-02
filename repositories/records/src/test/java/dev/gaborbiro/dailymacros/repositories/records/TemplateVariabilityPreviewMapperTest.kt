@@ -69,6 +69,60 @@ class TemplateVariabilityPreviewMapperTest {
         assertEquals(2, slots[0].variants.size)
         assertTrue(slots[0].variants.any { it.variantKey == "butter" })
         assertTrue(slots[0].variants.any { it.variantKey == "jam" })
+        assertEquals(
+            listOf("butter", "jam"),
+            slots[0].variants.map { it.variantKey },
+        )
+    }
+
+    @Test
+    fun `slotPreviews orders matching template variants before others`() {
+        val archetypes = listOf(
+            VariabilityArchetype(
+                archetypeKey = "toast_breakfast",
+                displayName = "Toast breakfast",
+                titleAliasesJson = "[]",
+                evidenceCount = 2,
+                lastSeenTimestamp = null,
+                archetypeNotes = null,
+                deprecated = false,
+                deprecatedReason = null,
+                slots = listOf(
+                    VariabilitySlot(
+                        slotKey = "bread",
+                        role = "Bread",
+                        nutritionalLeversJson = "[]",
+                        isHighVariability = true,
+                        confidence = 0.9,
+                        rationale = "",
+                        variants = listOf(
+                            VariabilityVariant(
+                                variantKey = "white",
+                                variantLabel = "White bread",
+                                macroSource = "",
+                                notesExcerpt = "",
+                                typicalMacrosJson = "{}",
+                                evidence = listOf(VariabilityEvidence(loggedAt = "a", templateId = 7L)),
+                                sortOrder = 0,
+                            ),
+                            VariabilityVariant(
+                                variantKey = "sourdough",
+                                variantLabel = "Sourdough bread",
+                                macroSource = "",
+                                notesExcerpt = "",
+                                typicalMacrosJson = "{}",
+                                evidence = listOf(VariabilityEvidence(loggedAt = "b", templateId = 99L)),
+                                sortOrder = 1,
+                            ),
+                        ),
+                        sortOrder = 0,
+                    ),
+                ),
+                sortOrder = 0,
+            ),
+        )
+        val slots = mapper.slotPreviewsForTemplate(archetypes, templateId = 99L)
+        assertEquals(listOf("sourdough", "white"), slots[0].variants.map { it.variantKey })
     }
 
     @Test
