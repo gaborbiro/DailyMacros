@@ -25,8 +25,6 @@ data class VariabilityVariantEntity(
     @ColumnInfo(name = "slotId") val slotId: Long,
     @ColumnInfo(name = "variantKey") val variantKey: String,
     @ColumnInfo(name = "variantLabel") val variantLabel: String,
-    @ColumnInfo(name = "macroSource") val macroSource: String,
     @ColumnInfo(name = "notesExcerpt") val notesExcerpt: String,
-    @ColumnInfo(name = "typicalMacrosJson") val typicalMacrosJson: String,
     @ColumnInfo(name = "sortOrder") val sortOrder: Int,
 )

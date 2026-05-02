@@ -136,9 +136,7 @@ class VariabilityProfileMapper(
                                     slotId = 0L,
                                     variantKey = v.variantKey,
                                     variantLabel = v.variantLabel,
-                                    macroSource = "",
                                     notesExcerpt = v.notesExcerpt,
-                                    typicalMacrosJson = "{}",
                                     sortOrder = v.sortOrder,
                                 ),
                                 evidence = v.evidence.map { e ->
