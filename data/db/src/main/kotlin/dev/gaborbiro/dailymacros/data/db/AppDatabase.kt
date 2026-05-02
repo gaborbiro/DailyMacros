@@ -38,7 +38,7 @@ import java.time.ZoneId
         VariabilityVariantEntity::class,
         VariabilityVariantEvidenceEntity::class,
     ],
-    version = 13,
+    version = 12,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -102,7 +102,6 @@ abstract class AppDatabase : RoomDatabase() {
             .addMigrations(MIGRATION_9_10)
             .addMigrations(MIGRATION_10_11)
             .addMigrations(MIGRATION_11_12)
-            .addMigrations(MIGRATION_12_13)
             .build()
         }
     }
@@ -319,11 +318,6 @@ val MIGRATION_10_11 = object : Migration(10, 11) {
 val MIGRATION_11_12 = object : Migration(11, 12) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE variability_variant_evidence ADD COLUMN mealTitle TEXT")
-    }
-}
-
-val MIGRATION_12_13 = object : Migration(12, 13) {
-    override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("PRAGMA defer_foreign_keys = ON")
         db.execSQL(
             """

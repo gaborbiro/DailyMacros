@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 12,
-    "identityHash": "d347e4c3080e4729e45b43865c11ec46",
+    "identityHash": "bbfcacf98b1f12b65d8ddb65666f99f3",
     "entities": [
       {
         "tableName": "records",
@@ -710,7 +710,7 @@
       },
       {
         "tableName": "variability_variants",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `slotId` INTEGER NOT NULL, `variantKey` TEXT NOT NULL, `variantLabel` TEXT NOT NULL, `macroSource` TEXT NOT NULL, `notesExcerpt` TEXT NOT NULL, `typicalMacrosJson` TEXT NOT NULL, `sortOrder` INTEGER NOT NULL, FOREIGN KEY(`slotId`) REFERENCES `variability_slots`(`_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `slotId` INTEGER NOT NULL, `variantKey` TEXT NOT NULL, `variantLabel` TEXT NOT NULL, `notesExcerpt` TEXT NOT NULL, `sortOrder` INTEGER NOT NULL, FOREIGN KEY(`slotId`) REFERENCES `variability_slots`(`_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -737,20 +737,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "macroSource",
-            "columnName": "macroSource",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
             "fieldPath": "notesExcerpt",
             "columnName": "notesExcerpt",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "typicalMacrosJson",
-            "columnName": "typicalMacrosJson",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -868,7 +856,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd347e4c3080e4729e45b43865c11ec46')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'bbfcacf98b1f12b65d8ddb65666f99f3')"
     ]
   }
 }
