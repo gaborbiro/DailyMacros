@@ -101,12 +101,14 @@ internal fun SettingsView(
         ) {
             SettingRow(title = "Daily targets", onTapped = onTargetsSettingTapped)
             SettingRow(title = "Export summary JSON", onTapped = onExportSettingTapped)
+            val backupIdle =
+                !viewState.exportDataInProgress && !viewState.importDataInProgress
             SettingRow(
                 title = "Export data",
                 onTapped = onExportDbTapped,
-                enabled = !viewState.showBackupProgressIndicator,
+                enabled = backupIdle,
                 trailing = {
-                    if (viewState.showBackupProgressIndicator) {
+                    if (viewState.exportDataInProgress) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(18.dp),
                             strokeWidth = 2.dp,
@@ -117,7 +119,15 @@ internal fun SettingsView(
             SettingRow(
                 title = "Import data (irreversible)",
                 onTapped = onImportDbTapped,
-                enabled = !viewState.showBackupProgressIndicator,
+                enabled = backupIdle,
+                trailing = {
+                    if (viewState.importDataInProgress) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                        )
+                    }
+                },
             )
             Button(
                 modifier = Modifier
