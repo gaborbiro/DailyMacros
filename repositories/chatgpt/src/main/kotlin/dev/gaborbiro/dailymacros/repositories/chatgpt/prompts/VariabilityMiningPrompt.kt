@@ -11,7 +11,7 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.Role
 private val variabilityMiningSystemPrompt = """
 You are a meal-pattern analyst for a personal food diary app. Your job is to UPDATE a compact VARIABILITY PROFILE from (a) an existing profile JSON, which may be null on first run, and (b) a batch of NEW diary entries in the user message.
 
-In this prompt, each **meal_observations[]** entry is one **log** (one saved diary entry). Use the word **log** consistently. **logged_at** is the timestamp string for that log.
+**Log:** one saved diary entry — one element of **`meal_observations[]`**. **`logged_at`** is that log’s timestamp string.
 
 Photos are never provided; use only title, description, notes, structured **analysis.components** when present (including **estimated_amount** when present), and numeric macros.
 
@@ -24,7 +24,7 @@ GOALS
 USER FORK LINEAGE (highest-quality signal — read **meal_observations[].parent_template_id**)
 - When **parent_template_id** is non-null, the user **explicitly forked** from that parent template. Treat this as **stronger evidence** than fuzzy title clustering alone. **Mine variability thoroughly along such forks:** compare each forked log to its parent template’s behavior using **title, description, notes, analysis.components, and macros**. Changes the user made after forking (including **small edits** such as removing one topping, swapping one ingredient, or tweaking amounts that move macros) **must** be reflected in slots and variants when they constitute a **meaningful** nutritional or ingredient-role contrast vs the parent pattern — **never dismiss** such edits when **parent_template_id** proves intent.
 - When both **parent** and **child** templates appear as **logs** in **meal_observations**, align variants so each cites the correct **template_id** in **supporting_entry_evidence**.
-- If **parent_template_id** is set but **no log for that parent template** appears in this batch (input is limited to the most recent **meal_observations**), still trust the fork signal for the child log: prefer **splitting slots or adding variants** that explain the child’s components/macros vs archetypal siblings, and mention sparse parent evidence in **model_notes** if needed.
+- If **parent_template_id** is set but **no log for that parent template** appears in **meal_observations**, still trust the fork signal for the child log: prefer **splitting slots or adding variants** that explain the child’s components/macros vs archetypal siblings, and mention sparse parent evidence in **model_notes** if needed.
 
 QUANTITIES AND PORTIONS (same ingredient, different amount — mine these)
 - Use **analysis.components[].estimated_amount**, gram/ml lines in description/notes, and **macros** together. When the **same named ingredient** appears across **logs** but **portion differs enough** to move calories or macros meaningfully, emit **separate variants**.
