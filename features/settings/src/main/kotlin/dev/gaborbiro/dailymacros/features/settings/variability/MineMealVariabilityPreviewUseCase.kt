@@ -39,14 +39,12 @@ class MineMealVariabilityPreviewUseCase(
                 ?.takeIf { it.isNotBlank() }
                 ?.let { JsonParser.parseString(it) }
         val envelope = VariabilityMiningUserEnvelope(
-            schema_version = "1.1",
+            schema_version = "1.3",
             merge_mode = "incremental",
             existing_profile = existingProfile,
             constraints = VariabilityConstraints(
                 max_archetypes = 50,
-                min_evidence_per_archetype = 2,
                 min_evidence_for_high_variability_slot = 2,
-                min_variants_per_slot = 2,
             ),
             meal_observations = records.map { it.toObservation() },
         )
@@ -119,11 +117,8 @@ private data class VariabilityMiningUserEnvelope(
 
 private data class VariabilityConstraints(
     @SerializedName("max_archetypes") val max_archetypes: Int,
-    /** Minimum distinct logged rows to emit an archetype (titles may cluster). */
-    @SerializedName("min_evidence_per_archetype") val min_evidence_per_archetype: Int,
+    /** Distinct logged_at timestamps in archetype for is_high_variability on a slot. */
     @SerializedName("min_evidence_for_high_variability_slot") val min_evidence_for_high_variability_slot: Int,
-    /** Slots with fewer distinct variants than this must be omitted entirely. */
-    @SerializedName("min_variants_per_slot") val min_variants_per_slot: Int,
 )
 
 private data class MealObservation(
