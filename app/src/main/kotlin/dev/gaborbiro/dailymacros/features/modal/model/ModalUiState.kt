@@ -40,6 +40,8 @@ sealed class DialogHandle {
             val showProgressIndicator: Boolean = false,
             val showRunAIButton: Boolean = false,
             val recognisedFood: RecognisedFood?,
+            /** Mined slot/variant UI for this record’s template; null when no profile or no slots. */
+            val templateVariabilityPreview: TemplateVariabilityPreviewContent? = null,
         ) : RecordDetailsDialog(
             titleHint = titleHint,
             titleValidationError = titleValidationError,
@@ -64,6 +66,8 @@ sealed class DialogHandle {
             override val title: TextFieldValue,
             override val description: TextFieldValue,
             override val images: List<String>,
+            /** Mined slot/variant UI for this record’s template; null when no profile or no slots. */
+            val templateVariabilityPreview: TemplateVariabilityPreviewContent? = null,
         ) : RecordDetailsDialog(
             titleHint = titleHint,
             titleValidationError = titleValidationError,

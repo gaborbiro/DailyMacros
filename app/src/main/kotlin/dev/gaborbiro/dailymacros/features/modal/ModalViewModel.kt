@@ -143,6 +143,10 @@ internal class ModalViewModel(
         recordDetailsJob = runSafely {
             recordsRepository.observe(recordId)
                 .collect { record ->
+                    val variabilityPreview =
+                        getVariabilityMatchForTemplateUseCase.execute(record.template.dbId)
+                    val previewForDialog =
+                        variabilityPreview.slots.takeIf { it.isNotEmpty() }?.let { variabilityPreview }
 
                     val dialog = DialogHandle.RecordDetailsDialog.View(
                         recordId = recordId,
@@ -153,6 +157,7 @@ internal class ModalViewModel(
                         allowEdit = edit,
                         titleHint = "Give your meal a title",
                         titleValidationError = null,
+                        templateVariabilityPreview = previewForDialog,
                     )
                     setRoot(dialog)
                 }
