@@ -28,6 +28,7 @@ fun SettingsScreen(
                 SettingsUiUpdates.NavigateBack -> navController.popBackStack()
                 is SettingsUiUpdates.ShowSnackbar -> snackbarHostState.showSnackbar(
                     event.message,
+                    withDismissAction = true,
                     duration = SnackbarDuration.Indefinite,
                 )
             }
