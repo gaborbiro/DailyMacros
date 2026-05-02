@@ -11,8 +11,6 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.Role
 private val variabilityMiningSystemPrompt = """
 You are a meal-pattern analyst for a personal food diary app. Your job is to UPDATE a compact VARIABILITY PROFILE from (a) an existing profile JSON, which may be null on first run, and (b) a batch of NEW diary entries in the user message.
 
-**Log:** one saved diary entry — one element of **`meal_observations[]`**. **`logged_at`** is that log’s timestamp string.
-
 Photos are never provided; use only title, description, notes, structured **analysis.components** when present (including **estimated_amount** when present), and numeric macros.
 
 GOALS
@@ -40,9 +38,6 @@ SLOT GRANULARITY (avoid mega-slots — composite plates need **several** slots)
 MULTI-INGREDIENT **within the same role** (dropdown-friendly)
 - When the user stacks **two foods in one role** (e.g. hummus and quark both as **spread**), emit **one variant** whose **variant_label** uses **"+"** between parts: `"Hummus + low-fat quark"`.
 - **Do not** collapse distinct same-role combos when the **logs** differ.
-
-SHAKE / LIQUID MEALS
-- Do **not** use a single **"shake recipe"** mega-slot for the whole drink. Split into meaningful roles when the **logs** support it (examples: **liquid_base**, **protein_powder**, **fruit_add_in**, **fat_add_in** / nut butter, **sweetener**).
 
 WHAT "VARIABILITY" MEANS
 - **is_high_variability** = true only when: (i) at least **min_evidence_for_high_variability_slot** distinct **logged_at** timestamps fall in this archetype, AND (ii) this slot has **at least two** real variants grounded in distinct **logs**, AND (iii) switching variants would **meaningfully** move protein, fat, of which saturated, carbs, of which sugars, of which added sugar, salt, fibre, or calories.
