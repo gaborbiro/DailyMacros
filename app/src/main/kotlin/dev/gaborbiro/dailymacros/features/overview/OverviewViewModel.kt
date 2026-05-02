@@ -97,21 +97,24 @@ internal class OverviewViewModel(
                     }
                     previousRecordCount = records.size
 
+                    val notSearching = search.isNullOrBlank()
                     _viewState.update {
                         if (records.isNotEmpty()) {
                             it.copy(
                                 items = records,
                                 isLoadingMore = false,
                                 hasMoreData = hasMore,
-                                showSettingsButton = search.isNullOrBlank(),
+                                showSettingsButton = notSearching,
+                                showTrendsButton = notSearching,
                             )
                         } else {
                             it.copy(
                                 items = records,
                                 isLoadingMore = false,
                                 hasMoreData = hasMore,
-                                showAddWidgetButton = search.isNullOrBlank(),
-                                showSettingsButton = search.isNullOrBlank(),
+                                showAddWidgetButton = notSearching,
+                                showSettingsButton = notSearching,
+                                showTrendsButton = notSearching,
                             )
                         }
                     }
@@ -119,9 +122,11 @@ internal class OverviewViewModel(
                         overviewPrefs.showCoachMark = false
                         delay(2.seconds)
                         _viewState.update {
+                            val notSearching = search.isNullOrBlank()
                             it.copy(
                                 showCoachMark = true,
-                                showSettingsButton = search.isNullOrBlank(),
+                                showSettingsButton = notSearching,
+                                showTrendsButton = notSearching,
                             )
                         }
                     }
