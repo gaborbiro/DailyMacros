@@ -1,12 +1,49 @@
 package dev.gaborbiro.dailymacros.repositories.records
 
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilitySlotPreview
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityVariantPreview
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
 
 /**
- * Maps persisted variability archetypes into human-readable lines for a template id
+ * Maps persisted variability archetypes into preview rows for a template id
  * (variants whose evidence lists that [templateId]).
  */
 class TemplateVariabilityPreviewMapper {
+
+    fun slotPreviewsForTemplate(
+        archetypes: List<VariabilityArchetype>,
+        templateId: Long,
+    ): List<TemplateVariabilitySlotPreview> {
+        val rows = mutableListOf<TemplateVariabilitySlotPreview>()
+        archetypes
+            .sortedBy { it.sortOrder }
+            .forEach { archetype ->
+                archetype.slots
+                    .sortedBy { it.sortOrder }
+                    .forEach { slot ->
+                        val matchingVariants = slot.variants
+                            .filter { v -> v.evidence.any { it.templateId == templateId } }
+                            .sortedBy { it.sortOrder }
+                            .distinctBy { it.variantKey }
+                        if (matchingVariants.isEmpty()) return@forEach
+                        rows.add(
+                            TemplateVariabilitySlotPreview(
+                                archetypeKey = archetype.archetypeKey,
+                                archetypeDisplayName = archetype.displayName,
+                                slotKey = slot.slotKey,
+                                role = slot.role,
+                                variants = matchingVariants.map { v ->
+                                    TemplateVariabilityVariantPreview(
+                                        variantKey = v.variantKey,
+                                        variantLabel = v.variantLabel.ifBlank { v.variantKey },
+                                    )
+                                },
+                            ),
+                        )
+                    }
+            }
+        return rows
+    }
 
     fun toPreviewLines(archetypes: List<VariabilityArchetype>, templateId: Long): List<String> {
         val lines = mutableListOf<String>()

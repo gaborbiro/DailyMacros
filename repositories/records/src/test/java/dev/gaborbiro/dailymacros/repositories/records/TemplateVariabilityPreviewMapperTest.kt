@@ -62,6 +62,11 @@ class TemplateVariabilityPreviewMapperTest {
         assertTrue(lines.any { it.contains("Toast breakfast") && it.contains("toast_breakfast") })
         assertTrue(lines.any { it.contains("Spread") && it.contains("spread") })
         assertTrue(lines.any { it.contains("Butter") && it.contains("butter") })
+
+        val slots = mapper.slotPreviewsForTemplate(archetypes, templateId = 42L)
+        assertEquals(1, slots.size)
+        assertEquals("spread", slots[0].slotKey)
+        assertEquals(1, slots[0].variants.count { it.variantKey == "butter" })
     }
 
     @Test

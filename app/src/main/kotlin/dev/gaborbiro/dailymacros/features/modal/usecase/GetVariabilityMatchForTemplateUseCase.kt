@@ -3,10 +3,10 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 import dev.gaborbiro.dailymacros.repositories.records.TemplateVariabilityPreviewMapper
 import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfileMapper
 import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityPreviewContent
 
 /**
- * Produces a multi-line summary of variability archetypes/slots/variants linked to [templateId]
- * via variant evidence [templateId] fields.
+ * Loads mined variability for [templateId] (evidence match) for the quick-add preview dialog.
  */
 internal class GetVariabilityMatchForTemplateUseCase(
     private val variabilityRepository: VariabilityRepository,
@@ -14,18 +14,27 @@ internal class GetVariabilityMatchForTemplateUseCase(
     private val previewMapper: TemplateVariabilityPreviewMapper = TemplateVariabilityPreviewMapper(),
 ) {
 
-    suspend fun execute(templateId: Long): String {
+    suspend fun execute(templateId: Long): TemplateVariabilityPreviewContent {
         val snapshot = variabilityRepository.getLatestProfile()
-            ?: return "No variability profile is loaded yet. Run meal variability mining from Settings to see archetypes here."
+            ?: return TemplateVariabilityPreviewContent(
+                bannerText = "No variability profile is loaded yet. Run meal variability mining from Settings to see variants here.",
+                slots = emptyList(),
+            )
         val profile = profileMapper.parseProfileJson(
             profileJson = snapshot.profileJson,
             minedAtEpochMs = snapshot.minedAtEpochMs,
         )
-        val lines = previewMapper.toPreviewLines(profile.archetypes, templateId)
-        return if (lines.isEmpty()) {
-            "No archetypes include this template in variant evidence yet. After the next mine, rows that reference this template id will appear here."
+        val slots = previewMapper.slotPreviewsForTemplate(profile.archetypes, templateId)
+        return if (slots.isEmpty()) {
+            TemplateVariabilityPreviewContent(
+                bannerText = "No slots in the profile cite this template yet. After the next mine, variants that reference this template id will appear here.",
+                slots = emptyList(),
+            )
         } else {
-            lines.joinToString("\n")
+            TemplateVariabilityPreviewContent(
+                bannerText = "Pick a variant per slot (demo — not saved yet).",
+                slots = slots,
+            )
         }
     }
 }

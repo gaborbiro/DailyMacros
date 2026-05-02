@@ -180,11 +180,11 @@ internal class ModalViewModel(
     @UiThread
     fun onAddFromTemplateDeeplink(templateId: Long) {
         runSafely {
-            val message = getVariabilityMatchForTemplateUseCase.execute(templateId)
+            val preview = getVariabilityMatchForTemplateUseCase.execute(templateId)
             setRoot(
                 DialogHandle.TemplateVariabilityPreviewDialog(
                     templateId = templateId,
-                    message = message,
+                    preview = preview,
                 ),
             )
         }
@@ -310,11 +310,11 @@ internal class ModalViewModel(
     @UiThread
     fun onRepeatTemplateButtonTapped(templateId: Long) {
         runSafely {
-            val message = getVariabilityMatchForTemplateUseCase.execute(templateId)
+            val preview = getVariabilityMatchForTemplateUseCase.execute(templateId)
             setRoot(
                 DialogHandle.TemplateVariabilityPreviewDialog(
                     templateId = templateId,
-                    message = message,
+                    preview = preview,
                 ),
             )
         }

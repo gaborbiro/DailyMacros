@@ -410,7 +410,7 @@ class ModalActivity : AppCompatActivity() {
 
             is DialogHandle.TemplateVariabilityPreviewDialog -> {
                 TemplateVariabilityPreviewDialog(
-                    message = dialogHandle.message,
+                    preview = dialogHandle.preview,
                     onAddConfirmed = {
                         viewModel.onTemplateVariabilityPreviewAddConfirmed(dialogHandle.templateId)
                     },
