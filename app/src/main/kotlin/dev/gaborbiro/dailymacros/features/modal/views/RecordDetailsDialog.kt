@@ -324,14 +324,6 @@ private fun ColumnScope.RecordDetailsDialogContent(
         },
     )
 
-    templateVariabilityPreview?.slots?.takeIf { it.isNotEmpty() }?.let {
-        Spacer(modifier = Modifier.height(PaddingDefault))
-        TemplateVariabilitySlotsBlock(
-            preview = templateVariabilityPreview,
-            showHeader = true,
-        )
-    }
-
     analysis
         ?.description
         ?.takeIf { it.isNotBlank() }
@@ -376,6 +368,15 @@ private fun ColumnScope.RecordDetailsDialogContent(
         Spacer(
             modifier = Modifier
                 .height(PaddingDefault)
+        )
+    }
+
+    templateVariabilityPreview?.slots?.takeIf { it.isNotEmpty() }?.let {
+        Spacer(modifier = Modifier.height(PaddingDefault))
+        TemplateVariabilitySlotsBlock(
+            modifier = Modifier.padding(horizontal = PaddingDefault),
+            preview = templateVariabilityPreview,
+            showHeader = true,
         )
     }
 }

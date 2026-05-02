@@ -4,9 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -61,19 +58,14 @@ fun TemplateVariabilitySlotsBlock(
             if (showHeader) {
                 Spacer(modifier = Modifier.height(12.dp))
             }
-            Column(
-                modifier = Modifier
-                    .heightIn(max = 320.dp)
-                    .verticalScroll(rememberScrollState()),
-            ) {
-                slots.forEachIndexed { index, slot ->
-                    TemplateVariabilitySlotVariantDropdown(
-                        slot = slot,
-                        selectedVariantKey = selectedVariantKeys[index]!!,
-                        onVariantKeySelected = { key -> selectedVariantKeys[index] = key },
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
+            // No nested scroll: parent (e.g. record details) is already scrollable.
+            slots.forEachIndexed { index, slot ->
+                TemplateVariabilitySlotVariantDropdown(
+                    slot = slot,
+                    selectedVariantKey = selectedVariantKeys[index]!!,
+                    onVariantKeySelected = { key -> selectedVariantKeys[index] = key },
+                )
+                Spacer(modifier = Modifier.height(12.dp))
             }
         }
     }

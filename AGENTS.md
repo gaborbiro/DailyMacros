@@ -7,6 +7,7 @@ This is a native Android app (Daily Macros) — there is no backend, no Docker, 
 ### Git workflow (agents)
 
 - **Before starting work** on an existing branch, run `git pull` (prefer `git pull --rebase origin <branch-name>` if the branch may have moved) so local work is based on the latest remote tip.
+- **If work continues after a PR was merged or closed**, do not reuse that PR branch for new changes: check the PR state (e.g. `gh pr view <n> --json state`), then branch from current **`master`** with a new `cursor/...-8ebf` branch.
 
 ### Environment prerequisites
 
