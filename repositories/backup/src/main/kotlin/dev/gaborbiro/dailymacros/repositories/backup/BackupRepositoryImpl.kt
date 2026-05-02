@@ -2,6 +2,8 @@ package dev.gaborbiro.dailymacros.repositories.backup
 
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
+import androidx.sqlite.db.SimpleSQLiteQuery
+import androidx.sqlite.db.SupportSQLiteDatabase
 import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.repositories.backup.domain.BackupRepository
 import dev.gaborbiro.dailymacros.repositories.backup.domain.model.DatabaseBackupImportResult
@@ -41,15 +43,37 @@ class BackupRepositoryImpl(
                     "Nothing to export yet — use the app once so the database is created.",
                 )
             }
-            SQLiteDatabase.openDatabase(
-                dbFile.absolutePath,
-                null,
-                SQLiteDatabase.OPEN_READWRITE,
-            ).use { raw ->
-                raw.rawQuery("PRAGMA wal_checkpoint(TRUNCATE)", null).close()
-            }
+            // Must use Room's writable connection: a second SQLiteDatabase handle often gets
+            // SQLITE_BUSY from wal_checkpoint(TRUNCATE), leaving newest rows only in -wal.
+            val writable = AppDatabase.getInstance().openHelper.writableDatabase
+            checkpointWalForExport(writable)
             dbFile
         }
+
+    private fun checkpointWalForExport(writable: SupportSQLiteDatabase) {
+        repeat(CHECKPOINT_MAX_ATTEMPTS) { attempt ->
+            writable.query(SimpleSQLiteQuery("PRAGMA wal_checkpoint(TRUNCATE)")).use { cursor ->
+                if (!cursor.moveToFirst()) {
+                    return
+                }
+                val busy = cursor.getInt(0)
+                if (busy == 0) {
+                    return
+                }
+            }
+            if (attempt < CHECKPOINT_MAX_ATTEMPTS - 1) {
+                Thread.sleep(CHECKPOINT_RETRY_DELAY_MS)
+            }
+        }
+        throw IllegalStateException(
+            "Could not flush the database for export (journal busy). Try again in a moment.",
+        )
+    }
+
+    private companion object {
+        const val CHECKPOINT_MAX_ATTEMPTS = 40
+        const val CHECKPOINT_RETRY_DELAY_MS = 25L
+    }
 
     override suspend fun importSqliteReplacement(source: InputStream): DatabaseBackupImportResult =
         withContext(Dispatchers.IO) {
