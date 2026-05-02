@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.features.settings
 
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,7 +26,10 @@ fun SettingsScreen(
         settingsViewModel.uiUpdates.collect { event ->
             when (event) {
                 SettingsUiUpdates.NavigateBack -> navController.popBackStack()
-                is SettingsUiUpdates.ShowSnackbar -> snackbarHostState.showSnackbar(event.message)
+                is SettingsUiUpdates.ShowSnackbar -> snackbarHostState.showSnackbar(
+                    event.message,
+                    duration = SnackbarDuration.Indefinite,
+                )
             }
         }
     }
