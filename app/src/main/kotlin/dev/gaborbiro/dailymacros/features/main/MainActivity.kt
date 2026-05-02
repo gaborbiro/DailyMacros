@@ -137,7 +137,7 @@ class MainActivity : ComponentActivity() {
             backupRepository = backupRepository,
             createPublicDocumentUseCase = createJsonDocumentUseCase,
             streamWriter = streamWriter,
-            sharePublicUriLauncher = sharePublicUriLauncher,
+//            sharePublicUriLauncher = sharePublicUriLauncher,
         )
         val importSqliteDatabaseUseCase = ImportSqliteDatabaseUseCase(
             application = applicationContext as Application,

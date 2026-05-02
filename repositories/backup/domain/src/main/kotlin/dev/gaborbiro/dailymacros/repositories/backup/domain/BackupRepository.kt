@@ -7,10 +7,16 @@ import java.io.InputStream
 interface BackupRepository {
 
     /**
-     * WAL checkpoint into the main DB file and returns that file.
+     * WAL-checkpoints the DB, then writes a POSIX tar to a new temp file containing:
+     * - [backup_manifest.json] (format marker)
+     * - [databases/daily_macros_db]
+     * - [files/public/...] image files (if any)
+     *
+     * Caller must delete the returned file when finished.
      * @throws IllegalStateException when the database file does not exist yet.
      */
-    suspend fun prepareSqliteFileForExport(): File
+    suspend fun prepareBackupArchiveForExport(): File
 
-    suspend fun importSqliteReplacement(source: InputStream): DatabaseBackupImportResult
+    /** Restores from a full tar created by [prepareBackupArchiveForExport]. */
+    suspend fun importBackup(source: InputStream): DatabaseBackupImportResult
 }

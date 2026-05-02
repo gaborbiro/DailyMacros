@@ -98,9 +98,9 @@ internal fun SettingsView(
                 .imePadding()
         ) {
             SettingRow(title = "Daily targets", onTapped = onTargetsSettingTapped)
-            SettingRow(title = "Partial Export to Json", onTapped = onExportSettingTapped)
-            SettingRow(title = "Export DB", onTapped = onExportDbTapped)
-            SettingRow(title = "Import DB", onTapped = onImportDbTapped)
+            SettingRow(title = "Export summary JSON", onTapped = onExportSettingTapped)
+            SettingRow(title = "Export data", onTapped = onExportDbTapped)
+            SettingRow(title = "Import data (irreversible)", onTapped = onImportDbTapped)
             Button(
                 modifier = Modifier
                     .fillMaxWidth()

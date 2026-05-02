@@ -106,7 +106,7 @@ class SettingsViewModel(
                 ImportSqliteDatabaseResult.Cancelled -> Unit
                 ImportSqliteDatabaseResult.InvalidFile ->
                     _uiUpdates.emit(
-                        SettingsUiUpdates.ShowSnackbar("That file is not a valid SQLite backup"),
+                        SettingsUiUpdates.ShowSnackbar("That file is not a valid backup (.tar)"),
                     )
 
                 ImportSqliteDatabaseResult.RestartPending -> Unit

@@ -11,5 +11,6 @@ dependencies {
     implementation(project(":data:db"))
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.commons.compress)
     implementation(libs.kotlinx.coroutines.core)
 }

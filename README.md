@@ -14,7 +14,7 @@
 
 ./gradlew versionCatalogUpdate
 
-## Backup and Restore
+## Backup and Restore images (not really needed anymore since there's a complete export solution in Settings now)
 
 cmd /c 'adb exec-out run-as dev.gaborbiro.dailymacros tar -cf - files/public > "%USERPROFILE%\Desktop\public-backup.tar"'
 tar -tf "$env:USERPROFILE\Desktop\public-backup.tar" | Select-Object -First 20

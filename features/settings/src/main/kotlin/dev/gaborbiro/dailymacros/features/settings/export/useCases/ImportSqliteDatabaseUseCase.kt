@@ -32,7 +32,7 @@ class ImportSqliteDatabaseUseCase(
                 ?: return@withContext ImportSqliteDatabaseResult.Error("Unable to read selected backup")
 
             input.use { input ->
-                when (val result = backupRepository.importSqliteReplacement(input)) {
+                when (val result = backupRepository.importBackup(input)) {
                     DatabaseBackupImportResult.ReplacementApplied -> {
                         withContext(Dispatchers.Main) {
                             ProcessRestarter.restartApplication(activityProvider())

@@ -61,6 +61,7 @@ google-gson = "2.13.2"
 google-mlkit-image-labeling = "17.0.9"
 # @pin
 guava = "33.4.8-android"
+commons-compress = "1.27.1"
 vico = "3.0.3"
 # -------------------------------------------------------------------------------
 # --- Testing -------------------------------------------------------------------
@@ -145,6 +146,7 @@ network-okhttp-cookiejar = { module = "com.squareup.okhttp3:okhttp-java-net-cook
 network-retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "squareup-retrofit" }
 network-retrofit-converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "squareup-retrofit" }
 network-gson = { module = "com.google.code.gson:gson", version.ref = "google-gson" }
+commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commons-compress" }
 # -------------------------------------------------------------------------------
 # --- KotlinX / Concurrency -----------------------------------------------------
 # -------------------------------------------------------------------------------
