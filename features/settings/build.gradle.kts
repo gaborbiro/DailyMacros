@@ -8,6 +8,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":repositories:backup"))
     implementation(project(":core:design"))
     implementation(project(":features:common"))
     implementation(project(":repositories:settings"))

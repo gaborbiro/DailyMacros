@@ -7,6 +7,9 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportSqliteDatabaseUseCase
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseResult
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseUseCase
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
 import dev.gaborbiro.dailymacros.features.settings.variability.MineMealVariabilityPreviewUseCase
@@ -29,6 +32,8 @@ class SettingsViewModel(
     appInfo: SettingsAppInfo,
     private val settingsPrefs: SettingsPrefs,
     private val exportFoodDiaryUseCase: ExportFoodDiaryUseCase,
+    private val exportSqliteDatabaseUseCase: ExportSqliteDatabaseUseCase,
+    private val importSqliteDatabaseUseCase: ImportSqliteDatabaseUseCase,
     private val mineMealVariabilityPreviewUseCase: MineMealVariabilityPreviewUseCase,
     private val variabilityRepository: VariabilityRepository,
 ) : ViewModel() {
@@ -81,6 +86,33 @@ class SettingsViewModel(
     fun onExportSettingsTapped() {
         viewModelScope.launch {
             exportFoodDiaryUseCase.execute()
+        }
+    }
+
+    fun onExportDbTapped() {
+        viewModelScope.launch {
+            runCatching { exportSqliteDatabaseUseCase.execute() }
+                .onFailure { t ->
+                    _uiUpdates.emit(
+                        SettingsUiUpdates.ShowSnackbar(t.message ?: t.toString()),
+                    )
+                }
+        }
+    }
+
+    fun onImportDbTapped() {
+        viewModelScope.launch {
+            when (val result = importSqliteDatabaseUseCase.execute()) {
+                ImportSqliteDatabaseResult.Cancelled -> Unit
+                ImportSqliteDatabaseResult.InvalidFile ->
+                    _uiUpdates.emit(
+                        SettingsUiUpdates.ShowSnackbar("That file is not a valid SQLite backup"),
+                    )
+
+                ImportSqliteDatabaseResult.RestartPending -> Unit
+                is ImportSqliteDatabaseResult.Error ->
+                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar(result.message))
+            }
         }
     }
 

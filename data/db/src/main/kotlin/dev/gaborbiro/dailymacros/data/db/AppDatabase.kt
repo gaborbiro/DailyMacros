@@ -55,20 +55,43 @@ abstract class AppDatabase : RoomDatabase() {
 
     companion object {
 
+        const val DATABASE_FILE_NAME: String = "daily_macros_db"
+
+        private val lock = Any()
+
         @Volatile
-        private lateinit var INSTANCE: AppDatabase
+        private var instance: AppDatabase? = null
 
         fun init(appContext: Context) {
-            INSTANCE = buildDatabase(appContext)
+            synchronized(lock) {
+                if (instance == null) {
+                    instance = buildDatabase(appContext)
+                }
+            }
         }
 
-        fun getInstance() = INSTANCE
+        fun getInstance(): AppDatabase =
+            synchronized(lock) {
+                instance ?: error("AppDatabase not initialized")
+            }
+
+        /**
+         * Closes the Room instance and clears the singleton holder.
+         * Used when replacing the database file on disk (e.g. restore from backup).
+         * The process should be restarted shortly after so [init] runs again on cold start.
+         */
+        fun closeSingleton() {
+            synchronized(lock) {
+                instance?.close()
+                instance = null
+            }
+        }
 
         private fun buildDatabase(context: Context): AppDatabase {
             return Room.databaseBuilder(
                 context.applicationContext,
                 AppDatabase::class.java,
-                "daily_macros_db"
+                DATABASE_FILE_NAME
             )
                 .addMigrations(MIGRATION_2_3)
                 .addMigrations(MIGRATION_3_4)

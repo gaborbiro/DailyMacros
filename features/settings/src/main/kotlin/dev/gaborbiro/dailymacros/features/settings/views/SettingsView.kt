@@ -49,6 +49,8 @@ internal fun SettingsView(
     onBackNavigateRequested: () -> Unit,
     onTargetsSettingTapped: () -> Unit,
     onExportSettingTapped: () -> Unit,
+    onExportDbTapped: () -> Unit,
+    onImportDbTapped: () -> Unit,
     onVariabilityMiningPreviewTapped: () -> Unit,
     onClearVariabilityProfileTapped: () -> Unit,
     onCopyVariabilityRequestJson: () -> Unit,
@@ -96,7 +98,9 @@ internal fun SettingsView(
                 .imePadding()
         ) {
             SettingRow(title = "Daily targets", onTapped = onTargetsSettingTapped)
-            SettingRow(title = "Export", onTapped = onExportSettingTapped)
+            SettingRow(title = "Partial Export to Json", onTapped = onExportSettingTapped)
+            SettingRow(title = "Export DB", onTapped = onExportDbTapped)
+            SettingRow(title = "Import DB", onTapped = onImportDbTapped)
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -256,6 +260,8 @@ private fun SettingsViewPreview() {
             onBackNavigateRequested = {},
             onTargetsSettingTapped = {},
             onExportSettingTapped = {},
+            onExportDbTapped = {},
+            onImportDbTapped = {},
             onVariabilityMiningPreviewTapped = {},
             onClearVariabilityProfileTapped = {},
             onCopyVariabilityRequestJson = {},

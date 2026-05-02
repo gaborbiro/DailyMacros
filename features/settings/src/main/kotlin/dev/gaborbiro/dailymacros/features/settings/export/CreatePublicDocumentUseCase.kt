@@ -23,7 +23,8 @@ class CreatePublicDocumentUseCaseImpl(activity: ComponentActivity) : CreatePubli
 
     private val launcher =
         activity.registerForActivityResult(
-            ActivityResultContracts.CreateDocument("application/json")
+            // Covers JSON diary exports and SQLite backups (.db).
+            ActivityResultContracts.CreateDocument("*/*")
         ) { uri ->
             continuation?.resume(uri) { _, _, _ -> }
             continuation = null

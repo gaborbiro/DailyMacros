@@ -47,9 +47,12 @@ import dev.gaborbiro.dailymacros.features.settings.SettingsPrefs
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
 import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCaseImpl
+import dev.gaborbiro.dailymacros.features.settings.export.OpenPublicDocumentUseCaseImpl
 import dev.gaborbiro.dailymacros.features.settings.export.SharePublicUriLauncher
 import dev.gaborbiro.dailymacros.features.settings.export.StreamWriter
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportSqliteDatabaseUseCase
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseUseCase
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsViewModel
 import com.google.gson.Gson
 import dev.gaborbiro.dailymacros.features.settings.variability.MineMealVariabilityPreviewUseCase
@@ -60,6 +63,7 @@ import dev.gaborbiro.dailymacros.features.trends.TrendsPreferencesImpl
 import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
 import dev.gaborbiro.dailymacros.features.trends.TrendsUiMapper
 import dev.gaborbiro.dailymacros.features.trends.TrendsViewModel
+import dev.gaborbiro.dailymacros.repositories.backup.BackupRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.chatgpt.AuthInterceptor
 import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGPTRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.ChatGPTService
@@ -126,6 +130,20 @@ class MainActivity : ComponentActivity() {
             createPublicDocumentUseCase = createJsonDocumentUseCase,
             streamWriter = streamWriter,
             sharePublicUriLauncher = sharePublicUriLauncher,
+        )
+        val openPublicDocumentUseCase = OpenPublicDocumentUseCaseImpl(this@MainActivity)
+        val backupRepository = BackupRepositoryImpl(applicationContext)
+        val exportSqliteDatabaseUseCase = ExportSqliteDatabaseUseCase(
+            backupRepository = backupRepository,
+            createPublicDocumentUseCase = createJsonDocumentUseCase,
+            streamWriter = streamWriter,
+            sharePublicUriLauncher = sharePublicUriLauncher,
+        )
+        val importSqliteDatabaseUseCase = ImportSqliteDatabaseUseCase(
+            application = applicationContext as Application,
+            backupRepository = backupRepository,
+            openPublicDocumentUseCase = openPublicDocumentUseCase,
+            activityProvider = { this@MainActivity },
         )
 
         val chatGptGson = GsonBuilder()
@@ -195,6 +213,8 @@ class MainActivity : ComponentActivity() {
                         appInfo = settingsAppInfo,
                         settingsPrefs = settingsPrefs,
                         exportFoodDiaryUseCase = exportFoodDiaryUseCase,
+                        exportSqliteDatabaseUseCase = exportSqliteDatabaseUseCase,
+                        importSqliteDatabaseUseCase = importSqliteDatabaseUseCase,
                         mineMealVariabilityPreviewUseCase = mineMealVariabilityPreviewUseCase,
                         variabilityRepository = variabilityRepository,
                     )

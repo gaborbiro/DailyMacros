@@ -94,6 +94,7 @@ dependencies {
     implementation(project(":features:common"))
     implementation(project(":features:settings"))
     implementation(project(":features:trends"))
+    implementation(project(":repositories:backup"))
     implementation(project(":repositories:chatgpt"))
     implementation(project(":repositories:records"))
     implementation(project(":repositories:settings"))

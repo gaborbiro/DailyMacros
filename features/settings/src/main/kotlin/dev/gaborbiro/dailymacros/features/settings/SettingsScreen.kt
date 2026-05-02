@@ -36,6 +36,8 @@ fun SettingsScreen(
         onBackNavigateRequested = settingsViewModel::onBackNavigateRequested,
         onTargetsSettingTapped = settingsViewModel::onTargetsSettingsTapped,
         onExportSettingTapped = settingsViewModel::onExportSettingsTapped,
+        onExportDbTapped = settingsViewModel::onExportDbTapped,
+        onImportDbTapped = settingsViewModel::onImportDbTapped,
         onVariabilityMiningPreviewTapped = settingsViewModel::onVariabilityMiningPreviewTapped,
         onClearVariabilityProfileTapped = settingsViewModel::onClearVariabilityProfileTapped,
         onCopyVariabilityRequestJson = settingsViewModel::onCopyVariabilityRequestJson,
