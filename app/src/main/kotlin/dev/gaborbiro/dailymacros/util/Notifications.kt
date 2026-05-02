@@ -11,7 +11,7 @@ import dev.gaborbiro.dailymacros.features.modal.getViewRecordDetailsIntent
 
 private const val CHANNEL_ID_GENERAL = "general"
 const val CHANNEL_ID_ERROR = "error"
-/** High-importance channel only for failed background macro / AI nutrient requests (e.g. [GetMacrosWorker]). */
+/** High-importance channel for failed background AI work (e.g. [GetMacrosWorker], [MineMealVariabilityWorker]). */
 const val CHANNEL_ID_FOREGROUND = "foreground"
 
 fun Context.createNotificationChannels() {
@@ -76,6 +76,25 @@ fun Context.showMacroResultsNotification(
         id.toInt(),
         builder.build()
     )
+}
+
+fun Context.showTitleTextNotification(
+    id: Int,
+    title: String,
+    text: String,
+    isError: Boolean,
+) {
+    val channelId = if (isError) CHANNEL_ID_ERROR else CHANNEL_ID_GENERAL
+    val builder = NotificationCompat.Builder(this, channelId)
+        .setSmallIcon(R.drawable.ic_nutrition)
+        .setContentTitle(title)
+        .setContentText(text)
+        .setAutoCancel(true)
+        .setStyle(
+            NotificationCompat.BigTextStyle()
+                .bigText(text),
+        )
+    getSystemService(NotificationManager::class.java).notify(id, builder.build())
 }
 
 fun Context.showTextNotification(

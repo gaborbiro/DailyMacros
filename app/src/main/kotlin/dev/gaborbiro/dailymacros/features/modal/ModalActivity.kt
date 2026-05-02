@@ -30,6 +30,7 @@ import dev.gaborbiro.dailymacros.data.file.domain.FileStore
 import dev.gaborbiro.dailymacros.data.image.DefaultFoodPicExt
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.AppTheme
+import dev.gaborbiro.dailymacros.features.common.ChatGptOkHttpTimeouts
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
@@ -77,8 +78,6 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.net.CookieManager
-import java.util.concurrent.TimeUnit.SECONDS
-
 
 class ModalActivity : AppCompatActivity() {
 
@@ -117,7 +116,6 @@ class ModalActivity : AppCompatActivity() {
             context.launchActivityInNewStack { it.getAddFromTemplateWithVariabilityIntent(templateId) }
         }
 
-        const val REQUEST_TIMEOUT_IN_SECONDS = 90L
     }
 
     private val fileStore = FileStoreFactoryImpl(this).getStore("public", keepFiles = true)
@@ -143,10 +141,7 @@ class ModalActivity : AppCompatActivity() {
             .addNetworkInterceptor(logger)
             .addInterceptor(authInterceptor)
             .addNetworkInterceptor(authInterceptor)
-            .callTimeout(REQUEST_TIMEOUT_IN_SECONDS, SECONDS)
-            .connectTimeout(REQUEST_TIMEOUT_IN_SECONDS, SECONDS)
-            .readTimeout(REQUEST_TIMEOUT_IN_SECONDS, SECONDS)
-            .writeTimeout(REQUEST_TIMEOUT_IN_SECONDS, SECONDS)
+            .also { ChatGptOkHttpTimeouts.applyImageUploadTimeouts(it) }
 
         val okHttpClient = builder
             .cookieJar(JavaNetCookieJar(CookieManager()))
