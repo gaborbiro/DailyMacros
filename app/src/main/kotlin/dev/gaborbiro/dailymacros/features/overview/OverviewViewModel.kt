@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.App
+import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiState
@@ -36,6 +37,7 @@ internal class OverviewViewModel(
     private val settingsRepository: SettingsRepository,
     private val uiMapper: OverviewUiMapper,
     private val overviewPrefs: OverviewPrefs,
+    private val createRecordFromTemplateUseCase: CreateRecordFromTemplateUseCase,
 ) : ViewModel() {
 
     private val _viewState: MutableStateFlow<OverviewUiState> =
@@ -145,7 +147,8 @@ internal class OverviewViewModel(
     fun onRepeatMenuItemTapped(recordId: Long) {
         viewModelScope.launch {
             val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return@launch
-            _uiUpdates.emit(OverviewUiUpdates.AddFromTemplate(templateId))
+            createRecordFromTemplateUseCase.execute(templateId)
+            DiaryWidgetScreen.reload()
         }
     }
 

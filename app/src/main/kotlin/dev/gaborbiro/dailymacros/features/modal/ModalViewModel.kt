@@ -143,6 +143,10 @@ internal class ModalViewModel(
         recordDetailsJob = runSafely {
             recordsRepository.observe(recordId)
                 .collect { record ->
+                    val variabilityPreview =
+                        getVariabilityMatchForTemplateUseCase.execute(record.template.dbId)
+                    val previewForDialog =
+                        variabilityPreview.slots.takeIf { it.isNotEmpty() }?.let { variabilityPreview }
 
                     val dialog = DialogHandle.RecordDetailsDialog.View(
                         recordId = recordId,
@@ -153,6 +157,7 @@ internal class ModalViewModel(
                         allowEdit = edit,
                         titleHint = "Give your meal a title",
                         titleValidationError = null,
+                        templateVariabilityPreview = previewForDialog,
                     )
                     setRoot(dialog)
                 }
@@ -174,25 +179,6 @@ internal class ModalViewModel(
                 recordsRepository.getRecordsByTemplate(templateId).firstOrNull()?.template?.name
                     ?: ""
             setRoot(DialogHandle.SelectTemplateActionDialog(templateId, title))
-        }
-    }
-
-    @UiThread
-    fun onAddFromTemplateDeeplink(templateId: Long) {
-        runSafely {
-            val preview = getVariabilityMatchForTemplateUseCase.execute(templateId)
-            if (preview.slots.isEmpty()) {
-                createRecordFromTemplateUseCase.execute(templateId)
-                DiaryWidgetScreen.reload()
-                closeAll()
-            } else {
-                setRoot(
-                    DialogHandle.TemplateVariabilityPreviewDialog(
-                        templateId = templateId,
-                        preview = preview,
-                    ),
-                )
-            }
         }
     }
 
@@ -315,25 +301,6 @@ internal class ModalViewModel(
 
     @UiThread
     fun onRepeatTemplateButtonTapped(templateId: Long) {
-        runSafely {
-            val preview = getVariabilityMatchForTemplateUseCase.execute(templateId)
-            if (preview.slots.isEmpty()) {
-                createRecordFromTemplateUseCase.execute(templateId)
-                DiaryWidgetScreen.reload()
-                closeAll()
-            } else {
-                setRoot(
-                    DialogHandle.TemplateVariabilityPreviewDialog(
-                        templateId = templateId,
-                        preview = preview,
-                    ),
-                )
-            }
-        }
-    }
-
-    @UiThread
-    fun onTemplateVariabilityPreviewAddConfirmed(templateId: Long) {
         runSafely {
             createRecordFromTemplateUseCase.execute(templateId)
             DiaryWidgetScreen.reload()

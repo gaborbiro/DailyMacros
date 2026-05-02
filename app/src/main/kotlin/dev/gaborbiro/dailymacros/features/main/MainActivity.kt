@@ -31,6 +31,7 @@ import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.AppTheme
+import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.common.RecordsMapper
 import dev.gaborbiro.dailymacros.features.common.SharedRecordsUiMapper
@@ -129,6 +130,7 @@ class MainActivity : ComponentActivity() {
         val recordsUiMapper = SharedRecordsUiMapper(nutrientsUiMapper)
         val recordsMapper = RecordsMapper()
         val overviewUiMapper = OverviewUiMapper(recordsUiMapper, nutrientsUiMapper, recordsMapper)
+        val createRecordFromTemplateUseCase = CreateRecordFromTemplateUseCase(recordsRepository)
 
         setContent {
             AppTheme {
@@ -139,6 +141,7 @@ class MainActivity : ComponentActivity() {
                         settingsRepository = settingsRepository,
                         uiMapper = overviewUiMapper,
                         overviewPrefs = overviewPrefs,
+                        createRecordFromTemplateUseCase = createRecordFromTemplateUseCase,
                     )
                 }
 

@@ -44,6 +44,9 @@ import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.RecognisedFood
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityPreviewContent
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilitySlotPreview
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityVariantPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -80,6 +83,10 @@ internal fun RecordDetailsDialog(
     val allowEdit = (dialogHandle as? DialogHandle.RecordDetailsDialog.View)
         ?.allowEdit
         ?: true
+    val templateVariabilityPreview = when (dialogHandle) {
+        is DialogHandle.RecordDetailsDialog.View -> dialogHandle.templateVariabilityPreview
+        is DialogHandle.RecordDetailsDialog.Edit -> dialogHandle.templateVariabilityPreview
+    }
 
     val saveButtonText =
         if (dialogHandle is DialogHandle.RecordDetailsDialog.View) "Update and Analyze" else "Add and Analyze"
@@ -114,6 +121,7 @@ internal fun RecordDetailsDialog(
                 onAddImageViaPickerTapped = onAddImageViaPickerTapped,
                 onImagesInfoButtonTapped = onImagesInfoButtonTapped,
                 onRunAIButtonTapped = onRunAIButtonTapped,
+                templateVariabilityPreview = templateVariabilityPreview,
             )
         },
         errorMessages = errorMessages,
@@ -180,6 +188,7 @@ private fun ColumnScope.RecordDetailsDialogContent(
     onAddImageViaPickerTapped: () -> Unit,
     onImagesInfoButtonTapped: () -> Unit,
     onRunAIButtonTapped: () -> Unit,
+    templateVariabilityPreview: TemplateVariabilityPreviewContent?,
 ) {
     val focusRequester = remember { FocusRequester() }
 
@@ -315,6 +324,14 @@ private fun ColumnScope.RecordDetailsDialogContent(
         },
     )
 
+    templateVariabilityPreview?.slots?.takeIf { it.isNotEmpty() }?.let {
+        Spacer(modifier = Modifier.height(PaddingDefault))
+        TemplateVariabilitySlotsBlock(
+            preview = templateVariabilityPreview,
+            showHeader = true,
+        )
+    }
+
     analysis
         ?.description
         ?.takeIf { it.isNotBlank() }
@@ -387,6 +404,21 @@ private fun NoteInputDialogContentPreviewView() {
                     salt = "Salt: 5g",
                     fibre = "Fibre: 4.5g",
                     notes = "Notes: This is a note",
+                ),
+                templateVariabilityPreview = TemplateVariabilityPreviewContent(
+                    bannerText = "Pick a variant per slot (demo — not saved yet).",
+                    slots = listOf(
+                        TemplateVariabilitySlotPreview(
+                            archetypeKey = "toast",
+                            archetypeDisplayName = "Toast breakfast",
+                            slotKey = "spread",
+                            role = "Spread",
+                            variants = listOf(
+                                TemplateVariabilityVariantPreview("butter", "Butter"),
+                                TemplateVariabilityVariantPreview("jam", "Jam"),
+                            ),
+                        ),
+                    ),
                 ),
             ),
             errorMessages = emptyFlow(),

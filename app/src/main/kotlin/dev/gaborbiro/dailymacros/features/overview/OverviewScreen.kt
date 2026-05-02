@@ -27,8 +27,6 @@ internal fun OverviewScreen(
             when (event) {
                 is OverviewUiUpdates.EditRecord -> ModalActivity.launchViewRecordDetails(context, event.recordId)
                 is OverviewUiUpdates.ViewImage -> ModalActivity.launchToShowRecordImage(context, event.recordId)
-                is OverviewUiUpdates.AddFromTemplate ->
-                    ModalActivity.launchAddFromTemplateWithVariability(context, event.templateId)
                 OverviewUiUpdates.OpenSettingsScreen -> navController.navigate(SETTINGS_ROUTE)
                 OverviewUiUpdates.OpenTrendsScreen -> navController.navigate(TRENDS_ROUTE)
             }
