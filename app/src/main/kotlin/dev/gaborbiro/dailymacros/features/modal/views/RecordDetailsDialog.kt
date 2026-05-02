@@ -413,7 +413,7 @@ private fun NoteInputDialogContentPreviewView() {
                             archetypeKey = "toast",
                             archetypeDisplayName = "Toast breakfast",
                             slotKey = "spread",
-                            role = "Spread",
+                            roleDisplayName = "Spread",
                             variants = listOf(
                                 TemplateVariabilityVariantPreview("butter", "Butter"),
                                 TemplateVariabilityVariantPreview("jam", "Jam"),

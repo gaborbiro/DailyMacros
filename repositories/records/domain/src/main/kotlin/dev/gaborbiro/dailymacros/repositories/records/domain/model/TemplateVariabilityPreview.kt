@@ -18,7 +18,7 @@ data class TemplateVariabilitySlotPreview(
     val archetypeKey: String,
     val archetypeDisplayName: String,
     val slotKey: String,
-    val role: String,
+    val roleDisplayName: String,
     val variants: List<TemplateVariabilityVariantPreview>,
 )
 

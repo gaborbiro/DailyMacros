@@ -38,7 +38,7 @@ import java.time.ZoneId
         VariabilityVariantEntity::class,
         VariabilityVariantEvidenceEntity::class,
     ],
-    version = 11,
+    version = 12,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -101,6 +101,7 @@ abstract class AppDatabase : RoomDatabase() {
             .addMigrations(MIGRATION_8_9)
             .addMigrations(MIGRATION_9_10)
             .addMigrations(MIGRATION_10_11)
+            .addMigrations(MIGRATION_11_12)
             .build()
         }
     }
@@ -311,5 +312,11 @@ val MIGRATION_10_11 = object : Migration(10, 11) {
             SELECT 'templates', IFNULL(MAX(`_id`), 0) FROM `templates`
             """.trimIndent(),
         )
+    }
+}
+
+val MIGRATION_11_12 = object : Migration(11, 12) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE variability_variant_evidence ADD COLUMN mealTitle TEXT")
     }
 }

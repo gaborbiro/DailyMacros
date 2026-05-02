@@ -47,7 +47,7 @@ class TemplateVariabilityPreviewMapper {
                                 archetypeKey = archetype.archetypeKey,
                                 archetypeDisplayName = archetype.displayName,
                                 slotKey = slot.slotKey,
-                                role = slot.role,
+                                roleDisplayName = slot.roleDisplayName,
                                 variants = orderedForUi.map { v ->
                                     TemplateVariabilityVariantPreview(
                                         variantKey = v.variantKey,
@@ -80,7 +80,7 @@ class TemplateVariabilityPreviewMapper {
                             lines.add(archetypeHeader)
                             wroteHeader = true
                         }
-                        lines.add("  Slot: ${slot.role} (${slot.slotKey})")
+                        lines.add("  Slot: ${slot.roleDisplayName} (${slot.slotKey})")
                         matchingVariants.forEach { v ->
                             val label = v.variantLabel.ifBlank { v.variantKey }
                             lines.add("    • $label (${v.variantKey})")

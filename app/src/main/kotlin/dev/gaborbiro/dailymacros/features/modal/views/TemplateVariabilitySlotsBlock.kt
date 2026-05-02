@@ -87,7 +87,7 @@ fun TemplateVariabilitySlotVariantDropdown(
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "${slot.archetypeDisplayName} — ${slot.role}",
+            text = slot.roleDisplayName,
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

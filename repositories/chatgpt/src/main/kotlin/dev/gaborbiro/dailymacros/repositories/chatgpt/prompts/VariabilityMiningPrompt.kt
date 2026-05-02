@@ -21,7 +21,7 @@ GOALS
 
 USER FORK LINEAGE (highest-quality signal — read **meal_observations[].parent_template_id**)
 - When **parent_template_id** is non-null, the user **explicitly forked** from that parent template. Treat this as **stronger evidence** than fuzzy title clustering alone. **Mine variability thoroughly along such forks:** compare each forked log to its parent template’s behavior using **title, description, notes, analysis.components, and macros**. Changes the user made after forking (including **small edits** such as removing one topping, swapping one ingredient, or tweaking amounts that move macros) **must** be reflected in slots and variants when they constitute a **meaningful** nutritional or ingredient-role contrast vs the parent pattern — **never dismiss** such edits when **parent_template_id** proves intent.
-- When both **parent** and **child** templates appear as **logs** in **meal_observations**, align variants so each cites the correct **template_id** in **supporting_entry_evidence**.
+- When both **parent** and **child** templates appear as **logs** in **meal_observations**, align variants so each cites the correct **template_id** (and matching **title**) in **supporting_entry_evidence**.
 - If **parent_template_id** is set but **no log for that parent template** appears in **meal_observations**, still trust the fork signal for the child log: prefer **splitting slots or adding variants** that explain the child’s components/macros vs archetypal siblings, and mention sparse parent evidence in **model_notes** if needed.
 
 QUANTITIES AND PORTIONS (same ingredient, different amount — mine these)
@@ -32,7 +32,7 @@ QUANTITIES AND PORTIONS (same ingredient, different amount — mine these)
 
 SLOT GRANULARITY (avoid mega-slots — composite plates need **several** slots)
 - **Do not** collapse a whole composite meal (e.g. continental breakfast, loaded plate) into **one** slot whose variants are full **"X + Y + Z + …"** plate descriptions. That pattern is **forbidden**: it hides structure and breaks per-role UI.
-- Split composite meals into **several slots** by **culinary role** (examples: **bread_base**, **spread**, **cheese_or_creamy_dairy**, **egg_style**, **charcuterie**, **vegetables_side**, **dressing**, **fruit**, **beverage**). Each slot’s variants must stay **within that role only**.
+- Split composite meals into **several slots** by **culinary role**. Use **slot_id** as a stable machine key (e.g. `bread_base`, `spread`) and **role_display_name** as the short human label shown above the dropdown (e.g. `"Bread"`, `"Spread"`, `"Cold cut"`). Each slot’s variants must stay **within that role only**.
 - **variant_label** must **not** bundle ingredients from **different roles** (no bread + egg + meat in one label). **"+"** is allowed **only** to combine items that **share the same role** in that meal (e.g. two spreads: **"hummus + low-fat quark"** in the **spread** slot only).
 
 MULTI-INGREDIENT **within the same role** (dropdown-friendly)
@@ -48,7 +48,7 @@ WHAT "VARIABILITY" MEANS
 RULES
 1. Output ONLY valid JSON matching the response schema below. No markdown, no commentary outside the JSON.
 2. MERGE incrementally with **existing_profile** when provided; preserve stable ids when still valid; split incompatible clusters (e.g. pizza calorie tiers) when needed.
-3. Each variant cites **supporting_entry_evidence**: an array of objects `{ "logged_at": "<same string as meal_observations[].logged_at>", "template_id": <number from meal_observations[].template_id> }`, one per supporting log (≥1 per variant). Use the exact `logged_at` and `template_id` from the **meal_observations** entries that justify that variant. Prefer citing **fork parent and child** template_ids when both exist for a variant contrast.
+3. Each variant cites **supporting_entry_evidence**: an array of objects `{ "logged_at": "<same string as meal_observations[].logged_at>", "template_id": <number from meal_observations[].template_id>, "title": "<exact meal_observations[].title for that log>" }`, one per supporting log (≥1 per variant). Use the exact `logged_at`, `template_id`, and **title** from the **meal_observations** row that supports that evidence (the diary template title). Prefer citing **fork parent and child** when both exist for a variant contrast.
 4. At most **max_archetypes** archetypes.
 5. Versioning: bump **schema_version** only if semantics change; else bump **revision** from input or start at 1.
 6. **model_notes** (<=500 chars): merges, sparse parent template in batch, archetypes with no slots you trust, etc.
@@ -72,8 +72,8 @@ RESPONSE JSON SCHEMA (output object keys)
       "deprecated_reason": null,
       "slots": [
         {
-          "slot_id": "string",
-          "role": "string",
+          "slot_id": "string (stable machine id, e.g. spread, bread_base)",
+          "role_display_name": "string (short human-readable label for this slot — used as the dropdown caption in the app, e.g. \"Spread\", \"Bread\", \"Cold cut\")",
           "nutritional_levers": ["string"],
           "is_high_variability": false,
           "confidence": 0.0,
@@ -83,20 +83,8 @@ RESPONSE JSON SCHEMA (output object keys)
               "variant_id": "string",
               "variant_label": "string",
               "supporting_entry_evidence": [
-                { "logged_at": "string", "template_id": 0 }
+                { "logged_at": "string", "template_id": 0, "title": "string (meal title from meal_observations for that log)" }
               ],
-              "typical_macros": {
-                "calories_kcal": 0,
-                "protein_g": 0.0,
-                "fat_g": 0.0,
-                "of_which_saturated_g": 0.0,
-                "carbs_g": 0.0,
-                "of_which_sugar_g": 0.0,
-                "of_which_added_sugar_g": 0.0,
-                "salt_g": 0.0,
-                "fibre_g": 0.0
-              },
-              "macro_source": "label_backed | estimated | mixed",
               "notes_excerpt": "string"
             }
           ]
