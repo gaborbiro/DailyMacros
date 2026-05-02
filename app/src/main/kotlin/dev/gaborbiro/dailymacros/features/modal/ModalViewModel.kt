@@ -181,12 +181,18 @@ internal class ModalViewModel(
     fun onAddFromTemplateDeeplink(templateId: Long) {
         runSafely {
             val preview = getVariabilityMatchForTemplateUseCase.execute(templateId)
-            setRoot(
-                DialogHandle.TemplateVariabilityPreviewDialog(
-                    templateId = templateId,
-                    preview = preview,
-                ),
-            )
+            if (preview.slots.isEmpty()) {
+                createRecordFromTemplateUseCase.execute(templateId)
+                DiaryWidgetScreen.reload()
+                closeAll()
+            } else {
+                setRoot(
+                    DialogHandle.TemplateVariabilityPreviewDialog(
+                        templateId = templateId,
+                        preview = preview,
+                    ),
+                )
+            }
         }
     }
 
@@ -311,12 +317,18 @@ internal class ModalViewModel(
     fun onRepeatTemplateButtonTapped(templateId: Long) {
         runSafely {
             val preview = getVariabilityMatchForTemplateUseCase.execute(templateId)
-            setRoot(
-                DialogHandle.TemplateVariabilityPreviewDialog(
-                    templateId = templateId,
-                    preview = preview,
-                ),
-            )
+            if (preview.slots.isEmpty()) {
+                createRecordFromTemplateUseCase.execute(templateId)
+                DiaryWidgetScreen.reload()
+                closeAll()
+            } else {
+                setRoot(
+                    DialogHandle.TemplateVariabilityPreviewDialog(
+                        templateId = templateId,
+                        preview = preview,
+                    ),
+                )
+            }
         }
     }
 
