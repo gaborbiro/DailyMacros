@@ -56,7 +56,6 @@ import dev.gaborbiro.dailymacros.features.modal.views.ImageDialog
 import dev.gaborbiro.dailymacros.features.modal.views.RecordDetailsDialog
 import dev.gaborbiro.dailymacros.features.modal.views.SelectRecordActionDialog
 import dev.gaborbiro.dailymacros.features.modal.views.SelectTemplateActionDialog
-import dev.gaborbiro.dailymacros.features.modal.views.TemplateVariabilityPreviewDialog
 import dev.gaborbiro.dailymacros.repositories.chatgpt.AuthInterceptor
 import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGPTRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.ChatGPTService
@@ -110,11 +109,6 @@ class ModalActivity : AppCompatActivity() {
 
         fun launchToSelectTemplateAction(context: Context, templateId: Long) {
             context.launchActivityInNewStack { it.getSelectTemplateActionIntent(templateId) }
-        }
-
-        /** Same task as [MainActivity] so the overview is not cleared (avoid NEW_TASK|CLEAR_TASK). */
-        fun launchAddFromTemplateWithVariability(context: Context, templateId: Long) {
-            context.launchActivity { it.getAddFromTemplateWithVariabilityIntent(templateId) }
         }
 
     }
@@ -321,11 +315,6 @@ class ModalActivity : AppCompatActivity() {
                 val templateId = intent.getLongExtra(EXTRA_TEMPLATE_ID, -1L)
                 viewModel.onSelectTemplateActionDeeplink(templateId)
             }
-
-            Action.ADD_FROM_TEMPLATE -> {
-                val templateId = intent.getLongExtra(EXTRA_TEMPLATE_ID, -1L)
-                viewModel.onAddFromTemplateDeeplink(templateId)
-            }
         }
     }
 
@@ -400,16 +389,6 @@ class ModalActivity : AppCompatActivity() {
             is DialogHandle.InfoDialog -> {
                 InfoDialog(
                     message = dialogHandle.message,
-                    onDismissRequested = onDismissRequested,
-                )
-            }
-
-            is DialogHandle.TemplateVariabilityPreviewDialog -> {
-                TemplateVariabilityPreviewDialog(
-                    preview = dialogHandle.preview,
-                    onAddConfirmed = {
-                        viewModel.onTemplateVariabilityPreviewAddConfirmed(dialogHandle.templateId)
-                    },
                     onDismissRequested = onDismissRequested,
                 )
             }

@@ -19,9 +19,6 @@ fun Context.getSelectRecordActionIntent(recordId: Long) =
 fun Context.getSelectTemplateActionIntent(templateId: Long) =
     getModalIntent(Action.SELECT_TEMPLATE_ACTION, EXTRA_TEMPLATE_ID to templateId)
 
-fun Context.getAddFromTemplateWithVariabilityIntent(templateId: Long) =
-    getModalIntent(Action.ADD_FROM_TEMPLATE, EXTRA_TEMPLATE_ID to templateId)
-
 private fun Context.getViewImageIntent(vararg extras: Pair<String, Any>) =
     getModalIntent(Action.VIEW_IMAGE, *extras)
 
@@ -63,7 +60,6 @@ enum class Action {
     VIEW_IMAGE,
     SELECT_RECORD_ACTION,
     SELECT_TEMPLATE_ACTION,
-    ADD_FROM_TEMPLATE,
 }
 
 const val EXTRA_RECORD_ID = "record_id"
