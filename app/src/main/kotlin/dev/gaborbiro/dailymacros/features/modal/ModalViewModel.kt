@@ -546,6 +546,11 @@ internal class ModalViewModel(
                 comboKey,
             ) ?: return@runSafely
             val record = recordsRepository.get(dlg.recordId) ?: return@runSafely
+            if (reuseId == record.template.dbId) {
+                pendingRecordDetailsRestore = null
+                openRecordDetails(dlg.recordId, true)
+                return@runSafely
+            }
             val newTemplate = recordsRepository.getTemplate(reuseId)
             recordsRepository.updateRecord(record.copy(template = newTemplate))
             DiaryWidgetScreen.reload()

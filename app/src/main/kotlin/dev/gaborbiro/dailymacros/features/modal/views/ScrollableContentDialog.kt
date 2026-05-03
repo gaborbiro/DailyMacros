@@ -49,6 +49,11 @@ internal fun ScrollableContentDialog(
     content: @Composable ColumnScope.() -> Unit,
     buttons: @Composable () -> Unit,
     errorMessages: Flow<String>,
+    /**
+     * When true (default), tapping the dimmed area outside the card dismisses the dialog.
+     * When false, outside taps are consumed so only explicit actions (e.g. Cancel / system back) close.
+     */
+    dismissOnOutsideTap: Boolean = true,
 ) {
     Dialog(
         onDismissRequest = onDismissRequested,
@@ -82,13 +87,20 @@ internal fun ScrollableContentDialog(
                 )
             },
         ) { paddingValues ->
-            // Scrim/outside area: only dismiss on TAP (no drag)
+            // Scrim/outside area: only dismiss on TAP (no drag) when enabled; otherwise consume taps
+            // so they do not fall through the transparent [BoxWithConstraints] margin around the card.
             Box(
                 Modifier
                     .fillMaxSize()
-                    .pointerInput(Unit) {
-                        detectTapGestures(onTap = { onDismissRequested() })
-                    }
+                    .pointerInput(dismissOnOutsideTap) {
+                        detectTapGestures(
+                            onTap = {
+                                if (dismissOnOutsideTap) {
+                                    onDismissRequested()
+                                }
+                            },
+                        )
+                    },
             )
             BoxWithConstraints(
                 modifier = Modifier
