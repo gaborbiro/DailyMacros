@@ -1,0 +1,61 @@
+# Kotlin Multiplatform iOS shell: builds on GitHub-hosted macOS (no local Mac required).
+# Internal distribution to a physical iPhone is typically via TestFlight (Apple Developer Program).
+# This workflow does not upload to App Store Connect; add signing secrets and a pilot/export step when ready.
+
+name: iOS (KMP)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [master]
+    paths:
+      - "shared/**"
+      - "iosApp/**"
+      - ".github/workflows/ios.yml"
+      - "gradle/**"
+      - "**/libs.versions.toml"
+      - "settings.gradle.kts"
+      - "build.gradle.kts"
+  push:
+    branches: [master]
+    paths:
+      - "shared/**"
+      - "iosApp/**"
+      - ".github/workflows/ios.yml"
+      - "gradle/**"
+      - "**/libs.versions.toml"
+      - "settings.gradle.kts"
+      - "build.gradle.kts"
+
+jobs:
+  ios-simulator-build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Install CocoaPods
+        run: gem install cocoapods --no-document
+
+      - name: CocoaPods + Kotlin framework (podInstall)
+        run: ./gradlew :shared:podInstall --stacktrace
+
+      - name: Build iOS app (Simulator, unsigned smoke build)
+        run: |
+          xcodebuild \
+            -workspace iosApp/DailyMacrosApp.xcworkspace \
+            -scheme DailyMacrosApp \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination "generic/platform=iOS Simulator" \
+            CODE_SIGNING_ALLOWED=NO \
+            build

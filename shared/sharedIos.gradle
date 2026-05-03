@@ -1,0 +1,23 @@
+// macOS only — applied from shared/build.gradle.kts when os.name contains "mac".
+// Applied scripts cannot use plugins {} or compile kotlin {} as Kotlin DSL (isolated classpath).
+
+plugins.apply("org.jetbrains.kotlin.native.cocoapods")
+
+kotlin {
+    iosArm64()
+    iosSimulatorArm64()
+    // Intel iOS Simulator (x86_64); GitHub-hosted macOS runners often build this slice.
+    iosX64()
+    cocoapods {
+        podfile = rootProject.file("iosApp/Podfile")
+        version = "1.0.0"
+        summary = "Daily Macros shared Kotlin Multiplatform module"
+        homepage = "https://github.com/gaborbiro/dailymacros"
+        ios.deploymentTarget = "15.0"
+        name = "DailyMacrosShared"
+        framework {
+            baseName = "Shared"
+            isStatic = true
+        }
+    }
+}
