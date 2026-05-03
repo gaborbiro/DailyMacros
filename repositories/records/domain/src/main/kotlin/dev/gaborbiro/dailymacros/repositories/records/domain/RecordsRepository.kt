@@ -19,6 +19,14 @@ interface RecordsRepository {
      */
     suspend fun getRecentRecords(limit: Int): List<Record>
 
+    /**
+     * Records whose template was created or updated after [afterWatermarkExclusive] (epoch ms),
+     * newest first, capped by [limit]. Used for incremental variability mining.
+     */
+    suspend fun getRecordsForVariabilityDelta(limit: Int, afterWatermarkExclusive: Long): List<Record>
+
+    suspend fun countTemplates(): Int
+
     fun getMostRecentRecord(): Record?
 
     suspend fun getQuickPicks(count: Int): List<Template>

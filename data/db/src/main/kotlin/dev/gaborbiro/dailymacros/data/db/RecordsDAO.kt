@@ -19,6 +19,21 @@ interface RecordsDAO {
     suspend fun get(sinceEpochMillis: Long): List<RecordJoined>
 
     @Transaction
+    @Query(
+        """
+        SELECT * FROM records
+        WHERE templateId IN (
+            SELECT _id FROM templates
+            WHERE createdAtEpochMs > :afterExclusive
+               OR updatedAtEpochMs > :afterExclusive
+        )
+        ORDER BY epochMillis DESC
+        LIMIT :limit
+        """
+    )
+    suspend fun getRecentForVariabilityMining(limit: Int, afterExclusive: Long): List<RecordJoined>
+
+    @Transaction
     @Query("SELECT * FROM records ORDER BY epochMillis DESC LIMIT :limit")
     suspend fun getRecent(limit: Int): List<RecordJoined>
 

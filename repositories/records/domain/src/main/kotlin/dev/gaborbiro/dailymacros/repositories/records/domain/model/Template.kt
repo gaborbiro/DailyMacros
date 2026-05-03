@@ -9,6 +9,10 @@ data class Template(
     val description: String,
     /** When this template was created by forking from another template; null for roots or legacy rows. */
     val parentTemplateId: Long? = null,
+    /** Epoch ms when the template row was created (0 = legacy / epoch start default). */
+    val createdAtEpochMs: Long = 0L,
+    /** Epoch ms when the template row was last updated. */
+    val updatedAtEpochMs: Long = 0L,
     val isPending: Boolean,
     val nutrients: TemplateNutrientBreakdown,
     val notes: String,

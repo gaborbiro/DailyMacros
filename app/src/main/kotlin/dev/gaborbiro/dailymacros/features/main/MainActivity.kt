@@ -160,6 +160,7 @@ class MainActivity : ComponentActivity() {
                         exportSqliteDatabaseUseCase = exportSqliteDatabaseUseCase,
                         importSqliteDatabaseUseCase = importSqliteDatabaseUseCase,
                         variabilityRepository = variabilityRepository,
+                        recordsRepository = recordsRepository,
                         enqueueMealVariabilityMining = {
                             MineMealVariabilityWorker.enqueue(this@MainActivity)
                         },

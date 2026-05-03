@@ -155,4 +155,124 @@ class TemplateVariabilityPreviewMapperTest {
         assertEquals(emptyList<String>(), mapper.toPreviewLines(archetypes, templateId = 999L))
         assertTrue(mapper.slotPreviewsForTemplate(archetypes, templateId = 999L).isEmpty())
     }
+
+    @Test
+    fun `combinationKey is stable sorted by slot key`() {
+        val slots = mapper.slotPreviewsForTemplate(
+            listOf(
+                VariabilityArchetype(
+                    archetypeKey = "x",
+                    displayName = "X",
+                    titleAliasesJson = "[]",
+                    evidenceCount = 1,
+                    lastSeenTimestamp = null,
+                    archetypeNotes = null,
+                    deprecated = false,
+                    deprecatedReason = null,
+                    slots = listOf(
+                        VariabilitySlot(
+                            slotKey = "b",
+                            roleDisplayName = "B",
+                            nutritionalLeversJson = "[]",
+                            isHighVariability = true,
+                            confidence = 1.0,
+                            rationale = "",
+                            variants = listOf(
+                                VariabilityVariant(
+                                    variantKey = "b1",
+                                    variantLabel = "B1",
+                                    notesExcerpt = "",
+                                    evidence = listOf(VariabilityEvidence(loggedAt = "t", templateId = 1L)),
+                                    sortOrder = 0,
+                                ),
+                            ),
+                            sortOrder = 1,
+                        ),
+                        VariabilitySlot(
+                            slotKey = "a",
+                            roleDisplayName = "A",
+                            nutritionalLeversJson = "[]",
+                            isHighVariability = true,
+                            confidence = 1.0,
+                            rationale = "",
+                            variants = listOf(
+                                VariabilityVariant(
+                                    variantKey = "a1",
+                                    variantLabel = "A1",
+                                    notesExcerpt = "",
+                                    evidence = listOf(VariabilityEvidence(loggedAt = "t", templateId = 1L)),
+                                    sortOrder = 0,
+                                ),
+                            ),
+                            sortOrder = 0,
+                        ),
+                    ),
+                    sortOrder = 0,
+                ),
+            ),
+            templateId = 1L,
+        )
+        val key = mapper.combinationKey(slots, mapOf("a" to "a1", "b" to "b1"))
+        assertEquals("a=a1|b=b1", key)
+    }
+
+    @Test
+    fun `templateIdForCombinationInArchetype finds template when both slots cite it`() {
+        val archetypes = listOf(
+            VariabilityArchetype(
+                archetypeKey = "meal",
+                displayName = "Meal",
+                titleAliasesJson = "[]",
+                evidenceCount = 2,
+                lastSeenTimestamp = null,
+                archetypeNotes = null,
+                deprecated = false,
+                deprecatedReason = null,
+                slots = listOf(
+                    VariabilitySlot(
+                        slotKey = "spread",
+                        roleDisplayName = "Spread",
+                        nutritionalLeversJson = "[]",
+                        isHighVariability = true,
+                        confidence = 1.0,
+                        rationale = "",
+                        variants = listOf(
+                            VariabilityVariant(
+                                variantKey = "jam",
+                                variantLabel = "Jam",
+                                notesExcerpt = "",
+                                evidence = listOf(VariabilityEvidence(loggedAt = "t1", templateId = 10L)),
+                                sortOrder = 0,
+                            ),
+                        ),
+                        sortOrder = 0,
+                    ),
+                    VariabilitySlot(
+                        slotKey = "bread",
+                        roleDisplayName = "Bread",
+                        nutritionalLeversJson = "[]",
+                        isHighVariability = true,
+                        confidence = 1.0,
+                        rationale = "",
+                        variants = listOf(
+                            VariabilityVariant(
+                                variantKey = "white",
+                                variantLabel = "White",
+                                notesExcerpt = "",
+                                evidence = listOf(VariabilityEvidence(loggedAt = "t2", templateId = 10L)),
+                                sortOrder = 0,
+                            ),
+                        ),
+                        sortOrder = 1,
+                    ),
+                ),
+                sortOrder = 0,
+            ),
+        )
+        val previews = mapper.slotPreviewsForTemplate(archetypes, templateId = 10L)
+        val combo = mapper.combinationKeyForTemplateInArchetype(archetypes, "meal", previews, 10L)
+        assertEquals("bread=white|spread=jam", combo)
+        val tid = mapper.templateIdForCombinationInArchetype(archetypes, "meal", previews, combo!!)
+        assertEquals(10L, tid)
+    }
 }

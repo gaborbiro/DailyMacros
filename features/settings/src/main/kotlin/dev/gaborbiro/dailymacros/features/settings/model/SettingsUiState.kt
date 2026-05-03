@@ -16,4 +16,6 @@ data class SettingsUiState(
     val variabilityMiningResponseJsonExpansionBits: String = "",
     val variabilityMiningRequestJsonSectionExpanded: Boolean = false,
     val variabilityMiningResponseJsonSectionExpanded: Boolean = false,
+    /** Shown on the variability preview button (loaded when Settings opens). */
+    val templateCountForVariabilityButton: Int = 0,
 )

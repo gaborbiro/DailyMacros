@@ -31,8 +31,12 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCas
 import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.DomainError
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetVariabilityMatchForTemplateUseCase
+import dev.gaborbiro.dailymacros.repositories.records.TemplateVariabilityPreviewMapper
+import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfileMapper
+import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityPreviewContent
 import ellipsize
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -52,6 +56,9 @@ import kotlinx.coroutines.launch
 internal class ModalViewModel(
     private val imageStore: ImageStore,
     private val recordsRepository: RecordsRepository,
+    private val variabilityRepository: VariabilityRepository,
+    private val variabilityProfileMapper: VariabilityProfileMapper,
+    private val templateVariabilityPreviewMapper: TemplateVariabilityPreviewMapper,
     private val getVariabilityMatchForTemplateUseCase: GetVariabilityMatchForTemplateUseCase,
     private val createRecordFromTemplateUseCase: CreateRecordFromTemplateUseCase,
     private val createRecordWithNewTemplateUseCase: CreateRecordWithNewTemplateUseCase,
@@ -84,6 +91,9 @@ internal class ModalViewModel(
     private var recogniseFoodJob: Job? = null
 
     private var recordDetailsJob: Job? = null
+
+    /** Restores record details after closing the variant picker without applying. */
+    private var pendingRecordDetailsRestore: Pair<Long, Boolean>? = null
 
     @UiThread
     fun onCreateRecordWithCameraDeeplink() {
@@ -143,13 +153,13 @@ internal class ModalViewModel(
         recordDetailsJob = runSafely {
             recordsRepository.observe(recordId)
                 .collect { record ->
-                    val variabilityPreview =
-                        getVariabilityMatchForTemplateUseCase.execute(record.template.dbId)
+                    val match = getVariabilityMatchForTemplateUseCase.execute(record.template.dbId)
                     val previewForDialog =
-                        variabilityPreview.slots.takeIf { it.isNotEmpty() }?.let { variabilityPreview }
+                        match.preview.slots.takeIf { it.isNotEmpty() }?.let { match.preview }
 
                     val dialog = DialogHandle.RecordDetailsDialog.View(
                         recordId = recordId,
+                        templateDbId = record.template.dbId,
                         title = TextFieldValue(record.template.name),
                         description = TextFieldValue(record.template.description),
                         images = record.template.images,
@@ -158,6 +168,8 @@ internal class ModalViewModel(
                         titleHint = "Give your meal a title",
                         titleValidationError = null,
                         templateVariabilityPreview = previewForDialog,
+                        variabilityProfileJson = match.profileJson,
+                        variabilityProfileMinedAtEpochMs = match.minedAtEpochMs,
                     )
                     setRoot(dialog)
                 }
@@ -359,13 +371,16 @@ internal class ModalViewModel(
     fun onDialogDismissRequested(dialog: DialogHandle) {
         if (dialog == _uiState.value.overlayDialog) {
             popOverlay()
+        } else if (dialog is DialogHandle.TemplateVariantPickerDialog) {
+            onVariantPickerCancelTapped()
+            return
         } else {
             closeAll()
         }
         (dialog as? DialogHandle.RecordDetailsDialog.Edit)?.let {
             runSafely {
-                dialog.images.forEach {
-                    imageStore.delete(it)
+                it.images.forEach { img ->
+                    imageStore.delete(img)
                 }
             }
         }
@@ -449,6 +464,98 @@ internal class ModalViewModel(
             it.copy(
                 title = TextFieldValue()
             )
+        }
+    }
+
+    @UiThread
+    fun onVariabilityDifferentMealLinkTapped(
+        recordId: Long,
+        templateId: Long,
+        profileJson: String,
+        profileMinedAtEpochMs: Long,
+        preview: TemplateVariabilityPreviewContent,
+    ) {
+        runSafely {
+            val slots = preview.slots
+            if (slots.isEmpty()) return@runSafely
+            val archetypeKey = slots.first().archetypeKey
+            val archetypeLabel = preview.archetypePickerLabel.ifBlank { slots.first().archetypeDisplayName }
+            val profile = variabilityProfileMapper.parseProfileJson(profileJson, profileMinedAtEpochMs)
+            val archetype = profile.archetypes.find { it.archetypeKey == archetypeKey }
+            val initialSelections = slots.associate { sp ->
+                val slot = archetype?.slots?.find { it.slotKey == sp.slotKey }
+                val variant = slot?.variants?.find { v ->
+                    v.evidence.any { it.templateId == templateId }
+                }
+                sp.slotKey to (variant?.variantKey ?: sp.variants.first().variantKey)
+            }
+            val existing = templateVariabilityPreviewMapper.existingCombinationKeysForArchetype(
+                profile.archetypes,
+                archetypeKey,
+                slots,
+            )
+            val currentKey = templateVariabilityPreviewMapper.combinationKeyForTemplateInArchetype(
+                profile.archetypes,
+                archetypeKey,
+                slots,
+                templateId,
+            )
+            val edit =
+                (_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View)?.allowEdit == true
+            pendingRecordDetailsRestore = recordId to edit
+            recordDetailsJob?.cancel()
+            recordDetailsJob = null
+            setRoot(
+                DialogHandle.TemplateVariantPickerDialog(
+                    recordId = recordId,
+                    templateId = templateId,
+                    profileJson = profileJson,
+                    profileMinedAtEpochMs = profileMinedAtEpochMs,
+                    archetypeKey = archetypeKey,
+                    archetypeDisplayName = archetypeLabel,
+                    slots = slots,
+                    initialSlotSelections = initialSelections,
+                    existingCombinationKeys = existing,
+                    currentTemplateCombinationKey = currentKey,
+                ),
+            )
+        }
+    }
+
+    @UiThread
+    fun onVariantPickerCancelTapped() {
+        val restore = pendingRecordDetailsRestore
+        pendingRecordDetailsRestore = null
+        if (restore != null) {
+            openRecordDetails(restore.first, restore.second)
+        } else {
+            closeAll()
+        }
+    }
+
+    @UiThread
+    fun onVariantPickerConfirmed(selection: Map<String, String>) {
+        val dlg = _uiState.value.rootDialog as? DialogHandle.TemplateVariantPickerDialog ?: return
+        runSafely {
+            val profile = variabilityProfileMapper.parseProfileJson(dlg.profileJson, dlg.profileMinedAtEpochMs)
+            val comboKey = templateVariabilityPreviewMapper.combinationKey(dlg.slots, selection)
+            val reuseId = templateVariabilityPreviewMapper.templateIdForCombinationInArchetype(
+                profile.archetypes,
+                dlg.archetypeKey,
+                dlg.slots,
+                comboKey,
+            ) ?: return@runSafely
+            val record = recordsRepository.get(dlg.recordId) ?: return@runSafely
+            val newTemplate = recordsRepository.getTemplate(reuseId)
+            recordsRepository.updateRecord(record.copy(template = newTemplate))
+            DiaryWidgetScreen.reload()
+            GetMacrosWorker.setWorkRequest(
+                appContext = App.appContext,
+                recordId = dlg.recordId,
+                force = true,
+            )
+            pendingRecordDetailsRestore = null
+            openRecordDetails(dlg.recordId, true)
         }
     }
 

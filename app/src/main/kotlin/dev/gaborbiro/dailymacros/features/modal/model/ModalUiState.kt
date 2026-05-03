@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.features.modal.model
 
 import androidx.compose.ui.text.input.TextFieldValue
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityPreviewContent
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilitySlotPreview
 
 data class ModalUiState(
     val rootDialog: DialogHandle? = null,
@@ -42,6 +43,8 @@ sealed class DialogHandle {
             val recognisedFood: RecognisedFood?,
             /** Mined slot/variant UI for this record’s template; null when no profile or no slots. */
             val templateVariabilityPreview: TemplateVariabilityPreviewContent? = null,
+            val variabilityProfileJson: String? = null,
+            val variabilityProfileMinedAtEpochMs: Long = 0L,
         ) : RecordDetailsDialog(
             titleHint = titleHint,
             titleValidationError = titleValidationError,
@@ -59,6 +62,7 @@ sealed class DialogHandle {
 
         data class View(
             val recordId: Long,
+            val templateDbId: Long,
             val nutrientBreakdown: NutrientBreakdownUiModel?,
             val allowEdit: Boolean,
             override val titleHint: String,
@@ -68,6 +72,9 @@ sealed class DialogHandle {
             override val images: List<String>,
             /** Mined slot/variant UI for this record’s template; null when no profile or no slots. */
             val templateVariabilityPreview: TemplateVariabilityPreviewContent? = null,
+            val variabilityProfileJson: String? = null,
+            /** Epoch ms of the snapshot used for [variabilityProfileJson] parsing (0 if none). */
+            val variabilityProfileMinedAtEpochMs: Long = 0L,
         ) : RecordDetailsDialog(
             titleHint = titleHint,
             titleValidationError = titleValidationError,
@@ -95,6 +102,19 @@ sealed class DialogHandle {
     data class SelectTemplateActionDialog(val templateId: Long, val title: String) : DialogHandle()
 
     data class InfoDialog(val message: String) : DialogHandle()
+
+    data class TemplateVariantPickerDialog(
+        val recordId: Long,
+        val templateId: Long,
+        val profileJson: String,
+        val profileMinedAtEpochMs: Long,
+        val archetypeKey: String,
+        val archetypeDisplayName: String,
+        val slots: List<TemplateVariabilitySlotPreview>,
+        val initialSlotSelections: Map<String, String>,
+        val existingCombinationKeys: Set<String>,
+        val currentTemplateCombinationKey: String?,
+    ) : DialogHandle()
 }
 
 data class RecognisedFood(

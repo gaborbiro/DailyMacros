@@ -67,7 +67,7 @@ fun EditTargetConfirmationDialogContent(
                 .fillMaxWidth()
                 .height(50.dp)
         ) {
-            Text(text = "Update this entry only")
+            Text(text = "Save as new")
         }
 
         Spacer(modifier = Modifier.height(PaddingDefault))

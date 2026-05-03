@@ -42,6 +42,11 @@ class RecordsRepositoryImpl(
     override suspend fun getRecentRecords(limit: Int): List<Record> =
         recordsDAO.getRecent(limit).map(mapper::map)
 
+    override suspend fun getRecordsForVariabilityDelta(limit: Int, afterWatermarkExclusive: Long): List<Record> =
+        recordsDAO.getRecentForVariabilityMining(limit, afterWatermarkExclusive).map(mapper::map)
+
+    override suspend fun countTemplates(): Int = templatesDAO.countAllTemplates()
+
     override fun getMostRecentRecord(): Record? {
         return recordsDAO.getMostRecentRecord()
             ?.let(mapper::map)
@@ -141,11 +146,14 @@ class RecordsRepositoryImpl(
     ) {
         val oldTemplate = templatesDAO.getTemplateById(templateId)
 
+        val now = System.currentTimeMillis()
         templatesDAO.insertOrUpdate(
             TemplateEntity(
                 name = name ?: oldTemplate.entity.name,
                 description = description ?: oldTemplate.entity.description,
                 parentTemplateId = oldTemplate.entity.parentTemplateId,
+                createdAtEpochMs = oldTemplate.entity.createdAtEpochMs,
+                updatedAtEpochMs = now,
             ).apply { id = templateId }
         )
 

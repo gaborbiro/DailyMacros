@@ -15,6 +15,7 @@ class VariabilityRepositoryImpl(
         return MealVariabilityProfileSnapshot(
             minedAtEpochMs = row.minedAtEpochMs,
             profileJson = row.profileJson,
+            templatesIngestWatermarkEpochMs = row.templatesIngestWatermarkEpochMs,
         )
     }
 
@@ -23,8 +24,18 @@ class VariabilityRepositoryImpl(
         variabilityDao.replaceEntireProfile(snapshot, inserts)
     }
 
-    override suspend fun replaceProfileFromModelJson(profileJson: String, minedAtEpochMs: Long) {
-        replaceProfile(profileMapper.parseProfileJson(profileJson, minedAtEpochMs))
+    override suspend fun replaceProfileFromModelJson(
+        profileJson: String,
+        minedAtEpochMs: Long,
+        templatesIngestWatermarkEpochMs: Long,
+    ) {
+        replaceProfile(
+            profileMapper.parseProfileJson(
+                profileJson = profileJson,
+                minedAtEpochMs = minedAtEpochMs,
+                templatesIngestWatermarkEpochMs = templatesIngestWatermarkEpochMs,
+            ),
+        )
     }
 
     override suspend fun clearProfile() {
