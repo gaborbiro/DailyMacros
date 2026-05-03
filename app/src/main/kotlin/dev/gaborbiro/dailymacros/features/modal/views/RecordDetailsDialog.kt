@@ -31,6 +31,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -411,7 +412,9 @@ private fun ColumnScope.RecordDetailsDialogContent(
     ) {
         Spacer(modifier = Modifier.height(PaddingDefault))
         TextButton(
-            modifier = Modifier.padding(horizontal = PaddingDefault),
+            modifier = Modifier
+                .padding(horizontal = PaddingDefault)
+                .padding(bottom = PaddingDefault),
             onClick = {
                 onVariabilityDifferentMealLinkTapped(
                     recordIdForVariability,
@@ -423,8 +426,10 @@ private fun ColumnScope.RecordDetailsDialogContent(
             },
         ) {
             Text(
-                text = "Looking for a different $archetypeLabel",
-                style = MaterialTheme.typography.bodyMedium,
+                text = "Looking for a different $archetypeLabel?",
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    textDecoration = TextDecoration.Underline,
+                ),
                 color = MaterialTheme.colorScheme.primary,
             )
         }
