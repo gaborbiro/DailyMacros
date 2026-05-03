@@ -31,6 +31,8 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCas
 import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.DomainError
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetVariabilityMatchForTemplateUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.NoVariabilityProfileLoadedException
+import dev.gaborbiro.dailymacros.features.modal.usecase.TemplateVariabilityMatch
 import dev.gaborbiro.dailymacros.repositories.records.TemplateVariabilityPreviewMapper
 import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfileMapper
 import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
@@ -153,7 +155,23 @@ internal class ModalViewModel(
         recordDetailsJob = runSafely {
             recordsRepository.observe(recordId)
                 .collect { record ->
-                    val match = getVariabilityMatchForTemplateUseCase.execute(record.template.dbId)
+                    val match = runCatching {
+                        getVariabilityMatchForTemplateUseCase.execute(record.template.dbId)
+                    }.getOrElse { t ->
+                        if (t is NoVariabilityProfileLoadedException) {
+                            TemplateVariabilityMatch(
+                                preview = TemplateVariabilityPreviewContent(
+                                    bannerText = "",
+                                    slots = emptyList(),
+                                    archetypePickerLabel = "",
+                                ),
+                                profileJson = null,
+                                minedAtEpochMs = 0L,
+                            )
+                        } else {
+                            throw t
+                        }
+                    }
                     val previewForDialog =
                         match.preview.slots.takeIf { it.isNotEmpty() }?.let { match.preview }
 

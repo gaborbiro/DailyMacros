@@ -5,6 +5,9 @@ import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfileMapper
 import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityPreviewContent
 
+/** Thrown when [VariabilityRepository.getLatestProfile] is null (no mine has been persisted yet). */
+internal class NoVariabilityProfileLoadedException : Exception("No meal variability profile is loaded yet.")
+
 internal data class TemplateVariabilityMatch(
     val preview: TemplateVariabilityPreviewContent,
     /** Latest merged profile JSON when [preview.slots] is non-empty; null otherwise. */
@@ -23,15 +26,7 @@ internal class GetVariabilityMatchForTemplateUseCase(
 
     suspend fun execute(templateId: Long): TemplateVariabilityMatch {
         val snapshot = variabilityRepository.getLatestProfile()
-            ?: return TemplateVariabilityMatch(
-                preview = TemplateVariabilityPreviewContent(
-                    bannerText = "No variability profile is loaded yet. Run meal variability mining from Settings to see variants here.",
-                    slots = emptyList(),
-                    archetypePickerLabel = "",
-                ),
-                profileJson = null,
-                minedAtEpochMs = 0L,
-            )
+            ?: throw NoVariabilityProfileLoadedException()
         val profile = profileMapper.parseProfileJson(
             profileJson = snapshot.profileJson,
             minedAtEpochMs = snapshot.minedAtEpochMs,
