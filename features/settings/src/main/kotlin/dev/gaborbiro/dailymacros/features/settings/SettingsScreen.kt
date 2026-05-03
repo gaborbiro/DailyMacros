@@ -22,6 +22,10 @@ fun SettingsScreen(
     val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    LaunchedEffect(Unit) {
+        settingsViewModel.refreshTemplateCountForSettings()
+    }
+
     LaunchedEffect(settingsViewModel) {
         settingsViewModel.uiUpdates.collect { event ->
             when (event) {

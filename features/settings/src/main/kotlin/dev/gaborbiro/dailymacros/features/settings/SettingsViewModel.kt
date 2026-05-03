@@ -16,6 +16,7 @@ import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
 import dev.gaborbiro.dailymacros.features.settings.variability.MEAL_VARIABILITY_MINING_OUTPUT_ERROR
 import dev.gaborbiro.dailymacros.features.settings.variability.MEAL_VARIABILITY_MINING_UNIQUE_WORK
+import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,6 +39,7 @@ class SettingsViewModel(
     private val exportSqliteDatabaseUseCase: ExportSqliteDatabaseUseCase,
     private val importSqliteDatabaseUseCase: ImportSqliteDatabaseUseCase,
     private val variabilityRepository: VariabilityRepository,
+    private val recordsRepository: RecordsRepository,
     private val enqueueMealVariabilityMining: () -> Unit,
 ) : ViewModel() {
 
@@ -54,6 +56,7 @@ class SettingsViewModel(
             variabilityMiningResponseJsonExpansionBits = settingsPrefs.variabilityMiningResponseJsonExpansionBits,
             variabilityMiningRequestJsonSectionExpanded = settingsPrefs.variabilityMiningRequestJsonSectionExpanded,
             variabilityMiningResponseJsonSectionExpanded = settingsPrefs.variabilityMiningResponseJsonSectionExpanded,
+            templateCountForVariabilityButton = 0,
         )
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
@@ -76,7 +79,7 @@ class SettingsViewModel(
                                 )
                             }
 
-                        WorkInfo.State.SUCCEEDED ->
+                        WorkInfo.State.SUCCEEDED -> {
                             _uiState.update {
                                 it.copy(
                                     variabilityMiningLoading = false,
@@ -96,6 +99,13 @@ class SettingsViewModel(
                                         settingsPrefs.variabilityMiningResponseJsonSectionExpanded,
                                 )
                             }
+                            viewModelScope.launch {
+                                runCatching { recordsRepository.countTemplates() }
+                                    .onSuccess { n ->
+                                        _uiState.update { s -> s.copy(templateCountForVariabilityButton = n) }
+                                    }
+                            }
+                        }
 
                         WorkInfo.State.FAILED -> {
                             val message = info.outputData.getString(MEAL_VARIABILITY_MINING_OUTPUT_ERROR)
@@ -174,6 +184,15 @@ class SettingsViewModel(
                     _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar(result.message))
             }
             _uiState.update { it.copy(importDataInProgress = false) }
+        }
+    }
+
+    fun refreshTemplateCountForSettings() {
+        viewModelScope.launch {
+            runCatching { recordsRepository.countTemplates() }
+                .onSuccess { n ->
+                    _uiState.update { it.copy(templateCountForVariabilityButton = n) }
+                }
         }
     }
 

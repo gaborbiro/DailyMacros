@@ -31,6 +31,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -66,6 +67,13 @@ internal fun RecordDetailsDialog(
     onDismissRequested: () -> Unit,
     onImagesInfoButtonTapped: () -> Unit,
     onRunAIButtonTapped: () -> Unit,
+    onVariabilityDifferentMealLinkTapped: (
+        recordId: Long,
+        templateId: Long,
+        profileJson: String,
+        profileMinedAtEpochMs: Long,
+        preview: TemplateVariabilityPreviewContent,
+    ) -> Unit,
 ) {
     val title = dialogHandle.title
     val titleHint = dialogHandle.titleHint
@@ -83,6 +91,11 @@ internal fun RecordDetailsDialog(
     val allowEdit = (dialogHandle as? DialogHandle.RecordDetailsDialog.View)
         ?.allowEdit
         ?: true
+    val variabilityProfileJson = (dialogHandle as? DialogHandle.RecordDetailsDialog.View)?.variabilityProfileJson
+    val variabilityProfileMinedAtEpochMs =
+        (dialogHandle as? DialogHandle.RecordDetailsDialog.View)?.variabilityProfileMinedAtEpochMs ?: 0L
+    val recordIdForVariability = (dialogHandle as? DialogHandle.RecordDetailsDialog.View)?.recordId
+    val templateDbIdForVariability = (dialogHandle as? DialogHandle.RecordDetailsDialog.View)?.templateDbId
     val templateVariabilityPreview = when (dialogHandle) {
         is DialogHandle.RecordDetailsDialog.View -> dialogHandle.templateVariabilityPreview
         is DialogHandle.RecordDetailsDialog.Edit -> dialogHandle.templateVariabilityPreview
@@ -122,6 +135,11 @@ internal fun RecordDetailsDialog(
                 onImagesInfoButtonTapped = onImagesInfoButtonTapped,
                 onRunAIButtonTapped = onRunAIButtonTapped,
                 templateVariabilityPreview = templateVariabilityPreview,
+                variabilityProfileJson = variabilityProfileJson,
+                variabilityProfileMinedAtEpochMs = variabilityProfileMinedAtEpochMs,
+                recordIdForVariability = recordIdForVariability,
+                templateDbIdForVariability = templateDbIdForVariability,
+                onVariabilityDifferentMealLinkTapped = onVariabilityDifferentMealLinkTapped,
             )
         },
         errorMessages = errorMessages,
@@ -189,6 +207,17 @@ private fun ColumnScope.RecordDetailsDialogContent(
     onImagesInfoButtonTapped: () -> Unit,
     onRunAIButtonTapped: () -> Unit,
     templateVariabilityPreview: TemplateVariabilityPreviewContent?,
+    variabilityProfileJson: String?,
+    variabilityProfileMinedAtEpochMs: Long,
+    recordIdForVariability: Long?,
+    templateDbIdForVariability: Long?,
+    onVariabilityDifferentMealLinkTapped: (
+        recordId: Long,
+        templateId: Long,
+        profileJson: String,
+        profileMinedAtEpochMs: Long,
+        preview: TemplateVariabilityPreviewContent,
+    ) -> Unit,
 ) {
     val focusRequester = remember { FocusRequester() }
 
@@ -371,13 +400,39 @@ private fun ColumnScope.RecordDetailsDialogContent(
         )
     }
 
-    templateVariabilityPreview?.slots?.takeIf { it.isNotEmpty() }?.let {
+    val preview = templateVariabilityPreview
+    val archetypeLabel = preview?.archetypePickerLabel?.takeIf { it.isNotBlank() }
+    if (
+        preview != null &&
+        preview.slots.isNotEmpty() &&
+        archetypeLabel != null &&
+        recordIdForVariability != null &&
+        templateDbIdForVariability != null &&
+        !variabilityProfileJson.isNullOrBlank()
+    ) {
         Spacer(modifier = Modifier.height(PaddingDefault))
-        TemplateVariabilitySlotsBlock(
-            modifier = Modifier.padding(horizontal = PaddingDefault),
-            preview = templateVariabilityPreview,
-            showHeader = true,
-        )
+        TextButton(
+            modifier = Modifier
+                .padding(horizontal = PaddingDefault)
+                .padding(bottom = PaddingDefault),
+            onClick = {
+                onVariabilityDifferentMealLinkTapped(
+                    recordIdForVariability,
+                    templateDbIdForVariability,
+                    variabilityProfileJson,
+                    variabilityProfileMinedAtEpochMs,
+                    preview,
+                )
+            },
+        ) {
+            Text(
+                text = "Looking for a different $archetypeLabel?",
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    textDecoration = TextDecoration.Underline,
+                ),
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
     }
 }
 
@@ -389,6 +444,7 @@ private fun NoteInputDialogContentPreviewView() {
         RecordDetailsDialog(
             dialogHandle = DialogHandle.RecordDetailsDialog.View(
                 recordId = 1L,
+                templateDbId = 1L,
                 title = TextFieldValue("Apple"),
                 titleHint = "Give your meal a title",
                 description = TextFieldValue("I ate an apple"),
@@ -408,6 +464,7 @@ private fun NoteInputDialogContentPreviewView() {
                 ),
                 templateVariabilityPreview = TemplateVariabilityPreviewContent(
                     bannerText = "Pick a variant per slot (demo — not saved yet).",
+                    archetypePickerLabel = "Toast breakfast",
                     slots = listOf(
                         TemplateVariabilitySlotPreview(
                             archetypeKey = "toast",
@@ -421,6 +478,8 @@ private fun NoteInputDialogContentPreviewView() {
                         ),
                     ),
                 ),
+                variabilityProfileJson = "{}",
+                variabilityProfileMinedAtEpochMs = 0L,
             ),
             errorMessages = emptyFlow(),
             onTitleChanged = {},
@@ -433,6 +492,7 @@ private fun NoteInputDialogContentPreviewView() {
             onDismissRequested = {},
             onImagesInfoButtonTapped = {},
             onRunAIButtonTapped = {},
+            onVariabilityDifferentMealLinkTapped = { _, _, _, _, _ -> },
         )
     }
 }
@@ -464,6 +524,7 @@ private fun NoteInputDialogContentPreviewSuggestion() {
             onDismissRequested = {},
             onImagesInfoButtonTapped = {},
             onRunAIButtonTapped = {},
+            onVariabilityDifferentMealLinkTapped = { _, _, _, _, _ -> },
         )
     }
 }
@@ -494,6 +555,7 @@ private fun NoteInputDialogContentPreview() {
             onDismissRequested = {},
             onImagesInfoButtonTapped = {},
             onRunAIButtonTapped = {},
+            onVariabilityDifferentMealLinkTapped = { _, _, _, _, _ -> },
         )
     }
 }
@@ -526,6 +588,7 @@ private fun NoteInputDialogContentPreviewError() {
             onDismissRequested = {},
             onImagesInfoButtonTapped = {},
             onRunAIButtonTapped = {},
+            onVariabilityDifferentMealLinkTapped = { _, _, _, _, _ -> },
         )
     }
 }

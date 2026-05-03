@@ -10,7 +10,11 @@ interface VariabilityRepository {
     suspend fun replaceProfile(profile: MealVariabilityPersistedProfile)
 
     /** Parses [profileJson] into domain and persists normalized rows + snapshot. */
-    suspend fun replaceProfileFromModelJson(profileJson: String, minedAtEpochMs: Long)
+    suspend fun replaceProfileFromModelJson(
+        profileJson: String,
+        minedAtEpochMs: Long,
+        templatesIngestWatermarkEpochMs: Long = 0L,
+    )
 
     /** Removes all persisted variability snapshots (cascades normalized rows). */
     suspend fun clearProfile()

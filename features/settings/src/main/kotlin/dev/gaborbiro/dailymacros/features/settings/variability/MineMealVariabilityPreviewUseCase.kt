@@ -32,14 +32,20 @@ class MineMealVariabilityPreviewUseCase(
     private val prettyGson: Gson = GsonBuilder().setPrettyPrinting().serializeNulls().create()
 
     suspend fun execute(): VariabilityMiningPreview {
-        val records = recordsRepository.getRecentRecords(MAX_RECORDS)
+        val latest = variabilityRepository.getLatestProfile()
+        val watermarkExclusive = latest?.templatesIngestWatermarkEpochMs ?: 0L
+        val records = if (watermarkExclusive <= 0L) {
+            recordsRepository.getRecentRecords(MAX_RECORDS)
+        } else {
+            recordsRepository.getRecordsForVariabilityDelta(MAX_RECORDS, watermarkExclusive)
+        }
         val existingProfile: JsonElement? =
             variabilityRepository.getLatestProfile()
                 ?.profileJson
                 ?.takeIf { it.isNotBlank() }
                 ?.let { JsonParser.parseString(it) }
         val envelope = VariabilityMiningUserEnvelope(
-            schema_version = "2.1",
+            schema_version = "2.2",
             merge_mode = "incremental",
             existing_profile = existingProfile,
             constraints = VariabilityConstraints(
@@ -51,7 +57,19 @@ class MineMealVariabilityPreviewUseCase(
         val userJson = compactGson.toJson(envelope)
         val result = chatGPTRepository.mineMealVariability(userJson)
         val minedAt = System.currentTimeMillis()
-        variabilityRepository.replaceProfileFromModelJson(result.profileJson, minedAt)
+        val fromTemplates = records.maxOfOrNull { r ->
+            maxOf(r.template.createdAtEpochMs, r.template.updatedAtEpochMs)
+        }
+        val ingestWatermark = when {
+            fromTemplates == null -> watermarkExclusive
+            fromTemplates > 0L -> maxOf(watermarkExclusive, fromTemplates)
+            else -> maxOf(watermarkExclusive, minedAt)
+        }
+        variabilityRepository.replaceProfileFromModelJson(
+            profileJson = result.profileJson,
+            minedAtEpochMs = minedAt,
+            templatesIngestWatermarkEpochMs = ingestWatermark,
+        )
         return VariabilityMiningPreview(
             requestJsonPretty = prettyPrintJson(userJson),
             responseJsonPretty = prettyPrintJson(result.profileJson),
