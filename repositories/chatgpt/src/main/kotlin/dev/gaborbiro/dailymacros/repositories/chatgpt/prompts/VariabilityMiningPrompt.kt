@@ -17,6 +17,7 @@ GOALS
 - Identify multiple recurring **MEAL ARCHETYPES** when the data supports them (e.g. salads, grain/yogurt/fruit bowls, composite breakfast/lunch plates, shakes).
 - Within each archetype, identify **per-role COMPONENT SLOTS** (e.g. bread/vector, spread, cheese/dairy topping, charcuterie/meaty topping, egg style, dressing, topping, etc.) whose **identity** differs across **logs** in ways that move **fat, saturated fat, protein, carbs, sugars, added sugars, salt, fibre or calories**.
 - List **only** variants the user has **actually logged** (no hypothetical SKUs).
+- **Archetype naming:** **display_name** must read as a **singular** meal type suitable for UI (e.g. `"Protein shake"`, `"Overnight oats bowl"`, `"Continental breakfast"`). Do **not** use plural headlines like `"Protein shakes"` or `"Salads"` for **display_name** (plural wording may still appear inside **title_aliases** from raw log titles).
 - **title_aliases:** For each archetype, populate **title_aliases** with the distinct **title** strings from **meal_observations** that you grouped into that archetype (debugging and UI). Keep this even when lineage drives most of the structure.
 
 USER FORK LINEAGE (highest-quality signal — read **meal_observations[].parent_template_id**)
@@ -63,7 +64,7 @@ RESPONSE JSON SCHEMA (output object keys)
   "archetypes": [
     {
       "archetype_id": "string",
-      "display_name": "string",
+      "display_name": "string (singular meal-type label for UI, e.g. Protein shake)",
       "title_aliases": ["string"],
       "evidence_count": 0,
       "last_seen_timestamp": "string",

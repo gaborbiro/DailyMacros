@@ -25,7 +25,11 @@ class VariabilityProfileMapper(
     private val gson: Gson,
 ) {
 
-    fun parseProfileJson(profileJson: String, minedAtEpochMs: Long): MealVariabilityPersistedProfile {
+    fun parseProfileJson(
+        profileJson: String,
+        minedAtEpochMs: Long,
+        templatesIngestWatermarkEpochMs: Long = 0L,
+    ): MealVariabilityPersistedProfile {
         val root = gson.fromJson(profileJson, JsonObject::class.java)
         val archetypesJson = root.getAsJsonArray("archetypes") ?: JsonArray()
         val archetypes = mutableListOf<VariabilityArchetype>()
@@ -96,6 +100,7 @@ class VariabilityProfileMapper(
             minedAtEpochMs = minedAtEpochMs,
             profileJson = profileJson,
             archetypes = archetypes,
+            templatesIngestWatermarkEpochMs = templatesIngestWatermarkEpochMs,
         )
     }
 
@@ -103,6 +108,7 @@ class VariabilityProfileMapper(
         val snapshot = VariabilitySnapshotEntity(
             minedAtEpochMs = profile.minedAtEpochMs,
             profileJson = profile.profileJson,
+            templatesIngestWatermarkEpochMs = profile.templatesIngestWatermarkEpochMs,
         )
         val inserts = profile.archetypes.map { a ->
             VariabilityArchetypeInsert(

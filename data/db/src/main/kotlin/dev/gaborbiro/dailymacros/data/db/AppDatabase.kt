@@ -38,7 +38,7 @@ import java.time.ZoneId
         VariabilityVariantEntity::class,
         VariabilityVariantEvidenceEntity::class,
     ],
-    version = 12,
+    version = 13,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -102,6 +102,7 @@ abstract class AppDatabase : RoomDatabase() {
             .addMigrations(MIGRATION_9_10)
             .addMigrations(MIGRATION_10_11)
             .addMigrations(MIGRATION_11_12)
+            .addMigrations(MIGRATION_12_13)
             .build()
         }
     }
@@ -395,6 +396,16 @@ val MIGRATION_11_12 = object : Migration(11, 12) {
             INSERT INTO sqlite_sequence (`name`, `seq`)
             SELECT 'variability_variant_evidence', IFNULL(MAX(`_id`), 0) FROM `variability_variant_evidence`
             """.trimIndent(),
+        )
+    }
+}
+
+val MIGRATION_12_13 = object : Migration(12, 13) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE templates ADD COLUMN createdAtEpochMs INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE templates ADD COLUMN updatedAtEpochMs INTEGER NOT NULL DEFAULT 0")
+        db.execSQL(
+            "ALTER TABLE variability_snapshots ADD COLUMN templatesIngestWatermarkEpochMs INTEGER NOT NULL DEFAULT 0",
         )
     }
 }

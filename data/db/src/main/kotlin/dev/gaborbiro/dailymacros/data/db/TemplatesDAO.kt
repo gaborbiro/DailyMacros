@@ -18,6 +18,9 @@ interface TemplatesDAO {
     @Upsert
     suspend fun insertOrUpdate(template: TemplateEntity): Long
 
+    @Query("SELECT COUNT(*) FROM templates")
+    suspend fun countAllTemplates(): Int
+
     @Upsert
     suspend fun insertOrUpdate(macros: MacrosEntity): Long
 

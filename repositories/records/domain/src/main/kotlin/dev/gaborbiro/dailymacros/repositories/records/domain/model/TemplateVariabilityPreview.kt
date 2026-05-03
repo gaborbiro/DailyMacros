@@ -29,4 +29,9 @@ data class TemplateVariabilityPreviewContent(
     /** Shown when [slots] is empty (no profile, or no matching slots). */
     val bannerText: String,
     val slots: List<TemplateVariabilitySlotPreview>,
+    /**
+     * Singular archetype label for the "Looking for a different …" link (first matching archetype
+     * for this template, or empty when no slots).
+     */
+    val archetypePickerLabel: String = "",
 )
