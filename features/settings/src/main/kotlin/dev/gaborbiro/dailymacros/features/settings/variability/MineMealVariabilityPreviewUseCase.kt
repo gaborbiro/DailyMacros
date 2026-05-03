@@ -39,7 +39,7 @@ class MineMealVariabilityPreviewUseCase(
                 ?.takeIf { it.isNotBlank() }
                 ?.let { JsonParser.parseString(it) }
         val envelope = VariabilityMiningUserEnvelope(
-            schema_version = "2.0",
+            schema_version = "2.1",
             merge_mode = "incremental",
             existing_profile = existingProfile,
             constraints = VariabilityConstraints(

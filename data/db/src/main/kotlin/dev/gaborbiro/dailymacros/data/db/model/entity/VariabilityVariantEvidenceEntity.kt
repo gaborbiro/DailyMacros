@@ -25,4 +25,6 @@ data class VariabilityVariantEvidenceEntity(
     @ColumnInfo(name = "variantId") val variantId: Long,
     @ColumnInfo(name = "loggedAt") val loggedAt: String,
     @ColumnInfo(name = "templateId") val templateId: Long?,
+    /** Template/meal title from variability mining evidence (optional). */
+    @ColumnInfo(name = "mealTitle") val mealTitle: String?,
 )

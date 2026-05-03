@@ -43,7 +43,9 @@ class VariabilityProfileMapper(
                 if (!sEl.isJsonObject) continue
                 val s = sEl.asJsonObject
                 val slotKey = s.get("slot_id")?.asString ?: continue
-                val role = optString(s, "role") ?: slotKey
+                val roleDisplayName = optString(s, "role_display_name")
+                    ?: optString(s, "role")
+                    ?: slotKey
                 val levers = s.getAsJsonArray("nutritional_levers") ?: JsonArray()
                 val variants = mutableListOf<VariabilityVariant>()
                 val variantsJson = s.getAsJsonArray("variants") ?: JsonArray()
@@ -52,14 +54,11 @@ class VariabilityProfileMapper(
                     if (!vEl.isJsonObject) continue
                     val v = vEl.asJsonObject
                     val variantKey = v.get("variant_id")?.asString ?: continue
-                    val typical = v.get("typical_macros")
                     variants.add(
                         VariabilityVariant(
                             variantKey = variantKey,
                             variantLabel = optString(v, "variant_label").orEmpty(),
-                            macroSource = optString(v, "macro_source").orEmpty(),
                             notesExcerpt = optString(v, "notes_excerpt").orEmpty(),
-                            typicalMacrosJson = if (typical != null) gson.toJson(typical) else "{}",
                             evidence = parseEvidenceDomain(v),
                             sortOrder = variantOrder++,
                         ),
@@ -68,7 +67,7 @@ class VariabilityProfileMapper(
                 slots.add(
                     VariabilitySlot(
                         slotKey = slotKey,
-                        role = role,
+                        roleDisplayName = roleDisplayName,
                         nutritionalLeversJson = gson.toJson(levers),
                         isHighVariability = s.get("is_high_variability")?.asBoolean ?: false,
                         confidence = s.get("confidence")?.asDouble ?: 0.0,
@@ -124,7 +123,7 @@ class VariabilityProfileMapper(
                         slot = VariabilitySlotEntity(
                             archetypeId = 0L,
                             slotKey = s.slotKey,
-                            role = s.role,
+                            role = s.roleDisplayName,
                             nutritionalLeversJson = s.nutritionalLeversJson,
                             isHighVariability = s.isHighVariability,
                             confidence = s.confidence,
@@ -137,9 +136,7 @@ class VariabilityProfileMapper(
                                     slotId = 0L,
                                     variantKey = v.variantKey,
                                     variantLabel = v.variantLabel,
-                                    macroSource = v.macroSource,
                                     notesExcerpt = v.notesExcerpt,
-                                    typicalMacrosJson = v.typicalMacrosJson,
                                     sortOrder = v.sortOrder,
                                 ),
                                 evidence = v.evidence.map { e ->
@@ -147,6 +144,7 @@ class VariabilityProfileMapper(
                                         variantId = 0L,
                                         loggedAt = e.loggedAt,
                                         templateId = e.templateId,
+                                        mealTitle = e.title,
                                     )
                                 },
                             )
@@ -167,7 +165,7 @@ class VariabilityProfileMapper(
         if (legacy != null && legacy.isJsonArray) {
             return legacy.asJsonArray.mapNotNull { e ->
                 if (e.isJsonPrimitive && e.asJsonPrimitive.isString) {
-                    VariabilityEvidence(loggedAt = e.asString, templateId = null)
+                    VariabilityEvidence(loggedAt = e.asString, templateId = null, title = null)
                 } else {
                     null
                 }
@@ -181,7 +179,7 @@ class VariabilityProfileMapper(
         for (e in arr) {
             when {
                 e.isJsonPrimitive && e.asJsonPrimitive.isString -> {
-                    out.add(VariabilityEvidence(loggedAt = e.asString, templateId = null))
+                    out.add(VariabilityEvidence(loggedAt = e.asString, templateId = null, title = null))
                 }
                 e.isJsonObject -> {
                     val o = e.asJsonObject
@@ -191,7 +189,8 @@ class VariabilityProfileMapper(
                         is JsonPrimitive -> if (t.isNumber) t.asLong else null
                         else -> null
                     }
-                    out.add(VariabilityEvidence(loggedAt = loggedAt, templateId = templateId))
+                    val title = optString(o, "title")
+                    out.add(VariabilityEvidence(loggedAt = loggedAt, templateId = templateId, title = title))
                 }
             }
         }

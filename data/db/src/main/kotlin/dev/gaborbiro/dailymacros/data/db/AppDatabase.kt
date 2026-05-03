@@ -38,7 +38,7 @@ import java.time.ZoneId
         VariabilityVariantEntity::class,
         VariabilityVariantEvidenceEntity::class,
     ],
-    version = 11,
+    version = 12,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -101,6 +101,7 @@ abstract class AppDatabase : RoomDatabase() {
             .addMigrations(MIGRATION_8_9)
             .addMigrations(MIGRATION_9_10)
             .addMigrations(MIGRATION_10_11)
+            .addMigrations(MIGRATION_11_12)
             .build()
         }
     }
@@ -309,6 +310,90 @@ val MIGRATION_10_11 = object : Migration(10, 11) {
             """
             INSERT INTO sqlite_sequence (`name`, `seq`)
             SELECT 'templates', IFNULL(MAX(`_id`), 0) FROM `templates`
+            """.trimIndent(),
+        )
+    }
+}
+
+val MIGRATION_11_12 = object : Migration(11, 12) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE variability_variant_evidence ADD COLUMN mealTitle TEXT")
+        db.execSQL("PRAGMA defer_foreign_keys = ON")
+        db.execSQL(
+            """
+            CREATE TABLE `variability_variant_evidence_backup` (
+                `_id` INTEGER PRIMARY KEY NOT NULL,
+                `variantId` INTEGER NOT NULL,
+                `loggedAt` TEXT NOT NULL,
+                `templateId` INTEGER,
+                `mealTitle` TEXT
+            )
+            """.trimIndent(),
+        )
+        db.execSQL(
+            "INSERT INTO `variability_variant_evidence_backup` SELECT * FROM `variability_variant_evidence`",
+        )
+        db.execSQL("DROP TABLE `variability_variant_evidence`")
+        db.execSQL(
+            """
+            CREATE TABLE `variability_variants_new` (
+                `_id` INTEGER PRIMARY KEY NOT NULL,
+                `slotId` INTEGER NOT NULL,
+                `variantKey` TEXT NOT NULL,
+                `variantLabel` TEXT NOT NULL,
+                `notesExcerpt` TEXT NOT NULL,
+                `sortOrder` INTEGER NOT NULL,
+                FOREIGN KEY(`slotId`) REFERENCES `variability_slots`(`_id`) ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+            """.trimIndent(),
+        )
+        db.execSQL(
+            """
+            INSERT INTO `variability_variants_new` (`_id`, `slotId`, `variantKey`, `variantLabel`, `notesExcerpt`, `sortOrder`)
+            SELECT `_id`, `slotId`, `variantKey`, `variantLabel`, `notesExcerpt`, `sortOrder` FROM `variability_variants`
+            """.trimIndent(),
+        )
+        db.execSQL("DROP TABLE `variability_variants`")
+        db.execSQL("ALTER TABLE `variability_variants_new` RENAME TO `variability_variants`")
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_variability_variants_slotId` ON `variability_variants` (`slotId`)",
+        )
+        db.execSQL(
+            """
+            CREATE TABLE `variability_variant_evidence` (
+                `_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `variantId` INTEGER NOT NULL,
+                `loggedAt` TEXT NOT NULL,
+                `templateId` INTEGER,
+                `mealTitle` TEXT,
+                FOREIGN KEY(`variantId`) REFERENCES `variability_variants`(`_id`) ON UPDATE NO ACTION ON DELETE CASCADE
+            )
+            """.trimIndent(),
+        )
+        db.execSQL(
+            """
+            INSERT INTO `variability_variant_evidence` (`_id`, `variantId`, `loggedAt`, `templateId`, `mealTitle`)
+            SELECT `_id`, `variantId`, `loggedAt`, `templateId`, `mealTitle` FROM `variability_variant_evidence_backup`
+            """.trimIndent(),
+        )
+        db.execSQL("DROP TABLE `variability_variant_evidence_backup`")
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_variability_variant_evidence_variantId` ON `variability_variant_evidence` (`variantId`)",
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_variability_variant_evidence_templateId` ON `variability_variant_evidence` (`templateId`)",
+        )
+        db.execSQL("DELETE FROM sqlite_sequence WHERE `name` IN ('variability_variants', 'variability_variant_evidence')")
+        db.execSQL(
+            """
+            INSERT INTO sqlite_sequence (`name`, `seq`)
+            SELECT 'variability_variants', IFNULL(MAX(`_id`), 0) FROM `variability_variants`
+            """.trimIndent(),
+        )
+        db.execSQL(
+            """
+            INSERT INTO sqlite_sequence (`name`, `seq`)
+            SELECT 'variability_variant_evidence', IFNULL(MAX(`_id`), 0) FROM `variability_variant_evidence`
             """.trimIndent(),
         )
     }

@@ -2,7 +2,8 @@ package dev.gaborbiro.dailymacros.repositories.records.domain.model.variability
 
 data class VariabilitySlot(
     val slotKey: String,
-    val role: String,
+    /** Human-readable slot caption for UI (from model `role_display_name`). */
+    val roleDisplayName: String,
     val nutritionalLeversJson: String,
     val isHighVariability: Boolean,
     val confidence: Double,
