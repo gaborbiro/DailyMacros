@@ -554,11 +554,8 @@ internal class ModalViewModel(
             val newTemplate = recordsRepository.getTemplate(reuseId)
             recordsRepository.updateRecord(record.copy(template = newTemplate))
             DiaryWidgetScreen.reload()
-            GetMacrosWorker.setWorkRequest(
-                appContext = App.appContext,
-                recordId = dlg.recordId,
-                force = true,
-            )
+            // Do not enqueue nutrient analysis: "Use this" selects an existing mined template that
+            // already has its own images/macros; we only change which template this record points to.
             pendingRecordDetailsRestore = null
             openRecordDetails(dlg.recordId, true)
         }
