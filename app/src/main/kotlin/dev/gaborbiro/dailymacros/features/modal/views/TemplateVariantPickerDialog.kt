@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.modal.views
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -43,21 +44,24 @@ internal fun TemplateVariantPickerDialog(
 
     ScrollableContentDialog(
         onDismissRequested = onCancel,
+        dismissOnOutsideTap = false,
         errorMessages = errorMessages,
         content = {
-            Text(
-                text = "Pick variants for ${dialogHandle.archetypeDisplayName}",
-                style = MaterialTheme.typography.titleMedium,
-            )
-            Spacer(modifier = Modifier.height(PaddingDefault))
-            slots.forEach { slot ->
-                val key = slot.slotKey
-                TemplateVariabilitySlotVariantDropdown(
-                    slot = slot,
-                    selectedVariantKey = selection[key] ?: slot.variants.first().variantKey,
-                    onVariantKeySelected = { selection[key] = it },
+            Column(modifier = Modifier.padding(horizontal = PaddingDefault)) {
+                Text(
+                    text = "Pick variants for ${dialogHandle.archetypeDisplayName}",
+                    style = MaterialTheme.typography.titleMedium,
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(PaddingDefault))
+                slots.forEach { slot ->
+                    val key = slot.slotKey
+                    TemplateVariabilitySlotVariantDropdown(
+                        slot = slot,
+                        selectedVariantKey = selection[key] ?: slot.variants.first().variantKey,
+                        onVariantKeySelected = { selection[key] = it },
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
             }
         },
         buttons = {
