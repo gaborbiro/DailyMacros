@@ -7,16 +7,23 @@ internal class ValidateEditRecordUseCase(
 ) {
 
     suspend fun execute(recordId: Long, title: String, description: String): EditValidationResult {
-        if (title.isBlank()) {
+        val trimmedTitle = title.trim()
+        if (trimmedTitle.isBlank()) {
             return EditValidationResult.Error("Title cannot be empty")
         }
+        val trimmedDescription = description.trim()
         val template = repository.get(recordId)!!.template
         val templateId = template.dbId
         val linkedCount = repository.countRecordsForTemplate(templateId)
-        return if (linkedCount < 2) {
-            EditValidationResult.Valid
-        } else {
+        if (linkedCount < 2) {
+            return EditValidationResult.Valid
+        }
+        val templateTextChanged =
+            trimmedTitle != template.name.trim() || trimmedDescription != template.description.trim()
+        return if (templateTextChanged) {
             EditValidationResult.ConfirmMultipleEdit(linkedCount)
+        } else {
+            EditValidationResult.Valid
         }
     }
 }
