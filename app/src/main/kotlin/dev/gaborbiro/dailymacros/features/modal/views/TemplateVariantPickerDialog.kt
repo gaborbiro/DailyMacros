@@ -47,9 +47,9 @@ internal fun TemplateVariantPickerDialog(
         dismissOnOutsideTap = false,
         errorMessages = errorMessages,
         content = {
-            Column(modifier = Modifier.padding(horizontal = PaddingDefault)) {
+            Column(modifier = Modifier.padding(PaddingDefault)) {
                 Text(
-                    text = "Pick variants for ${dialogHandle.archetypeDisplayName}",
+                    text = "Configure your ${dialogHandle.archetypeDisplayName}",
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Spacer(modifier = Modifier.height(PaddingDefault))
