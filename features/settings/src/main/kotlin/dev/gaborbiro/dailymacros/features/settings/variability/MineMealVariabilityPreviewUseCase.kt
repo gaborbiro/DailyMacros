@@ -32,15 +32,15 @@ class MineMealVariabilityPreviewUseCase(
     private val prettyGson: Gson = GsonBuilder().setPrettyPrinting().serializeNulls().create()
 
     suspend fun execute(): VariabilityMiningPreview {
-        val latest = variabilityRepository.getLatestProfile()
-        val watermarkExclusive = latest?.templatesIngestWatermarkEpochMs ?: 0L
-        val records = if (watermarkExclusive <= 0L) {
+        val snapshot = variabilityRepository.getLatestProfile()
+        val watermarkExclusive = snapshot?.templatesIngestWatermarkEpochMs ?: 0L
+        val records = if (snapshot == null || watermarkExclusive <= 0L) {
             recordsRepository.getRecentRecords(MAX_RECORDS)
         } else {
             recordsRepository.getRecordsForVariabilityDelta(MAX_RECORDS, watermarkExclusive)
         }
         val existingProfile: JsonElement? =
-            variabilityRepository.getLatestProfile()
+            snapshot
                 ?.profileJson
                 ?.takeIf { it.isNotBlank() }
                 ?.let { JsonParser.parseString(it) }

@@ -27,6 +27,13 @@ interface RecordsRepository {
 
     suspend fun countTemplates(): Int
 
+    /**
+     * Count of templates that would be included in an incremental variability mine:
+     * [createdAtEpochMs] or [updatedAtEpochMs] strictly after [afterWatermarkExclusive].
+     * When [afterWatermarkExclusive] is 0, matches any template with either timestamp > 0.
+     */
+    suspend fun countTemplatesPendingVariabilityAfterWatermark(afterWatermarkExclusive: Long): Int
+
     fun getMostRecentRecord(): Record?
 
     suspend fun getQuickPicks(count: Int): List<Template>

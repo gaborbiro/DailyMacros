@@ -56,7 +56,7 @@ class SettingsViewModel(
             variabilityMiningResponseJsonExpansionBits = settingsPrefs.variabilityMiningResponseJsonExpansionBits,
             variabilityMiningRequestJsonSectionExpanded = settingsPrefs.variabilityMiningRequestJsonSectionExpanded,
             variabilityMiningResponseJsonSectionExpanded = settingsPrefs.variabilityMiningResponseJsonSectionExpanded,
-            templateCountForVariabilityButton = 0,
+            nextMineTemplateCount = null,
         )
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
@@ -100,9 +100,16 @@ class SettingsViewModel(
                                 )
                             }
                             viewModelScope.launch {
-                                runCatching { recordsRepository.countTemplates() }
-                                    .onSuccess { n ->
-                                        _uiState.update { s -> s.copy(templateCountForVariabilityButton = n) }
+                                runCatching {
+                                    val snap = variabilityRepository.getLatestProfile()
+                                    snap?.let { s ->
+                                        recordsRepository.countTemplatesPendingVariabilityAfterWatermark(
+                                            s.templatesIngestWatermarkEpochMs,
+                                        )
+                                    }
+                                }
+                                    .onSuccess { countOrNull ->
+                                        _uiState.update { s -> s.copy(nextMineTemplateCount = countOrNull) }
                                     }
                             }
                         }
@@ -189,9 +196,15 @@ class SettingsViewModel(
 
     fun refreshTemplateCountForSettings() {
         viewModelScope.launch {
-            runCatching { recordsRepository.countTemplates() }
-                .onSuccess { n ->
-                    _uiState.update { it.copy(templateCountForVariabilityButton = n) }
+            runCatching {
+                variabilityRepository.getLatestProfile()?.let { s ->
+                    recordsRepository.countTemplatesPendingVariabilityAfterWatermark(
+                        s.templatesIngestWatermarkEpochMs,
+                    )
+                }
+            }
+                .onSuccess { countOrNull ->
+                    _uiState.update { it.copy(nextMineTemplateCount = countOrNull) }
                 }
         }
     }
@@ -217,6 +230,7 @@ class SettingsViewModel(
                             variabilityMiningRequestJsonSectionExpanded = false,
                             variabilityMiningResponseJsonSectionExpanded = false,
                             variabilityMiningError = null,
+                            nextMineTemplateCount = null,
                         )
                     }
                     _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Meal variability profile cleared"))

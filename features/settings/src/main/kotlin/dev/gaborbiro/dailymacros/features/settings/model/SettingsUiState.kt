@@ -17,5 +17,6 @@ data class SettingsUiState(
     val variabilityMiningRequestJsonSectionExpanded: Boolean = false,
     val variabilityMiningResponseJsonSectionExpanded: Boolean = false,
     /** Shown on the variability preview button (loaded when Settings opens). */
-    val templateCountForVariabilityButton: Int = 0,
+    /** Null until loaded: templates with activity after last mine watermark (0 if none pending). */
+    val nextMineTemplateCount: Int? = null,
 )

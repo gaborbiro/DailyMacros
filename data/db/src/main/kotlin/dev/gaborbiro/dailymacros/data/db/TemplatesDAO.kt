@@ -21,6 +21,17 @@ interface TemplatesDAO {
     @Query("SELECT COUNT(*) FROM templates")
     suspend fun countAllTemplates(): Int
 
+    /**
+     * Templates with activity strictly after [afterExclusive] (epoch ms), for incremental mining UX.
+     */
+    @Query(
+        """
+        SELECT COUNT(*) FROM templates
+        WHERE createdAtEpochMs > :afterExclusive OR updatedAtEpochMs > :afterExclusive
+        """
+    )
+    suspend fun countTemplatesWithActivityAfter(afterExclusive: Long): Int
+
     @Upsert
     suspend fun insertOrUpdate(macros: MacrosEntity): Long
 

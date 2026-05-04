@@ -47,6 +47,9 @@ class RecordsRepositoryImpl(
 
     override suspend fun countTemplates(): Int = templatesDAO.countAllTemplates()
 
+    override suspend fun countTemplatesPendingVariabilityAfterWatermark(afterWatermarkExclusive: Long): Int =
+        templatesDAO.countTemplatesWithActivityAfter(afterWatermarkExclusive)
+
     override fun getMostRecentRecord(): Record? {
         return recordsDAO.getMostRecentRecord()
             ?.let(mapper::map)
