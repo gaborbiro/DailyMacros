@@ -566,7 +566,7 @@ internal class ModalViewModel(
             val record = recordsRepository.get(dlg.recordId) ?: return@runSafely
             if (reuseId == record.template.dbId) {
                 pendingRecordDetailsRestore = null
-                openRecordDetails(dlg.recordId, true)
+                closeAll()
                 return@runSafely
             }
             val newTemplate = recordsRepository.getTemplate(reuseId)
@@ -575,7 +575,8 @@ internal class ModalViewModel(
             // Do not enqueue nutrient analysis: "Use this" selects an existing mined template that
             // already has its own images/macros; we only change which template this record points to.
             pendingRecordDetailsRestore = null
-            openRecordDetails(dlg.recordId, true)
+            // Close modal entirely: user sees the updated row in the diary; reopen details only if they tap again.
+            closeAll()
         }
     }
 
