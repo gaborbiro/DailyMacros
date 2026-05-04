@@ -413,9 +413,7 @@ val MIGRATION_12_13 = object : Migration(12, 13) {
 
 val MIGRATION_13_14 = object : Migration(13, 14) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        val now = System.currentTimeMillis()
-        db.execSQL(
-            "UPDATE templates SET createdAtEpochMs = $now, updatedAtEpochMs = $now WHERE createdAtEpochMs = 0 AND updatedAtEpochMs = 0",
-        )
+        // Intentionally empty: we only bump the schema version for Room bookkeeping.
+        // Template timestamps advance on create/update only (no legacy backfill).
     }
 }
