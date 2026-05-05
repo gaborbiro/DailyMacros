@@ -16,6 +16,8 @@ import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiState
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
+import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyTemplateVariantPickerSelectionUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyTemplateVariantPickerSelectionResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.DeleteRecordUseCase
@@ -32,10 +34,9 @@ import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.DomainError
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetVariabilityMatchForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.NoVariabilityProfileLoadedException
+import dev.gaborbiro.dailymacros.features.modal.usecase.OpenTemplateVariantPickerFromRecordDetailsUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.OpenTemplateVariantPickerResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.TemplateVariabilityMatch
-import dev.gaborbiro.dailymacros.repositories.records.TemplateVariabilityPreviewMapper
-import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfileMapper
-import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityPreviewContent
@@ -58,9 +59,8 @@ import kotlinx.coroutines.launch
 internal class ModalViewModel(
     private val imageStore: ImageStore,
     private val recordsRepository: RecordsRepository,
-    private val variabilityRepository: VariabilityRepository,
-    private val variabilityProfileMapper: VariabilityProfileMapper,
-    private val templateVariabilityPreviewMapper: TemplateVariabilityPreviewMapper,
+    private val openTemplateVariantPickerFromRecordDetailsUseCase: OpenTemplateVariantPickerFromRecordDetailsUseCase,
+    private val applyTemplateVariantPickerSelectionUseCase: ApplyTemplateVariantPickerSelectionUseCase,
     private val getVariabilityMatchForTemplateUseCase: GetVariabilityMatchForTemplateUseCase,
     private val createRecordFromTemplateUseCase: CreateRecordFromTemplateUseCase,
     private val createRecordWithNewTemplateUseCase: CreateRecordWithNewTemplateUseCase,
@@ -501,55 +501,15 @@ internal class ModalViewModel(
     fun onVariabilityDifferentMealLinkTapped() {
         runSafely {
             val view = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return@runSafely
-            if (!view.showVariabilityDifferentMealLink) return@runSafely
-            val preview = view.templateVariabilityPreview ?: return@runSafely
-            val profileJson = view.variabilityProfileJson ?: return@runSafely
-            val recordId = view.recordId
-            val templateId = view.templateDbId
-            val profileMinedAtEpochMs = view.variabilityProfileMinedAtEpochMs
-            val slots = preview.slots
-            if (slots.isEmpty()) return@runSafely
-            val archetypeKey = slots.first().archetypeKey
-            val archetypeLabel = preview.archetypePickerLabel.ifBlank { slots.first().archetypeDisplayName }
-            val profile = variabilityProfileMapper.parseProfileJson(profileJson, profileMinedAtEpochMs)
-            val archetype = profile.archetypes.find { it.archetypeKey == archetypeKey }
-            val initialSelections = slots.associate { sp ->
-                val slot = archetype?.slots?.find { it.slotKey == sp.slotKey }
-                val variant = slot?.variants?.find { v ->
-                    v.evidence.any { it.templateId == templateId }
+            when (val result = openTemplateVariantPickerFromRecordDetailsUseCase.execute(view)) {
+                OpenTemplateVariantPickerResult.Skipped -> return@runSafely
+                is OpenTemplateVariantPickerResult.Ready -> {
+                    pendingRecordDetailsRestore = view.recordId to view.allowEdit
+                    recordDetailsJob?.cancel()
+                    recordDetailsJob = null
+                    setRoot(result.picker)
                 }
-                sp.slotKey to (variant?.variantKey ?: sp.variants.first().variantKey)
             }
-            val existing = templateVariabilityPreviewMapper.existingCombinationKeysForArchetype(
-                profile.archetypes,
-                archetypeKey,
-                slots,
-            )
-            val currentKey = templateVariabilityPreviewMapper.combinationKeyForTemplateInArchetype(
-                profile.archetypes,
-                archetypeKey,
-                slots,
-                templateId,
-            )
-            val edit =
-                (_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View)?.allowEdit == true
-            pendingRecordDetailsRestore = recordId to edit
-            recordDetailsJob?.cancel()
-            recordDetailsJob = null
-            setRoot(
-                DialogHandle.TemplateVariantPickerDialog(
-                    recordId = recordId,
-                    templateId = templateId,
-                    profileJson = profileJson,
-                    profileMinedAtEpochMs = profileMinedAtEpochMs,
-                    archetypeKey = archetypeKey,
-                    archetypeDisplayName = archetypeLabel,
-                    slots = slots,
-                    initialSlotSelections = initialSelections,
-                    existingCombinationKeys = existing,
-                    currentTemplateCombinationKey = currentKey,
-                ),
-            )
         }
     }
 
@@ -568,40 +528,30 @@ internal class ModalViewModel(
     fun onVariantPickerConfirmed(selection: Map<String, String>) {
         val dlg = _uiState.value.rootDialog as? DialogHandle.TemplateVariantPickerDialog ?: return
         runSafely {
-            val profile = variabilityProfileMapper.parseProfileJson(dlg.profileJson, dlg.profileMinedAtEpochMs)
-            val comboKey = templateVariabilityPreviewMapper.combinationKey(dlg.slots, selection)
-            val reuseId = templateVariabilityPreviewMapper.templateIdForCombinationInArchetype(
-                profile.archetypes,
-                dlg.archetypeKey,
-                dlg.slots,
-                comboKey,
-            )
-            if (reuseId == null) {
-                _uiUpdates.send(
-                    ModalUiUpdates.Error(
-                        "Could not match this combination to a saved meal template. Try again after the next variability mine.",
-                    ),
-                )
-                return@runSafely
+            when (
+                val outcome = applyTemplateVariantPickerSelectionUseCase.execute(dlg, selection)
+            ) {
+                ApplyTemplateVariantPickerSelectionResult.UnknownCombination ->
+                    _uiUpdates.send(
+                        ModalUiUpdates.Error(
+                            "Could not match this combination to a saved meal template. Try again after the next variability mine.",
+                        ),
+                    )
+
+                ApplyTemplateVariantPickerSelectionResult.RecordNotFound ->
+                    _uiUpdates.send(ModalUiUpdates.Error("Record not found."))
+
+                ApplyTemplateVariantPickerSelectionResult.NoOpSameTemplate -> {
+                    pendingRecordDetailsRestore = null
+                    closeAll()
+                }
+
+                ApplyTemplateVariantPickerSelectionResult.Applied -> {
+                    DiaryWidgetScreen.reload()
+                    pendingRecordDetailsRestore = null
+                    closeAll()
+                }
             }
-            val record = recordsRepository.get(dlg.recordId)
-            if (record == null) {
-                _uiUpdates.send(ModalUiUpdates.Error("Record not found."))
-                return@runSafely
-            }
-            if (reuseId == record.template.dbId) {
-                pendingRecordDetailsRestore = null
-                closeAll()
-                return@runSafely
-            }
-            val newTemplate = recordsRepository.getTemplate(reuseId)
-            recordsRepository.updateRecord(record.copy(template = newTemplate))
-            DiaryWidgetScreen.reload()
-            // Do not enqueue nutrient analysis: "Use this" selects an existing mined template that
-            // already has its own images/macros; we only change which template this record points to.
-            pendingRecordDetailsRestore = null
-            // Close modal entirely: user sees the updated row in the diary; reopen details only if they tap again.
-            closeAll()
         }
     }
 

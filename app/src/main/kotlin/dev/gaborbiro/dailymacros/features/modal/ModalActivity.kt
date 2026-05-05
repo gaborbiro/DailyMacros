@@ -39,6 +39,7 @@ import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
+import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyTemplateVariantPickerSelectionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.DeleteRecordUseCase
@@ -47,6 +48,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetVariabilityMatchForTemplateUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.OpenTemplateVariantPickerFromRecordDetailsUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
@@ -181,13 +183,22 @@ class ModalActivity : AppCompatActivity() {
             variabilityRepository = variabilityRepository,
             profileMapper = variabilityProfileMapper,
         )
+        val openTemplateVariantPickerFromRecordDetailsUseCase =
+            OpenTemplateVariantPickerFromRecordDetailsUseCase(
+                variabilityProfileMapper = variabilityProfileMapper,
+                templateVariabilityPreviewMapper = templateVariabilityPreviewMapper,
+            )
+        val applyTemplateVariantPickerSelectionUseCase = ApplyTemplateVariantPickerSelectionUseCase(
+            recordsRepository = recordsRepository,
+            variabilityProfileMapper = variabilityProfileMapper,
+            templateVariabilityPreviewMapper = templateVariabilityPreviewMapper,
+        )
 
         ModalViewModel(
             imageStore = imageStore,
             recordsRepository = recordsRepository,
-            variabilityRepository = variabilityRepository,
-            variabilityProfileMapper = variabilityProfileMapper,
-            templateVariabilityPreviewMapper = templateVariabilityPreviewMapper,
+            openTemplateVariantPickerFromRecordDetailsUseCase = openTemplateVariantPickerFromRecordDetailsUseCase,
+            applyTemplateVariantPickerSelectionUseCase = applyTemplateVariantPickerSelectionUseCase,
             getVariabilityMatchForTemplateUseCase = getVariabilityMatchForTemplateUseCase,
             createRecordFromTemplateUseCase = createRecordFromTemplateUseCase,
             createRecordWithNewTemplateUseCase = CreateRecordWithNewTemplateUseCase(createTemplateUseCase, createRecordFromTemplateUseCase),
