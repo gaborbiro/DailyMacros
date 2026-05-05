@@ -486,14 +486,15 @@ internal class ModalViewModel(
     }
 
     @UiThread
-    fun onVariabilityDifferentMealLinkTapped(
-        recordId: Long,
-        templateId: Long,
-        profileJson: String,
-        profileMinedAtEpochMs: Long,
-        preview: TemplateVariabilityPreviewContent,
-    ) {
+    fun onVariabilityDifferentMealLinkTapped() {
         runSafely {
+            val view = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return@runSafely
+            if (!DialogHandle.shouldShowVariabilityDifferentMealLink(view)) return@runSafely
+            val preview = view.templateVariabilityPreview ?: return@runSafely
+            val profileJson = view.variabilityProfileJson ?: return@runSafely
+            val recordId = view.recordId
+            val templateId = view.templateDbId
+            val profileMinedAtEpochMs = view.variabilityProfileMinedAtEpochMs
             val slots = preview.slots
             if (slots.isEmpty()) return@runSafely
             val archetypeKey = slots.first().archetypeKey

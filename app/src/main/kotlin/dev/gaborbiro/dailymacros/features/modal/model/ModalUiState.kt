@@ -10,6 +10,20 @@ data class ModalUiState(
 )
 
 sealed class DialogHandle {
+    companion object {
+        /**
+         * True when record details (View) has enough variability data to open the variant picker
+         * from the "different meal type" link.
+         */
+        fun shouldShowVariabilityDifferentMealLink(dialog: RecordDetailsDialog): Boolean {
+            val view = dialog as? RecordDetailsDialog.View ?: return false
+            val preview = view.templateVariabilityPreview ?: return false
+            if (preview.slots.isEmpty()) return false
+            if (preview.archetypePickerLabel.isBlank()) return false
+            return !view.variabilityProfileJson.isNullOrBlank()
+        }
+    }
+
     data class EditTargetConfirmationDialog(
         val recordId: Long,
         val count: Int,

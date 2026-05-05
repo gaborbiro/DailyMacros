@@ -52,7 +52,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
-
 @Composable
 internal fun RecordDetailsDialog(
     dialogHandle: DialogHandle.RecordDetailsDialog,
@@ -67,13 +66,8 @@ internal fun RecordDetailsDialog(
     onDismissRequested: () -> Unit,
     onImagesInfoButtonTapped: () -> Unit,
     onRunAIButtonTapped: () -> Unit,
-    onVariabilityDifferentMealLinkTapped: (
-        recordId: Long,
-        templateId: Long,
-        profileJson: String,
-        profileMinedAtEpochMs: Long,
-        preview: TemplateVariabilityPreviewContent,
-    ) -> Unit,
+    showVariabilityDifferentMealLink: Boolean,
+    onVariabilityDifferentMealLinkTapped: () -> Unit,
 ) {
     val title = dialogHandle.title
     val titleHint = dialogHandle.titleHint
@@ -91,10 +85,10 @@ internal fun RecordDetailsDialog(
     val allowEdit = (dialogHandle as? DialogHandle.RecordDetailsDialog.View)
         ?.allowEdit
         ?: true
-    val variabilityDifferentMealLink = variabilityDifferentMealLinkOrNull(
-        dialogHandle = dialogHandle,
-        onVariabilityDifferentMealLinkTapped = onVariabilityDifferentMealLinkTapped,
-    )
+    val templateVariabilityPreview = when (dialogHandle) {
+        is DialogHandle.RecordDetailsDialog.View -> dialogHandle.templateVariabilityPreview
+        is DialogHandle.RecordDetailsDialog.Edit -> dialogHandle.templateVariabilityPreview
+    }
 
     val saveButtonText =
         if (dialogHandle is DialogHandle.RecordDetailsDialog.View) "Update and Analyze" else "Add and Analyze"
@@ -129,7 +123,9 @@ internal fun RecordDetailsDialog(
                 onAddImageViaPickerTapped = onAddImageViaPickerTapped,
                 onImagesInfoButtonTapped = onImagesInfoButtonTapped,
                 onRunAIButtonTapped = onRunAIButtonTapped,
-                variabilityDifferentMealLink = variabilityDifferentMealLink,
+                templateVariabilityPreview = templateVariabilityPreview,
+                showVariabilityDifferentMealLink = showVariabilityDifferentMealLink,
+                onVariabilityDifferentMealLinkTapped = onVariabilityDifferentMealLinkTapped,
             )
         },
         errorMessages = errorMessages,
@@ -196,7 +192,9 @@ private fun ColumnScope.RecordDetailsDialogContent(
     onAddImageViaPickerTapped: () -> Unit,
     onImagesInfoButtonTapped: () -> Unit,
     onRunAIButtonTapped: () -> Unit,
-    variabilityDifferentMealLink: RecordDetailsVariabilityDifferentMealLink?,
+    templateVariabilityPreview: TemplateVariabilityPreviewContent?,
+    showVariabilityDifferentMealLink: Boolean,
+    onVariabilityDifferentMealLinkTapped: () -> Unit,
 ) {
     val focusRequester = remember { FocusRequester() }
 
@@ -379,16 +377,17 @@ private fun ColumnScope.RecordDetailsDialogContent(
         )
     }
 
-    variabilityDifferentMealLink?.let { link ->
+    if (showVariabilityDifferentMealLink) {
+        val archetypeLabel = templateVariabilityPreview?.archetypePickerLabel.orEmpty()
         Spacer(modifier = Modifier.height(PaddingDefault))
         TextButton(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(bottom = PaddingDefault),
-            onClick = link.onOpenPicker,
+            onClick = onVariabilityDifferentMealLinkTapped,
         ) {
             Text(
-                text = "Looking for a different ${link.archetypeLabel}?",
+                text = "Looking for a different $archetypeLabel?",
                 style = MaterialTheme.typography.bodyMedium.copy(
                     textDecoration = TextDecoration.Underline,
                 ),
@@ -396,44 +395,6 @@ private fun ColumnScope.RecordDetailsDialogContent(
             )
         }
     }
-}
-
-/**
- * When non-null, record details shows the underlined “different meal type” variability link.
- * [onOpenPicker] already closes over profile JSON, preview, and ids — callers pass a no-arg handler from [ModalViewModel].
- */
-internal data class RecordDetailsVariabilityDifferentMealLink(
-    val archetypeLabel: String,
-    val onOpenPicker: () -> Unit,
-)
-
-private fun variabilityDifferentMealLinkOrNull(
-    dialogHandle: DialogHandle.RecordDetailsDialog,
-    onVariabilityDifferentMealLinkTapped: (
-        recordId: Long,
-        templateId: Long,
-        profileJson: String,
-        profileMinedAtEpochMs: Long,
-        preview: TemplateVariabilityPreviewContent,
-    ) -> Unit,
-): RecordDetailsVariabilityDifferentMealLink? {
-    val view = dialogHandle as? DialogHandle.RecordDetailsDialog.View ?: return null
-    val preview = view.templateVariabilityPreview ?: return null
-    if (preview.slots.isEmpty()) return null
-    val archetypeLabel = preview.archetypePickerLabel.takeIf { it.isNotBlank() } ?: return null
-    val profileJson = view.variabilityProfileJson?.takeIf { it.isNotBlank() } ?: return null
-    return RecordDetailsVariabilityDifferentMealLink(
-        archetypeLabel = archetypeLabel,
-        onOpenPicker = {
-            onVariabilityDifferentMealLinkTapped(
-                view.recordId,
-                view.templateDbId,
-                profileJson,
-                view.variabilityProfileMinedAtEpochMs,
-                preview,
-            )
-        },
-    )
 }
 
 @Preview
@@ -492,7 +453,8 @@ private fun NoteInputDialogContentPreviewView() {
             onDismissRequested = {},
             onImagesInfoButtonTapped = {},
             onRunAIButtonTapped = {},
-            onVariabilityDifferentMealLinkTapped = { _, _, _, _, _ -> },
+            showVariabilityDifferentMealLink = true,
+            onVariabilityDifferentMealLinkTapped = {},
         )
     }
 }
@@ -524,7 +486,8 @@ private fun NoteInputDialogContentPreviewSuggestion() {
             onDismissRequested = {},
             onImagesInfoButtonTapped = {},
             onRunAIButtonTapped = {},
-            onVariabilityDifferentMealLinkTapped = { _, _, _, _, _ -> },
+            showVariabilityDifferentMealLink = false,
+            onVariabilityDifferentMealLinkTapped = {},
         )
     }
 }
@@ -555,7 +518,8 @@ private fun NoteInputDialogContentPreview() {
             onDismissRequested = {},
             onImagesInfoButtonTapped = {},
             onRunAIButtonTapped = {},
-            onVariabilityDifferentMealLinkTapped = { _, _, _, _, _ -> },
+            showVariabilityDifferentMealLink = false,
+            onVariabilityDifferentMealLinkTapped = {},
         )
     }
 }
@@ -588,7 +552,8 @@ private fun NoteInputDialogContentPreviewError() {
             onDismissRequested = {},
             onImagesInfoButtonTapped = {},
             onRunAIButtonTapped = {},
-            onVariabilityDifferentMealLinkTapped = { _, _, _, _, _ -> },
+            showVariabilityDifferentMealLink = false,
+            onVariabilityDifferentMealLinkTapped = {},
         )
     }
 }
