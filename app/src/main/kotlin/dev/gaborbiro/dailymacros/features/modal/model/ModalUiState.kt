@@ -10,22 +10,6 @@ data class ModalUiState(
 )
 
 sealed class DialogHandle {
-    companion object {
-        /**
-         * True when record details are editable ([RecordDetailsDialog.View.allowEdit]) and variability
-         * data is present to open the variant picker from the "different meal type" link.
-         * Read-only details ([allowEdit] false) never show the link.
-         */
-        fun shouldShowVariabilityDifferentMealLink(dialog: RecordDetailsDialog): Boolean {
-            val view = dialog as? RecordDetailsDialog.View ?: return false
-            if (!view.allowEdit) return false
-            val preview = view.templateVariabilityPreview ?: return false
-            if (preview.slots.isEmpty()) return false
-            if (preview.archetypePickerLabel.isBlank()) return false
-            return !view.variabilityProfileJson.isNullOrBlank()
-        }
-    }
-
     data class EditTargetConfirmationDialog(
         val recordId: Long,
         val count: Int,
@@ -61,6 +45,7 @@ sealed class DialogHandle {
             val templateVariabilityPreview: TemplateVariabilityPreviewContent? = null,
             val variabilityProfileJson: String? = null,
             val variabilityProfileMinedAtEpochMs: Long = 0L,
+            override val showVariabilityDifferentMealLink: Boolean = false,
         ) : RecordDetailsDialog(
             titleHint = titleHint,
             titleValidationError = titleValidationError,
@@ -91,6 +76,7 @@ sealed class DialogHandle {
             val variabilityProfileJson: String? = null,
             /** Epoch ms of the snapshot used for [variabilityProfileJson] parsing (0 if none). */
             val variabilityProfileMinedAtEpochMs: Long = 0L,
+            override val showVariabilityDifferentMealLink: Boolean = false,
         ) : RecordDetailsDialog(
             titleHint = titleHint,
             titleValidationError = titleValidationError,
@@ -109,6 +95,9 @@ sealed class DialogHandle {
         abstract fun withTitleValidationError(titleValidationError: String?): RecordDetailsDialog
         abstract fun withTitle(title: TextFieldValue): RecordDetailsDialog
         abstract fun withDescription(description: TextFieldValue): RecordDetailsDialog
+
+        /** Set by [ModalViewModel] when building state; the activity reads this as dumb UI. */
+        abstract val showVariabilityDifferentMealLink: Boolean
     }
 
     data class ImageInput(val type: ImageInputType) : DialogHandle()

@@ -195,6 +195,11 @@ internal class ModalViewModel(
                         templateVariabilityPreview = previewForDialog,
                         variabilityProfileJson = profileJson,
                         variabilityProfileMinedAtEpochMs = minedAtEpochMs,
+                        showVariabilityDifferentMealLink = computeShowVariabilityDifferentMealLink(
+                            allowEdit = edit,
+                            templateVariabilityPreview = previewForDialog,
+                            variabilityProfileJson = profileJson,
+                        ),
                     )
                     setRoot(dialog)
                 }
@@ -496,8 +501,7 @@ internal class ModalViewModel(
     fun onVariabilityDifferentMealLinkTapped() {
         runSafely {
             val view = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return@runSafely
-            if (!view.allowEdit) return@runSafely
-            if (!DialogHandle.shouldShowVariabilityDifferentMealLink(view)) return@runSafely
+            if (!view.showVariabilityDifferentMealLink) return@runSafely
             val preview = view.templateVariabilityPreview ?: return@runSafely
             val profileJson = view.variabilityProfileJson ?: return@runSafely
             val recordId = view.recordId

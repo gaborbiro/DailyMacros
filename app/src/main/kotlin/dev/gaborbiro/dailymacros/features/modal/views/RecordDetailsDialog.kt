@@ -66,7 +66,6 @@ internal fun RecordDetailsDialog(
     onDismissRequested: () -> Unit,
     onImagesInfoButtonTapped: () -> Unit,
     onRunAIButtonTapped: () -> Unit,
-    showVariabilityDifferentMealLink: Boolean,
     onVariabilityDifferentMealLinkTapped: () -> Unit,
 ) {
     val title = dialogHandle.title
@@ -124,7 +123,7 @@ internal fun RecordDetailsDialog(
                 onImagesInfoButtonTapped = onImagesInfoButtonTapped,
                 onRunAIButtonTapped = onRunAIButtonTapped,
                 templateVariabilityPreview = templateVariabilityPreview,
-                showVariabilityDifferentMealLink = showVariabilityDifferentMealLink,
+                showVariabilityDifferentMealLink = dialogHandle.showVariabilityDifferentMealLink,
                 onVariabilityDifferentMealLinkTapped = onVariabilityDifferentMealLinkTapped,
             )
         },
@@ -441,6 +440,7 @@ private fun NoteInputDialogContentPreviewView() {
                 ),
                 variabilityProfileJson = "{}",
                 variabilityProfileMinedAtEpochMs = 0L,
+                showVariabilityDifferentMealLink = true,
             ),
             errorMessages = emptyFlow(),
             onTitleChanged = {},
@@ -453,7 +453,6 @@ private fun NoteInputDialogContentPreviewView() {
             onDismissRequested = {},
             onImagesInfoButtonTapped = {},
             onRunAIButtonTapped = {},
-            showVariabilityDifferentMealLink = true,
             onVariabilityDifferentMealLinkTapped = {},
         )
     }
@@ -486,7 +485,6 @@ private fun NoteInputDialogContentPreviewSuggestion() {
             onDismissRequested = {},
             onImagesInfoButtonTapped = {},
             onRunAIButtonTapped = {},
-            showVariabilityDifferentMealLink = false,
             onVariabilityDifferentMealLinkTapped = {},
         )
     }
@@ -518,7 +516,6 @@ private fun NoteInputDialogContentPreview() {
             onDismissRequested = {},
             onImagesInfoButtonTapped = {},
             onRunAIButtonTapped = {},
-            showVariabilityDifferentMealLink = false,
             onVariabilityDifferentMealLinkTapped = {},
         )
     }
@@ -552,7 +549,6 @@ private fun NoteInputDialogContentPreviewError() {
             onDismissRequested = {},
             onImagesInfoButtonTapped = {},
             onRunAIButtonTapped = {},
-            showVariabilityDifferentMealLink = false,
             onVariabilityDifferentMealLinkTapped = {},
         )
     }

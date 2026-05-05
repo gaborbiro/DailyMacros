@@ -351,9 +351,6 @@ class ModalActivity : AppCompatActivity() {
                 onDismissRequested = onDismissRequested,
                 onImagesInfoButtonTapped = viewModel::onImagesInfoButtonTapped,
                 onRunAIButtonTapped = viewModel::onRunAIButtonTapped,
-                showVariabilityDifferentMealLink = DialogHandle.shouldShowVariabilityDifferentMealLink(
-                    dialogHandle,
-                ),
                 onVariabilityDifferentMealLinkTapped = viewModel::onVariabilityDifferentMealLinkTapped,
             )
 
