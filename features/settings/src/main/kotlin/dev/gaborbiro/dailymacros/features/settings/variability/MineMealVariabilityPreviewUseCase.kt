@@ -20,6 +20,11 @@ data class VariabilityMiningPreview(
     val requestJsonPretty: String,
     /** Pretty-printed JSON returned by the model. */
     val responseJsonPretty: String,
+    /**
+     * True when incremental mode had no records after the ingest watermark — the model was not
+     * called and the stored profile was left unchanged.
+     */
+    val skippedNoNewObservations: Boolean = false,
 )
 
 class MineMealVariabilityPreviewUseCase(
@@ -34,10 +39,21 @@ class MineMealVariabilityPreviewUseCase(
     suspend fun execute(): VariabilityMiningPreview {
         val snapshot = variabilityRepository.getLatestProfile()
         val watermarkExclusive = snapshot?.templatesIngestWatermarkEpochMs ?: 0L
-        val records = if (snapshot == null || watermarkExclusive <= 0L) {
+        val useIncrementalDelta = snapshot != null && watermarkExclusive > 0L
+        val records = if (!useIncrementalDelta) {
             recordsRepository.getRecentRecords(MAX_RECORDS)
         } else {
             recordsRepository.getRecordsForVariabilityDelta(MAX_RECORDS, watermarkExclusive)
+        }
+        if (useIncrementalDelta && records.isEmpty()) {
+            val snap = requireNotNull(snapshot) { "incremental delta requires snapshot" }
+            val skipRequestJson =
+                """{"skipped":true,"reason":"no_meal_observations_after_watermark","templatesIngestWatermarkEpochMs":$watermarkExclusive}"""
+            return VariabilityMiningPreview(
+                requestJsonPretty = prettyPrintJson(skipRequestJson),
+                responseJsonPretty = prettyPrintJson(snap.profileJson),
+                skippedNoNewObservations = true,
+            )
         }
         val existingProfile: JsonElement? =
             snapshot
