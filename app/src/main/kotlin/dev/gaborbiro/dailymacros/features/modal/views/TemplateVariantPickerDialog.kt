@@ -37,7 +37,13 @@ internal fun TemplateVariantPickerDialog(
             putAll(dialogHandle.initialSlotSelections)
         }
     }
-    val comboKey = previewMapper.combinationKey(slots, selection)
+    fun normalizedSlotKeyToVariant(): Map<String, String> =
+        slots.associate { slot ->
+            val key = slot.slotKey
+            key to (selection[key] ?: slot.variants.first().variantKey)
+        }
+    val normalizedSelection = normalizedSlotKeyToVariant()
+    val comboKey = previewMapper.combinationKey(slots, normalizedSelection)
     val exists = comboKey in dialogHandle.existingCombinationKeys
     val actionLabel = if (exists) "Use this" else "Create this"
     val actionEnabled = exists
@@ -76,7 +82,7 @@ internal fun TemplateVariantPickerDialog(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
-                    onClick = { onConfirm(selection.toMap()) },
+                    onClick = { onConfirm(normalizedSlotKeyToVariant()) },
                     enabled = actionEnabled,
                     shape = RoundedCornerShape(50.dp),
                 ) {

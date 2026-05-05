@@ -14,9 +14,9 @@ Legend: **Done** = already implemented on the branch at time of writing; **Todo*
 | **A** | Pass `templatesIngestWatermarkEpochMs` from snapshot into `VariabilityProfileMapper.parseProfileJson` in `GetVariabilityMatchForTemplateUseCase` | **Done** | Aligns parsed in-memory profile with DB snapshot metadata. |
 | **B** | Incremental mine: do **not** call the model with empty `meal_observations` when delta query returns no rows; do **not** replace stored profile | **Done** | `MineMealVariabilityPreviewUseCase` + worker notification for skip path. |
 | **C** | **Multi-archetype edge case:** `slotPreviewsForTemplate` can return slots from **multiple** archetypes; UI/picker uses `slots.first()` for `archetypeKey` / label | **Todo** | **Options:** (1) document “one archetype per template in practice”; (2) group preview rows by `archetypeKey` and expose one link/picker per archetype; (3) restrict mapper to a single archetype when building preview for a template. Decide with product. |
-| **D** | **`TemplateVariantPickerDialog`:** ensure `combinationKey` / confirm always has every `slotKey` (normalize `selection` before `combinationKey` and `onConfirm`) | **Todo** | Prevents wrong `exists` / enabled **Use this** if `mutableStateMapOf` is ever incomplete. |
-| **E** | **`ModalViewModel.onVariantPickerConfirmed`:** when `templateIdForCombinationInArchetype` returns null, **do not** silent `return@runSafely` — surface `ModalUiUpdates.Error` or snackbar | **Todo** | Avoids “button does nothing” support burden. |
-| **F** | **`ValidateEditRecordUseCase`:** replace `get(recordId)!!` with null-safe path returning `EditValidationResult.Error` | **Todo** | Rare crash if record missing. |
+| **D** | **`TemplateVariantPickerDialog`:** ensure `combinationKey` / confirm always has every `slotKey` (normalize `selection` before `combinationKey` and `onConfirm`) | **Done** | `normalizedSlotKeyToVariant()` + `combinationKey(slots, normalizedSelection)`; confirm passes full map. |
+| **E** | **`ModalViewModel.onVariantPickerConfirmed`:** when `templateIdForCombinationInArchetype` returns null, **do not** silent `return@runSafely` — surface `ModalUiUpdates.Error` or snackbar | **Done** | Sends `ModalUiUpdates.Error` for unmatched combo and missing record. |
+| **F** | **`ValidateEditRecordUseCase`:** replace `get(recordId)!!` with null-safe path returning `EditValidationResult.Error` | **Done** | `Record not found`; `ValidateEditRecordUseCaseTest`. |
 
 ---
 
@@ -36,8 +36,8 @@ Legend: **Done** = already implemented on the branch at time of writing; **Todo*
 
 | ID | Item | Status | Notes |
 |----|------|--------|--------|
-| **J** | **`SettingsViewModel`:** `runCatching` for `nextMineTemplateCount` — add `onFailure` (log + optional snackbar or leave count unchanged explicitly) | **Todo** | Avoid silent failure when count refresh fails. |
-| **K** | **`SettingsUiState`:** merge duplicate / conflicting KDoc lines for `nextMineTemplateCount` | **Todo** | Small doc clarity fix. |
+| **J** | **`SettingsViewModel`:** `runCatching` for `nextMineTemplateCount` — add `onFailure` (log + optional snackbar or leave count unchanged explicitly) | **Done** | `Log.w` + `ShowSnackbar` on post-mine refresh and `refreshTemplateCountForSettings`. |
+| **K** | **`SettingsUiState`:** merge duplicate / conflicting KDoc lines for `nextMineTemplateCount` | **Done** | Single KDoc line. |
 
 ---
 
@@ -50,7 +50,7 @@ Legend: **Done** = already implemented on the branch at time of writing; **Todo*
 | **L3** | **`ModalViewModel`:** picker open / confirm / cancel / no-op same template | **Todo** | `kotlinx-coroutines-test` + fakes, or extract pure helpers first. |
 | **L4** | **Room `MIGRATION_12_13`:** in-memory migration test (schema + defaults) | **Todo** | |
 | **L5** | **`TemplateVariabilityPreviewMapper`:** extra cases for production-shaped JSON (null `templateId`, duplicate keys) if needed | **Partial** | `TemplateVariabilityPreviewMapperTest` exists; extend as bugs appear. |
-| **L6** | **`ValidateEditRecordUseCase`** after **F** | **Todo** | |
+| **L6** | **`ValidateEditRecordUseCase`** after **F** | **Partial** | `ValidateEditRecordUseCaseTest` covers missing record + unchanged shared template. |
 
 **Done:** `RecordDetailsVariabilityDifferentMealLinkVisibilityTest` for link visibility rule.
 
@@ -58,9 +58,9 @@ Legend: **Done** = already implemented on the branch at time of writing; **Todo*
 
 ## 5. Suggested implementation order
 
-1. **D + E** — picker correctness and user-visible errors (small, high user impact).  
-2. **J + K** — settings count reliability and docs.  
-3. **F + L6** — edit validation hardening.  
+1. ~~**D + E**~~ — done.  
+2. ~~**J + K**~~ — done.  
+3. ~~**F + L6**~~ — F done; L6 partially covered (extend tests as needed).  
 4. **L1–L4** — test coverage for mining, match use case, migration.  
 5. **C** — product/architecture decision, then implement.  
 6. **G + H + I** — larger refactors / documentation when capacity allows.

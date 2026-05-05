@@ -12,7 +12,9 @@ internal class ValidateEditRecordUseCase(
             return EditValidationResult.Error("Title cannot be empty")
         }
         val trimmedDescription = description.trim()
-        val template = repository.get(recordId)!!.template
+        val record = repository.get(recordId)
+            ?: return EditValidationResult.Error("Record not found")
+        val template = record.template
         val templateId = template.dbId
         val linkedCount = repository.countRecordsForTemplate(templateId)
         if (linkedCount < 2) {

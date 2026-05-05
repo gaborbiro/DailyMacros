@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
@@ -111,6 +112,14 @@ class SettingsViewModel(
                                     .onSuccess { countOrNull ->
                                         _uiState.update { s -> s.copy(nextMineTemplateCount = countOrNull) }
                                     }
+                                    .onFailure { t ->
+                                        Log.w(TAG, "nextMineTemplateCount after mining", t)
+                                        _uiUpdates.emit(
+                                            SettingsUiUpdates.ShowSnackbar(
+                                                "Could not refresh template count for the next mine.",
+                                            ),
+                                        )
+                                    }
                             }
                         }
 
@@ -206,6 +215,14 @@ class SettingsViewModel(
                 .onSuccess { countOrNull ->
                     _uiState.update { it.copy(nextMineTemplateCount = countOrNull) }
                 }
+                .onFailure { t ->
+                    Log.w(TAG, "refreshTemplateCountForSettings", t)
+                    _uiUpdates.emit(
+                        SettingsUiUpdates.ShowSnackbar(
+                            "Could not refresh template count for the next mine.",
+                        ),
+                    )
+                }
         }
     }
 
@@ -291,5 +308,9 @@ class SettingsViewModel(
             .atZone(zoneId)
             .format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM))
         return "Generated at: $formatted"
+    }
+
+    private companion object {
+        private const val TAG = "SettingsViewModel"
     }
 }

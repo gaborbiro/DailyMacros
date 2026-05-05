@@ -575,8 +575,20 @@ internal class ModalViewModel(
                 dlg.archetypeKey,
                 dlg.slots,
                 comboKey,
-            ) ?: return@runSafely
-            val record = recordsRepository.get(dlg.recordId) ?: return@runSafely
+            )
+            if (reuseId == null) {
+                _uiUpdates.send(
+                    ModalUiUpdates.Error(
+                        "Could not match this combination to a saved meal template. Try again after the next variability mine.",
+                    ),
+                )
+                return@runSafely
+            }
+            val record = recordsRepository.get(dlg.recordId)
+            if (record == null) {
+                _uiUpdates.send(ModalUiUpdates.Error("Record not found."))
+                return@runSafely
+            }
             if (reuseId == record.template.dbId) {
                 pendingRecordDetailsRestore = null
                 closeAll()
