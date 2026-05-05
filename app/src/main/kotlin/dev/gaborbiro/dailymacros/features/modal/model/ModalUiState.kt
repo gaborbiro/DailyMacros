@@ -55,6 +55,8 @@ sealed class DialogHandle {
             val showProgressIndicator: Boolean = false,
             val showRunAIButton: Boolean = false,
             val recognisedFood: RecognisedFood?,
+            /** Mined slot/variant UI when editing (usually null). */
+            val templateVariabilityPreview: TemplateVariabilityPreviewContent? = null,
             val variabilityProfileJson: String? = null,
             val variabilityProfileMinedAtEpochMs: Long = 0L,
         ) : RecordDetailsDialog(
