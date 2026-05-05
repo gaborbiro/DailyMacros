@@ -52,43 +52,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
-/**
- * When non-null, record details shows the underlined “different meal type” variability link.
- * [onOpenPicker] already closes over profile JSON, preview, and ids — callers pass a no-arg handler from [ModalViewModel].
- */
-internal data class RecordDetailsVariabilityDifferentMealLink(
-    val archetypeLabel: String,
-    val onOpenPicker: () -> Unit,
-)
-
-private fun variabilityDifferentMealLinkOrNull(
-    dialogHandle: DialogHandle.RecordDetailsDialog,
-    onVariabilityDifferentMealLinkTapped: (
-        recordId: Long,
-        templateId: Long,
-        profileJson: String,
-        profileMinedAtEpochMs: Long,
-        preview: TemplateVariabilityPreviewContent,
-    ) -> Unit,
-): RecordDetailsVariabilityDifferentMealLink? {
-    val view = dialogHandle as? DialogHandle.RecordDetailsDialog.View ?: return null
-    val preview = view.templateVariabilityPreview ?: return null
-    if (preview.slots.isEmpty()) return null
-    val archetypeLabel = preview.archetypePickerLabel.takeIf { it.isNotBlank() } ?: return null
-    val profileJson = view.variabilityProfileJson?.takeIf { it.isNotBlank() } ?: return null
-    return RecordDetailsVariabilityDifferentMealLink(
-        archetypeLabel = archetypeLabel,
-        onOpenPicker = {
-            onVariabilityDifferentMealLinkTapped(
-                view.recordId,
-                view.templateDbId,
-                profileJson,
-                view.variabilityProfileMinedAtEpochMs,
-                preview,
-            )
-        },
-    )
-}
 
 @Composable
 internal fun RecordDetailsDialog(
@@ -132,10 +95,6 @@ internal fun RecordDetailsDialog(
         dialogHandle = dialogHandle,
         onVariabilityDifferentMealLinkTapped = onVariabilityDifferentMealLinkTapped,
     )
-    val templateVariabilityPreview = when (dialogHandle) {
-        is DialogHandle.RecordDetailsDialog.View -> dialogHandle.templateVariabilityPreview
-        is DialogHandle.RecordDetailsDialog.Edit -> dialogHandle.templateVariabilityPreview
-    }
 
     val saveButtonText =
         if (dialogHandle is DialogHandle.RecordDetailsDialog.View) "Update and Analyze" else "Add and Analyze"
@@ -170,7 +129,6 @@ internal fun RecordDetailsDialog(
                 onAddImageViaPickerTapped = onAddImageViaPickerTapped,
                 onImagesInfoButtonTapped = onImagesInfoButtonTapped,
                 onRunAIButtonTapped = onRunAIButtonTapped,
-                templateVariabilityPreview = templateVariabilityPreview,
                 variabilityDifferentMealLink = variabilityDifferentMealLink,
             )
         },
@@ -238,7 +196,6 @@ private fun ColumnScope.RecordDetailsDialogContent(
     onAddImageViaPickerTapped: () -> Unit,
     onImagesInfoButtonTapped: () -> Unit,
     onRunAIButtonTapped: () -> Unit,
-    templateVariabilityPreview: TemplateVariabilityPreviewContent?,
     variabilityDifferentMealLink: RecordDetailsVariabilityDifferentMealLink?,
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -439,6 +396,44 @@ private fun ColumnScope.RecordDetailsDialogContent(
             )
         }
     }
+}
+
+/**
+ * When non-null, record details shows the underlined “different meal type” variability link.
+ * [onOpenPicker] already closes over profile JSON, preview, and ids — callers pass a no-arg handler from [ModalViewModel].
+ */
+internal data class RecordDetailsVariabilityDifferentMealLink(
+    val archetypeLabel: String,
+    val onOpenPicker: () -> Unit,
+)
+
+private fun variabilityDifferentMealLinkOrNull(
+    dialogHandle: DialogHandle.RecordDetailsDialog,
+    onVariabilityDifferentMealLinkTapped: (
+        recordId: Long,
+        templateId: Long,
+        profileJson: String,
+        profileMinedAtEpochMs: Long,
+        preview: TemplateVariabilityPreviewContent,
+    ) -> Unit,
+): RecordDetailsVariabilityDifferentMealLink? {
+    val view = dialogHandle as? DialogHandle.RecordDetailsDialog.View ?: return null
+    val preview = view.templateVariabilityPreview ?: return null
+    if (preview.slots.isEmpty()) return null
+    val archetypeLabel = preview.archetypePickerLabel.takeIf { it.isNotBlank() } ?: return null
+    val profileJson = view.variabilityProfileJson?.takeIf { it.isNotBlank() } ?: return null
+    return RecordDetailsVariabilityDifferentMealLink(
+        archetypeLabel = archetypeLabel,
+        onOpenPicker = {
+            onVariabilityDifferentMealLinkTapped(
+                view.recordId,
+                view.templateDbId,
+                profileJson,
+                view.variabilityProfileMinedAtEpochMs,
+                preview,
+            )
+        },
+    )
 }
 
 @Preview
