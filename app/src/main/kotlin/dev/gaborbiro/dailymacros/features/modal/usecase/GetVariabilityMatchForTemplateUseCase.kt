@@ -30,6 +30,7 @@ internal class GetVariabilityMatchForTemplateUseCase(
         val profile = profileMapper.parseProfileJson(
             profileJson = snapshot.profileJson,
             minedAtEpochMs = snapshot.minedAtEpochMs,
+            templatesIngestWatermarkEpochMs = snapshot.templatesIngestWatermarkEpochMs,
         )
         val slots = previewMapper.slotPreviewsForTemplate(profile.archetypes, templateId)
         val archetypeLabel = slots.firstOrNull()?.archetypeDisplayName.orEmpty()
