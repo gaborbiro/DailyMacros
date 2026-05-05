@@ -12,11 +12,13 @@ data class ModalUiState(
 sealed class DialogHandle {
     companion object {
         /**
-         * True when record details (View) has enough variability data to open the variant picker
-         * from the "different meal type" link.
+         * True when record details are editable ([RecordDetailsDialog.View.allowEdit]) and variability
+         * data is present to open the variant picker from the "different meal type" link.
+         * Read-only details ([allowEdit] false) never show the link.
          */
         fun shouldShowVariabilityDifferentMealLink(dialog: RecordDetailsDialog): Boolean {
             val view = dialog as? RecordDetailsDialog.View ?: return false
+            if (!view.allowEdit) return false
             val preview = view.templateVariabilityPreview ?: return false
             if (preview.slots.isEmpty()) return false
             if (preview.archetypePickerLabel.isBlank()) return false

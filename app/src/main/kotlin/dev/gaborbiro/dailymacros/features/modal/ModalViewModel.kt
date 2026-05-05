@@ -155,25 +155,32 @@ internal class ModalViewModel(
         recordDetailsJob = runSafely {
             recordsRepository.observe(recordId)
                 .collect { record ->
-                    val match = runCatching {
-                        getVariabilityMatchForTemplateUseCase.execute(record.template.dbId)
-                    }.getOrElse { t ->
-                        if (t is NoVariabilityProfileLoadedException) {
-                            TemplateVariabilityMatch(
-                                preview = TemplateVariabilityPreviewContent(
-                                    bannerText = "",
-                                    slots = emptyList(),
-                                    archetypePickerLabel = "",
-                                ),
-                                profileJson = null,
-                                minedAtEpochMs = 0L,
-                            )
-                        } else {
-                            throw t
+                    val (previewForDialog, profileJson, minedAtEpochMs) = if (edit) {
+                        val match = runCatching {
+                            getVariabilityMatchForTemplateUseCase.execute(record.template.dbId)
+                        }.getOrElse { t ->
+                            if (t is NoVariabilityProfileLoadedException) {
+                                TemplateVariabilityMatch(
+                                    preview = TemplateVariabilityPreviewContent(
+                                        bannerText = "",
+                                        slots = emptyList(),
+                                        archetypePickerLabel = "",
+                                    ),
+                                    profileJson = null,
+                                    minedAtEpochMs = 0L,
+                                )
+                            } else {
+                                throw t
+                            }
                         }
+                        Triple(
+                            match.preview.slots.takeIf { it.isNotEmpty() }?.let { match.preview },
+                            match.profileJson,
+                            match.minedAtEpochMs,
+                        )
+                    } else {
+                        Triple(null, null, 0L)
                     }
-                    val previewForDialog =
-                        match.preview.slots.takeIf { it.isNotEmpty() }?.let { match.preview }
 
                     val dialog = DialogHandle.RecordDetailsDialog.View(
                         recordId = recordId,
@@ -186,8 +193,8 @@ internal class ModalViewModel(
                         titleHint = "Give your meal a title",
                         titleValidationError = null,
                         templateVariabilityPreview = previewForDialog,
-                        variabilityProfileJson = match.profileJson,
-                        variabilityProfileMinedAtEpochMs = match.minedAtEpochMs,
+                        variabilityProfileJson = profileJson,
+                        variabilityProfileMinedAtEpochMs = minedAtEpochMs,
                     )
                     setRoot(dialog)
                 }
@@ -489,6 +496,7 @@ internal class ModalViewModel(
     fun onVariabilityDifferentMealLinkTapped() {
         runSafely {
             val view = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return@runSafely
+            if (!view.allowEdit) return@runSafely
             if (!DialogHandle.shouldShowVariabilityDifferentMealLink(view)) return@runSafely
             val preview = view.templateVariabilityPreview ?: return@runSafely
             val profileJson = view.variabilityProfileJson ?: return@runSafely
