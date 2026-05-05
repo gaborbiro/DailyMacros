@@ -52,6 +52,43 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
+/**
+ * When non-null, record details shows the underlined “different meal type” variability link.
+ * [onOpenPicker] already closes over profile JSON, preview, and ids — callers pass a no-arg handler from [ModalViewModel].
+ */
+internal data class RecordDetailsVariabilityDifferentMealLink(
+    val archetypeLabel: String,
+    val onOpenPicker: () -> Unit,
+)
+
+private fun variabilityDifferentMealLinkOrNull(
+    dialogHandle: DialogHandle.RecordDetailsDialog,
+    onVariabilityDifferentMealLinkTapped: (
+        recordId: Long,
+        templateId: Long,
+        profileJson: String,
+        profileMinedAtEpochMs: Long,
+        preview: TemplateVariabilityPreviewContent,
+    ) -> Unit,
+): RecordDetailsVariabilityDifferentMealLink? {
+    val view = dialogHandle as? DialogHandle.RecordDetailsDialog.View ?: return null
+    val preview = view.templateVariabilityPreview ?: return null
+    if (preview.slots.isEmpty()) return null
+    val archetypeLabel = preview.archetypePickerLabel.takeIf { it.isNotBlank() } ?: return null
+    val profileJson = view.variabilityProfileJson?.takeIf { it.isNotBlank() } ?: return null
+    return RecordDetailsVariabilityDifferentMealLink(
+        archetypeLabel = archetypeLabel,
+        onOpenPicker = {
+            onVariabilityDifferentMealLinkTapped(
+                view.recordId,
+                view.templateDbId,
+                profileJson,
+                view.variabilityProfileMinedAtEpochMs,
+                preview,
+            )
+        },
+    )
+}
 
 @Composable
 internal fun RecordDetailsDialog(
@@ -91,11 +128,10 @@ internal fun RecordDetailsDialog(
     val allowEdit = (dialogHandle as? DialogHandle.RecordDetailsDialog.View)
         ?.allowEdit
         ?: true
-    val variabilityProfileJson = (dialogHandle as? DialogHandle.RecordDetailsDialog.View)?.variabilityProfileJson
-    val variabilityProfileMinedAtEpochMs =
-        (dialogHandle as? DialogHandle.RecordDetailsDialog.View)?.variabilityProfileMinedAtEpochMs ?: 0L
-    val recordIdForVariability = (dialogHandle as? DialogHandle.RecordDetailsDialog.View)?.recordId
-    val templateDbIdForVariability = (dialogHandle as? DialogHandle.RecordDetailsDialog.View)?.templateDbId
+    val variabilityDifferentMealLink = variabilityDifferentMealLinkOrNull(
+        dialogHandle = dialogHandle,
+        onVariabilityDifferentMealLinkTapped = onVariabilityDifferentMealLinkTapped,
+    )
     val templateVariabilityPreview = when (dialogHandle) {
         is DialogHandle.RecordDetailsDialog.View -> dialogHandle.templateVariabilityPreview
         is DialogHandle.RecordDetailsDialog.Edit -> dialogHandle.templateVariabilityPreview
@@ -135,11 +171,7 @@ internal fun RecordDetailsDialog(
                 onImagesInfoButtonTapped = onImagesInfoButtonTapped,
                 onRunAIButtonTapped = onRunAIButtonTapped,
                 templateVariabilityPreview = templateVariabilityPreview,
-                variabilityProfileJson = variabilityProfileJson,
-                variabilityProfileMinedAtEpochMs = variabilityProfileMinedAtEpochMs,
-                recordIdForVariability = recordIdForVariability,
-                templateDbIdForVariability = templateDbIdForVariability,
-                onVariabilityDifferentMealLinkTapped = onVariabilityDifferentMealLinkTapped,
+                variabilityDifferentMealLink = variabilityDifferentMealLink,
             )
         },
         errorMessages = errorMessages,
@@ -207,17 +239,7 @@ private fun ColumnScope.RecordDetailsDialogContent(
     onImagesInfoButtonTapped: () -> Unit,
     onRunAIButtonTapped: () -> Unit,
     templateVariabilityPreview: TemplateVariabilityPreviewContent?,
-    variabilityProfileJson: String?,
-    variabilityProfileMinedAtEpochMs: Long,
-    recordIdForVariability: Long?,
-    templateDbIdForVariability: Long?,
-    onVariabilityDifferentMealLinkTapped: (
-        recordId: Long,
-        templateId: Long,
-        profileJson: String,
-        profileMinedAtEpochMs: Long,
-        preview: TemplateVariabilityPreviewContent,
-    ) -> Unit,
+    variabilityDifferentMealLink: RecordDetailsVariabilityDifferentMealLink?,
 ) {
     val focusRequester = remember { FocusRequester() }
 
@@ -400,33 +422,16 @@ private fun ColumnScope.RecordDetailsDialogContent(
         )
     }
 
-    val preview = templateVariabilityPreview
-    val archetypeLabel = preview?.archetypePickerLabel?.takeIf { it.isNotBlank() }
-    if (
-        preview != null &&
-        preview.slots.isNotEmpty() &&
-        archetypeLabel != null &&
-        recordIdForVariability != null &&
-        templateDbIdForVariability != null &&
-        !variabilityProfileJson.isNullOrBlank()
-    ) {
+    variabilityDifferentMealLink?.let { link ->
         Spacer(modifier = Modifier.height(PaddingDefault))
         TextButton(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(bottom = PaddingDefault),
-            onClick = {
-                onVariabilityDifferentMealLinkTapped(
-                    recordIdForVariability,
-                    templateDbIdForVariability,
-                    variabilityProfileJson,
-                    variabilityProfileMinedAtEpochMs,
-                    preview,
-                )
-            },
+            onClick = link.onOpenPicker,
         ) {
             Text(
-                text = "Looking for a different $archetypeLabel?",
+                text = "Looking for a different ${link.archetypeLabel}?",
                 style = MaterialTheme.typography.bodyMedium.copy(
                     textDecoration = TextDecoration.Underline,
                 ),
