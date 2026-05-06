@@ -1,6 +1,6 @@
 package dev.gaborbiro.dailymacros.features.modal
 
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityPreviewContent
+import dev.gaborbiro.dailymacros.features.modal.model.VariabilityArchetypePickerEntry
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilitySlotPreview
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityVariantPreview
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
@@ -25,17 +25,17 @@ class RecordDetailsVariabilityDifferentMealLinkVisibilityTest {
         ),
     )
 
-    private fun previewWithSlots(label: String = "Toast breakfast") = TemplateVariabilityPreviewContent(
-        bannerText = "",
-        archetypePickerLabel = label,
-        slots = listOf(
-            TemplateVariabilitySlotPreview(
-                archetypeKey = "a",
-                archetypeDisplayName = "A",
-                slotKey = "s",
-                roleDisplayName = "S",
-                variants = listOf(
-                    TemplateVariabilityVariantPreview("v", "V"),
+    private fun stubEntries() = listOf(
+        VariabilityArchetypePickerEntry(
+            archetypeKey = "a",
+            linkTitle = "A",
+            slots = listOf(
+                TemplateVariabilitySlotPreview(
+                    archetypeKey = "a",
+                    archetypeDisplayName = "A",
+                    slotKey = "s",
+                    roleDisplayName = "S",
+                    variants = listOf(TemplateVariabilityVariantPreview("v", "V")),
                 ),
             ),
         ),
@@ -46,66 +46,40 @@ class RecordDetailsVariabilityDifferentMealLinkVisibilityTest {
         assertFalse(
             computeShowVariabilityDifferentMealLink(
                 allowEdit = false,
-                templateVariabilityPreview = previewWithSlots(),
+                variabilityArchetypePickerEntries = stubEntries(),
                 variabilityArchetypes = stubArchetypes(),
             ),
         )
     }
 
     @Test
-    fun `false when preview null`() {
+    fun `false when entries empty`() {
         assertFalse(
             computeShowVariabilityDifferentMealLink(
                 allowEdit = true,
-                templateVariabilityPreview = null,
+                variabilityArchetypePickerEntries = emptyList(),
                 variabilityArchetypes = stubArchetypes(),
             ),
         )
     }
 
     @Test
-    fun `false when slots empty`() {
+    fun `false when archetypes empty`() {
         assertFalse(
             computeShowVariabilityDifferentMealLink(
                 allowEdit = true,
-                templateVariabilityPreview = TemplateVariabilityPreviewContent(
-                    bannerText = "",
-                    archetypePickerLabel = "X",
-                    slots = emptyList(),
-                ),
-                variabilityArchetypes = stubArchetypes(),
-            ),
-        )
-    }
-
-    @Test
-    fun `false when archetype label blank`() {
-        assertFalse(
-            computeShowVariabilityDifferentMealLink(
-                allowEdit = true,
-                templateVariabilityPreview = previewWithSlots(label = "   "),
-                variabilityArchetypes = stubArchetypes(),
-            ),
-        )
-    }
-
-    @Test
-    fun `false when variability archetypes empty`() {
-        assertFalse(
-            computeShowVariabilityDifferentMealLink(
-                allowEdit = true,
-                templateVariabilityPreview = previewWithSlots(),
+                variabilityArchetypePickerEntries = stubEntries(),
                 variabilityArchetypes = emptyList(),
             ),
         )
     }
 
     @Test
-    fun `true when editable preview and archetypes ok`() {
+    fun `true when editable entries and archetypes ok`() {
         assertTrue(
             computeShowVariabilityDifferentMealLink(
                 allowEdit = true,
-                templateVariabilityPreview = previewWithSlots(),
+                variabilityArchetypePickerEntries = stubEntries(),
                 variabilityArchetypes = stubArchetypes(),
             ),
         )

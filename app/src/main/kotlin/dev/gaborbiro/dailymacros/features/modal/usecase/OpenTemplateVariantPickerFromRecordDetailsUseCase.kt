@@ -10,15 +10,17 @@ internal class OpenTemplateVariantPickerFromRecordDetailsUseCase(
     private val templateVariabilityPreviewMapper: TemplateVariabilityPreviewMapper,
 ) {
 
-    fun execute(view: DialogHandle.RecordDetailsDialog.View): OpenTemplateVariantPickerResult {
+    fun execute(
+        view: DialogHandle.RecordDetailsDialog.View,
+        archetypeKey: String,
+    ): OpenTemplateVariantPickerResult {
         if (!view.showVariabilityDifferentMealLink) return OpenTemplateVariantPickerResult.Skipped
-        val preview = view.templateVariabilityPreview ?: return OpenTemplateVariantPickerResult.Skipped
         if (view.variabilityArchetypes.isEmpty()) return OpenTemplateVariantPickerResult.Skipped
-        val slots = preview.slots
+        val entry = view.variabilityArchetypePickerEntries.find { it.archetypeKey == archetypeKey }
+            ?: return OpenTemplateVariantPickerResult.Skipped
+        val slots = entry.slots
         if (slots.isEmpty()) return OpenTemplateVariantPickerResult.Skipped
 
-        val archetypeKey = slots.first().archetypeKey
-        val archetypeLabel = preview.archetypePickerLabel.ifBlank { slots.first().archetypeDisplayName }
         val archetypes = view.variabilityArchetypes
         val archetype = archetypes.find { it.archetypeKey == archetypeKey }
         val templateId = view.templateDbId
@@ -46,7 +48,7 @@ internal class OpenTemplateVariantPickerFromRecordDetailsUseCase(
                 templateId = templateId,
                 variabilityArchetypes = archetypes,
                 archetypeKey = archetypeKey,
-                archetypeDisplayName = archetypeLabel,
+                archetypeDisplayName = entry.linkTitle,
                 slots = slots,
                 initialSlotSelections = initialSelections,
                 existingCombinationKeys = existing,

@@ -45,6 +45,7 @@ import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.RecognisedFood
+import dev.gaborbiro.dailymacros.features.modal.model.VariabilityArchetypePickerEntry
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityPreviewContent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilitySlotPreview
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityVariantPreview
@@ -67,7 +68,7 @@ internal fun RecordDetailsDialog(
     onDismissRequested: () -> Unit,
     onImagesInfoButtonTapped: () -> Unit,
     onRunAIButtonTapped: () -> Unit,
-    onVariabilityDifferentMealLinkTapped: () -> Unit,
+    onVariabilityDifferentMealLinkTapped: (archetypeKey: String) -> Unit,
 ) {
     val title = dialogHandle.title
     val titleHint = dialogHandle.titleHint
@@ -89,6 +90,10 @@ internal fun RecordDetailsDialog(
         is DialogHandle.RecordDetailsDialog.View -> dialogHandle.templateVariabilityPreview
         is DialogHandle.RecordDetailsDialog.Edit -> dialogHandle.templateVariabilityPreview
     }
+
+    val variabilityArchetypePickerEntries =
+        (dialogHandle as? DialogHandle.RecordDetailsDialog.View)?.variabilityArchetypePickerEntries
+            ?: emptyList()
 
     val saveButtonText =
         if (dialogHandle is DialogHandle.RecordDetailsDialog.View) "Update and Analyze" else "Add and Analyze"
@@ -125,6 +130,7 @@ internal fun RecordDetailsDialog(
                 onRunAIButtonTapped = onRunAIButtonTapped,
                 templateVariabilityPreview = templateVariabilityPreview,
                 showVariabilityDifferentMealLink = dialogHandle.showVariabilityDifferentMealLink,
+                variabilityArchetypePickerEntries = variabilityArchetypePickerEntries,
                 onVariabilityDifferentMealLinkTapped = onVariabilityDifferentMealLinkTapped,
             )
         },
@@ -194,7 +200,8 @@ private fun ColumnScope.RecordDetailsDialogContent(
     onRunAIButtonTapped: () -> Unit,
     templateVariabilityPreview: TemplateVariabilityPreviewContent?,
     showVariabilityDifferentMealLink: Boolean,
-    onVariabilityDifferentMealLinkTapped: () -> Unit,
+    variabilityArchetypePickerEntries: List<VariabilityArchetypePickerEntry>,
+    onVariabilityDifferentMealLinkTapped: (archetypeKey: String) -> Unit,
 ) {
     val focusRequester = remember { FocusRequester() }
 
@@ -378,21 +385,22 @@ private fun ColumnScope.RecordDetailsDialogContent(
     }
 
     if (showVariabilityDifferentMealLink) {
-        val archetypeLabel = templateVariabilityPreview?.archetypePickerLabel.orEmpty()
-        Spacer(modifier = Modifier.height(PaddingDefault))
-        TextButton(
-            modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(bottom = PaddingDefault),
-            onClick = onVariabilityDifferentMealLinkTapped,
-        ) {
-            Text(
-                text = "Looking for a different $archetypeLabel?",
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    textDecoration = TextDecoration.Underline,
-                ),
-                color = MaterialTheme.colorScheme.primary,
-            )
+        variabilityArchetypePickerEntries.forEach { entry ->
+            Spacer(modifier = Modifier.height(PaddingDefault))
+            TextButton(
+                modifier = Modifier
+                    .padding(horizontal = PaddingDefault)
+                    .padding(bottom = PaddingDefault),
+                onClick = { onVariabilityDifferentMealLinkTapped(entry.archetypeKey) },
+            ) {
+                Text(
+                    text = "Looking for a different ${entry.linkTitle}?",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        textDecoration = TextDecoration.Underline,
+                    ),
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
         }
     }
 }
@@ -453,6 +461,24 @@ private fun NoteInputDialogContentPreviewView() {
                         sortOrder = 0,
                     ),
                 ),
+                variabilityArchetypePickerEntries = listOf(
+                    VariabilityArchetypePickerEntry(
+                        archetypeKey = "toast",
+                        linkTitle = "Toast breakfast",
+                        slots = listOf(
+                            TemplateVariabilitySlotPreview(
+                                archetypeKey = "toast",
+                                archetypeDisplayName = "Toast breakfast",
+                                slotKey = "spread",
+                                roleDisplayName = "Spread",
+                                variants = listOf(
+                                    TemplateVariabilityVariantPreview("butter", "Butter"),
+                                    TemplateVariabilityVariantPreview("jam", "Jam"),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
                 showVariabilityDifferentMealLink = true,
             ),
             errorMessages = emptyFlow(),
@@ -466,7 +492,7 @@ private fun NoteInputDialogContentPreviewView() {
             onDismissRequested = {},
             onImagesInfoButtonTapped = {},
             onRunAIButtonTapped = {},
-            onVariabilityDifferentMealLinkTapped = {},
+            onVariabilityDifferentMealLinkTapped = { _ -> },
         )
     }
 }
@@ -498,7 +524,7 @@ private fun NoteInputDialogContentPreviewSuggestion() {
             onDismissRequested = {},
             onImagesInfoButtonTapped = {},
             onRunAIButtonTapped = {},
-            onVariabilityDifferentMealLinkTapped = {},
+            onVariabilityDifferentMealLinkTapped = { _ -> },
         )
     }
 }
@@ -529,7 +555,7 @@ private fun NoteInputDialogContentPreview() {
             onDismissRequested = {},
             onImagesInfoButtonTapped = {},
             onRunAIButtonTapped = {},
-            onVariabilityDifferentMealLinkTapped = {},
+            onVariabilityDifferentMealLinkTapped = { _ -> },
         )
     }
 }
@@ -562,7 +588,7 @@ private fun NoteInputDialogContentPreviewError() {
             onDismissRequested = {},
             onImagesInfoButtonTapped = {},
             onRunAIButtonTapped = {},
-            onVariabilityDifferentMealLinkTapped = {},
+            onVariabilityDifferentMealLinkTapped = { _ -> },
         )
     }
 }

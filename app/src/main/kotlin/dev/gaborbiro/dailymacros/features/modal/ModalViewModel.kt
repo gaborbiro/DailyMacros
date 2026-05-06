@@ -16,6 +16,7 @@ import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiState
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
+import dev.gaborbiro.dailymacros.features.modal.model.VariabilityArchetypePickerEntry
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyTemplateVariantPickerSelectionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyTemplateVariantPickerSelectionResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
@@ -156,7 +157,7 @@ internal class ModalViewModel(
         recordDetailsJob = runSafely {
             recordsRepository.observe(recordId)
                 .collect { record ->
-                    val (previewForDialog, variabilityArchetypes) = if (edit) {
+                    val (previewForDialog, variabilityArchetypes, archetypePickerEntries) = if (edit) {
                         val match = runCatching {
                             getVariabilityMatchForTemplateUseCase.execute(record.template.dbId)
                         }.getOrElse { t ->
@@ -168,17 +169,19 @@ internal class ModalViewModel(
                                         archetypePickerLabel = "",
                                     ),
                                     variabilityArchetypes = emptyList(),
+                                    archetypePickerEntries = emptyList(),
                                 )
                             } else {
                                 throw t
                             }
                         }
-                        Pair(
+                        Triple(
                             match.preview.slots.takeIf { it.isNotEmpty() }?.let { match.preview },
                             match.variabilityArchetypes,
+                            match.archetypePickerEntries,
                         )
                     } else {
-                        Pair(null, emptyList<VariabilityArchetype>())
+                        Triple(null, emptyList<VariabilityArchetype>(), emptyList<VariabilityArchetypePickerEntry>())
                     }
 
                     val dialog = DialogHandle.RecordDetailsDialog.View(
@@ -193,9 +196,10 @@ internal class ModalViewModel(
                         titleValidationError = null,
                         templateVariabilityPreview = previewForDialog,
                         variabilityArchetypes = variabilityArchetypes,
+                        variabilityArchetypePickerEntries = archetypePickerEntries,
                         showVariabilityDifferentMealLink = computeShowVariabilityDifferentMealLink(
                             allowEdit = edit,
-                            templateVariabilityPreview = previewForDialog,
+                            variabilityArchetypePickerEntries = archetypePickerEntries,
                             variabilityArchetypes = variabilityArchetypes,
                         ),
                     )
@@ -496,10 +500,10 @@ internal class ModalViewModel(
     }
 
     @UiThread
-    fun onVariabilityDifferentMealLinkTapped() {
+    fun onVariabilityDifferentMealLinkTapped(archetypeKey: String) {
         runSafely {
             val view = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return@runSafely
-            when (val result = openTemplateVariantPickerFromRecordDetailsUseCase.execute(view)) {
+            when (val result = openTemplateVariantPickerFromRecordDetailsUseCase.execute(view, archetypeKey)) {
                 OpenTemplateVariantPickerResult.Skipped -> return@runSafely
                 is OpenTemplateVariantPickerResult.Ready -> {
                     pendingRecordDetailsRestore = view.recordId to view.allowEdit

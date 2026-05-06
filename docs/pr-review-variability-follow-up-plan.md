@@ -13,7 +13,7 @@ Legend: **Done** = already implemented on the branch at time of writing; **Todo*
 |----|------|--------|----------------|
 | **A** | Pass `templatesIngestWatermarkEpochMs` from snapshot into `VariabilityProfileMapper.parseProfileJson` in `GetVariabilityMatchForTemplateUseCase` | **Done** | Aligns parsed in-memory profile with DB snapshot metadata. |
 | **B** | Incremental mine: do **not** call the model with empty `meal_observations` when delta query returns no rows; do **not** replace stored profile | **Done** | `MineMealVariabilityPreviewUseCase` + worker notification for skip path. |
-| **C** | **Multi-archetype edge case:** `slotPreviewsForTemplate` can return slots from **multiple** archetypes; UI/picker uses `slots.first()` for `archetypeKey` / label | **Todo** | **Options:** (1) document “one archetype per template in practice”; (2) group preview rows by `archetypeKey` and expose one link/picker per archetype; (3) restrict mapper to a single archetype when building preview for a template. Decide with product. |
+| **C** | **Multi-archetype edge case:** `slotPreviewsForTemplate` can return slots from **multiple** archetypes; UI/picker uses `slots.first()` for `archetypeKey` / label | **Done** | One underlined link per archetype (`VariabilityArchetypePickerEntry`); picker opens for the tapped archetype’s slot subset only. |
 | **D** | **`TemplateVariantPickerDialog`:** ensure `combinationKey` / confirm always has every `slotKey` (normalize `selection` before `combinationKey` and `onConfirm`) | **Done** | `normalizedSlotKeyToVariant()` + `combinationKey(slots, normalizedSelection)`; confirm passes full map. |
 | **E** | **`ModalViewModel.onVariantPickerConfirmed`:** when `templateIdForCombinationInArchetype` returns null, **do not** silent `return@runSafely` — surface `ModalUiUpdates.Error` or snackbar | **Done** | Sends `ModalUiUpdates.Error` for unmatched combo and missing record. |
 | **F** | **`ValidateEditRecordUseCase`:** replace `get(recordId)!!` with null-safe path returning `EditValidationResult.Error` | **Done** | `Record not found`; `ValidateEditRecordUseCaseTest`. |
@@ -62,7 +62,7 @@ Legend: **Done** = already implemented on the branch at time of writing; **Todo*
 2. ~~**J + K**~~ — done.  
 3. ~~**F + L6**~~ — F done; L6 partially covered (extend tests as needed).  
 4. **L1–L4** — test coverage for mining, match use case, migration.  
-5. **C** — product/architecture decision, then implement.  
+5. ~~**C**~~ — done (multi-archetype links).  
 6. **I** — documentation when capacity allows (G + H done).
 
 ---

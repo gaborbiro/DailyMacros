@@ -74,6 +74,8 @@ sealed class DialogHandle {
             val templateVariabilityPreview: TemplateVariabilityPreviewContent? = null,
             /** Parsed archetypes from the latest variability snapshot (empty when not loaded). */
             val variabilityArchetypes: List<VariabilityArchetype> = emptyList(),
+            /** One link + picker flow per archetype that cites this template (ordered by profile sort). */
+            val variabilityArchetypePickerEntries: List<VariabilityArchetypePickerEntry> = emptyList(),
             override val showVariabilityDifferentMealLink: Boolean = false,
         ) : RecordDetailsDialog(
             titleHint = titleHint,
