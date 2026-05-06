@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.features.modal.model
 import androidx.compose.ui.text.input.TextFieldValue
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityPreviewContent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilitySlotPreview
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
 
 data class ModalUiState(
     val rootDialog: DialogHandle? = null,
@@ -43,8 +44,6 @@ sealed class DialogHandle {
             val recognisedFood: RecognisedFood?,
             /** Mined slot/variant UI when editing (usually null). */
             val templateVariabilityPreview: TemplateVariabilityPreviewContent? = null,
-            val variabilityProfileJson: String? = null,
-            val variabilityProfileMinedAtEpochMs: Long = 0L,
             override val showVariabilityDifferentMealLink: Boolean = false,
         ) : RecordDetailsDialog(
             titleHint = titleHint,
@@ -73,9 +72,8 @@ sealed class DialogHandle {
             override val images: List<String>,
             /** Mined slot/variant UI for this record’s template; null when no profile or no slots. */
             val templateVariabilityPreview: TemplateVariabilityPreviewContent? = null,
-            val variabilityProfileJson: String? = null,
-            /** Epoch ms of the snapshot used for [variabilityProfileJson] parsing (0 if none). */
-            val variabilityProfileMinedAtEpochMs: Long = 0L,
+            /** Parsed archetypes from the latest variability snapshot (empty when not loaded). */
+            val variabilityArchetypes: List<VariabilityArchetype> = emptyList(),
             override val showVariabilityDifferentMealLink: Boolean = false,
         ) : RecordDetailsDialog(
             titleHint = titleHint,
@@ -111,8 +109,7 @@ sealed class DialogHandle {
     data class TemplateVariantPickerDialog(
         val recordId: Long,
         val templateId: Long,
-        val profileJson: String,
-        val profileMinedAtEpochMs: Long,
+        val variabilityArchetypes: List<VariabilityArchetype>,
         val archetypeKey: String,
         val archetypeDisplayName: String,
         val slots: List<TemplateVariabilitySlotPreview>,

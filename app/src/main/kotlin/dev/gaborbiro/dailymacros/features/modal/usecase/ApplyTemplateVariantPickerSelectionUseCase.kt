@@ -2,7 +2,6 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.repositories.records.TemplateVariabilityPreviewMapper
-import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfileMapper
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 
 /**
@@ -10,7 +9,6 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
  */
 internal class ApplyTemplateVariantPickerSelectionUseCase(
     private val recordsRepository: RecordsRepository,
-    private val variabilityProfileMapper: VariabilityProfileMapper,
     private val templateVariabilityPreviewMapper: TemplateVariabilityPreviewMapper,
 ) {
 
@@ -18,13 +16,9 @@ internal class ApplyTemplateVariantPickerSelectionUseCase(
         picker: DialogHandle.TemplateVariantPickerDialog,
         slotKeyToVariantKey: Map<String, String>,
     ): ApplyTemplateVariantPickerSelectionResult {
-        val profile = variabilityProfileMapper.parseProfileJson(
-            profileJson = picker.profileJson,
-            minedAtEpochMs = picker.profileMinedAtEpochMs,
-        )
         val comboKey = templateVariabilityPreviewMapper.combinationKey(picker.slots, slotKeyToVariantKey)
         val reuseId = templateVariabilityPreviewMapper.templateIdForCombinationInArchetype(
-            profile.archetypes,
+            picker.variabilityArchetypes,
             picker.archetypeKey,
             picker.slots,
             comboKey,

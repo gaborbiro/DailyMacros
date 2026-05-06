@@ -3,11 +3,27 @@ package dev.gaborbiro.dailymacros.features.modal
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityPreviewContent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilitySlotPreview
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityVariantPreview
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RecordDetailsVariabilityDifferentMealLinkVisibilityTest {
+
+    private fun stubArchetypes() = listOf(
+        VariabilityArchetype(
+            archetypeKey = "a",
+            displayName = "A",
+            titleAliasesJson = "[]",
+            evidenceCount = 0,
+            lastSeenTimestamp = null,
+            archetypeNotes = null,
+            deprecated = false,
+            deprecatedReason = null,
+            slots = emptyList(),
+            sortOrder = 0,
+        ),
+    )
 
     private fun previewWithSlots(label: String = "Toast breakfast") = TemplateVariabilityPreviewContent(
         bannerText = "",
@@ -31,7 +47,7 @@ class RecordDetailsVariabilityDifferentMealLinkVisibilityTest {
             computeShowVariabilityDifferentMealLink(
                 allowEdit = false,
                 templateVariabilityPreview = previewWithSlots(),
-                variabilityProfileJson = "{}",
+                variabilityArchetypes = stubArchetypes(),
             ),
         )
     }
@@ -42,7 +58,7 @@ class RecordDetailsVariabilityDifferentMealLinkVisibilityTest {
             computeShowVariabilityDifferentMealLink(
                 allowEdit = true,
                 templateVariabilityPreview = null,
-                variabilityProfileJson = "{}",
+                variabilityArchetypes = stubArchetypes(),
             ),
         )
     }
@@ -57,7 +73,7 @@ class RecordDetailsVariabilityDifferentMealLinkVisibilityTest {
                     archetypePickerLabel = "X",
                     slots = emptyList(),
                 ),
-                variabilityProfileJson = "{}",
+                variabilityArchetypes = stubArchetypes(),
             ),
         )
     }
@@ -68,43 +84,29 @@ class RecordDetailsVariabilityDifferentMealLinkVisibilityTest {
             computeShowVariabilityDifferentMealLink(
                 allowEdit = true,
                 templateVariabilityPreview = previewWithSlots(label = "   "),
-                variabilityProfileJson = "{}",
+                variabilityArchetypes = stubArchetypes(),
             ),
         )
     }
 
     @Test
-    fun `false when profile json null or blank`() {
+    fun `false when variability archetypes empty`() {
         assertFalse(
             computeShowVariabilityDifferentMealLink(
                 allowEdit = true,
                 templateVariabilityPreview = previewWithSlots(),
-                variabilityProfileJson = null,
-            ),
-        )
-        assertFalse(
-            computeShowVariabilityDifferentMealLink(
-                allowEdit = true,
-                templateVariabilityPreview = previewWithSlots(),
-                variabilityProfileJson = "",
-            ),
-        )
-        assertFalse(
-            computeShowVariabilityDifferentMealLink(
-                allowEdit = true,
-                templateVariabilityPreview = previewWithSlots(),
-                variabilityProfileJson = "   ",
+                variabilityArchetypes = emptyList(),
             ),
         )
     }
 
     @Test
-    fun `true when editable and preview and json ok`() {
+    fun `true when editable preview and archetypes ok`() {
         assertTrue(
             computeShowVariabilityDifferentMealLink(
                 allowEdit = true,
                 templateVariabilityPreview = previewWithSlots(),
-                variabilityProfileJson = "{}",
+                variabilityArchetypes = stubArchetypes(),
             ),
         )
     }

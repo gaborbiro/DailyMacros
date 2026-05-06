@@ -185,12 +185,10 @@ class ModalActivity : AppCompatActivity() {
         )
         val openTemplateVariantPickerFromRecordDetailsUseCase =
             OpenTemplateVariantPickerFromRecordDetailsUseCase(
-                variabilityProfileMapper = variabilityProfileMapper,
                 templateVariabilityPreviewMapper = templateVariabilityPreviewMapper,
             )
         val applyTemplateVariantPickerSelectionUseCase = ApplyTemplateVariantPickerSelectionUseCase(
             recordsRepository = recordsRepository,
-            variabilityProfileMapper = variabilityProfileMapper,
             templateVariabilityPreviewMapper = templateVariabilityPreviewMapper,
         )
 

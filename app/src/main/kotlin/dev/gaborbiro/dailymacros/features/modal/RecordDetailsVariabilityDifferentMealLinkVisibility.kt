@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.modal
 
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityPreviewContent
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
 
 /**
  * Whether record details should show the “different meal type” variability link.
@@ -9,11 +10,11 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVaria
 internal fun computeShowVariabilityDifferentMealLink(
     allowEdit: Boolean,
     templateVariabilityPreview: TemplateVariabilityPreviewContent?,
-    variabilityProfileJson: String?,
+    variabilityArchetypes: List<VariabilityArchetype>,
 ): Boolean {
     if (!allowEdit) return false
     val preview = templateVariabilityPreview ?: return false
     if (preview.slots.isEmpty()) return false
     if (preview.archetypePickerLabel.isBlank()) return false
-    return !variabilityProfileJson.isNullOrBlank()
+    return variabilityArchetypes.isNotEmpty()
 }

@@ -48,6 +48,7 @@ import dev.gaborbiro.dailymacros.features.modal.model.RecognisedFood
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityPreviewContent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilitySlotPreview
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityVariantPreview
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -438,8 +439,20 @@ private fun NoteInputDialogContentPreviewView() {
                         ),
                     ),
                 ),
-                variabilityProfileJson = "{}",
-                variabilityProfileMinedAtEpochMs = 0L,
+                variabilityArchetypes = listOf(
+                    VariabilityArchetype(
+                        archetypeKey = "toast",
+                        displayName = "Toast breakfast",
+                        titleAliasesJson = "[]",
+                        evidenceCount = 0,
+                        lastSeenTimestamp = null,
+                        archetypeNotes = null,
+                        deprecated = false,
+                        deprecatedReason = null,
+                        slots = emptyList(),
+                        sortOrder = 0,
+                    ),
+                ),
                 showVariabilityDifferentMealLink = true,
             ),
             errorMessages = emptyFlow(),

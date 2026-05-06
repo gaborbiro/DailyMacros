@@ -40,6 +40,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.TemplateVariabilityMatch
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityPreviewContent
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
 import ellipsize
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -155,7 +156,7 @@ internal class ModalViewModel(
         recordDetailsJob = runSafely {
             recordsRepository.observe(recordId)
                 .collect { record ->
-                    val (previewForDialog, profileJson, minedAtEpochMs) = if (edit) {
+                    val (previewForDialog, variabilityArchetypes) = if (edit) {
                         val match = runCatching {
                             getVariabilityMatchForTemplateUseCase.execute(record.template.dbId)
                         }.getOrElse { t ->
@@ -166,20 +167,18 @@ internal class ModalViewModel(
                                         slots = emptyList(),
                                         archetypePickerLabel = "",
                                     ),
-                                    profileJson = null,
-                                    minedAtEpochMs = 0L,
+                                    variabilityArchetypes = emptyList(),
                                 )
                             } else {
                                 throw t
                             }
                         }
-                        Triple(
+                        Pair(
                             match.preview.slots.takeIf { it.isNotEmpty() }?.let { match.preview },
-                            match.profileJson,
-                            match.minedAtEpochMs,
+                            match.variabilityArchetypes,
                         )
                     } else {
-                        Triple(null, null, 0L)
+                        Pair(null, emptyList<VariabilityArchetype>())
                     }
 
                     val dialog = DialogHandle.RecordDetailsDialog.View(
@@ -193,12 +192,11 @@ internal class ModalViewModel(
                         titleHint = "Give your meal a title",
                         titleValidationError = null,
                         templateVariabilityPreview = previewForDialog,
-                        variabilityProfileJson = profileJson,
-                        variabilityProfileMinedAtEpochMs = minedAtEpochMs,
+                        variabilityArchetypes = variabilityArchetypes,
                         showVariabilityDifferentMealLink = computeShowVariabilityDifferentMealLink(
                             allowEdit = edit,
                             templateVariabilityPreview = previewForDialog,
-                            variabilityProfileJson = profileJson,
+                            variabilityArchetypes = variabilityArchetypes,
                         ),
                     )
                     setRoot(dialog)

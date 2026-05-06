@@ -2,30 +2,25 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.repositories.records.TemplateVariabilityPreviewMapper
-import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfileMapper
 
 /**
  * Builds the template variant picker dialog from the current record-details [View] state.
  */
 internal class OpenTemplateVariantPickerFromRecordDetailsUseCase(
-    private val variabilityProfileMapper: VariabilityProfileMapper,
     private val templateVariabilityPreviewMapper: TemplateVariabilityPreviewMapper,
 ) {
 
     fun execute(view: DialogHandle.RecordDetailsDialog.View): OpenTemplateVariantPickerResult {
         if (!view.showVariabilityDifferentMealLink) return OpenTemplateVariantPickerResult.Skipped
         val preview = view.templateVariabilityPreview ?: return OpenTemplateVariantPickerResult.Skipped
-        val profileJson = view.variabilityProfileJson ?: return OpenTemplateVariantPickerResult.Skipped
+        if (view.variabilityArchetypes.isEmpty()) return OpenTemplateVariantPickerResult.Skipped
         val slots = preview.slots
         if (slots.isEmpty()) return OpenTemplateVariantPickerResult.Skipped
 
         val archetypeKey = slots.first().archetypeKey
         val archetypeLabel = preview.archetypePickerLabel.ifBlank { slots.first().archetypeDisplayName }
-        val profile = variabilityProfileMapper.parseProfileJson(
-            profileJson = profileJson,
-            minedAtEpochMs = view.variabilityProfileMinedAtEpochMs,
-        )
-        val archetype = profile.archetypes.find { it.archetypeKey == archetypeKey }
+        val archetypes = view.variabilityArchetypes
+        val archetype = archetypes.find { it.archetypeKey == archetypeKey }
         val templateId = view.templateDbId
         val initialSelections = slots.associate { sp ->
             val slot = archetype?.slots?.find { it.slotKey == sp.slotKey }
@@ -35,12 +30,12 @@ internal class OpenTemplateVariantPickerFromRecordDetailsUseCase(
             sp.slotKey to (variant?.variantKey ?: sp.variants.first().variantKey)
         }
         val existing = templateVariabilityPreviewMapper.existingCombinationKeysForArchetype(
-            profile.archetypes,
+            archetypes,
             archetypeKey,
             slots,
         )
         val currentKey = templateVariabilityPreviewMapper.combinationKeyForTemplateInArchetype(
-            profile.archetypes,
+            archetypes,
             archetypeKey,
             slots,
             templateId,
@@ -49,8 +44,7 @@ internal class OpenTemplateVariantPickerFromRecordDetailsUseCase(
             DialogHandle.TemplateVariantPickerDialog(
                 recordId = view.recordId,
                 templateId = templateId,
-                profileJson = profileJson,
-                profileMinedAtEpochMs = view.variabilityProfileMinedAtEpochMs,
+                variabilityArchetypes = archetypes,
                 archetypeKey = archetypeKey,
                 archetypeDisplayName = archetypeLabel,
                 slots = slots,

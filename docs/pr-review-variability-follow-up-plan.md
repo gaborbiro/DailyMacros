@@ -24,7 +24,7 @@ Legend: **Done** = already implemented on the branch at time of writing; **Todo*
 
 | ID | Item | Status | Notes |
 |----|------|--------|--------|
-| **G** | **`DialogHandle.TemplateVariantPickerDialog` carrying full `profileJson`:** consider snapshot id or reload from `VariabilityRepository` when opening picker | **Todo** | Reduces memory / staleness; larger refactor. |
+| **G** | **`DialogHandle.TemplateVariantPickerDialog` carrying full `profileJson`:** consider snapshot id or reload from `VariabilityRepository` when opening picker | **Done** | Carries parsed **`variabilityArchetypes`** on `View` + picker; JSON stays DB-only / `GetVariabilityMatch` parse path. |
 | **H** | **Orchestration in `ModalViewModel`:** extract use cases (e.g. open picker, apply combination) with single `execute` each | **Done** | `OpenTemplateVariantPickerFromRecordDetailsUseCase`, `ApplyTemplateVariantPickerSelectionUseCase`; VM wires results + UI side effects. |
 | **I** | **KDoc on repository methods** for incremental mine semantics (exclusive watermark, first run after upgrade) | **Todo** | `RecordsRepository` / DAO queries. |
 
@@ -63,7 +63,7 @@ Legend: **Done** = already implemented on the branch at time of writing; **Todo*
 3. ~~**F + L6**~~ — F done; L6 partially covered (extend tests as needed).  
 4. **L1–L4** — test coverage for mining, match use case, migration.  
 5. **C** — product/architecture decision, then implement.  
-6. **G + I** — larger refactors / documentation when capacity allows (H done).
+6. **I** — documentation when capacity allows (G + H done).
 
 ---
 

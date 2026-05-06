@@ -4,15 +4,15 @@ import dev.gaborbiro.dailymacros.repositories.records.TemplateVariabilityPreview
 import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfileMapper
 import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityPreviewContent
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
 
 /** Thrown when [VariabilityRepository.getLatestProfile] is null (no mine has been persisted yet). */
 internal class NoVariabilityProfileLoadedException : Exception("No meal variability profile is loaded yet.")
 
 internal data class TemplateVariabilityMatch(
     val preview: TemplateVariabilityPreviewContent,
-    /** Latest merged profile JSON when [preview.slots] is non-empty; null otherwise. */
-    val profileJson: String?,
-    val minedAtEpochMs: Long = 0L,
+    /** Parsed archetypes from the latest snapshot (empty when no profile / no parse). */
+    val variabilityArchetypes: List<VariabilityArchetype>,
 )
 
 /**
@@ -41,8 +41,7 @@ internal class GetVariabilityMatchForTemplateUseCase(
                     slots = emptyList(),
                     archetypePickerLabel = "",
                 ),
-                profileJson = null,
-                minedAtEpochMs = snapshot.minedAtEpochMs,
+                variabilityArchetypes = profile.archetypes,
             )
         } else {
             TemplateVariabilityMatch(
@@ -51,8 +50,7 @@ internal class GetVariabilityMatchForTemplateUseCase(
                     slots = slots,
                     archetypePickerLabel = archetypeLabel,
                 ),
-                profileJson = snapshot.profileJson,
-                minedAtEpochMs = snapshot.minedAtEpochMs,
+                variabilityArchetypes = profile.archetypes,
             )
         }
     }
