@@ -8,6 +8,11 @@ android {
     ksp {
         arg("room.schemaLocation", "$projectDir/schemas")
     }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 dependencies {
@@ -16,4 +21,8 @@ dependencies {
     api(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
+
+    testImplementation(libs.test.junit)
+    testImplementation(libs.test.robolectric)
+    testImplementation(libs.androidx.test.core)
 }

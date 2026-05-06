@@ -22,7 +22,10 @@ interface TemplatesDAO {
     suspend fun countAllTemplates(): Int
 
     /**
-     * Templates with activity strictly after [afterExclusive] (epoch ms), for incremental mining UX.
+     * Number of templates with `createdAtEpochMs > afterExclusive OR updatedAtEpochMs >
+     * afterExclusive` (strictly greater — same **exclusive** watermark semantics as
+     * [RecordsDAO.getRecentForVariabilityMining]). Used for incremental mine “pending” counts in
+     * settings; a watermark of 0 still requires timestamps **> 0** to match.
      */
     @Query(
         """

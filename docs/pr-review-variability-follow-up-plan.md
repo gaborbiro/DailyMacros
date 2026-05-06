@@ -26,7 +26,7 @@ Legend: **Done** = already implemented on the branch at time of writing; **Todo*
 |----|------|--------|--------|
 | **G** | **`DialogHandle.TemplateVariantPickerDialog` carrying full `profileJson`:** consider snapshot id or reload from `VariabilityRepository` when opening picker | **Done** | Carries parsed **`variabilityArchetypes`** on `View` + picker; JSON stays DB-only / `GetVariabilityMatch` parse path. |
 | **H** | **Orchestration in `ModalViewModel`:** extract use cases (e.g. open picker, apply combination) with single `execute` each | **Done** | `OpenTemplateVariantPickerFromRecordDetailsUseCase`, `ApplyTemplateVariantPickerSelectionUseCase`; VM wires results + UI side effects. |
-| **I** | **KDoc on repository methods** for incremental mine semantics (exclusive watermark, first run after upgrade) | **Todo** | `RecordsRepository` / DAO queries. |
+| **I** | **KDoc on repository methods** for incremental mine semantics (exclusive watermark, first run after upgrade) | **Done** | `RecordsRepository`, `RecordsDAO.getRecentForVariabilityMining`, `TemplatesDAO.countTemplatesWithActivityAfter`. |
 
 **Already improved on branch:** variability link visibility moved off `ModalActivity` into dialog state + `computeShowVariabilityDifferentMealLink` + unit test (`RecordDetailsVariabilityDifferentMealLinkVisibilityTest`).
 
@@ -45,12 +45,12 @@ Legend: **Done** = already implemented on the branch at time of writing; **Todo*
 
 | ID | Item | Status | Notes |
 |----|------|--------|--------|
-| **L1** | **`MineMealVariabilityPreviewUseCase`:** unit tests for watermark path, empty delta → skip, `ingestWatermark` when `fromTemplates` null / zero | **Todo** | Fakes or test doubles for repos + ChatGPT. |
-| **L2** | **`GetVariabilityMatchForTemplateUseCase`:** throw vs match branches, `profileJson` null when no slots | **Todo** | |
-| **L3** | **`ModalViewModel`:** picker open / confirm / cancel / no-op same template | **Todo** | `kotlinx-coroutines-test` + fakes, or extract pure helpers first. |
-| **L4** | **Room `MIGRATION_12_13`:** in-memory migration test (schema + defaults) | **Todo** | |
-| **L5** | **`TemplateVariabilityPreviewMapper`:** extra cases for production-shaped JSON (null `templateId`, duplicate keys) if needed | **Partial** | `TemplateVariabilityPreviewMapperTest` exists; extend as bugs appear. |
-| **L6** | **`ValidateEditRecordUseCase`** after **F** | **Partial** | `ValidateEditRecordUseCaseTest` covers missing record + unchanged shared template. |
+| **L1** | **`MineMealVariabilityPreviewUseCase`:** unit tests for watermark path, empty delta → skip, `ingestWatermark` when `fromTemplates` null / zero | **Done** | `MineMealVariabilityPreviewUseCaseTest` (fakes). |
+| **L2** | **`GetVariabilityMatchForTemplateUseCase`:** throw vs match branches, empty slots vs picker entries | **Done** | `GetVariabilityMatchForTemplateUseCaseTest`; `VariabilityProfileMapperParseTest` for ingest watermark on parse. |
+| **L3** | **Picker open / apply:** open skipped, ready dialog, no-op same template, applied, unknown combo, record not found | **Done** | `TemplateVariantPickerUseCasesTest` (open + apply use cases; avoids full `ModalViewModel`). |
+| **L4** | **Room `MIGRATION_12_13`:** schema packaged for unit tests; migration SQL covered by export + manual review | **Partial** | `Migration12To13SchemaPackagedTest` opens `schemas/.../12.json` from test assets (copy of Room export). `MigrationTestHelper` + JVM unit tests does not load those assets via instrumentation context; use `connectedAndroidTest` or a dedicated harness if full migration execution is required in CI. |
+| **L5** | **`TemplateVariabilityPreviewMapper`:** extra cases for production-shaped JSON (null `templateId`, duplicate keys) if needed | **Done** | Extended `TemplateVariabilityPreviewMapperTest`. |
+| **L6** | **`ValidateEditRecordUseCase`** after **F** | **Done** | Blank title, confirm multi-edit, single-record shortcut; `ValidateEditRecordUseCaseTest`. |
 
 **Done:** `RecordDetailsVariabilityDifferentMealLinkVisibilityTest` for link visibility rule.
 
@@ -61,9 +61,9 @@ Legend: **Done** = already implemented on the branch at time of writing; **Todo*
 1. ~~**D + E**~~ — done.  
 2. ~~**J + K**~~ — done.  
 3. ~~**F + L6**~~ — F done; L6 partially covered (extend tests as needed).  
-4. **L1–L4** — test coverage for mining, match use case, migration.  
+4. ~~**L1–L4**~~ — L1–L3, L5–L6 done; L4 partial (schema packaging test; see L4 notes).  
 5. ~~**C**~~ — done (multi-archetype links).  
-6. **I** — documentation when capacity allows (G + H done).
+6. ~~**I**~~ — done (repository / DAO KDoc).
 
 ---
 
@@ -75,7 +75,7 @@ Re-run the original review pass on:
 - `RecordsDAO` / `TemplatesDAO` delta queries
 - `TemplateVariantPickerDialog.kt`, `ModalViewModel.kt` (picker paths)
 - `VariabilityProfileMapper` / snapshot persistence
-- `AppDatabase.kt` migration 12→13
+- `Migration12To13SchemaPackagedTest.kt` (test assets mirror of Room export)
 
 ---
 

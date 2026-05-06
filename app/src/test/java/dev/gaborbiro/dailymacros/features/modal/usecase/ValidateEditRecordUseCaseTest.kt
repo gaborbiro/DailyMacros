@@ -70,6 +70,40 @@ class ValidateEditRecordUseCaseTest {
         assertEquals(EditValidationResult.Valid, result)
     }
 
+    @Test
+    fun `returns error when title blank after trim`() = runBlocking {
+        val template = stubTemplate()
+        val repo = object : StubRecordsRepository() {
+            override suspend fun get(recordId: Long): Record? = stubRecord(1L, template)
+        }
+        val result = ValidateEditRecordUseCase(repo).execute(1L, "   ", "Desc")
+        assertTrue(result is EditValidationResult.Error)
+        assertEquals("Title cannot be empty", (result as EditValidationResult.Error).message)
+    }
+
+    @Test
+    fun `confirm when shared template and text changed`() = runBlocking {
+        val template = stubTemplate(name = "Old", description = "D")
+        val repo = object : StubRecordsRepository() {
+            override suspend fun get(recordId: Long): Record? = stubRecord(1L, template)
+            override suspend fun countRecordsForTemplate(templateId: Long): Int = 3
+        }
+        val result = ValidateEditRecordUseCase(repo).execute(1L, "New title", "D")
+        assertTrue(result is EditValidationResult.ConfirmMultipleEdit)
+        assertEquals(3, (result as EditValidationResult.ConfirmMultipleEdit).count)
+    }
+
+    @Test
+    fun `valid when only one record uses template even if text changed`() = runBlocking {
+        val template = stubTemplate(name = "Old", description = "D")
+        val repo = object : StubRecordsRepository() {
+            override suspend fun get(recordId: Long): Record? = stubRecord(1L, template)
+            override suspend fun countRecordsForTemplate(templateId: Long): Int = 1
+        }
+        val result = ValidateEditRecordUseCase(repo).execute(1L, "New title", "D")
+        assertEquals(EditValidationResult.Valid, result)
+    }
+
     private open class StubRecordsRepository : RecordsRepository {
         override suspend fun getRecords(since: ZonedDateTime?) = emptyList<Record>()
         override suspend fun getRecentRecords(limit: Int) = emptyList<Record>()

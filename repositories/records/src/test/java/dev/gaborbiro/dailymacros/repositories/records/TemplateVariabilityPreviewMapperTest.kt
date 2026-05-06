@@ -275,4 +275,89 @@ class TemplateVariabilityPreviewMapperTest {
         val tid = mapper.templateIdForCombinationInArchetype(archetypes, "meal", previews, combo!!)
         assertEquals(10L, tid)
     }
+
+    @Test
+    fun `slotPreviews ignores evidence with null template id for template match`() {
+        val archetypes = listOf(
+            VariabilityArchetype(
+                archetypeKey = "a",
+                displayName = "A",
+                titleAliasesJson = "[]",
+                evidenceCount = 1,
+                lastSeenTimestamp = null,
+                archetypeNotes = null,
+                deprecated = false,
+                deprecatedReason = null,
+                slots = listOf(
+                    VariabilitySlot(
+                        slotKey = "s",
+                        roleDisplayName = "S",
+                        nutritionalLeversJson = "[]",
+                        isHighVariability = false,
+                        confidence = 0.0,
+                        rationale = "",
+                        variants = listOf(
+                            VariabilityVariant(
+                                variantKey = "v",
+                                variantLabel = "V",
+                                notesExcerpt = "",
+                                evidence = listOf(VariabilityEvidence(loggedAt = "z", templateId = null)),
+                                sortOrder = 0,
+                            ),
+                        ),
+                        sortOrder = 0,
+                    ),
+                ),
+                sortOrder = 0,
+            ),
+        )
+        assertTrue(mapper.slotPreviewsForTemplate(archetypes, templateId = 5L).isEmpty())
+    }
+
+    @Test
+    fun `slotPreviews deduplicates duplicate variant keys`() {
+        val archetypes = listOf(
+            VariabilityArchetype(
+                archetypeKey = "a",
+                displayName = "A",
+                titleAliasesJson = "[]",
+                evidenceCount = 1,
+                lastSeenTimestamp = null,
+                archetypeNotes = null,
+                deprecated = false,
+                deprecatedReason = null,
+                slots = listOf(
+                    VariabilitySlot(
+                        slotKey = "s",
+                        roleDisplayName = "S",
+                        nutritionalLeversJson = "[]",
+                        isHighVariability = true,
+                        confidence = 1.0,
+                        rationale = "",
+                        variants = listOf(
+                            VariabilityVariant(
+                                variantKey = "dup",
+                                variantLabel = "First",
+                                notesExcerpt = "",
+                                evidence = listOf(VariabilityEvidence(loggedAt = "a", templateId = 1L)),
+                                sortOrder = 0,
+                            ),
+                            VariabilityVariant(
+                                variantKey = "dup",
+                                variantLabel = "Second",
+                                notesExcerpt = "",
+                                evidence = listOf(VariabilityEvidence(loggedAt = "b", templateId = 1L)),
+                                sortOrder = 1,
+                            ),
+                        ),
+                        sortOrder = 0,
+                    ),
+                ),
+                sortOrder = 0,
+            ),
+        )
+        val slots = mapper.slotPreviewsForTemplate(archetypes, templateId = 1L)
+        assertEquals(1, slots.single().variants.size)
+        assertEquals("dup", slots.single().variants.single().variantKey)
+    }
 }

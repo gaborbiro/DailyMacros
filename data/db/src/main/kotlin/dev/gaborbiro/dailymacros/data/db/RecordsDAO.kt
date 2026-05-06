@@ -18,6 +18,12 @@ interface RecordsDAO {
     @Query("SELECT * FROM records WHERE epochMillis>=:sinceEpochMillis ORDER BY epochMillis DESC")
     suspend fun get(sinceEpochMillis: Long): List<RecordJoined>
 
+    /**
+     * Records whose template has `max(createdAtEpochMs, updatedAtEpochMs)` **strictly greater**
+     * than [afterExclusive] (epoch ms), ordered by record time descending, capped by [limit].
+     * Matches [TemplatesDAO.countTemplatesWithActivityAfter] for the same cutoff (exclusive
+     * watermark used by incremental variability mining).
+     */
     @Transaction
     @Query(
         """
