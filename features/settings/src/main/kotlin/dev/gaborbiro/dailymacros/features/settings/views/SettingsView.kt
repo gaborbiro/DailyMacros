@@ -136,7 +136,10 @@ internal fun SettingsView(
                 onClick = onVariabilityMiningPreviewTapped,
                 enabled = !viewState.variabilityMiningLoading,
             ) {
-                Text("Preview meal variability (AI)")
+                Text(
+                    "Preview meal variability (AI) — " +
+                        "${viewState.nextMineTemplateCount?.toString() ?: "…"} templates new since last mine",
+                )
             }
             OutlinedButton(
                 modifier = Modifier

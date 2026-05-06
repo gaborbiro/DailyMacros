@@ -39,6 +39,7 @@ import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
+import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyTemplateVariantPickerSelectionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.DeleteRecordUseCase
@@ -47,6 +48,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetVariabilityMatchForTemplateUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.OpenTemplateVariantPickerFromRecordDetailsUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
@@ -55,6 +57,7 @@ import dev.gaborbiro.dailymacros.features.modal.views.EditTargetConfirmationDial
 import dev.gaborbiro.dailymacros.features.modal.views.ImageDialog
 import dev.gaborbiro.dailymacros.features.modal.views.RecordDetailsDialog
 import dev.gaborbiro.dailymacros.features.modal.views.SelectRecordActionDialog
+import dev.gaborbiro.dailymacros.features.modal.views.TemplateVariantPickerDialog
 import dev.gaborbiro.dailymacros.features.modal.views.SelectTemplateActionDialog
 import dev.gaborbiro.dailymacros.repositories.chatgpt.AuthInterceptor
 import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGPTRepositoryImpl
@@ -65,6 +68,7 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.OutputConten
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.OutputContentDeserializer
 import dev.gaborbiro.dailymacros.repositories.records.RecordsApiMapper
 import dev.gaborbiro.dailymacros.repositories.records.RecordsRepositoryImpl
+import dev.gaborbiro.dailymacros.repositories.records.TemplateVariabilityPreviewMapper
 import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfileMapper
 import dev.gaborbiro.dailymacros.repositories.records.VariabilityRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
@@ -116,6 +120,8 @@ class ModalActivity : AppCompatActivity() {
     private val fileStore = FileStoreFactoryImpl(this).getStore("public", keepFiles = true)
     private val cacheFileStore = FileStoreFactoryImpl(this).getStore("public", keepFiles = false)
     private val imageStore = ImageStoreImpl(fileStore)
+
+    private val templateVariabilityPreviewMapper = TemplateVariabilityPreviewMapper()
 
     private val viewModel by lazy {
         val analyticsLogger = AnalyticsLogger()
@@ -177,10 +183,20 @@ class ModalActivity : AppCompatActivity() {
             variabilityRepository = variabilityRepository,
             profileMapper = variabilityProfileMapper,
         )
+        val openTemplateVariantPickerFromRecordDetailsUseCase =
+            OpenTemplateVariantPickerFromRecordDetailsUseCase(
+                templateVariabilityPreviewMapper = templateVariabilityPreviewMapper,
+            )
+        val applyTemplateVariantPickerSelectionUseCase = ApplyTemplateVariantPickerSelectionUseCase(
+            recordsRepository = recordsRepository,
+            templateVariabilityPreviewMapper = templateVariabilityPreviewMapper,
+        )
 
         ModalViewModel(
             imageStore = imageStore,
             recordsRepository = recordsRepository,
+            openTemplateVariantPickerFromRecordDetailsUseCase = openTemplateVariantPickerFromRecordDetailsUseCase,
+            applyTemplateVariantPickerSelectionUseCase = applyTemplateVariantPickerSelectionUseCase,
             getVariabilityMatchForTemplateUseCase = getVariabilityMatchForTemplateUseCase,
             createRecordFromTemplateUseCase = createRecordFromTemplateUseCase,
             createRecordWithNewTemplateUseCase = CreateRecordWithNewTemplateUseCase(createTemplateUseCase, createRecordFromTemplateUseCase),
@@ -344,6 +360,15 @@ class ModalActivity : AppCompatActivity() {
                 onDismissRequested = onDismissRequested,
                 onImagesInfoButtonTapped = viewModel::onImagesInfoButtonTapped,
                 onRunAIButtonTapped = viewModel::onRunAIButtonTapped,
+                onVariabilityDifferentMealLinkTapped = viewModel::onVariabilityDifferentMealLinkTapped,
+            )
+
+            is DialogHandle.TemplateVariantPickerDialog -> TemplateVariantPickerDialog(
+                dialogHandle = dialogHandle,
+                previewMapper = this@ModalActivity.templateVariabilityPreviewMapper,
+                errorMessages = errorMessages,
+                onCancel = viewModel::onVariantPickerCancelTapped,
+                onConfirm = viewModel::onVariantPickerConfirmed,
             )
 
             is DialogHandle.EditTargetConfirmationDialog -> EditTargetConfirmationDialog(

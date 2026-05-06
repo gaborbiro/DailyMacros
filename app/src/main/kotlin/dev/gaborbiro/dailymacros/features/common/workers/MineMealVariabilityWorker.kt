@@ -131,10 +131,20 @@ class MineMealVariabilityWorker(
             settingsPrefs.variabilityMiningResponseJsonExpansionBits = ""
             settingsPrefs.variabilityMiningRequestJsonSectionExpanded = false
             settingsPrefs.variabilityMiningResponseJsonSectionExpanded = false
+            val successTitle = if (preview.skippedNoNewObservations) {
+                applicationContext.getString(R.string.variability_mining_skipped_title)
+            } else {
+                applicationContext.getString(R.string.variability_mining_success_title)
+            }
+            val successText = if (preview.skippedNoNewObservations) {
+                applicationContext.getString(R.string.variability_mining_skipped_text)
+            } else {
+                applicationContext.getString(R.string.variability_mining_success_text)
+            }
             applicationContext.showTitleTextNotification(
                 id = NOTIFICATION_ID_RESULT,
-                title = applicationContext.getString(R.string.variability_mining_success_title),
-                text = applicationContext.getString(R.string.variability_mining_success_text),
+                title = successTitle,
+                text = successText,
                 isError = false,
             )
             Result.success()

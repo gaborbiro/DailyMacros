@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
@@ -16,6 +17,7 @@ import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
 import dev.gaborbiro.dailymacros.features.settings.variability.MEAL_VARIABILITY_MINING_OUTPUT_ERROR
 import dev.gaborbiro.dailymacros.features.settings.variability.MEAL_VARIABILITY_MINING_UNIQUE_WORK
+import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,6 +40,7 @@ class SettingsViewModel(
     private val exportSqliteDatabaseUseCase: ExportSqliteDatabaseUseCase,
     private val importSqliteDatabaseUseCase: ImportSqliteDatabaseUseCase,
     private val variabilityRepository: VariabilityRepository,
+    private val recordsRepository: RecordsRepository,
     private val enqueueMealVariabilityMining: () -> Unit,
 ) : ViewModel() {
 
@@ -54,6 +57,7 @@ class SettingsViewModel(
             variabilityMiningResponseJsonExpansionBits = settingsPrefs.variabilityMiningResponseJsonExpansionBits,
             variabilityMiningRequestJsonSectionExpanded = settingsPrefs.variabilityMiningRequestJsonSectionExpanded,
             variabilityMiningResponseJsonSectionExpanded = settingsPrefs.variabilityMiningResponseJsonSectionExpanded,
+            nextMineTemplateCount = null,
         )
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
@@ -76,7 +80,7 @@ class SettingsViewModel(
                                 )
                             }
 
-                        WorkInfo.State.SUCCEEDED ->
+                        WorkInfo.State.SUCCEEDED -> {
                             _uiState.update {
                                 it.copy(
                                     variabilityMiningLoading = false,
@@ -96,6 +100,28 @@ class SettingsViewModel(
                                         settingsPrefs.variabilityMiningResponseJsonSectionExpanded,
                                 )
                             }
+                            viewModelScope.launch {
+                                runCatching {
+                                    val snap = variabilityRepository.getLatestProfile()
+                                    snap?.let { s ->
+                                        recordsRepository.countTemplatesPendingVariabilityAfterWatermark(
+                                            s.templatesIngestWatermarkEpochMs,
+                                        )
+                                    }
+                                }
+                                    .onSuccess { countOrNull ->
+                                        _uiState.update { s -> s.copy(nextMineTemplateCount = countOrNull) }
+                                    }
+                                    .onFailure { t ->
+                                        Log.w(TAG, "nextMineTemplateCount after mining", t)
+                                        _uiUpdates.emit(
+                                            SettingsUiUpdates.ShowSnackbar(
+                                                "Could not refresh template count for the next mine.",
+                                            ),
+                                        )
+                                    }
+                            }
+                        }
 
                         WorkInfo.State.FAILED -> {
                             val message = info.outputData.getString(MEAL_VARIABILITY_MINING_OUTPUT_ERROR)
@@ -177,6 +203,29 @@ class SettingsViewModel(
         }
     }
 
+    fun refreshTemplateCountForSettings() {
+        viewModelScope.launch {
+            runCatching {
+                variabilityRepository.getLatestProfile()?.let { s ->
+                    recordsRepository.countTemplatesPendingVariabilityAfterWatermark(
+                        s.templatesIngestWatermarkEpochMs,
+                    )
+                }
+            }
+                .onSuccess { countOrNull ->
+                    _uiState.update { it.copy(nextMineTemplateCount = countOrNull) }
+                }
+                .onFailure { t ->
+                    Log.w(TAG, "refreshTemplateCountForSettings", t)
+                    _uiUpdates.emit(
+                        SettingsUiUpdates.ShowSnackbar(
+                            "Could not refresh template count for the next mine.",
+                        ),
+                    )
+                }
+        }
+    }
+
     fun onVariabilityMiningPreviewTapped() {
         enqueueMealVariabilityMining()
     }
@@ -198,6 +247,7 @@ class SettingsViewModel(
                             variabilityMiningRequestJsonSectionExpanded = false,
                             variabilityMiningResponseJsonSectionExpanded = false,
                             variabilityMiningError = null,
+                            nextMineTemplateCount = null,
                         )
                     }
                     _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Meal variability profile cleared"))
@@ -258,5 +308,9 @@ class SettingsViewModel(
             .atZone(zoneId)
             .format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM))
         return "Generated at: $formatted"
+    }
+
+    private companion object {
+        private const val TAG = "SettingsViewModel"
     }
 }

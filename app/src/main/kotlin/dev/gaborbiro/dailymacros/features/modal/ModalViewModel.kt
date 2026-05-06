@@ -16,6 +16,9 @@ import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiState
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
+import dev.gaborbiro.dailymacros.features.modal.model.VariabilityArchetypePickerEntry
+import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyTemplateVariantPickerSelectionUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyTemplateVariantPickerSelectionResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.DeleteRecordUseCase
@@ -31,8 +34,14 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCas
 import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.DomainError
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetVariabilityMatchForTemplateUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.NoVariabilityProfileLoadedException
+import dev.gaborbiro.dailymacros.features.modal.usecase.OpenTemplateVariantPickerFromRecordDetailsUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.OpenTemplateVariantPickerResult
+import dev.gaborbiro.dailymacros.features.modal.usecase.TemplateVariabilityMatch
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityPreviewContent
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
 import ellipsize
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -52,6 +61,8 @@ import kotlinx.coroutines.launch
 internal class ModalViewModel(
     private val imageStore: ImageStore,
     private val recordsRepository: RecordsRepository,
+    private val openTemplateVariantPickerFromRecordDetailsUseCase: OpenTemplateVariantPickerFromRecordDetailsUseCase,
+    private val applyTemplateVariantPickerSelectionUseCase: ApplyTemplateVariantPickerSelectionUseCase,
     private val getVariabilityMatchForTemplateUseCase: GetVariabilityMatchForTemplateUseCase,
     private val createRecordFromTemplateUseCase: CreateRecordFromTemplateUseCase,
     private val createRecordWithNewTemplateUseCase: CreateRecordWithNewTemplateUseCase,
@@ -84,6 +95,9 @@ internal class ModalViewModel(
     private var recogniseFoodJob: Job? = null
 
     private var recordDetailsJob: Job? = null
+
+    /** Restores record details after closing the variant picker without applying. */
+    private var pendingRecordDetailsRestore: Pair<Long, Boolean>? = null
 
     @UiThread
     fun onCreateRecordWithCameraDeeplink() {
@@ -143,13 +157,36 @@ internal class ModalViewModel(
         recordDetailsJob = runSafely {
             recordsRepository.observe(recordId)
                 .collect { record ->
-                    val variabilityPreview =
-                        getVariabilityMatchForTemplateUseCase.execute(record.template.dbId)
-                    val previewForDialog =
-                        variabilityPreview.slots.takeIf { it.isNotEmpty() }?.let { variabilityPreview }
+                    val (previewForDialog, variabilityArchetypes, archetypePickerEntries) = if (edit) {
+                        val match = runCatching {
+                            getVariabilityMatchForTemplateUseCase.execute(record.template.dbId)
+                        }.getOrElse { t ->
+                            if (t is NoVariabilityProfileLoadedException) {
+                                TemplateVariabilityMatch(
+                                    preview = TemplateVariabilityPreviewContent(
+                                        bannerText = "",
+                                        slots = emptyList(),
+                                        archetypePickerLabel = "",
+                                    ),
+                                    variabilityArchetypes = emptyList(),
+                                    archetypePickerEntries = emptyList(),
+                                )
+                            } else {
+                                throw t
+                            }
+                        }
+                        Triple(
+                            match.preview.slots.takeIf { it.isNotEmpty() }?.let { match.preview },
+                            match.variabilityArchetypes,
+                            match.archetypePickerEntries,
+                        )
+                    } else {
+                        Triple(null, emptyList<VariabilityArchetype>(), emptyList<VariabilityArchetypePickerEntry>())
+                    }
 
                     val dialog = DialogHandle.RecordDetailsDialog.View(
                         recordId = recordId,
+                        templateDbId = record.template.dbId,
                         title = TextFieldValue(record.template.name),
                         description = TextFieldValue(record.template.description),
                         images = record.template.images,
@@ -158,6 +195,13 @@ internal class ModalViewModel(
                         titleHint = "Give your meal a title",
                         titleValidationError = null,
                         templateVariabilityPreview = previewForDialog,
+                        variabilityArchetypes = variabilityArchetypes,
+                        variabilityArchetypePickerEntries = archetypePickerEntries,
+                        showVariabilityDifferentMealLink = computeShowVariabilityDifferentMealLink(
+                            allowEdit = edit,
+                            variabilityArchetypePickerEntries = archetypePickerEntries,
+                            variabilityArchetypes = variabilityArchetypes,
+                        ),
                     )
                     setRoot(dialog)
                 }
@@ -359,13 +403,16 @@ internal class ModalViewModel(
     fun onDialogDismissRequested(dialog: DialogHandle) {
         if (dialog == _uiState.value.overlayDialog) {
             popOverlay()
+        } else if (dialog is DialogHandle.TemplateVariantPickerDialog) {
+            onVariantPickerCancelTapped()
+            return
         } else {
             closeAll()
         }
         (dialog as? DialogHandle.RecordDetailsDialog.Edit)?.let {
             runSafely {
-                dialog.images.forEach {
-                    imageStore.delete(it)
+                it.images.forEach { img ->
+                    imageStore.delete(img)
                 }
             }
         }
@@ -449,6 +496,64 @@ internal class ModalViewModel(
             it.copy(
                 title = TextFieldValue()
             )
+        }
+    }
+
+    @UiThread
+    fun onVariabilityDifferentMealLinkTapped(archetypeKey: String) {
+        runSafely {
+            val view = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return@runSafely
+            when (val result = openTemplateVariantPickerFromRecordDetailsUseCase.execute(view, archetypeKey)) {
+                OpenTemplateVariantPickerResult.Skipped -> return@runSafely
+                is OpenTemplateVariantPickerResult.Ready -> {
+                    pendingRecordDetailsRestore = view.recordId to view.allowEdit
+                    recordDetailsJob?.cancel()
+                    recordDetailsJob = null
+                    setRoot(result.picker)
+                }
+            }
+        }
+    }
+
+    @UiThread
+    fun onVariantPickerCancelTapped() {
+        val restore = pendingRecordDetailsRestore
+        pendingRecordDetailsRestore = null
+        if (restore != null) {
+            openRecordDetails(restore.first, restore.second)
+        } else {
+            closeAll()
+        }
+    }
+
+    @UiThread
+    fun onVariantPickerConfirmed(selection: Map<String, String>) {
+        val dlg = _uiState.value.rootDialog as? DialogHandle.TemplateVariantPickerDialog ?: return
+        runSafely {
+            when (
+                val outcome = applyTemplateVariantPickerSelectionUseCase.execute(dlg, selection)
+            ) {
+                ApplyTemplateVariantPickerSelectionResult.UnknownCombination ->
+                    _uiUpdates.send(
+                        ModalUiUpdates.Error(
+                            "Could not match this combination to a saved meal template. Try again after the next variability mine.",
+                        ),
+                    )
+
+                ApplyTemplateVariantPickerSelectionResult.RecordNotFound ->
+                    _uiUpdates.send(ModalUiUpdates.Error("Record not found."))
+
+                ApplyTemplateVariantPickerSelectionResult.NoOpSameTemplate -> {
+                    pendingRecordDetailsRestore = null
+                    closeAll()
+                }
+
+                ApplyTemplateVariantPickerSelectionResult.Applied -> {
+                    DiaryWidgetScreen.reload()
+                    pendingRecordDetailsRestore = null
+                    closeAll()
+                }
+            }
         }
     }
 

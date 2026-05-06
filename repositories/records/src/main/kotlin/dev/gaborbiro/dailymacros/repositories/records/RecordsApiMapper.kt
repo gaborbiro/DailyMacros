@@ -32,6 +32,8 @@ class RecordsApiMapper {
             name = template.entity.name,
             description = template.entity.description,
             parentTemplateId = template.entity.parentTemplateId,
+            createdAtEpochMs = template.entity.createdAtEpochMs,
+            updatedAtEpochMs = template.entity.updatedAtEpochMs,
             nutrients = template.macros?.let(::map) ?: TemplateNutrientBreakdown(),
             notes = template.macros?.notes ?: "",
             mealComponents = decodeMealComponentsJson(template.macros?.analysisComponentsJson),
@@ -108,10 +110,13 @@ class RecordsApiMapper {
     }
 
     fun map(template: TemplateToSave): TemplateEntity {
+        val now = System.currentTimeMillis()
         return TemplateEntity(
             name = template.name,
             description = template.description,
             parentTemplateId = template.parentTemplateId,
+            createdAtEpochMs = now,
+            updatedAtEpochMs = now,
         )
     }
 

@@ -29,4 +29,5 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
 
     implementation(libs.network.gson)
+    testImplementation(libs.test.junit)
 }

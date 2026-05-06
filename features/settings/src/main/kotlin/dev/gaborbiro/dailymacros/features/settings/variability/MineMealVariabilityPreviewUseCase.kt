@@ -20,6 +20,11 @@ data class VariabilityMiningPreview(
     val requestJsonPretty: String,
     /** Pretty-printed JSON returned by the model. */
     val responseJsonPretty: String,
+    /**
+     * True when incremental mode had no records after the ingest watermark — the model was not
+     * called and the stored profile was left unchanged.
+     */
+    val skippedNoNewObservations: Boolean = false,
 )
 
 class MineMealVariabilityPreviewUseCase(
@@ -32,14 +37,31 @@ class MineMealVariabilityPreviewUseCase(
     private val prettyGson: Gson = GsonBuilder().setPrettyPrinting().serializeNulls().create()
 
     suspend fun execute(): VariabilityMiningPreview {
-        val records = recordsRepository.getRecentRecords(MAX_RECORDS)
+        val snapshot = variabilityRepository.getLatestProfile()
+        val watermarkExclusive = snapshot?.templatesIngestWatermarkEpochMs ?: 0L
+        val useIncrementalDelta = snapshot != null && watermarkExclusive > 0L
+        val records = if (!useIncrementalDelta) {
+            recordsRepository.getRecentRecords(MAX_RECORDS)
+        } else {
+            recordsRepository.getRecordsForVariabilityDelta(MAX_RECORDS, watermarkExclusive)
+        }
+        if (useIncrementalDelta && records.isEmpty()) {
+            val snap = requireNotNull(snapshot) { "incremental delta requires snapshot" }
+            val skipRequestJson =
+                """{"skipped":true,"reason":"no_meal_observations_after_watermark","templatesIngestWatermarkEpochMs":$watermarkExclusive}"""
+            return VariabilityMiningPreview(
+                requestJsonPretty = prettyPrintJson(skipRequestJson),
+                responseJsonPretty = prettyPrintJson(snap.profileJson),
+                skippedNoNewObservations = true,
+            )
+        }
         val existingProfile: JsonElement? =
-            variabilityRepository.getLatestProfile()
+            snapshot
                 ?.profileJson
                 ?.takeIf { it.isNotBlank() }
                 ?.let { JsonParser.parseString(it) }
         val envelope = VariabilityMiningUserEnvelope(
-            schema_version = "2.1",
+            schema_version = "2.2",
             merge_mode = "incremental",
             existing_profile = existingProfile,
             constraints = VariabilityConstraints(
@@ -51,7 +73,19 @@ class MineMealVariabilityPreviewUseCase(
         val userJson = compactGson.toJson(envelope)
         val result = chatGPTRepository.mineMealVariability(userJson)
         val minedAt = System.currentTimeMillis()
-        variabilityRepository.replaceProfileFromModelJson(result.profileJson, minedAt)
+        val fromTemplates = records.maxOfOrNull { r ->
+            maxOf(r.template.createdAtEpochMs, r.template.updatedAtEpochMs)
+        }
+        val ingestWatermark = when {
+            fromTemplates == null -> watermarkExclusive
+            fromTemplates > 0L -> maxOf(watermarkExclusive, fromTemplates)
+            else -> maxOf(watermarkExclusive, minedAt)
+        }
+        variabilityRepository.replaceProfileFromModelJson(
+            profileJson = result.profileJson,
+            minedAtEpochMs = minedAt,
+            templatesIngestWatermarkEpochMs = ingestWatermark,
+        )
         return VariabilityMiningPreview(
             requestJsonPretty = prettyPrintJson(userJson),
             responseJsonPretty = prettyPrintJson(result.profileJson),

@@ -18,6 +18,23 @@ interface TemplatesDAO {
     @Upsert
     suspend fun insertOrUpdate(template: TemplateEntity): Long
 
+    @Query("SELECT COUNT(*) FROM templates")
+    suspend fun countAllTemplates(): Int
+
+    /**
+     * Number of templates with `createdAtEpochMs > afterExclusive OR updatedAtEpochMs >
+     * afterExclusive` (strictly greater — same **exclusive** watermark semantics as
+     * [RecordsDAO.getRecentForVariabilityMining]). Used for incremental mine “pending” counts in
+     * settings; a watermark of 0 still requires timestamps **> 0** to match.
+     */
+    @Query(
+        """
+        SELECT COUNT(*) FROM templates
+        WHERE createdAtEpochMs > :afterExclusive OR updatedAtEpochMs > :afterExclusive
+        """
+    )
+    suspend fun countTemplatesWithActivityAfter(afterExclusive: Long): Int
+
     @Upsert
     suspend fun insertOrUpdate(macros: MacrosEntity): Long
 

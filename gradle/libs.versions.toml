@@ -67,6 +67,8 @@ vico = "3.0.3"
 # --- Testing -------------------------------------------------------------------
 # -------------------------------------------------------------------------------
 junit = "4.13.2"
+robolectric = "4.14.1"
+androidx-test-core = "1.6.1"
 
 [libraries]
 # ========================= ANDROIDX / GOOGLE (PLATFORM) ========================
@@ -168,6 +170,9 @@ google-mlkit-image-labeling = { module = "com.google.mlkit:image-labeling", vers
 # --- Unit test frameworks ------------------------------------------------------
 # -------------------------------------------------------------------------------
 test-junit = { module = "junit:junit", version.ref = "junit" }
+test-robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+androidx-test-core = { module = "androidx.test:core", version.ref = "androidx-test-core" }
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidx-test-core" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
