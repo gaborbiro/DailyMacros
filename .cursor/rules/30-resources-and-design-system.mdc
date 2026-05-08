@@ -1,0 +1,17 @@
+---
+description: Resource naming and design-system usage rules
+globs: **/*.{kt,xml}
+alwaysApply: false
+---
+
+# Resources and Design System
+
+## Strings
+- Follow naming format: `[where].[section].[description]`.
+- Default section is `content`.
+- Group strings by screen/section and avoid reuse except shared dialogs.
+
+## UI and design
+- Build UI with existing Compose patterns.
+- Reuse tokens/components from `core:design` for fonts, colors, typography, and theme.
+- Keep visual behavior aligned with existing app patterns before adding new components.

@@ -1,0 +1,11 @@
+---
+description: Typography apostrophe and string resources requirements
+alwaysApply: true
+---
+
+# Copy standards
+
+- Use typographic apostrophe `’` in user-facing text. Do not use escaped apostrophes like `\'`.
+- For any new user-facing string, add string in:
+  - `values/strings.xml`
+- Keep existing behavior tests meaningful: avoid duplicate assertions that check the same text for different test methods.

@@ -1,0 +1,21 @@
+---
+description: End-to-end feature delivery contract for this project
+alwaysApply: true
+---
+
+# Feature Delivery Contract
+
+When asked to implement a feature, ship it end-to-end and consistent with existing modules.
+
+## Do
+- First inspect at least one similar existing feature and mirror its structure and naming.
+- Implement all required layers: UI (Compose), ViewModel/state, domain/use-case, repository/service wiring.
+- Keep unidirectional data flow and ViewModel-driven state.
+- Use Hilt dependency injection patterns already present in the codebase.
+- Integrate analytics/navigation/remote-config only through existing core module APIs.
+- Run all unit tests before finalizing. Do not run Android tests.
+
+## Do not
+- Invent new architectural layers, generic "utility" abstractions, or ad-hoc base classes.
+- Place business logic in composables or framework plumbing in domain code.
+- Leave TODO placeholders for required behavior unless explicitly requested.

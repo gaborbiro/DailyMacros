@@ -1,0 +1,21 @@
+---
+description: Kotlin and Gradle implementation conventions
+globs: **/*.{kt,kts}
+alwaysApply: false
+---
+
+# Kotlin and Gradle Conventions
+
+## Kotlin
+- Prefer small, explicit types and names that match nearby feature code.
+- Keep coroutine and Flow usage consistent with existing ViewModel/repository patterns.
+- Handle errors explicitly; never swallow exceptions.
+
+## Gradle and dependencies
+- Use existing version catalog conventions in `gradle/libs.versions.toml`.
+- Respect pinned/kept versions (`# @keep`, `# @pin`).
+- Avoid introducing new dependencies when equivalent project modules already exist.
+
+## Delivery quality
+- Match the module/package layout already used by comparable features.
+- Keep changes minimal and coherent; avoid opportunistic refactors unrelated to the request.
