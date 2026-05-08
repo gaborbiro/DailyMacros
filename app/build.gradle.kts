@@ -79,7 +79,10 @@ android {
         buildConfig = true
     }
     testOptions {
-        unitTests.isReturnDefaultValues = true
+        unitTests {
+            isReturnDefaultValues = true
+            isIncludeAndroidResources = true
+        }
     }
     packaging {
         resources {
@@ -148,6 +151,8 @@ dependencies {
     implementation(libs.vico.compose.m3)
 
     testImplementation(libs.test.junit)
+    testImplementation(libs.test.robolectric)
+    testImplementation(libs.androidx.test.core)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
