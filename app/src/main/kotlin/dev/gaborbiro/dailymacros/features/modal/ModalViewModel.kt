@@ -197,7 +197,7 @@ internal class ModalViewModel(
                         templateVariabilityPreview = previewForDialog,
                         variabilityArchetypes = variabilityArchetypes,
                         variabilityArchetypePickerEntries = archetypePickerEntries,
-                        showVariabilityDifferentMealLink = computeShowVariabilityDifferentMealLink(
+                        showVariabilityDifferentMealLink = uiMapper.mapShowVariabilityDifferentMealLink(
                             allowEdit = edit,
                             variabilityArchetypePickerEntries = archetypePickerEntries,
                             variabilityArchetypes = variabilityArchetypes,

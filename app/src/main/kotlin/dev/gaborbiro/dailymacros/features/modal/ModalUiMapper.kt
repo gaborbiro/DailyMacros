@@ -4,11 +4,26 @@ import dev.gaborbiro.dailymacros.features.common.views.NutrientDisplayLine
 import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
+import dev.gaborbiro.dailymacros.features.modal.model.VariabilityArchetypePickerEntry
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
 
 internal class ModalUiMapper(
     private val nutrientsUiMapper: NutrientsUiMapper,
 ) {
+
+    /**
+     * Whether record details should show the “different meal type” variability link(s).
+     */
+    fun mapShowVariabilityDifferentMealLink(
+        allowEdit: Boolean,
+        variabilityArchetypePickerEntries: List<VariabilityArchetypePickerEntry>,
+        variabilityArchetypes: List<VariabilityArchetype>,
+    ): Boolean {
+        if (!allowEdit) return false
+        if (variabilityArchetypePickerEntries.isEmpty()) return false
+        return variabilityArchetypes.isNotEmpty()
+    }
 
     fun mapNutrientBreakdowns(
         record: Record,
