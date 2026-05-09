@@ -511,7 +511,7 @@ internal class OverviewUiMapper(
      * Calculates change indicator based on week-over-week comparison.
      * Compares current week macros to previous week macros.
      */
-    private fun calculateChangeIndicator(
+    internal fun calculateChangeIndicator(
         current: Float?,
         previous: Float?,
     ): ChangeIndicator {
