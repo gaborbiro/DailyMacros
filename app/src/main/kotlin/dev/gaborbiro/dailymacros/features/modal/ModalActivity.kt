@@ -211,10 +211,8 @@ class ModalActivity : AppCompatActivity() {
             ApplyQuickPickOverrideAndReloadWidgetUseCase(recordsRepository)
         val updateRecordWithNewTemplateUseCase =
             UpdateRecordWithNewTemplateUseCase(recordsRepository, createTemplateUseCase)
-        val editTemplateUseCase = EditTemplateUseCase(recordsRepository)
         val applyConfirmedSharedTemplateEditUseCase = ApplyConfirmedSharedTemplateEditUseCase(
             updateRecordWithNewTemplateUseCase = updateRecordWithNewTemplateUseCase,
-            editTemplateUseCase = editTemplateUseCase,
             recordsRepository = recordsRepository,
             appContext = applicationContext,
         )

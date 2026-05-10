@@ -4,7 +4,7 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisResult
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.VariabilityMiningResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.extractAssistantJsonText
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toApiModel
@@ -30,7 +30,7 @@ class ChatGPTRepositoryImpl(
         }
     }
 
-    override suspend fun analyseNutrients(request: NutrientAnalysisRequest): NutrientAnalysisResult {
+    override suspend fun analyseNutrients(request: NutrientAnalysisRequest): NutrientAnalysis {
         return runCatching(logTag = "analyseNutrients") {
             val response = service.callResponses(
                 request = request.toApiModel(),

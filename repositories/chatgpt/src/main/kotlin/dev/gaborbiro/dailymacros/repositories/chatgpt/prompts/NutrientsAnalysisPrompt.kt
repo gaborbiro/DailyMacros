@@ -2,11 +2,11 @@ package dev.gaborbiro.dailymacros.repositories.chatgpt.prompts
 
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.MealAnalysisComponent
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.MealComponent
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.Nutrient
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisResult
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientApiModel
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientsApiModel
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.Nutrients
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTResponse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ContentEntry
@@ -110,7 +110,7 @@ If estimation is not possible:
     )
 )
 
-internal fun ChatGPTResponse.toNutrientAnalysisResponse(imageCount: Int): NutrientAnalysisResult {
+internal fun ChatGPTResponse.toNutrientAnalysisResponse(imageCount: Int): NutrientAnalysis {
     val gson = GsonBuilder().create()
 
     val resultJson: String? = this.output
@@ -129,36 +129,10 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(imageCount: Int): Nutrie
 
     // temporary helper classes
 
-    data class Nutrient(
-        @SerializedName("grams") val grams: Number?,
-        @SerializedName("topContributorIngredients") val topContributorIngredients: String?,
-    )
+    val response = gson.fromJson(resultJson, NutrientAnalysisResponse::class.java)
 
-    data class Nutrients(
-        @SerializedName("calories") val calories: Number?,
-        @SerializedName("protein") val protein: Nutrient?,
-        @SerializedName("fat") val fat: Nutrient?,
-        @SerializedName("ofWhichSaturated") val ofWhichSaturated: Nutrient?,
-        @SerializedName("carbohydrate") val carbs: Nutrient?,
-        @SerializedName("ofWhichSugar") val ofWhichSugar: Nutrient?,
-        @SerializedName("ofWhichAddedSugar") val ofWhichAddedSugar: Nutrient?,
-        @SerializedName("salt") val salt: Nutrient?,
-        @SerializedName("fibre") val fibre: Nutrient?,
-    )
-
-    data class Response(
-        @SerializedName("nutrients") val nutrients: Nutrients?,
-        @SerializedName("title") val title: String?,
-        @SerializedName("notes") val notes: String?,
-        @SerializedName("components") val components: List<Component>?,
-        @SerializedName("representative_of_meal") val representativeOfMeal: List<Boolean>?,
-        @SerializedName("error") val error: String?,
-    )
-
-    val response = gson.fromJson(resultJson, Response::class.java)
-
-    fun map(nutrient: Nutrient?): NutrientApiModel {
-        return NutrientApiModel(
+    fun map(nutrient: NutrientApiModel?): Nutrient {
+        return Nutrient(
             grams = nutrient?.grams?.toFloat(),
             topContributors = nutrient?.topContributorIngredients,
         )
@@ -166,7 +140,7 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(imageCount: Int): Nutrie
 
     val nutrients = response.nutrients?.let {
         // null value doesn't mean 0 for that macronutrient, the AI just has no information on it.
-        NutrientsApiModel(
+        Nutrients(
             calories = response.nutrients.calories?.toInt(),
             protein = map(response.nutrients.protein),
             fat = map(response.nutrients.fat),
@@ -182,7 +156,7 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(imageCount: Int): Nutrie
     val structuredComponents = response.components.orEmpty().mapNotNull { component ->
         val name = component.name?.trim().orEmpty()
         if (name.isEmpty()) return@mapNotNull null
-        MealAnalysisComponent(
+        MealComponent(
             name = name,
             estimatedAmount = component.estimatedAmount?.trim().orEmpty(),
             confidence = component.confidence?.trim().orEmpty().ifEmpty { "high" },
@@ -204,7 +178,7 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(imageCount: Int): Nutrie
     val representativeFlags =
         normalizeRepresentativeOfMealFlags(imageCount, response.representativeOfMeal)
 
-    return NutrientAnalysisResult(
+    return NutrientAnalysis(
         nutrients = nutrients,
         title = response.title,
         notes = notesItems.joinToString("\n").takeIf { it.isNotBlank() },
@@ -220,3 +194,29 @@ private fun normalizeRepresentativeOfMealFlags(imageCount: Int, fromModel: List<
     if (fromModel == null) return List(imageCount) { null }
     return List(imageCount) { index -> fromModel.getOrNull(index) }
 }
+
+private data class NutrientAnalysisResponse(
+    @SerializedName("nutrients") val nutrients: NutrientsApiModel?,
+    @SerializedName("title") val title: String?,
+    @SerializedName("notes") val notes: String?,
+    @SerializedName("components") val components: List<Component>?,
+    @SerializedName("representative_of_meal") val representativeOfMeal: List<Boolean>?,
+    @SerializedName("error") val error: String?,
+)
+
+private data class NutrientsApiModel(
+    @SerializedName("calories") val calories: Number?,
+    @SerializedName("protein") val protein: NutrientApiModel?,
+    @SerializedName("fat") val fat: NutrientApiModel?,
+    @SerializedName("ofWhichSaturated") val ofWhichSaturated: NutrientApiModel?,
+    @SerializedName("carbohydrate") val carbs: NutrientApiModel?,
+    @SerializedName("ofWhichSugar") val ofWhichSugar: NutrientApiModel?,
+    @SerializedName("ofWhichAddedSugar") val ofWhichAddedSugar: NutrientApiModel?,
+    @SerializedName("salt") val salt: NutrientApiModel?,
+    @SerializedName("fibre") val fibre: NutrientApiModel?,
+)
+
+private data class NutrientApiModel(
+    @SerializedName("grams") val grams: Number?,
+    @SerializedName("topContributorIngredients") val topContributorIngredients: String?,
+)

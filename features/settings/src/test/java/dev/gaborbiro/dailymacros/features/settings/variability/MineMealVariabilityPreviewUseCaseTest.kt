@@ -4,7 +4,7 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisResult
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.VariabilityMiningResult
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
@@ -209,7 +209,7 @@ class MineMealVariabilityPreviewUseCaseTest {
 
         override suspend fun recogniseFood(request: FoodRecognitionRequest): FoodRecognitionResult = error("not used")
 
-        override suspend fun analyseNutrients(request: NutrientAnalysisRequest): NutrientAnalysisResult =
+        override suspend fun analyseNutrients(request: NutrientAnalysisRequest): NutrientAnalysis =
             error("not used")
 
         override suspend fun mineMealVariability(userMessageJson: String): VariabilityMiningResult {
