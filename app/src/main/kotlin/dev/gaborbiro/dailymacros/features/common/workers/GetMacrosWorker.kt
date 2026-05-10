@@ -20,10 +20,10 @@ import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
+import dev.gaborbiro.dailymacros.features.shared.MacrosNotificationTextMapper
 import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.shared.RecordsMapper
 import dev.gaborbiro.dailymacros.features.shared.ChatGptOkHttpTimeouts
-import dev.gaborbiro.dailymacros.features.modal.ModalUiMapper
 import dev.gaborbiro.dailymacros.features.modal.usecase.NutrientAnalysisUseCase
 import dev.gaborbiro.dailymacros.repositories.chatgpt.AuthInterceptor
 import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGPTRepositoryImpl
@@ -110,6 +110,7 @@ class GetMacrosWorker(
         )
         val nutrientsUiMapper = NutrientsUiMapper()
         val recordsMapper = RecordsMapper()
+        val macrosNotificationTextMapper = MacrosNotificationTextMapper(nutrientsUiMapper)
 
         NutrientAnalysisUseCase(
             appContext = appContext,
@@ -118,7 +119,7 @@ class GetMacrosWorker(
             recordsRepository = recordsRepository,
             requestStatusRepository = requestStatusRepository,
             recordsMapper = recordsMapper,
-            modalUiMapper = ModalUiMapper(nutrientsUiMapper),
+            macrosNotificationTextMapper = macrosNotificationTextMapper,
         )
     }
 
