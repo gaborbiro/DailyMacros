@@ -119,7 +119,6 @@ class ModalActivity : AppCompatActivity() {
         fun launchToSelectTemplateAction(context: Context, templateId: Long) {
             context.launchActivityInNewStack { it.getSelectTemplateActionIntent(templateId) }
         }
-
     }
 
     private val fileStore = FileStoreFactoryImpl(this).getStore("public", keepFiles = true)

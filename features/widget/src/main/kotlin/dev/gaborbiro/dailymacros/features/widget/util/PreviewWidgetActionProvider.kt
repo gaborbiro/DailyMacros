@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widget
+package dev.gaborbiro.dailymacros.features.widget.util
 
 import android.content.Context
 import androidx.glance.GlanceId
@@ -6,6 +6,7 @@ import androidx.glance.action.Action
 import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
+import dev.gaborbiro.dailymacros.features.widget.WidgetActionProvider
 
 /** Glance previews only; does not launch activities. */
 internal object PreviewWidgetActionProvider : WidgetActionProvider {

@@ -28,7 +28,7 @@ import dev.gaborbiro.dailymacros.features.widget.model.ListUiModelQuickPick
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.widget.WidgetActionProvider
-import dev.gaborbiro.dailymacros.features.widget.PreviewWidgetActionProvider
+import dev.gaborbiro.dailymacros.features.widget.util.PreviewWidgetActionProvider
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreviewContext
 
 @Composable
