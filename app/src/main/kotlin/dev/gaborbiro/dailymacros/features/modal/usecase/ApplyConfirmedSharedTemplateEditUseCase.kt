@@ -4,6 +4,7 @@ import android.content.Context
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.features.modal.model.ChangeImagesTarget
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
 
 /**
  * Applies the shared-template edit confirmation: update either the single record or the backing
@@ -11,7 +12,6 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
  */
 internal class ApplyConfirmedSharedTemplateEditUseCase(
     private val updateRecordWithNewTemplateUseCase: UpdateRecordWithNewTemplateUseCase,
-    private val editTemplateUseCase: EditTemplateUseCase,
     private val recordsRepository: RecordsRepository,
     private val appContext: Context,
 ) {
@@ -35,11 +35,11 @@ internal class ApplyConfirmedSharedTemplateEditUseCase(
 
             ChangeImagesTarget.TEMPLATE -> {
                 val templateId = recordsRepository.get(recordId)!!.template.dbId
-                editTemplateUseCase.execute(
+                recordsRepository.updateTemplate(
                     templateId = templateId,
-                    images = images,
-                    title = title,
+                    name = title,
                     description = description,
+                    templateImages = images.map { TemplateImageUpdate(filename = it) },
                 )
             }
         }
