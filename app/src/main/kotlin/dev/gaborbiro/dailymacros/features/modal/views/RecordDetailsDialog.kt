@@ -1,11 +1,8 @@
 package dev.gaborbiro.dailymacros.features.modal.views
 
 import android.content.res.Configuration
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,86 +30,28 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
-import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.RecognisedFood
 import dev.gaborbiro.dailymacros.features.modal.model.VariabilityArchetypePickerEntry
+import dev.gaborbiro.dailymacros.features.modal.usecase.RecordDetailsDialogPreview
+import dev.gaborbiro.dailymacros.features.modal.usecase.deconstructDialogHandle
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityPreviewContent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilitySlotPreview
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityVariantPreview
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-
-private data class RecordDetailsDialogUiModel(
-    val title: TextFieldValue,
-    val titleHint: String,
-    val showRunAIButton: Boolean,
-    val images: List<String>,
-    val analysis: RecognisedFood?,
-    val showProgressIndicator: Boolean,
-    val description: TextFieldValue,
-    val nutrientBreakdown: NutrientBreakdownUiModel?,
-    val allowEdit: Boolean,
-    val variabilityArchetypePickerEntries: List<VariabilityArchetypePickerEntry>,
-    val saveButtonText: String,
-    val showKeyboardOnOpen: Boolean,
-    val showVariabilityDifferentMealLink: Boolean,
-    val titleValidationError: String?,
-)
-
-private fun recordDetailsUiModel(
-    dialogHandle: DialogHandle.RecordDetailsDialog,
-): RecordDetailsDialogUiModel {
-    val showRunAIButton = (dialogHandle as? DialogHandle.RecordDetailsDialog.Edit)
-        ?.showRunAIButton
-        ?: false
-    val analysis = (dialogHandle as? DialogHandle.RecordDetailsDialog.Edit)
-        ?.recognisedFood
-    val showProgressIndicator = (dialogHandle as? DialogHandle.RecordDetailsDialog.Edit)
-        ?.showProgressIndicator
-    val nutrientBreakdown = (dialogHandle as? DialogHandle.RecordDetailsDialog.View)
-        ?.nutrientBreakdown
-    val allowEdit = (dialogHandle as? DialogHandle.RecordDetailsDialog.View)
-        ?.allowEdit
-        ?: true
-    val variabilityArchetypePickerEntries =
-        (dialogHandle as? DialogHandle.RecordDetailsDialog.View)?.variabilityArchetypePickerEntries
-            ?: emptyList()
-    val saveButtonText =
-        if (dialogHandle is DialogHandle.RecordDetailsDialog.View) "Update and Analyze" else "Add and Analyze"
-    val showKeyboardOnOpen = when (dialogHandle) {
-        is DialogHandle.RecordDetailsDialog.Edit -> true
-        is DialogHandle.RecordDetailsDialog.View -> false
-    }
-    return RecordDetailsDialogUiModel(
-        title = dialogHandle.title,
-        titleHint = dialogHandle.titleHint,
-        showRunAIButton = showRunAIButton,
-        images = dialogHandle.images,
-        analysis = analysis,
-        showProgressIndicator = showProgressIndicator ?: false,
-        description = dialogHandle.description,
-        nutrientBreakdown = nutrientBreakdown,
-        allowEdit = allowEdit,
-        variabilityArchetypePickerEntries = variabilityArchetypePickerEntries,
-        saveButtonText = saveButtonText,
-        showKeyboardOnOpen = showKeyboardOnOpen,
-        showVariabilityDifferentMealLink = dialogHandle.showVariabilityDifferentMealLink,
-        titleValidationError = dialogHandle.titleValidationError,
-    )
-}
 
 @Composable
 internal fun RecordDetailsDialog(
@@ -130,7 +69,7 @@ internal fun RecordDetailsDialog(
     onRunAIButtonTapped: () -> Unit,
     onVariabilityDifferentMealLinkTapped: (archetypeKey: String) -> Unit,
 ) {
-    val ui = recordDetailsUiModel(dialogHandle)
+    val ui = deconstructDialogHandle(dialogHandle)
     val showKeyboardOnOpen = remember(dialogHandle) { ui.showKeyboardOnOpen }
 
     ScrollableContentDialog(
@@ -174,110 +113,7 @@ internal fun RecordDetailsDialog(
 }
 
 @Composable
-private fun RecordDetailsDialogButtons(
-    allowEdit: Boolean,
-    saveButtonText: String,
-    onDismissRequested: () -> Unit,
-    onSubmitButtonTapped: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(PaddingDefault),
-        horizontalArrangement = Arrangement.End,
-    ) {
-        if (allowEdit) {
-            TextButton(onDismissRequested) {
-                Text(
-                    modifier = Modifier
-                        .padding(horizontal = PaddingDefault),
-                    color = MaterialTheme.colorScheme.primary,
-                    text = "Cancel",
-                    style = MaterialTheme.typography.labelLarge,
-                )
-            }
-            TextButton(onSubmitButtonTapped) {
-                Text(
-                    modifier = Modifier
-                        .padding(horizontal = PaddingDefault),
-                    color = MaterialTheme.colorScheme.primary,
-                    text = saveButtonText,
-                    style = MaterialTheme.typography.labelLarge,
-                )
-            }
-        } else {
-            TextButton(onDismissRequested) {
-                Text(
-                    modifier = Modifier
-                        .padding(horizontal = PaddingDefault),
-                    color = MaterialTheme.colorScheme.primary,
-                    text = "Close",
-                    style = MaterialTheme.typography.labelLarge,
-                )
-            }
-        }
-    }
-}
-
-/**
- * Studio layout preview only: avoids [ScrollableContentDialog] (Dialog + nested measure) which can trip
- * layoutlib’s cooperative interrupt loop breaker.
- */
-@Composable
-private fun RecordDetailsDialogPreview(
-    dialogHandle: DialogHandle.RecordDetailsDialog,
-    onTitleChanged: (TextFieldValue) -> Unit = {},
-    onDescriptionChanged: (TextFieldValue) -> Unit = {},
-    onSubmitButtonTapped: () -> Unit = {},
-    onImageTapped: (String) -> Unit = {},
-    onImageDeleteTapped: (String) -> Unit = {},
-    onAddImageViaCameraTapped: () -> Unit = {},
-    onAddImageViaPickerTapped: () -> Unit = {},
-    onDismissRequested: () -> Unit = {},
-    onImagesInfoButtonTapped: () -> Unit = {},
-    onRunAIButtonTapped: () -> Unit = {},
-    onVariabilityDifferentMealLinkTapped: (archetypeKey: String) -> Unit = { _ -> },
-) {
-    val ui = recordDetailsUiModel(dialogHandle)
-    val showKeyboardOnOpen = remember(dialogHandle) { ui.showKeyboardOnOpen }
-    ViewPreviewContext {
-        Column(Modifier.verticalScroll(rememberScrollState())) {
-            RecordDetailsDialogContent(
-                onTitleChanged = onTitleChanged,
-                onDescriptionChanged = onDescriptionChanged,
-                showKeyboardOnOpen = showKeyboardOnOpen,
-                images = ui.images,
-                title = ui.title,
-                showRunAIButton = ui.showRunAIButton,
-                titleHint = ui.titleHint,
-                analysis = ui.analysis,
-                showProgressIndicator = ui.showProgressIndicator,
-                description = ui.description,
-                titleErrorMessage = ui.titleValidationError,
-                allowEdit = ui.allowEdit,
-                nutrientBreakdown = ui.nutrientBreakdown,
-                onImageTapped = onImageTapped,
-                onImageDeleteTapped = onImageDeleteTapped,
-                onAddImageViaCameraTapped = onAddImageViaCameraTapped,
-                onAddImageViaPickerTapped = onAddImageViaPickerTapped,
-                onImagesInfoButtonTapped = onImagesInfoButtonTapped,
-                onRunAIButtonTapped = onRunAIButtonTapped,
-                showVariabilityDifferentMealLink = ui.showVariabilityDifferentMealLink,
-                variabilityArchetypePickerEntries = ui.variabilityArchetypePickerEntries,
-                onVariabilityDifferentMealLinkTapped = onVariabilityDifferentMealLinkTapped,
-            )
-            RecordDetailsDialogButtons(
-                allowEdit = ui.allowEdit,
-                saveButtonText = ui.saveButtonText,
-                onDismissRequested = onDismissRequested,
-                onSubmitButtonTapped = onSubmitButtonTapped,
-            )
-        }
-    }
-}
-
-@Composable
-private fun ColumnScope.RecordDetailsDialogContent(
+internal fun ColumnScope.RecordDetailsDialogContent(
     onTitleChanged: (TextFieldValue) -> Unit,
     onDescriptionChanged: (TextFieldValue) -> Unit,
     showKeyboardOnOpen: Boolean,
@@ -479,6 +315,10 @@ private fun ColumnScope.RecordDetailsDialogContent(
 
     if (showVariabilityDifferentMealLink) {
         variabilityArchetypePickerEntries.forEach { entry ->
+            Spacer(
+                modifier = Modifier
+                    .height(PaddingHalf)
+            )
             TextButton(
                 modifier = Modifier
                     .padding(horizontal = PaddingDefault)

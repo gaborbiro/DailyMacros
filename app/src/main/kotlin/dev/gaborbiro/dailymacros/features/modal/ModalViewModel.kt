@@ -58,6 +58,7 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 
 internal class ModalViewModel(
+    private val modalUiMapper: ModalUiMapper,
     private val imageStore: ImageStore,
     private val recordsRepository: RecordsRepository,
     private val buildRecordDetailsViewDialogUseCase: BuildRecordDetailsViewDialogUseCase,
@@ -601,7 +602,7 @@ internal class ModalViewModel(
         if (exception is CancellationException) return@CoroutineExceptionHandler
         analyticsLogger.logError(exception)
         val message = when {
-            exception is DomainError -> exception.message()
+            exception is DomainError -> modalUiMapper.mapDomainErrorToUserMessage(exception)
             else -> exception.message ?: exception.cause?.message
         }
         viewModelScope.launch {

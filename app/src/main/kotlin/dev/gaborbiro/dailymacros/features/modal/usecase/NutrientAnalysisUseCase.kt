@@ -7,7 +7,6 @@ import dev.gaborbiro.dailymacros.features.common.RecordsMapper
 import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.features.modal.ModalUiMapper
-import dev.gaborbiro.dailymacros.features.modal.message
 import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
 import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.chatgpt.BuildConfig
@@ -144,14 +143,14 @@ internal class NutrientAnalysisUseCase(
                     id = 123000L + recordId,
                     recordId = recordId,
                     title = "Couldn't fetch macros",
-                    message = domainError.message(),
+                    message = modalUiMapper.mapDomainErrorToUserMessage(domainError),
                     isError = true,
                 )
             }
             throw domainError
         } catch (t: Throwable) {
             if (notifyOnFailure) {
-                val message = (t as? DomainError)?.message()
+                val message = (t as? DomainError)?.let { modalUiMapper.mapDomainErrorToUserMessage(it) }
                     ?: t.message
                     ?: t.cause?.message
                     ?: "Something went wrong while fetching macros. Please try again later."

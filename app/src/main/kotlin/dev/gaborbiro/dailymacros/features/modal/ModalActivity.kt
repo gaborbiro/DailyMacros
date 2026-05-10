@@ -218,6 +218,7 @@ class ModalActivity : AppCompatActivity() {
         )
 
         ModalViewModel(
+            modalUiMapper = modalUiMapper,
             imageStore = imageStore,
             recordsRepository = recordsRepository,
             buildRecordDetailsViewDialogUseCase = buildRecordDetailsViewDialogUseCase,

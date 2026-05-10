@@ -9,6 +9,7 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutri
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilitySlotPreview
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityVariantPreview
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.DomainError
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -146,5 +147,37 @@ class ModalUiMapperTest {
         assertNotNull(s)
         assertTrue(s!!.contains("100"))
         assertTrue(s.contains("5"))
+    }
+
+    @Test
+    fun `mapDomainErrorToUserMessage check internet`() {
+        assertEquals(
+            "Internet connectivity error",
+            mapper.mapDomainErrorToUserMessage(DomainError.DisplayMessageToUser.CheckInternetConnection()),
+        )
+    }
+
+    @Test
+    fun `mapDomainErrorToUserMessage contact support`() {
+        assertTrue(
+            mapper.mapDomainErrorToUserMessage(DomainError.DisplayMessageToUser.ContactSupport())
+                .contains("engineers"),
+        )
+    }
+
+    @Test
+    fun `mapDomainErrorToUserMessage custom message`() {
+        assertEquals(
+            "Hello",
+            mapper.mapDomainErrorToUserMessage(DomainError.DisplayMessageToUser.Message("Hello")),
+        )
+    }
+
+    @Test
+    fun `mapDomainErrorToUserMessage try again`() {
+        assertTrue(
+            mapper.mapDomainErrorToUserMessage(DomainError.DisplayMessageToUser.TryAgain())
+                .contains("try again"),
+        )
     }
 }

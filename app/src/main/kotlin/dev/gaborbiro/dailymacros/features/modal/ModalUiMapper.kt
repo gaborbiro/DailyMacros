@@ -5,12 +5,22 @@ import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.VariabilityArchetypePickerEntry
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.DomainError
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
 
 internal class ModalUiMapper(
     private val nutrientsUiMapper: NutrientsUiMapper,
 ) {
+
+    fun mapDomainErrorToUserMessage(error: DomainError): String = when (error) {
+        is DomainError.DisplayMessageToUser.CheckInternetConnection -> "Internet connectivity error"
+        is DomainError.DisplayMessageToUser.ContactSupport ->
+            "Oops. Something went wrong. The issue has been logged and our engineers are looking into it."
+        is DomainError.DisplayMessageToUser.Message -> error.message
+        is DomainError.DisplayMessageToUser.TryAgain ->
+            "Oops. Something went wrong. Please try again later."
+    }
 
     /**
      * Whether record details should show the “different meal type” variability link(s).
