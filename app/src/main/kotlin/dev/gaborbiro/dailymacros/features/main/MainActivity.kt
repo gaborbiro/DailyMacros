@@ -38,10 +38,17 @@ import dev.gaborbiro.dailymacros.features.common.SharedRecordsUiMapper
 import dev.gaborbiro.dailymacros.features.common.util.viewModelFactory
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.common.workers.MineMealVariabilityWorker
+import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
 import dev.gaborbiro.dailymacros.features.overview.OverviewPrefs
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewUiMapper
 import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
+import dev.gaborbiro.dailymacros.features.overview.usecase.CancelMacrosAnalysisForRecordUseCase
+import dev.gaborbiro.dailymacros.features.overview.usecase.ComputeOverviewHasMoreItemsUseCase
+import dev.gaborbiro.dailymacros.features.overview.usecase.DeleteUnusedTemplateIfOrphanedUseCase
+import dev.gaborbiro.dailymacros.features.overview.usecase.RefreshMacrosAnalysisForRecordUseCase
+import dev.gaborbiro.dailymacros.features.overview.usecase.ResolveOverviewCoachMarkUseCase
+import dev.gaborbiro.dailymacros.features.overview.usecase.ResolveOverviewObserveSinceEpochMillisUseCase
 import dev.gaborbiro.dailymacros.features.settings.SettingsAppInfo
 import dev.gaborbiro.dailymacros.features.settings.SettingsPrefs
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
@@ -131,6 +138,14 @@ class MainActivity : ComponentActivity() {
         val recordsMapper = RecordsMapper()
         val overviewUiMapper = OverviewUiMapper(recordsUiMapper, nutrientsUiMapper, recordsMapper)
         val createRecordFromTemplateUseCase = CreateRecordFromTemplateUseCase(recordsRepository)
+        val resolveObserveSinceEpochMillis = ResolveOverviewObserveSinceEpochMillisUseCase()
+        val computeOverviewHasMoreItems = ComputeOverviewHasMoreItemsUseCase()
+        val resolveOverviewCoachMark = ResolveOverviewCoachMarkUseCase(overviewPrefs)
+        val deleteUnusedTemplateIfOrphaned = DeleteUnusedTemplateIfOrphanedUseCase(recordsRepository)
+        val refreshMacrosAnalysisForRecord = RefreshMacrosAnalysisForRecordUseCase(this@MainActivity)
+        val cancelMacrosAnalysisForRecord = CancelMacrosAnalysisForRecordUseCase(this@MainActivity)
+        val applyQuickPickOverrideAndReloadWidget =
+            ApplyQuickPickOverrideAndReloadWidgetUseCase(recordsRepository)
 
         setContent {
             AppTheme {
@@ -140,7 +155,13 @@ class MainActivity : ComponentActivity() {
                         recordsRepository = recordsRepository,
                         settingsRepository = settingsRepository,
                         uiMapper = overviewUiMapper,
-                        overviewPrefs = overviewPrefs,
+                        resolveObserveSinceEpochMillis = resolveObserveSinceEpochMillis,
+                        computeHasMoreItems = computeOverviewHasMoreItems,
+                        resolveCoachMark = resolveOverviewCoachMark,
+                        deleteUnusedTemplateIfOrphaned = deleteUnusedTemplateIfOrphaned,
+                        refreshMacrosAnalysisForRecord = refreshMacrosAnalysisForRecord,
+                        cancelMacrosAnalysisForRecord = cancelMacrosAnalysisForRecord,
+                        applyQuickPickOverrideAndReloadWidget = applyQuickPickOverrideAndReloadWidget,
                         createRecordFromTemplateUseCase = createRecordFromTemplateUseCase,
                     )
                 }
