@@ -14,27 +14,6 @@ import dev.gaborbiro.dailymacros.features.modal.ModalActivity
 private const val PREFS_KEY_RECORD = "recordId"
 private const val PREFS_KEY_TEMPLATE = "templateId"
 
-internal interface WidgetActionProvider {
-
-    fun createRecordWithCamera(): Action
-
-    fun createRecordWithImagePicker(): Action
-
-    fun createRecord(): Action
-
-    fun recordImageTapped(recordId: Long): Action
-
-    fun recordBodyTapped(recordId: Long): Action
-
-    fun quickPickImageTapped(templateId: Long): Action
-
-    fun quickPickBodyTapped(templateId: Long): Action
-
-    fun reload(): Action
-
-    fun openApp(): Action
-}
-
 internal class WidgetActionProviderImpl : WidgetActionProvider {
 
     override fun createRecordWithCamera(): Action {
@@ -173,6 +152,6 @@ internal class RefreshAction : ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters,
     ) {
-        DiaryWidgetScreen.reload()
+        DiaryWidgetScreen.reload(context.applicationContext)
     }
 }

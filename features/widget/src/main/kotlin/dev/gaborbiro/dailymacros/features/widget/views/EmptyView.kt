@@ -26,7 +26,7 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
-import dev.gaborbiro.dailymacros.R
+import dev.gaborbiro.dailymacros.features.widget.R
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreviewContext
 

@@ -98,6 +98,7 @@ dependencies {
     implementation(project(":features:shared"))
     implementation(project(":features:settings"))
     implementation(project(":features:trends"))
+    implementation(project(":features:widget"))
     implementation(project(":repositories:backup"))
     implementation(project(":repositories:chatgpt"))
     implementation(project(":repositories:records"))
@@ -132,9 +133,6 @@ dependencies {
 
 
     implementation(libs.androidx.glance.appwidget)
-    implementation(libs.androidx.glance.appwidget.preview)
-    implementation(libs.androidx.glance.preview)
-    implementation(libs.androidx.glance.material3)
 
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)

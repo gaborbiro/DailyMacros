@@ -17,7 +17,7 @@ import androidx.glance.layout.padding
 import androidx.glance.layout.wrapContentHeight
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
-import dev.gaborbiro.dailymacros.R
+import dev.gaborbiro.dailymacros.features.widget.R
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDouble
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreviewContext
 

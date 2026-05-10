@@ -152,6 +152,7 @@ class MainActivity : ComponentActivity() {
                 val navController: NavHostController = rememberNavController()
                 val overviewViewModel = viewModelFactory {
                     OverviewViewModel(
+                        application = applicationContext as Application,
                         recordsRepository = recordsRepository,
                         settingsRepository = settingsRepository,
                         uiMapper = overviewUiMapper,

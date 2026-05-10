@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.features.overview
 
+import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
@@ -36,6 +37,7 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.seconds
 
 internal class OverviewViewModel(
+    private val application: Application,
     private val recordsRepository: RecordsRepository,
     private val settingsRepository: SettingsRepository,
     private val uiMapper: OverviewUiMapper,
@@ -151,7 +153,7 @@ internal class OverviewViewModel(
         viewModelScope.launch {
             val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return@launch
             createRecordFromTemplateUseCase.execute(templateId)
-            DiaryWidgetScreen.reload()
+            DiaryWidgetScreen.reload(application.applicationContext)
         }
     }
 
@@ -171,7 +173,7 @@ internal class OverviewViewModel(
         viewModelScope.launch {
             val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return@launch
             applyQuickPickOverrideAndReloadWidget.execute(templateId, Template.QuickPickOverride.INCLUDE)
-            DiaryWidgetScreen.reload()
+            DiaryWidgetScreen.reload(application.applicationContext)
         }
     }
 
@@ -184,7 +186,7 @@ internal class OverviewViewModel(
                     recordToUndelete = oldRecord,
                 )
             }
-            DiaryWidgetScreen.reload()
+            DiaryWidgetScreen.reload(application.applicationContext)
             cancelMacrosAnalysisForRecord.execute(recordId)
         }
     }
@@ -210,7 +212,7 @@ internal class OverviewViewModel(
                 recordToUndelete = null,
             )
         }
-        DiaryWidgetScreen.reload()
+        DiaryWidgetScreen.reload(application.applicationContext)
     }
 
     fun onUndoDeleteDismissed() {
@@ -242,7 +244,7 @@ internal class OverviewViewModel(
     private fun deleteUnusedTemplateAfterUndo(templateId: Long) {
         viewModelScope.launch {
             deleteUnusedTemplateIfOrphaned.execute(templateId)
-            DiaryWidgetScreen.reload()
+            DiaryWidgetScreen.reload(application.applicationContext)
         }
     }
 

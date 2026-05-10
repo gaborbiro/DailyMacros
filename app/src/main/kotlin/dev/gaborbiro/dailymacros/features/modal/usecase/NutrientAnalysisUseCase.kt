@@ -49,7 +49,7 @@ internal class NutrientAnalysisUseCase(
                     inputStreamToBase64(inputStream)
                 }
             requestStatusRepository.markAsPending(record.template.dbId)
-            DiaryWidgetScreen.reload()
+            DiaryWidgetScreen.reload(appContext)
 
             val nutrientsAnalysisResponse = runCatching {
                 chatGPTRepository.analyseNutrients(
@@ -165,7 +165,7 @@ internal class NutrientAnalysisUseCase(
             throw t
         } finally {
             requestStatusRepository.unmark(record.template.dbId)
-            DiaryWidgetScreen.reload()
+            DiaryWidgetScreen.reload(appContext)
         }
     }
 }

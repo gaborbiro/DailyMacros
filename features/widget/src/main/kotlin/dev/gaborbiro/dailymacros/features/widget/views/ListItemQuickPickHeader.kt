@@ -17,7 +17,7 @@ import androidx.glance.layout.wrapContentWidth
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
-import dev.gaborbiro.dailymacros.R
+import dev.gaborbiro.dailymacros.features.widget.R
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreviewContext
 
