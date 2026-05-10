@@ -39,16 +39,21 @@ import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
+import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyConfirmedSharedTemplateEditUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyTemplateVariantPickerSelectionUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.BuildRecordDetailsViewDialogUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.DeleteRecordUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetVariabilityMatchForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.OpenTemplateVariantPickerFromRecordDetailsUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveFirstRecordIdForTemplateUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveSelectRecordActionDialogUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveSelectTemplateActionDialogUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
@@ -168,7 +173,7 @@ class ModalActivity : AppCompatActivity() {
 
         val nutrientsUiMapper = NutrientsUiMapper()
         val modalUiMapper = ModalUiMapper(nutrientsUiMapper)
-        val deleteRecordUseCase = DeleteRecordUseCase(recordsRepository)
+        val deleteRecordUseCase = DeleteRecordUseCase(recordsRepository, applicationContext)
         val createRecordFromTemplateUseCase = CreateRecordFromTemplateUseCase(recordsRepository)
         val createTemplateUseCase = CreateTemplateUseCase(recordsRepository)
         val repeatRecordUseCase =
@@ -192,16 +197,38 @@ class ModalActivity : AppCompatActivity() {
             templateVariabilityPreviewMapper = templateVariabilityPreviewMapper,
         )
 
+        val buildRecordDetailsViewDialogUseCase = BuildRecordDetailsViewDialogUseCase(
+            getVariabilityMatchForTemplateUseCase = getVariabilityMatchForTemplateUseCase,
+            uiMapper = modalUiMapper,
+        )
+        val resolveSelectRecordActionDialogUseCase =
+            ResolveSelectRecordActionDialogUseCase(recordsRepository)
+        val resolveSelectTemplateActionDialogUseCase =
+            ResolveSelectTemplateActionDialogUseCase(recordsRepository)
+        val resolveFirstRecordIdForTemplateUseCase =
+            ResolveFirstRecordIdForTemplateUseCase(recordsRepository)
+        val applyQuickPickOverrideAndReloadWidgetUseCase =
+            ApplyQuickPickOverrideAndReloadWidgetUseCase(recordsRepository)
+        val updateRecordWithNewTemplateUseCase =
+            UpdateRecordWithNewTemplateUseCase(recordsRepository, createTemplateUseCase)
+        val applyConfirmedSharedTemplateEditUseCase = ApplyConfirmedSharedTemplateEditUseCase(
+            updateRecordWithNewTemplateUseCase = updateRecordWithNewTemplateUseCase,
+            recordsRepository = recordsRepository,
+            appContext = applicationContext,
+        )
+
         ModalViewModel(
             imageStore = imageStore,
             recordsRepository = recordsRepository,
+            buildRecordDetailsViewDialogUseCase = buildRecordDetailsViewDialogUseCase,
+            resolveSelectRecordActionDialogUseCase = resolveSelectRecordActionDialogUseCase,
+            resolveSelectTemplateActionDialogUseCase = resolveSelectTemplateActionDialogUseCase,
+            resolveFirstRecordIdForTemplateUseCase = resolveFirstRecordIdForTemplateUseCase,
             openTemplateVariantPickerFromRecordDetailsUseCase = openTemplateVariantPickerFromRecordDetailsUseCase,
             applyTemplateVariantPickerSelectionUseCase = applyTemplateVariantPickerSelectionUseCase,
-            getVariabilityMatchForTemplateUseCase = getVariabilityMatchForTemplateUseCase,
             createRecordFromTemplateUseCase = createRecordFromTemplateUseCase,
             createRecordWithNewTemplateUseCase = CreateRecordWithNewTemplateUseCase(createTemplateUseCase, createRecordFromTemplateUseCase),
-            updateRecordWithNewTemplateUseCase = UpdateRecordWithNewTemplateUseCase(recordsRepository, createTemplateUseCase),
-            editTemplateUseCase = EditTemplateUseCase(recordsRepository),
+            updateRecordWithNewTemplateUseCase = updateRecordWithNewTemplateUseCase,
             repeatRecordUseCase = repeatRecordUseCase,
             validateEditRecordUseCase = ValidateEditRecordUseCase(recordsRepository),
             validateCreateRecordUseCase = ValidateCreateRecordUseCase(),
@@ -209,8 +236,9 @@ class ModalActivity : AppCompatActivity() {
             getRecordImageUseCase = GetRecordImageUseCase(recordsRepository),
             getTemplateImageUseCase = GetTemplateImageUseCase(recordsRepository),
             foodRecognitionUseCase = FoodRecognitionUseCase(this, imageStore, chatGPTRepository),
+            applyQuickPickOverrideAndReloadWidgetUseCase = applyQuickPickOverrideAndReloadWidgetUseCase,
+            applyConfirmedSharedTemplateEditUseCase = applyConfirmedSharedTemplateEditUseCase,
             deleteRecordUseCase = deleteRecordUseCase,
-            uiMapper = modalUiMapper,
             analyticsLogger = analyticsLogger,
         )
     }
@@ -303,33 +331,33 @@ class ModalActivity : AppCompatActivity() {
 
     private fun handleAction(action: Action, intent: Intent = this.intent) {
         when (action) {
-            Action.CAMERA -> viewModel.onCreateRecordWithCameraDeeplink()
-            Action.BROWSE_IMAGES -> viewModel.onCreateRecordWithBrowseImagesDeeplink()
-            Action.TEXT_ONLY -> viewModel.onCreateRecordWithTextDeeplink()
+            Action.CAMERA -> viewModel.onCreateRecordWithCameraDeeplinkReceived()
+            Action.BROWSE_IMAGES -> viewModel.onCreateRecordWithBrowseImagesDeeplinkReceived()
+            Action.TEXT_ONLY -> viewModel.onCreateRecordWithTextDeeplinkReceived()
 
             Action.VIEW_RECORD_DETAILS -> {
                 val recordId = intent.getLongExtra(EXTRA_RECORD_ID, -1L)
-                viewModel.onViewRecordDetailsDeeplink(recordId)
+                viewModel.onViewRecordDetailsDeeplinkReceived(recordId)
             }
 
             Action.VIEW_IMAGE -> {
                 val recordId = intent.getLongExtra(EXTRA_RECORD_ID, -1L)
                 if (recordId != -1L) {
-                    viewModel.viewRecordImageDeeplink(recordId)
+                    viewModel.onViewRecordImageDeeplinkReceived(recordId)
                 } else {
                     val templateId = intent.getLongExtra(EXTRA_TEMPLATE_ID, -1L)
-                    viewModel.onViewTemplateImageDeeplink(templateId)
+                    viewModel.onViewTemplateImageDeeplinkReceived(templateId)
                 }
             }
 
             Action.SELECT_RECORD_ACTION -> {
                 val recordId = intent.getLongExtra(EXTRA_RECORD_ID, -1L)
-                viewModel.onSelectRecordActionDeeplink(recordId)
+                viewModel.onSelectRecordActionDeeplinkReceived(recordId)
             }
 
             Action.SELECT_TEMPLATE_ACTION -> {
                 val templateId = intent.getLongExtra(EXTRA_TEMPLATE_ID, -1L)
-                viewModel.onSelectTemplateActionDeeplink(templateId)
+                viewModel.onSelectTemplateActionDeeplinkReceived(templateId)
             }
         }
     }

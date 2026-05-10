@@ -13,13 +13,13 @@ import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.chatgpt.BuildConfig
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.DomainError
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.MealAnalysisComponent
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.MealComponent as ChatGPTMealComponent
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repositories.chatgpt.toDomainModel
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.ComponentConfidence
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent as TemplateMealComponent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
@@ -51,7 +51,8 @@ internal class NutrientAnalysisUseCase(
                 }
             requestStatusRepository.markAsPending(record.template.dbId)
             DiaryWidgetScreen.reload()
-            val nutrientsResponse = runCatching {
+
+            val nutrientsAnalysisResponse = runCatching {
                 chatGPTRepository.analyseNutrients(
                     request = recordsMapper.mapToNutrientAnalysisRequest(
                         record = record,
@@ -60,7 +61,7 @@ internal class NutrientAnalysisUseCase(
                 )
             }
 
-            nutrientsResponse
+            nutrientsAnalysisResponse
                 .exceptionOrNull()
                 ?.let {
                     if (it is ChatGPTApiError.InternetApiError) {
@@ -73,17 +74,17 @@ internal class NutrientAnalysisUseCase(
                     throw it
                 }
 
-            nutrientsResponse.getOrNull()?.let { nutrientsResponse ->
-                val (nutrients: Pair<NutrientBreakdown, TopContributors>?, error: String?) = recordsMapper.mapNutrientAnalysisResponse(nutrientsResponse)
+            nutrientsAnalysisResponse.getOrNull()?.let { nutrientsAnalysisResult ->
+                val (nutrients: Pair<NutrientBreakdown, TopContributors>?, error: String?) = recordsMapper.mapNutrientAnalysisResponse(nutrientsAnalysisResult)
                 val templateNutrients: Pair<TemplateNutrientBreakdown, TopContributors>? = nutrients?.let {
                     recordsMapper.map(nutrients.first) to nutrients.second
                 }
-                val name = record.template.name.takeIf { it.isNotBlank() } ?: nutrientsResponse.title
+                val name = record.template.name.takeIf { it.isNotBlank() } ?: nutrientsAnalysisResult.title
                 val templateImagesWhenSavingMacros = templateNutrients?.let {
                     record.template.images.mapIndexed { index, filename ->
                         TemplateImageUpdate(
                             filename = filename,
-                            isRepresentativeOfMeal = nutrientsResponse.isRepresentativeOfMealByImageIndex.getOrNull(index),
+                            isRepresentativeOfMeal = nutrientsAnalysisResult.isRepresentativeOfMealByImageIndex.getOrNull(index),
                         )
                     }
                 }
@@ -93,10 +94,10 @@ internal class NutrientAnalysisUseCase(
                     name = name,
                     templateImages = templateImagesWhenSavingMacros,
                     nutrients = templateNutrients,
-                    notes = nutrientsResponse.notes,
-                    mealComponents = templateNutrients?.let { nutrientsResponse.components.toMealComponents() },
+                    notes = nutrientsAnalysisResult.notes,
+                    mealComponents = templateNutrients?.let { nutrientsAnalysisResult.components.toMealComponents() },
                 )
-                val cachedTokensMessage = if (BuildConfig.DEBUG) "Cached tokens: ${nutrientsResponse.cachedTokens}" else null
+                val cachedTokensMessage = if (BuildConfig.DEBUG) "Cached tokens: ${nutrientsAnalysisResult.cachedTokens}" else null
                 nutrients
                     ?.let {
                         val macrosStr = modalUiMapper.mapMacrosPrintout(nutrients.first)
@@ -170,9 +171,9 @@ internal class NutrientAnalysisUseCase(
     }
 }
 
-private fun List<MealAnalysisComponent>.toMealComponents(): List<MealComponent> =
+private fun List<ChatGPTMealComponent>.toMealComponents(): List<TemplateMealComponent> =
     map { component ->
-        MealComponent(
+        TemplateMealComponent(
             name = component.name,
             estimatedAmount = component.estimatedAmount,
             confidence = when (component.confidence.lowercase()) {

@@ -1,9 +1,9 @@
 package dev.gaborbiro.dailymacros.features.common
 
 import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisResult
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientApiModel
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientsApiModel
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.Nutrient
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.Nutrients
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
@@ -53,7 +53,7 @@ class RecordsMapperTest {
 
     @Test
     fun `mapNutrientAnalysisResponse passes through error when nutrients null`() {
-        val res = NutrientAnalysisResult(
+        val res = NutrientAnalysis(
             nutrients = null,
             title = null,
             notes = null,
@@ -69,17 +69,17 @@ class RecordsMapperTest {
 
     @Test
     fun `mapNutrientAnalysisResponse maps nutrients and contributors`() {
-        val res = NutrientAnalysisResult(
-            nutrients = NutrientsApiModel(
+        val res = NutrientAnalysis(
+            nutrients = Nutrients(
                 calories = 400,
-                protein = NutrientApiModel(20f, "chicken"),
-                fat = NutrientApiModel(10f, "oil"),
-                ofWhichSaturated = NutrientApiModel(2f, "butter"),
-                carb = NutrientApiModel(40f, "rice"),
-                ofWhichSugar = NutrientApiModel(5f, "honey"),
-                ofWhichAddedSugar = NutrientApiModel(1f, "syrup"),
-                salt = NutrientApiModel(1.5f, "soy"),
-                fibre = NutrientApiModel(6f, "veg"),
+                protein = Nutrient(20f, "chicken"),
+                fat = Nutrient(10f, "oil"),
+                ofWhichSaturated = Nutrient(2f, "butter"),
+                carb = Nutrient(40f, "rice"),
+                ofWhichSugar = Nutrient(5f, "honey"),
+                ofWhichAddedSugar = Nutrient(1f, "syrup"),
+                salt = Nutrient(1.5f, "soy"),
+                fibre = Nutrient(6f, "veg"),
             ),
             title = null,
             notes = null,
@@ -131,9 +131,9 @@ class RecordsMapperTest {
 
     @Test
     fun `mapNutrientAnalysisResponse maps partial nutrients leaving other contributors null`() {
-        val nutrients = NutrientsApiModel(
+        val nutrients = Nutrients(
             calories = null,
-            protein = NutrientApiModel(null, "p"),
+            protein = Nutrient(null, "p"),
             fat = null,
             ofWhichSaturated = null,
             carb = null,
@@ -142,7 +142,7 @@ class RecordsMapperTest {
             salt = null,
             fibre = null,
         )
-        val res = NutrientAnalysisResult(
+        val res = NutrientAnalysis(
             nutrients = nutrients,
             title = null,
             notes = null,

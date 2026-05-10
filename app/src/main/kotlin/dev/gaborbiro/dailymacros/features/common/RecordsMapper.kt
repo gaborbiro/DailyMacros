@@ -2,8 +2,8 @@ package dev.gaborbiro.dailymacros.features.common
 
 import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisResult
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientsApiModel
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.Nutrients
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
@@ -18,7 +18,7 @@ internal class RecordsMapper {
         )
     }
 
-    fun mapNutrientAnalysisResponse(response: NutrientAnalysisResult): Pair<Pair<NutrientBreakdown, TopContributors>?, String?> {
+    fun mapNutrientAnalysisResponse(response: NutrientAnalysis): Pair<Pair<NutrientBreakdown, TopContributors>?, String?> {
         val nutrients = response.nutrients?.let {
             mapBreakdown(it) to mapContributors(it)
         }
@@ -26,30 +26,30 @@ internal class RecordsMapper {
         return nutrients to response.error
     }
 
-    private fun mapBreakdown(nutrientsApiModel: NutrientsApiModel): NutrientBreakdown {
+    private fun mapBreakdown(nutrients: Nutrients): NutrientBreakdown {
         return NutrientBreakdown(
-            calories = nutrientsApiModel.calories,
-            protein = nutrientsApiModel.protein?.grams,
-            fat = nutrientsApiModel.fat?.grams,
-            ofWhichSaturated = nutrientsApiModel.ofWhichSaturated?.grams,
-            carbs = nutrientsApiModel.carb?.grams,
-            ofWhichSugar = nutrientsApiModel.ofWhichSugar?.grams,
-            ofWhichAddedSugar = nutrientsApiModel.ofWhichAddedSugar?.grams,
-            salt = nutrientsApiModel.salt?.grams,
-            fibre = nutrientsApiModel.fibre?.grams,
+            calories = nutrients.calories,
+            protein = nutrients.protein?.grams,
+            fat = nutrients.fat?.grams,
+            ofWhichSaturated = nutrients.ofWhichSaturated?.grams,
+            carbs = nutrients.carb?.grams,
+            ofWhichSugar = nutrients.ofWhichSugar?.grams,
+            ofWhichAddedSugar = nutrients.ofWhichAddedSugar?.grams,
+            salt = nutrients.salt?.grams,
+            fibre = nutrients.fibre?.grams,
         )
     }
 
-    private fun mapContributors(nutrientsApiModel: NutrientsApiModel): TopContributors {
+    private fun mapContributors(nutrients: Nutrients): TopContributors {
         return TopContributors(
-            topProteinContributors = nutrientsApiModel.protein?.topContributors,
-            topFatContributors = nutrientsApiModel.fat?.topContributors,
-            topSaturatedFatContributors = nutrientsApiModel.ofWhichSaturated?.topContributors,
-            topCarbsContributors = nutrientsApiModel.carb?.topContributors,
-            topSugarContributors = nutrientsApiModel.ofWhichSugar?.topContributors,
-            topAddedSugarContributors = nutrientsApiModel.ofWhichAddedSugar?.topContributors,
-            topSaltContributors = nutrientsApiModel.salt?.topContributors,
-            topFibreContributors = nutrientsApiModel.fibre?.topContributors,
+            topProteinContributors = nutrients.protein?.topContributors,
+            topFatContributors = nutrients.fat?.topContributors,
+            topSaturatedFatContributors = nutrients.ofWhichSaturated?.topContributors,
+            topCarbsContributors = nutrients.carb?.topContributors,
+            topSugarContributors = nutrients.ofWhichSugar?.topContributors,
+            topAddedSugarContributors = nutrients.ofWhichAddedSugar?.topContributors,
+            topSaltContributors = nutrients.salt?.topContributors,
+            topFibreContributors = nutrients.fibre?.topContributors,
         )
     }
 
