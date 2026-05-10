@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
-import dev.gaborbiro.dailymacros.features.common.util.combine
+import dev.gaborbiro.dailymacros.features.common.utils.combine
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiState
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiUpdates

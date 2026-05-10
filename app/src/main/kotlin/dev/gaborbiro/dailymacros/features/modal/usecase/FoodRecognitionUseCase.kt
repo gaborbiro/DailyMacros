@@ -2,7 +2,7 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import android.content.Context
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
-import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
+import dev.gaborbiro.dailymacros.features.common.utils.inputStreamToBase64
 import dev.gaborbiro.dailymacros.features.modal.model.RecognisedFood
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest

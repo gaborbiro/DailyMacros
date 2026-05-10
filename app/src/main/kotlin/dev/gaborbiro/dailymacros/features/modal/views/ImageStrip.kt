@@ -32,7 +32,7 @@ import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
-import dev.gaborbiro.dailymacros.features.common.util.horizontalScrollWithBar
+import dev.gaborbiro.dailymacros.features.common.utils.horizontalScrollWithBar
 import dev.gaborbiro.dailymacros.features.common.views.LocalImage
 
 

@@ -1,24 +1,21 @@
-package dev.gaborbiro.dailymacros.features.modal
+package dev.gaborbiro.dailymacros.features.common.utils
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
-import android.util.Log
 import androidx.core.graphics.scale
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
-import java.security.MessageDigest
 
 /**
  * Encodes the input stream to a Base64 string. Does not decode image, just streams raw bytes.
  */
-internal fun inputStreamToBase64(
+fun inputStreamToBase64(
     input: InputStream,
     maxSizePx: Int = 1024,               // max dimension for LLM upload
     format: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG,
     quality: Int = 80,                   // 75–85 recommended
 ): String {
-
     // 1️⃣ Decode bitmap
     val original = BitmapFactory.decodeStream(input)
         ?: error("Failed to decode image stream")
@@ -57,13 +54,5 @@ internal fun inputStreamToBase64(
     }
 
     val result = "data:$mimeType;base64,$base64"
-    Log.i("Image SHA-256", result.sha256())
     return result
-}
-
-internal fun String.sha256(): String {
-    val digest = MessageDigest.getInstance("SHA-256")
-        .digest(this.toByteArray(Charsets.UTF_8))
-
-    return digest.joinToString("") { "%02x".format(it) }
 }

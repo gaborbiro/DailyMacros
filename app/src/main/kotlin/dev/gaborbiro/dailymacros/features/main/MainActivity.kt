@@ -35,9 +35,8 @@ import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.shared.RecordsMapper
 import dev.gaborbiro.dailymacros.features.shared.SharedRecordsUiMapper
-import dev.gaborbiro.dailymacros.features.common.util.viewModelFactory
+import dev.gaborbiro.dailymacros.features.common.utils.viewModelFactory
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
-import dev.gaborbiro.dailymacros.features.common.workers.MineMealVariabilityWorker
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
 import dev.gaborbiro.dailymacros.features.overview.OverviewPrefs
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen

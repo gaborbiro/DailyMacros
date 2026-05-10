@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.common.workers
+package dev.gaborbiro.dailymacros.features.main
 
 import android.content.Context
 import android.content.pm.ServiceInfo
@@ -21,11 +21,11 @@ import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
-import dev.gaborbiro.dailymacros.features.shared.ChatGptOkHttpTimeouts
 import dev.gaborbiro.dailymacros.features.settings.SettingsPrefs
 import dev.gaborbiro.dailymacros.features.settings.variability.MEAL_VARIABILITY_MINING_OUTPUT_ERROR
 import dev.gaborbiro.dailymacros.features.settings.variability.MEAL_VARIABILITY_MINING_UNIQUE_WORK
 import dev.gaborbiro.dailymacros.features.settings.variability.MineMealVariabilityPreviewUseCase
+import dev.gaborbiro.dailymacros.features.shared.ChatGptOkHttpTimeouts
 import dev.gaborbiro.dailymacros.repositories.chatgpt.AuthInterceptor
 import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGPTRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.ChatGPTService
@@ -62,7 +62,7 @@ class MineMealVariabilityWorker(
         ImageStoreImpl(fileStore)
     }
 
-    private val database by lazy { AppDatabase.getInstance() }
+    private val database by lazy { AppDatabase.Companion.getInstance() }
 
     private val recordsRepository by lazy {
         RecordsRepositoryImpl(
@@ -190,7 +190,7 @@ class MineMealVariabilityWorker(
                         .build(),
                 )
                 .build()
-            WorkManager.getInstance(context).enqueueUniqueWork(
+            WorkManager.Companion.getInstance(context).enqueueUniqueWork(
                 MEAL_VARIABILITY_MINING_UNIQUE_WORK,
                 ExistingWorkPolicy.KEEP,
                 request,
