@@ -4,6 +4,8 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -52,7 +54,65 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVaria
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
+
+private data class RecordDetailsDialogUiModel(
+    val title: TextFieldValue,
+    val titleHint: String,
+    val showRunAIButton: Boolean,
+    val images: List<String>,
+    val analysis: RecognisedFood?,
+    val showProgressIndicator: Boolean,
+    val description: TextFieldValue,
+    val nutrientBreakdown: NutrientBreakdownUiModel?,
+    val allowEdit: Boolean,
+    val variabilityArchetypePickerEntries: List<VariabilityArchetypePickerEntry>,
+    val saveButtonText: String,
+    val showKeyboardOnOpen: Boolean,
+    val showVariabilityDifferentMealLink: Boolean,
+    val titleValidationError: String?,
+)
+
+private fun recordDetailsUiModel(
+    dialogHandle: DialogHandle.RecordDetailsDialog,
+): RecordDetailsDialogUiModel {
+    val showRunAIButton = (dialogHandle as? DialogHandle.RecordDetailsDialog.Edit)
+        ?.showRunAIButton
+        ?: false
+    val analysis = (dialogHandle as? DialogHandle.RecordDetailsDialog.Edit)
+        ?.recognisedFood
+    val showProgressIndicator = (dialogHandle as? DialogHandle.RecordDetailsDialog.Edit)
+        ?.showProgressIndicator
+    val nutrientBreakdown = (dialogHandle as? DialogHandle.RecordDetailsDialog.View)
+        ?.nutrientBreakdown
+    val allowEdit = (dialogHandle as? DialogHandle.RecordDetailsDialog.View)
+        ?.allowEdit
+        ?: true
+    val variabilityArchetypePickerEntries =
+        (dialogHandle as? DialogHandle.RecordDetailsDialog.View)?.variabilityArchetypePickerEntries
+            ?: emptyList()
+    val saveButtonText =
+        if (dialogHandle is DialogHandle.RecordDetailsDialog.View) "Update and Analyze" else "Add and Analyze"
+    val showKeyboardOnOpen = when (dialogHandle) {
+        is DialogHandle.RecordDetailsDialog.Edit -> true
+        is DialogHandle.RecordDetailsDialog.View -> false
+    }
+    return RecordDetailsDialogUiModel(
+        title = dialogHandle.title,
+        titleHint = dialogHandle.titleHint,
+        showRunAIButton = showRunAIButton,
+        images = dialogHandle.images,
+        analysis = analysis,
+        showProgressIndicator = showProgressIndicator ?: false,
+        description = dialogHandle.description,
+        nutrientBreakdown = nutrientBreakdown,
+        allowEdit = allowEdit,
+        variabilityArchetypePickerEntries = variabilityArchetypePickerEntries,
+        saveButtonText = saveButtonText,
+        showKeyboardOnOpen = showKeyboardOnOpen,
+        showVariabilityDifferentMealLink = dialogHandle.showVariabilityDifferentMealLink,
+        titleValidationError = dialogHandle.titleValidationError,
+    )
+}
 
 @Composable
 internal fun RecordDetailsDialog(
@@ -70,40 +130,8 @@ internal fun RecordDetailsDialog(
     onRunAIButtonTapped: () -> Unit,
     onVariabilityDifferentMealLinkTapped: (archetypeKey: String) -> Unit,
 ) {
-    val title = dialogHandle.title
-    val titleHint = dialogHandle.titleHint
-    val showRunAIButton = (dialogHandle as? DialogHandle.RecordDetailsDialog.Edit)
-        ?.showRunAIButton
-        ?: false
-    val images: List<String> = dialogHandle.images
-    val analysis = (dialogHandle as? DialogHandle.RecordDetailsDialog.Edit)
-        ?.recognisedFood
-    val showProgressIndicator = (dialogHandle as? DialogHandle.RecordDetailsDialog.Edit)
-        ?.showProgressIndicator
-    val description = dialogHandle.description
-    val nutrientBreakdown = (dialogHandle as? DialogHandle.RecordDetailsDialog.View)
-        ?.nutrientBreakdown
-    val allowEdit = (dialogHandle as? DialogHandle.RecordDetailsDialog.View)
-        ?.allowEdit
-        ?: true
-    val templateVariabilityPreview = when (dialogHandle) {
-        is DialogHandle.RecordDetailsDialog.View -> dialogHandle.templateVariabilityPreview
-        is DialogHandle.RecordDetailsDialog.Edit -> dialogHandle.templateVariabilityPreview
-    }
-
-    val variabilityArchetypePickerEntries =
-        (dialogHandle as? DialogHandle.RecordDetailsDialog.View)?.variabilityArchetypePickerEntries
-            ?: emptyList()
-
-    val saveButtonText =
-        if (dialogHandle is DialogHandle.RecordDetailsDialog.View) "Update and Analyze" else "Add and Analyze"
-
-    val showKeyboardOnOpen = remember(dialogHandle) {
-        when (dialogHandle) {
-            is DialogHandle.RecordDetailsDialog.Edit -> true
-            is DialogHandle.RecordDetailsDialog.View -> false
-        }
-    }
+    val ui = recordDetailsUiModel(dialogHandle)
+    val showKeyboardOnOpen = remember(dialogHandle) { ui.showKeyboardOnOpen }
 
     ScrollableContentDialog(
         onDismissRequested = onDismissRequested,
@@ -112,69 +140,140 @@ internal fun RecordDetailsDialog(
                 onTitleChanged = onTitleChanged,
                 onDescriptionChanged = onDescriptionChanged,
                 showKeyboardOnOpen = showKeyboardOnOpen,
-                images = images,
-                title = title,
-                showRunAIButton = showRunAIButton,
-                titleHint = titleHint,
-                analysis = analysis,
-                showProgressIndicator = showProgressIndicator ?: false,
-                description = description,
-                titleErrorMessage = dialogHandle.titleValidationError,
-                allowEdit = allowEdit,
-                nutrientBreakdown = nutrientBreakdown,
+                images = ui.images,
+                title = ui.title,
+                showRunAIButton = ui.showRunAIButton,
+                titleHint = ui.titleHint,
+                analysis = ui.analysis,
+                showProgressIndicator = ui.showProgressIndicator,
+                description = ui.description,
+                titleErrorMessage = ui.titleValidationError,
+                allowEdit = ui.allowEdit,
+                nutrientBreakdown = ui.nutrientBreakdown,
                 onImageTapped = onImageTapped,
                 onImageDeleteTapped = onImageDeleteTapped,
                 onAddImageViaCameraTapped = onAddImageViaCameraTapped,
                 onAddImageViaPickerTapped = onAddImageViaPickerTapped,
                 onImagesInfoButtonTapped = onImagesInfoButtonTapped,
                 onRunAIButtonTapped = onRunAIButtonTapped,
-                templateVariabilityPreview = templateVariabilityPreview,
-                showVariabilityDifferentMealLink = dialogHandle.showVariabilityDifferentMealLink,
-                variabilityArchetypePickerEntries = variabilityArchetypePickerEntries,
+                showVariabilityDifferentMealLink = ui.showVariabilityDifferentMealLink,
+                variabilityArchetypePickerEntries = ui.variabilityArchetypePickerEntries,
                 onVariabilityDifferentMealLinkTapped = onVariabilityDifferentMealLinkTapped,
             )
         },
         errorMessages = errorMessages,
         buttons = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(PaddingDefault),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                if (allowEdit) {
-                    TextButton(onDismissRequested) {
-                        Text(
-                            modifier = Modifier
-                                .padding(horizontal = PaddingDefault),
-                            color = MaterialTheme.colorScheme.primary,
-                            text = "Cancel",
-                            style = MaterialTheme.typography.labelLarge,
-                        )
-                    }
-                    TextButton(onSubmitButtonTapped) {
-                        Text(
-                            modifier = Modifier
-                                .padding(horizontal = PaddingDefault),
-                            color = MaterialTheme.colorScheme.primary,
-                            text = saveButtonText,
-                            style = MaterialTheme.typography.labelLarge,
-                        )
-                    }
-                } else {
-                    TextButton(onDismissRequested) {
-                        Text(
-                            modifier = Modifier
-                                .padding(horizontal = PaddingDefault),
-                            color = MaterialTheme.colorScheme.primary,
-                            text = "Close",
-                            style = MaterialTheme.typography.labelLarge,
-                        )
-                    }
-                }
-            }
+            RecordDetailsDialogButtons(
+                allowEdit = ui.allowEdit,
+                saveButtonText = ui.saveButtonText,
+                onDismissRequested = onDismissRequested,
+                onSubmitButtonTapped = onSubmitButtonTapped,
+            )
         }
     )
+}
+
+@Composable
+private fun RecordDetailsDialogButtons(
+    allowEdit: Boolean,
+    saveButtonText: String,
+    onDismissRequested: () -> Unit,
+    onSubmitButtonTapped: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(PaddingDefault),
+        horizontalArrangement = Arrangement.End,
+    ) {
+        if (allowEdit) {
+            TextButton(onDismissRequested) {
+                Text(
+                    modifier = Modifier
+                        .padding(horizontal = PaddingDefault),
+                    color = MaterialTheme.colorScheme.primary,
+                    text = "Cancel",
+                    style = MaterialTheme.typography.labelLarge,
+                )
+            }
+            TextButton(onSubmitButtonTapped) {
+                Text(
+                    modifier = Modifier
+                        .padding(horizontal = PaddingDefault),
+                    color = MaterialTheme.colorScheme.primary,
+                    text = saveButtonText,
+                    style = MaterialTheme.typography.labelLarge,
+                )
+            }
+        } else {
+            TextButton(onDismissRequested) {
+                Text(
+                    modifier = Modifier
+                        .padding(horizontal = PaddingDefault),
+                    color = MaterialTheme.colorScheme.primary,
+                    text = "Close",
+                    style = MaterialTheme.typography.labelLarge,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Studio layout preview only: avoids [ScrollableContentDialog] (Dialog + nested measure) which can trip
+ * layoutlib’s cooperative interrupt loop breaker.
+ */
+@Composable
+private fun RecordDetailsDialogPreview(
+    dialogHandle: DialogHandle.RecordDetailsDialog,
+    onTitleChanged: (TextFieldValue) -> Unit = {},
+    onDescriptionChanged: (TextFieldValue) -> Unit = {},
+    onSubmitButtonTapped: () -> Unit = {},
+    onImageTapped: (String) -> Unit = {},
+    onImageDeleteTapped: (String) -> Unit = {},
+    onAddImageViaCameraTapped: () -> Unit = {},
+    onAddImageViaPickerTapped: () -> Unit = {},
+    onDismissRequested: () -> Unit = {},
+    onImagesInfoButtonTapped: () -> Unit = {},
+    onRunAIButtonTapped: () -> Unit = {},
+    onVariabilityDifferentMealLinkTapped: (archetypeKey: String) -> Unit = { _ -> },
+) {
+    val ui = recordDetailsUiModel(dialogHandle)
+    val showKeyboardOnOpen = remember(dialogHandle) { ui.showKeyboardOnOpen }
+    ViewPreviewContext {
+        Column(Modifier.verticalScroll(rememberScrollState())) {
+            RecordDetailsDialogContent(
+                onTitleChanged = onTitleChanged,
+                onDescriptionChanged = onDescriptionChanged,
+                showKeyboardOnOpen = showKeyboardOnOpen,
+                images = ui.images,
+                title = ui.title,
+                showRunAIButton = ui.showRunAIButton,
+                titleHint = ui.titleHint,
+                analysis = ui.analysis,
+                showProgressIndicator = ui.showProgressIndicator,
+                description = ui.description,
+                titleErrorMessage = ui.titleValidationError,
+                allowEdit = ui.allowEdit,
+                nutrientBreakdown = ui.nutrientBreakdown,
+                onImageTapped = onImageTapped,
+                onImageDeleteTapped = onImageDeleteTapped,
+                onAddImageViaCameraTapped = onAddImageViaCameraTapped,
+                onAddImageViaPickerTapped = onAddImageViaPickerTapped,
+                onImagesInfoButtonTapped = onImagesInfoButtonTapped,
+                onRunAIButtonTapped = onRunAIButtonTapped,
+                showVariabilityDifferentMealLink = ui.showVariabilityDifferentMealLink,
+                variabilityArchetypePickerEntries = ui.variabilityArchetypePickerEntries,
+                onVariabilityDifferentMealLinkTapped = onVariabilityDifferentMealLinkTapped,
+            )
+            RecordDetailsDialogButtons(
+                allowEdit = ui.allowEdit,
+                saveButtonText = ui.saveButtonText,
+                onDismissRequested = onDismissRequested,
+                onSubmitButtonTapped = onSubmitButtonTapped,
+            )
+        }
+    }
 }
 
 @Composable
@@ -198,7 +297,6 @@ private fun ColumnScope.RecordDetailsDialogContent(
     onAddImageViaPickerTapped: () -> Unit,
     onImagesInfoButtonTapped: () -> Unit,
     onRunAIButtonTapped: () -> Unit,
-    templateVariabilityPreview: TemplateVariabilityPreviewContent?,
     showVariabilityDifferentMealLink: Boolean,
     variabilityArchetypePickerEntries: List<VariabilityArchetypePickerEntry>,
     onVariabilityDifferentMealLinkTapped: (archetypeKey: String) -> Unit,
@@ -377,16 +475,10 @@ private fun ColumnScope.RecordDetailsDialogContent(
         )
 
         NutrientsIndentedList(nutrientBreakdown = nutrientBreakdown)
-
-        Spacer(
-            modifier = Modifier
-                .height(PaddingDefault)
-        )
     }
 
     if (showVariabilityDifferentMealLink) {
         variabilityArchetypePickerEntries.forEach { entry ->
-            Spacer(modifier = Modifier.height(PaddingDefault))
             TextButton(
                 modifier = Modifier
                     .padding(horizontal = PaddingDefault)
@@ -409,31 +501,61 @@ private fun ColumnScope.RecordDetailsDialogContent(
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreviewView() {
-    ViewPreviewContext {
-        RecordDetailsDialog(
-            dialogHandle = DialogHandle.RecordDetailsDialog.View(
-                recordId = 1L,
-                templateDbId = 1L,
-                title = TextFieldValue("Apple"),
-                titleHint = "Give your meal a title",
-                description = TextFieldValue("I ate an apple"),
-                images = listOf("1", "2"),
-                allowEdit = true,
-                nutrientBreakdown = NutrientBreakdownUiModel(
-                    calories = "Calories: 2100 cal",
-                    protein = "Protein: 150g",
-                    fat = "Fat 100g",
-                    ofWhichSaturated = "of which saturated: 20g",
-                    carbs = "Carbs: 100g",
-                    ofWhichSugar = "of which sugar: 30g",
-                    ofWhichAddedSugar = "of which added sugar: 15g",
-                    salt = "Salt: 5g",
-                    fibre = "Fibre: 4.5g",
-                    notes = "Notes: This is a note",
+    RecordDetailsDialogPreview(
+        dialogHandle = DialogHandle.RecordDetailsDialog.View(
+            recordId = 1L,
+            templateDbId = 1L,
+            title = TextFieldValue("Apple"),
+            titleHint = "Give your meal a title",
+            description = TextFieldValue("I ate an apple"),
+            images = listOf("1", "2"),
+            allowEdit = true,
+            nutrientBreakdown = NutrientBreakdownUiModel(
+                calories = "Calories: 2100 cal",
+                protein = "Protein: 150g",
+                fat = "Fat 100g",
+                ofWhichSaturated = "of which saturated: 20g",
+                carbs = "Carbs: 100g",
+                ofWhichSugar = "of which sugar: 30g",
+                ofWhichAddedSugar = "of which added sugar: 15g",
+                salt = "Salt: 5g",
+                fibre = "Fibre: 4.5g",
+                notes = "Notes: This is a note",
+            ),
+            templateVariabilityPreview = TemplateVariabilityPreviewContent(
+                bannerText = "Pick a variant per slot (demo — not saved yet).",
+                archetypePickerLabel = "Toast breakfast",
+                slots = listOf(
+                    TemplateVariabilitySlotPreview(
+                        archetypeKey = "toast",
+                        archetypeDisplayName = "Toast breakfast",
+                        slotKey = "spread",
+                        roleDisplayName = "Spread",
+                        variants = listOf(
+                            TemplateVariabilityVariantPreview("butter", "Butter"),
+                            TemplateVariabilityVariantPreview("jam", "Jam"),
+                        ),
+                    ),
                 ),
-                templateVariabilityPreview = TemplateVariabilityPreviewContent(
-                    bannerText = "Pick a variant per slot (demo — not saved yet).",
-                    archetypePickerLabel = "Toast breakfast",
+            ),
+            variabilityArchetypes = listOf(
+                VariabilityArchetype(
+                    archetypeKey = "toast",
+                    displayName = "Toast breakfast",
+                    titleAliasesJson = "[]",
+                    evidenceCount = 0,
+                    lastSeenTimestamp = null,
+                    archetypeNotes = null,
+                    deprecated = false,
+                    deprecatedReason = null,
+                    slots = emptyList(),
+                    sortOrder = 0,
+                ),
+            ),
+            variabilityArchetypePickerEntries = listOf(
+                VariabilityArchetypePickerEntry(
+                    archetypeKey = "toast",
+                    linkTitle = "Toast breakfast",
                     slots = listOf(
                         TemplateVariabilitySlotPreview(
                             archetypeKey = "toast",
@@ -447,86 +569,28 @@ private fun NoteInputDialogContentPreviewView() {
                         ),
                     ),
                 ),
-                variabilityArchetypes = listOf(
-                    VariabilityArchetype(
-                        archetypeKey = "toast",
-                        displayName = "Toast breakfast",
-                        titleAliasesJson = "[]",
-                        evidenceCount = 0,
-                        lastSeenTimestamp = null,
-                        archetypeNotes = null,
-                        deprecated = false,
-                        deprecatedReason = null,
-                        slots = emptyList(),
-                        sortOrder = 0,
-                    ),
-                ),
-                variabilityArchetypePickerEntries = listOf(
-                    VariabilityArchetypePickerEntry(
-                        archetypeKey = "toast",
-                        linkTitle = "Toast breakfast",
-                        slots = listOf(
-                            TemplateVariabilitySlotPreview(
-                                archetypeKey = "toast",
-                                archetypeDisplayName = "Toast breakfast",
-                                slotKey = "spread",
-                                roleDisplayName = "Spread",
-                                variants = listOf(
-                                    TemplateVariabilityVariantPreview("butter", "Butter"),
-                                    TemplateVariabilityVariantPreview("jam", "Jam"),
-                                ),
-                            ),
-                        ),
-                    ),
-                ),
-                showVariabilityDifferentMealLink = true,
             ),
-            errorMessages = emptyFlow(),
-            onTitleChanged = {},
-            onDescriptionChanged = {},
-            onSubmitButtonTapped = {},
-            onImageTapped = {},
-            onImageDeleteTapped = {},
-            onAddImageViaCameraTapped = {},
-            onAddImageViaPickerTapped = {},
-            onDismissRequested = {},
-            onImagesInfoButtonTapped = {},
-            onRunAIButtonTapped = {},
-            onVariabilityDifferentMealLinkTapped = { _ -> },
-        )
-    }
+            showVariabilityDifferentMealLink = true,
+        ),
+    )
 }
 
 @Preview
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreviewSuggestion() {
-    ViewPreviewContext {
-        RecordDetailsDialog(
-            dialogHandle = DialogHandle.RecordDetailsDialog.Edit(
-                title = TextFieldValue(),
-                titleHint = "Give your meal a title",
-                description = TextFieldValue(),
-                images = listOf("1", "2"),
-                recognisedFood = RecognisedFood(
-                    title = "This is a title suggestion",
-                    description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
-                ),
+    RecordDetailsDialogPreview(
+        dialogHandle = DialogHandle.RecordDetailsDialog.Edit(
+            title = TextFieldValue(),
+            titleHint = "Give your meal a title",
+            description = TextFieldValue(),
+            images = listOf("1", "2"),
+            recognisedFood = RecognisedFood(
+                title = "This is a title suggestion",
+                description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
             ),
-            errorMessages = emptyFlow(),
-            onTitleChanged = {},
-            onDescriptionChanged = {},
-            onSubmitButtonTapped = {},
-            onImageTapped = {},
-            onImageDeleteTapped = {},
-            onAddImageViaCameraTapped = {},
-            onAddImageViaPickerTapped = {},
-            onDismissRequested = {},
-            onImagesInfoButtonTapped = {},
-            onRunAIButtonTapped = {},
-            onVariabilityDifferentMealLinkTapped = { _ -> },
-        )
-    }
+        ),
+    )
 }
 
 
@@ -534,61 +598,33 @@ private fun NoteInputDialogContentPreviewSuggestion() {
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreview() {
-    ViewPreviewContext {
-        RecordDetailsDialog(
-            dialogHandle = DialogHandle.RecordDetailsDialog.Edit(
-                title = TextFieldValue(),
-                titleHint = "What did you eat?",
-                description = TextFieldValue(),
-                images = listOf("1", "2"),
-                showProgressIndicator = true,
-                recognisedFood = null,
-            ),
-            errorMessages = emptyFlow(),
-            onTitleChanged = {},
-            onDescriptionChanged = {},
-            onSubmitButtonTapped = {},
-            onImageTapped = {},
-            onImageDeleteTapped = {},
-            onAddImageViaCameraTapped = {},
-            onAddImageViaPickerTapped = {},
-            onDismissRequested = {},
-            onImagesInfoButtonTapped = {},
-            onRunAIButtonTapped = {},
-            onVariabilityDifferentMealLinkTapped = { _ -> },
-        )
-    }
+    RecordDetailsDialogPreview(
+        dialogHandle = DialogHandle.RecordDetailsDialog.Edit(
+            title = TextFieldValue(),
+            titleHint = "What did you eat?",
+            description = TextFieldValue(),
+            images = listOf("1", "2"),
+            showProgressIndicator = true,
+            recognisedFood = null,
+        ),
+    )
 }
 
 @Preview
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun NoteInputDialogContentPreviewError() {
-    ViewPreviewContext {
-        RecordDetailsDialog(
-            dialogHandle = DialogHandle.RecordDetailsDialog.Edit(
-                title = TextFieldValue(),
-                titleHint = "Give your meal a title",
-                titleValidationError = "error",
-                description = TextFieldValue(),
-                images = listOf("1", "2"),
-                recognisedFood = RecognisedFood(
-                    title = "This is a title suggestion",
-                    description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
-                ),
+    RecordDetailsDialogPreview(
+        dialogHandle = DialogHandle.RecordDetailsDialog.Edit(
+            title = TextFieldValue(),
+            titleHint = "Give your meal a title",
+            titleValidationError = "error",
+            description = TextFieldValue(),
+            images = listOf("1", "2"),
+            recognisedFood = RecognisedFood(
+                title = "This is a title suggestion",
+                description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
             ),
-            errorMessages = emptyFlow(),
-            onTitleChanged = {},
-            onDescriptionChanged = {},
-            onSubmitButtonTapped = {},
-            onImageTapped = {},
-            onImageDeleteTapped = {},
-            onAddImageViaCameraTapped = {},
-            onAddImageViaPickerTapped = {},
-            onDismissRequested = {},
-            onImagesInfoButtonTapped = {},
-            onRunAIButtonTapped = {},
-            onVariabilityDifferentMealLinkTapped = { _ -> },
-        )
-    }
+        ),
+    )
 }
