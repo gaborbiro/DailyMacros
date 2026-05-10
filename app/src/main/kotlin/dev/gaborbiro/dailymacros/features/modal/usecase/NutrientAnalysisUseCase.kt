@@ -3,10 +3,10 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 import android.content.Context
 import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
+import dev.gaborbiro.dailymacros.features.shared.MacrosNotificationTextMapper
 import dev.gaborbiro.dailymacros.features.shared.RecordsMapper
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
-import dev.gaborbiro.dailymacros.features.modal.ModalUiMapper
 import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64
 import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.chatgpt.BuildConfig
@@ -33,7 +33,7 @@ internal class NutrientAnalysisUseCase(
     private val recordsRepository: RecordsRepository,
     private val requestStatusRepository: RequestStatusRepository,
     private val recordsMapper: RecordsMapper,
-    private val modalUiMapper: ModalUiMapper,
+    private val macrosNotificationTextMapper: MacrosNotificationTextMapper,
 ) {
 
     suspend fun execute(
@@ -99,7 +99,7 @@ internal class NutrientAnalysisUseCase(
                 val cachedTokensMessage = if (BuildConfig.DEBUG) "Cached tokens: ${nutrientsAnalysisResult.cachedTokens}" else null
                 nutrients
                     ?.let {
-                        val macrosStr = modalUiMapper.mapMacrosPrintout(nutrients.first)
+                        val macrosStr = macrosNotificationTextMapper.mapMacrosPrintout(nutrients.first)
                         val message = listOfNotNull(name.ellipsize(50), macrosStr, error, cachedTokensMessage).joinToString("\n").trim()
                         message.takeIf { it.isNotBlank() }?.let {
                             appContext.showMacroResultsNotification(
@@ -143,14 +143,14 @@ internal class NutrientAnalysisUseCase(
                     id = 123000L + recordId,
                     recordId = recordId,
                     title = "Couldn't fetch macros",
-                    message = modalUiMapper.mapDomainErrorToUserMessage(domainError),
+                    message = macrosNotificationTextMapper.mapDomainErrorToUserMessage(domainError),
                     isError = true,
                 )
             }
             throw domainError
         } catch (t: Throwable) {
             if (notifyOnFailure) {
-                val message = (t as? DomainError)?.let { modalUiMapper.mapDomainErrorToUserMessage(it) }
+                val message = (t as? DomainError)?.let { macrosNotificationTextMapper.mapDomainErrorToUserMessage(it) }
                     ?: t.message
                     ?: t.cause?.message
                     ?: "Something went wrong while fetching macros. Please try again later."
