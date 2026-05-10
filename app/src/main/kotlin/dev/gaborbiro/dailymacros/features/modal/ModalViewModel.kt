@@ -16,32 +16,32 @@ import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiState
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
-import dev.gaborbiro.dailymacros.features.modal.model.VariabilityArchetypePickerEntry
+import dev.gaborbiro.dailymacros.features.modal.model.ChangeImagesTarget
+import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyConfirmedSharedTemplateEditUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyTemplateVariantPickerSelectionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyTemplateVariantPickerSelectionResult
+import dev.gaborbiro.dailymacros.features.modal.usecase.BuildRecordDetailsViewDialogUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateValidationResult
-import dev.gaborbiro.dailymacros.features.modal.usecase.DeleteRecordUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.DeleteRecordWithWorkerCleanupUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveFirstRecordIdForTemplateUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveSelectRecordActionDialogUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveSelectTemplateActionDialogUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.DomainError
-import dev.gaborbiro.dailymacros.features.modal.usecase.GetVariabilityMatchForTemplateUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.NoVariabilityProfileLoadedException
 import dev.gaborbiro.dailymacros.features.modal.usecase.OpenTemplateVariantPickerFromRecordDetailsUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.OpenTemplateVariantPickerResult
-import dev.gaborbiro.dailymacros.features.modal.usecase.TemplateVariabilityMatch
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityPreviewContent
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
 import ellipsize
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -61,13 +61,15 @@ import kotlinx.coroutines.launch
 internal class ModalViewModel(
     private val imageStore: ImageStore,
     private val recordsRepository: RecordsRepository,
+    private val buildRecordDetailsViewDialogUseCase: BuildRecordDetailsViewDialogUseCase,
+    private val resolveSelectRecordActionDialogUseCase: ResolveSelectRecordActionDialogUseCase,
+    private val resolveSelectTemplateActionDialogUseCase: ResolveSelectTemplateActionDialogUseCase,
+    private val resolveFirstRecordIdForTemplateUseCase: ResolveFirstRecordIdForTemplateUseCase,
     private val openTemplateVariantPickerFromRecordDetailsUseCase: OpenTemplateVariantPickerFromRecordDetailsUseCase,
     private val applyTemplateVariantPickerSelectionUseCase: ApplyTemplateVariantPickerSelectionUseCase,
-    private val getVariabilityMatchForTemplateUseCase: GetVariabilityMatchForTemplateUseCase,
     private val createRecordFromTemplateUseCase: CreateRecordFromTemplateUseCase,
     private val createRecordWithNewTemplateUseCase: CreateRecordWithNewTemplateUseCase,
     private val updateRecordWithNewTemplateUseCase: UpdateRecordWithNewTemplateUseCase,
-    private val editTemplateUseCase: EditTemplateUseCase,
     private val repeatRecordUseCase: RepeatRecordUseCase,
     private val validateEditRecordUseCase: ValidateEditRecordUseCase,
     private val validateCreateRecordUseCase: ValidateCreateRecordUseCase,
@@ -75,16 +77,11 @@ internal class ModalViewModel(
     private val getRecordImageUseCase: GetRecordImageUseCase,
     private val getTemplateImageUseCase: GetTemplateImageUseCase,
     private val foodRecognitionUseCase: FoodRecognitionUseCase,
-    private val deleteRecordUseCase: DeleteRecordUseCase,
+    private val deleteRecordWithWorkerCleanupUseCase: DeleteRecordWithWorkerCleanupUseCase,
+    private val applyQuickPickOverrideAndReloadWidgetUseCase: ApplyQuickPickOverrideAndReloadWidgetUseCase,
+    private val applyConfirmedSharedTemplateEditUseCase: ApplyConfirmedSharedTemplateEditUseCase,
     private val analyticsLogger: AnalyticsLogger,
-    private val uiMapper: ModalUiMapper,
 ) : ViewModel() {
-
-    companion object {
-        enum class ChangeImagesTarget {
-            RECORD, TEMPLATE
-        }
-    }
 
     private val _uiState = MutableStateFlow(ModalUiState())
     val uiState: StateFlow<ModalUiState> = _uiState.asStateFlow()
@@ -157,53 +154,7 @@ internal class ModalViewModel(
         recordDetailsJob = runSafely {
             recordsRepository.observe(recordId)
                 .collect { record ->
-                    val (previewForDialog, variabilityArchetypes, archetypePickerEntries) = if (edit) {
-                        val match = runCatching {
-                            getVariabilityMatchForTemplateUseCase.execute(record.template.dbId)
-                        }.getOrElse { t ->
-                            if (t is NoVariabilityProfileLoadedException) {
-                                TemplateVariabilityMatch(
-                                    preview = TemplateVariabilityPreviewContent(
-                                        bannerText = "",
-                                        slots = emptyList(),
-                                        archetypePickerLabel = "",
-                                    ),
-                                    variabilityArchetypes = emptyList(),
-                                    archetypePickerEntries = emptyList(),
-                                )
-                            } else {
-                                throw t
-                            }
-                        }
-                        Triple(
-                            match.preview.slots.takeIf { it.isNotEmpty() }?.let { match.preview },
-                            match.variabilityArchetypes,
-                            match.archetypePickerEntries,
-                        )
-                    } else {
-                        Triple(null, emptyList<VariabilityArchetype>(), emptyList<VariabilityArchetypePickerEntry>())
-                    }
-
-                    val dialog = DialogHandle.RecordDetailsDialog.View(
-                        recordId = recordId,
-                        templateDbId = record.template.dbId,
-                        title = TextFieldValue(record.template.name),
-                        description = TextFieldValue(record.template.description),
-                        images = record.template.images,
-                        nutrientBreakdown = uiMapper.mapNutrientBreakdowns(record),
-                        allowEdit = edit,
-                        titleHint = "Give your meal a title",
-                        titleValidationError = null,
-                        templateVariabilityPreview = previewForDialog,
-                        variabilityArchetypes = variabilityArchetypes,
-                        variabilityArchetypePickerEntries = archetypePickerEntries,
-                        showVariabilityDifferentMealLink = uiMapper.mapShowVariabilityDifferentMealLink(
-                            allowEdit = edit,
-                            variabilityArchetypePickerEntries = archetypePickerEntries,
-                            variabilityArchetypes = variabilityArchetypes,
-                        ),
-                    )
-                    setRoot(dialog)
+                    setRoot(buildRecordDetailsViewDialogUseCase.execute(record, edit))
                 }
         }
     }
@@ -211,18 +162,14 @@ internal class ModalViewModel(
     @UiThread
     fun onSelectRecordActionDeeplink(recordId: Long) {
         runSafely {
-            val title = recordsRepository.get(recordId)?.template?.name ?: ""
-            setRoot(DialogHandle.SelectRecordActionDialog(recordId, title))
+            setRoot(resolveSelectRecordActionDialogUseCase.execute(recordId))
         }
     }
 
     @UiThread
     fun onSelectTemplateActionDeeplink(templateId: Long) {
         runSafely {
-            val title =
-                recordsRepository.getRecordsByTemplate(templateId).firstOrNull()?.template?.name
-                    ?: ""
-            setRoot(DialogHandle.SelectTemplateActionDialog(templateId, title))
+            setRoot(resolveSelectTemplateActionDialogUseCase.execute(templateId))
         }
     }
 
@@ -360,10 +307,8 @@ internal class ModalViewModel(
     @UiThread
     fun onTemplateDetailsButtonTapped(templateId: Long) {
         runSafely {
-            recordsRepository.getRecordsByTemplate(templateId).firstOrNull()
-                ?.let {
-                    openRecordDetails(it.recordId, edit = false)
-                }
+            resolveFirstRecordIdForTemplateUseCase.execute(templateId)
+                ?.let { openRecordDetails(it, edit = false) }
         }
     }
 
@@ -371,8 +316,10 @@ internal class ModalViewModel(
     fun onRemoveFromQuickPicksTapped(templateId: Long) {
         closeAll()
         runSafely {
-            recordsRepository.addQuickPickOverride(templateId, Template.QuickPickOverride.EXCLUDE)
-            DiaryWidgetScreen.reload()
+            applyQuickPickOverrideAndReloadWidgetUseCase.execute(
+                templateId,
+                Template.QuickPickOverride.EXCLUDE,
+            )
         }
     }
 
@@ -381,8 +328,10 @@ internal class ModalViewModel(
         closeAll()
         runSafely {
             val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return@runSafely
-            recordsRepository.addQuickPickOverride(templateId, Template.QuickPickOverride.INCLUDE)
-            DiaryWidgetScreen.reload()
+            applyQuickPickOverrideAndReloadWidgetUseCase.execute(
+                templateId,
+                Template.QuickPickOverride.INCLUDE,
+            )
         }
     }
 
@@ -390,12 +339,8 @@ internal class ModalViewModel(
     fun onDeleteTapped(recordId: Long) {
         closeAll()
         runSafely {
-            deleteRecordUseCase.execute(recordId)
+            deleteRecordWithWorkerCleanupUseCase.execute(recordId)
             DiaryWidgetScreen.reload()
-            GetMacrosWorker.cancelWorkRequest(
-                appContext = App.appContext,
-                recordId = recordId,
-            )
         }
     }
 
@@ -653,30 +598,12 @@ internal class ModalViewModel(
                 val title = it.title
                 val description = it.description
                 runSafely {
-                    when (target) {
-                        ChangeImagesTarget.RECORD -> {
-                            updateRecordWithNewTemplateUseCase.execute(
-                                recordId = recordId,
-                                images = images,
-                                title = title,
-                                description = description,
-                            )
-                        }
-
-                        ChangeImagesTarget.TEMPLATE -> {
-                            val templateId = recordsRepository.get(recordId)!!.template.dbId
-                            editTemplateUseCase.execute(
-                                templateId = templateId,
-                                images = images,
-                                title = title,
-                                description = description,
-                            )
-                        }
-                    }
-                    GetMacrosWorker.setWorkRequest(
-                        appContext = App.appContext,
+                    applyConfirmedSharedTemplateEditUseCase.execute(
+                        target = target,
                         recordId = recordId,
-                        force = true,
+                        images = images,
+                        title = title,
+                        description = description,
                     )
                 }
                 closeAll()

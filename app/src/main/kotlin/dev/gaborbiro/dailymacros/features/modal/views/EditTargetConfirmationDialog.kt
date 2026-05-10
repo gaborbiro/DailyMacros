@@ -6,13 +6,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import dev.gaborbiro.dailymacros.features.modal.model.ChangeImagesTarget
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
-import dev.gaborbiro.dailymacros.features.modal.ModalViewModel
 
 @Composable
 internal fun EditTargetConfirmationDialog(
     dialogHandle: DialogHandle.EditTargetConfirmationDialog,
-    onEditTargetConfirmed: (ModalViewModel.Companion.ChangeImagesTarget) -> Unit,
+    onEditTargetConfirmed: (ChangeImagesTarget) -> Unit,
     onDismissRequested: () -> Unit,
 ) {
     TargetConfirmationDialog(
@@ -25,7 +25,7 @@ internal fun EditTargetConfirmationDialog(
 @Composable
 internal fun TargetConfirmationDialog(
     count: Int,
-    onConfirmed: (ModalViewModel.Companion.ChangeImagesTarget) -> Unit,
+    onConfirmed: (ChangeImagesTarget) -> Unit,
     onDismissRequested: () -> Unit,
 ) {
     Dialog(onDismissRequest = onDismissRequested) {
@@ -38,8 +38,8 @@ internal fun TargetConfirmationDialog(
                 count = count,
                 onSubmit = { target ->
                     val vmTarget = when (target) {
-                        EditTarget.RECORD -> ModalViewModel.Companion.ChangeImagesTarget.RECORD
-                        EditTarget.TEMPLATE -> ModalViewModel.Companion.ChangeImagesTarget.TEMPLATE
+                        EditTarget.RECORD -> ChangeImagesTarget.RECORD
+                        EditTarget.TEMPLATE -> ChangeImagesTarget.TEMPLATE
                     }
                     onConfirmed(vmTarget)
                 },

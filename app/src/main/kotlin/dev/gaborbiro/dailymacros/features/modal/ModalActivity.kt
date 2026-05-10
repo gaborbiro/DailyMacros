@@ -39,16 +39,23 @@ import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
+import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyConfirmedSharedTemplateEditUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyTemplateVariantPickerSelectionUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.BuildRecordDetailsViewDialogUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.DeleteRecordUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.DeleteRecordWithWorkerCleanupUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetVariabilityMatchForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.OpenTemplateVariantPickerFromRecordDetailsUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveFirstRecordIdForTemplateUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveSelectRecordActionDialogUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveSelectTemplateActionDialogUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
@@ -192,16 +199,44 @@ class ModalActivity : AppCompatActivity() {
             templateVariabilityPreviewMapper = templateVariabilityPreviewMapper,
         )
 
+        val buildRecordDetailsViewDialogUseCase = BuildRecordDetailsViewDialogUseCase(
+            getVariabilityMatchForTemplateUseCase = getVariabilityMatchForTemplateUseCase,
+            uiMapper = modalUiMapper,
+        )
+        val resolveSelectRecordActionDialogUseCase =
+            ResolveSelectRecordActionDialogUseCase(recordsRepository)
+        val resolveSelectTemplateActionDialogUseCase =
+            ResolveSelectTemplateActionDialogUseCase(recordsRepository)
+        val resolveFirstRecordIdForTemplateUseCase =
+            ResolveFirstRecordIdForTemplateUseCase(recordsRepository)
+        val deleteRecordWithWorkerCleanupUseCase = DeleteRecordWithWorkerCleanupUseCase(
+            deleteRecordUseCase = deleteRecordUseCase,
+            appContext = applicationContext,
+        )
+        val applyQuickPickOverrideAndReloadWidgetUseCase =
+            ApplyQuickPickOverrideAndReloadWidgetUseCase(recordsRepository)
+        val updateRecordWithNewTemplateUseCase =
+            UpdateRecordWithNewTemplateUseCase(recordsRepository, createTemplateUseCase)
+        val editTemplateUseCase = EditTemplateUseCase(recordsRepository)
+        val applyConfirmedSharedTemplateEditUseCase = ApplyConfirmedSharedTemplateEditUseCase(
+            updateRecordWithNewTemplateUseCase = updateRecordWithNewTemplateUseCase,
+            editTemplateUseCase = editTemplateUseCase,
+            recordsRepository = recordsRepository,
+            appContext = applicationContext,
+        )
+
         ModalViewModel(
             imageStore = imageStore,
             recordsRepository = recordsRepository,
+            buildRecordDetailsViewDialogUseCase = buildRecordDetailsViewDialogUseCase,
+            resolveSelectRecordActionDialogUseCase = resolveSelectRecordActionDialogUseCase,
+            resolveSelectTemplateActionDialogUseCase = resolveSelectTemplateActionDialogUseCase,
+            resolveFirstRecordIdForTemplateUseCase = resolveFirstRecordIdForTemplateUseCase,
             openTemplateVariantPickerFromRecordDetailsUseCase = openTemplateVariantPickerFromRecordDetailsUseCase,
             applyTemplateVariantPickerSelectionUseCase = applyTemplateVariantPickerSelectionUseCase,
-            getVariabilityMatchForTemplateUseCase = getVariabilityMatchForTemplateUseCase,
             createRecordFromTemplateUseCase = createRecordFromTemplateUseCase,
             createRecordWithNewTemplateUseCase = CreateRecordWithNewTemplateUseCase(createTemplateUseCase, createRecordFromTemplateUseCase),
-            updateRecordWithNewTemplateUseCase = UpdateRecordWithNewTemplateUseCase(recordsRepository, createTemplateUseCase),
-            editTemplateUseCase = EditTemplateUseCase(recordsRepository),
+            updateRecordWithNewTemplateUseCase = updateRecordWithNewTemplateUseCase,
             repeatRecordUseCase = repeatRecordUseCase,
             validateEditRecordUseCase = ValidateEditRecordUseCase(recordsRepository),
             validateCreateRecordUseCase = ValidateCreateRecordUseCase(),
@@ -209,8 +244,9 @@ class ModalActivity : AppCompatActivity() {
             getRecordImageUseCase = GetRecordImageUseCase(recordsRepository),
             getTemplateImageUseCase = GetTemplateImageUseCase(recordsRepository),
             foodRecognitionUseCase = FoodRecognitionUseCase(this, imageStore, chatGPTRepository),
-            deleteRecordUseCase = deleteRecordUseCase,
-            uiMapper = modalUiMapper,
+            deleteRecordWithWorkerCleanupUseCase = deleteRecordWithWorkerCleanupUseCase,
+            applyQuickPickOverrideAndReloadWidgetUseCase = applyQuickPickOverrideAndReloadWidgetUseCase,
+            applyConfirmedSharedTemplateEditUseCase = applyConfirmedSharedTemplateEditUseCase,
             analyticsLogger = analyticsLogger,
         )
     }
