@@ -11,9 +11,9 @@ internal class RepeatRecordUseCase(
     @UiThread
     suspend fun execute(
         recordId: Long,
-    ) {
+    ): Long {
         val record = recordsRepository.get(recordId)!!
         val templateId = record.template.dbId
-        createRecordFromTemplateUseCase.execute(templateId)
+        return createRecordFromTemplateUseCase.execute(templateId)
     }
 }
