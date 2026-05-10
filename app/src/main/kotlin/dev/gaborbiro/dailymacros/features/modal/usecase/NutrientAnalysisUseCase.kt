@@ -3,8 +3,8 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 import android.content.Context
 import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
-import dev.gaborbiro.dailymacros.features.common.RecordsMapper
-import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
+import dev.gaborbiro.dailymacros.features.shared.RecordsMapper
+import dev.gaborbiro.dailymacros.features.shared.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.features.modal.ModalUiMapper
 import dev.gaborbiro.dailymacros.features.modal.inputStreamToBase64

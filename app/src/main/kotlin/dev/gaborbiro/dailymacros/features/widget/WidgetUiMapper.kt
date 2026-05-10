@@ -1,6 +1,6 @@
 package dev.gaborbiro.dailymacros.features.widget
 
-import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
+import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.widget.model.ListUiModelQuickPick
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 

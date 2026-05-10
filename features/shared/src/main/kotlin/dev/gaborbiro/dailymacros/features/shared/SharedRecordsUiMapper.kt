@@ -1,12 +1,12 @@
-package dev.gaborbiro.dailymacros.features.common
+package dev.gaborbiro.dailymacros.features.shared
 
-import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
+import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-internal class SharedRecordsUiMapper(
+class SharedRecordsUiMapper(
     private val nutrientsUiMapper: NutrientsUiMapper,
 ) {
     fun map(record: Record, timeOnly: Boolean = false): ListUiModelRecord {

@@ -1,6 +1,6 @@
 package dev.gaborbiro.dailymacros.features.modal.usecase
 
-import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
+import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals

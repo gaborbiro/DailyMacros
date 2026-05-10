@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.common
+package dev.gaborbiro.dailymacros.features.shared
 
 import android.util.Range
 import dev.gaborbiro.dailymacros.features.common.views.NutrientDisplayLine

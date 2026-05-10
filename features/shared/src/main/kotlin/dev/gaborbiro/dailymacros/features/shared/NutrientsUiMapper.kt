@@ -1,14 +1,14 @@
-package dev.gaborbiro.dailymacros.features.common
+package dev.gaborbiro.dailymacros.features.shared
 
 import android.icu.text.DecimalFormat
 import android.util.Range
-import dev.gaborbiro.dailymacros.features.common.model.NutrientsUiModel
+import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.common.views.NutrientDisplayLine
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import kotlin.math.pow
 
-internal class NutrientsUiMapper {
+class NutrientsUiMapper {
 
     fun mapRecordNutrients(nutrientBreakdown: TemplateNutrientBreakdown): NutrientsUiModel {
         return NutrientsUiModel(

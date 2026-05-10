@@ -95,6 +95,7 @@ dependencies {
     implementation(project(":core:analytics"))
     implementation(project(":core:design"))
     implementation(project(":features:common"))
+    implementation(project(":features:shared"))
     implementation(project(":features:settings"))
     implementation(project(":features:trends"))
     implementation(project(":repositories:backup"))

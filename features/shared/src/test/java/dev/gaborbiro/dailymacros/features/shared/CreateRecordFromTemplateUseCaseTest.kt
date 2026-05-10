@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.common
+package dev.gaborbiro.dailymacros.features.shared
 
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
@@ -12,52 +12,34 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.Duration
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
-class RepeatRecordUseCaseTest {
-
-    private val zone = ZoneId.of("UTC")
-
-    private fun stubTemplate(dbId: Long) = Template(
-        dbId = dbId,
-        images = emptyList(),
-        isRepresentativeOfMealByImageIndex = emptyList(),
-        name = "Meal",
-        description = "D",
-        parentTemplateId = null,
-        createdAtEpochMs = 0L,
-        updatedAtEpochMs = 0L,
-        isPending = false,
-        nutrients = TemplateNutrientBreakdown(),
-        notes = "",
-        mealComponents = emptyList(),
-        topContributors = TopContributors(),
-        quickPickOverride = null,
-    )
+class CreateRecordFromTemplateUseCaseTest {
 
     @Test
-    fun `execute loads record and creates from its template id`() = runBlocking {
-        val record = Record(
-            recordId = 100L,
-            timestamp = ZonedDateTime.of(2024, 1, 1, 12, 0, 0, 0, zone),
-            template = stubTemplate(dbId = 33L),
-        )
+    fun `execute saves record with current timestamp and returns new id`() = runBlocking {
         var savedTemplateId: Long? = null
+        var savedAt: ZonedDateTime? = null
         val repo = object : StubRecordsRepository() {
-            override suspend fun get(recordId: Long): Record? =
-                if (recordId == 100L) record else null
-
             override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
                 savedTemplateId = templateId
-                return 999L
+                savedAt = timestamp
+                return 42L
             }
         }
-        val create = CreateRecordFromTemplateUseCase(repo)
-        val id = RepeatRecordUseCase(repo, create).execute(100L)
-        assertEquals(999L, id)
-        assertEquals(33L, savedTemplateId)
+        val before = ZonedDateTime.now(ZoneId.systemDefault())
+        val id = CreateRecordFromTemplateUseCase(repo).execute(7L)
+        val after = ZonedDateTime.now(ZoneId.systemDefault())
+        assertEquals(42L, id)
+        assertEquals(7L, savedTemplateId)
+        val ts = requireNotNull(savedAt)
+        val delta = Duration.between(before, ts).abs()
+        assertTrue(delta.toMillis() < 5000)
+        assertTrue(!ts.isBefore(before) && !ts.isAfter(after))
     }
 
     private open class StubRecordsRepository : RecordsRepository {

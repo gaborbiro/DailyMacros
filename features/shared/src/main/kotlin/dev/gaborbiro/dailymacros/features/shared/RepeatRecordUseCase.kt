@@ -1,9 +1,9 @@
-package dev.gaborbiro.dailymacros.features.common
+package dev.gaborbiro.dailymacros.features.shared
 
 import androidx.annotation.UiThread
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 
-internal class RepeatRecordUseCase(
+class RepeatRecordUseCase(
     private val recordsRepository: RecordsRepository,
     private val createRecordFromTemplateUseCase: CreateRecordFromTemplateUseCase,
 ) {
