@@ -30,10 +30,10 @@ import dev.gaborbiro.dailymacros.data.file.domain.FileStore
 import dev.gaborbiro.dailymacros.data.image.DefaultFoodPicExt
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.AppTheme
-import dev.gaborbiro.dailymacros.features.common.ChatGptOkHttpTimeouts
-import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
-import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
-import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
+import dev.gaborbiro.dailymacros.features.shared.ChatGptOkHttpTimeouts
+import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
+import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
+import dev.gaborbiro.dailymacros.features.shared.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.views.InfoDialog
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle

@@ -1,7 +1,7 @@
 package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import com.google.gson.Gson
-import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
+import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.modal.ModalUiMapper
 import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfileMapper
 import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository

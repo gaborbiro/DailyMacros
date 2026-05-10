@@ -7,9 +7,9 @@ import androidx.test.core.app.ApplicationProvider
 import com.google.gson.Gson
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
-import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
-import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
-import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
+import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
+import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
+import dev.gaborbiro.dailymacros.features.shared.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyConfirmedSharedTemplateEditUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase

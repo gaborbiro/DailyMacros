@@ -1,18 +1,18 @@
 package dev.gaborbiro.dailymacros.features.overview
 
 import android.icu.text.DecimalFormat
-import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
-import dev.gaborbiro.dailymacros.features.common.RecordsMapper
-import dev.gaborbiro.dailymacros.features.common.SharedRecordsUiMapper
+import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
+import dev.gaborbiro.dailymacros.features.shared.RecordsMapper
+import dev.gaborbiro.dailymacros.features.shared.SharedRecordsUiMapper
 import dev.gaborbiro.dailymacros.features.overview.model.DailySummaryEntry
 import dev.gaborbiro.dailymacros.features.overview.model.ChangeDirection
 import dev.gaborbiro.dailymacros.features.overview.model.ChangeIndicator
-import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
+import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelDailySummary
 import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelWeeklySummary
-import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
+import dev.gaborbiro.dailymacros.features.shared.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.overview.model.NutrientSummaryStatEntry
-import dev.gaborbiro.dailymacros.features.common.model.TravelDay
+import dev.gaborbiro.dailymacros.features.shared.model.TravelDay
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets

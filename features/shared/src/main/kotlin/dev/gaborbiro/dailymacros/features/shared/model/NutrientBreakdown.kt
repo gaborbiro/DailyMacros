@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.common.model
+package dev.gaborbiro.dailymacros.features.shared.model
 
 /**
  * null doesn't mean 0 for that nutrient. It means it's unknown.

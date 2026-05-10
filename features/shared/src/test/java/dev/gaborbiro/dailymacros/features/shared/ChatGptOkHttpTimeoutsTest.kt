@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.common
+package dev.gaborbiro.dailymacros.features.shared
 
 import okhttp3.OkHttpClient
 import org.junit.Assert.assertEquals

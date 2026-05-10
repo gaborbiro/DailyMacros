@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.common
+package dev.gaborbiro.dailymacros.features.shared
 
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit
  * - **Read** is the long pole while the model generates before bytes arrive on the socket.
  * - **Call** is a hard wall-clock cap for the entire exchange (must fit connect + write + read).
  */
-internal object ChatGptOkHttpTimeouts {
+object ChatGptOkHttpTimeouts {
     const val CONNECT_SECONDS = 30L
     const val READ_SECONDS = 900L
     const val CALL_SECONDS = 1500L

@@ -1,6 +1,6 @@
-package dev.gaborbiro.dailymacros.features.common
+package dev.gaborbiro.dailymacros.features.shared
 
-import dev.gaborbiro.dailymacros.features.common.model.NutrientBreakdown
+import dev.gaborbiro.dailymacros.features.shared.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.Nutrient
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.Nutrients

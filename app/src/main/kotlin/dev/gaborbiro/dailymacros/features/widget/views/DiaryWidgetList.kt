@@ -18,12 +18,12 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDouble
-import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
+import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.widget.model.ListUiModelQuickPick
 import dev.gaborbiro.dailymacros.features.widget.model.ListUiModelQuickPickFooter
 import dev.gaborbiro.dailymacros.features.widget.model.ListUiModelQuickPickHeader
-import dev.gaborbiro.dailymacros.features.common.model.ListUiModelRecord
-import dev.gaborbiro.dailymacros.features.common.model.NutrientsUiModel
+import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
+import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreviewContext
 
 @Composable

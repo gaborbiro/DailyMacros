@@ -1,6 +1,6 @@
 package dev.gaborbiro.dailymacros.features.overview.model
 
-import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
+import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 
 
