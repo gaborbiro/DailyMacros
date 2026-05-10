@@ -1,7 +1,6 @@
 package dev.gaborbiro.dailymacros.features.modal
 
 import android.net.Uri
-import androidx.annotation.UiThread
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
@@ -96,18 +95,15 @@ internal class ModalViewModel(
     /** Restores record details after closing the variant picker without applying. */
     private var pendingRecordDetailsRestore: Pair<Long, Boolean>? = null
 
-    @UiThread
-    fun onCreateRecordWithCameraDeeplink() {
+    fun onCreateRecordWithCameraDeeplinkReceived() {
         setRoot(DialogHandle.ImageInput(type = ImageInputType.Camera))
     }
 
-    @UiThread
-    fun onCreateRecordWithBrowseImagesDeeplink() {
+    fun onCreateRecordWithBrowseImagesDeeplinkReceived() {
         setRoot(DialogHandle.ImageInput(type = ImageInputType.BrowseImages))
     }
 
-    @UiThread
-    fun onCreateRecordWithTextDeeplink() {
+    fun onCreateRecordWithTextDeeplinkReceived() {
         setRoot(
             DialogHandle.RecordDetailsDialog.Edit(
                 title = TextFieldValue(),
@@ -120,7 +116,7 @@ internal class ModalViewModel(
         )
     }
 
-    fun viewRecordImageDeeplink(recordId: Long) {
+    fun onViewRecordImageDeeplinkReceived(recordId: Long) {
         runSafely {
             getRecordImageUseCase.execute(recordId)
                 ?.let { imageDialog ->
@@ -132,7 +128,7 @@ internal class ModalViewModel(
         }
     }
 
-    fun onViewTemplateImageDeeplink(templateId: Long) {
+    fun onViewTemplateImageDeeplinkReceived(templateId: Long) {
         runSafely {
             getTemplateImageUseCase.execute(templateId)
                 ?.let { imageDialog ->
@@ -144,36 +140,22 @@ internal class ModalViewModel(
         }
     }
 
-    @UiThread
-    fun onViewRecordDetailsDeeplink(recordId: Long) {
+    fun onViewRecordDetailsDeeplinkReceived(recordId: Long) {
         openRecordDetails(recordId, edit = true)
     }
 
-    private fun openRecordDetails(recordId: Long, edit: Boolean) {
-        recordDetailsJob?.cancel()
-        recordDetailsJob = runSafely {
-            recordsRepository.observe(recordId)
-                .collect { record ->
-                    setRoot(buildRecordDetailsViewDialogUseCase.execute(record, edit))
-                }
-        }
-    }
-
-    @UiThread
-    fun onSelectRecordActionDeeplink(recordId: Long) {
+    fun onSelectRecordActionDeeplinkReceived(recordId: Long) {
         runSafely {
             setRoot(resolveSelectRecordActionDialogUseCase.execute(recordId))
         }
     }
 
-    @UiThread
-    fun onSelectTemplateActionDeeplink(templateId: Long) {
+    fun onSelectTemplateActionDeeplinkReceived(templateId: Long) {
         runSafely {
             setRoot(resolveSelectTemplateActionDialogUseCase.execute(templateId))
         }
     }
 
-    @UiThread
     fun onImagesSelected(uris: List<Uri>) {
         runSafely {
             val persistedFilenames = uris.map {
@@ -214,7 +196,6 @@ internal class ModalViewModel(
         }
     }
 
-    @UiThread
     fun onImagesShared(uris: List<Uri>) {
         runSafely {
             val persistedFilenames = uris.map {
@@ -232,6 +213,246 @@ internal class ModalViewModel(
             )
             runFoodRecognition(persistedFilenames)
         }
+    }
+
+    fun onNoImageSelected() {
+        if (_uiState.value.overlayDialog is DialogHandle.ImageInput) {
+            popOverlay()
+        } else {
+            closeAll()
+        }
+    }
+
+    fun onRepeatRecordButtonTapped(recordId: Long) {
+        closeAll()
+        runSafely {
+            repeatRecordUseCase.execute(recordId)
+            DiaryWidgetScreen.reload()
+        }
+    }
+
+    fun onRepeatTemplateButtonTapped(templateId: Long) {
+        runSafely {
+            createRecordFromTemplateUseCase.execute(templateId)
+            DiaryWidgetScreen.reload()
+            closeAll()
+        }
+    }
+
+    fun onRecordDetailsButtonTapped(recordId: Long) {
+        openRecordDetails(recordId, edit = true)
+    }
+
+    fun onTemplateDetailsButtonTapped(templateId: Long) {
+        runSafely {
+            resolveFirstRecordIdForTemplateUseCase.execute(templateId)
+                ?.let { openRecordDetails(it, edit = false) }
+        }
+    }
+
+    fun onRemoveFromQuickPicksTapped(templateId: Long) {
+        closeAll()
+        runSafely {
+            applyQuickPickOverrideAndReloadWidgetUseCase.execute(
+                templateId,
+                Template.QuickPickOverride.EXCLUDE,
+            )
+            DiaryWidgetScreen.reload()
+        }
+    }
+
+    fun onAddToQuickPicksTapped(recordId: Long) {
+        closeAll()
+        runSafely {
+            val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return@runSafely
+            applyQuickPickOverrideAndReloadWidgetUseCase.execute(
+                templateId,
+                Template.QuickPickOverride.INCLUDE,
+            )
+            DiaryWidgetScreen.reload()
+        }
+    }
+
+    fun onDeleteTapped(recordId: Long) {
+        closeAll()
+        runSafely {
+            deleteRecordUseCase.execute(recordId)
+            DiaryWidgetScreen.reload()
+        }
+    }
+
+    fun onDialogDismissRequested(dialog: DialogHandle) {
+        when (dialog) {
+            _uiState.value.overlayDialog -> {
+                popOverlay()
+            }
+
+            is DialogHandle.TemplateVariantPickerDialog -> {
+                onVariantPickerCancelTapped()
+                return
+            }
+
+            else -> {
+                closeAll()
+            }
+        }
+        (dialog as? DialogHandle.RecordDetailsDialog.Edit)?.let {
+            runSafely {
+                it.images.forEach { img ->
+                    imageStore.delete(img)
+                }
+            }
+        }
+    }
+
+    fun onTitleChanged(title: TextFieldValue) {
+        updateRoot<DialogHandle.RecordDetailsDialog> {
+            it
+                .withTitle(title)
+                .withTitleValidationError(null)
+        }
+    }
+
+    fun onDescriptionChanged(description: TextFieldValue) {
+        updateRoot<DialogHandle.RecordDetailsDialog> {
+            it.withDescription(description)
+        }
+    }
+
+    fun onImageTapped(image: String) {
+        val root = _uiState.value.rootDialog
+        val allImages = (root as? DialogHandle.RecordDetailsDialog)?.images ?: listOf(image)
+        val index = allImages.indexOf(image).coerceAtLeast(0)
+        pushOverlay(DialogHandle.ViewImageDialog("", allImages, index))
+    }
+
+    fun onImageDeleteTapped(image: String) {
+        updateRoot<DialogHandle.RecordDetailsDialog> {
+            when (it) {
+                is DialogHandle.RecordDetailsDialog.View -> it.copy(images = it.images - image)
+                is DialogHandle.RecordDetailsDialog.Edit -> it.copy(images = it.images - image)
+            }
+        }
+    }
+
+    fun onAddImageViaCameraTapped() {
+        pushOverlay(DialogHandle.ImageInput(type = ImageInputType.Camera))
+    }
+
+    fun onAddImageViaPickerTapped() {
+        pushOverlay(DialogHandle.ImageInput(type = ImageInputType.BrowseImages))
+    }
+
+    fun onSubmitButtonTapped() {
+        (_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog)
+            ?.let {
+                runSafely {
+                    when (it) {
+                        is DialogHandle.RecordDetailsDialog.Edit -> {
+                            handleCreateRecordDetailsSubmitted(it)
+                        }
+
+                        is DialogHandle.RecordDetailsDialog.View -> {
+                            handleEditRecordDialogSubmitted(it)
+                        }
+                    }
+                }
+            }
+    }
+
+    fun onImagesInfoButtonTapped() {
+        pushOverlay(
+            DialogHandle.InfoDialog(
+                "You can add multiple photos.\nPhotos of nutritional labels are especially helpful." +
+                        "\n\nYou can edit the entry later. You don’t need to collect all details up front." +
+                        "\n\nLogging the meal is more important than the exact time. Just don’t leave it for the next day - dates can’t be changed retroactively."
+            )
+        )
+    }
+
+    fun onRunAIButtonTapped() {
+        updateRoot<DialogHandle.RecordDetailsDialog.Edit> {
+            runFoodRecognition(it.images)
+            it.copy(
+                title = TextFieldValue()
+            )
+        }
+    }
+
+    fun onVariabilityDifferentMealLinkTapped(archetypeKey: String) {
+        runSafely {
+            val view = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return@runSafely
+            when (val result = openTemplateVariantPickerFromRecordDetailsUseCase.execute(view, archetypeKey)) {
+                OpenTemplateVariantPickerResult.Skipped -> return@runSafely
+                is OpenTemplateVariantPickerResult.Ready -> {
+                    pendingRecordDetailsRestore = view.recordId to view.allowEdit
+                    recordDetailsJob?.cancel()
+                    recordDetailsJob = null
+                    setRoot(result.picker)
+                }
+            }
+        }
+    }
+
+    fun onVariantPickerCancelTapped() {
+        val restore = pendingRecordDetailsRestore
+        pendingRecordDetailsRestore = null
+        if (restore != null) {
+            openRecordDetails(restore.first, restore.second)
+        } else {
+            closeAll()
+        }
+    }
+
+    fun onVariantPickerConfirmed(selection: Map<String, String>) {
+        val dlg = _uiState.value.rootDialog as? DialogHandle.TemplateVariantPickerDialog ?: return
+        runSafely {
+            when (
+                applyTemplateVariantPickerSelectionUseCase.execute(dlg, selection)
+            ) {
+                ApplyTemplateVariantPickerSelectionResult.UnknownCombination ->
+                    _uiUpdates.send(
+                        ModalUiUpdates.Error(
+                            "Could not match this combination to a saved meal template. Try again after the next variability mine.",
+                        ),
+                    )
+
+                ApplyTemplateVariantPickerSelectionResult.RecordNotFound ->
+                    _uiUpdates.send(ModalUiUpdates.Error("Record not found."))
+
+                ApplyTemplateVariantPickerSelectionResult.NoOpSameTemplate -> {
+                    pendingRecordDetailsRestore = null
+                    closeAll()
+                }
+
+                ApplyTemplateVariantPickerSelectionResult.Applied -> {
+                    DiaryWidgetScreen.reload()
+                    pendingRecordDetailsRestore = null
+                    closeAll()
+                }
+            }
+        }
+    }
+
+    fun onEditTargetConfirmed(target: ChangeImagesTarget) {
+        (_uiState.value.overlayDialog as? DialogHandle.EditTargetConfirmationDialog)
+            ?.let {
+                val recordId = it.recordId
+                val images = it.images
+                val title = it.title
+                val description = it.description
+                runSafely {
+                    applyConfirmedSharedTemplateEditUseCase.execute(
+                        target = target,
+                        recordId = recordId,
+                        images = images,
+                        title = title,
+                        description = description,
+                    )
+                }
+                closeAll()
+                DiaryWidgetScreen.reload()
+            }
     }
 
     private fun runFoodRecognition(images: List<String>) {
@@ -273,240 +494,13 @@ internal class ModalViewModel(
         }
     }
 
-    fun onNoImageSelected() {
-        if (_uiState.value.overlayDialog is DialogHandle.ImageInput) {
-            popOverlay()
-        } else {
-            closeAll()
-        }
-    }
-
-    @UiThread
-    fun onRepeatRecordButtonTapped(recordId: Long) {
-        closeAll()
-        runSafely {
-            repeatRecordUseCase.execute(recordId)
-            DiaryWidgetScreen.reload()
-        }
-    }
-
-    @UiThread
-    fun onRepeatTemplateButtonTapped(templateId: Long) {
-        runSafely {
-            createRecordFromTemplateUseCase.execute(templateId)
-            DiaryWidgetScreen.reload()
-            closeAll()
-        }
-    }
-
-    @UiThread
-    fun onRecordDetailsButtonTapped(recordId: Long) {
-        openRecordDetails(recordId, edit = true)
-    }
-
-    @UiThread
-    fun onTemplateDetailsButtonTapped(templateId: Long) {
-        runSafely {
-            resolveFirstRecordIdForTemplateUseCase.execute(templateId)
-                ?.let { openRecordDetails(it, edit = false) }
-        }
-    }
-
-    @UiThread
-    fun onRemoveFromQuickPicksTapped(templateId: Long) {
-        closeAll()
-        runSafely {
-            applyQuickPickOverrideAndReloadWidgetUseCase.execute(
-                templateId,
-                Template.QuickPickOverride.EXCLUDE,
-            )
-            DiaryWidgetScreen.reload()
-        }
-    }
-
-    @UiThread
-    fun onAddToQuickPicksTapped(recordId: Long) {
-        closeAll()
-        runSafely {
-            val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return@runSafely
-            applyQuickPickOverrideAndReloadWidgetUseCase.execute(
-                templateId,
-                Template.QuickPickOverride.INCLUDE,
-            )
-            DiaryWidgetScreen.reload()
-        }
-    }
-
-    @UiThread
-    fun onDeleteTapped(recordId: Long) {
-        closeAll()
-        runSafely {
-            deleteRecordUseCase.execute(recordId)
-            DiaryWidgetScreen.reload()
-        }
-    }
-
-    @UiThread
-    fun onDialogDismissRequested(dialog: DialogHandle) {
-        when (dialog) {
-            _uiState.value.overlayDialog -> {
-                popOverlay()
-            }
-
-            is DialogHandle.TemplateVariantPickerDialog -> {
-                onVariantPickerCancelTapped()
-                return
-            }
-
-            else -> {
-                closeAll()
-            }
-        }
-        (dialog as? DialogHandle.RecordDetailsDialog.Edit)?.let {
-            runSafely {
-                it.images.forEach { img ->
-                    imageStore.delete(img)
+    private fun openRecordDetails(recordId: Long, edit: Boolean) {
+        recordDetailsJob?.cancel()
+        recordDetailsJob = runSafely {
+            recordsRepository.observe(recordId)
+                .collect { record ->
+                    setRoot(buildRecordDetailsViewDialogUseCase.execute(record, edit))
                 }
-            }
-        }
-    }
-
-    @UiThread
-    fun onTitleChanged(title: TextFieldValue) {
-        updateRoot<DialogHandle.RecordDetailsDialog> {
-            it
-                .withTitle(title)
-                .withTitleValidationError(null)
-        }
-    }
-
-    @UiThread
-    fun onDescriptionChanged(description: TextFieldValue) {
-        updateRoot<DialogHandle.RecordDetailsDialog> {
-            it.withDescription(description)
-        }
-    }
-
-    @UiThread
-    fun onImageTapped(image: String) {
-        val root = _uiState.value.rootDialog
-        val allImages = (root as? DialogHandle.RecordDetailsDialog)?.images ?: listOf(image)
-        val index = allImages.indexOf(image).coerceAtLeast(0)
-        pushOverlay(DialogHandle.ViewImageDialog("", allImages, index))
-    }
-
-    @UiThread
-    fun onImageDeleteTapped(image: String) {
-        updateRoot<DialogHandle.RecordDetailsDialog> {
-            when (it) {
-                is DialogHandle.RecordDetailsDialog.View -> it.copy(images = it.images - image)
-                is DialogHandle.RecordDetailsDialog.Edit -> it.copy(images = it.images - image)
-            }
-        }
-    }
-
-    @UiThread
-    fun onAddImageViaCameraTapped() {
-        pushOverlay(DialogHandle.ImageInput(type = ImageInputType.Camera))
-    }
-
-    @UiThread
-    fun onAddImageViaPickerTapped() {
-        pushOverlay(DialogHandle.ImageInput(type = ImageInputType.BrowseImages))
-    }
-
-    @UiThread
-    fun onSubmitButtonTapped() {
-        (_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog)
-            ?.let {
-                runSafely {
-                    when (it) {
-                        is DialogHandle.RecordDetailsDialog.Edit -> {
-                            handleCreateRecordDetailsSubmitted(it)
-                        }
-
-                        is DialogHandle.RecordDetailsDialog.View -> {
-                            handleEditRecordDialogSubmitted(it)
-                        }
-                    }
-                }
-            }
-    }
-
-    fun onImagesInfoButtonTapped() {
-        pushOverlay(
-            DialogHandle.InfoDialog(
-                "You can add multiple photos.\nPhotos of nutritional labels are especially helpful." +
-                        "\n\nYou can edit the entry later. You don’t need to collect all details up front." +
-                        "\n\nLogging the meal is more important than the exact time. Just don’t leave it for the next day - dates can’t be changed retroactively."
-            )
-        )
-    }
-
-    fun onRunAIButtonTapped() {
-        updateRoot<DialogHandle.RecordDetailsDialog.Edit> {
-            runFoodRecognition(it.images)
-            it.copy(
-                title = TextFieldValue()
-            )
-        }
-    }
-
-    @UiThread
-    fun onVariabilityDifferentMealLinkTapped(archetypeKey: String) {
-        runSafely {
-            val view = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return@runSafely
-            when (val result = openTemplateVariantPickerFromRecordDetailsUseCase.execute(view, archetypeKey)) {
-                OpenTemplateVariantPickerResult.Skipped -> return@runSafely
-                is OpenTemplateVariantPickerResult.Ready -> {
-                    pendingRecordDetailsRestore = view.recordId to view.allowEdit
-                    recordDetailsJob?.cancel()
-                    recordDetailsJob = null
-                    setRoot(result.picker)
-                }
-            }
-        }
-    }
-
-    @UiThread
-    fun onVariantPickerCancelTapped() {
-        val restore = pendingRecordDetailsRestore
-        pendingRecordDetailsRestore = null
-        if (restore != null) {
-            openRecordDetails(restore.first, restore.second)
-        } else {
-            closeAll()
-        }
-    }
-
-    @UiThread
-    fun onVariantPickerConfirmed(selection: Map<String, String>) {
-        val dlg = _uiState.value.rootDialog as? DialogHandle.TemplateVariantPickerDialog ?: return
-        runSafely {
-            when (
-                val outcome = applyTemplateVariantPickerSelectionUseCase.execute(dlg, selection)
-            ) {
-                ApplyTemplateVariantPickerSelectionResult.UnknownCombination ->
-                    _uiUpdates.send(
-                        ModalUiUpdates.Error(
-                            "Could not match this combination to a saved meal template. Try again after the next variability mine.",
-                        ),
-                    )
-
-                ApplyTemplateVariantPickerSelectionResult.RecordNotFound ->
-                    _uiUpdates.send(ModalUiUpdates.Error("Record not found."))
-
-                ApplyTemplateVariantPickerSelectionResult.NoOpSameTemplate -> {
-                    pendingRecordDetailsRestore = null
-                    closeAll()
-                }
-
-                ApplyTemplateVariantPickerSelectionResult.Applied -> {
-                    DiaryWidgetScreen.reload()
-                    pendingRecordDetailsRestore = null
-                    closeAll()
-                }
-            }
         }
     }
 
@@ -595,28 +589,6 @@ internal class ModalViewModel(
         updateRoot<DialogHandle.RecordDetailsDialog> {
             it.withTitleValidationError(titleValidationError = message)
         }
-    }
-
-    @UiThread
-    fun onEditTargetConfirmed(target: ChangeImagesTarget) {
-        (_uiState.value.overlayDialog as? DialogHandle.EditTargetConfirmationDialog)
-            ?.let {
-                val recordId = it.recordId
-                val images = it.images
-                val title = it.title
-                val description = it.description
-                runSafely {
-                    applyConfirmedSharedTemplateEditUseCase.execute(
-                        target = target,
-                        recordId = recordId,
-                        images = images,
-                        title = title,
-                        description = description,
-                    )
-                }
-                closeAll()
-                DiaryWidgetScreen.reload()
-            }
     }
 
     private fun runSafely(task: suspend () -> Unit): Job {

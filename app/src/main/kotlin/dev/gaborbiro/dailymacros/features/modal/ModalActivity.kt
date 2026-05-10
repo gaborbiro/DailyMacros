@@ -334,33 +334,33 @@ class ModalActivity : AppCompatActivity() {
 
     private fun handleAction(action: Action, intent: Intent = this.intent) {
         when (action) {
-            Action.CAMERA -> viewModel.onCreateRecordWithCameraDeeplink()
-            Action.BROWSE_IMAGES -> viewModel.onCreateRecordWithBrowseImagesDeeplink()
-            Action.TEXT_ONLY -> viewModel.onCreateRecordWithTextDeeplink()
+            Action.CAMERA -> viewModel.onCreateRecordWithCameraDeeplinkReceived()
+            Action.BROWSE_IMAGES -> viewModel.onCreateRecordWithBrowseImagesDeeplinkReceived()
+            Action.TEXT_ONLY -> viewModel.onCreateRecordWithTextDeeplinkReceived()
 
             Action.VIEW_RECORD_DETAILS -> {
                 val recordId = intent.getLongExtra(EXTRA_RECORD_ID, -1L)
-                viewModel.onViewRecordDetailsDeeplink(recordId)
+                viewModel.onViewRecordDetailsDeeplinkReceived(recordId)
             }
 
             Action.VIEW_IMAGE -> {
                 val recordId = intent.getLongExtra(EXTRA_RECORD_ID, -1L)
                 if (recordId != -1L) {
-                    viewModel.viewRecordImageDeeplink(recordId)
+                    viewModel.onViewRecordImageDeeplinkReceived(recordId)
                 } else {
                     val templateId = intent.getLongExtra(EXTRA_TEMPLATE_ID, -1L)
-                    viewModel.onViewTemplateImageDeeplink(templateId)
+                    viewModel.onViewTemplateImageDeeplinkReceived(templateId)
                 }
             }
 
             Action.SELECT_RECORD_ACTION -> {
                 val recordId = intent.getLongExtra(EXTRA_RECORD_ID, -1L)
-                viewModel.onSelectRecordActionDeeplink(recordId)
+                viewModel.onSelectRecordActionDeeplinkReceived(recordId)
             }
 
             Action.SELECT_TEMPLATE_ACTION -> {
                 val templateId = intent.getLongExtra(EXTRA_TEMPLATE_ID, -1L)
-                viewModel.onSelectTemplateActionDeeplink(templateId)
+                viewModel.onSelectTemplateActionDeeplinkReceived(templateId)
             }
         }
     }
