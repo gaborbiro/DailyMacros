@@ -46,7 +46,6 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.BuildRecordDetailsViewDi
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.DeleteRecordUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.DeleteRecordWithWorkerCleanupUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
@@ -175,7 +174,7 @@ class ModalActivity : AppCompatActivity() {
 
         val nutrientsUiMapper = NutrientsUiMapper()
         val modalUiMapper = ModalUiMapper(nutrientsUiMapper)
-        val deleteRecordUseCase = DeleteRecordUseCase(recordsRepository)
+        val deleteRecordUseCase = DeleteRecordUseCase(recordsRepository, applicationContext)
         val createRecordFromTemplateUseCase = CreateRecordFromTemplateUseCase(recordsRepository)
         val createTemplateUseCase = CreateTemplateUseCase(recordsRepository)
         val repeatRecordUseCase =
@@ -209,10 +208,6 @@ class ModalActivity : AppCompatActivity() {
             ResolveSelectTemplateActionDialogUseCase(recordsRepository)
         val resolveFirstRecordIdForTemplateUseCase =
             ResolveFirstRecordIdForTemplateUseCase(recordsRepository)
-        val deleteRecordWithWorkerCleanupUseCase = DeleteRecordWithWorkerCleanupUseCase(
-            deleteRecordUseCase = deleteRecordUseCase,
-            appContext = applicationContext,
-        )
         val applyQuickPickOverrideAndReloadWidgetUseCase =
             ApplyQuickPickOverrideAndReloadWidgetUseCase(recordsRepository)
         val updateRecordWithNewTemplateUseCase =
@@ -244,9 +239,9 @@ class ModalActivity : AppCompatActivity() {
             getRecordImageUseCase = GetRecordImageUseCase(recordsRepository),
             getTemplateImageUseCase = GetTemplateImageUseCase(recordsRepository),
             foodRecognitionUseCase = FoodRecognitionUseCase(this, imageStore, chatGPTRepository),
-            deleteRecordWithWorkerCleanupUseCase = deleteRecordWithWorkerCleanupUseCase,
             applyQuickPickOverrideAndReloadWidgetUseCase = applyQuickPickOverrideAndReloadWidgetUseCase,
             applyConfirmedSharedTemplateEditUseCase = applyConfirmedSharedTemplateEditUseCase,
+            deleteRecordUseCase = deleteRecordUseCase,
             analyticsLogger = analyticsLogger,
         )
     }

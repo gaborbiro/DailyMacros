@@ -12,23 +12,25 @@ import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
+import dev.gaborbiro.dailymacros.features.modal.model.ChangeImagesTarget
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiState
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
-import dev.gaborbiro.dailymacros.features.modal.model.ChangeImagesTarget
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyConfirmedSharedTemplateEditUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyTemplateVariantPickerSelectionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyTemplateVariantPickerSelectionResult
+import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyTemplateVariantPickerSelectionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.BuildRecordDetailsViewDialogUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateValidationResult
-import dev.gaborbiro.dailymacros.features.modal.usecase.DeleteRecordWithWorkerCleanupUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.OpenTemplateVariantPickerFromRecordDetailsUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.OpenTemplateVariantPickerResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveFirstRecordIdForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveSelectRecordActionDialogUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveSelectTemplateActionDialogUseCase
@@ -38,8 +40,6 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseC
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.DomainError
-import dev.gaborbiro.dailymacros.features.modal.usecase.OpenTemplateVariantPickerFromRecordDetailsUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.OpenTemplateVariantPickerResult
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import ellipsize
@@ -77,7 +77,7 @@ internal class ModalViewModel(
     private val getRecordImageUseCase: GetRecordImageUseCase,
     private val getTemplateImageUseCase: GetTemplateImageUseCase,
     private val foodRecognitionUseCase: FoodRecognitionUseCase,
-    private val deleteRecordWithWorkerCleanupUseCase: DeleteRecordWithWorkerCleanupUseCase,
+    private val deleteRecordUseCase: DeleteRecordUseCase,
     private val applyQuickPickOverrideAndReloadWidgetUseCase: ApplyQuickPickOverrideAndReloadWidgetUseCase,
     private val applyConfirmedSharedTemplateEditUseCase: ApplyConfirmedSharedTemplateEditUseCase,
     private val analyticsLogger: AnalyticsLogger,
@@ -320,6 +320,7 @@ internal class ModalViewModel(
                 templateId,
                 Template.QuickPickOverride.EXCLUDE,
             )
+            DiaryWidgetScreen.reload()
         }
     }
 
@@ -332,6 +333,7 @@ internal class ModalViewModel(
                 templateId,
                 Template.QuickPickOverride.INCLUDE,
             )
+            DiaryWidgetScreen.reload()
         }
     }
 
@@ -339,20 +341,26 @@ internal class ModalViewModel(
     fun onDeleteTapped(recordId: Long) {
         closeAll()
         runSafely {
-            deleteRecordWithWorkerCleanupUseCase.execute(recordId)
+            deleteRecordUseCase.execute(recordId)
             DiaryWidgetScreen.reload()
         }
     }
 
     @UiThread
     fun onDialogDismissRequested(dialog: DialogHandle) {
-        if (dialog == _uiState.value.overlayDialog) {
-            popOverlay()
-        } else if (dialog is DialogHandle.TemplateVariantPickerDialog) {
-            onVariantPickerCancelTapped()
-            return
-        } else {
-            closeAll()
+        when (dialog) {
+            _uiState.value.overlayDialog -> {
+                popOverlay()
+            }
+
+            is DialogHandle.TemplateVariantPickerDialog -> {
+                onVariantPickerCancelTapped()
+                return
+            }
+
+            else -> {
+                closeAll()
+            }
         }
         (dialog as? DialogHandle.RecordDetailsDialog.Edit)?.let {
             runSafely {

@@ -42,7 +42,7 @@ internal class BuildRecordDetailsViewDialogUseCase(
                 match.archetypePickerEntries,
             )
         } else {
-            Triple(null, emptyList<VariabilityArchetype>(), emptyList<VariabilityArchetypePickerEntry>())
+            Triple(null, emptyList(), emptyList())
         }
 
         return DialogHandle.RecordDetailsDialog.View(
