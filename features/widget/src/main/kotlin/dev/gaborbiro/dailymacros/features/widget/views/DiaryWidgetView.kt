@@ -21,14 +21,14 @@ import androidx.glance.layout.size
 import androidx.glance.layout.wrapContentHeight
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
-import dev.gaborbiro.dailymacros.R
+import dev.gaborbiro.dailymacros.features.widget.R
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDouble
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.widget.model.ListUiModelQuickPick
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.widget.WidgetActionProvider
-import dev.gaborbiro.dailymacros.features.widget.WidgetActionProviderImpl
+import dev.gaborbiro.dailymacros.features.widget.PreviewWidgetActionProvider
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreviewContext
 
 @Composable
@@ -106,7 +106,7 @@ private fun WidgetViewPreview() {
         DiaryWidgetView(
             modifier = GlanceModifier
                 .fillMaxSize(),
-            actionProvider = WidgetActionProviderImpl(),
+            actionProvider = PreviewWidgetActionProvider,
             items = listOf(
                 ListUiModelRecord(
                     recordId = 1,
@@ -211,7 +211,7 @@ private fun WidgetViewPreviewEmpty() {
         DiaryWidgetView(
             modifier = GlanceModifier
                 .fillMaxSize(),
-            actionProvider = WidgetActionProviderImpl(),
+            actionProvider = PreviewWidgetActionProvider,
             items = emptyList(),
         )
     }

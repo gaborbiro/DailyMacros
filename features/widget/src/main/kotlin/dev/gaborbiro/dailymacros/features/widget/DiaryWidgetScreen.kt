@@ -22,7 +22,6 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import androidx.work.WorkManager
-import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
 import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
@@ -42,9 +41,9 @@ class DiaryWidgetScreen : GlanceAppWidget() {
         const val PREFS_RECENT_RECORDS = "recent_records"
         const val PREFS_QUICK_PICKS = "quick_pics"
 
-        fun reload() {
+        fun reload(context: Context) {
             Log.i("DiaryWidgetScreen", "reload()")
-            WorkManager.getInstance(App.appContext).enqueue(
+            WorkManager.getInstance(context.applicationContext).enqueue(
                 ReloadWorker.getReloadWorkRequest(
                     recentRecordsPrefsKey = PREFS_RECENT_RECORDS,
                     quickPicksPrefsKey = PREFS_QUICK_PICKS,
@@ -117,7 +116,7 @@ class DiaryWidgetScreen : GlanceAppWidget() {
                             CompositionLocalProvider(LocalImageStoreWidget provides state.imageStore) {
                                 DiaryWidgetView(
                                     modifier = GlanceModifier.fillMaxSize(),
-                                    actionProvider = WidgetActionProviderImpl(),
+                                    actionProvider = WidgetActionDependency.factory(),
                                     items = state.items
                                 )
                             }

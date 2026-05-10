@@ -228,14 +228,14 @@ internal class ModalViewModel(
         closeAll()
         runSafely {
             repeatRecordUseCase.execute(recordId)
-            DiaryWidgetScreen.reload()
+            DiaryWidgetScreen.reload(App.appContext)
         }
     }
 
     fun onRepeatTemplateButtonTapped(templateId: Long) {
         runSafely {
             createRecordFromTemplateUseCase.execute(templateId)
-            DiaryWidgetScreen.reload()
+            DiaryWidgetScreen.reload(App.appContext)
             closeAll()
         }
     }
@@ -258,7 +258,7 @@ internal class ModalViewModel(
                 templateId,
                 Template.QuickPickOverride.EXCLUDE,
             )
-            DiaryWidgetScreen.reload()
+            DiaryWidgetScreen.reload(App.appContext)
         }
     }
 
@@ -270,7 +270,7 @@ internal class ModalViewModel(
                 templateId,
                 Template.QuickPickOverride.INCLUDE,
             )
-            DiaryWidgetScreen.reload()
+            DiaryWidgetScreen.reload(App.appContext)
         }
     }
 
@@ -278,7 +278,7 @@ internal class ModalViewModel(
         closeAll()
         runSafely {
             deleteRecordUseCase.execute(recordId)
-            DiaryWidgetScreen.reload()
+            DiaryWidgetScreen.reload(App.appContext)
         }
     }
 
@@ -427,7 +427,7 @@ internal class ModalViewModel(
                 }
 
                 ApplyTemplateVariantPickerSelectionResult.Applied -> {
-                    DiaryWidgetScreen.reload()
+                    DiaryWidgetScreen.reload(App.appContext)
                     pendingRecordDetailsRestore = null
                     closeAll()
                 }
@@ -452,7 +452,7 @@ internal class ModalViewModel(
                     )
                 }
                 closeAll()
-                DiaryWidgetScreen.reload()
+                DiaryWidgetScreen.reload(App.appContext)
             }
     }
 
@@ -530,7 +530,7 @@ internal class ModalViewModel(
                     title = title,
                     description = description,
                 )
-                DiaryWidgetScreen.reload()
+                DiaryWidgetScreen.reload(App.appContext)
                 GetMacrosWorker.setWorkRequest(
                     appContext = App.appContext,
                     recordId = recordId,
@@ -572,7 +572,7 @@ internal class ModalViewModel(
                     title = title,
                     description = description,
                 )
-                DiaryWidgetScreen.reload()
+                DiaryWidgetScreen.reload(App.appContext)
                 GetMacrosWorker.setWorkRequest(
                     appContext = App.appContext,
                     recordId = dialogHandle.recordId,
