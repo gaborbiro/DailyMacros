@@ -1,22 +1,25 @@
 package dev.gaborbiro.dailymacros.features.overview
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.common.model.ListUiModelBase
-import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
+import dev.gaborbiro.dailymacros.features.common.util.combine
+import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiState
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiUpdates
+import dev.gaborbiro.dailymacros.features.overview.usecase.CancelMacrosAnalysisForRecordUseCase
+import dev.gaborbiro.dailymacros.features.overview.usecase.ComputeOverviewHasMoreItemsUseCase
+import dev.gaborbiro.dailymacros.features.overview.usecase.DeleteUnusedTemplateIfOrphanedUseCase
+import dev.gaborbiro.dailymacros.features.overview.usecase.RefreshMacrosAnalysisForRecordUseCase
+import dev.gaborbiro.dailymacros.features.overview.usecase.ResolveOverviewCoachMarkUseCase
+import dev.gaborbiro.dailymacros.features.overview.usecase.ResolveOverviewObserveSinceEpochMillisUseCase
 import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
-import dev.gaborbiro.dailymacros.features.common.util.combine
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -36,7 +39,13 @@ internal class OverviewViewModel(
     private val recordsRepository: RecordsRepository,
     private val settingsRepository: SettingsRepository,
     private val uiMapper: OverviewUiMapper,
-    private val overviewPrefs: OverviewPrefs,
+    private val resolveObserveSinceEpochMillis: ResolveOverviewObserveSinceEpochMillisUseCase,
+    private val computeHasMoreItems: ComputeOverviewHasMoreItemsUseCase,
+    private val resolveCoachMark: ResolveOverviewCoachMarkUseCase,
+    private val deleteUnusedTemplateIfOrphaned: DeleteUnusedTemplateIfOrphanedUseCase,
+    private val refreshMacrosAnalysisForRecord: RefreshMacrosAnalysisForRecordUseCase,
+    private val cancelMacrosAnalysisForRecord: CancelMacrosAnalysisForRecordUseCase,
+    private val applyQuickPickOverrideAndReloadWidget: ApplyQuickPickOverrideAndReloadWidgetUseCase,
     private val createRecordFromTemplateUseCase: CreateRecordFromTemplateUseCase,
 ) : ViewModel() {
 
@@ -75,31 +84,26 @@ internal class OverviewViewModel(
     private fun resubscribe(search: String?) {
         collectionJob?.cancel()
         collectionJob = viewModelScope.launch {
-            val sinceMillis = if (search.isNullOrBlank()) sinceEpochMillis else 0L
+            val searchBlank = search.isNullOrBlank()
+            val sinceMillis = resolveObserveSinceEpochMillis.execute(searchBlank, sinceEpochMillis)
             recordsRepository.observeRecords(search, sinceEpochMillis = sinceMillis)
                 .combine(flowOf(settingsRepository.getTargets()))
                 .map { (records: List<Record>, targets: Targets) ->
-                    if (search.isNullOrBlank()) {
+                    if (searchBlank) {
                         uiMapper.map(records, targets)
                     } else {
                         uiMapper.mapSearchResults(records)
                     }
                 }
                 .collect { records: List<ListUiModelBase> ->
-                    // Determine if there is more data to load.
-                    // For search results we load everything, so no more pages.
-                    // For the main list, if expanding the window didn't bring new
-                    // records compared to the previous emission, we've hit the end.
-                    val hasMore = if (!search.isNullOrBlank()) {
-                        false
-                    } else if (previousRecordCount >= 0 && records.size <= previousRecordCount) {
-                        false
-                    } else {
-                        true
-                    }
+                    val hasMore = computeHasMoreItems.execute(
+                        isSearchActive = !searchBlank,
+                        previousItemCount = previousRecordCount,
+                        currentItemCount = records.size,
+                    )
                     previousRecordCount = records.size
 
-                    val notSearching = search.isNullOrBlank()
+                    val notSearching = searchBlank
                     _viewState.update {
                         if (records.isNotEmpty()) {
                             it.copy(
@@ -120,15 +124,14 @@ internal class OverviewViewModel(
                             )
                         }
                     }
-                    if (records.size == 2 && overviewPrefs.showCoachMark) {
-                        overviewPrefs.showCoachMark = false
+                    if (resolveCoachMark.execute(records.size)) {
                         delay(2.seconds)
                         _viewState.update {
-                            val notSearching = search.isNullOrBlank()
+                            val stillNotSearching = search.isNullOrBlank()
                             it.copy(
                                 showCoachMark = true,
-                                showSettingsButton = notSearching,
-                                showTrendsButton = notSearching,
+                                showSettingsButton = stillNotSearching,
+                                showTrendsButton = stillNotSearching,
                             )
                         }
                     }
@@ -154,15 +157,7 @@ internal class OverviewViewModel(
 
     fun onAnalyseMacrosMenuItemTapped(recordId: Long) {
         viewModelScope.launch {
-            GetMacrosWorker.cancelWorkRequest(
-                appContext = App.appContext,
-                recordId = recordId,
-            )
-            GetMacrosWorker.setWorkRequest(
-                appContext = App.appContext,
-                recordId = recordId,
-                force = true,
-            )
+            refreshMacrosAnalysisForRecord.execute(recordId)
         }
     }
 
@@ -175,7 +170,7 @@ internal class OverviewViewModel(
     fun onAddToQuickPicksMenuItemTapped(recordId: Long) {
         viewModelScope.launch {
             val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return@launch
-            recordsRepository.addQuickPickOverride(templateId, Template.QuickPickOverride.INCLUDE)
+            applyQuickPickOverrideAndReloadWidget.execute(templateId, Template.QuickPickOverride.INCLUDE)
             DiaryWidgetScreen.reload()
         }
     }
@@ -190,10 +185,7 @@ internal class OverviewViewModel(
                 )
             }
             DiaryWidgetScreen.reload()
-            GetMacrosWorker.cancelWorkRequest(
-                appContext = App.appContext,
-                recordId = recordId,
-            )
+            cancelMacrosAnalysisForRecord.execute(recordId)
         }
     }
 
@@ -222,7 +214,7 @@ internal class OverviewViewModel(
     }
 
     fun onUndoDeleteDismissed() {
-        deleteTemplate(_viewState.value.recordToUndelete!!.template.dbId)
+        deleteUnusedTemplateAfterUndo(_viewState.value.recordToUndelete!!.template.dbId)
         _viewState.update {
             it.copy(
                 recordToUndelete = null,
@@ -247,16 +239,9 @@ internal class OverviewViewModel(
         }
     }
 
-    private fun deleteTemplate(templateId: Long) {
-        GlobalScope.launch {
-            val (templateDeleted, imageDeleted) = recordsRepository.deleteTemplateIfUnused(
-                templateId = templateId,
-                imageToo = true,
-            )
-            Log.d(
-                "Notes",
-                "template deleted: $templateDeleted, image deleted: $imageDeleted"
-            )
+    private fun deleteUnusedTemplateAfterUndo(templateId: Long) {
+        viewModelScope.launch {
+            deleteUnusedTemplateIfOrphaned.execute(templateId)
             DiaryWidgetScreen.reload()
         }
     }
@@ -271,7 +256,7 @@ internal class OverviewViewModel(
 
     fun finalizePendingUndos() {
         _viewState.value.recordToUndelete?.let {
-            deleteTemplate(it.template.dbId)
+            deleteUnusedTemplateAfterUndo(it.template.dbId)
         }
     }
 }
