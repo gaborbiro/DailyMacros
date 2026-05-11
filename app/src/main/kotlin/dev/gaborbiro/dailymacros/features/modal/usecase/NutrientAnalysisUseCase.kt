@@ -8,7 +8,7 @@ import dev.gaborbiro.dailymacros.features.shared.RecordsMapper
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.features.common.utils.inputStreamToBase64
-import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
+import dev.gaborbiro.dailymacros.features.widget.FoodDiaryWidgetReloader
 import dev.gaborbiro.dailymacros.repositories.chatgpt.BuildConfig
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.DomainError
@@ -36,6 +36,7 @@ class NutrientAnalysisUseCase @Inject constructor(
     private val requestStatusRepository: RequestStatusRepository,
     private val recordsMapper: RecordsMapper,
     private val macrosNotificationTextMapper: MacrosNotificationTextMapper,
+    private val foodDiaryWidgetReloader: FoodDiaryWidgetReloader,
 ) {
 
     suspend fun execute(
@@ -51,7 +52,7 @@ class NutrientAnalysisUseCase @Inject constructor(
                     inputStreamToBase64(inputStream)
                 }
             requestStatusRepository.markAsPending(record.template.dbId)
-            DiaryWidgetScreen.reload(appContext)
+            foodDiaryWidgetReloader.scheduleReload(appContext)
 
             val nutrientsAnalysisResponse = runCatching {
                 chatGPTRepository.analyseNutrients(
@@ -167,7 +168,7 @@ class NutrientAnalysisUseCase @Inject constructor(
             throw t
         } finally {
             requestStatusRepository.unmark(record.template.dbId)
-            DiaryWidgetScreen.reload(appContext)
+            foodDiaryWidgetReloader.scheduleReload(appContext)
         }
     }
 }

@@ -10,4 +10,5 @@ dependencies {
     api(project(":repositories:settings:domain"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.network.gson)
+    implementation(libs.javax.inject)
 }

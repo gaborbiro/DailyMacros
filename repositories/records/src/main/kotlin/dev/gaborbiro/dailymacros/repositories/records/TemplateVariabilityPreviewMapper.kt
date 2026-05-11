@@ -8,7 +8,9 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.V
  * Maps persisted variability archetypes into preview rows for a template id
  * (variants whose evidence lists that [templateId]).
  */
-class TemplateVariabilityPreviewMapper {
+import javax.inject.Inject
+
+class TemplateVariabilityPreviewMapper @Inject constructor() {
 
     /**
      * Slots where at least one variant cites [templateId] in evidence; each row lists **all**

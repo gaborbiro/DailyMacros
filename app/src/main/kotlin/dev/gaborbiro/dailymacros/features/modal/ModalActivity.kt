@@ -25,7 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import dev.gaborbiro.dailymacros.data.file.domain.FileStore
 import dev.gaborbiro.dailymacros.design.AppTheme
-import dev.gaborbiro.dailymacros.di.PublicEphemeralFileStore
+import dev.gaborbiro.dailymacros.di.FileStorePublicBucketEphemeral
 import dev.gaborbiro.dailymacros.data.image.DefaultFoodPicExt
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.views.InfoDialog
@@ -52,7 +52,7 @@ class ModalActivity : AppCompatActivity() {
     lateinit var imageStore: ImageStore
 
     @Inject
-    @PublicEphemeralFileStore
+    @FileStorePublicBucketEphemeral
     lateinit var cacheFileStore: FileStore
 
     @Inject

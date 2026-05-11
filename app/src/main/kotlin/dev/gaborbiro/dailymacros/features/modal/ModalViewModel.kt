@@ -39,7 +39,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
-import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
+import dev.gaborbiro.dailymacros.features.widget.FoodDiaryWidgetReloader
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.DomainError
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
@@ -86,6 +86,7 @@ class ModalViewModel @Inject constructor(
     private val applyQuickPickOverrideAndReloadWidgetUseCase: ApplyQuickPickOverrideAndReloadWidgetUseCase,
     private val applyConfirmedSharedTemplateEditUseCase: ApplyConfirmedSharedTemplateEditUseCase,
     private val analyticsLogger: AnalyticsLogger,
+    private val foodDiaryWidgetReloader: FoodDiaryWidgetReloader,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ModalUiState())
@@ -233,14 +234,14 @@ class ModalViewModel @Inject constructor(
         closeAll()
         runSafely {
             repeatRecordUseCase.execute(recordId)
-            DiaryWidgetScreen.reload(appContext)
+            foodDiaryWidgetReloader.scheduleReload(appContext)
         }
     }
 
     fun onRepeatTemplateButtonTapped(templateId: Long) {
         runSafely {
             createRecordFromTemplateUseCase.execute(templateId)
-            DiaryWidgetScreen.reload(appContext)
+            foodDiaryWidgetReloader.scheduleReload(appContext)
             closeAll()
         }
     }
@@ -263,7 +264,7 @@ class ModalViewModel @Inject constructor(
                 templateId,
                 Template.QuickPickOverride.EXCLUDE,
             )
-            DiaryWidgetScreen.reload(appContext)
+            foodDiaryWidgetReloader.scheduleReload(appContext)
         }
     }
 
@@ -275,7 +276,7 @@ class ModalViewModel @Inject constructor(
                 templateId,
                 Template.QuickPickOverride.INCLUDE,
             )
-            DiaryWidgetScreen.reload(appContext)
+            foodDiaryWidgetReloader.scheduleReload(appContext)
         }
     }
 
@@ -283,7 +284,7 @@ class ModalViewModel @Inject constructor(
         closeAll()
         runSafely {
             deleteRecordUseCase.execute(recordId)
-            DiaryWidgetScreen.reload(appContext)
+            foodDiaryWidgetReloader.scheduleReload(appContext)
         }
     }
 
@@ -432,7 +433,7 @@ class ModalViewModel @Inject constructor(
                 }
 
                 ApplyTemplateVariantPickerSelectionResult.Applied -> {
-                    DiaryWidgetScreen.reload(appContext)
+                    foodDiaryWidgetReloader.scheduleReload(appContext)
                     pendingRecordDetailsRestore = null
                     closeAll()
                 }
@@ -457,7 +458,7 @@ class ModalViewModel @Inject constructor(
                     )
                 }
                 closeAll()
-                DiaryWidgetScreen.reload(appContext)
+                foodDiaryWidgetReloader.scheduleReload(appContext)
             }
     }
 
@@ -535,7 +536,7 @@ class ModalViewModel @Inject constructor(
                     title = title,
                     description = description,
                 )
-                DiaryWidgetScreen.reload(appContext)
+                foodDiaryWidgetReloader.scheduleReload(appContext)
                 GetMacrosWorker.setWorkRequest(
                     appContext = appContext,
                     recordId = recordId,
@@ -577,7 +578,7 @@ class ModalViewModel @Inject constructor(
                     title = title,
                     description = description,
                 )
-                DiaryWidgetScreen.reload(appContext)
+                foodDiaryWidgetReloader.scheduleReload(appContext)
                 GetMacrosWorker.setWorkRequest(
                     appContext = appContext,
                     recordId = dialogHandle.recordId,

@@ -1,6 +1,5 @@
 package dev.gaborbiro.dailymacros.features.main
 
-import android.app.Application
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -19,6 +18,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -28,24 +28,16 @@ import dev.gaborbiro.dailymacros.AppPrefs
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.design.AppTheme
-import dev.gaborbiro.dailymacros.features.common.utils.viewModelFactory
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
-import dev.gaborbiro.dailymacros.features.settings.EnqueueMealVariabilityMining
-import dev.gaborbiro.dailymacros.features.settings.SettingsAppInfo
-import dev.gaborbiro.dailymacros.features.settings.SettingsPrefs
-import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
-import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportSqliteDatabaseUseCase
-import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseUseCase
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
+import dev.gaborbiro.dailymacros.features.settings.di.SettingsViewModelFactory
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsViewModel
 import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
 import dev.gaborbiro.dailymacros.features.trends.TrendsViewModel
-import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusRepository
-import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -65,28 +57,7 @@ class MainActivity : ComponentActivity() {
     lateinit var requestStatusRepository: RequestStatusRepository
 
     @Inject
-    lateinit var settingsAppInfo: SettingsAppInfo
-
-    @Inject
-    lateinit var settingsPrefs: SettingsPrefs
-
-    @Inject
-    lateinit var exportFoodDiaryUseCase: ExportFoodDiaryUseCase
-
-    @Inject
-    lateinit var exportSqliteDatabaseUseCase: ExportSqliteDatabaseUseCase
-
-    @Inject
-    lateinit var importSqliteDatabaseUseCase: ImportSqliteDatabaseUseCase
-
-    @Inject
-    lateinit var variabilityRepository: VariabilityRepository
-
-    @Inject
-    lateinit var recordsRepository: RecordsRepository
-
-    @Inject
-    lateinit var enqueueMealVariabilityMining: EnqueueMealVariabilityMining
+    lateinit var settingsViewModelFactory: SettingsViewModelFactory
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
@@ -103,19 +74,7 @@ class MainActivity : ComponentActivity() {
             AppTheme {
                 val navController: NavHostController = rememberNavController()
                 val overviewViewModel: OverviewViewModel = hiltViewModel()
-                val settingsViewModel = viewModelFactory {
-                    SettingsViewModel(
-                        application = applicationContext as Application,
-                        appInfo = settingsAppInfo,
-                        settingsPrefs = settingsPrefs,
-                        exportFoodDiaryUseCase = exportFoodDiaryUseCase,
-                        exportSqliteDatabaseUseCase = exportSqliteDatabaseUseCase,
-                        importSqliteDatabaseUseCase = importSqliteDatabaseUseCase,
-                        variabilityRepository = variabilityRepository,
-                        recordsRepository = recordsRepository,
-                        enqueueMealVariabilityMining = enqueueMealVariabilityMining,
-                    )
-                }
+                val settingsViewModel: SettingsViewModel = viewModel(factory = settingsViewModelFactory)
                 val targetsSettingsViewModel: TargetsSettingsViewModel = hiltViewModel()
                 val trendsViewModel: TrendsViewModel = hiltViewModel()
 
@@ -135,6 +94,7 @@ class MainActivity : ComponentActivity() {
                     }
                     composable(
                         route = SETTINGS_ROUTE,
+                        // Slide the Settings screen in from the right (and out to the right on back).
                         enterTransition = {
                             slideInHorizontally(
                                 initialOffsetX = { fullWidth -> fullWidth },
@@ -156,6 +116,7 @@ class MainActivity : ComponentActivity() {
                     }
                     composable(
                         route = TRENDS_ROUTE,
+                        // Same horizontal slide as Settings: Trends enters from the right and exits to the right.
                         enterTransition = {
                             slideInHorizontally(
                                 initialOffsetX = { fullWidth -> fullWidth },

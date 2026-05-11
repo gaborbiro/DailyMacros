@@ -10,8 +10,9 @@ import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
 import dev.gaborbiro.dailymacros.features.main.MainActivity
 import dev.gaborbiro.dailymacros.features.modal.ModalActivity
-import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
+import dev.gaborbiro.dailymacros.features.widget.WidgetGlanceEntryPoint
 import dev.gaborbiro.dailymacros.features.widget.WidgetNavigator
+import dagger.hilt.android.EntryPointAccessors
 import javax.inject.Inject
 
 private const val PREFS_KEY_RECORD = "recordId"
@@ -160,6 +161,9 @@ class RefreshAction : ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters,
     ) {
-        DiaryWidgetScreen.reload(context.applicationContext)
+        EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            WidgetGlanceEntryPoint::class.java,
+        ).foodDiaryWidgetReloader().scheduleReload(context.applicationContext)
     }
 }

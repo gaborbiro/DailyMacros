@@ -60,28 +60,20 @@ object AppSingletonModule {
 
     @Provides
     @Singleton
-    @PublicPersistentFileStore
+    @FileStorePublicBucketPersistent
     fun persistentPublicFileStore(@ApplicationContext context: Context): FileStore =
         FileStoreFactoryImpl(context).getStore("public", keepFiles = true)
 
     @Provides
     @Singleton
-    @PublicEphemeralFileStore
+    @FileStorePublicBucketEphemeral
     fun ephemeralPublicFileStore(@ApplicationContext context: Context): FileStore =
         FileStoreFactoryImpl(context).getStore("public", keepFiles = false)
 
     @Provides
     @Singleton
-    fun imageStore(@PublicPersistentFileStore fileStore: FileStore): ImageStore =
+    fun imageStore(@FileStorePublicBucketPersistent fileStore: FileStore): ImageStore =
         ImageStoreImpl(fileStore)
-
-    @Provides
-    @Singleton
-    fun recordsApiMapper(): RecordsApiMapper = RecordsApiMapper()
-
-    @Provides
-    @Singleton
-    fun settingsMapper(): SettingsMapper = SettingsMapper()
 
     @Provides
     @Singleton
@@ -153,11 +145,6 @@ object AppSingletonModule {
     @Singleton
     fun enqueueMealVariabilityMining(@ApplicationContext context: Context): EnqueueMealVariabilityMining =
         EnqueueMealVariabilityMining { MineMealVariabilityWorker.enqueue(context) }
-
-    @Provides
-    @Singleton
-    fun templateVariabilityPreviewMapper(): TemplateVariabilityPreviewMapper =
-        TemplateVariabilityPreviewMapper()
 
     @Provides
     @Singleton

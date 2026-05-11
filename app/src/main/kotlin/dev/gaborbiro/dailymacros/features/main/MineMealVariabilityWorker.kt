@@ -17,6 +17,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
+import dev.gaborbiro.dailymacros.features.settings.R as SettingsR
 import dev.gaborbiro.dailymacros.features.settings.SettingsPrefs
 import dev.gaborbiro.dailymacros.features.settings.variability.MEAL_VARIABILITY_MINING_OUTPUT_ERROR
 import dev.gaborbiro.dailymacros.features.settings.variability.MEAL_VARIABILITY_MINING_UNIQUE_WORK
@@ -51,14 +52,14 @@ class MineMealVariabilityWorker @AssistedInject constructor(
             settingsPrefs.variabilityMiningRequestJsonSectionExpanded = false
             settingsPrefs.variabilityMiningResponseJsonSectionExpanded = false
             val successTitle = if (preview.skippedNoNewObservations) {
-                applicationContext.getString(R.string.variability_mining_skipped_title)
+                applicationContext.getString(SettingsR.string.variability_mining_skipped_title)
             } else {
-                applicationContext.getString(R.string.variability_mining_success_title)
+                applicationContext.getString(SettingsR.string.variability_mining_success_title)
             }
             val successText = if (preview.skippedNoNewObservations) {
-                applicationContext.getString(R.string.variability_mining_skipped_text)
+                applicationContext.getString(SettingsR.string.variability_mining_skipped_text)
             } else {
-                applicationContext.getString(R.string.variability_mining_success_text)
+                applicationContext.getString(SettingsR.string.variability_mining_success_text)
             }
             applicationContext.showTitleTextNotification(
                 id = NOTIFICATION_ID_RESULT,
@@ -72,7 +73,7 @@ class MineMealVariabilityWorker @AssistedInject constructor(
             val message = t.message?.takeIf { it.isNotBlank() } ?: t.toString()
             applicationContext.showTitleTextNotification(
                 id = NOTIFICATION_ID_RESULT,
-                title = applicationContext.getString(R.string.variability_mining_failure_title),
+                title = applicationContext.getString(SettingsR.string.variability_mining_failure_title),
                 text = message,
                 isError = true,
             )
@@ -85,7 +86,7 @@ class MineMealVariabilityWorker @AssistedInject constructor(
     private fun createForegroundInfo(): ForegroundInfo {
         val notification =
             NotificationCompat.Builder(applicationContext, CHANNEL_ID_FOREGROUND)
-                .setContentTitle(applicationContext.getString(R.string.variability_mining_foreground_title))
+                .setContentTitle(applicationContext.getString(SettingsR.string.variability_mining_foreground_title))
                 .setSmallIcon(R.drawable.ic_nutrition)
                 .setOngoing(true)
                 .build()
