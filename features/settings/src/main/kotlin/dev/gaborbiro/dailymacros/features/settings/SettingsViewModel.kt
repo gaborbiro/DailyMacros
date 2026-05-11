@@ -5,14 +5,15 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.util.Log
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportSqliteDatabaseUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseResult
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseUseCase
-import androidx.work.WorkInfo
-import androidx.work.WorkManager
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
 import dev.gaborbiro.dailymacros.features.settings.variability.MEAL_VARIABILITY_MINING_OUTPUT_ERROR
@@ -33,7 +34,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
 class SettingsViewModel(
-    private val application: Application,
+    application: Application,
     appInfo: SettingsAppInfo,
     private val settingsPrefs: SettingsPrefs,
     private val exportFoodDiaryUseCase: ExportFoodDiaryUseCase,
@@ -42,7 +43,7 @@ class SettingsViewModel(
     private val variabilityRepository: VariabilityRepository,
     private val recordsRepository: RecordsRepository,
     private val enqueueMealVariabilityMining: EnqueueMealVariabilityMining,
-) : ViewModel() {
+) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(
         SettingsUiState(

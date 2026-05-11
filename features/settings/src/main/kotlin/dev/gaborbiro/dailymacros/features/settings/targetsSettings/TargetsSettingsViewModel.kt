@@ -1,5 +1,7 @@
 package dev.gaborbiro.dailymacros.features.settings.targetsSettings
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,9 +23,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TargetsSettingsViewModel @Inject constructor(
+    application: Application,
     private val repo: SettingsRepository,
     private val uiMapper: TargetsSettingsUiMapper,
-) : ViewModel() {
+) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(TargetsSettingsUiState())
     val uiState: StateFlow<TargetsSettingsUiState> = _uiState.asStateFlow()

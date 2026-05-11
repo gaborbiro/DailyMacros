@@ -1,13 +1,14 @@
 package dev.gaborbiro.dailymacros.features.trends
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
 import dev.gaborbiro.dailymacros.features.trends.model.Timescale
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsSettingsUIModel
-import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiUpdates
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiState
+import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiUpdates
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import kotlinx.coroutines.Job
@@ -23,11 +24,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TrendsViewModel @Inject constructor(
+    application: Application,
     private val recordsRepository: RecordsRepository,
     private val settingsRepository: SettingsRepository,
     private val preferences: TrendsPreferences,
     private val mapper: TrendsUiMapper,
-) : ViewModel() {
+) : AndroidViewModel(application) {
 
     private var recordsJob: Job
 

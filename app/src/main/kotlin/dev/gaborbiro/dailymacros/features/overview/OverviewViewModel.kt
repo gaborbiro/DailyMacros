@@ -1,21 +1,23 @@
 package dev.gaborbiro.dailymacros.features.overview
 
 import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
-import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.common.utils.combine
+import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiState
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiUpdates
 import dev.gaborbiro.dailymacros.features.overview.usecase.CancelMacrosAnalysisForRecordUseCase
 import dev.gaborbiro.dailymacros.features.overview.usecase.ComputeOverviewHasMoreItemsUseCase
 import dev.gaborbiro.dailymacros.features.overview.usecase.DeleteUnusedTemplateIfOrphanedUseCase
-import dev.gaborbiro.dailymacros.features.overview.usecase.RefreshMacrosAnalysisForRecordUseCase
 import dev.gaborbiro.dailymacros.features.overview.usecase.ResolveOverviewCoachMarkUseCase
 import dev.gaborbiro.dailymacros.features.overview.usecase.ResolveOverviewObserveSinceEpochMillisUseCase
+import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
+import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.widget.FoodDiaryWidgetReloader
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
@@ -34,13 +36,13 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.seconds
-import javax.inject.Inject
 
 @HiltViewModel
 class OverviewViewModel @Inject constructor(
-    private val application: Application,
+    application: Application,
     private val recordsRepository: RecordsRepository,
     private val settingsRepository: SettingsRepository,
     private val uiMapper: OverviewUiMapper,
@@ -48,12 +50,11 @@ class OverviewViewModel @Inject constructor(
     private val computeHasMoreItems: ComputeOverviewHasMoreItemsUseCase,
     private val resolveCoachMark: ResolveOverviewCoachMarkUseCase,
     private val deleteUnusedTemplateIfOrphaned: DeleteUnusedTemplateIfOrphanedUseCase,
-    private val refreshMacrosAnalysisForRecord: RefreshMacrosAnalysisForRecordUseCase,
     private val cancelMacrosAnalysisForRecord: CancelMacrosAnalysisForRecordUseCase,
     private val applyQuickPickOverrideAndReloadWidget: ApplyQuickPickOverrideAndReloadWidgetUseCase,
     private val createRecordFromTemplateUseCase: CreateRecordFromTemplateUseCase,
     private val foodDiaryWidgetReloader: FoodDiaryWidgetReloader,
-) : ViewModel() {
+) : AndroidViewModel(application) {
 
     private val _viewState: MutableStateFlow<OverviewUiState> =
         MutableStateFlow(OverviewUiState())
@@ -157,13 +158,21 @@ class OverviewViewModel @Inject constructor(
         viewModelScope.launch {
             val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return@launch
             createRecordFromTemplateUseCase.execute(templateId)
-            foodDiaryWidgetReloader.scheduleReload(application)
+            foodDiaryWidgetReloader.scheduleReload(getApplication())
         }
     }
 
     fun onAnalyseMacrosMenuItemTapped(recordId: Long) {
         viewModelScope.launch {
-            refreshMacrosAnalysisForRecord.execute(recordId)
+            GetMacrosWorker.cancelWorkRequest(
+                appContext = application,
+                recordId = recordId,
+            )
+            GetMacrosWorker.setWorkRequest(
+                appContext = application,
+                recordId = recordId,
+                force = true,
+            )
         }
     }
 

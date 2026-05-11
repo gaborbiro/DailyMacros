@@ -1,17 +1,15 @@
 package dev.gaborbiro.dailymacros.features.modal
 
-import android.content.Context
+import android.app.Application
 import android.net.Uri
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
-import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
-import dev.gaborbiro.dailymacros.features.shared.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.features.modal.model.ChangeImagesTarget
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
@@ -39,6 +37,8 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
+import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
+import dev.gaborbiro.dailymacros.features.shared.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.widget.FoodDiaryWidgetReloader
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.DomainError
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
@@ -62,7 +62,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ModalViewModel @Inject constructor(
-    @ApplicationContext private val appContext: Context,
+    application: Application,
     private val modalUiMapper: ModalUiMapper,
     private val imageStore: ImageStore,
     private val recordsRepository: RecordsRepository,
@@ -87,7 +87,7 @@ class ModalViewModel @Inject constructor(
     private val applyConfirmedSharedTemplateEditUseCase: ApplyConfirmedSharedTemplateEditUseCase,
     private val analyticsLogger: AnalyticsLogger,
     private val foodDiaryWidgetReloader: FoodDiaryWidgetReloader,
-) : ViewModel() {
+) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(ModalUiState())
     val uiState: StateFlow<ModalUiState> = _uiState.asStateFlow()
@@ -234,14 +234,14 @@ class ModalViewModel @Inject constructor(
         closeAll()
         runSafely {
             repeatRecordUseCase.execute(recordId)
-            foodDiaryWidgetReloader.scheduleReload(appContext)
+            foodDiaryWidgetReloader.scheduleReload(application)
         }
     }
 
     fun onRepeatTemplateButtonTapped(templateId: Long) {
         runSafely {
             createRecordFromTemplateUseCase.execute(templateId)
-            foodDiaryWidgetReloader.scheduleReload(appContext)
+            foodDiaryWidgetReloader.scheduleReload(application)
             closeAll()
         }
     }
@@ -264,7 +264,7 @@ class ModalViewModel @Inject constructor(
                 templateId,
                 Template.QuickPickOverride.EXCLUDE,
             )
-            foodDiaryWidgetReloader.scheduleReload(appContext)
+            foodDiaryWidgetReloader.scheduleReload(application)
         }
     }
 
@@ -276,7 +276,7 @@ class ModalViewModel @Inject constructor(
                 templateId,
                 Template.QuickPickOverride.INCLUDE,
             )
-            foodDiaryWidgetReloader.scheduleReload(appContext)
+            foodDiaryWidgetReloader.scheduleReload(application)
         }
     }
 
@@ -284,7 +284,7 @@ class ModalViewModel @Inject constructor(
         closeAll()
         runSafely {
             deleteRecordUseCase.execute(recordId)
-            foodDiaryWidgetReloader.scheduleReload(appContext)
+            foodDiaryWidgetReloader.scheduleReload(application)
         }
     }
 
@@ -433,7 +433,7 @@ class ModalViewModel @Inject constructor(
                 }
 
                 ApplyTemplateVariantPickerSelectionResult.Applied -> {
-                    foodDiaryWidgetReloader.scheduleReload(appContext)
+                    foodDiaryWidgetReloader.scheduleReload(application)
                     pendingRecordDetailsRestore = null
                     closeAll()
                 }
@@ -458,7 +458,7 @@ class ModalViewModel @Inject constructor(
                     )
                 }
                 closeAll()
-                foodDiaryWidgetReloader.scheduleReload(appContext)
+                foodDiaryWidgetReloader.scheduleReload(application)
             }
     }
 
@@ -536,9 +536,9 @@ class ModalViewModel @Inject constructor(
                     title = title,
                     description = description,
                 )
-                foodDiaryWidgetReloader.scheduleReload(appContext)
+                foodDiaryWidgetReloader.scheduleReload(application)
                 GetMacrosWorker.setWorkRequest(
-                    appContext = appContext,
+                    appContext = application,
                     recordId = recordId,
                     force = true,
                 )
@@ -578,9 +578,9 @@ class ModalViewModel @Inject constructor(
                     title = title,
                     description = description,
                 )
-                foodDiaryWidgetReloader.scheduleReload(appContext)
+                foodDiaryWidgetReloader.scheduleReload(application)
                 GetMacrosWorker.setWorkRequest(
-                    appContext = appContext,
+                    appContext = application,
                     recordId = dialogHandle.recordId,
                     force = true,
                 )
