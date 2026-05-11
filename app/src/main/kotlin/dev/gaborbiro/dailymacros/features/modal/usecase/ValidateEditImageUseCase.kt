@@ -2,7 +2,7 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 
-internal class ValidateEditImageUseCase(
+class ValidateEditImageUseCase(
     private val repository: RecordsRepository,
 ) {
 

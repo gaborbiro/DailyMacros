@@ -8,7 +8,9 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
 
-class RecordsMapper {
+import javax.inject.Inject
+
+class RecordsMapper @Inject constructor() {
 
     fun mapToNutrientAnalysisRequest(record: Record, base64Images: List<String>): NutrientAnalysisRequest {
         return NutrientAnalysisRequest(

@@ -1,6 +1,8 @@
 package dev.gaborbiro.dailymacros.features.modal.usecase
 
-class ValidateCreateRecordUseCase {
+import javax.inject.Inject
+
+class ValidateCreateRecordUseCase @Inject constructor() {
 
     suspend fun execute(
         images: List<String>,

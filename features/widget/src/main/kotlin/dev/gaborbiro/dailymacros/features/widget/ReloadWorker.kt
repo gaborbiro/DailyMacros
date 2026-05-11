@@ -5,42 +5,29 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.appwidget.updateAll
+import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkRequest
 import androidx.work.WorkerParameters
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
-import dev.gaborbiro.dailymacros.data.db.AppDatabase
-import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
-import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
-import dev.gaborbiro.dailymacros.repositories.records.RecordsApiMapper
-import dev.gaborbiro.dailymacros.repositories.records.RecordsRepositoryImpl
+import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
-import dev.gaborbiro.dailymacros.repositories.records.RequestStatusRepositoryImpl
 import java.time.ZonedDateTime
 
-internal class ReloadWorker(
-    appContext: Context,
-    private val workerParameters: WorkerParameters,
+@HiltWorker
+class ReloadWorker @AssistedInject constructor(
+    @Assisted appContext: Context,
+    @Assisted private val workerParameters: WorkerParameters,
+    private val recordsRepository: RecordsRepository,
+    private val requestStatusRepository: RequestStatusRepository,
+    private val analyticsLogger: AnalyticsLogger,
 ) : CoroutineWorker(appContext, workerParameters) {
-
-    private val analyticsLogger = AnalyticsLogger()
-    private val database by lazy { AppDatabase.getInstance() }
-    private val fileStore by lazy { FileStoreFactoryImpl(appContext).getStore("public", keepFiles = true) }
-    private val recordsRepository by lazy {
-        RecordsRepositoryImpl(
-            templatesDAO = database.templatesDAO(),
-            recordsDAO = database.recordsDAO(),
-            mapper = RecordsApiMapper(),
-            imageStore = ImageStoreImpl(fileStore),
-            analyticsLogger = analyticsLogger,
-        )
-    }
-    private val requestStatusRepository by lazy {
-        RequestStatusRepositoryImpl(database.requestStatusDAO())
-    }
 
     companion object {
         private const val RECORD_DAYS_TO_DISPLAY_DEFAULT = 7

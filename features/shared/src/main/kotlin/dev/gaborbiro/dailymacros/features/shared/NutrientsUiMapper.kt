@@ -8,7 +8,9 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutri
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import kotlin.math.pow
 
-class NutrientsUiMapper {
+import javax.inject.Inject
+
+class NutrientsUiMapper @Inject constructor() {
 
     fun mapRecordNutrients(nutrientBreakdown: TemplateNutrientBreakdown): NutrientsUiModel {
         return NutrientsUiModel(

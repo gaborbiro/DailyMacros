@@ -3,12 +3,13 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 import androidx.annotation.UiThread
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
+import javax.inject.Inject
 
 /**
  * Creates a new template and updates the specified record with it.
  * This will delete nutrient data from the record and needs to be AI-d.
  */
-internal class UpdateRecordWithNewTemplateUseCase(
+class UpdateRecordWithNewTemplateUseCase @Inject constructor(
     private val repository: RecordsRepository,
     private val createTemplateUseCase: CreateTemplateUseCase,
 ) {

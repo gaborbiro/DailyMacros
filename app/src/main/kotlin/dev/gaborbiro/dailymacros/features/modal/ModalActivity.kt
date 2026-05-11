@@ -12,6 +12,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.activity.result.contract.ActivityResultContracts.TakePicture
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -21,73 +22,43 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.gson.GsonBuilder
-import com.google.gson.reflect.TypeToken
-import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
-import dev.gaborbiro.dailymacros.data.db.AppDatabase
-import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
+import dagger.hilt.android.AndroidEntryPoint
 import dev.gaborbiro.dailymacros.data.file.domain.FileStore
-import dev.gaborbiro.dailymacros.data.image.DefaultFoodPicExt
-import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.design.AppTheme
-import dev.gaborbiro.dailymacros.features.shared.ChatGptOkHttpTimeouts
-import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
-import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
-import dev.gaborbiro.dailymacros.features.shared.RepeatRecordUseCase
+import dev.gaborbiro.dailymacros.di.PublicEphemeralFileStore
+import dev.gaborbiro.dailymacros.data.image.DefaultFoodPicExt
+import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.views.InfoDialog
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
-import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyConfirmedSharedTemplateEditUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyTemplateVariantPickerSelectionUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.BuildRecordDetailsViewDialogUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.CreateTemplateUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.DeleteRecordUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.GetVariabilityMatchForTemplateUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.OpenTemplateVariantPickerFromRecordDetailsUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveFirstRecordIdForTemplateUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveSelectRecordActionDialogUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveSelectTemplateActionDialogUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.views.EditTargetConfirmationDialog
 import dev.gaborbiro.dailymacros.features.modal.views.ImageDialog
 import dev.gaborbiro.dailymacros.features.modal.views.RecordDetailsDialog
 import dev.gaborbiro.dailymacros.features.modal.views.SelectRecordActionDialog
 import dev.gaborbiro.dailymacros.features.modal.views.TemplateVariantPickerDialog
 import dev.gaborbiro.dailymacros.features.modal.views.SelectTemplateActionDialog
-import dev.gaborbiro.dailymacros.repositories.chatgpt.AuthInterceptor
-import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGPTRepositoryImpl
-import dev.gaborbiro.dailymacros.repositories.chatgpt.service.ChatGPTService
-import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ContentEntry
-import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ContentEntryOutputContentDeserializer
-import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.OutputContent
-import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.OutputContentDeserializer
-import dev.gaborbiro.dailymacros.repositories.records.RecordsApiMapper
-import dev.gaborbiro.dailymacros.repositories.records.RecordsRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.records.TemplateVariabilityPreviewMapper
-import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfileMapper
-import dev.gaborbiro.dailymacros.repositories.records.VariabilityRepositoryImpl
-import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
-import okhttp3.OkHttpClient
-import okhttp3.java.net.cookiejar.JavaNetCookieJar
-import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import java.net.CookieManager
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class ModalActivity : AppCompatActivity() {
+
+    @Inject
+    lateinit var imageStore: ImageStore
+
+    @Inject
+    @PublicEphemeralFileStore
+    lateinit var cacheFileStore: FileStore
+
+    @Inject
+    lateinit var templateVariabilityPreviewMapper: TemplateVariabilityPreviewMapper
+
+    private val viewModel: ModalViewModel by viewModels()
 
     companion object {
         fun launchToAddRecordWithCamera(context: Context) =
@@ -119,128 +90,6 @@ class ModalActivity : AppCompatActivity() {
         fun launchToSelectTemplateAction(context: Context, templateId: Long) {
             context.launchActivityInNewStack { it.getSelectTemplateActionIntent(templateId) }
         }
-    }
-
-    private val fileStore = FileStoreFactoryImpl(this).getStore("public", keepFiles = true)
-    private val cacheFileStore = FileStoreFactoryImpl(this).getStore("public", keepFiles = false)
-    private val imageStore = ImageStoreImpl(fileStore)
-
-    private val templateVariabilityPreviewMapper = TemplateVariabilityPreviewMapper()
-
-    private val viewModel by lazy {
-        val analyticsLogger = AnalyticsLogger()
-        val db = AppDatabase.getInstance()
-        val recordsRepository = RecordsRepositoryImpl(
-            templatesDAO = db.templatesDAO(),
-            recordsDAO = db.recordsDAO(),
-            mapper = RecordsApiMapper(),
-            imageStore = imageStore,
-            analyticsLogger = analyticsLogger,
-        )
-
-        val logger = HttpLoggingInterceptor().also {
-            it.level = HttpLoggingInterceptor.Level.BODY
-        }
-        val authInterceptor = AuthInterceptor()
-        val builder = OkHttpClient.Builder()
-            .addNetworkInterceptor(logger)
-            .addInterceptor(authInterceptor)
-            .addNetworkInterceptor(authInterceptor)
-            .also { ChatGptOkHttpTimeouts.applyImageUploadTimeouts(it) }
-
-        val okHttpClient = builder
-            .cookieJar(JavaNetCookieJar(CookieManager()))
-            .build()
-
-        val chatGptGson = GsonBuilder()
-            .registerTypeAdapter(OutputContent::class.java, OutputContentDeserializer())
-            .registerTypeAdapter(
-                object : TypeToken<ContentEntry<OutputContent>>() {}.type,
-                ContentEntryOutputContentDeserializer()
-            )
-            .create()
-
-        val retrofit = Retrofit.Builder()
-            .baseUrl("https://api.openai.com/")
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create(chatGptGson))
-            .build()
-
-        val chatGPTRepository = ChatGPTRepositoryImpl(
-            service = retrofit.create(ChatGPTService::class.java)
-        )
-
-        val nutrientsUiMapper = NutrientsUiMapper()
-        val modalUiMapper = ModalUiMapper(nutrientsUiMapper)
-        val deleteRecordUseCase = DeleteRecordUseCase(recordsRepository, applicationContext)
-        val createRecordFromTemplateUseCase = CreateRecordFromTemplateUseCase(recordsRepository)
-        val createTemplateUseCase = CreateTemplateUseCase(recordsRepository)
-        val repeatRecordUseCase =
-            RepeatRecordUseCase(recordsRepository, createRecordFromTemplateUseCase)
-        val profileGson = com.google.gson.Gson()
-        val variabilityProfileMapper = VariabilityProfileMapper(profileGson)
-        val variabilityRepository: VariabilityRepository = VariabilityRepositoryImpl(
-            variabilityDao = db.variabilityDao(),
-            profileMapper = variabilityProfileMapper,
-        )
-        val getVariabilityMatchForTemplateUseCase = GetVariabilityMatchForTemplateUseCase(
-            variabilityRepository = variabilityRepository,
-            profileMapper = variabilityProfileMapper,
-        )
-        val openTemplateVariantPickerFromRecordDetailsUseCase =
-            OpenTemplateVariantPickerFromRecordDetailsUseCase(
-                templateVariabilityPreviewMapper = templateVariabilityPreviewMapper,
-            )
-        val applyTemplateVariantPickerSelectionUseCase = ApplyTemplateVariantPickerSelectionUseCase(
-            recordsRepository = recordsRepository,
-            templateVariabilityPreviewMapper = templateVariabilityPreviewMapper,
-        )
-
-        val buildRecordDetailsViewDialogUseCase = BuildRecordDetailsViewDialogUseCase(
-            getVariabilityMatchForTemplateUseCase = getVariabilityMatchForTemplateUseCase,
-            uiMapper = modalUiMapper,
-        )
-        val resolveSelectRecordActionDialogUseCase =
-            ResolveSelectRecordActionDialogUseCase(recordsRepository)
-        val resolveSelectTemplateActionDialogUseCase =
-            ResolveSelectTemplateActionDialogUseCase(recordsRepository)
-        val resolveFirstRecordIdForTemplateUseCase =
-            ResolveFirstRecordIdForTemplateUseCase(recordsRepository)
-        val applyQuickPickOverrideAndReloadWidgetUseCase =
-            ApplyQuickPickOverrideAndReloadWidgetUseCase(recordsRepository)
-        val updateRecordWithNewTemplateUseCase =
-            UpdateRecordWithNewTemplateUseCase(recordsRepository, createTemplateUseCase)
-        val applyConfirmedSharedTemplateEditUseCase = ApplyConfirmedSharedTemplateEditUseCase(
-            updateRecordWithNewTemplateUseCase = updateRecordWithNewTemplateUseCase,
-            recordsRepository = recordsRepository,
-            appContext = applicationContext,
-        )
-
-        ModalViewModel(
-            modalUiMapper = modalUiMapper,
-            imageStore = imageStore,
-            recordsRepository = recordsRepository,
-            buildRecordDetailsViewDialogUseCase = buildRecordDetailsViewDialogUseCase,
-            resolveSelectRecordActionDialogUseCase = resolveSelectRecordActionDialogUseCase,
-            resolveSelectTemplateActionDialogUseCase = resolveSelectTemplateActionDialogUseCase,
-            resolveFirstRecordIdForTemplateUseCase = resolveFirstRecordIdForTemplateUseCase,
-            openTemplateVariantPickerFromRecordDetailsUseCase = openTemplateVariantPickerFromRecordDetailsUseCase,
-            applyTemplateVariantPickerSelectionUseCase = applyTemplateVariantPickerSelectionUseCase,
-            createRecordFromTemplateUseCase = createRecordFromTemplateUseCase,
-            createRecordWithNewTemplateUseCase = CreateRecordWithNewTemplateUseCase(createTemplateUseCase, createRecordFromTemplateUseCase),
-            updateRecordWithNewTemplateUseCase = updateRecordWithNewTemplateUseCase,
-            repeatRecordUseCase = repeatRecordUseCase,
-            validateEditRecordUseCase = ValidateEditRecordUseCase(recordsRepository),
-            validateCreateRecordUseCase = ValidateCreateRecordUseCase(),
-            saveImageUseCase = SaveImageUseCase(this, imageStore),
-            getRecordImageUseCase = GetRecordImageUseCase(recordsRepository),
-            getTemplateImageUseCase = GetTemplateImageUseCase(recordsRepository),
-            foodRecognitionUseCase = FoodRecognitionUseCase(this, imageStore, chatGPTRepository),
-            applyQuickPickOverrideAndReloadWidgetUseCase = applyQuickPickOverrideAndReloadWidgetUseCase,
-            applyConfirmedSharedTemplateEditUseCase = applyConfirmedSharedTemplateEditUseCase,
-            deleteRecordUseCase = deleteRecordUseCase,
-            analyticsLogger = analyticsLogger,
-        )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

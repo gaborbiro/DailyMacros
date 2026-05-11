@@ -3,11 +3,12 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.repositories.records.TemplateVariabilityPreviewMapper
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import javax.inject.Inject
 
 /**
  * Resolves a slot combination from the variant picker to an existing template and updates the record.
  */
-internal class ApplyTemplateVariantPickerSelectionUseCase(
+class ApplyTemplateVariantPickerSelectionUseCase @Inject constructor(
     private val recordsRepository: RecordsRepository,
     private val templateVariabilityPreviewMapper: TemplateVariabilityPreviewMapper,
 ) {
@@ -37,7 +38,7 @@ internal class ApplyTemplateVariantPickerSelectionUseCase(
     }
 }
 
-internal sealed class ApplyTemplateVariantPickerSelectionResult {
+sealed class ApplyTemplateVariantPickerSelectionResult {
     data object UnknownCombination : ApplyTemplateVariantPickerSelectionResult()
     data object RecordNotFound : ApplyTemplateVariantPickerSelectionResult()
     /** Selected combination maps to the record’s current template. */

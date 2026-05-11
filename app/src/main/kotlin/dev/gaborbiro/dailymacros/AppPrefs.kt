@@ -5,7 +5,7 @@ import androidx.core.content.edit
 import dev.gaborbiro.dailymacros.util.ThreeWordId
 import kotlin.uuid.ExperimentalUuidApi
 
-internal class AppPrefs(context: Context) {
+class AppPrefs(context: Context) {
 
     companion object {
         private const val KEY_USER_UUID = "user_uuid_3"

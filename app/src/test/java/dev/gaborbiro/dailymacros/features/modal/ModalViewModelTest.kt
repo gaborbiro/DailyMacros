@@ -107,6 +107,7 @@ class ModalViewModelTest {
         val getVariability = GetVariabilityMatchForTemplateUseCase(
             variabilityRepository = variabilityRepoNoProfile(),
             profileMapper = VariabilityProfileMapper(Gson()),
+            previewMapper = previewMapper,
         )
         val buildDetails = BuildRecordDetailsViewDialogUseCase(getVariability, modalUiMapper)
         val createTemplate = CreateTemplateUseCase(repo)
@@ -114,6 +115,7 @@ class ModalViewModelTest {
         val updateRec = UpdateRecordWithNewTemplateUseCase(repo, createTemplate)
         val imageStore = FakeImageStore()
         return ModalViewModel(
+            appContext = appCtx,
             modalUiMapper = modalUiMapper,
             imageStore = imageStore,
             recordsRepository = repo,

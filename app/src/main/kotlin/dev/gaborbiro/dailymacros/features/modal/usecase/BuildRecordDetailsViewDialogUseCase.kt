@@ -12,7 +12,7 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.V
  * Builds the read-only record details dialog for a loaded [Record], including variability preview
  * when [edit] is true (swallows [NoVariabilityProfileLoadedException] the same way as before).
  */
-internal class BuildRecordDetailsViewDialogUseCase(
+class BuildRecordDetailsViewDialogUseCase(
     private val getVariabilityMatchForTemplateUseCase: GetVariabilityMatchForTemplateUseCase,
     private val uiMapper: ModalUiMapper,
 ) {

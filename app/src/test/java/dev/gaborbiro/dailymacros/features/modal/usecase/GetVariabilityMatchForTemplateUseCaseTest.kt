@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import com.google.gson.Gson
+import dev.gaborbiro.dailymacros.repositories.records.TemplateVariabilityPreviewMapper
 import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfileMapper
 import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.MealVariabilityProfileSnapshot
@@ -67,7 +68,9 @@ class GetVariabilityMatchForTemplateUseCaseTest {
             ) = Unit
             override suspend fun clearProfile() = Unit
         }
-        val err = runCatching { GetVariabilityMatchForTemplateUseCase(repo, profileMapper).execute(7L) }.exceptionOrNull()
+        val err = runCatching {
+            GetVariabilityMatchForTemplateUseCase(repo, profileMapper, TemplateVariabilityPreviewMapper()).execute(7L)
+        }.exceptionOrNull()
         assertTrue(err is NoVariabilityProfileLoadedException)
     }
 
@@ -89,7 +92,7 @@ class GetVariabilityMatchForTemplateUseCaseTest {
             ) = Unit
             override suspend fun clearProfile() = Unit
         }
-        val match = GetVariabilityMatchForTemplateUseCase(repo, profileMapper).execute(999L)
+        val match = GetVariabilityMatchForTemplateUseCase(repo, profileMapper, TemplateVariabilityPreviewMapper()).execute(999L)
         assertTrue(match.preview.slots.isEmpty())
         assertTrue(match.archetypePickerEntries.isEmpty())
         assertEquals("meal_a", match.variabilityArchetypes.single().archetypeKey)
@@ -113,7 +116,7 @@ class GetVariabilityMatchForTemplateUseCaseTest {
             ) = Unit
             override suspend fun clearProfile() = Unit
         }
-        val match = GetVariabilityMatchForTemplateUseCase(repo, profileMapper).execute(7L)
+        val match = GetVariabilityMatchForTemplateUseCase(repo, profileMapper, TemplateVariabilityPreviewMapper()).execute(7L)
         assertEquals(1, match.preview.slots.size)
         assertEquals(1, match.archetypePickerEntries.size)
         assertEquals("meal_a", match.archetypePickerEntries.single().archetypeKey)

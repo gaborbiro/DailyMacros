@@ -2,11 +2,12 @@ package dev.gaborbiro.dailymacros.features.overview.usecase
 
 import android.util.Log
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import javax.inject.Inject
 
 /**
  * Removes a template if no records reference it (e.g. after the user dismisses undo delete).
  */
-internal class DeleteUnusedTemplateIfOrphanedUseCase(
+class DeleteUnusedTemplateIfOrphanedUseCase @Inject constructor(
     private val recordsRepository: RecordsRepository,
 ) {
 

@@ -41,7 +41,7 @@ class SettingsViewModel(
     private val importSqliteDatabaseUseCase: ImportSqliteDatabaseUseCase,
     private val variabilityRepository: VariabilityRepository,
     private val recordsRepository: RecordsRepository,
-    private val enqueueMealVariabilityMining: () -> Unit,
+    private val enqueueMealVariabilityMining: EnqueueMealVariabilityMining,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(

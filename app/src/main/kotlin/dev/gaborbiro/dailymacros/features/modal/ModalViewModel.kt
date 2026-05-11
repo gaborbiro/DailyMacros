@@ -1,11 +1,13 @@
 package dev.gaborbiro.dailymacros.features.modal
 
+import android.content.Context
 import android.net.Uri
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.gaborbiro.dailymacros.App
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
@@ -56,8 +58,11 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-internal class ModalViewModel(
+@HiltViewModel
+class ModalViewModel @Inject constructor(
+    @ApplicationContext private val appContext: Context,
     private val modalUiMapper: ModalUiMapper,
     private val imageStore: ImageStore,
     private val recordsRepository: RecordsRepository,
@@ -228,14 +233,14 @@ internal class ModalViewModel(
         closeAll()
         runSafely {
             repeatRecordUseCase.execute(recordId)
-            DiaryWidgetScreen.reload(App.appContext)
+            DiaryWidgetScreen.reload(appContext)
         }
     }
 
     fun onRepeatTemplateButtonTapped(templateId: Long) {
         runSafely {
             createRecordFromTemplateUseCase.execute(templateId)
-            DiaryWidgetScreen.reload(App.appContext)
+            DiaryWidgetScreen.reload(appContext)
             closeAll()
         }
     }
@@ -258,7 +263,7 @@ internal class ModalViewModel(
                 templateId,
                 Template.QuickPickOverride.EXCLUDE,
             )
-            DiaryWidgetScreen.reload(App.appContext)
+            DiaryWidgetScreen.reload(appContext)
         }
     }
 
@@ -270,7 +275,7 @@ internal class ModalViewModel(
                 templateId,
                 Template.QuickPickOverride.INCLUDE,
             )
-            DiaryWidgetScreen.reload(App.appContext)
+            DiaryWidgetScreen.reload(appContext)
         }
     }
 
@@ -278,7 +283,7 @@ internal class ModalViewModel(
         closeAll()
         runSafely {
             deleteRecordUseCase.execute(recordId)
-            DiaryWidgetScreen.reload(App.appContext)
+            DiaryWidgetScreen.reload(appContext)
         }
     }
 
@@ -427,7 +432,7 @@ internal class ModalViewModel(
                 }
 
                 ApplyTemplateVariantPickerSelectionResult.Applied -> {
-                    DiaryWidgetScreen.reload(App.appContext)
+                    DiaryWidgetScreen.reload(appContext)
                     pendingRecordDetailsRestore = null
                     closeAll()
                 }
@@ -452,7 +457,7 @@ internal class ModalViewModel(
                     )
                 }
                 closeAll()
-                DiaryWidgetScreen.reload(App.appContext)
+                DiaryWidgetScreen.reload(appContext)
             }
     }
 
@@ -530,9 +535,9 @@ internal class ModalViewModel(
                     title = title,
                     description = description,
                 )
-                DiaryWidgetScreen.reload(App.appContext)
+                DiaryWidgetScreen.reload(appContext)
                 GetMacrosWorker.setWorkRequest(
-                    appContext = App.appContext,
+                    appContext = appContext,
                     recordId = recordId,
                     force = true,
                 )
@@ -572,9 +577,9 @@ internal class ModalViewModel(
                     title = title,
                     description = description,
                 )
-                DiaryWidgetScreen.reload(App.appContext)
+                DiaryWidgetScreen.reload(appContext)
                 GetMacrosWorker.setWorkRequest(
-                    appContext = App.appContext,
+                    appContext = appContext,
                     recordId = dialogHandle.recordId,
                     force = true,
                 )

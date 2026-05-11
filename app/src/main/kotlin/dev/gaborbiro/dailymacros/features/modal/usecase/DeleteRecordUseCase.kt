@@ -4,10 +4,12 @@ import android.content.Context
 import android.util.Log
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 
-internal class DeleteRecordUseCase(
+class DeleteRecordUseCase @Inject constructor(
     private val repository: RecordsRepository,
-    private val appContext: Context,
+    @ApplicationContext private val appContext: Context,
 ) {
 
     suspend fun execute(recordId: Long) {

@@ -2,8 +2,9 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import javax.inject.Inject
 
-internal class ResolveSelectTemplateActionDialogUseCase(
+class ResolveSelectTemplateActionDialogUseCase @Inject constructor(
     private val recordsRepository: RecordsRepository,
 ) {
 

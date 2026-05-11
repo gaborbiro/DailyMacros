@@ -5,7 +5,9 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
-class CreateRecordFromTemplateUseCase(
+import javax.inject.Inject
+
+class CreateRecordFromTemplateUseCase @Inject constructor(
     private val recordsRepository: RecordsRepository,
 ) {
 

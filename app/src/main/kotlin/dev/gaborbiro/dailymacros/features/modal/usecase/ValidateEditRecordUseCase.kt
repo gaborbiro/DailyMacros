@@ -1,8 +1,9 @@
 package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import javax.inject.Inject
 
-internal class ValidateEditRecordUseCase(
+class ValidateEditRecordUseCase @Inject constructor(
     private val repository: RecordsRepository,
 ) {
 

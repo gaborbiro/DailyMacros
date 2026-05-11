@@ -1,8 +1,8 @@
 package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import android.content.Context
-import dev.gaborbiro.dailymacros.App
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
+import dev.gaborbiro.dailymacros.di.ForImageUploadChatGpt
 import dev.gaborbiro.dailymacros.features.shared.MacrosNotificationTextMapper
 import dev.gaborbiro.dailymacros.features.shared.RecordsMapper
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientBreakdown
@@ -24,12 +24,14 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImage
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
 import dev.gaborbiro.dailymacros.util.showMacroResultsNotification
+import dagger.hilt.android.qualifiers.ApplicationContext
 import ellipsize
+import javax.inject.Inject
 
-internal class NutrientAnalysisUseCase(
-    private val appContext: Context,
+class NutrientAnalysisUseCase @Inject constructor(
+    @ApplicationContext private val appContext: Context,
     private val imageStore: ImageStore,
-    private val chatGPTRepository: ChatGPTRepository,
+    @ForImageUploadChatGpt private val chatGPTRepository: ChatGPTRepository,
     private val recordsRepository: RecordsRepository,
     private val requestStatusRepository: RequestStatusRepository,
     private val recordsMapper: RecordsMapper,
@@ -65,7 +67,7 @@ internal class NutrientAnalysisUseCase(
                 ?.let {
                     if (it is ChatGPTApiError.InternetApiError) {
                         GetMacrosWorker.setWorkRequest(
-                            appContext = App.appContext,
+                            appContext = appContext,
                             recordId = recordId,
                             force = false,
                         )

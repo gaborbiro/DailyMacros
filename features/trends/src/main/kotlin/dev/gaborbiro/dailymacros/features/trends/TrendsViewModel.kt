@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.features.trends
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
 import dev.gaborbiro.dailymacros.features.trends.model.Timescale
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsSettingsUIModel
@@ -18,8 +19,10 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class TrendsViewModel(
+@HiltViewModel
+class TrendsViewModel @Inject constructor(
     private val recordsRepository: RecordsRepository,
     private val settingsRepository: SettingsRepository,
     private val preferences: TrendsPreferences,

@@ -5,16 +5,19 @@ import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.utils.inputStreamToBase64
 import dev.gaborbiro.dailymacros.features.modal.model.RecognisedFood
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
+import dev.gaborbiro.dailymacros.di.ForImageUploadChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repositories.chatgpt.toDomainModel
 import dev.gaborbiro.dailymacros.util.showTextNotification
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlin.random.Random
+import javax.inject.Inject
 
-internal class FoodRecognitionUseCase(
-    private val appContext: Context,
+class FoodRecognitionUseCase @Inject constructor(
+    @ApplicationContext private val appContext: Context,
     private val imageStore: ImageStore,
-    private val chatGPTRepository: ChatGPTRepository,
+    @ForImageUploadChatGpt private val chatGPTRepository: ChatGPTRepository,
 ) {
 
     suspend fun execute(images: List<String>): RecognisedFood {

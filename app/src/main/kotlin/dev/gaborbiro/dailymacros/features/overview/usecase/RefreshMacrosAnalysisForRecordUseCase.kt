@@ -1,10 +1,12 @@
 package dev.gaborbiro.dailymacros.features.overview.usecase
 
 import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
+import javax.inject.Inject
 
-internal class RefreshMacrosAnalysisForRecordUseCase(
-    private val appContext: Context,
+class RefreshMacrosAnalysisForRecordUseCase @Inject constructor(
+    @ApplicationContext private val appContext: Context,
 ) {
 
     suspend fun execute(recordId: Long) {

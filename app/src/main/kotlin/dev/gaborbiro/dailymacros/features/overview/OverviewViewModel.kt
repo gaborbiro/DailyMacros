@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.features.overview
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.common.utils.combine
@@ -35,8 +36,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.seconds
+import javax.inject.Inject
 
-internal class OverviewViewModel(
+@HiltViewModel
+class OverviewViewModel @Inject constructor(
     private val application: Application,
     private val recordsRepository: RecordsRepository,
     private val settingsRepository: SettingsRepository,

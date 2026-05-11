@@ -6,7 +6,9 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-class SharedRecordsUiMapper(
+import javax.inject.Inject
+
+class SharedRecordsUiMapper @Inject constructor(
     private val nutrientsUiMapper: NutrientsUiMapper,
 ) {
     fun map(record: Record, timeOnly: Boolean = false): ListUiModelRecord {
