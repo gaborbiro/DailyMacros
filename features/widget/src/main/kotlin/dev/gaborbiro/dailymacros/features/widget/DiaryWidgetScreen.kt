@@ -23,17 +23,14 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import androidx.work.WorkManager
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
-import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
-import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.design.WidgetColorScheme
-import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
-import dev.gaborbiro.dailymacros.features.shared.SharedRecordsUiMapper
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.widget.model.ListUiModelQuickPickFooter
 import dev.gaborbiro.dailymacros.features.widget.model.ListUiModelQuickPickHeader
 import dev.gaborbiro.dailymacros.features.widget.views.DiaryWidgetView
 import dev.gaborbiro.dailymacros.features.widget.views.LocalImageStoreWidget
+import dagger.hilt.android.EntryPointAccessors
 
 class DiaryWidgetScreen : GlanceAppWidget() {
 
@@ -64,25 +61,21 @@ class DiaryWidgetScreen : GlanceAppWidget() {
     }
 
     override val stateDefinition = WidgetPreferences
-    private val analyticsLogger = AnalyticsLogger()
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
+        val deps = EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            WidgetGlanceEntryPoint::class.java,
+        ).widgetGlanceDependencies()
         try {
             provideContent {
                 GlanceTheme(colors = WidgetColorScheme.colors(context)) {
                     val widgetPrefs = currentState<Preferences>()
 
                     val state = try {
-                        val fileStore =
-                            FileStoreFactoryImpl(context).getStore("public", keepFiles = true)
-                        val imageStore: ImageStore = ImageStoreImpl(fileStore)
-                        val nutrientsUiMapper = NutrientsUiMapper()
-                        val recordsUiMapper = SharedRecordsUiMapper(nutrientsUiMapper)
-                        val widgetUiMapper = WidgetUiMapper(nutrientsUiMapper)
-
                         val quickPicks = runCatching {
                             val recordsJSON = widgetPrefs[stringPreferencesKey(PREFS_QUICK_PICKS)]
-                            widgetUiMapper.map(
+                            deps.widgetUiMapper.map(
                                 PersistenceMapper.deserializeTemplates(recordsJSON)
                             )
                         }.getOrNull() ?: emptyList()
@@ -90,7 +83,7 @@ class DiaryWidgetScreen : GlanceAppWidget() {
                         val recentRecords = runCatching {
                             val recordsJSON = widgetPrefs[stringPreferencesKey(PREFS_RECENT_RECORDS)]
                             PersistenceMapper.deserializeRecords(recordsJSON)
-                                .map(recordsUiMapper::map)
+                                .map(deps.sharedRecordsUiMapper::map)
                         }.getOrNull() ?: emptyList()
 
                         val items = buildList {
@@ -104,10 +97,14 @@ class DiaryWidgetScreen : GlanceAppWidget() {
                                 addAll(recentRecords.drop(3))
                             }
                         }
-                        WidgetUiState.Success(items, imageStore)
+                        WidgetUiState.Success(
+                            items = items,
+                            imageStore = deps.imageStore,
+                            navigator = deps.widgetNavigator,
+                        )
                     } catch (t: Throwable) {
-                        analyticsLogger.setCustomDataForNextReport("source", "inside provideGlance.provideContent")
-                        analyticsLogger.logError(t)
+                        deps.analyticsLogger.setCustomDataForNextReport("source", "inside provideGlance.provideContent")
+                        deps.analyticsLogger.logError(t)
                         WidgetUiState.Error
                     }
 
@@ -116,7 +113,7 @@ class DiaryWidgetScreen : GlanceAppWidget() {
                             CompositionLocalProvider(LocalImageStoreWidget provides state.imageStore) {
                                 DiaryWidgetView(
                                     modifier = GlanceModifier.fillMaxSize(),
-                                    navigator = WidgetNavigatorDependency.factory(),
+                                    navigator = state.navigator,
                                     items = state.items
                                 )
                             }
@@ -129,8 +126,8 @@ class DiaryWidgetScreen : GlanceAppWidget() {
                 }
             }
         } catch (t: Throwable) {
-            analyticsLogger.setCustomDataForNextReport("source", "outside provideGlance.provideContent")
-            analyticsLogger.logError(t)
+            deps.analyticsLogger.setCustomDataForNextReport("source", "outside provideGlance.provideContent")
+            deps.analyticsLogger.logError(t)
             provideContent {
                 ErrorView()
             }
@@ -138,10 +135,13 @@ class DiaryWidgetScreen : GlanceAppWidget() {
     }
 
     private sealed interface WidgetUiState {
-        data class Success(val items: List<ListUiModelBase>, val imageStore: ImageStore) :
-            WidgetUiState
+        data class Success(
+            val items: List<ListUiModelBase>,
+            val imageStore: ImageStore,
+            val navigator: WidgetNavigator,
+        ) : WidgetUiState
 
-        object Error : WidgetUiState
+        data object Error : WidgetUiState
     }
 
     @Composable

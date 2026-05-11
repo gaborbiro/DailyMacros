@@ -1,8 +1,9 @@
 package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import javax.inject.Inject
 
-internal class ResolveFirstRecordIdForTemplateUseCase(
+class ResolveFirstRecordIdForTemplateUseCase @Inject constructor(
     private val recordsRepository: RecordsRepository,
 ) {
 

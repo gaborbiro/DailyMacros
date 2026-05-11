@@ -3,9 +3,8 @@ package dev.gaborbiro.dailymacros.features.widget
 import androidx.glance.action.Action
 
 /**
- * Glance tap targets that delegate to app activities. Implementations are supplied
- * from the application process via [WidgetNavigatorDependency] so this module does not
- * depend on main or modal activities.
+ * Glance tap targets that delegate to app activities. The app supplies a [WidgetNavigator]
+ * implementation through Hilt so this module does not depend on main or modal activities.
  */
 interface WidgetNavigator {
 
@@ -26,11 +25,4 @@ interface WidgetNavigator {
     fun reload(): Action
 
     fun openApp(): Action
-}
-
-/**
- * Composition root supplies real widget actions (modal / main activity intents).
- */
-object WidgetNavigatorDependency {
-    lateinit var factory: () -> WidgetNavigator
 }

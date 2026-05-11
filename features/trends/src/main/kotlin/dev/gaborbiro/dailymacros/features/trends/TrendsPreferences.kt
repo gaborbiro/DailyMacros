@@ -2,6 +2,8 @@ package dev.gaborbiro.dailymacros.features.trends
 
 import android.content.Context
 import androidx.core.content.edit
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 
 /**
  * Trends-specific preferences (day qualification mode and calorie threshold).
@@ -23,8 +25,8 @@ interface TrendsPreferences {
 /**
  * Default implementation using SharedPreferences (file "trends_prefs").
  */
-class TrendsPreferencesImpl(
-    context: Context,
+class TrendsPreferencesImpl @Inject constructor(
+    @ApplicationContext context: Context,
 ) : TrendsPreferences {
 
     private val prefs = context.applicationContext.getSharedPreferences("trends_prefs", Context.MODE_PRIVATE)

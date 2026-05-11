@@ -6,11 +6,13 @@ import android.net.Uri
 import dev.gaborbiro.dailymacros.data.image.FoodPicMaxSize
 import dev.gaborbiro.dailymacros.data.image.generateFoodPicFilename
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-internal class SaveImageUseCase(
-    private val appContext: Context,
+class SaveImageUseCase @Inject constructor(
+    @ApplicationContext private val appContext: Context,
     private val imageStore: ImageStore,
 ) {
 

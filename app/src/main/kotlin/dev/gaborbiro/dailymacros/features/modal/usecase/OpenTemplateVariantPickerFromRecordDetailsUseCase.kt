@@ -6,7 +6,7 @@ import dev.gaborbiro.dailymacros.repositories.records.TemplateVariabilityPreview
 /**
  * Builds the template variant picker dialog from the current record-details [View] state.
  */
-internal class OpenTemplateVariantPickerFromRecordDetailsUseCase(
+class OpenTemplateVariantPickerFromRecordDetailsUseCase(
     private val templateVariabilityPreviewMapper: TemplateVariabilityPreviewMapper,
 ) {
 
@@ -58,7 +58,7 @@ internal class OpenTemplateVariantPickerFromRecordDetailsUseCase(
     }
 }
 
-internal sealed class OpenTemplateVariantPickerResult {
+sealed class OpenTemplateVariantPickerResult {
     data object Skipped : OpenTemplateVariantPickerResult()
     data class Ready(val picker: DialogHandle.TemplateVariantPickerDialog) : OpenTemplateVariantPickerResult()
 }

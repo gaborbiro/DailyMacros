@@ -9,9 +9,9 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVaria
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
 
 /** Thrown when [VariabilityRepository.getLatestProfile] is null (no mine has been persisted yet). */
-internal class NoVariabilityProfileLoadedException : Exception("No meal variability profile is loaded yet.")
+class NoVariabilityProfileLoadedException : Exception("No meal variability profile is loaded yet.")
 
-internal data class TemplateVariabilityMatch(
+data class TemplateVariabilityMatch(
     val preview: TemplateVariabilityPreviewContent,
     /** Parsed archetypes from the latest snapshot (empty when no profile / no parse). */
     val variabilityArchetypes: List<VariabilityArchetype>,
@@ -22,10 +22,10 @@ internal data class TemplateVariabilityMatch(
 /**
  * Loads mined variability for [templateId] (evidence match) for record details / picker flows.
  */
-internal class GetVariabilityMatchForTemplateUseCase(
+class GetVariabilityMatchForTemplateUseCase(
     private val variabilityRepository: VariabilityRepository,
     private val profileMapper: VariabilityProfileMapper,
-    private val previewMapper: TemplateVariabilityPreviewMapper = TemplateVariabilityPreviewMapper(),
+    private val previewMapper: TemplateVariabilityPreviewMapper,
 ) {
 
     suspend fun execute(templateId: Long): TemplateVariabilityMatch {

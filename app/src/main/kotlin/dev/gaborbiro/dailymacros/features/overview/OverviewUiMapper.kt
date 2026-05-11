@@ -21,10 +21,11 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.WeekFields
 import java.util.Locale
+import javax.inject.Inject
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 
-internal class OverviewUiMapper(
+class OverviewUiMapper @Inject constructor(
     private val recordsUiMapper: SharedRecordsUiMapper,
     private val nutrientsUiMapper: NutrientsUiMapper,
     private val recordsMapper: RecordsMapper,

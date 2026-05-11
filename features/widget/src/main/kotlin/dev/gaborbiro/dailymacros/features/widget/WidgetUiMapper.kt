@@ -3,8 +3,9 @@ package dev.gaborbiro.dailymacros.features.widget
 import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.widget.model.ListUiModelQuickPick
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
+import javax.inject.Inject
 
-internal class WidgetUiMapper(
+class WidgetUiMapper @Inject constructor(
     private val nutrientsUiMapper: NutrientsUiMapper,
 ) {
 

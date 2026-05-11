@@ -3,11 +3,13 @@ package dev.gaborbiro.dailymacros.features.shared
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.DomainError
 
+import javax.inject.Inject
+
 /**
  * User-visible strings for macro-analysis notifications (success summary lines and API errors).
  * Shared by background work and modal flows without depending on modal UI mapping.
  */
-class MacrosNotificationTextMapper(
+class MacrosNotificationTextMapper @Inject constructor(
     private val nutrientsUiMapper: NutrientsUiMapper,
 ) {
 

@@ -1,6 +1,8 @@
 plugins {
     id("AndroidLibraryConvention")
+    alias(libs.plugins.hilt.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -22,6 +24,12 @@ dependencies {
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.work.runtime.ktx)
+
+    implementation(libs.dagger.hilt.android)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.dagger.hilt.compiler)
+    ksp(libs.androidx.hilt.compiler)
+
     implementation(libs.androidx.datastore.preferences)
 
     implementation(platform(libs.androidx.compose.bom))

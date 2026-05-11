@@ -9,8 +9,9 @@ import dev.gaborbiro.dailymacros.features.modal.model.VariabilityArchetypePicker
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.DomainError
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
+import javax.inject.Inject
 
-internal class ModalUiMapper(
+class ModalUiMapper @Inject constructor(
     private val nutrientsUiMapper: NutrientsUiMapper,
 ) {
 

@@ -1,10 +1,12 @@
 package dev.gaborbiro.dailymacros.features.overview.usecase
 
 import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
+import javax.inject.Inject
 
-internal class CancelMacrosAnalysisForRecordUseCase(
-    private val appContext: Context,
+class CancelMacrosAnalysisForRecordUseCase @Inject constructor(
+    @ApplicationContext private val appContext: Context,
 ) {
 
     fun execute(recordId: Long) {

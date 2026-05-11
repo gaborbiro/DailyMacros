@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.features.overview
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.common.utils.combine
@@ -15,7 +16,7 @@ import dev.gaborbiro.dailymacros.features.overview.usecase.DeleteUnusedTemplateI
 import dev.gaborbiro.dailymacros.features.overview.usecase.RefreshMacrosAnalysisForRecordUseCase
 import dev.gaborbiro.dailymacros.features.overview.usecase.ResolveOverviewCoachMarkUseCase
 import dev.gaborbiro.dailymacros.features.overview.usecase.ResolveOverviewObserveSinceEpochMillisUseCase
-import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
+import dev.gaborbiro.dailymacros.features.widget.FoodDiaryWidgetReloader
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
@@ -35,8 +36,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.seconds
+import javax.inject.Inject
 
-internal class OverviewViewModel(
+@HiltViewModel
+class OverviewViewModel @Inject constructor(
     private val application: Application,
     private val recordsRepository: RecordsRepository,
     private val settingsRepository: SettingsRepository,
@@ -49,6 +52,7 @@ internal class OverviewViewModel(
     private val cancelMacrosAnalysisForRecord: CancelMacrosAnalysisForRecordUseCase,
     private val applyQuickPickOverrideAndReloadWidget: ApplyQuickPickOverrideAndReloadWidgetUseCase,
     private val createRecordFromTemplateUseCase: CreateRecordFromTemplateUseCase,
+    private val foodDiaryWidgetReloader: FoodDiaryWidgetReloader,
 ) : ViewModel() {
 
     private val _viewState: MutableStateFlow<OverviewUiState> =
@@ -153,7 +157,7 @@ internal class OverviewViewModel(
         viewModelScope.launch {
             val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return@launch
             createRecordFromTemplateUseCase.execute(templateId)
-            DiaryWidgetScreen.reload(application.applicationContext)
+            foodDiaryWidgetReloader.scheduleReload(application)
         }
     }
 
@@ -173,7 +177,7 @@ internal class OverviewViewModel(
         viewModelScope.launch {
             val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return@launch
             applyQuickPickOverrideAndReloadWidget.execute(templateId, Template.QuickPickOverride.INCLUDE)
-            DiaryWidgetScreen.reload(application.applicationContext)
+            foodDiaryWidgetReloader.scheduleReload(application)
         }
     }
 
@@ -186,7 +190,7 @@ internal class OverviewViewModel(
                     recordToUndelete = oldRecord,
                 )
             }
-            DiaryWidgetScreen.reload(application.applicationContext)
+            foodDiaryWidgetReloader.scheduleReload(application)
             cancelMacrosAnalysisForRecord.execute(recordId)
         }
     }
@@ -212,7 +216,7 @@ internal class OverviewViewModel(
                 recordToUndelete = null,
             )
         }
-        DiaryWidgetScreen.reload(application.applicationContext)
+        foodDiaryWidgetReloader.scheduleReload(application)
     }
 
     fun onUndoDeleteDismissed() {
@@ -244,7 +248,7 @@ internal class OverviewViewModel(
     private fun deleteUnusedTemplateAfterUndo(templateId: Long) {
         viewModelScope.launch {
             deleteUnusedTemplateIfOrphaned.execute(templateId)
-            DiaryWidgetScreen.reload(application.applicationContext)
+            foodDiaryWidgetReloader.scheduleReload(application)
         }
     }
 

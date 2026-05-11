@@ -54,6 +54,12 @@ squareup-retrofit = "3.0.0"
 # -------------------------------------------------------------------------------
 kotlinx-coroutines = "1.10.2"
 # -------------------------------------------------------------------------------
+# --- Dependency injection ------------------------------------------------------
+# -------------------------------------------------------------------------------
+dagger = "2.59"
+androidx-hilt = "1.2.0"
+javax-inject = "1"
+# -------------------------------------------------------------------------------
 # --- Third-party / Misc --------------------------------------------------------
 # -------------------------------------------------------------------------------
 accompanist = "0.36.0"
@@ -168,6 +174,14 @@ accompanist-navigation-animation = { module = "com.google.accompanist:accompanis
 # -------------------------------------------------------------------------------
 google-guava = { module = "com.google.guava:guava", version.ref = "guava" }
 google-mlkit-image-labeling = { module = "com.google.mlkit:image-labeling", version.ref = "google-mlkit-image-labeling" }
+# ========================= DEPENDENCY INJECTION ==================================
+# -------------------------------------------------------------------------------
+dagger-hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "dagger" }
+dagger-hilt-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "dagger" }
+androidx-hilt-work = { module = "androidx.hilt:hilt-work", version.ref = "androidx-hilt" }
+androidx-hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "androidx-hilt" }
+androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "androidx-hilt" }
+javax-inject = { module = "javax.inject:javax.inject", version.ref = "javax-inject" }
 # ================================ TESTING ======================================
 # -------------------------------------------------------------------------------
 # --- Unit test frameworks ------------------------------------------------------
@@ -184,4 +198,5 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
 firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebase-crashlytics-plugin" }
+hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "dagger" }
 version-catalog-update = { id = "nl.littlerobots.version-catalog-update", version.ref = "version-catalog-update" }

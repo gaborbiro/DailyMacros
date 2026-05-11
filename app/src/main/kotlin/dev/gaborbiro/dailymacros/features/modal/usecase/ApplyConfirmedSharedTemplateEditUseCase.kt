@@ -5,15 +5,17 @@ import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
 import dev.gaborbiro.dailymacros.features.modal.model.ChangeImagesTarget
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 
 /**
  * Applies the shared-template edit confirmation: update either the single record or the backing
  * template, then schedules macro re-analysis for that record.
  */
-internal class ApplyConfirmedSharedTemplateEditUseCase(
+class ApplyConfirmedSharedTemplateEditUseCase @Inject constructor(
     private val updateRecordWithNewTemplateUseCase: UpdateRecordWithNewTemplateUseCase,
     private val recordsRepository: RecordsRepository,
-    private val appContext: Context,
+    @ApplicationContext private val appContext: Context,
 ) {
 
     suspend fun execute(

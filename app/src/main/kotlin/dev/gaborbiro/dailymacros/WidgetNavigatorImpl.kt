@@ -10,13 +10,15 @@ import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
 import dev.gaborbiro.dailymacros.features.main.MainActivity
 import dev.gaborbiro.dailymacros.features.modal.ModalActivity
-import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
+import dev.gaborbiro.dailymacros.features.widget.WidgetGlanceEntryPoint
 import dev.gaborbiro.dailymacros.features.widget.WidgetNavigator
+import dagger.hilt.android.EntryPointAccessors
+import javax.inject.Inject
 
 private const val PREFS_KEY_RECORD = "recordId"
 private const val PREFS_KEY_TEMPLATE = "templateId"
 
-internal class WidgetNavigatorImpl : WidgetNavigator {
+class WidgetNavigatorImpl @Inject constructor() : WidgetNavigator {
 
     override fun createRecordWithCamera(): Action {
         return actionRunCallback<CreateRecordWithCameraAction>()
@@ -71,7 +73,7 @@ internal class WidgetNavigatorImpl : WidgetNavigator {
     }
 }
 
-internal class CreateRecordWithCameraAction : ActionCallback {
+class CreateRecordWithCameraAction : ActionCallback {
 
     override suspend fun onAction(
         context: Context,
@@ -82,7 +84,7 @@ internal class CreateRecordWithCameraAction : ActionCallback {
     }
 }
 
-internal class CreateRecordWithImagePickerAction : ActionCallback {
+class CreateRecordWithImagePickerAction : ActionCallback {
 
     override suspend fun onAction(
         context: Context,
@@ -93,7 +95,7 @@ internal class CreateRecordWithImagePickerAction : ActionCallback {
     }
 }
 
-internal class CreateRecordAction : ActionCallback {
+class CreateRecordAction : ActionCallback {
 
     override suspend fun onAction(
         context: Context,
@@ -104,7 +106,7 @@ internal class CreateRecordAction : ActionCallback {
     }
 }
 
-internal class RecordImageTappedAction : ActionCallback {
+class RecordImageTappedAction : ActionCallback {
 
     override suspend fun onAction(
         context: Context,
@@ -116,7 +118,7 @@ internal class RecordImageTappedAction : ActionCallback {
     }
 }
 
-internal class QuickPickImageTappedAction : ActionCallback {
+class QuickPickImageTappedAction : ActionCallback {
 
     override suspend fun onAction(
         context: Context,
@@ -128,7 +130,7 @@ internal class QuickPickImageTappedAction : ActionCallback {
     }
 }
 
-internal class RecordBodyTappedAction : ActionCallback {
+class RecordBodyTappedAction : ActionCallback {
 
     override suspend fun onAction(
         context: Context,
@@ -140,7 +142,7 @@ internal class RecordBodyTappedAction : ActionCallback {
     }
 }
 
-internal class QuickPickBodyTappedAction : ActionCallback {
+class QuickPickBodyTappedAction : ActionCallback {
 
     override suspend fun onAction(
         context: Context,
@@ -152,13 +154,16 @@ internal class QuickPickBodyTappedAction : ActionCallback {
     }
 }
 
-internal class RefreshAction : ActionCallback {
+class RefreshAction : ActionCallback {
 
     override suspend fun onAction(
         context: Context,
         glanceId: GlanceId,
         parameters: ActionParameters,
     ) {
-        DiaryWidgetScreen.reload(context.applicationContext)
+        EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            WidgetGlanceEntryPoint::class.java,
+        ).foodDiaryWidgetReloader().scheduleReload(context.applicationContext)
     }
 }

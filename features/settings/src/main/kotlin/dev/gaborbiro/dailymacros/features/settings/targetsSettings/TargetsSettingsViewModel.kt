@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.features.settings.targetsSettings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.FieldErrors
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.MacroType
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetUiModel
@@ -16,10 +17,12 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class TargetsSettingsViewModel(
+@HiltViewModel
+class TargetsSettingsViewModel @Inject constructor(
     private val repo: SettingsRepository,
-    private val uiMapper: TargetsSettingsUiMapper = TargetsSettingsUiMapper(),
+    private val uiMapper: TargetsSettingsUiMapper,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TargetsSettingsUiState())

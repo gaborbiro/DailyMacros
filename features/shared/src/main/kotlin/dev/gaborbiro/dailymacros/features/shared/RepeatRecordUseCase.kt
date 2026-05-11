@@ -3,7 +3,9 @@ package dev.gaborbiro.dailymacros.features.shared
 import androidx.annotation.UiThread
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 
-class RepeatRecordUseCase(
+import javax.inject.Inject
+
+class RepeatRecordUseCase @Inject constructor(
     private val recordsRepository: RecordsRepository,
     private val createRecordFromTemplateUseCase: CreateRecordFromTemplateUseCase,
 ) {

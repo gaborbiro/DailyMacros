@@ -28,6 +28,8 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.network.okhttp)
 
+    implementation(libs.javax.inject)
+
     testImplementation(libs.test.junit)
     testImplementation(libs.test.robolectric)
     testImplementation(libs.androidx.test.core)

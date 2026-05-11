@@ -2,8 +2,9 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
+import javax.inject.Inject
 
-internal class ApplyQuickPickOverrideAndReloadWidgetUseCase(
+class ApplyQuickPickOverrideAndReloadWidgetUseCase @Inject constructor(
     private val recordsRepository: RecordsRepository,
 ) {
 

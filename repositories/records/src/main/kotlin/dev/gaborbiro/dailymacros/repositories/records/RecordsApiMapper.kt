@@ -17,7 +17,9 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
-class RecordsApiMapper {
+import javax.inject.Inject
+
+class RecordsApiMapper @Inject constructor() {
 
     // -------- Domain <— DB: Template --------
 

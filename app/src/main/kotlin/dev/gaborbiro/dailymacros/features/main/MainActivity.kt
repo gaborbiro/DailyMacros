@@ -1,7 +1,6 @@
 package dev.gaborbiro.dailymacros.features.main
 
 import android.Manifest
-import android.app.Application
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -13,69 +12,52 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.google.gson.Gson
+import dagger.hilt.android.AndroidEntryPoint
 import dev.gaborbiro.dailymacros.AppPrefs
-import dev.gaborbiro.dailymacros.BuildConfig
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
-import dev.gaborbiro.dailymacros.data.db.AppDatabase
-import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
-import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
+import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.design.AppTheme
-import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
-import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
-import dev.gaborbiro.dailymacros.features.shared.RecordsMapper
-import dev.gaborbiro.dailymacros.features.shared.SharedRecordsUiMapper
-import dev.gaborbiro.dailymacros.features.common.utils.viewModelFactory
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
-import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
-import dev.gaborbiro.dailymacros.features.overview.OverviewPrefs
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
-import dev.gaborbiro.dailymacros.features.overview.OverviewUiMapper
 import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
-import dev.gaborbiro.dailymacros.features.overview.usecase.CancelMacrosAnalysisForRecordUseCase
-import dev.gaborbiro.dailymacros.features.overview.usecase.ComputeOverviewHasMoreItemsUseCase
-import dev.gaborbiro.dailymacros.features.overview.usecase.DeleteUnusedTemplateIfOrphanedUseCase
-import dev.gaborbiro.dailymacros.features.overview.usecase.RefreshMacrosAnalysisForRecordUseCase
-import dev.gaborbiro.dailymacros.features.overview.usecase.ResolveOverviewCoachMarkUseCase
-import dev.gaborbiro.dailymacros.features.overview.usecase.ResolveOverviewObserveSinceEpochMillisUseCase
-import dev.gaborbiro.dailymacros.features.settings.SettingsAppInfo
-import dev.gaborbiro.dailymacros.features.settings.SettingsPrefs
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
-import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCaseImpl
-import dev.gaborbiro.dailymacros.features.settings.export.OpenPublicDocumentUseCaseImpl
-import dev.gaborbiro.dailymacros.features.settings.export.SharePublicUriLauncher
-import dev.gaborbiro.dailymacros.features.settings.export.StreamWriter
-import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
-import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportSqliteDatabaseUseCase
-import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseUseCase
+import dev.gaborbiro.dailymacros.features.settings.di.SettingsViewModelFactory
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsViewModel
-import dev.gaborbiro.dailymacros.features.trends.TrendsPreferencesImpl
 import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
-import dev.gaborbiro.dailymacros.features.trends.TrendsUiMapper
 import dev.gaborbiro.dailymacros.features.trends.TrendsViewModel
-import dev.gaborbiro.dailymacros.repositories.backup.BackupRepositoryImpl
-import dev.gaborbiro.dailymacros.repositories.records.RecordsApiMapper
-import dev.gaborbiro.dailymacros.repositories.records.RecordsRepositoryImpl
-import dev.gaborbiro.dailymacros.repositories.records.RequestStatusRepositoryImpl
-import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfileMapper
-import dev.gaborbiro.dailymacros.repositories.records.VariabilityRepositoryImpl
-import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
-import dev.gaborbiro.dailymacros.repositories.settings.SettingsMapper
-import dev.gaborbiro.dailymacros.repositories.settings.SettingsRepositoryImpl
+import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusRepository
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var imageStore: ImageStore
+
+    @Inject
+    lateinit var analyticsLogger: AnalyticsLogger
+
+    @Inject
+    lateinit var appPrefs: AppPrefs
+
+    @Inject
+    lateinit var requestStatusRepository: RequestStatusRepository
+
+    @Inject
+    lateinit var settingsViewModelFactory: SettingsViewModelFactory
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
@@ -83,127 +65,18 @@ class MainActivity : ComponentActivity() {
         )
         super.onCreate(savedInstanceState)
 
-        val analyticsLogger = AnalyticsLogger()
-
-        val fileStore = FileStoreFactoryImpl(this).getStore("public", keepFiles = true)
-        val imageStore = ImageStoreImpl(fileStore)
-        val db = AppDatabase.getInstance()
-        val recordsRepository = RecordsRepositoryImpl(
-            templatesDAO = db.templatesDAO(),
-            recordsDAO = db.recordsDAO(),
-            mapper = RecordsApiMapper(),
-            imageStore = imageStore,
-            analyticsLogger = analyticsLogger,
-        )
-        val nutrientsUiMapper = NutrientsUiMapper()
-
-        val settingsRepository = SettingsRepositoryImpl(this@MainActivity, SettingsMapper())
-        val appPrefs = AppPrefs(this@MainActivity)
-        val settingsPrefs = SettingsPrefs(this@MainActivity)
-        val overviewPrefs = OverviewPrefs(this@MainActivity)
         analyticsLogger.setUserId(appPrefs.userUUID)
         lifecycleScope.launch {
-            RequestStatusRepositoryImpl(db.requestStatusDAO()).deleteStale()
+            requestStatusRepository.deleteStale()
         }
-        val createJsonDocumentUseCase = CreatePublicDocumentUseCaseImpl(this@MainActivity)
-        val streamWriter = StreamWriter(this@MainActivity)
-        val sharePublicUriLauncher = SharePublicUriLauncher(this@MainActivity)
-        val exportFoodDiaryUseCase = ExportFoodDiaryUseCase(
-            recordRepository = recordsRepository,
-            createPublicDocumentUseCase = createJsonDocumentUseCase,
-            streamWriter = streamWriter,
-            sharePublicUriLauncher = sharePublicUriLauncher,
-        )
-        val openPublicDocumentUseCase = OpenPublicDocumentUseCaseImpl(this@MainActivity)
-        val backupRepository = BackupRepositoryImpl(applicationContext)
-        val exportSqliteDatabaseUseCase = ExportSqliteDatabaseUseCase(
-            backupRepository = backupRepository,
-            createPublicDocumentUseCase = createJsonDocumentUseCase,
-            streamWriter = streamWriter,
-//            sharePublicUriLauncher = sharePublicUriLauncher,
-        )
-        val importSqliteDatabaseUseCase = ImportSqliteDatabaseUseCase(
-            application = applicationContext as Application,
-            backupRepository = backupRepository,
-            openPublicDocumentUseCase = openPublicDocumentUseCase,
-            activityProvider = { this@MainActivity },
-        )
-
-        val variabilityRepository: VariabilityRepository = VariabilityRepositoryImpl(
-            variabilityDao = db.variabilityDao(),
-            profileMapper = VariabilityProfileMapper(Gson()),
-        )
-        val recordsUiMapper = SharedRecordsUiMapper(nutrientsUiMapper)
-        val recordsMapper = RecordsMapper()
-        val overviewUiMapper = OverviewUiMapper(recordsUiMapper, nutrientsUiMapper, recordsMapper)
-        val createRecordFromTemplateUseCase = CreateRecordFromTemplateUseCase(recordsRepository)
-        val resolveObserveSinceEpochMillis = ResolveOverviewObserveSinceEpochMillisUseCase()
-        val computeOverviewHasMoreItems = ComputeOverviewHasMoreItemsUseCase()
-        val resolveOverviewCoachMark = ResolveOverviewCoachMarkUseCase(overviewPrefs)
-        val deleteUnusedTemplateIfOrphaned = DeleteUnusedTemplateIfOrphanedUseCase(recordsRepository)
-        val refreshMacrosAnalysisForRecord = RefreshMacrosAnalysisForRecordUseCase(this@MainActivity)
-        val cancelMacrosAnalysisForRecord = CancelMacrosAnalysisForRecordUseCase(this@MainActivity)
-        val applyQuickPickOverrideAndReloadWidget =
-            ApplyQuickPickOverrideAndReloadWidgetUseCase(recordsRepository)
 
         setContent {
             AppTheme {
                 val navController: NavHostController = rememberNavController()
-                val overviewViewModel = viewModelFactory {
-                    OverviewViewModel(
-                        application = applicationContext as Application,
-                        recordsRepository = recordsRepository,
-                        settingsRepository = settingsRepository,
-                        uiMapper = overviewUiMapper,
-                        resolveObserveSinceEpochMillis = resolveObserveSinceEpochMillis,
-                        computeHasMoreItems = computeOverviewHasMoreItems,
-                        resolveCoachMark = resolveOverviewCoachMark,
-                        deleteUnusedTemplateIfOrphaned = deleteUnusedTemplateIfOrphaned,
-                        refreshMacrosAnalysisForRecord = refreshMacrosAnalysisForRecord,
-                        cancelMacrosAnalysisForRecord = cancelMacrosAnalysisForRecord,
-                        applyQuickPickOverrideAndReloadWidget = applyQuickPickOverrideAndReloadWidget,
-                        createRecordFromTemplateUseCase = createRecordFromTemplateUseCase,
-                    )
-                }
-
-                val settingsAppInfo = remember {
-                    object : SettingsAppInfo {
-                        override val versionLabel: String
-                            get() = "v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})  |  UserID: ${appPrefs.userUUID}"
-                    }
-                }
-                val settingsViewModel = viewModelFactory {
-                    SettingsViewModel(
-                        application = applicationContext as Application,
-                        appInfo = settingsAppInfo,
-                        settingsPrefs = settingsPrefs,
-                        exportFoodDiaryUseCase = exportFoodDiaryUseCase,
-                        exportSqliteDatabaseUseCase = exportSqliteDatabaseUseCase,
-                        importSqliteDatabaseUseCase = importSqliteDatabaseUseCase,
-                        variabilityRepository = variabilityRepository,
-                        recordsRepository = recordsRepository,
-                        enqueueMealVariabilityMining = {
-                            MineMealVariabilityWorker.enqueue(this@MainActivity)
-                        },
-                    )
-                }
-                val targetsSettingsViewModel = viewModelFactory {
-                    TargetsSettingsViewModel(
-                        repo = settingsRepository,
-                    )
-                }
-
-                val trendsPreferences = remember {
-                    TrendsPreferencesImpl(this@MainActivity.applicationContext)
-                }
-                val trendsViewModel = viewModelFactory {
-                    TrendsViewModel(
-                        recordsRepository = recordsRepository,
-                        settingsRepository = settingsRepository,
-                        preferences = trendsPreferences,
-                        mapper = TrendsUiMapper(trendsPreferences),
-                    )
-                }
+                val overviewViewModel: OverviewViewModel = hiltViewModel()
+                val settingsViewModel: SettingsViewModel = viewModel(factory = settingsViewModelFactory)
+                val targetsSettingsViewModel: TargetsSettingsViewModel = hiltViewModel()
+                val trendsViewModel: TrendsViewModel = hiltViewModel()
 
                 NavHost(
                     navController = navController,
@@ -221,15 +94,14 @@ class MainActivity : ComponentActivity() {
                     }
                     composable(
                         route = SETTINGS_ROUTE,
+                        // Slide the Settings screen in from the right (and out to the right on back).
                         enterTransition = {
-                            // Slide in from right
                             slideInHorizontally(
                                 initialOffsetX = { fullWidth -> fullWidth },
                                 animationSpec = tween(600, easing = FastOutSlowInEasing)
                             )
                         },
                         exitTransition = {
-                            // Slide out to right
                             slideOutHorizontally(
                                 targetOffsetX = { fullWidth -> fullWidth },
                                 animationSpec = tween(600, easing = FastOutSlowInEasing)
@@ -244,15 +116,14 @@ class MainActivity : ComponentActivity() {
                     }
                     composable(
                         route = TRENDS_ROUTE,
+                        // Same horizontal slide as Settings: Trends enters from the right and exits to the right.
                         enterTransition = {
-                            // Slide in from right
                             slideInHorizontally(
                                 initialOffsetX = { fullWidth -> fullWidth },
                                 animationSpec = tween(600, easing = FastOutSlowInEasing)
                             )
                         },
                         exitTransition = {
-                            // Slide out to right
                             slideOutHorizontally(
                                 targetOffsetX = { fullWidth -> fullWidth },
                                 animationSpec = tween(600, easing = FastOutSlowInEasing)
@@ -267,16 +138,16 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
 
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    /* activity = */ this,
-                    /* permissions = */ arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                    /* requestCode = */ 123
-                )
-            }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                /* activity = */ this,
+                /* permissions = */ arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                /* requestCode = */ 123
+            )
         }
     }
 }

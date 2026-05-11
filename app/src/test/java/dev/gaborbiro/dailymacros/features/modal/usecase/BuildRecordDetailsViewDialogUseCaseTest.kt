@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 import com.google.gson.Gson
 import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.modal.ModalUiMapper
+import dev.gaborbiro.dailymacros.repositories.records.TemplateVariabilityPreviewMapper
 import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfileMapper
 import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.MealVariabilityPersistedProfile
@@ -42,6 +43,7 @@ class BuildRecordDetailsViewDialogUseCaseTest {
         val getMatch = GetVariabilityMatchForTemplateUseCase(
             variabilityRepository = variabilityRepoNeverCalled(),
             profileMapper = VariabilityProfileMapper(gson),
+            previewMapper = TemplateVariabilityPreviewMapper(),
         )
         val build = BuildRecordDetailsViewDialogUseCase(
             getVariabilityMatchForTemplateUseCase = getMatch,
@@ -61,6 +63,7 @@ class BuildRecordDetailsViewDialogUseCaseTest {
         val getMatch = GetVariabilityMatchForTemplateUseCase(
             variabilityRepository = variabilityRepoNoProfile(),
             profileMapper = VariabilityProfileMapper(gson),
+            previewMapper = TemplateVariabilityPreviewMapper(),
         )
         val build = BuildRecordDetailsViewDialogUseCase(
             getVariabilityMatchForTemplateUseCase = getMatch,

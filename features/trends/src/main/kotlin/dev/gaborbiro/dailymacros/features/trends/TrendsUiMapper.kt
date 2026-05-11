@@ -13,8 +13,9 @@ import java.time.YearMonth
 import java.time.format.TextStyle
 import java.time.temporal.WeekFields
 import java.util.Locale
+import javax.inject.Inject
 
-class TrendsUiMapper(
+class TrendsUiMapper @Inject constructor(
     private val preferences: TrendsPreferences,
 ) {
 
