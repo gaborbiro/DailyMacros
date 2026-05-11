@@ -116,7 +116,7 @@ class DiaryWidgetScreen : GlanceAppWidget() {
                             CompositionLocalProvider(LocalImageStoreWidget provides state.imageStore) {
                                 DiaryWidgetView(
                                     modifier = GlanceModifier.fillMaxSize(),
-                                    actionProvider = WidgetActionDependency.factory(),
+                                    navigator = WidgetNavigatorDependency.factory(),
                                     items = state.items
                                 )
                             }

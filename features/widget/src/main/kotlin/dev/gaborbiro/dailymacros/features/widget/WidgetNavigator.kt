@@ -4,10 +4,10 @@ import androidx.glance.action.Action
 
 /**
  * Glance tap targets that delegate to app activities. Implementations are supplied
- * from the application process via [WidgetActionDependency] so this module does not
+ * from the application process via [WidgetNavigatorDependency] so this module does not
  * depend on main or modal activities.
  */
-interface WidgetActionProvider {
+interface WidgetNavigator {
 
     fun createRecordWithCamera(): Action
 
@@ -31,6 +31,6 @@ interface WidgetActionProvider {
 /**
  * Composition root supplies real widget actions (modal / main activity intents).
  */
-object WidgetActionDependency {
-    lateinit var factory: () -> WidgetActionProvider
+object WidgetNavigatorDependency {
+    lateinit var factory: () -> WidgetNavigator
 }

@@ -11,12 +11,12 @@ import androidx.glance.appwidget.action.actionRunCallback
 import dev.gaborbiro.dailymacros.features.main.MainActivity
 import dev.gaborbiro.dailymacros.features.modal.ModalActivity
 import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
-import dev.gaborbiro.dailymacros.features.widget.WidgetActionProvider
+import dev.gaborbiro.dailymacros.features.widget.WidgetNavigator
 
 private const val PREFS_KEY_RECORD = "recordId"
 private const val PREFS_KEY_TEMPLATE = "templateId"
 
-internal class WidgetActionProviderImpl : WidgetActionProvider {
+internal class WidgetNavigatorImpl : WidgetNavigator {
 
     override fun createRecordWithCamera(): Action {
         return actionRunCallback<CreateRecordWithCameraAction>()
@@ -83,6 +83,7 @@ internal class CreateRecordWithCameraAction : ActionCallback {
 }
 
 internal class CreateRecordWithImagePickerAction : ActionCallback {
+
     override suspend fun onAction(
         context: Context,
         glanceId: GlanceId,
@@ -93,6 +94,7 @@ internal class CreateRecordWithImagePickerAction : ActionCallback {
 }
 
 internal class CreateRecordAction : ActionCallback {
+
     override suspend fun onAction(
         context: Context,
         glanceId: GlanceId,
@@ -103,6 +105,7 @@ internal class CreateRecordAction : ActionCallback {
 }
 
 internal class RecordImageTappedAction : ActionCallback {
+
     override suspend fun onAction(
         context: Context,
         glanceId: GlanceId,
@@ -114,6 +117,7 @@ internal class RecordImageTappedAction : ActionCallback {
 }
 
 internal class QuickPickImageTappedAction : ActionCallback {
+
     override suspend fun onAction(
         context: Context,
         glanceId: GlanceId,
@@ -125,6 +129,7 @@ internal class QuickPickImageTappedAction : ActionCallback {
 }
 
 internal class RecordBodyTappedAction : ActionCallback {
+
     override suspend fun onAction(
         context: Context,
         glanceId: GlanceId,

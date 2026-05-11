@@ -6,10 +6,10 @@ import androidx.glance.action.Action
 import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
-import dev.gaborbiro.dailymacros.features.widget.WidgetActionProvider
+import dev.gaborbiro.dailymacros.features.widget.WidgetNavigator
 
 /** Glance previews only; does not launch activities. */
-internal object PreviewWidgetActionProvider : WidgetActionProvider {
+internal object PreviewWidgetNavigator : WidgetNavigator {
 
     override fun createRecordWithCamera(): Action = noopAction()
 

@@ -27,14 +27,14 @@ import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.widget.model.ListUiModelQuickPick
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
-import dev.gaborbiro.dailymacros.features.widget.WidgetActionProvider
-import dev.gaborbiro.dailymacros.features.widget.util.PreviewWidgetActionProvider
+import dev.gaborbiro.dailymacros.features.widget.WidgetNavigator
+import dev.gaborbiro.dailymacros.features.widget.util.PreviewWidgetNavigator
 import dev.gaborbiro.dailymacros.features.widget.util.WidgetPreviewContext
 
 @Composable
 internal fun DiaryWidgetView(
     modifier: GlanceModifier,
-    actionProvider: WidgetActionProvider,
+    navigator: WidgetNavigator,
     items: List<ListUiModelBase>,
 ) {
     Column(
@@ -52,10 +52,10 @@ internal fun DiaryWidgetView(
             if (items.isNotEmpty()) {
                 DiaryWidgetList(
                     items = items,
-                    recordImageTapActionProvider = { recordId -> actionProvider.recordImageTapped(recordId) },
-                    recordBodyTapActionProvider = { recordId -> actionProvider.recordBodyTapped(recordId) },
-                    quickPickImageTapActionProvider = { templateId -> actionProvider.quickPickImageTapped(templateId) },
-                    quickPickBodyTapActionProvider = { templateId -> actionProvider.quickPickBodyTapped(templateId) },
+                    recordImageTapActionProvider = { recordId -> navigator.recordImageTapped(recordId) },
+                    recordBodyTapActionProvider = { recordId -> navigator.recordBodyTapped(recordId) },
+                    quickPickImageTapActionProvider = { templateId -> navigator.quickPickImageTapped(templateId) },
+                    quickPickBodyTapActionProvider = { templateId -> navigator.quickPickBodyTapped(templateId) },
                 )
             } else {
                 EmptyView()
@@ -78,7 +78,7 @@ internal fun DiaryWidgetView(
                         .cornerRadius(16.dp)
                         .background(GlanceTheme.colors.tertiaryContainer)
                         .padding(12.dp)
-                        .clickable(actionProvider.openApp())
+                        .clickable(navigator.openApp())
                         .size(48.dp),
                     colorFilter = ColorFilter.tint(GlanceTheme.colors.onTertiaryContainer),
                     provider = ImageProvider(R.drawable.ic_open_in_new),
@@ -90,10 +90,10 @@ internal fun DiaryWidgetView(
             modifier = GlanceModifier
                 .fillMaxWidth()
                 .wrapContentHeight(),
-            launchNoteViaCameraAction = { actionProvider.createRecordWithCamera() },
-            launchNewNoteViaImagePickerActionProvider = { actionProvider.createRecordWithImagePicker() },
-            launchNewNoteViaTextOnlyActionProvider = { actionProvider.createRecord() },
-            reloadActionProvider = { actionProvider.reload() },
+            launchNoteViaCameraAction = { navigator.createRecordWithCamera() },
+            launchNewNoteViaImagePickerActionProvider = { navigator.createRecordWithImagePicker() },
+            launchNewNoteViaTextOnlyActionProvider = { navigator.createRecord() },
+            reloadActionProvider = { navigator.reload() },
         )
     }
 }
@@ -106,7 +106,7 @@ private fun WidgetViewPreview() {
         DiaryWidgetView(
             modifier = GlanceModifier
                 .fillMaxSize(),
-            actionProvider = PreviewWidgetActionProvider,
+            navigator = PreviewWidgetNavigator,
             items = listOf(
                 ListUiModelRecord(
                     recordId = 1,
@@ -211,7 +211,7 @@ private fun WidgetViewPreviewEmpty() {
         DiaryWidgetView(
             modifier = GlanceModifier
                 .fillMaxSize(),
-            actionProvider = PreviewWidgetActionProvider,
+            navigator = PreviewWidgetNavigator,
             items = emptyList(),
         )
     }
