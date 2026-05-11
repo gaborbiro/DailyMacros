@@ -29,6 +29,7 @@ import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
+import dev.gaborbiro.dailymacros.features.modal.ModalNavigator
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
@@ -59,6 +60,9 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var settingsViewModelFactory: SettingsViewModelFactory
 
+    @Inject
+    lateinit var modalNavigator: ModalNavigator
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
             navigationBarStyle = SystemBarStyle.light(Color.Transparent.toArgb(), Color.Transparent.toArgb())
@@ -88,6 +92,7 @@ class MainActivity : ComponentActivity() {
                         CompositionLocalProvider(LocalImageStore provides imageStore) {
                             OverviewScreen(
                                 viewModel = overviewViewModel,
+                                modalNavigator = modalNavigator,
                                 navController = navController,
                             )
                         }

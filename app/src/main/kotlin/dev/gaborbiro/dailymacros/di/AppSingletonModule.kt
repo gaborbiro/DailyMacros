@@ -6,6 +6,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.android.scopes.ActivityScoped
 import dagger.hilt.components.SingletonComponent
 import dev.gaborbiro.dailymacros.AppPrefs
 import dev.gaborbiro.dailymacros.BuildConfig
@@ -19,6 +20,8 @@ import dev.gaborbiro.dailymacros.features.settings.EnqueueMealVariabilityMining
 import dev.gaborbiro.dailymacros.features.settings.SettingsAppInfo
 import dev.gaborbiro.dailymacros.features.settings.SettingsPrefs
 import dev.gaborbiro.dailymacros.features.main.MineMealVariabilityWorker
+import dev.gaborbiro.dailymacros.features.modal.ModalNavigator
+import dev.gaborbiro.dailymacros.features.modal.ModalNavigatorImpl
 import dev.gaborbiro.dailymacros.features.modal.ModalUiMapper
 import dev.gaborbiro.dailymacros.features.modal.usecase.BuildRecordDetailsViewDialogUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetVariabilityMatchForTemplateUseCase
@@ -191,4 +194,9 @@ object AppSingletonModule {
             chatGPTRepository = chatGPTRepository,
             variabilityRepository = variabilityRepository,
         )
+
+    @Provides
+    @Singleton
+    fun provideModalNavigator(): ModalNavigator =
+        ModalNavigatorImpl()
 }

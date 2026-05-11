@@ -3,6 +3,40 @@ package dev.gaborbiro.dailymacros.features.modal
 import android.content.Context
 import android.content.Intent
 import androidx.core.os.bundleOf
+import javax.inject.Inject
+
+class ModalNavigatorImpl @Inject constructor() : ModalNavigator {
+
+    override fun launchToAddRecordWithCamera(context: Context) =
+        context.launchActivityInNewStack(Context::getCameraIntent)
+
+    override fun launchToAddRecordWithImagePicker(context: Context) =
+        context.launchActivityInNewStack(Context::getImagePickerIntent)
+
+    override fun launchToShowRecordImage(context: Context, recordId: Long) =
+        context.launchActivity { it.getShowRecordImageIntent(recordId) }
+
+    override fun launchToShowRecordImageNoApp(context: Context, recordId: Long) =
+        context.launchActivityInNewStack { it.getShowRecordImageIntent(recordId) }
+
+    override fun launchToShowTemplateImage(context: Context, templateId: Long) =
+        context.launchActivityInNewStack { it.getShowTemplateImageIntent(templateId) }
+
+    override fun launchToAddRecord(context: Context) =
+        context.launchActivityInNewStack(Context::getTextOnlyIntent)
+
+    override fun launchViewRecordDetails(context: Context, recordId: Long) {
+        context.launchActivity { it.getViewRecordDetailsIntent(recordId) }
+    }
+
+    override fun launchToSelectRecordAction(context: Context, recordId: Long) {
+        context.launchActivityInNewStack { it.getSelectRecordActionIntent(recordId) }
+    }
+
+    override fun launchToSelectTemplateAction(context: Context, templateId: Long) {
+        context.launchActivityInNewStack { it.getSelectTemplateActionIntent(templateId) }
+    }
+}
 
 fun Context.getShowRecordImageIntent(recordId: Long) =
     getViewImageIntent(EXTRA_RECORD_ID to recordId)
@@ -40,13 +74,17 @@ private fun Context.getModalIntent(
 }
 
 fun Context.launchActivityInNewStack(constructIntent: (Context) -> Intent) {
-    startActivity(constructIntent(this).apply {
-        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-    })
+    launchActivity {
+        constructIntent(this).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+    }
 }
 
 fun Context.launchActivity(constructIntent: (Context) -> Intent) {
-    startActivity(constructIntent(this))
+    startActivity(
+        constructIntent(this)
+    )
 }
 
 

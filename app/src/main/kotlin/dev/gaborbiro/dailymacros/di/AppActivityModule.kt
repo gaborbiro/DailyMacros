@@ -8,6 +8,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityComponent
 import dagger.hilt.android.scopes.ActivityScoped
+import dev.gaborbiro.dailymacros.features.modal.ModalNavigator
+import dev.gaborbiro.dailymacros.features.modal.ModalNavigatorImpl
 import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCaseImpl
 import dev.gaborbiro.dailymacros.features.settings.export.OpenPublicDocumentUseCase

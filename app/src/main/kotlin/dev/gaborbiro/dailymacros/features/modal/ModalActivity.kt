@@ -2,7 +2,6 @@ package dev.gaborbiro.dailymacros.features.modal
 
 import android.app.ComponentCaller
 import android.app.KeyguardManager
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -24,10 +23,10 @@ import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import dev.gaborbiro.dailymacros.data.file.domain.FileStore
-import dev.gaborbiro.dailymacros.design.AppTheme
-import dev.gaborbiro.dailymacros.di.FileStorePublicBucketEphemeral
 import dev.gaborbiro.dailymacros.data.image.DefaultFoodPicExt
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
+import dev.gaborbiro.dailymacros.design.AppTheme
+import dev.gaborbiro.dailymacros.di.FileStorePublicBucketEphemeral
 import dev.gaborbiro.dailymacros.features.common.views.InfoDialog
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
@@ -37,8 +36,8 @@ import dev.gaborbiro.dailymacros.features.modal.views.EditTargetConfirmationDial
 import dev.gaborbiro.dailymacros.features.modal.views.ImageDialog
 import dev.gaborbiro.dailymacros.features.modal.views.RecordDetailsDialog
 import dev.gaborbiro.dailymacros.features.modal.views.SelectRecordActionDialog
-import dev.gaborbiro.dailymacros.features.modal.views.TemplateVariantPickerDialog
 import dev.gaborbiro.dailymacros.features.modal.views.SelectTemplateActionDialog
+import dev.gaborbiro.dailymacros.features.modal.views.TemplateVariantPickerDialog
 import dev.gaborbiro.dailymacros.repositories.records.TemplateVariabilityPreviewMapper
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
@@ -59,38 +58,6 @@ class ModalActivity : AppCompatActivity() {
     lateinit var templateVariabilityPreviewMapper: TemplateVariabilityPreviewMapper
 
     private val viewModel: ModalViewModel by viewModels()
-
-    companion object {
-        fun launchToAddRecordWithCamera(context: Context) =
-            context.launchActivityInNewStack(Context::getCameraIntent)
-
-        fun launchToAddRecordWithImagePicker(context: Context) =
-            context.launchActivityInNewStack(Context::getImagePickerIntent)
-
-        fun launchToShowRecordImage(context: Context, recordId: Long) =
-            context.launchActivity { it.getShowRecordImageIntent(recordId) }
-
-        fun launchToShowRecordImageNoApp(context: Context, recordId: Long) =
-            context.launchActivityInNewStack { it.getShowRecordImageIntent(recordId) }
-
-        fun launchToShowTemplateImage(context: Context, templateId: Long) =
-            context.launchActivityInNewStack { it.getShowTemplateImageIntent(templateId) }
-
-        fun launchToAddRecord(context: Context) =
-            context.launchActivityInNewStack(Context::getTextOnlyIntent)
-
-        fun launchViewRecordDetails(context: Context, recordId: Long) {
-            context.launchActivity { it.getViewRecordDetailsIntent(recordId) }
-        }
-
-        fun launchToSelectRecordAction(context: Context, recordId: Long) {
-            context.launchActivityInNewStack { it.getSelectRecordActionIntent(recordId) }
-        }
-
-        fun launchToSelectTemplateAction(context: Context, templateId: Long) {
-            context.launchActivityInNewStack { it.getSelectTemplateActionIntent(templateId) }
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

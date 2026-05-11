@@ -8,17 +8,19 @@ import androidx.glance.action.actionParametersOf
 import androidx.glance.action.actionStartActivity
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
+import dagger.hilt.android.EntryPointAccessors
 import dev.gaborbiro.dailymacros.features.main.MainActivity
-import dev.gaborbiro.dailymacros.features.modal.ModalActivity
+import dev.gaborbiro.dailymacros.features.modal.ModalNavigator
 import dev.gaborbiro.dailymacros.features.widget.WidgetGlanceEntryPoint
 import dev.gaborbiro.dailymacros.features.widget.WidgetNavigator
-import dagger.hilt.android.EntryPointAccessors
 import javax.inject.Inject
 
 private const val PREFS_KEY_RECORD = "recordId"
 private const val PREFS_KEY_TEMPLATE = "templateId"
 
-class WidgetNavigatorImpl @Inject constructor() : WidgetNavigator {
+class WidgetNavigatorImpl @Inject constructor(
+    private val modalNavigator: ModalNavigator,
+) : WidgetNavigator {
 
     override fun createRecordWithCamera(): Action {
         return actionRunCallback<CreateRecordWithCameraAction>()
@@ -71,86 +73,86 @@ class WidgetNavigatorImpl @Inject constructor() : WidgetNavigator {
     override fun openApp(): Action {
         return actionStartActivity<MainActivity>()
     }
-}
 
-class CreateRecordWithCameraAction : ActionCallback {
+    private inner class CreateRecordWithCameraAction : ActionCallback {
 
-    override suspend fun onAction(
-        context: Context,
-        glanceId: GlanceId,
-        parameters: ActionParameters,
-    ) {
-        ModalActivity.launchToAddRecordWithCamera(context)
+        override suspend fun onAction(
+            context: Context,
+            glanceId: GlanceId,
+            parameters: ActionParameters,
+        ) {
+            modalNavigator.launchToAddRecordWithCamera(context)
+        }
     }
-}
 
-class CreateRecordWithImagePickerAction : ActionCallback {
+    private inner class CreateRecordWithImagePickerAction : ActionCallback {
 
-    override suspend fun onAction(
-        context: Context,
-        glanceId: GlanceId,
-        parameters: ActionParameters,
-    ) {
-        ModalActivity.launchToAddRecordWithImagePicker(context)
+        override suspend fun onAction(
+            context: Context,
+            glanceId: GlanceId,
+            parameters: ActionParameters,
+        ) {
+            modalNavigator.launchToAddRecordWithImagePicker(context)
+        }
     }
-}
 
-class CreateRecordAction : ActionCallback {
+    private inner class CreateRecordAction : ActionCallback {
 
-    override suspend fun onAction(
-        context: Context,
-        glanceId: GlanceId,
-        parameters: ActionParameters,
-    ) {
-        ModalActivity.launchToAddRecord(context)
+        override suspend fun onAction(
+            context: Context,
+            glanceId: GlanceId,
+            parameters: ActionParameters,
+        ) {
+            modalNavigator.launchToAddRecord(context)
+        }
     }
-}
 
-class RecordImageTappedAction : ActionCallback {
+    private inner class RecordImageTappedAction : ActionCallback {
 
-    override suspend fun onAction(
-        context: Context,
-        glanceId: GlanceId,
-        parameters: ActionParameters,
-    ) {
-        val recordId = parameters[ActionParameters.Key<Long>(PREFS_KEY_RECORD)]!!
-        ModalActivity.launchToShowRecordImageNoApp(context, recordId)
+        override suspend fun onAction(
+            context: Context,
+            glanceId: GlanceId,
+            parameters: ActionParameters,
+        ) {
+            val recordId = parameters[ActionParameters.Key<Long>(PREFS_KEY_RECORD)]!!
+            modalNavigator.launchToShowRecordImageNoApp(context, recordId)
+        }
     }
-}
 
-class QuickPickImageTappedAction : ActionCallback {
+    private inner class QuickPickImageTappedAction : ActionCallback {
 
-    override suspend fun onAction(
-        context: Context,
-        glanceId: GlanceId,
-        parameters: ActionParameters,
-    ) {
-        val templateId = parameters[ActionParameters.Key<Long>(PREFS_KEY_TEMPLATE)]!!
-        ModalActivity.launchToShowTemplateImage(context, templateId)
+        override suspend fun onAction(
+            context: Context,
+            glanceId: GlanceId,
+            parameters: ActionParameters,
+        ) {
+            val templateId = parameters[ActionParameters.Key<Long>(PREFS_KEY_TEMPLATE)]!!
+            modalNavigator.launchToShowTemplateImage(context, templateId)
+        }
     }
-}
 
-class RecordBodyTappedAction : ActionCallback {
+    private inner class RecordBodyTappedAction : ActionCallback {
 
-    override suspend fun onAction(
-        context: Context,
-        glanceId: GlanceId,
-        parameters: ActionParameters,
-    ) {
-        val recordId = parameters[ActionParameters.Key<Long>(PREFS_KEY_RECORD)]!!
-        ModalActivity.launchToSelectRecordAction(context, recordId)
+        override suspend fun onAction(
+            context: Context,
+            glanceId: GlanceId,
+            parameters: ActionParameters,
+        ) {
+            val recordId = parameters[ActionParameters.Key<Long>(PREFS_KEY_RECORD)]!!
+            modalNavigator.launchToSelectRecordAction(context, recordId)
+        }
     }
-}
 
-class QuickPickBodyTappedAction : ActionCallback {
+    private inner class QuickPickBodyTappedAction : ActionCallback {
 
-    override suspend fun onAction(
-        context: Context,
-        glanceId: GlanceId,
-        parameters: ActionParameters,
-    ) {
-        val templateId = parameters[ActionParameters.Key<Long>(PREFS_KEY_TEMPLATE)]!!
-        ModalActivity.launchToSelectTemplateAction(context, templateId)
+        override suspend fun onAction(
+            context: Context,
+            glanceId: GlanceId,
+            parameters: ActionParameters,
+        ) {
+            val templateId = parameters[ActionParameters.Key<Long>(PREFS_KEY_TEMPLATE)]!!
+            modalNavigator.launchToSelectTemplateAction(context, templateId)
+        }
     }
 }
 
