@@ -3,16 +3,17 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 import androidx.compose.ui.text.input.TextFieldValue
 import dev.gaborbiro.dailymacros.features.modal.ModalUiMapper
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
-import dev.gaborbiro.dailymacros.features.modal.model.VariabilityArchetypePickerEntry
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityPreviewContent
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Builds the read-only record details dialog for a loaded [Record], including variability preview
  * when [edit] is true (swallows [NoVariabilityProfileLoadedException] the same way as before).
  */
-class BuildRecordDetailsViewDialogUseCase(
+@Singleton
+class BuildRecordDetailsViewDialogUseCase @Inject constructor(
     private val getVariabilityMatchForTemplateUseCase: GetVariabilityMatchForTemplateUseCase,
     private val uiMapper: ModalUiMapper,
 ) {

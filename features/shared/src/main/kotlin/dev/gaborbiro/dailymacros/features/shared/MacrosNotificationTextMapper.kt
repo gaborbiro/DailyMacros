@@ -1,7 +1,7 @@
 package dev.gaborbiro.dailymacros.features.shared
 
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientBreakdown
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.DomainError
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError
 
 import javax.inject.Inject
 
@@ -13,12 +13,12 @@ class MacrosNotificationTextMapper @Inject constructor(
     private val nutrientsUiMapper: NutrientsUiMapper,
 ) {
 
-    fun mapDomainErrorToUserMessage(error: DomainError): String = when (error) {
-        is DomainError.DisplayMessageToUser.CheckInternetConnection -> "Internet connectivity error"
-        is DomainError.DisplayMessageToUser.ContactSupport ->
+    fun mapDomainErrorToUserMessage(error: ChatGPTDomainError): String = when (error) {
+        is ChatGPTDomainError.DisplayMessageToUser.CheckInternetConnection -> "Internet connectivity error"
+        is ChatGPTDomainError.DisplayMessageToUser.ContactSupport ->
             "Oops. Something went wrong. The issue has been logged and our engineers are looking into it."
-        is DomainError.DisplayMessageToUser.Message -> error.message
-        is DomainError.DisplayMessageToUser.TryAgain ->
+        is ChatGPTDomainError.DisplayMessageToUser.Message -> error.message
+        is ChatGPTDomainError.DisplayMessageToUser.TryAgain ->
             "Oops. Something went wrong. Please try again later."
     }
 

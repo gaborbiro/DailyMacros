@@ -17,11 +17,14 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.V
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityEvidence
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilitySlot
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityVariant
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * JSON profile ↔ domain and domain ↔ Room insert rows.
  */
-class VariabilityProfileMapper(
+@Singleton
+class VariabilityProfileMapper @Inject constructor(
     private val gson: Gson,
 ) {
 

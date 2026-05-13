@@ -4,6 +4,7 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import androidx.sqlite.db.SimpleSQLiteQuery
 import androidx.sqlite.db.SupportSQLiteDatabase
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.repositories.backup.domain.BackupRepository
 import dev.gaborbiro.dailymacros.repositories.backup.domain.model.DatabaseBackupImportResult
@@ -19,6 +20,8 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
+import javax.inject.Inject
+import javax.inject.Singleton
 
 private val SQLITE_MAGIC = "SQLite format 3\u0000".toByteArray(Charsets.US_ASCII)
 
@@ -35,11 +38,11 @@ private class ImportRollout(
     var mainMoved: Boolean = false
 }
 
-class BackupRepositoryImpl(
-    context: Context,
+@Singleton
+class BackupRepositoryImpl @Inject constructor(
+    @ApplicationContext private val appContext: Context,
+    private val appDatabase: AppDatabase,
 ) : BackupRepository {
-
-    private val appContext = context.applicationContext
 
     private val tarDatabaseEntry: String
         get() = "databases/${AppDatabase.DATABASE_FILE_NAME}"
@@ -52,7 +55,7 @@ class BackupRepositoryImpl(
                     "Nothing to export yet — use the app once so the database is created.",
                 )
             }
-            val writable = AppDatabase.getInstance().openHelper.writableDatabase
+            val writable = appDatabase.openHelper.writableDatabase
             checkpointWalForExport(writable)
 
             val outFile = File(appContext.cacheDir, "backup_export_${System.nanoTime()}.tar")
@@ -141,13 +144,18 @@ class BackupRepositoryImpl(
      * If [stagedPublicDir] is non-null, replaces [files/public] entirely.
      * If [stagedSharedPrefsDir] is non-null, replaces [shared_prefs] entirely.
      * Null staged folders are treated as legacy import and left unchanged.
+     *
+     * Closes the injected [AppDatabase] before touching files. Once closed, the singleton is
+     * unusable for the remainder of the process — every exit from this method requires a process
+     * restart, whether the swap succeeded ([DatabaseBackupImportResult.ReplacementApplied]) or
+     * partially failed and was rolled back on disk ([DatabaseBackupImportResult.IoFailure]).
      */
     private fun replaceDatabaseAndMaybeFiles(
         stagedDb: File,
         stagedPublicDir: File?,
         stagedSharedPrefsDir: File?,
     ): DatabaseBackupImportResult {
-        AppDatabase.closeSingleton()
+        appDatabase.close()
 
         val dbFile = appContext.getDatabasePath(AppDatabase.DATABASE_FILE_NAME)
         dbFile.parentFile?.mkdirs()
@@ -166,7 +174,6 @@ class BackupRepositoryImpl(
 
         moveLiveDbAsideOrRollback(rollout).let { err ->
             if (err != null) {
-                AppDatabase.init(appContext)
                 return DatabaseBackupImportResult.IoFailure(err)
             }
         }
@@ -177,7 +184,6 @@ class BackupRepositoryImpl(
                 File(appContext.filesDir, "public.import_bak_$tag").also { aside ->
                     if (!publicLive.renameTo(aside)) {
                         restoreLiveDbFromAside(rollout)
-                        AppDatabase.init(appContext)
                         return DatabaseBackupImportResult.IoFailure("Could not stage public image folder.")
                     }
                 }
@@ -191,7 +197,6 @@ class BackupRepositoryImpl(
                     if (!sharedPrefsLive.renameTo(aside)) {
                         publicBak?.takeIf { it.exists() }?.renameTo(publicLive)
                         restoreLiveDbFromAside(rollout)
-                        AppDatabase.init(appContext)
                         return DatabaseBackupImportResult.IoFailure("Could not stage shared preferences folder.")
                     }
                 }
@@ -236,7 +241,6 @@ class BackupRepositoryImpl(
             }
             discardFailedReplacement(rollout)
             restoreLiveDbFromAside(rollout)
-            AppDatabase.init(appContext)
             return DatabaseBackupImportResult.IoFailure(e.message ?: e.toString())
         }
 

@@ -16,8 +16,8 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatusEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TopContributorsEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.VariabilityArchetypeEntity
-import dev.gaborbiro.dailymacros.data.db.model.entity.VariabilitySnapshotEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.VariabilitySlotEntity
+import dev.gaborbiro.dailymacros.data.db.model.entity.VariabilitySnapshotEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.VariabilityVariantEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.VariabilityVariantEvidenceEntity
 import java.time.LocalDateTime
@@ -57,53 +57,23 @@ abstract class AppDatabase : RoomDatabase() {
 
         const val DATABASE_FILE_NAME: String = "daily_macros_db"
 
-        private val lock = Any()
-
-        @Volatile
-        private var instance: AppDatabase? = null
-
-        fun init(appContext: Context) {
-            synchronized(lock) {
-                if (instance == null) {
-                    instance = buildDatabase(appContext)
-                }
-            }
-        }
-
-        fun getInstance(): AppDatabase =
-            synchronized(lock) {
-                instance ?: error("AppDatabase not initialized")
-            }
-
-        /**
-         * Closes the Room instance and clears the singleton holder.
-         * Used when replacing the database file on disk (e.g. restore from backup).
-         * The process should be restarted shortly after so [init] runs again on cold start.
-         */
-        fun closeSingleton() {
-            synchronized(lock) {
-                instance?.close()
-                instance = null
-            }
-        }
-
-        private fun buildDatabase(context: Context): AppDatabase {
+        internal fun build(context: Context): AppDatabase {
             return Room.databaseBuilder(
                 context.applicationContext,
                 AppDatabase::class.java,
-                DATABASE_FILE_NAME
+                DATABASE_FILE_NAME,
             )
                 .addMigrations(MIGRATION_2_3)
                 .addMigrations(MIGRATION_3_4)
                 .addMigrations(MIGRATION_4_5)
                 .addMigrations(MIGRATION_5_6)
-            .addMigrations(MIGRATION_6_7)
-            .addMigrations(MIGRATION_8_9)
-            .addMigrations(MIGRATION_9_10)
-            .addMigrations(MIGRATION_10_11)
-            .addMigrations(MIGRATION_11_12)
-            .addMigrations(MIGRATION_12_13)
-            .build()
+                .addMigrations(MIGRATION_6_7)
+                .addMigrations(MIGRATION_8_9)
+                .addMigrations(MIGRATION_9_10)
+                .addMigrations(MIGRATION_10_11)
+                .addMigrations(MIGRATION_11_12)
+                .addMigrations(MIGRATION_12_13)
+                .build()
         }
     }
 }

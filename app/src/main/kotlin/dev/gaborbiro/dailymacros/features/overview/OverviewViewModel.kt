@@ -6,7 +6,7 @@ import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.features.common.utils.combine
-import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
+import dev.gaborbiro.dailymacros.features.common.workers.NutrientAnalysisWorker
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiState
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiUpdates
@@ -17,7 +17,6 @@ import dev.gaborbiro.dailymacros.features.overview.usecase.ResolveOverviewCoachM
 import dev.gaborbiro.dailymacros.features.overview.usecase.ResolveOverviewObserveSinceEpochMillisUseCase
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
-import dev.gaborbiro.dailymacros.features.widget.FoodDiaryWidgetReloader
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
@@ -52,7 +51,6 @@ class OverviewViewModel @Inject constructor(
     private val cancelMacrosAnalysisForRecord: CancelMacrosAnalysisForRecordUseCase,
     private val applyQuickPickOverrideAndReloadWidget: ApplyQuickPickOverrideAndReloadWidgetUseCase,
     private val createRecordFromTemplateUseCase: CreateRecordFromTemplateUseCase,
-    private val foodDiaryWidgetReloader: FoodDiaryWidgetReloader,
 ) : AndroidViewModel(application) {
 
     private val _viewState: MutableStateFlow<OverviewUiState> =
@@ -157,17 +155,16 @@ class OverviewViewModel @Inject constructor(
         viewModelScope.launch {
             val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return@launch
             createRecordFromTemplateUseCase.execute(templateId)
-            foodDiaryWidgetReloader.scheduleReload(getApplication())
         }
     }
 
     fun onAnalyseMacrosMenuItemTapped(recordId: Long) {
         viewModelScope.launch {
-            GetMacrosWorker.cancelWorkRequest(
+            NutrientAnalysisWorker.cancelWorkRequest(
                 appContext = application,
                 recordId = recordId,
             )
-            GetMacrosWorker.setWorkRequest(
+            NutrientAnalysisWorker.setWorkRequest(
                 appContext = application,
                 recordId = recordId,
                 force = true,
@@ -185,7 +182,6 @@ class OverviewViewModel @Inject constructor(
         viewModelScope.launch {
             val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return@launch
             applyQuickPickOverrideAndReloadWidget.execute(templateId, Template.QuickPickOverride.INCLUDE)
-            foodDiaryWidgetReloader.scheduleReload(application)
         }
     }
 
@@ -198,7 +194,6 @@ class OverviewViewModel @Inject constructor(
                     recordToUndelete = oldRecord,
                 )
             }
-            foodDiaryWidgetReloader.scheduleReload(application)
             cancelMacrosAnalysisForRecord.execute(recordId)
         }
     }
@@ -224,7 +219,6 @@ class OverviewViewModel @Inject constructor(
                 recordToUndelete = null,
             )
         }
-        foodDiaryWidgetReloader.scheduleReload(application)
     }
 
     fun onUndoDeleteDismissed() {
@@ -256,7 +250,6 @@ class OverviewViewModel @Inject constructor(
     private fun deleteUnusedTemplateAfterUndo(templateId: Long) {
         viewModelScope.launch {
             deleteUnusedTemplateIfOrphaned.execute(templateId)
-            foodDiaryWidgetReloader.scheduleReload(application)
         }
     }
 

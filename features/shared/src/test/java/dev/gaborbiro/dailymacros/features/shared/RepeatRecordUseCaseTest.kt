@@ -69,6 +69,7 @@ class RepeatRecordUseCaseTest {
         override suspend fun countTemplatesPendingVariabilityAfterWatermark(afterWatermarkExclusive: Long) = 0
         override fun getMostRecentRecord(): Record? = null
         override suspend fun getQuickPicks(count: Int) = emptyList<Template>()
+        override fun observeQuickPicks(count: Int) = emptyFlow<List<Template>>()
         override suspend fun getRecordsByTemplate(templateId: Long) = emptyList<Record>()
         override suspend fun countRecordsForTemplate(templateId: Long): Int = 0
         override fun observeRecords(searchTerm: String?, sinceEpochMillis: Long) = emptyFlow<List<Record>>()

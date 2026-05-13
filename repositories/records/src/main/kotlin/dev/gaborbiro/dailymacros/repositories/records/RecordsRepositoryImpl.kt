@@ -24,8 +24,11 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import java.time.ZonedDateTime
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class RecordsRepositoryImpl(
+@Singleton
+class RecordsRepositoryImpl @Inject constructor(
     private val templatesDAO: TemplatesDAO,
     private val recordsDAO: RecordsDAO,
     private val mapper: RecordsApiMapper,
@@ -58,6 +61,17 @@ class RecordsRepositoryImpl(
     override suspend fun getQuickPicks(count: Int): List<Template> = templatesDAO
         .getQuickPicks(count)
         .map(mapper::map)
+
+    override fun observeQuickPicks(count: Int): Flow<List<Template>> {
+        return try {
+            templatesDAO.observeQuickPicks(count)
+                .distinctUntilChanged()
+                .map { quickPicks -> quickPicks.map(mapper::map) }
+        } catch (t: Throwable) {
+            analyticsLogger.logError(t)
+            flowOf(emptyList())
+        }
+    }
 
     override suspend fun getRecordsByTemplate(templateId: Long): List<Record> = recordsDAO
         .getByTemplate(templateId)

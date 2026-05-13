@@ -1,12 +1,12 @@
 package dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model
 
 
-sealed class DomainError(message: String?, cause: Throwable? = null) : Exception(message, cause) {
+sealed class ChatGPTDomainError(message: String?, cause: Throwable? = null) : Exception(message, cause) {
 
     sealed class DisplayMessageToUser(
         override val message: String? = null,
         cause: Throwable? = null,
-    ) : DomainError(message, cause) {
+    ) : ChatGPTDomainError(message, cause) {
         data class Message(override val message: String, override val cause: Throwable? = null) :
             DisplayMessageToUser(message, cause)
 

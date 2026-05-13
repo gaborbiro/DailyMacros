@@ -5,11 +5,14 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.google.gson.JsonParser
 import com.google.gson.annotations.SerializedName
+import dev.gaborbiro.dailymacros.repositories.chatgpt.di.ForJsonBodyChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.ComponentConfidence
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
+import javax.inject.Inject
+import javax.inject.Singleton
 
 private const val MAX_RECORDS = 250
 private const val MAX_NOTES_CHARS = 1200
@@ -27,9 +30,10 @@ data class VariabilityMiningPreview(
     val skippedNoNewObservations: Boolean = false,
 )
 
-class MineMealVariabilityPreviewUseCase(
+@Singleton
+class MineMealVariabilityPreviewUseCase @Inject constructor(
     private val recordsRepository: RecordsRepository,
-    private val chatGPTRepository: ChatGPTRepository,
+    @ForJsonBodyChatGpt private val chatGPTRepository: ChatGPTRepository,
     private val variabilityRepository: VariabilityRepository,
 ) {
 

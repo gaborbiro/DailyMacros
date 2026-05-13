@@ -3,6 +3,7 @@ import java.io.File
 
 plugins {
     id("AndroidLibraryConvention")
+    alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
 }
 
@@ -22,6 +23,12 @@ android {
             isIncludeAndroidResources = true
         }
     }
+}
+
+tasks.withType<Test>().configureEach {
+    // Hilt KSP generates test sources for the test variant, which makes Gradle think test
+    // sources are present even when no JUnit tests exist in this module yet.
+    failOnNoDiscoveredTests = false
 }
 
 val copyRoomExportSchemasForTestAssets = tasks.register<Copy>("copyRoomExportSchemasForTestAssets") {
@@ -45,6 +52,9 @@ dependencies {
     api(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
+
+    implementation(libs.dagger.hilt.android)
+    ksp(libs.dagger.hilt.compiler)
 
     testImplementation(libs.androidx.room.testing)
     testImplementation(libs.androidx.test.core)

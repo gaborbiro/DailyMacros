@@ -1,7 +1,7 @@
 package dev.gaborbiro.dailymacros.features.shared
 
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientBreakdown
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.DomainError
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -35,14 +35,14 @@ class MacrosNotificationTextMapperTest {
     fun `mapDomainErrorToUserMessage check internet`() {
         assertEquals(
             "Internet connectivity error",
-            mapper.mapDomainErrorToUserMessage(DomainError.DisplayMessageToUser.CheckInternetConnection()),
+            mapper.mapDomainErrorToUserMessage(ChatGPTDomainError.DisplayMessageToUser.CheckInternetConnection()),
         )
     }
 
     @Test
     fun `mapDomainErrorToUserMessage contact support`() {
         assertTrue(
-            mapper.mapDomainErrorToUserMessage(DomainError.DisplayMessageToUser.ContactSupport())
+            mapper.mapDomainErrorToUserMessage(ChatGPTDomainError.DisplayMessageToUser.ContactSupport())
                 .contains("engineers"),
         )
     }
@@ -51,14 +51,14 @@ class MacrosNotificationTextMapperTest {
     fun `mapDomainErrorToUserMessage custom message`() {
         assertEquals(
             "Hello",
-            mapper.mapDomainErrorToUserMessage(DomainError.DisplayMessageToUser.Message("Hello")),
+            mapper.mapDomainErrorToUserMessage(ChatGPTDomainError.DisplayMessageToUser.Message("Hello")),
         )
     }
 
     @Test
     fun `mapDomainErrorToUserMessage try again`() {
         assertTrue(
-            mapper.mapDomainErrorToUserMessage(DomainError.DisplayMessageToUser.TryAgain())
+            mapper.mapDomainErrorToUserMessage(ChatGPTDomainError.DisplayMessageToUser.TryAgain())
                 .contains("try again"),
         )
     }

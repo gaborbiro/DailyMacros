@@ -6,15 +6,15 @@ import dev.gaborbiro.dailymacros.repositories.backup.domain.BackupRepository
 import java.io.FileInputStream
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import javax.inject.Inject
 
-class ExportSqliteDatabaseUseCase(
+class ExportSqliteDatabaseUseCase @Inject constructor(
     private val backupRepository: BackupRepository,
-    private val createPublicDocumentUseCase: CreatePublicDocumentUseCase,
     private val streamWriter: StreamWriter,
 //    private val sharePublicUriLauncher: SharePublicUriLauncher,
 ) {
 
-    suspend fun execute() {
+    suspend fun execute(createPublicDocumentUseCase: CreatePublicDocumentUseCase) {
         val archiveFile = backupRepository.prepareBackupArchiveForExport()
         try {
             val stamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))

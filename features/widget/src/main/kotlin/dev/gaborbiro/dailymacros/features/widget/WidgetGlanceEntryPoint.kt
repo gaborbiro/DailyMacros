@@ -8,6 +8,5 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 interface WidgetGlanceEntryPoint {
     fun widgetGlanceDependencies(): WidgetGlanceDependencies
-
-    fun foodDiaryWidgetReloader(): FoodDiaryWidgetReloader
 }
+

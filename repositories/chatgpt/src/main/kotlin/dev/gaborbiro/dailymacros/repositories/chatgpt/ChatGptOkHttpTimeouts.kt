@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.shared
+package dev.gaborbiro.dailymacros.repositories.chatgpt
 
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit

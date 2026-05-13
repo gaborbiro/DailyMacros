@@ -11,6 +11,7 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.MacrosEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.QuickPickOverrideEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TopContributorsEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TemplatesDAO {
@@ -93,6 +94,49 @@ ORDER BY
     """
     )
     suspend fun getQuickPicks(count: Int): List<TemplateJoined>
+
+    @Transaction
+    @Query(
+        """
+WITH Usage AS (
+    SELECT
+        templateId,
+        COUNT(*) AS usageCount
+    FROM records
+    GROUP BY templateId
+),
+Base AS (
+    SELECT
+        T.*,
+        COALESCE(U.usageCount, 0) AS usageCount,
+        QO.overrideType
+    FROM templates T
+    LEFT JOIN Usage U
+        ON U.templateId = T._id
+    LEFT JOIN QuickPickOverride QO
+        ON QO.templateId = T._id
+    WHERE COALESCE(QO.overrideType, '') != 'EXCLUDE'
+),
+Ranked AS (
+    SELECT
+        *,
+        ROW_NUMBER() OVER (
+            PARTITION BY (overrideType IS NULL)
+            ORDER BY usageCount DESC
+        ) AS regularRank
+    FROM Base
+)
+
+SELECT *
+FROM Ranked
+WHERE overrideType = 'INCLUDE'
+   OR (overrideType IS NULL AND regularRank <= :count)
+ORDER BY
+    CASE WHEN overrideType = 'INCLUDE' THEN 0 ELSE 1 END,
+    usageCount DESC;
+    """
+    )
+    fun observeQuickPicks(count: Int): Flow<List<TemplateJoined>>
 
     // ---- QUICK PICK OVERRIDES ----
 

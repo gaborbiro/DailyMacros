@@ -37,6 +37,8 @@ class DiaryWidgetScreen : GlanceAppWidget() {
     companion object {
         const val PREFS_RECENT_RECORDS = "recent_records"
         const val PREFS_QUICK_PICKS = "quick_pics"
+        const val RECORD_DAYS_TO_DISPLAY = 3
+        const val QUICK_PICK_COUNT = 15
 
         fun reload(context: Context) {
             Log.i("DiaryWidgetScreen", "reload()")
@@ -44,8 +46,8 @@ class DiaryWidgetScreen : GlanceAppWidget() {
                 ReloadWorker.getReloadWorkRequest(
                     recentRecordsPrefsKey = PREFS_RECENT_RECORDS,
                     quickPicksPrefsKey = PREFS_QUICK_PICKS,
-                    recordDaysToDisplay = 3,
-                    quickPickCount = 15,
+                    recordDaysToDisplay = RECORD_DAYS_TO_DISPLAY,
+                    quickPickCount = QUICK_PICK_COUNT,
                 )
             )
         }

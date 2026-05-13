@@ -4,8 +4,11 @@ import dev.gaborbiro.dailymacros.data.db.VariabilityDao
 import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.MealVariabilityPersistedProfile
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.MealVariabilityProfileSnapshot
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class VariabilityRepositoryImpl(
+@Singleton
+class VariabilityRepositoryImpl @Inject constructor(
     private val variabilityDao: VariabilityDao,
     private val profileMapper: VariabilityProfileMapper,
 ) : VariabilityRepository {

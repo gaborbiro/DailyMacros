@@ -10,6 +10,9 @@ import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCase
+import dev.gaborbiro.dailymacros.features.settings.export.OpenPublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportSqliteDatabaseUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseResult
@@ -32,8 +35,10 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import javax.inject.Inject
 
-class SettingsViewModel(
+@HiltViewModel
+class SettingsViewModel @Inject constructor(
     application: Application,
     appInfo: SettingsAppInfo,
     private val settingsPrefs: SettingsPrefs,
@@ -167,16 +172,16 @@ class SettingsViewModel(
         }
     }
 
-    fun onExportSettingsTapped() {
+    fun onExportSettingsTapped(createPublicDocumentUseCase: CreatePublicDocumentUseCase) {
         viewModelScope.launch {
-            exportFoodDiaryUseCase.execute()
+            exportFoodDiaryUseCase.execute(createPublicDocumentUseCase)
         }
     }
 
-    fun onExportDbTapped() {
+    fun onExportDbTapped(createPublicDocumentUseCase: CreatePublicDocumentUseCase) {
         viewModelScope.launch {
             _uiState.update { it.copy(exportDataInProgress = true) }
-            runCatching { exportSqliteDatabaseUseCase.execute() }
+            runCatching { exportSqliteDatabaseUseCase.execute(createPublicDocumentUseCase) }
                 .onFailure { t ->
                     _uiUpdates.emit(
                         SettingsUiUpdates.ShowSnackbar(t.message ?: t.toString()),
@@ -186,17 +191,19 @@ class SettingsViewModel(
         }
     }
 
-    fun onImportDbTapped() {
+    fun onImportDbTapped(openPublicDocumentUseCase: OpenPublicDocumentUseCase) {
         viewModelScope.launch {
             _uiState.update { it.copy(importDataInProgress = true) }
-            when (val result = importSqliteDatabaseUseCase.execute()) {
+            when (val result = importSqliteDatabaseUseCase.execute(openPublicDocumentUseCase)) {
                 ImportSqliteDatabaseResult.Cancelled -> Unit
                 ImportSqliteDatabaseResult.InvalidFile ->
                     _uiUpdates.emit(
                         SettingsUiUpdates.ShowSnackbar("That file is not a valid backup (.tar)"),
                     )
 
-                ImportSqliteDatabaseResult.RestartPending -> Unit
+                ImportSqliteDatabaseResult.RestartPending ->
+                    _uiUpdates.emit(SettingsUiUpdates.RestartApplication)
+
                 is ImportSqliteDatabaseResult.Error ->
                     _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar(result.message))
             }

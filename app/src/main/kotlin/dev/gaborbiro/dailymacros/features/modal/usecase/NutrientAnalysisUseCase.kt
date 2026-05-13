@@ -2,19 +2,16 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import android.content.Context
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
-import dev.gaborbiro.dailymacros.di.ForImageUploadChatGpt
 import dev.gaborbiro.dailymacros.features.shared.MacrosNotificationTextMapper
 import dev.gaborbiro.dailymacros.features.shared.RecordsMapper
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientBreakdown
-import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
+import dev.gaborbiro.dailymacros.features.common.workers.NutrientAnalysisWorker
 import dev.gaborbiro.dailymacros.features.common.utils.inputStreamToBase64
-import dev.gaborbiro.dailymacros.features.widget.FoodDiaryWidgetReloader
 import dev.gaborbiro.dailymacros.repositories.chatgpt.BuildConfig
+import dev.gaborbiro.dailymacros.repositories.chatgpt.di.ForImageUploadChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.DomainError
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.MealComponent as ChatGPTMealComponent
-import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
-import dev.gaborbiro.dailymacros.repositories.chatgpt.toDomainModel
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.ComponentConfidence
@@ -36,12 +33,11 @@ class NutrientAnalysisUseCase @Inject constructor(
     private val requestStatusRepository: RequestStatusRepository,
     private val recordsMapper: RecordsMapper,
     private val macrosNotificationTextMapper: MacrosNotificationTextMapper,
-    private val foodDiaryWidgetReloader: FoodDiaryWidgetReloader,
 ) {
 
     suspend fun execute(
         recordId: Long,
-        /** When true (e.g. [GetMacrosWorker]), show a high-importance notification if the API fails. */
+        /** When true (e.g. [NutrientAnalysisWorker]), show a high-importance notification if the API fails. */
         notifyOnFailure: Boolean = false,
     ) {
         val record: Record = recordsRepository.get(recordId)!!
@@ -52,7 +48,6 @@ class NutrientAnalysisUseCase @Inject constructor(
                     inputStreamToBase64(inputStream)
                 }
             requestStatusRepository.markAsPending(record.template.dbId)
-            foodDiaryWidgetReloader.scheduleReload(appContext)
 
             val nutrientsAnalysisResponse = runCatching {
                 chatGPTRepository.analyseNutrients(
@@ -66,8 +61,8 @@ class NutrientAnalysisUseCase @Inject constructor(
             nutrientsAnalysisResponse
                 .exceptionOrNull()
                 ?.let {
-                    if (it is ChatGPTApiError.InternetApiError) {
-                        GetMacrosWorker.setWorkRequest(
+                    if (it is ChatGPTDomainError.DisplayMessageToUser.CheckInternetConnection) {
+                        NutrientAnalysisWorker.setWorkRequest(
                             appContext = appContext,
                             recordId = recordId,
                             force = false,
@@ -139,8 +134,7 @@ class NutrientAnalysisUseCase @Inject constructor(
                             }
                     }
             }
-        } catch (apiError: ChatGPTApiError) {
-            val domainError = apiError.toDomainModel()
+        } catch (domainError: ChatGPTDomainError) {
             if (notifyOnFailure) {
                 appContext.showMacroResultsNotification(
                     id = 123000L + recordId,
@@ -153,8 +147,7 @@ class NutrientAnalysisUseCase @Inject constructor(
             throw domainError
         } catch (t: Throwable) {
             if (notifyOnFailure) {
-                val message = (t as? DomainError)?.let { macrosNotificationTextMapper.mapDomainErrorToUserMessage(it) }
-                    ?: t.message
+                val message = t.message
                     ?: t.cause?.message
                     ?: "Something went wrong while fetching macros. Please try again later."
                 appContext.showMacroResultsNotification(
@@ -168,7 +161,6 @@ class NutrientAnalysisUseCase @Inject constructor(
             throw t
         } finally {
             requestStatusRepository.unmark(record.template.dbId)
-            foodDiaryWidgetReloader.scheduleReload(appContext)
         }
     }
 }

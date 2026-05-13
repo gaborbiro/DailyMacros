@@ -7,10 +7,10 @@ import dev.gaborbiro.dailymacros.features.settings.export.StreamWriter
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import java.io.OutputStream
 import java.time.ZonedDateTime
+import javax.inject.Inject
 
-class ExportFoodDiaryUseCase(
+class ExportFoodDiaryUseCase @Inject constructor(
     private val recordRepository: RecordsRepository,
-    private val createPublicDocumentUseCase: CreatePublicDocumentUseCase,
     private val streamWriter: StreamWriter,
     private val sharePublicUriLauncher: SharePublicUriLauncher,
 ) {
@@ -21,7 +21,7 @@ class ExportFoodDiaryUseCase(
         .setPrettyPrinting()
         .create()
 
-    suspend fun execute() {
+    suspend fun execute(createPublicDocumentUseCase: CreatePublicDocumentUseCase) {
         val (fileName, diary) = generatePayload()
         val uri = createPublicDocumentUseCase.execute(fileName)
         uri?.let {

@@ -2,8 +2,14 @@ package dev.gaborbiro.dailymacros.features.overview
 
 import android.content.Context
 import androidx.core.content.edit
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class OverviewPrefs(context: Context) {
+@Singleton
+class OverviewPrefs @Inject constructor(
+    @ApplicationContext context: Context
+) {
 
     companion object {
         private const val KEY_SHOW_COACH_MARK = "show_coach_mark"

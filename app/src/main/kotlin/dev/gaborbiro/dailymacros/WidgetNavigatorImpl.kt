@@ -14,7 +14,7 @@ import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import dev.gaborbiro.dailymacros.features.main.MainActivity
 import dev.gaborbiro.dailymacros.features.modal.ModalNavigator
-import dev.gaborbiro.dailymacros.features.widget.WidgetGlanceEntryPoint
+import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.features.widget.WidgetNavigator
 import javax.inject.Inject
 
@@ -169,9 +169,6 @@ class RefreshAction : ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters,
     ) {
-        EntryPointAccessors.fromApplication(
-            context.applicationContext,
-            WidgetGlanceEntryPoint::class.java,
-        ).foodDiaryWidgetReloader().scheduleReload(context.applicationContext)
+        DiaryWidgetScreen.reload(context.applicationContext)
     }
 }

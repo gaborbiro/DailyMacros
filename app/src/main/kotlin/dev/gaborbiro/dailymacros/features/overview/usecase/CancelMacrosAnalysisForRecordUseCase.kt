@@ -2,7 +2,7 @@ package dev.gaborbiro.dailymacros.features.overview.usecase
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
-import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
+import dev.gaborbiro.dailymacros.features.common.workers.NutrientAnalysisWorker
 import javax.inject.Inject
 
 class CancelMacrosAnalysisForRecordUseCase @Inject constructor(
@@ -10,7 +10,7 @@ class CancelMacrosAnalysisForRecordUseCase @Inject constructor(
 ) {
 
     fun execute(recordId: Long) {
-        GetMacrosWorker.cancelWorkRequest(
+        NutrientAnalysisWorker.cancelWorkRequest(
             appContext = appContext,
             recordId = recordId,
         )

@@ -7,8 +7,11 @@ import com.google.firebase.analytics.analytics
 import com.google.firebase.analytics.logEvent
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.crashlytics.crashlytics
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class AnalyticsLogger {
+@Singleton
+class AnalyticsLogger @Inject constructor() {
 
     private val analytics: FirebaseAnalytics by lazy { Firebase.analytics }
     private val crashlytics: FirebaseCrashlytics by lazy { Firebase.crashlytics }

@@ -1,5 +1,7 @@
 plugins {
     id("AndroidLibraryConvention")
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -13,4 +15,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.commons.compress)
     implementation(libs.kotlinx.coroutines.core)
+
+    implementation(libs.dagger.hilt.android)
+    ksp(libs.dagger.hilt.compiler)
 }

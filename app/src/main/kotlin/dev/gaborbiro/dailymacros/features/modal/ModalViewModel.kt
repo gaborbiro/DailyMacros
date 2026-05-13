@@ -10,7 +10,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
-import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
+import dev.gaborbiro.dailymacros.features.common.workers.NutrientAnalysisWorker
 import dev.gaborbiro.dailymacros.features.modal.model.ChangeImagesTarget
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
@@ -39,8 +39,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseC
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.RepeatRecordUseCase
-import dev.gaborbiro.dailymacros.features.widget.FoodDiaryWidgetReloader
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.DomainError
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import ellipsize
@@ -86,7 +85,6 @@ class ModalViewModel @Inject constructor(
     private val applyQuickPickOverrideAndReloadWidgetUseCase: ApplyQuickPickOverrideAndReloadWidgetUseCase,
     private val applyConfirmedSharedTemplateEditUseCase: ApplyConfirmedSharedTemplateEditUseCase,
     private val analyticsLogger: AnalyticsLogger,
-    private val foodDiaryWidgetReloader: FoodDiaryWidgetReloader,
 ) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(ModalUiState())
@@ -233,7 +231,6 @@ class ModalViewModel @Inject constructor(
     fun onRepeatRecordButtonTapped(recordId: Long) {
         runSafely {
             repeatRecordUseCase.execute(recordId)
-            foodDiaryWidgetReloader.scheduleReload(application)
             closeAll()
         }
     }
@@ -241,7 +238,6 @@ class ModalViewModel @Inject constructor(
     fun onRepeatTemplateButtonTapped(templateId: Long) {
         runSafely {
             createRecordFromTemplateUseCase.execute(templateId)
-            foodDiaryWidgetReloader.scheduleReload(application)
             closeAll()
         }
     }
@@ -263,7 +259,6 @@ class ModalViewModel @Inject constructor(
                 templateId,
                 Template.QuickPickOverride.EXCLUDE,
             )
-            foodDiaryWidgetReloader.scheduleReload(application)
             closeAll()
         }
     }
@@ -279,7 +274,6 @@ class ModalViewModel @Inject constructor(
                 templateId,
                 Template.QuickPickOverride.INCLUDE,
             )
-            foodDiaryWidgetReloader.scheduleReload(application)
             closeAll()
         }
     }
@@ -287,7 +281,6 @@ class ModalViewModel @Inject constructor(
     fun onDeleteTapped(recordId: Long) {
         runSafely {
             deleteRecordUseCase.execute(recordId)
-            foodDiaryWidgetReloader.scheduleReload(application)
             closeAll()
         }
     }
@@ -440,7 +433,6 @@ class ModalViewModel @Inject constructor(
                 }
 
                 ApplyTemplateVariantPickerSelectionResult.Applied -> {
-                    foodDiaryWidgetReloader.scheduleReload(application)
                     pendingRecordDetailsRestore = null
                     closeAll()
                 }
@@ -542,8 +534,7 @@ class ModalViewModel @Inject constructor(
                     title = title,
                     description = description,
                 )
-                foodDiaryWidgetReloader.scheduleReload(application)
-                GetMacrosWorker.setWorkRequest(
+                NutrientAnalysisWorker.setWorkRequest(
                     appContext = application,
                     recordId = recordId,
                     force = true,
@@ -584,8 +575,7 @@ class ModalViewModel @Inject constructor(
                     title = title,
                     description = description,
                 )
-                foodDiaryWidgetReloader.scheduleReload(application)
-                GetMacrosWorker.setWorkRequest(
+                NutrientAnalysisWorker.setWorkRequest(
                     appContext = application,
                     recordId = dialogHandle.recordId,
                     force = true,
@@ -615,7 +605,7 @@ class ModalViewModel @Inject constructor(
         if (exception is CancellationException) return@CoroutineExceptionHandler
         analyticsLogger.logError(exception)
         val message = when {
-            exception is DomainError -> modalUiMapper.mapDomainErrorToUserMessage(exception)
+            exception is ChatGPTDomainError -> modalUiMapper.mapDomainErrorToUserMessage(exception)
             else -> exception.message ?: exception.cause?.message
         }
         viewModelScope.launch {

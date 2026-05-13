@@ -7,6 +7,8 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityReposito
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityPreviewContent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilitySlotPreview
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /** Thrown when [VariabilityRepository.getLatestProfile] is null (no mine has been persisted yet). */
 class NoVariabilityProfileLoadedException : Exception("No meal variability profile is loaded yet.")
@@ -22,7 +24,8 @@ data class TemplateVariabilityMatch(
 /**
  * Loads mined variability for [templateId] (evidence match) for record details / picker flows.
  */
-class GetVariabilityMatchForTemplateUseCase(
+@Singleton
+class GetVariabilityMatchForTemplateUseCase @Inject constructor(
     private val variabilityRepository: VariabilityRepository,
     private val profileMapper: VariabilityProfileMapper,
     private val previewMapper: TemplateVariabilityPreviewMapper,

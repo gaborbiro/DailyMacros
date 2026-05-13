@@ -2,6 +2,8 @@ import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
 plugins {
     id("AndroidLibraryConvention")
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -41,6 +43,9 @@ dependencies {
     api(libs.network.okhttp.logging.interceptor)
     api(libs.network.okhttp.cookiejar)
     api(libs.network.gson)
+
+    implementation(libs.dagger.hilt.android)
+    ksp(libs.dagger.hilt.compiler)
 
     testImplementation(libs.test.junit)
 }

@@ -26,7 +26,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
-    implementation(libs.network.okhttp)
 
     implementation(libs.javax.inject)
 

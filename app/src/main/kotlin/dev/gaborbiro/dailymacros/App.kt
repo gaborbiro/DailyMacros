@@ -10,13 +10,19 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.HiltAndroidApp
 import dagger.hilt.components.SingletonComponent
-import dev.gaborbiro.dailymacros.data.db.AppDatabase
+import dev.gaborbiro.dailymacros.features.widget.WidgetAutoReloader
 import dev.gaborbiro.dailymacros.util.createNotificationChannels
 
 @EntryPoint
 @InstallIn(SingletonComponent::class)
 interface AppWorkerFactoryEntryPoint {
     fun hiltWorkerFactory(): HiltWorkerFactory
+}
+
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface AppBootstrapEntryPoint {
+    fun widgetAutoReloader(): WidgetAutoReloader
 }
 
 @HiltAndroidApp
@@ -44,7 +50,9 @@ class App : Application(), Configuration.Provider {
             WorkManager.initialize(this, workManagerConfiguration)
         }
         appContext = this
-        AppDatabase.init(this)
         createNotificationChannels()
+        EntryPointAccessors.fromApplication(this, AppBootstrapEntryPoint::class.java)
+            .widgetAutoReloader()
+            .start()
     }
 }

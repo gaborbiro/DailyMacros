@@ -1,7 +1,7 @@
 package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import android.content.Context
-import dev.gaborbiro.dailymacros.features.common.workers.GetMacrosWorker
+import dev.gaborbiro.dailymacros.features.common.workers.NutrientAnalysisWorker
 import dev.gaborbiro.dailymacros.features.modal.model.ChangeImagesTarget
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
@@ -45,7 +45,7 @@ class ApplyConfirmedSharedTemplateEditUseCase @Inject constructor(
                 )
             }
         }
-        GetMacrosWorker.setWorkRequest(
+        NutrientAnalysisWorker.setWorkRequest(
             appContext = appContext,
             recordId = recordId,
             force = true,

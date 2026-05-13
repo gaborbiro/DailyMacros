@@ -2,12 +2,16 @@ package dev.gaborbiro.dailymacros.repositories.settings
 
 import android.content.Context
 import androidx.core.content.edit
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository as SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class SettingsRepositoryImpl(
-    context: Context,
+@Singleton
+class SettingsRepositoryImpl @Inject constructor(
+    @ApplicationContext context: Context,
     private val mapper: SettingsMapper,
 ) : SettingsRepository {
 

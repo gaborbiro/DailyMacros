@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.common.workers
+package dev.gaborbiro.dailymacros.features.shared
 
 import android.content.Context
 import android.content.pm.ServiceInfo
@@ -15,10 +15,8 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
-import dev.gaborbiro.dailymacros.features.modal.usecase.NutrientAnalysisUseCase
-import dev.gaborbiro.dailymacros.util.CHANNEL_ID_FOREGROUND
+import dev.gaborbiro.dailymacros.features.shared.notifications.CHANNEL_ID_FOREGROUND
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.time.delay
 import kotlin.time.Duration.Companion.minutes
@@ -26,7 +24,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
 @HiltWorker
-class GetMacrosWorker @AssistedInject constructor(
+class NutrientAnalysisWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted private val workerParameters: WorkerParameters,
     private val nutrientAnalysisUseCase: NutrientAnalysisUseCase,
@@ -50,7 +48,7 @@ class GetMacrosWorker @AssistedInject constructor(
             val works = WorkManager.getInstance(appContext)
                 .getWorkInfosByTag(getTag(recordId)).await()
             if (works.none { it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.RUNNING }) {
-                val workRequest = PeriodicWorkRequestBuilder<GetMacrosWorker>(
+                val workRequest = PeriodicWorkRequestBuilder<NutrientAnalysisWorker>(
                     repeatInterval = 15.minutes.toJavaDuration()
                 )
                     .setConstraints(

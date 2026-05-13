@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.util.LruCache
 import androidx.core.graphics.scale
+import dev.gaborbiro.dailymacros.data.file.di.FileStorePublicBucketPersistent
 import dev.gaborbiro.dailymacros.data.file.domain.FileStore
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import kotlinx.coroutines.Deferred
@@ -17,14 +18,18 @@ import java.io.File
 import java.io.InputStream
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantLock
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.concurrent.withLock
 
-class ImageStoreImpl(
-    private val fileStore: FileStore,
-    private val maxThumbnailSizePx: Int = 192, // bound for the longer edge
-    private val foodPicFormat: Bitmap.CompressFormat = DefaultFoodPicFormat,
-    private val foodPicQuality: Int = DefaultFoodPicQuality,
+@Singleton
+class ImageStoreImpl @Inject constructor(
+    @FileStorePublicBucketPersistent private val fileStore: FileStore,
 ) : ImageStore {
+
+    private val maxThumbnailSizePx: Int = 192 // bound for the longer edge
+    private val foodPicFormat: Bitmap.CompressFormat = DefaultFoodPicFormat
+    private val foodPicQuality: Int = DefaultFoodPicQuality
 
     private val io = Dispatchers.IO
     private val cacheLock = ReentrantLock()

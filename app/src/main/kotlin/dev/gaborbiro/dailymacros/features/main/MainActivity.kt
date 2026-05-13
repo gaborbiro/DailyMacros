@@ -18,7 +18,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -34,7 +33,6 @@ import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
-import dev.gaborbiro.dailymacros.features.settings.di.SettingsViewModelFactory
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsViewModel
 import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
 import dev.gaborbiro.dailymacros.features.trends.TrendsViewModel
@@ -58,9 +56,6 @@ class MainActivity : ComponentActivity() {
     lateinit var requestStatusRepository: RequestStatusRepository
 
     @Inject
-    lateinit var settingsViewModelFactory: SettingsViewModelFactory
-
-    @Inject
     lateinit var modalNavigator: ModalNavigator
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,7 +73,7 @@ class MainActivity : ComponentActivity() {
             AppTheme {
                 val navController: NavHostController = rememberNavController()
                 val overviewViewModel: OverviewViewModel = hiltViewModel()
-                val settingsViewModel: SettingsViewModel = viewModel(factory = settingsViewModelFactory)
+                val settingsViewModel: SettingsViewModel = hiltViewModel()
                 val targetsSettingsViewModel: TargetsSettingsViewModel = hiltViewModel()
                 val trendsViewModel: TrendsViewModel = hiltViewModel()
 

@@ -1,18 +1,16 @@
-package dev.gaborbiro.dailymacros.di
+package dev.gaborbiro.dailymacros.features.widget.di
 
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import dev.gaborbiro.dailymacros.di.FoodDiaryWidgetReloaderImpl
-import dev.gaborbiro.dailymacros.features.widget.FoodDiaryWidgetReloader
-import javax.inject.Singleton
+import dev.gaborbiro.dailymacros.features.shared.widget.FoodDiaryWidgetReloader
+import dev.gaborbiro.dailymacros.features.widget.FoodDiaryWidgetReloaderImpl
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class FoodDiaryWidgetReloaderModule {
+abstract class WidgetModule {
 
     @Binds
-    @Singleton
     abstract fun bindFoodDiaryWidgetReloader(impl: FoodDiaryWidgetReloaderImpl): FoodDiaryWidgetReloader
 }

@@ -1,11 +1,10 @@
-package dev.gaborbiro.dailymacros.di
+package dev.gaborbiro.dailymacros.data.file.di
 
-import kotlin.annotation.AnnotationRetention
-import kotlin.annotation.Retention
 import javax.inject.Qualifier
 
 /**
- * [FileStoreFactoryImpl] logical bucket name `"public"` with `keepFiles = true`.
+ * [dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl] logical bucket name `"public"` with
+ * `keepFiles = true`.
  *
  * This is **app-private storage** under the app’s internal files directory (not a shared/public
  * directory like Downloads). The `"public"` segment is only the logical key passed to the factory.
@@ -21,15 +20,3 @@ annotation class FileStorePublicBucketPersistent
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class FileStorePublicBucketEphemeral
-
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class ForImageUploadChatGpt
-
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class ForJsonBodyChatGpt
-
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class ChatGptClientGson

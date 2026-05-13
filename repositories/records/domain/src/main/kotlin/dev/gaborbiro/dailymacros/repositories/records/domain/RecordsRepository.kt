@@ -56,6 +56,8 @@ interface RecordsRepository {
 
     suspend fun getQuickPicks(count: Int): List<Template>
 
+    fun observeQuickPicks(count: Int): Flow<List<Template>>
+
     suspend fun getRecordsByTemplate(templateId: Long): List<Record>
 
     suspend fun countRecordsForTemplate(templateId: Long): Int

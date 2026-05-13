@@ -6,7 +6,7 @@ import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.VariabilityArchetypePickerEntry
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.DomainError
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
 import javax.inject.Inject
@@ -17,7 +17,7 @@ class ModalUiMapper @Inject constructor(
 
     private val macrosNotificationTextMapper = MacrosNotificationTextMapper(nutrientsUiMapper)
 
-    fun mapDomainErrorToUserMessage(error: DomainError): String =
+    fun mapDomainErrorToUserMessage(error: ChatGPTDomainError): String =
         macrosNotificationTextMapper.mapDomainErrorToUserMessage(error)
 
     /**

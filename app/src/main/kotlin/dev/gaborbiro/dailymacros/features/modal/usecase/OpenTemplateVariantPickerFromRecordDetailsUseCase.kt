@@ -2,11 +2,14 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.repositories.records.TemplateVariabilityPreviewMapper
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Builds the template variant picker dialog from the current record-details [View] state.
  */
-class OpenTemplateVariantPickerFromRecordDetailsUseCase(
+@Singleton
+class OpenTemplateVariantPickerFromRecordDetailsUseCase @Inject constructor(
     private val templateVariabilityPreviewMapper: TemplateVariabilityPreviewMapper,
 ) {
 

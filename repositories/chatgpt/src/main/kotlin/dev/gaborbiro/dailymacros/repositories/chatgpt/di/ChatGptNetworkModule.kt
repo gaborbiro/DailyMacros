@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.di
+package dev.gaborbiro.dailymacros.repositories.chatgpt.di
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -7,9 +7,10 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import dev.gaborbiro.dailymacros.features.shared.ChatGptOkHttpTimeouts
 import dev.gaborbiro.dailymacros.repositories.chatgpt.AuthInterceptor
+import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGPTMapper
 import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGPTRepositoryImpl
+import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGptOkHttpTimeouts
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.ChatGPTService
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ContentEntry
@@ -26,7 +27,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object AppNetworkModule {
+object ChatGptNetworkModule {
 
     @Provides
     @Singleton
@@ -101,14 +102,22 @@ object AppNetworkModule {
     @ForImageUploadChatGpt
     fun imageUploadChatGptRepository(
         @ForImageUploadChatGpt retrofit: Retrofit,
+        mapper: ChatGPTMapper,
     ): ChatGPTRepository =
-        ChatGPTRepositoryImpl(service = retrofit.create(ChatGPTService::class.java))
+        ChatGPTRepositoryImpl(
+            service = retrofit.create(ChatGPTService::class.java),
+            mapper = mapper,
+        )
 
     @Provides
     @Singleton
     @ForJsonBodyChatGpt
     fun jsonBodyChatGptRepository(
         @ForJsonBodyChatGpt retrofit: Retrofit,
+        mapper: ChatGPTMapper,
     ): ChatGPTRepository =
-        ChatGPTRepositoryImpl(service = retrofit.create(ChatGPTService::class.java))
+        ChatGPTRepositoryImpl(
+            service = retrofit.create(ChatGPTService::class.java),
+            mapper = mapper,
+        )
 }

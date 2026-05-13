@@ -2,9 +2,13 @@ package dev.gaborbiro.dailymacros.features.settings
 
 import android.content.Context
 import androidx.core.content.edit
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class SettingsPrefs(
-    context: Context,
+@Singleton
+class SettingsPrefs @Inject constructor(
+    @ApplicationContext context: Context
 ) {
     private val prefs = context.applicationContext.getSharedPreferences("settings_prefs", Context.MODE_PRIVATE)
 

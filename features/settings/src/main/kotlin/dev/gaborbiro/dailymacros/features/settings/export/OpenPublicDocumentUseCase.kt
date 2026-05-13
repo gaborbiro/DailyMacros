@@ -1,8 +1,14 @@
 package dev.gaborbiro.dailymacros.features.settings.export
 
 import android.net.Uri
-import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.suspendCancellableCoroutine
 
@@ -15,44 +21,48 @@ fun interface OpenPublicDocumentUseCase {
 class OpenDocumentCancelled : RuntimeException("Open document cancelled by user")
 
 /**
- * UI helper for Storage Access Framework → Open Document.
- *
- * Must be registered on the activity before STARTED.
- * Only one [execute] call may be active at a time.
+ * UI helper for Storage Access Framework > Open Document from Compose.
  */
-class OpenPublicDocumentUseCaseImpl(
-    activity: ComponentActivity,
-) : OpenPublicDocumentUseCase {
+@Composable
+fun rememberOpenPublicDocumentUseCase(): OpenPublicDocumentUseCase {
+    var continuation by remember { mutableStateOf<CancellableContinuation<Result<Uri>>?>(null) }
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        val result =
+            if (uri != null) {
+                Result.success(uri)
+            } else {
+                Result.failure(OpenDocumentCancelled())
+            }
+        continuation?.resume(result) { _, _, _ -> }
+        continuation = null
+    }
 
-    private var continuation: CancellableContinuation<Result<Uri>>? = null
-
-    private val launcher =
-        activity.registerForActivityResult(
-            ActivityResultContracts.OpenDocument(),
-        ) { uri ->
-            val result =
-                if (uri != null) {
-                    Result.success(uri)
-                } else {
-                    Result.failure(OpenDocumentCancelled())
-                }
-            continuation?.resume(result) { _, _, _ -> }
+    DisposableEffect(Unit) {
+        onDispose {
+            continuation?.cancel(OpenDocumentCancelled())
             continuation = null
         }
+    }
 
-    override suspend fun execute(): Result<Uri> = suspendCancellableCoroutine { cont ->
-        check(continuation == null) {
-            "OpenPublicDocumentUseCase.execute() called while another request is active"
-        }
+    return remember(launcher) {
+        OpenPublicDocumentUseCase {
+            suspendCancellableCoroutine { cont ->
+                check(continuation == null) {
+                    "OpenPublicDocumentUseCase.execute() called while another request is active"
+                }
 
-        continuation = cont
+                continuation = cont
 
-        cont.invokeOnCancellation {
-            if (continuation === cont) {
-                continuation = null
+                cont.invokeOnCancellation {
+                    if (continuation === cont) {
+                        continuation = null
+                    }
+                }
+
+                launcher.launch(arrayOf("*/*"))
             }
         }
-
-        launcher.launch(arrayOf("*/*"))
     }
 }
