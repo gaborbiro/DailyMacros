@@ -8,8 +8,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityComponent
 import dagger.hilt.android.scopes.ActivityScoped
-import dev.gaborbiro.dailymacros.features.modal.ModalNavigator
-import dev.gaborbiro.dailymacros.features.modal.ModalNavigatorImpl
 import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCaseImpl
 import dev.gaborbiro.dailymacros.features.settings.export.OpenPublicDocumentUseCase
@@ -28,27 +26,17 @@ object AppActivityModule {
 
     @Provides
     @ActivityScoped
-    fun createPublicDocumentUseCase(activity: Activity): CreatePublicDocumentUseCase =
+    fun provideCreatePublicDocumentUseCase(activity: Activity): CreatePublicDocumentUseCase =
         CreatePublicDocumentUseCaseImpl(activity as ComponentActivity)
 
     @Provides
     @ActivityScoped
-    fun openPublicDocumentUseCase(activity: Activity): OpenPublicDocumentUseCase =
+    fun provideOpenPublicDocumentUseCase(activity: Activity): OpenPublicDocumentUseCase =
         OpenPublicDocumentUseCaseImpl(activity as ComponentActivity)
 
     @Provides
     @ActivityScoped
-    fun streamWriter(activity: Activity): StreamWriter =
-        StreamWriter(activity)
-
-    @Provides
-    @ActivityScoped
-    fun sharePublicUriLauncher(activity: Activity): SharePublicUriLauncher =
-        SharePublicUriLauncher(activity)
-
-    @Provides
-    @ActivityScoped
-    fun exportFoodDiaryUseCase(
+    fun provideExportFoodDiaryUseCase(
         recordsRepository: RecordsRepository,
         createPublicDocumentUseCase: CreatePublicDocumentUseCase,
         streamWriter: StreamWriter,
@@ -63,7 +51,7 @@ object AppActivityModule {
 
     @Provides
     @ActivityScoped
-    fun exportSqliteDatabaseUseCase(
+    fun provideExportSqliteDatabaseUseCase(
         backupRepository: BackupRepository,
         createPublicDocumentUseCase: CreatePublicDocumentUseCase,
         streamWriter: StreamWriter,
@@ -76,7 +64,7 @@ object AppActivityModule {
 
     @Provides
     @ActivityScoped
-    fun importSqliteDatabaseUseCase(
+    fun provideImportSqliteDatabaseUseCase(
         activity: Activity,
         application: Application,
         backupRepository: BackupRepository,
