@@ -1,6 +1,6 @@
 package dev.gaborbiro.dailymacros.features.modal
 
-import android.content.Context
+import android.app.Application
 import android.graphics.Bitmap
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.test.core.app.ApplicationProvider
@@ -101,7 +101,7 @@ class ModalViewModelTest {
     }
 
     private fun viewModel(repo: RecordsRepository = BaseRecordsRepositoryStub()): ModalViewModel {
-        val appCtx = ApplicationProvider.getApplicationContext<Context>()
+        val app = ApplicationProvider.getApplicationContext<Application>()
         val nutrients = NutrientsUiMapper()
         val modalUiMapper = ModalUiMapper(nutrients)
         val previewMapper = TemplateVariabilityPreviewMapper()
@@ -116,7 +116,7 @@ class ModalViewModelTest {
         val updateRec = UpdateRecordWithNewTemplateUseCase(repo, createTemplate)
         val imageStore = FakeImageStore()
         return ModalViewModel(
-            appContext = appCtx,
+            application = app,
             modalUiMapper = modalUiMapper,
             imageStore = imageStore,
             recordsRepository = repo,
@@ -134,16 +134,16 @@ class ModalViewModelTest {
             repeatRecordUseCase = RepeatRecordUseCase(repo, createFromTemplate),
             validateEditRecordUseCase = ValidateEditRecordUseCase(repo),
             validateCreateRecordUseCase = ValidateCreateRecordUseCase(),
-            saveImageUseCase = SaveImageUseCase(appCtx, imageStore),
+            saveImageUseCase = SaveImageUseCase(app, imageStore),
             getRecordImageUseCase = GetRecordImageUseCase(repo),
             getTemplateImageUseCase = GetTemplateImageUseCase(repo),
-            foodRecognitionUseCase = FoodRecognitionUseCase(appCtx, imageStore, VmFakeChatGpt()),
-            deleteRecordUseCase = DeleteRecordUseCase(repo, appCtx),
+            foodRecognitionUseCase = FoodRecognitionUseCase(app, imageStore, VmFakeChatGpt()),
+            deleteRecordUseCase = DeleteRecordUseCase(repo, app),
             applyQuickPickOverrideAndReloadWidgetUseCase = ApplyQuickPickOverrideAndReloadWidgetUseCase(repo),
             applyConfirmedSharedTemplateEditUseCase = ApplyConfirmedSharedTemplateEditUseCase(
                 updateRecordWithNewTemplateUseCase = updateRec,
                 recordsRepository = repo,
-                appContext = appCtx,
+                appContext = app,
             ),
             analyticsLogger = AnalyticsLogger(),
             foodDiaryWidgetReloader = FoodDiaryWidgetReloader { },

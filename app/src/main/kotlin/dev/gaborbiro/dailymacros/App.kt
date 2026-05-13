@@ -40,7 +40,9 @@ class App : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
-        WorkManager.initialize(this, workManagerConfiguration)
+        if (!WorkManager.isInitialized()) {
+            WorkManager.initialize(this, workManagerConfiguration)
+        }
         appContext = this
         AppDatabase.init(this)
         createNotificationChannels()
