@@ -29,7 +29,7 @@ All commands require `JAVA_HOME` and `ANDROID_HOME` to be set (already in `~/.ba
 
 ### CI/CD
 
-- **CI** (`.github/workflows/android.yml`): runs on push/PR to `master` — tests, `assembleDebug`; on push to `master` only, creates a GitHub Release with tag `build-<shortSha>` and the debug APK.
+- **CI** (`.github/workflows/android.yml`): runs on push/PR to `master` — tests, `assembleDebug`; on push to `master`, creates a GitHub Release with tag `build-<shortSha>` and the debug APK. On pull requests from the same repository (not forks), creates a **prerelease** with tag `pr-<PR#>-<shortSha>` and the debug APK for install testing before merge.
 - **Release** (`.github/workflows/release.yml`): triggered by **push to `release`** (e.g. after merging a PR into that branch; protect `release` from direct pushes in GitHub). Builds signed release AAB, creates a GitHub Release with tag **`v` + `appVersionName`** from **`app/build.gradle.kts`** (via `:app:writeAppReleaseVersionNameFile`), publishes to Google Play internal testing track. Bump **`appVersionName`** / **`appVersionCode`** in **`app/build.gradle.kts`** before merging to `release`; reusing a tag will fail the release step.
 - Release signing reads keystore from env vars (`RELEASE_KEYSTORE_PATH`, `RELEASE_KEYSTORE_PASSWORD`, `RELEASE_KEY_ALIAS`, `RELEASE_KEY_PASSWORD`). In CI, the base64-encoded keystore is decoded from the `RELEASE_KEYSTORE_BASE64` secret.
 
