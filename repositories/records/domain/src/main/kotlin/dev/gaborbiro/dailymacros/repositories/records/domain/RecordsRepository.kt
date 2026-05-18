@@ -15,42 +15,12 @@ interface RecordsRepository {
     suspend fun getRecords(since: ZonedDateTime? = null): List<Record>
 
     /**
-     * Most recent [limit] records (newest first), for batch jobs such as variability mining.
-     *
-     * Used for the **first** meal-variability mine (no snapshot yet) and for mines where the
-     * stored snapshot has [MealVariabilityProfileSnapshot.templatesIngestWatermarkEpochMs] == 0
-     * (legacy / not yet populated): the worker sends a bounded window of observations, not a
-     * template-timestamp delta.
+     * All template ids in the same user-created variant family as [templateId] (shared root from
+     * [Template.parentTemplateId] links). Empty if [templateId] is missing.
      */
-    suspend fun getRecentRecords(limit: Int): List<Record>
-
-    /**
-     * Records whose backing template has **strictly newer** activity than [afterWatermarkExclusive]
-     * (epoch ms): `max(createdAtEpochMs, updatedAtEpochMs) > afterWatermarkExclusive`, newest
-     * record first, capped by [limit].
-     *
-     * Semantics match [countTemplatesPendingVariabilityAfterWatermark]: the watermark is
-     * **exclusive** — templates whose timestamps equal the watermark are **not** included.
-     *
-     * Intended caller: incremental variability mining after a snapshot exists with a **positive**
-     * [MealVariabilityProfileSnapshot.templatesIngestWatermarkEpochMs]. When that watermark is
-     * still 0, the mining use case uses [getRecentRecords] instead so the first post-upgrade run
-     * is a full observation window, not an empty delta.
-     */
-    suspend fun getRecordsForVariabilityDelta(limit: Int, afterWatermarkExclusive: Long): List<Record>
+    suspend fun getTemplateIdsInSameVariantFamily(templateId: Long): List<Long>
 
     suspend fun countTemplates(): Int
-
-    /**
-     * Count of templates that would contribute rows to [getRecordsForVariabilityDelta] for the same
-     * [afterWatermarkExclusive]: `createdAtEpochMs > afterWatermarkExclusive OR updatedAtEpochMs >
-     * afterWatermarkExclusive` (strictly greater on both sides — **exclusive** watermark).
-     *
-     * Exposed for settings UX (“templates changed since last mine”). When
-     * [afterWatermarkExclusive] is 0, the SQL still requires a timestamp **> 0**, so templates
-     * that only have legacy 0/0 timestamps do not count as “pending” until they are touched.
-     */
-    suspend fun countTemplatesPendingVariabilityAfterWatermark(afterWatermarkExclusive: Long): Int
 
     fun getMostRecentRecord(): Record?
 

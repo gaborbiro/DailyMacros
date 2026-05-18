@@ -9,7 +9,6 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecogniti
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.VariabilityMiningResult
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -41,9 +40,6 @@ class FoodRecognitionUseCaseTest {
         )
 
         override suspend fun analyseNutrients(request: NutrientAnalysisRequest): NutrientAnalysis =
-            error("unused")
-
-        override suspend fun mineMealVariability(userMessageJson: String): VariabilityMiningResult =
             error("unused")
     }
 

@@ -5,17 +5,14 @@ import android.graphics.Bitmap
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.testing.WorkManagerTestInitHelper
-import com.google.gson.Gson
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
-import dev.gaborbiro.dailymacros.features.shared.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.features.widget.FoodDiaryWidgetReloader
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyConfirmedSharedTemplateEditUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyTemplateVariantPickerSelectionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.BaseRecordsRepositoryStub
 import dev.gaborbiro.dailymacros.features.modal.usecase.BuildRecordDetailsViewDialogUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
@@ -24,12 +21,9 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.GetVariabilityMatchForTemplateUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.ListMealVariantsForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ModalRecordFixtures
-import dev.gaborbiro.dailymacros.features.modal.usecase.OpenTemplateVariantPickerFromRecordDetailsUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveFirstRecordIdForTemplateUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveSelectRecordActionDialogUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveSelectTemplateActionDialogUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
@@ -39,18 +33,21 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecogniti
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.VariabilityMiningResult
-import dev.gaborbiro.dailymacros.repositories.records.TemplateVariabilityPreviewMapper
-import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfileMapper
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
-import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.MealVariabilityPersistedProfile
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -102,33 +99,16 @@ class ModalViewModelTest {
 
         override suspend fun analyseNutrients(request: NutrientAnalysisRequest): NutrientAnalysis =
             error("unused")
-
-        override suspend fun mineMealVariability(userMessageJson: String): VariabilityMiningResult =
-            error("unused")
-    }
-
-    private fun variabilityRepoNoProfile(): VariabilityRepository = object : VariabilityRepository {
-        override suspend fun getLatestProfile() = null
-        override suspend fun replaceProfile(profile: MealVariabilityPersistedProfile) = Unit
-        override suspend fun replaceProfileFromModelJson(
-            profileJson: String,
-            minedAtEpochMs: Long,
-            templatesIngestWatermarkEpochMs: Long,
-        ) = Unit
-        override suspend fun clearProfile() = Unit
     }
 
     private fun viewModel(repo: RecordsRepository = BaseRecordsRepositoryStub()): ModalViewModel {
         val app = ApplicationProvider.getApplicationContext<Application>()
         val nutrients = NutrientsUiMapper()
         val modalUiMapper = ModalUiMapper(nutrients)
-        val previewMapper = TemplateVariabilityPreviewMapper()
-        val getVariability = GetVariabilityMatchForTemplateUseCase(
-            variabilityRepository = variabilityRepoNoProfile(),
-            profileMapper = VariabilityProfileMapper(Gson()),
-            previewMapper = previewMapper,
+        val buildDetails = BuildRecordDetailsViewDialogUseCase(modalUiMapper)
+        val listMealVariants = ListMealVariantsForTemplateUseCase(
+            recordsRepository = repo,
         )
-        val buildDetails = BuildRecordDetailsViewDialogUseCase(getVariability, modalUiMapper)
         val createTemplate = CreateTemplateUseCase(repo)
         val createFromTemplate = CreateRecordFromTemplateUseCase(repo)
         val updateRec = UpdateRecordWithNewTemplateUseCase(repo, createTemplate)
@@ -139,17 +119,12 @@ class ModalViewModelTest {
             imageStore = imageStore,
             recordsRepository = repo,
             buildRecordDetailsViewDialogUseCase = buildDetails,
-            resolveSelectRecordActionDialogUseCase = ResolveSelectRecordActionDialogUseCase(repo),
-            resolveSelectTemplateActionDialogUseCase = ResolveSelectTemplateActionDialogUseCase(repo),
             resolveFirstRecordIdForTemplateUseCase = ResolveFirstRecordIdForTemplateUseCase(repo),
-            openTemplateVariantPickerFromRecordDetailsUseCase = OpenTemplateVariantPickerFromRecordDetailsUseCase(
-                previewMapper,
-            ),
-            applyTemplateVariantPickerSelectionUseCase = ApplyTemplateVariantPickerSelectionUseCase(repo, previewMapper),
+            listMealVariantsForTemplateUseCase = listMealVariants,
             createRecordFromTemplateUseCase = createFromTemplate,
+            createTemplateUseCase = createTemplate,
             createRecordWithNewTemplateUseCase = CreateRecordWithNewTemplateUseCase(createTemplate, createFromTemplate),
             updateRecordWithNewTemplateUseCase = updateRec,
-            repeatRecordUseCase = RepeatRecordUseCase(repo, createFromTemplate),
             validateEditRecordUseCase = ValidateEditRecordUseCase(repo),
             validateCreateRecordUseCase = ValidateCreateRecordUseCase(),
             saveImageUseCase = SaveImageUseCase(app, imageStore),
@@ -178,17 +153,27 @@ class ModalViewModelTest {
     }
 
     @Test
-    fun `select record deeplink shows action dialog`() = runTest {
+    fun `view template details deeplink opens details for first record of template`() = runTest {
+        val tpl = ModalRecordFixtures.template(dbId = 99L, name = "Snack")
+        val rec = ModalRecordFixtures.record(3L, tpl)
         val repo = object : BaseRecordsRepositoryStub() {
-            override suspend fun get(recordId: Long) =
-                ModalRecordFixtures.record(3L, ModalRecordFixtures.template(name = "Snack"))
+            override suspend fun get(recordId: Long) = rec.takeIf { it.recordId == recordId }
+
+            override suspend fun getRecordsByTemplate(templateId: Long) =
+                if (templateId == 99L) listOf(rec) else emptyList()
+
+            override suspend fun getTemplateIdsInSameVariantFamily(templateId: Long): List<Long> =
+                listOf(templateId)
+
+            override suspend fun getTemplate(templateId: Long): Template =
+                tpl.takeIf { it.dbId == templateId } ?: error("unexpected template $templateId")
         }
         val vm = viewModel(repo)
-        vm.onSelectRecordActionDeeplinkReceived(3L)
+        vm.onViewTemplateDetailsDeeplinkReceived(99L)
         advanceUntilIdle()
-        val dlg = vm.uiState.value.rootDialog as DialogHandle.SelectRecordActionDialog
-        assertEquals(3L, dlg.recordId)
-        assertEquals("Snack", dlg.title)
+        val dlg = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertEquals("Snack", dlg.title.text)
+        assertTrue(dlg.openedFromTemplateDetailsOnly)
     }
 
     @Test
@@ -224,6 +209,129 @@ class ModalViewModelTest {
         advanceUntilIdle()
         assertEquals(1, saveTemplateCalls)
         assertEquals(1, saveRecordCalls)
+        assertNull(vm.uiState.value.rootDialog)
+    }
+
+    @Test
+    fun `record details save with no edits closes without persisting`() = runTest {
+        var updateRecordCalls = 0
+        var updateTemplateCalls = 0
+        val tpl = ModalRecordFixtures.template(dbId = 7L, name = "Soup")
+        val rec = ModalRecordFixtures.record(5L, tpl)
+        val repo = object : BaseRecordsRepositoryStub() {
+            override fun observe(recordId: Long) = flowOf(rec)
+            override suspend fun get(recordId: Long) = rec.takeIf { it.recordId == recordId }
+            override suspend fun countRecordsForTemplate(templateId: Long) = 1
+            override suspend fun getRecordsByTemplate(templateId: Long) = listOf(rec)
+            override suspend fun getTemplateIdsInSameVariantFamily(templateId: Long) = listOf(templateId)
+            override suspend fun getTemplate(templateId: Long) = tpl
+            override suspend fun updateRecord(record: Record) {
+                updateRecordCalls++
+            }
+
+            override suspend fun updateTemplate(
+                templateId: Long,
+                name: String?,
+                description: String?,
+                templateImages: List<TemplateImageUpdate>?,
+                nutrients: Pair<TemplateNutrientBreakdown, TopContributors>?,
+                notes: String?,
+                mealComponents: List<MealComponent>?,
+            ) {
+                updateTemplateCalls++
+            }
+        }
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        vm.onSaveDetailsTapped()
+        advanceUntilIdle()
+        assertEquals(0, updateRecordCalls)
+        assertEquals(0, updateTemplateCalls)
+        assertNull(vm.uiState.value.rootDialog)
+    }
+
+    @Test
+    fun `add again without edits only logs from existing template`() = runTest {
+        var saveTemplateCalls = 0
+        var saveRecordCalls = 0
+        val tpl = ModalRecordFixtures.template(dbId = 7L, name = "Soup").copy(
+            nutrients = TemplateNutrientBreakdown(calories = 100),
+        )
+        val rec = ModalRecordFixtures.record(5L, tpl)
+        val repo = object : BaseRecordsRepositoryStub() {
+            override fun observe(recordId: Long) = flowOf(rec)
+            override suspend fun get(recordId: Long) = rec.takeIf { it.recordId == recordId }
+            override suspend fun countRecordsForTemplate(templateId: Long) = 1
+            override suspend fun getRecordsByTemplate(templateId: Long) = listOf(rec)
+            override suspend fun getTemplateIdsInSameVariantFamily(templateId: Long) = listOf(templateId)
+            override suspend fun getTemplate(templateId: Long) = tpl
+            override suspend fun saveTemplate(templateToSave: TemplateToSave): Long {
+                saveTemplateCalls++
+                return 99L
+            }
+
+            override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
+                saveRecordCalls++
+                assertEquals(7L, templateId)
+                return 88L
+            }
+        }
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        vm.onSaveAndAddDetailsTapped()
+        advanceUntilIdle()
+        assertEquals(0, saveTemplateCalls)
+        assertEquals(1, saveRecordCalls)
+        assertNull(vm.uiState.value.rootDialog)
+    }
+
+    @Test
+    fun `varied family save with edits updates shared template in place`() = runTest {
+        var updateTemplateCalls = 0
+        val tpl = ModalRecordFixtures.template(dbId = 7L, name = "Soup")
+        val tplOther = ModalRecordFixtures.template(dbId = 8L, name = "Other")
+        val rec = ModalRecordFixtures.record(5L, tpl)
+        val repo = object : BaseRecordsRepositoryStub() {
+            override fun observe(recordId: Long) = flowOf(rec)
+            override suspend fun get(recordId: Long) = rec.takeIf { it.recordId == recordId }
+            override suspend fun countRecordsForTemplate(templateId: Long) =
+                if (templateId == 7L || templateId == 8L) 1 else 0
+            override suspend fun getRecordsByTemplate(templateId: Long) =
+                if (templateId == 7L) {
+                    listOf(rec, rec.copy(recordId = 6L))
+                } else {
+                    emptyList()
+                }
+            override suspend fun getTemplateIdsInSameVariantFamily(templateId: Long) = listOf(7L, 8L)
+            override suspend fun getTemplate(templateId: Long) = when (templateId) {
+                7L -> tpl
+                8L -> tplOther
+                else -> error("unexpected $templateId")
+            }
+            override suspend fun updateTemplate(
+                templateId: Long,
+                name: String?,
+                description: String?,
+                templateImages: List<TemplateImageUpdate>?,
+                nutrients: Pair<TemplateNutrientBreakdown, TopContributors>?,
+                notes: String?,
+                mealComponents: List<MealComponent>?,
+            ) {
+                updateTemplateCalls++
+                assertEquals(7L, templateId)
+                assertEquals("Stew", name)
+            }
+        }
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        vm.onTitleChanged(TextFieldValue("Stew"))
+        advanceUntilIdle()
+        vm.onSaveDetailsTapped()
+        advanceUntilIdle()
+        assertEquals(1, updateTemplateCalls)
         assertNull(vm.uiState.value.rootDialog)
     }
 }

@@ -12,8 +12,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,10 +31,12 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
@@ -108,8 +113,19 @@ private fun RecordTextContent(modifier: Modifier, record: ListUiModelRecord) {
     ) {
         Row(
             modifier = Modifier
-                .padding(bottom = 4.dp)
+                .padding(bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
+            if (record.showOtherLoggedVariantsIcon) {
+                Icon(
+                    imageVector = Icons.Outlined.ContentCopy,
+                    contentDescription = stringResource(R.string.record_title_has_other_versions_a11y),
+                    modifier = Modifier
+                        .padding(end = 6.dp)
+                        .size(18.dp),
+                    tint = MaterialTheme.colorScheme.onSurface,
+                )
+            }
             Text(
                 modifier = Modifier
                     .weight(1f),

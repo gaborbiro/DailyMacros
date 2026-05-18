@@ -22,10 +22,6 @@ fun SettingsScreen(
     val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(Unit) {
-        settingsViewModel.refreshTemplateCountForSettings()
-    }
-
     LaunchedEffect(settingsViewModel) {
         settingsViewModel.uiUpdates.collect { event ->
             when (event) {
@@ -47,18 +43,6 @@ fun SettingsScreen(
         onExportSettingTapped = settingsViewModel::onExportSettingsTapped,
         onExportDbTapped = settingsViewModel::onExportDbTapped,
         onImportDbTapped = settingsViewModel::onImportDbTapped,
-        onVariabilityMiningPreviewTapped = settingsViewModel::onVariabilityMiningPreviewTapped,
-        onClearVariabilityProfileTapped = settingsViewModel::onClearVariabilityProfileTapped,
-        onCopyVariabilityRequestJson = settingsViewModel::onCopyVariabilityRequestJson,
-        onCopyVariabilityResponseJson = settingsViewModel::onCopyVariabilityResponseJson,
-        onVariabilityMiningRequestJsonExpansionBitsChange =
-            settingsViewModel::onVariabilityMiningRequestJsonExpansionBitsChange,
-        onVariabilityMiningResponseJsonExpansionBitsChange =
-            settingsViewModel::onVariabilityMiningResponseJsonExpansionBitsChange,
-        onVariabilityMiningRequestJsonSectionExpandedChange =
-            settingsViewModel::onVariabilityMiningRequestJsonSectionExpandedChange,
-        onVariabilityMiningResponseJsonSectionExpandedChange =
-            settingsViewModel::onVariabilityMiningResponseJsonSectionExpandedChange,
     )
 
     if (settingsUiState.showTargetsSettings) {

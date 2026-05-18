@@ -11,7 +11,7 @@ import dev.gaborbiro.dailymacros.features.modal.getViewRecordDetailsIntent
 
 private const val CHANNEL_ID_GENERAL = "general"
 const val CHANNEL_ID_ERROR = "error"
-/** High-importance channel for failed background AI work (e.g. [GetMacrosWorker], [MineMealVariabilityWorker]). */
+/** High-importance channel for failed background AI work (e.g. [GetMacrosWorker]). */
 const val CHANNEL_ID_FOREGROUND = "foreground"
 
 fun Context.createNotificationChannels() {

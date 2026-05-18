@@ -14,42 +14,56 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
+import dev.gaborbiro.dailymacros.features.modal.model.hasUnsavedEdits
+import dev.gaborbiro.dailymacros.features.modal.model.MealVariantPickerOption
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
+import dev.gaborbiro.dailymacros.features.modal.model.RecordDetailsPristineSnapshot
 import dev.gaborbiro.dailymacros.features.modal.model.RecognisedFood
-import dev.gaborbiro.dailymacros.features.modal.model.VariabilityArchetypePickerEntry
 import dev.gaborbiro.dailymacros.features.modal.usecase.RecordDetailsDialogPreview
 import dev.gaborbiro.dailymacros.features.modal.usecase.deconstructDialogHandle
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityPreviewContent
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilitySlotPreview
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityVariantPreview
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 
@@ -60,6 +74,8 @@ internal fun RecordDetailsDialog(
     onTitleChanged: (TextFieldValue) -> Unit,
     onDescriptionChanged: (TextFieldValue) -> Unit,
     onSubmitButtonTapped: () -> Unit,
+    onSaveDetailsTapped: () -> Unit,
+    onSaveAndAddDetailsTapped: () -> Unit,
     onImageTapped: (String) -> Unit,
     onImageDeleteTapped: (String) -> Unit,
     onAddImageViaCameraTapped: () -> Unit,
@@ -67,9 +83,12 @@ internal fun RecordDetailsDialog(
     onDismissRequested: () -> Unit,
     onImagesInfoButtonTapped: () -> Unit,
     onRunAIButtonTapped: () -> Unit,
-    onVariabilityDifferentMealLinkTapped: (archetypeKey: String) -> Unit,
+    onVariantTemplatePicked: (Long) -> Unit,
+    onQuickPickStarToggled: () -> Unit,
 ) {
     val ui = deconstructDialogHandle(dialogHandle)
+    val viewDialog = dialogHandle as? DialogHandle.RecordDetailsDialog.View
+    val showCloseOnly = dialogHandle is DialogHandle.RecordDetailsDialog.View && !dialogHandle.allowEdit
     val showKeyboardOnOpen = remember(dialogHandle) { ui.showKeyboardOnOpen }
 
     ScrollableContentDialog(
@@ -80,6 +99,7 @@ internal fun RecordDetailsDialog(
                 onDescriptionChanged = onDescriptionChanged,
                 showKeyboardOnOpen = showKeyboardOnOpen,
                 images = ui.images,
+                showImageDeleteButton = ui.allowEdit,
                 title = ui.title,
                 showRunAIButton = ui.showRunAIButton,
                 titleHint = ui.titleHint,
@@ -95,20 +115,89 @@ internal fun RecordDetailsDialog(
                 onAddImageViaPickerTapped = onAddImageViaPickerTapped,
                 onImagesInfoButtonTapped = onImagesInfoButtonTapped,
                 onRunAIButtonTapped = onRunAIButtonTapped,
-                showVariabilityDifferentMealLink = ui.showVariabilityDifferentMealLink,
-                variabilityArchetypePickerEntries = ui.variabilityArchetypePickerEntries,
-                onVariabilityDifferentMealLinkTapped = onVariabilityDifferentMealLinkTapped,
+                variantPickerOptions = viewDialog?.variantPickerOptions,
+                selectedVariantTemplateId = viewDialog?.templateDbId ?: 0L,
+                onVariantTemplatePicked = onVariantTemplatePicked,
+                showQuickPickStar = viewDialog != null,
+                quickPickStarred = viewDialog?.quickPickStarred == true,
+                onQuickPickStarToggled = onQuickPickStarToggled,
             )
         },
         errorMessages = errorMessages,
         buttons = {
-            RecordDetailsDialogButtons(
-                allowEdit = ui.allowEdit,
-                saveButtonText = ui.saveButtonText,
-                onDismissRequested = onDismissRequested,
-                onSubmitButtonTapped = onSubmitButtonTapped,
-            )
-        }
+            when (dialogHandle) {
+                is DialogHandle.RecordDetailsDialog.Edit -> {
+                    RecordDetailsDialogButtons(
+                        showCloseOnly = false,
+                        showSaveAndAdd = false,
+                        primaryEnabled = true,
+                        primaryLabel = stringResource(R.string.meal_details_action_save),
+                        saveAndAddLabel = null,
+                        onDismissRequested = onDismissRequested,
+                        onSaveTapped = onSubmitButtonTapped,
+                        onSaveAndAddTapped = {},
+                    )
+                }
+
+                is DialogHandle.RecordDetailsDialog.View -> {
+                    val dirty = dialogHandle.hasUnsavedEdits()
+                    when {
+                        showCloseOnly -> {
+                            RecordDetailsDialogButtons(
+                                showCloseOnly = true,
+                                showSaveAndAdd = false,
+                                primaryEnabled = true,
+                                primaryLabel = null,
+                                saveAndAddLabel = null,
+                                onDismissRequested = onDismissRequested,
+                                onSaveTapped = onSaveDetailsTapped,
+                                onSaveAndAddTapped = {},
+                            )
+                        }
+                        dialogHandle.openedFromTemplateDetailsOnly -> {
+                            RecordDetailsDialogButtons(
+                                showCloseOnly = false,
+                                showSaveAndAdd = false,
+                                primaryEnabled = true,
+                                primaryLabel = if (dirty) {
+                                    stringResource(R.string.meal_details_action_add_new_template)
+                                } else {
+                                    stringResource(R.string.meal_details_action_add_new)
+                                },
+                                saveAndAddLabel = null,
+                                onDismissRequested = onDismissRequested,
+                                onSaveTapped = onSaveAndAddDetailsTapped,
+                                onSaveAndAddTapped = {},
+                            )
+                        }
+                        else -> {
+                            RecordDetailsDialogButtons(
+                                showCloseOnly = false,
+                                showSaveAndAdd = true,
+                                primaryEnabled = dirty,
+                                primaryLabel = if (dialogHandle.linkedRecordCountForTemplate == 1) {
+                                    stringResource(R.string.meal_details_action_update)
+                                } else {
+                                    pluralStringResource(
+                                        R.plurals.meal_details_update_linked_records,
+                                        dialogHandle.linkedRecordCountForTemplate,
+                                        dialogHandle.linkedRecordCountForTemplate,
+                                    )
+                                },
+                                saveAndAddLabel = if (dirty) {
+                                    stringResource(R.string.meal_details_action_add_new_template)
+                                } else {
+                                    stringResource(R.string.meal_details_action_add_new)
+                                },
+                                onDismissRequested = onDismissRequested,
+                                onSaveTapped = onSaveDetailsTapped,
+                                onSaveAndAddTapped = onSaveAndAddDetailsTapped,
+                            )
+                        }
+                    }
+                }
+            }
+        },
     )
 }
 
@@ -118,6 +207,7 @@ internal fun ColumnScope.RecordDetailsDialogContent(
     onDescriptionChanged: (TextFieldValue) -> Unit,
     showKeyboardOnOpen: Boolean,
     images: List<String>,
+    showImageDeleteButton: Boolean,
     title: TextFieldValue,
     showRunAIButton: Boolean,
     titleHint: String,
@@ -133,13 +223,16 @@ internal fun ColumnScope.RecordDetailsDialogContent(
     onAddImageViaPickerTapped: () -> Unit,
     onImagesInfoButtonTapped: () -> Unit,
     onRunAIButtonTapped: () -> Unit,
-    showVariabilityDifferentMealLink: Boolean,
-    variabilityArchetypePickerEntries: List<VariabilityArchetypePickerEntry>,
-    onVariabilityDifferentMealLinkTapped: (archetypeKey: String) -> Unit,
+    variantPickerOptions: List<MealVariantPickerOption>? = null,
+    selectedVariantTemplateId: Long = 0L,
+    onVariantTemplatePicked: (Long) -> Unit = { },
+    showQuickPickStar: Boolean = false,
+    quickPickStarred: Boolean = false,
+    onQuickPickStarToggled: () -> Unit = { },
 ) {
     val focusRequester = remember { FocusRequester() }
 
-    if (showKeyboardOnOpen) {
+    if (showKeyboardOnOpen && variantPickerOptions.isNullOrEmpty()) {
         LaunchedEffect(key1 = Unit) {
             delay(100)
             focusRequester.requestFocus()
@@ -152,6 +245,7 @@ internal fun ColumnScope.RecordDetailsDialogContent(
             .padding(top = PaddingDefault)
             .padding(bottom = PaddingDefault),
         showAddPhotoButtons = allowEdit,
+        showImageDeleteButton = showImageDeleteButton,
         images = images,
         onImageTapped = onImageTapped,
         onImageDeleteTapped = onImageDeleteTapped,
@@ -159,6 +253,23 @@ internal fun ColumnScope.RecordDetailsDialogContent(
         onAddImageViaPickerTapped = onAddImageViaPickerTapped,
         onInfoButtonTapped = onImagesInfoButtonTapped,
     )
+
+    if (!variantPickerOptions.isNullOrEmpty()) {
+        VariantTemplateDropdown(
+            options = variantPickerOptions,
+            selectedTemplateId = selectedVariantTemplateId,
+            titleHint = titleHint,
+            titleErrorMessage = titleErrorMessage,
+            onTemplatePicked = onVariantTemplatePicked,
+        )
+    }
+
+    if (showQuickPickStar) {
+        QuickPickStarRow(
+            starred = quickPickStarred,
+            onToggle = onQuickPickStarToggled,
+        )
+    }
 
     TextField(
         modifier = Modifier
@@ -170,49 +281,49 @@ internal fun ColumnScope.RecordDetailsDialogContent(
         isError = titleErrorMessage.isNullOrBlank().not(),
         textStyle = MaterialTheme.typography.bodyMedium,
         trailingIcon = {
-            if (showProgressIndicator) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .size(25.dp)
-                        .align(Alignment.CenterHorizontally)
-                )
-            } else {
-                if (showRunAIButton) {
-                    Button(
+                if (showProgressIndicator) {
+                    CircularProgressIndicator(
                         modifier = Modifier
-                            .size(48.dp)
-                            .padding(PaddingHalf),
-                        contentPadding = PaddingValues(),
-                        onClick = onRunAIButtonTapped,
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_chatgpt),
-                            contentDescription = "Run image recognition"
-                        )
+                            .size(25.dp)
+                            .align(Alignment.CenterHorizontally)
+                    )
+                } else {
+                    if (showRunAIButton) {
+                        Button(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .padding(PaddingHalf),
+                            contentPadding = PaddingValues(),
+                            onClick = onRunAIButtonTapped,
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_chatgpt),
+                                contentDescription = "Run image recognition"
+                            )
+                        }
                     }
                 }
-            }
-        },
-        placeholder = {
-            if (allowEdit) {
-                Text(
-                    text = titleHint,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontStyle = FontStyle.Italic,
-                    color = Color.Gray,
-                )
-            }
-        },
-        value = title,
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Text,
-            capitalization = KeyboardCapitalization.Sentences,
-            imeAction = ImeAction.Next
-        ),
-        onValueChange = {
-            onTitleChanged(it)
-        },
-    )
+            },
+            placeholder = {
+                if (allowEdit) {
+                    Text(
+                        text = titleHint,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontStyle = FontStyle.Italic,
+                        color = Color.Gray,
+                    )
+                }
+            },
+            value = title,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                capitalization = KeyboardCapitalization.Sentences,
+                imeAction = ImeAction.Next
+            ),
+            onValueChange = {
+                onTitleChanged(it)
+            },
+        )
     if (titleErrorMessage.isNullOrBlank().not()) {
         Text(
             text = titleErrorMessage,
@@ -312,25 +423,104 @@ internal fun ColumnScope.RecordDetailsDialogContent(
 
         NutrientsIndentedList(nutrientBreakdown = nutrientBreakdown)
     }
+}
 
-    if (showVariabilityDifferentMealLink) {
-        variabilityArchetypePickerEntries.forEach { entry ->
-            Spacer(
-                modifier = Modifier
-                    .height(PaddingHalf)
+@Composable
+private fun QuickPickStarRow(
+    starred: Boolean,
+    onToggle: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .padding(horizontal = PaddingDefault)
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(onClick = onToggle) {
+            Icon(
+                imageVector = if (starred) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                contentDescription = if (starred) {
+                    stringResource(R.string.meal_details_quick_pick_unstar_cd)
+                } else {
+                    stringResource(R.string.meal_details_quick_pick_star_cd)
+                },
+                tint = if (starred) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
             )
-            TextButton(
-                modifier = Modifier
-                    .padding(horizontal = PaddingDefault)
-                    .padding(bottom = PaddingDefault),
-                onClick = { onVariabilityDifferentMealLinkTapped(entry.archetypeKey) },
-            ) {
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun VariantTemplateDropdown(
+    options: List<MealVariantPickerOption>,
+    selectedTemplateId: Long,
+    titleHint: String,
+    titleErrorMessage: String?,
+    onTemplatePicked: (Long) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selected = options.find { it.templateId == selectedTemplateId } ?: options.firstOrNull()
+    val summaryForField = selected?.let { "${it.title}\n${it.lastUsedDateLabel}" } ?: ""
+    val pickVariantLabel = stringResource(R.string.meal_details_pick_variant_cd)
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it },
+        modifier = Modifier
+            .padding(horizontal = PaddingDefault)
+            .fillMaxWidth()
+            .semantics { contentDescription = pickVariantLabel },
+    ) {
+        OutlinedTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(),
+            readOnly = true,
+            value = summaryForField,
+            onValueChange = {},
+            isError = titleErrorMessage != null && titleErrorMessage.isNotBlank(),
+            textStyle = MaterialTheme.typography.bodyMedium,
+            placeholder = {
                 Text(
-                    text = "Looking for a different ${entry.linkTitle}?",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        textDecoration = TextDecoration.Underline,
-                    ),
-                    color = MaterialTheme.colorScheme.primary,
+                    text = titleHint,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontStyle = FontStyle.Italic,
+                    color = Color.Gray,
+                )
+            },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            options.forEachIndexed { index, option ->
+                if (index == 1) {
+                    HorizontalDivider()
+                }
+                DropdownMenuItem(
+                    text = {
+                        Column {
+                            Text(
+                                text = option.title,
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                            Text(
+                                text = option.lastUsedDateLabel,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    },
+                    onClick = {
+                        expanded = false
+                        onTemplatePicked(option.templateId)
+                    },
                 )
             }
         }
@@ -345,6 +535,7 @@ private fun NoteInputDialogContentPreviewView() {
         dialogHandle = DialogHandle.RecordDetailsDialog.View(
             recordId = 1L,
             templateDbId = 1L,
+            variabilityAnchorTemplateDbId = 1L,
             title = TextFieldValue("Apple"),
             titleHint = "Give your meal a title",
             description = TextFieldValue("I ate an apple"),
@@ -362,55 +553,13 @@ private fun NoteInputDialogContentPreviewView() {
                 fibre = "Fibre: 4.5g",
                 notes = "Notes: This is a note",
             ),
-            templateVariabilityPreview = TemplateVariabilityPreviewContent(
-                bannerText = "Pick a variant per slot (demo — not saved yet).",
-                archetypePickerLabel = "Toast breakfast",
-                slots = listOf(
-                    TemplateVariabilitySlotPreview(
-                        archetypeKey = "toast",
-                        archetypeDisplayName = "Toast breakfast",
-                        slotKey = "spread",
-                        roleDisplayName = "Spread",
-                        variants = listOf(
-                            TemplateVariabilityVariantPreview("butter", "Butter"),
-                            TemplateVariabilityVariantPreview("jam", "Jam"),
-                        ),
-                    ),
-                ),
+            pristineSnapshot = RecordDetailsPristineSnapshot(
+                templateDbId = 1L,
+                title = "Apple",
+                description = "I ate an apple",
+                images = listOf("1", "2"),
             ),
-            variabilityArchetypes = listOf(
-                VariabilityArchetype(
-                    archetypeKey = "toast",
-                    displayName = "Toast breakfast",
-                    titleAliasesJson = "[]",
-                    evidenceCount = 0,
-                    lastSeenTimestamp = null,
-                    archetypeNotes = null,
-                    deprecated = false,
-                    deprecatedReason = null,
-                    slots = emptyList(),
-                    sortOrder = 0,
-                ),
-            ),
-            variabilityArchetypePickerEntries = listOf(
-                VariabilityArchetypePickerEntry(
-                    archetypeKey = "toast",
-                    linkTitle = "Toast breakfast",
-                    slots = listOf(
-                        TemplateVariabilitySlotPreview(
-                            archetypeKey = "toast",
-                            archetypeDisplayName = "Toast breakfast",
-                            slotKey = "spread",
-                            roleDisplayName = "Spread",
-                            variants = listOf(
-                                TemplateVariabilityVariantPreview("butter", "Butter"),
-                                TemplateVariabilityVariantPreview("jam", "Jam"),
-                            ),
-                        ),
-                    ),
-                ),
-            ),
-            showVariabilityDifferentMealLink = true,
+            linkedRecordCountForTemplate = 3,
         ),
     )
 }
@@ -432,7 +581,6 @@ private fun NoteInputDialogContentPreviewSuggestion() {
         ),
     )
 }
-
 
 @Preview
 @Composable

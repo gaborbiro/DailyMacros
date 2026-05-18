@@ -62,11 +62,8 @@ class RepeatRecordUseCaseTest {
 
     private open class StubRecordsRepository : RecordsRepository {
         override suspend fun getRecords(since: ZonedDateTime?) = emptyList<Record>()
-        override suspend fun getRecentRecords(limit: Int) = emptyList<Record>()
-        override suspend fun getRecordsForVariabilityDelta(limit: Int, afterWatermarkExclusive: Long) =
-            emptyList<Record>()
+        override suspend fun getTemplateIdsInSameVariantFamily(templateId: Long) = emptyList<Long>()
         override suspend fun countTemplates(): Int = 0
-        override suspend fun countTemplatesPendingVariabilityAfterWatermark(afterWatermarkExclusive: Long) = 0
         override fun getMostRecentRecord(): Record? = null
         override suspend fun getQuickPicks(count: Int) = emptyList<Template>()
         override suspend fun getRecordsByTemplate(templateId: Long) = emptyList<Record>()

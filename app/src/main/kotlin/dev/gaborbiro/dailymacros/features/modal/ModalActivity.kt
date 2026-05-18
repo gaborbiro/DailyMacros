@@ -34,11 +34,8 @@ import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
 import dev.gaborbiro.dailymacros.features.modal.views.EditTargetConfirmationDialog
 import dev.gaborbiro.dailymacros.features.modal.views.ImageDialog
+import dev.gaborbiro.dailymacros.features.modal.views.ConfirmSwitchTemplateDialog
 import dev.gaborbiro.dailymacros.features.modal.views.RecordDetailsDialog
-import dev.gaborbiro.dailymacros.features.modal.views.SelectRecordActionDialog
-import dev.gaborbiro.dailymacros.features.modal.views.SelectTemplateActionDialog
-import dev.gaborbiro.dailymacros.features.modal.views.TemplateVariantPickerDialog
-import dev.gaborbiro.dailymacros.repositories.records.TemplateVariabilityPreviewMapper
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
@@ -53,9 +50,6 @@ class ModalActivity : AppCompatActivity() {
     @Inject
     @FileStorePublicBucketEphemeral
     lateinit var cacheFileStore: FileStore
-
-    @Inject
-    lateinit var templateVariabilityPreviewMapper: TemplateVariabilityPreviewMapper
 
     private val viewModel: ModalViewModel by viewModels()
 
@@ -166,14 +160,9 @@ class ModalActivity : AppCompatActivity() {
                 }
             }
 
-            Action.SELECT_RECORD_ACTION -> {
-                val recordId = intent.getLongExtra(EXTRA_RECORD_ID, -1L)
-                viewModel.onSelectRecordActionDeeplinkReceived(recordId)
-            }
-
-            Action.SELECT_TEMPLATE_ACTION -> {
+            Action.VIEW_TEMPLATE_DETAILS -> {
                 val templateId = intent.getLongExtra(EXTRA_TEMPLATE_ID, -1L)
-                viewModel.onSelectTemplateActionDeeplinkReceived(templateId)
+                viewModel.onViewTemplateDetailsDeeplinkReceived(templateId)
             }
         }
     }
@@ -195,6 +184,8 @@ class ModalActivity : AppCompatActivity() {
                 dialogHandle = dialogHandle,
                 errorMessages = errorMessages,
                 onSubmitButtonTapped = viewModel::onSubmitButtonTapped,
+                onSaveDetailsTapped = viewModel::onSaveDetailsTapped,
+                onSaveAndAddDetailsTapped = viewModel::onSaveAndAddDetailsTapped,
                 onTitleChanged = viewModel::onTitleChanged,
                 onDescriptionChanged = viewModel::onDescriptionChanged,
                 onImageTapped = viewModel::onImageTapped,
@@ -204,15 +195,13 @@ class ModalActivity : AppCompatActivity() {
                 onDismissRequested = onDismissRequested,
                 onImagesInfoButtonTapped = viewModel::onImagesInfoButtonTapped,
                 onRunAIButtonTapped = viewModel::onRunAIButtonTapped,
-                onVariabilityDifferentMealLinkTapped = viewModel::onVariabilityDifferentMealLinkTapped,
+                onVariantTemplatePicked = viewModel::onVariantTemplateSelected,
+                onQuickPickStarToggled = viewModel::onQuickPickStarToggled,
             )
 
-            is DialogHandle.TemplateVariantPickerDialog -> TemplateVariantPickerDialog(
-                dialogHandle = dialogHandle,
-                previewMapper = this@ModalActivity.templateVariabilityPreviewMapper,
-                errorMessages = errorMessages,
-                onCancel = viewModel::onVariantPickerCancelTapped,
-                onConfirm = viewModel::onVariantPickerConfirmed,
+            is DialogHandle.ConfirmSwitchTemplateDialog -> ConfirmSwitchTemplateDialog(
+                onConfirm = viewModel::onConfirmSwitchTemplateDespiteEdits,
+                onDismiss = onDismissRequested,
             )
 
             is DialogHandle.EditTargetConfirmationDialog -> EditTargetConfirmationDialog(
@@ -225,27 +214,6 @@ class ModalActivity : AppCompatActivity() {
                 dialogHandle = dialogHandle,
                 onDismissRequested = onDismissRequested,
             )
-
-            is DialogHandle.SelectRecordActionDialog -> SelectRecordActionDialog(
-                recordId = dialogHandle.recordId,
-                title = dialogHandle.title,
-                onRepeatTapped = viewModel::onRepeatRecordButtonTapped,
-                onDetailsTapped = viewModel::onRecordDetailsButtonTapped,
-                onAddToQuickPicksTapped = viewModel::onAddToQuickPicksTapped,
-                onDeleteTapped = viewModel::onDeleteTapped,
-                onDismissRequested = onDismissRequested,
-            )
-
-            is DialogHandle.SelectTemplateActionDialog -> {
-                SelectTemplateActionDialog(
-                    templateId = dialogHandle.templateId,
-                    title = dialogHandle.title,
-                    onRepeatButtonTapped = viewModel::onRepeatTemplateButtonTapped,
-                    onDetailsButtonTapped = viewModel::onTemplateDetailsButtonTapped,
-                    onRemoveFromQuickPicksTapped = viewModel::onRemoveFromQuickPicksTapped,
-                    onDismissRequested = onDismissRequested,
-                )
-            }
 
             is DialogHandle.ImageInput -> {
                 ImageInputView(

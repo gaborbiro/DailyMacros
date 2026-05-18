@@ -1,16 +1,11 @@
 package dev.gaborbiro.dailymacros.features.modal
 
 import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
-import dev.gaborbiro.dailymacros.features.modal.model.VariabilityArchetypePickerEntry
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilitySlotPreview
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityVariantPreview
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -26,81 +21,6 @@ class ModalUiMapperTest {
 
     private val zone = ZoneId.of("UTC")
     private val mapper = ModalUiMapper(NutrientsUiMapper())
-
-    private fun stubArchetypes() = listOf(
-        VariabilityArchetype(
-            archetypeKey = "a",
-            displayName = "A",
-            titleAliasesJson = "[]",
-            evidenceCount = 0,
-            lastSeenTimestamp = null,
-            archetypeNotes = null,
-            deprecated = false,
-            deprecatedReason = null,
-            slots = emptyList(),
-            sortOrder = 0,
-        ),
-    )
-
-    private fun stubEntries() = listOf(
-        VariabilityArchetypePickerEntry(
-            archetypeKey = "a",
-            linkTitle = "A",
-            slots = listOf(
-                TemplateVariabilitySlotPreview(
-                    archetypeKey = "a",
-                    archetypeDisplayName = "A",
-                    slotKey = "s",
-                    roleDisplayName = "S",
-                    variants = listOf(TemplateVariabilityVariantPreview("v", "V")),
-                ),
-            ),
-        ),
-    )
-
-    @Test
-    fun `mapShowVariabilityDifferentMealLink false when not editable`() {
-        assertFalse(
-            mapper.mapShowVariabilityDifferentMealLink(
-                allowEdit = false,
-                variabilityArchetypePickerEntries = stubEntries(),
-                variabilityArchetypes = stubArchetypes(),
-            ),
-        )
-    }
-
-    @Test
-    fun `mapShowVariabilityDifferentMealLink false when entries empty`() {
-        assertFalse(
-            mapper.mapShowVariabilityDifferentMealLink(
-                allowEdit = true,
-                variabilityArchetypePickerEntries = emptyList(),
-                variabilityArchetypes = stubArchetypes(),
-            ),
-        )
-    }
-
-    @Test
-    fun `mapShowVariabilityDifferentMealLink false when archetypes empty`() {
-        assertFalse(
-            mapper.mapShowVariabilityDifferentMealLink(
-                allowEdit = true,
-                variabilityArchetypePickerEntries = stubEntries(),
-                variabilityArchetypes = emptyList(),
-            ),
-        )
-    }
-
-    @Test
-    fun `mapShowVariabilityDifferentMealLink true when editable entries and archetypes ok`() {
-        assertTrue(
-            mapper.mapShowVariabilityDifferentMealLink(
-                allowEdit = true,
-                variabilityArchetypePickerEntries = stubEntries(),
-                variabilityArchetypes = stubArchetypes(),
-            ),
-        )
-    }
 
     @Test
     fun `mapNutrientBreakdowns formats calories and notes`() {
