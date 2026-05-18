@@ -231,10 +231,10 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onRepeatRecordButtonTapped(recordId: Long) {
-        closeAll()
         runSafely {
             repeatRecordUseCase.execute(recordId)
             foodDiaryWidgetReloader.scheduleReload(application)
+            closeAll()
         }
     }
 
@@ -258,33 +258,37 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onRemoveFromQuickPicksTapped(templateId: Long) {
-        closeAll()
         runSafely {
             applyQuickPickOverrideAndReloadWidgetUseCase.execute(
                 templateId,
                 Template.QuickPickOverride.EXCLUDE,
             )
             foodDiaryWidgetReloader.scheduleReload(application)
+            closeAll()
         }
     }
 
     fun onAddToQuickPicksTapped(recordId: Long) {
-        closeAll()
         runSafely {
-            val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return@runSafely
+            val templateId = recordsRepository.get(recordId)?.template?.dbId
+            if (templateId == null) {
+                closeAll()
+                return@runSafely
+            }
             applyQuickPickOverrideAndReloadWidgetUseCase.execute(
                 templateId,
                 Template.QuickPickOverride.INCLUDE,
             )
             foodDiaryWidgetReloader.scheduleReload(application)
+            closeAll()
         }
     }
 
     fun onDeleteTapped(recordId: Long) {
-        closeAll()
         runSafely {
             deleteRecordUseCase.execute(recordId)
             foodDiaryWidgetReloader.scheduleReload(application)
+            closeAll()
         }
     }
 
@@ -300,13 +304,16 @@ class ModalViewModel @Inject constructor(
             }
 
             else -> {
-                closeAll()
-            }
-        }
-        (dialog as? DialogHandle.RecordDetailsDialog.Edit)?.let {
-            runSafely {
-                it.images.forEach { img ->
-                    imageStore.delete(img)
+                val edit = dialog as? DialogHandle.RecordDetailsDialog.Edit
+                if (edit != null) {
+                    runSafely {
+                        edit.images.forEach { img ->
+                            imageStore.delete(img)
+                        }
+                        closeAll()
+                    }
+                } else {
+                    closeAll()
                 }
             }
         }
@@ -456,9 +463,9 @@ class ModalViewModel @Inject constructor(
                         title = title,
                         description = description,
                     )
+                    foodDiaryWidgetReloader.scheduleReload(application)
+                    closeAll()
                 }
-                closeAll()
-                foodDiaryWidgetReloader.scheduleReload(application)
             }
     }
 
@@ -530,7 +537,6 @@ class ModalViewModel @Inject constructor(
             }
 
             is CreateValidationResult.Valid -> {
-                closeAll()
                 val recordId = createRecordWithNewTemplateUseCase.execute(
                     images = images,
                     title = title,
@@ -542,6 +548,7 @@ class ModalViewModel @Inject constructor(
                     recordId = recordId,
                     force = true,
                 )
+                closeAll()
             }
         }
     }
@@ -571,7 +578,6 @@ class ModalViewModel @Inject constructor(
             }
 
             is EditValidationResult.Valid -> {
-                closeAll()
                 updateRecordWithNewTemplateUseCase.execute(
                     recordId = dialogHandle.recordId,
                     images = dialogHandle.images,
@@ -584,6 +590,7 @@ class ModalViewModel @Inject constructor(
                     recordId = dialogHandle.recordId,
                     force = true,
                 )
+                closeAll()
             }
 
             is EditValidationResult.Error -> {

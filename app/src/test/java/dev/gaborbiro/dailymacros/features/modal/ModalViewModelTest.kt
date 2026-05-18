@@ -4,6 +4,7 @@ import android.app.Application
 import android.graphics.Bitmap
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.test.core.app.ApplicationProvider
+import androidx.work.testing.WorkManagerTestInitHelper
 import com.google.gson.Gson
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
@@ -43,18 +44,23 @@ import dev.gaborbiro.dailymacros.repositories.records.TemplateVariabilityPreview
 import dev.gaborbiro.dailymacros.repositories.records.VariabilityProfileMapper
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.VariabilityRepository
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.MealVariabilityPersistedProfile
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.ByteArrayInputStream
+import java.time.ZonedDateTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
@@ -63,6 +69,18 @@ class ModalViewModelTest {
 
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
+
+    @Before
+    fun initWorkManager() {
+        WorkManagerTestInitHelper.initializeTestWorkManager(
+            ApplicationProvider.getApplicationContext(),
+        )
+    }
+
+    @After
+    fun closeWorkManagerDb() {
+        WorkManagerTestInitHelper.closeWorkDatabase()
+    }
 
     private class FakeImageStore : ImageStore {
         override suspend fun open(filename: String, thumbnail: Boolean) =
@@ -181,5 +199,31 @@ class ModalViewModelTest {
         advanceUntilIdle()
         val root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.Edit
         assertEquals("Hello", root.title.text)
+    }
+
+    @Test
+    fun `add and analyze submit saves template and record before clearing dialog`() = runTest {
+        var saveTemplateCalls = 0
+        var saveRecordCalls = 0
+        val repo = object : BaseRecordsRepositoryStub() {
+            override suspend fun saveTemplate(templateToSave: TemplateToSave): Long {
+                saveTemplateCalls++
+                return 42L
+            }
+
+            override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
+                saveRecordCalls++
+                assertEquals(42L, templateId)
+                return 99L
+            }
+        }
+        val vm = viewModel(repo)
+        vm.onCreateRecordWithTextDeeplinkReceived()
+        vm.onTitleChanged(TextFieldValue("Lunch"))
+        vm.onSubmitButtonTapped()
+        advanceUntilIdle()
+        assertEquals(1, saveTemplateCalls)
+        assertEquals(1, saveRecordCalls)
+        assertNull(vm.uiState.value.rootDialog)
     }
 }
