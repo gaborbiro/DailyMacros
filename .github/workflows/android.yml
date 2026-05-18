@@ -26,8 +26,9 @@ jobs:
       run: chmod +x gradlew
 
     # Actions only sees Settings → Secrets and variables → Actions (not Codespaces-only secrets).
+    # Fork PRs do not receive repository secrets; skip the strict check there (tests may still fail if they need the key).
     - name: Ensure CHATGPT_API_KEY is available to Actions
-      if: github.event_name == 'push'
+      if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
       env:
         CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
       run: |
@@ -47,10 +48,10 @@ jobs:
       run: ./gradlew assembleDebug
 
     - name: Set short SHA for release tag
-      if: github.event_name == 'push'
+      if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
       run: echo "GIT_SHORT_SHA=${GITHUB_SHA:0:7}" >> "$GITHUB_ENV"
 
-    - name: Create GitHub Release
+    - name: Create GitHub Release (master)
       if: github.event_name == 'push'
       uses: softprops/action-gh-release@v2
       with:
@@ -58,6 +59,20 @@ jobs:
         name: "Master #${{ github.run_number }} (${{ env.GIT_SHORT_SHA }})"
         generate_release_notes: true
         # assembleDebug renames the APK (see app/build.gradle.kts); there is no app-debug.apk.
+        files: app/build/outputs/apk/debug/*.apk
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # Same-repo PRs only: fork PRs cannot use GITHUB_TOKEN to create releases in the upstream repo.
+    - name: Create GitHub Release (PR preview)
+      if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: pr-${{ github.event.pull_request.number }}-${{ env.GIT_SHORT_SHA }}
+        name: "PR #${{ github.event.pull_request.number }} (${{ env.GIT_SHORT_SHA }})"
+        prerelease: true
+        make_latest: false
+        generate_release_notes: true
         files: app/build/outputs/apk/debug/*.apk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
