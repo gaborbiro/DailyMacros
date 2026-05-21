@@ -667,10 +667,8 @@ class ModalViewModel @Inject constructor(
         val anchor = dialogHandle.variabilityAnchorTemplateDbId
 
         if (!dialogHandle.hasUnsavedEdits()) {
-            val firstRecordId = createRecordFromTemplateUseCase.execute(anchor)
-            val secondRecordId = createRecordFromTemplateUseCase.execute(anchor)
-            scheduleMacroAnalysisForRecordIfTemplateIncomplete(firstRecordId, anchor)
-            scheduleMacroAnalysisForRecordIfTemplateIncomplete(secondRecordId, anchor)
+            val recordId = createRecordFromTemplateUseCase.execute(anchor)
+            scheduleMacroAnalysisForRecordIfTemplateIncomplete(recordId, anchor)
             closeAll()
             return
         }
@@ -687,16 +685,14 @@ class ModalViewModel @Inject constructor(
             }
 
             is CreateValidationResult.Valid -> {
-                val firstRecordId = createRecordWithNewTemplateUseCase.execute(
+                val recordId = createRecordWithNewTemplateUseCase.execute(
                     images = images,
                     title = title,
                     description = description,
                     parentTemplateId = anchor,
                 )
-                val templateId = recordsRepository.get(firstRecordId)?.template?.dbId ?: return
-                val secondRecordId = createRecordFromTemplateUseCase.execute(templateId)
-                scheduleMacroAnalysisForRecordIfTemplateIncomplete(firstRecordId, templateId)
-                scheduleMacroAnalysisForRecordIfTemplateIncomplete(secondRecordId, templateId)
+                val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return
+                scheduleMacroAnalysisForRecordIfTemplateIncomplete(recordId, templateId)
                 closeAll()
             }
         }

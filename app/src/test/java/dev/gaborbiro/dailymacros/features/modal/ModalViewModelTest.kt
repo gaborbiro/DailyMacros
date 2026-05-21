@@ -257,6 +257,35 @@ class ModalViewModelTest {
     }
 
     @Test
+    fun `log meal again from template details creates single record`() = runTest(testDispatcher) {
+        var saveRecordCalls = 0
+        val tpl = ModalRecordFixtures.template(dbId = 99L, name = "Snack").copy(
+            nutrients = TemplateNutrientBreakdown(calories = 200),
+        )
+        val rec = ModalRecordFixtures.record(3L, tpl)
+        val repo = object : BaseRecordsRepositoryStub() {
+            override suspend fun get(recordId: Long) = rec.takeIf { it.recordId == recordId }
+            override suspend fun getRecordsByTemplate(templateId: Long) =
+                if (templateId == 99L) listOf(rec) else emptyList()
+            override suspend fun countRecordsForTemplate(templateId: Long) = 1
+            override suspend fun getTemplateIdsInSameVariantFamily(templateId: Long) = listOf(templateId)
+            override suspend fun getTemplate(templateId: Long) = tpl
+            override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
+                saveRecordCalls++
+                assertEquals(99L, templateId)
+                return 100L
+            }
+        }
+        val vm = viewModel(repo)
+        vm.onTemplateDetailsButtonTapped(99L)
+        advanceUntilIdle()
+        vm.onSaveAndAddDetailsTapped()
+        advanceUntilIdle()
+        assertEquals(1, saveRecordCalls)
+        assertNull(vm.uiState.value.rootDialog)
+    }
+
+    @Test
     fun `add again without edits only logs from existing template`() = runTest(testDispatcher) {
         var saveTemplateCalls = 0
         var saveRecordCalls = 0
