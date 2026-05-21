@@ -111,7 +111,6 @@ private fun WidgetListPreview() {
                         fibre = "fib 4",
                     ),
                     showLoadingIndicator = false,
-                    showAddToQuickPicksMenuItem = true,
                 ),
                 ListUiModelQuickPickHeader,
                 ListUiModelQuickPick(
@@ -169,7 +168,6 @@ private fun WidgetListPreview() {
                         fibre = "fib 4",
                     ),
                     showLoadingIndicator = false,
-                    showAddToQuickPicksMenuItem = true,
                 ),
                 ListUiModelRecord(
                     recordId = 3L,
@@ -186,7 +184,6 @@ private fun WidgetListPreview() {
                         fibre = "fib 4",
                     ),
                     showLoadingIndicator = false,
-                    showAddToQuickPicksMenuItem = true,
                 ),
             ),
             recordImageTapActionProvider = { action {} },

@@ -29,8 +29,6 @@ fun RowDropdownMenu(
     icons: MenuIcons,
     onRepeatTapped: (() -> Unit)?,
     onAnalyseMacrosTapped: (() -> Unit)?,
-    onDetailsTapped: (() -> Unit)?,
-    onAddToQuickPicksTapped: (() -> Unit)?,
     onDeleteTapped: (() -> Unit)?,
 ) {
 
@@ -55,7 +53,7 @@ fun RowDropdownMenu(
                 onRepeatTapped?.let {
                     DropdownMenuItem(
                         leadingIcon = { Icon(icons.repeat, null) },
-                        text = { Text("Add") },
+                        text = { Text("Log meal again") },
                         onClick = { onDismiss(); onRepeatTapped() }
                     )
                 }
@@ -64,20 +62,6 @@ fun RowDropdownMenu(
                         leadingIcon = { Icon(icons.macros, null) },
                         text = { Text("Analyse Macros") },
                         onClick = { onDismiss(); onAnalyseMacrosTapped() }
-                    )
-                }
-//                onDetailsTapped?.let {
-//                    DropdownMenuItem(
-//                        leadingIcon = { Icon(icons.details, null) },
-//                        text = { Text("Details") },
-//                        onClick = { onDismiss(); onDetailsTapped() }
-//                    )
-//                }
-                onAddToQuickPicksTapped?.let {
-                    DropdownMenuItem(
-                        leadingIcon = { Icon(icons.star, null) },
-                        text = { Text("Add to Quick Picks") },
-                        onClick = { onDismiss(); onAddToQuickPicksTapped() }
                     )
                 }
                 onDeleteTapped?.let {

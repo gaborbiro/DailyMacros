@@ -53,7 +53,6 @@ class OverviewViewModel @Inject constructor(
     private val resolveCoachMark: ResolveOverviewCoachMarkUseCase,
     private val deleteUnusedTemplateIfOrphaned: DeleteUnusedTemplateIfOrphanedUseCase,
     private val cancelMacrosAnalysisForRecord: CancelMacrosAnalysisForRecordUseCase,
-    private val applyQuickPickOverrideAndReloadWidget: ApplyQuickPickOverrideAndReloadWidgetUseCase,
     private val listMealVariantsForTemplateUseCase: ListMealVariantsForTemplateUseCase,
     private val createRecordFromTemplateUseCase: CreateRecordFromTemplateUseCase,
 ) : AndroidViewModel(application) {
@@ -186,19 +185,6 @@ class OverviewViewModel @Inject constructor(
                 recordId = recordId,
                 force = true,
             )
-        }
-    }
-
-    fun onDetailsMenuItemTapped(recordId: Long) {
-        viewModelScope.launch {
-            _uiUpdates.emit(OverviewUiUpdates.EditRecord(recordId))
-        }
-    }
-
-    fun onAddToQuickPicksMenuItemTapped(recordId: Long) {
-        viewModelScope.launch {
-            val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return@launch
-            applyQuickPickOverrideAndReloadWidget.execute(templateId, Template.QuickPickOverride.INCLUDE)
         }
     }
 

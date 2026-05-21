@@ -11,7 +11,6 @@ data class ListUiModelRecord(
     val title: String,
     val nutrients: NutrientsUiModel?,
     val showLoadingIndicator: Boolean,
-    val showAddToQuickPicksMenuItem: Boolean,
     /** True when other logged templates exist in the same variant family (overview title-row icon). */
     val showOtherLoggedVariantsIcon: Boolean = false,
 ) : ListUiModelBase(listItemId = recordId, contentType = "record")

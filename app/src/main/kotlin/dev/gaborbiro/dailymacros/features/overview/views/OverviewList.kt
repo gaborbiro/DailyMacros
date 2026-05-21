@@ -49,8 +49,6 @@ internal fun OverviewList(
     expandedId: Long? = null,
     onRepeatMenuItemTapped: (recordId: Long) -> Unit,
     onAnalyseMacrosMenuItemTapped: (recordId: Long) -> Unit,
-    onDetailsMenuItemTapped: (recordId: Long) -> Unit,
-    onAddToQuickPicksMenuItemTapped: (recordId: Long) -> Unit,
     onDeleteMenuItemTapped: (recordId: Long) -> Unit,
     onRecordImageTapped: (recordId: Long) -> Unit,
     onRecordBodyTapped: (recordId: Long) -> Unit,
@@ -110,12 +108,8 @@ internal fun OverviewList(
                             remember(item.listItemId) { { onRepeatMenuItemTapped(item.listItemId) } }
                         val onAnalyseMacrosTapped =
                             remember(item.listItemId) { { onAnalyseMacrosMenuItemTapped(item.listItemId) } }
-                        val onDetailsTapped =
-                            remember(item.listItemId) { { onDetailsMenuItemTapped(item.listItemId) } }
                         val onDeleteTapped =
                             remember(item.listItemId) { { onDeleteMenuItemTapped(item.listItemId) } }
-                        val onAddToQuickPicksTapped =
-                            remember(item.listItemId) { { onAddToQuickPicksMenuItemTapped(item.listItemId) } }
                         val onDismiss = remember { { expandedId = null } }
 
                         ListItemRecord(
@@ -130,8 +124,6 @@ internal fun OverviewList(
                                 icons = menuIcons,
                                 onRepeatTapped = onRepeatTapped,
                                 onAnalyseMacrosTapped = onAnalyseMacrosTapped,
-                                onDetailsTapped = onDetailsTapped,
-                                onAddToQuickPicksTapped = if (item.showAddToQuickPicksMenuItem) onAddToQuickPicksTapped else null,
                                 onDeleteTapped = onDeleteTapped,
                             )
                         }
@@ -319,7 +311,6 @@ private fun OverviewListPreview() {
                             fibre = "fib 4",
                         ),
                         showLoadingIndicator = false,
-                        showAddToQuickPicksMenuItem = true,
                     ),
                     ListUiModelRecord(
                         recordId = 3L,
@@ -336,14 +327,11 @@ private fun OverviewListPreview() {
                             fibre = "fib 4",
                         ),
                         showLoadingIndicator = false,
-                        showAddToQuickPicksMenuItem = true,
                     )
                 ),
             ),
             onRepeatMenuItemTapped = {},
-            onDetailsMenuItemTapped = {},
             onDeleteMenuItemTapped = {},
-            onAddToQuickPicksMenuItemTapped = {},
             onRecordImageTapped = {},
             onRecordBodyTapped = {},
             onAnalyseMacrosMenuItemTapped = {},

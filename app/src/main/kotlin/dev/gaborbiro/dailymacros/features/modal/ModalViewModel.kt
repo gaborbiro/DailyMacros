@@ -78,7 +78,6 @@ class ModalViewModel @Inject constructor(
     private val getRecordImageUseCase: GetRecordImageUseCase,
     private val getTemplateImageUseCase: GetTemplateImageUseCase,
     private val foodRecognitionUseCase: FoodRecognitionUseCase,
-    private val deleteRecordUseCase: DeleteRecordUseCase,
     private val applyQuickPickOverrideAndReloadWidgetUseCase: ApplyQuickPickOverrideAndReloadWidgetUseCase,
     private val applyConfirmedSharedTemplateEditUseCase: ApplyConfirmedSharedTemplateEditUseCase,
     private val analyticsLogger: AnalyticsLogger,
@@ -219,21 +218,6 @@ class ModalViewModel @Inject constructor(
         }
     }
 
-    fun onRepeatRecordButtonTapped(recordId: Long) {
-        runSafely {
-            val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return@runSafely
-            createRecordFromTemplateUseCase.execute(templateId)
-            closeAll()
-        }
-    }
-
-    fun onRepeatTemplateButtonTapped(templateId: Long) {
-        runSafely {
-            createRecordFromTemplateUseCase.execute(templateId)
-            closeAll()
-        }
-    }
-
     fun onRecordDetailsButtonTapped(recordId: Long) {
         openRecordDetails(recordId, edit = true)
     }
@@ -245,28 +229,6 @@ class ModalViewModel @Inject constructor(
             val recordId = resolveFirstRecordIdForTemplateUseCase.execute(templateId) ?: return@runSafely
             val record = recordsRepository.get(recordId) ?: return@runSafely
             setRoot(buildEnrichedView(record = record, edit = true, templateDetailsMode = true))
-        }
-    }
-
-    fun onAddToQuickPicksTapped(recordId: Long) {
-        runSafely {
-            val templateId = recordsRepository.get(recordId)?.template?.dbId
-            if (templateId == null) {
-                closeAll()
-                return@runSafely
-            }
-            applyQuickPickOverrideAndReloadWidgetUseCase.execute(
-                templateId,
-                Template.QuickPickOverride.INCLUDE,
-            )
-            closeAll()
-        }
-    }
-
-    fun onDeleteTapped(recordId: Long) {
-        runSafely {
-            deleteRecordUseCase.execute(recordId)
-            closeAll()
         }
     }
 

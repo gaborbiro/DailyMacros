@@ -44,8 +44,6 @@ internal fun OverviewScreen(
         viewState = viewState,
         onRepeatMenuItemTapped = viewModel::onRepeatMenuItemTapped,
         onAnalyseMacrosMenuItemTapped = viewModel::onAnalyseMacrosMenuItemTapped,
-        onDetailsMenuItemTapped = viewModel::onDetailsMenuItemTapped,
-        onAddToQuickPicksMenuItemTapped = viewModel::onAddToQuickPicksMenuItemTapped,
         onDeleteMenuItemTapped = viewModel::onDeleteMenuItemTapped,
         onRecordImageTapped = viewModel::onRecordImageTapped,
         onRecordBodyTapped = viewModel::onRecordBodyTapped,

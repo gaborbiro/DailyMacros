@@ -123,7 +123,6 @@ private fun WidgetViewPreview() {
                         fibre = "fib 4",
                     ),
                     showLoadingIndicator = false,
-                    showAddToQuickPicksMenuItem = true,
                 ),
                 ListUiModelQuickPick(
                     templateId = 1,
@@ -179,7 +178,6 @@ private fun WidgetViewPreview() {
                         fibre = "fib 4",
                     ),
                     showLoadingIndicator = false,
-                    showAddToQuickPicksMenuItem = true,
                 ),
                 ListUiModelRecord(
                     recordId = 3L,
@@ -196,7 +194,6 @@ private fun WidgetViewPreview() {
                         fibre = "fib 4",
                     ),
                     showLoadingIndicator = false,
-                    showAddToQuickPicksMenuItem = true,
                 ),
             ),
         )

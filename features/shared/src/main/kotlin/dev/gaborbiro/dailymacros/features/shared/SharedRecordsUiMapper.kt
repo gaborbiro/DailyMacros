@@ -24,16 +24,7 @@ class SharedRecordsUiMapper @Inject constructor(
             title = record.template.name,
             nutrients = nutrients,
             showLoadingIndicator = record.template.isPending,
-            showAddToQuickPicksMenuItem = mapShowAddToQuickPicksMenuItem(record.template.quickPickOverride),
         )
-    }
-
-    private fun mapShowAddToQuickPicksMenuItem(quickPickOverride: Template.QuickPickOverride?): Boolean {
-        return when (quickPickOverride) {
-            Template.QuickPickOverride.INCLUDE -> false
-            Template.QuickPickOverride.EXCLUDE -> true
-            null -> true
-        }
     }
 
     private fun mapRecordTimestamp(timestamp: ZonedDateTime, timeOnly: Boolean): String {
