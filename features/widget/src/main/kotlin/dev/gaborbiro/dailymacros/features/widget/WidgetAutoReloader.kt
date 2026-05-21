@@ -20,7 +20,7 @@ import javax.inject.Singleton
 /**
  * Subscribes to the records repository for the lifetime of the app process and triggers a
  * widget reload whenever underlying data changes. With this in place, no caller needs to
- * explicitly invoke [FoodDiaryWidgetReloaderImpl] after a write — the widget self-heals.
+ * explicitly schedule widget reloads after a write — the widget self-heals.
  *
  * Bootstrap once from `App.onCreate` via a Hilt entry point so the singleton is created and
  * its subscription starts on cold start.

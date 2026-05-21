@@ -72,14 +72,8 @@ class SharedRecordsUiMapperTest {
     }
 
     @Test
-    fun `showAddToQuickPicks false when template included in quick picks`() {
-        val ui = mapper.map(record(stubTemplate(1L, false, Template.QuickPickOverride.INCLUDE)))
-        assertFalse(ui.showAddToQuickPicksMenuItem)
-    }
-
-    @Test
-    fun `showAddToQuickPicks true when excluded or unset`() {
-        assertTrue(mapper.map(record(stubTemplate(1L, false, Template.QuickPickOverride.EXCLUDE))).showAddToQuickPicksMenuItem)
-        assertTrue(mapper.map(record(stubTemplate(1L, false, null))).showAddToQuickPicksMenuItem)
+    fun `showOtherLoggedVariantsIcon defaults false`() {
+        val ui = mapper.map(record(stubTemplate(1L, false, null)))
+        assertFalse(ui.showOtherLoggedVariantsIcon)
     }
 }

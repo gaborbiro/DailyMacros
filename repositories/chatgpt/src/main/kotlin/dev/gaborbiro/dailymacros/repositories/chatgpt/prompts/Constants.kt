@@ -7,6 +7,3 @@ const val foodPhotoRecognitionReasoningEffort = "low"
 
 const val nutrientAnalysisModel = "gpt-5.4-mini"
 const val nutrientAnalysisReasoningEffort = "high"
-
-const val variabilityMiningModel = "gpt-5.4-mini"
-const val variabilityMiningReasoningEffort = "medium"
