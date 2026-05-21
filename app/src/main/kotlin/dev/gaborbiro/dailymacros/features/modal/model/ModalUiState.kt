@@ -1,9 +1,6 @@
 package dev.gaborbiro.dailymacros.features.modal.model
 
 import androidx.compose.ui.text.input.TextFieldValue
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilityPreviewContent
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateVariabilitySlotPreview
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
 
 data class ModalUiState(
     val rootDialog: DialogHandle? = null,
@@ -42,9 +39,6 @@ sealed class DialogHandle {
             val showProgressIndicator: Boolean = false,
             val showRunAIButton: Boolean = false,
             val recognisedFood: RecognisedFood?,
-            /** Mined slot/variant UI when editing (usually null). */
-            val templateVariabilityPreview: TemplateVariabilityPreviewContent? = null,
-            override val showVariabilityDifferentMealLink: Boolean = false,
         ) : RecordDetailsDialog(
             titleHint = titleHint,
             titleValidationError = titleValidationError,
@@ -63,6 +57,8 @@ sealed class DialogHandle {
         data class View(
             val recordId: Long,
             val templateDbId: Long,
+            /** Source template for fork when opened from quick-pick template details (Add). */
+            val variabilityAnchorTemplateDbId: Long,
             val nutrientBreakdown: NutrientBreakdownUiModel?,
             val allowEdit: Boolean,
             override val titleHint: String,
@@ -70,13 +66,14 @@ sealed class DialogHandle {
             override val title: TextFieldValue,
             override val description: TextFieldValue,
             override val images: List<String>,
-            /** Mined slot/variant UI for this record’s template; null when no profile or no slots. */
-            val templateVariabilityPreview: TemplateVariabilityPreviewContent? = null,
-            /** Parsed archetypes from the latest variability snapshot (empty when not loaded). */
-            val variabilityArchetypes: List<VariabilityArchetype> = emptyList(),
-            /** One link + picker flow per archetype that cites this template (ordered by profile sort). */
-            val variabilityArchetypePickerEntries: List<VariabilityArchetypePickerEntry> = emptyList(),
-            override val showVariabilityDifferentMealLink: Boolean = false,
+            /** Opened from quick-pick template “Details”; submit creates a new template + new record. */
+            val openedFromTemplateDetailsOnly: Boolean = false,
+            /** When non-null, template has other logged variants; combo is shown above the title field. */
+            val variantPickerOptions: List<MealVariantPickerOption>? = null,
+            /** Whether this template is shown as a Quick Pick (override or natural ranking). */
+            val quickPickStarred: Boolean = false,
+            val linkedRecordCountForTemplate: Int = 0,
+            val pristineSnapshot: RecordDetailsPristineSnapshot,
         ) : RecordDetailsDialog(
             titleHint = titleHint,
             titleValidationError = titleValidationError,
@@ -95,30 +92,23 @@ sealed class DialogHandle {
         abstract fun withTitleValidationError(titleValidationError: String?): RecordDetailsDialog
         abstract fun withTitle(title: TextFieldValue): RecordDetailsDialog
         abstract fun withDescription(description: TextFieldValue): RecordDetailsDialog
-
-        /** Set by [ModalViewModel] when building state; the activity reads this as dumb UI. */
-        abstract val showVariabilityDifferentMealLink: Boolean
     }
 
     data class ImageInput(val type: ImageInputType) : DialogHandle()
 
-    data class SelectRecordActionDialog(val recordId: Long, val title: String) : DialogHandle()
-
-    data class SelectTemplateActionDialog(val templateId: Long, val title: String) : DialogHandle()
+    data class ConfirmSwitchTemplateDialog(
+        val pendingTemplateId: Long,
+    ) : DialogHandle()
 
     data class InfoDialog(val message: String) : DialogHandle()
+}
 
-    data class TemplateVariantPickerDialog(
-        val recordId: Long,
-        val templateId: Long,
-        val variabilityArchetypes: List<VariabilityArchetype>,
-        val archetypeKey: String,
-        val archetypeDisplayName: String,
-        val slots: List<TemplateVariabilitySlotPreview>,
-        val initialSlotSelections: Map<String, String>,
-        val existingCombinationKeys: Set<String>,
-        val currentTemplateCombinationKey: String?,
-    ) : DialogHandle()
+/** True when title, description, or images differ from when the dialog was opened. */
+fun DialogHandle.RecordDetailsDialog.View.hasUnsavedEdits(): Boolean {
+    val p = pristineSnapshot
+    return title.text != p.title ||
+        description.text != p.description ||
+        images != p.images
 }
 
 data class RecognisedFood(

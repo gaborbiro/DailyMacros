@@ -147,7 +147,7 @@ class RecordBodyTappedAction : ActionCallback {
         parameters: ActionParameters,
     ) {
         val recordId = parameters[ActionParameters.Key<Long>(PREFS_KEY_RECORD)]!!
-        context.modalNavigator().launchToSelectRecordAction(context, recordId)
+        context.modalNavigator().launchViewRecordDetailsFromWidget(context, recordId)
     }
 }
 
@@ -158,7 +158,7 @@ class QuickPickBodyTappedAction : ActionCallback {
         parameters: ActionParameters,
     ) {
         val templateId = parameters[ActionParameters.Key<Long>(PREFS_KEY_TEMPLATE)]!!
-        context.modalNavigator().launchToSelectTemplateAction(context, templateId)
+        context.modalNavigator().launchViewTemplateDetailsFromWidget(context, templateId)
     }
 }
 

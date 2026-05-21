@@ -17,7 +17,7 @@ interface ModalNavigator {
 
     fun launchViewRecordDetails(context: Context, recordId: Long)
 
-    fun launchToSelectRecordAction(context: Context, recordId: Long)
+    fun launchViewRecordDetailsFromWidget(context: Context, recordId: Long)
 
-    fun launchToSelectTemplateAction(context: Context, templateId: Long)
+    fun launchViewTemplateDetailsFromWidget(context: Context, templateId: Long)
 }

@@ -10,38 +10,37 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
-import dev.gaborbiro.dailymacros.features.common.workers.NutrientAnalysisWorker
+import dev.gaborbiro.dailymacros.features.shared.NutrientAnalysisWorker
 import dev.gaborbiro.dailymacros.features.modal.model.ChangeImagesTarget
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiState
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
+import dev.gaborbiro.dailymacros.features.modal.model.hasUnsavedEdits
+import dev.gaborbiro.dailymacros.features.modal.model.toPickerOptions
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyConfirmedSharedTemplateEditUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyTemplateVariantPickerSelectionResult
-import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyTemplateVariantPickerSelectionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.BuildRecordDetailsViewDialogUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.CreateTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.DeleteRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.OpenTemplateVariantPickerFromRecordDetailsUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.OpenTemplateVariantPickerResult
+import dev.gaborbiro.dailymacros.features.modal.usecase.ListMealVariantsForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveFirstRecordIdForTemplateUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveSelectRecordActionDialogUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveSelectTemplateActionDialogUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
-import dev.gaborbiro.dailymacros.features.shared.RepeatRecordUseCase
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
 import ellipsize
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -50,6 +49,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -66,15 +66,12 @@ class ModalViewModel @Inject constructor(
     private val imageStore: ImageStore,
     private val recordsRepository: RecordsRepository,
     private val buildRecordDetailsViewDialogUseCase: BuildRecordDetailsViewDialogUseCase,
-    private val resolveSelectRecordActionDialogUseCase: ResolveSelectRecordActionDialogUseCase,
-    private val resolveSelectTemplateActionDialogUseCase: ResolveSelectTemplateActionDialogUseCase,
     private val resolveFirstRecordIdForTemplateUseCase: ResolveFirstRecordIdForTemplateUseCase,
-    private val openTemplateVariantPickerFromRecordDetailsUseCase: OpenTemplateVariantPickerFromRecordDetailsUseCase,
-    private val applyTemplateVariantPickerSelectionUseCase: ApplyTemplateVariantPickerSelectionUseCase,
+    private val listMealVariantsForTemplateUseCase: ListMealVariantsForTemplateUseCase,
     private val createRecordFromTemplateUseCase: CreateRecordFromTemplateUseCase,
+    private val createTemplateUseCase: CreateTemplateUseCase,
     private val createRecordWithNewTemplateUseCase: CreateRecordWithNewTemplateUseCase,
     private val updateRecordWithNewTemplateUseCase: UpdateRecordWithNewTemplateUseCase,
-    private val repeatRecordUseCase: RepeatRecordUseCase,
     private val validateEditRecordUseCase: ValidateEditRecordUseCase,
     private val validateCreateRecordUseCase: ValidateCreateRecordUseCase,
     private val saveImageUseCase: SaveImageUseCase,
@@ -97,8 +94,10 @@ class ModalViewModel @Inject constructor(
 
     private var recordDetailsJob: Job? = null
 
-    /** Restores record details after closing the variant picker without applying. */
-    private var pendingRecordDetailsRestore: Pair<Long, Boolean>? = null
+    private companion object {
+        /** Matches widget reload ranking window (see ReloadWorker). */
+        const val QUICK_PICK_RANK_CHECK_COUNT = 30
+    }
 
     fun onCreateRecordWithCameraDeeplinkReceived() {
         setRoot(DialogHandle.ImageInput(type = ImageInputType.Camera))
@@ -149,16 +148,8 @@ class ModalViewModel @Inject constructor(
         openRecordDetails(recordId, edit = true)
     }
 
-    fun onSelectRecordActionDeeplinkReceived(recordId: Long) {
-        runSafely {
-            setRoot(resolveSelectRecordActionDialogUseCase.execute(recordId))
-        }
-    }
-
-    fun onSelectTemplateActionDeeplinkReceived(templateId: Long) {
-        runSafely {
-            setRoot(resolveSelectTemplateActionDialogUseCase.execute(templateId))
-        }
+    fun onViewTemplateDetailsDeeplinkReceived(templateId: Long) {
+        onTemplateDetailsButtonTapped(templateId)
     }
 
     fun onImagesSelected(uris: List<Uri>) {
@@ -230,7 +221,8 @@ class ModalViewModel @Inject constructor(
 
     fun onRepeatRecordButtonTapped(recordId: Long) {
         runSafely {
-            repeatRecordUseCase.execute(recordId)
+            val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return@runSafely
+            createRecordFromTemplateUseCase.execute(templateId)
             closeAll()
         }
     }
@@ -248,18 +240,11 @@ class ModalViewModel @Inject constructor(
 
     fun onTemplateDetailsButtonTapped(templateId: Long) {
         runSafely {
-            resolveFirstRecordIdForTemplateUseCase.execute(templateId)
-                ?.let { openRecordDetails(it, edit = false) }
-        }
-    }
-
-    fun onRemoveFromQuickPicksTapped(templateId: Long) {
-        runSafely {
-            applyQuickPickOverrideAndReloadWidgetUseCase.execute(
-                templateId,
-                Template.QuickPickOverride.EXCLUDE,
-            )
-            closeAll()
+            recordDetailsJob?.cancel()
+            recordDetailsJob = null
+            val recordId = resolveFirstRecordIdForTemplateUseCase.execute(templateId) ?: return@runSafely
+            val record = recordsRepository.get(recordId) ?: return@runSafely
+            setRoot(buildEnrichedView(record = record, edit = true, templateDetailsMode = true))
         }
     }
 
@@ -286,28 +271,26 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onDialogDismissRequested(dialog: DialogHandle) {
-        when (dialog) {
-            _uiState.value.overlayDialog -> {
+        when {
+            dialog === _uiState.value.overlayDialog -> {
                 popOverlay()
             }
 
-            is DialogHandle.TemplateVariantPickerDialog -> {
-                onVariantPickerCancelTapped()
-                return
+            dialog is DialogHandle.RecordDetailsDialog.View -> {
+                closeAll()
+            }
+
+            dialog is DialogHandle.RecordDetailsDialog.Edit -> {
+                runSafely {
+                    dialog.images.forEach { img ->
+                        imageStore.delete(img)
+                    }
+                    closeAll()
+                }
             }
 
             else -> {
-                val edit = dialog as? DialogHandle.RecordDetailsDialog.Edit
-                if (edit != null) {
-                    runSafely {
-                        edit.images.forEach { img ->
-                            imageStore.delete(img)
-                        }
-                        closeAll()
-                    }
-                } else {
-                    closeAll()
-                }
+                closeAll()
             }
         }
     }
@@ -351,20 +334,79 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onSubmitButtonTapped() {
-        (_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog)
-            ?.let {
-                runSafely {
-                    when (it) {
-                        is DialogHandle.RecordDetailsDialog.Edit -> {
-                            handleCreateRecordDetailsSubmitted(it)
-                        }
+        val details = (_uiState.value.overlayDialog as? DialogHandle.RecordDetailsDialog)
+            ?: (_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog)
+            ?: return
+        if (details !is DialogHandle.RecordDetailsDialog.Edit) return
+        runSafely {
+            handleCreateRecordDetailsSubmitted(details)
+        }
+    }
 
-                        is DialogHandle.RecordDetailsDialog.View -> {
-                            handleEditRecordDialogSubmitted(it)
-                        }
-                    }
-                }
+    fun onSaveDetailsTapped() {
+        val details = (_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View) ?: return
+        if (details.openedFromTemplateDetailsOnly) return
+        runSafely {
+            handleEditRecordDialogSubmitted(details)
+        }
+    }
+
+    fun onSaveAndAddDetailsTapped() {
+        val details = (_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View) ?: return
+        runSafely {
+            when {
+                details.openedFromTemplateDetailsOnly ->
+                    handleTemplateDetailsSaveAndAdd(details)
+
+                else -> handleEditRecordSaveAndAdd(details)
             }
+        }
+    }
+
+    fun onVariantTemplateSelected(templateId: Long) {
+        runSafely {
+            val root = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return@runSafely
+            if (templateId == root.templateDbId) return@runSafely
+            if (root.hasUnsavedEdits()) {
+                pushOverlay(
+                    DialogHandle.ConfirmSwitchTemplateDialog(pendingTemplateId = templateId),
+                )
+            } else {
+                applyVariantTemplateSwitch(root, templateId)
+            }
+        }
+    }
+
+    fun onConfirmSwitchTemplateDespiteEdits() {
+        val overlay = _uiState.value.overlayDialog as? DialogHandle.ConfirmSwitchTemplateDialog ?: return
+        val root = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return
+        popOverlay()
+        runSafely {
+            applyVariantTemplateSwitch(root, overlay.pendingTemplateId)
+        }
+    }
+
+    fun onQuickPickStarToggled() {
+        runSafely {
+            val root = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return@runSafely
+            val templateId = root.templateDbId
+            if (root.quickPickStarred) {
+                applyQuickPickOverrideAndReloadWidgetUseCase.execute(
+                    templateId,
+                    Template.QuickPickOverride.EXCLUDE,
+                )
+            } else {
+                applyQuickPickOverrideAndReloadWidgetUseCase.execute(
+                    templateId,
+                    Template.QuickPickOverride.INCLUDE,
+                )
+            }
+            val template = recordsRepository.getTemplate(templateId)
+            val starred = resolveQuickPickStarred(template)
+            updateRoot<DialogHandle.RecordDetailsDialog.View> {
+                it.copy(quickPickStarred = starred)
+            }
+        }
     }
 
     fun onImagesInfoButtonTapped() {
@@ -386,60 +428,6 @@ class ModalViewModel @Inject constructor(
         }
     }
 
-    fun onVariabilityDifferentMealLinkTapped(archetypeKey: String) {
-        runSafely {
-            val view = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return@runSafely
-            when (val result = openTemplateVariantPickerFromRecordDetailsUseCase.execute(view, archetypeKey)) {
-                OpenTemplateVariantPickerResult.Skipped -> return@runSafely
-                is OpenTemplateVariantPickerResult.Ready -> {
-                    pendingRecordDetailsRestore = view.recordId to view.allowEdit
-                    recordDetailsJob?.cancel()
-                    recordDetailsJob = null
-                    setRoot(result.picker)
-                }
-            }
-        }
-    }
-
-    fun onVariantPickerCancelTapped() {
-        val restore = pendingRecordDetailsRestore
-        pendingRecordDetailsRestore = null
-        if (restore != null) {
-            openRecordDetails(restore.first, restore.second)
-        } else {
-            closeAll()
-        }
-    }
-
-    fun onVariantPickerConfirmed(selection: Map<String, String>) {
-        val dlg = _uiState.value.rootDialog as? DialogHandle.TemplateVariantPickerDialog ?: return
-        runSafely {
-            when (
-                applyTemplateVariantPickerSelectionUseCase.execute(dlg, selection)
-            ) {
-                ApplyTemplateVariantPickerSelectionResult.UnknownCombination ->
-                    _uiUpdates.send(
-                        ModalUiUpdates.Error(
-                            "Could not match this combination to a saved meal template. Try again after the next variability mine.",
-                        ),
-                    )
-
-                ApplyTemplateVariantPickerSelectionResult.RecordNotFound ->
-                    _uiUpdates.send(ModalUiUpdates.Error("Record not found."))
-
-                ApplyTemplateVariantPickerSelectionResult.NoOpSameTemplate -> {
-                    pendingRecordDetailsRestore = null
-                    closeAll()
-                }
-
-                ApplyTemplateVariantPickerSelectionResult.Applied -> {
-                    pendingRecordDetailsRestore = null
-                    closeAll()
-                }
-            }
-        }
-    }
-
     fun onEditTargetConfirmed(target: ChangeImagesTarget) {
         (_uiState.value.overlayDialog as? DialogHandle.EditTargetConfirmationDialog)
             ?.let {
@@ -455,7 +443,6 @@ class ModalViewModel @Inject constructor(
                         title = title,
                         description = description,
                     )
-                    foodDiaryWidgetReloader.scheduleReload(application)
                     closeAll()
                 }
             }
@@ -503,11 +490,88 @@ class ModalViewModel @Inject constructor(
     private fun openRecordDetails(recordId: Long, edit: Boolean) {
         recordDetailsJob?.cancel()
         recordDetailsJob = runSafely {
+            recordsRepository.get(recordId)?.let { record ->
+                setRoot(buildEnrichedView(record, edit, templateDetailsMode = false))
+            }
             recordsRepository.observe(recordId)
+                .drop(1)
                 .collect { record ->
-                    setRoot(buildRecordDetailsViewDialogUseCase.execute(record, edit))
+                    setRoot(buildEnrichedView(record, edit, templateDetailsMode = false))
                 }
         }
+    }
+
+    private suspend fun buildEnrichedView(
+        record: Record,
+        edit: Boolean,
+        templateDetailsMode: Boolean,
+    ): DialogHandle.RecordDetailsDialog.View {
+        val base = buildRecordDetailsViewDialogUseCase.execute(record, edit, templateDetailsMode)
+        val variantList = listMealVariantsForTemplateUseCase.execute(record.template.dbId)
+        val options = variantList?.takeIf { it.hasOtherVariants }?.toPickerOptions()
+        val starred = resolveQuickPickStarred(record.template)
+        val linkedCount = recordsRepository.countRecordsForTemplate(record.template.dbId)
+        return base.copy(
+            variantPickerOptions = options,
+            quickPickStarred = starred,
+            linkedRecordCountForTemplate = linkedCount,
+        )
+    }
+
+    private suspend fun resolveQuickPickStarred(template: Template): Boolean {
+        when (template.quickPickOverride) {
+            Template.QuickPickOverride.EXCLUDE -> return false
+            Template.QuickPickOverride.INCLUDE -> return true
+            null -> {
+                val picks = recordsRepository.getQuickPicks(QUICK_PICK_RANK_CHECK_COUNT)
+                return picks.any { it.dbId == template.dbId }
+            }
+        }
+    }
+
+    /** True when the meal family has other logged variants (variant combo is shown). */
+    private suspend fun isVariedTemplateFamily(details: DialogHandle.RecordDetailsDialog.View): Boolean {
+        if (details.variantPickerOptions != null) return true
+        val familyIds = recordsRepository.getTemplateIdsInSameVariantFamily(details.templateDbId)
+        return familyIds.count { recordsRepository.countRecordsForTemplate(it) > 0 } > 1
+    }
+
+    private fun templateNeedsMacroAnalysis(template: Template): Boolean =
+        template.isPending || template.nutrients.calories == null
+
+    private suspend fun scheduleMacroAnalysisForRecordIfTemplateIncomplete(
+        recordId: Long,
+        templateId: Long,
+    ) {
+        val t = recordsRepository.getTemplate(templateId)
+        if (templateNeedsMacroAnalysis(t)) {
+            NutrientAnalysisWorker.setWorkRequest(
+                appContext = application,
+                recordId = recordId,
+                force = true,
+            )
+        }
+    }
+
+    private suspend fun scheduleMacroAnalysisForAllRecordsUsingTemplate(templateId: Long) {
+        recordsRepository.getRecordsByTemplate(templateId).forEach { record ->
+            NutrientAnalysisWorker.setWorkRequest(
+                appContext = application,
+                recordId = record.recordId,
+                force = true,
+            )
+        }
+    }
+
+    private suspend fun applyVariantTemplateSwitch(
+        preserveMode: DialogHandle.RecordDetailsDialog.View,
+        newTemplateId: Long,
+    ) {
+        val recordId = resolveFirstRecordIdForTemplateUseCase.execute(newTemplateId) ?: return
+        val record = recordsRepository.get(recordId) ?: return
+        val edit = preserveMode.allowEdit && !preserveMode.openedFromTemplateDetailsOnly
+        val templateDetailsMode = preserveMode.openedFromTemplateDetailsOnly
+        setRoot(buildEnrichedView(record, edit, templateDetailsMode))
     }
 
     private suspend fun handleCreateRecordDetailsSubmitted(
@@ -547,6 +611,11 @@ class ModalViewModel @Inject constructor(
     private suspend fun handleEditRecordDialogSubmitted(
         dialogHandle: DialogHandle.RecordDetailsDialog.View,
     ) {
+        recordDetailsJob?.cancel()
+        if (!dialogHandle.hasUnsavedEdits()) {
+            closeAll()
+            return
+        }
         val title = dialogHandle.title.text.trim()
         val description = dialogHandle.description.text.trim()
 
@@ -556,35 +625,118 @@ class ModalViewModel @Inject constructor(
             description = description,
         )
         when (result) {
-            is EditValidationResult.ConfirmMultipleEdit -> {
-                pushOverlay(
-                    DialogHandle.EditTargetConfirmationDialog(
+            is EditValidationResult.Valid -> {
+                if (isVariedTemplateFamily(dialogHandle)) {
+                    recordsRepository.updateTemplate(
+                        templateId = dialogHandle.templateDbId,
+                        name = title,
+                        description = description,
+                        templateImages = dialogHandle.images.map { TemplateImageUpdate(filename = it) },
+                    )
+                    scheduleMacroAnalysisForAllRecordsUsingTemplate(dialogHandle.templateDbId)
+                } else {
+                    updateRecordWithNewTemplateUseCase.execute(
                         recordId = dialogHandle.recordId,
                         images = dialogHandle.images,
-                        count = result.count,
                         title = title,
                         description = description,
                     )
-                )
-            }
-
-            is EditValidationResult.Valid -> {
-                updateRecordWithNewTemplateUseCase.execute(
-                    recordId = dialogHandle.recordId,
-                    images = dialogHandle.images,
-                    title = title,
-                    description = description,
-                )
-                NutrientAnalysisWorker.setWorkRequest(
-                    appContext = application,
-                    recordId = dialogHandle.recordId,
-                    force = true,
-                )
+                    NutrientAnalysisWorker.setWorkRequest(
+                        appContext = application,
+                        recordId = dialogHandle.recordId,
+                        force = true,
+                    )
+                }
                 closeAll()
             }
 
             is EditValidationResult.Error -> {
                 applyValidationError(result.message)
+            }
+        }
+    }
+
+    private suspend fun handleEditRecordSaveAndAdd(
+        dialogHandle: DialogHandle.RecordDetailsDialog.View,
+    ) {
+        recordDetailsJob?.cancel()
+        val title = dialogHandle.title.text.trim()
+        val description = dialogHandle.description.text.trim()
+
+        val result = validateEditRecordUseCase.execute(
+            recordId = dialogHandle.recordId,
+            title = title,
+            description = description,
+        )
+        when (result) {
+            is EditValidationResult.Valid -> {
+                if (!dialogHandle.hasUnsavedEdits()) {
+                    val templateId = dialogHandle.templateDbId
+                    val secondRecordId = createRecordFromTemplateUseCase.execute(templateId)
+                    scheduleMacroAnalysisForRecordIfTemplateIncomplete(secondRecordId, templateId)
+                } else {
+                    val newTemplateId = createTemplateUseCase.execute(
+                        images = dialogHandle.images,
+                        title = title,
+                        description = description,
+                        parentTemplateId = dialogHandle.templateDbId,
+                    )
+                    val secondRecordId = createRecordFromTemplateUseCase.execute(newTemplateId)
+                    NutrientAnalysisWorker.setWorkRequest(
+                        appContext = application,
+                        recordId = secondRecordId,
+                        force = true,
+                    )
+                }
+                closeAll()
+            }
+
+            is EditValidationResult.Error -> {
+                applyValidationError(result.message)
+            }
+        }
+    }
+
+    private suspend fun handleTemplateDetailsSaveAndAdd(
+        dialogHandle: DialogHandle.RecordDetailsDialog.View,
+    ) {
+        val title = dialogHandle.title.text.trim()
+        val description = dialogHandle.description.text.trim()
+        val images = dialogHandle.images
+        val anchor = dialogHandle.variabilityAnchorTemplateDbId
+
+        if (!dialogHandle.hasUnsavedEdits()) {
+            val firstRecordId = createRecordFromTemplateUseCase.execute(anchor)
+            val secondRecordId = createRecordFromTemplateUseCase.execute(anchor)
+            scheduleMacroAnalysisForRecordIfTemplateIncomplete(firstRecordId, anchor)
+            scheduleMacroAnalysisForRecordIfTemplateIncomplete(secondRecordId, anchor)
+            closeAll()
+            return
+        }
+
+        val result = validateCreateRecordUseCase.execute(
+            images = images,
+            title = title,
+            description = description,
+        )
+
+        when (result) {
+            is CreateValidationResult.Error -> {
+                applyValidationError(result.message)
+            }
+
+            is CreateValidationResult.Valid -> {
+                val firstRecordId = createRecordWithNewTemplateUseCase.execute(
+                    images = images,
+                    title = title,
+                    description = description,
+                    parentTemplateId = anchor,
+                )
+                val templateId = recordsRepository.get(firstRecordId)?.template?.dbId ?: return
+                val secondRecordId = createRecordFromTemplateUseCase.execute(templateId)
+                scheduleMacroAnalysisForRecordIfTemplateIncomplete(firstRecordId, templateId)
+                scheduleMacroAnalysisForRecordIfTemplateIncomplete(secondRecordId, templateId)
+                closeAll()
             }
         }
     }

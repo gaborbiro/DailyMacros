@@ -3,4 +3,21 @@
     <string name="shortcut_camera_name">Snap food</string>
     <string name="shortcut_image_name">Pick photo</string>
     <string name="shortcut_text_name">Text only</string>
+    <string name="meal_details_action_cancel">Cancel</string>
+    <string name="meal_details_action_close">Close</string>
+    <string name="record_title_has_other_versions_a11y">Other logged versions of this meal exist</string>
+    <string name="meal_details_pick_variant_cd">Choose which version of this meal to use</string>
+    <string name="meal_details_action_save">Save</string>
+    <string name="meal_details_action_add_new">Log again</string>
+    <string name="meal_details_action_add_new_template">Log as new meal</string>
+    <string name="meal_details_action_update">Update</string>
+    <string name="meal_details_quick_pick_star_cd">Add template to Quick Picks</string>
+    <string name="meal_details_quick_pick_unstar_cd">Remove template from Quick Picks</string>
+    <string name="meal_details_switch_variant_title">Discard changes?</string>
+    <string name="meal_details_switch_variant_message">You changed something in this meal. Switch to another version anyway? You’ll lose those edits.</string>
+    <string name="meal_details_switch_variant_confirm">Switch</string>
+    <string name="meal_details_switch_variant_cancel">Keep editing</string>
+    <plurals name="meal_details_update_linked_records">
+        <item quantity="other">Update %d meals</item>
+    </plurals>
 </resources>

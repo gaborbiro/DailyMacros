@@ -1,6 +1,8 @@
 plugins {
     id("AndroidLibraryConvention")
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -19,15 +21,25 @@ android {
 dependencies {
     implementation(project(":features:common"))
     implementation(project(":core:design"))
+    implementation(project(":core:analytics"))
+    implementation(project(":data:image"))
     implementation(project(":repositories:records:domain"))
+    implementation(project(":repositories:chatgpt"))
     implementation(project(":repositories:chatgpt:domain"))
     implementation(project(":repositories:settings:domain"))
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.work.runtime.ktx)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
 
+    implementation(libs.dagger.hilt.android)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.dagger.hilt.compiler)
+    ksp(libs.androidx.hilt.compiler)
+
     implementation(libs.javax.inject)
+    implementation(libs.kotlinx.coroutines.guava)
 
     testImplementation(libs.test.junit)
     testImplementation(libs.test.robolectric)

@@ -10,7 +10,6 @@ import dev.gaborbiro.dailymacros.data.db.AppDatabase
 import dev.gaborbiro.dailymacros.data.db.RecordsDAO
 import dev.gaborbiro.dailymacros.data.db.RequestStatusDAO
 import dev.gaborbiro.dailymacros.data.db.TemplatesDAO
-import dev.gaborbiro.dailymacros.data.db.VariabilityDao
 import javax.inject.Singleton
 
 @Module
@@ -30,7 +29,4 @@ object DataDbModule {
 
     @Provides
     fun requestStatusDao(db: AppDatabase): RequestStatusDAO = db.requestStatusDAO()
-
-    @Provides
-    fun variabilityDao(db: AppDatabase): VariabilityDao = db.variabilityDao()
 }

@@ -9,9 +9,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dev.gaborbiro.dailymacros.AppPrefs
 import dev.gaborbiro.dailymacros.BuildConfig
-import dev.gaborbiro.dailymacros.features.main.MineMealVariabilityWorker
-import dev.gaborbiro.dailymacros.features.settings.EnqueueMealVariabilityMining
 import dev.gaborbiro.dailymacros.features.settings.SettingsAppInfo
+import dev.gaborbiro.dailymacros.features.shared.notifications.MacroResultsNotificationSender
+import dev.gaborbiro.dailymacros.util.showMacroResultsNotification
 import javax.inject.Singleton
 
 @Module
@@ -32,6 +32,16 @@ object AppSingletonModule {
 
     @Provides
     @Singleton
-    fun enqueueMealVariabilityMining(@ApplicationContext context: Context): EnqueueMealVariabilityMining =
-        EnqueueMealVariabilityMining { MineMealVariabilityWorker.enqueue(context) }
+    fun macroResultsNotificationSender(@ApplicationContext context: Context): MacroResultsNotificationSender =
+        object : MacroResultsNotificationSender {
+            override fun showMacroResultsNotification(
+                id: Long,
+                recordId: Long,
+                title: String?,
+                message: String?,
+                isError: Boolean,
+            ) {
+                context.showMacroResultsNotification(id, recordId, title, message, isError)
+            }
+        }
 }

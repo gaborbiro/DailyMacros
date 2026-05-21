@@ -18,7 +18,7 @@ object ChatGptOkHttpTimeouts {
     /** Nutrient / food flows that upload one or more base64 images. */
     const val WRITE_SECONDS_WITH_IMAGES = 240L
 
-    /** JSON-only requests (e.g. meal variability mining). */
+    /** JSON-only request bodies (no image payloads). */
     const val WRITE_SECONDS_JSON_BODY = 120L
 
     fun applyImageUploadTimeouts(builder: OkHttpClient.Builder) {

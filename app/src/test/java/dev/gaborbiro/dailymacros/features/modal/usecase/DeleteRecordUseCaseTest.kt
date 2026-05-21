@@ -2,7 +2,8 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import androidx.work.testing.WorkManagerTestInitHelper
+import android.app.Application
+import dev.gaborbiro.dailymacros.test.WorkManagerTestSupport
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -13,7 +14,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [33], manifest = Config.NONE)
+@Config(sdk = [33], manifest = Config.NONE, application = Application::class)
 class DeleteRecordUseCaseTest {
 
     private lateinit var context: Context
@@ -21,12 +22,12 @@ class DeleteRecordUseCaseTest {
     @Before
     fun setup() {
         context = ApplicationProvider.getApplicationContext()
-        WorkManagerTestInitHelper.initializeTestWorkManager(context)
+        WorkManagerTestSupport.setUp(context)
     }
 
     @After
     fun tearDown() {
-        WorkManagerTestInitHelper.closeWorkDatabase()
+        WorkManagerTestSupport.tearDown(context)
     }
 
     @Test

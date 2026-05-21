@@ -32,10 +32,6 @@ fun SettingsScreen(
     val createPublicDocumentUseCase = rememberCreatePublicDocumentUseCase()
     val openPublicDocumentUseCase = rememberOpenPublicDocumentUseCase()
 
-    LaunchedEffect(Unit) {
-        settingsViewModel.refreshTemplateCountForSettings()
-    }
-
     LaunchedEffect(settingsViewModel, context) {
         settingsViewModel.uiUpdates.collect { event ->
             when (event) {
@@ -60,18 +56,6 @@ fun SettingsScreen(
         onExportSettingTapped = { settingsViewModel.onExportSettingsTapped(createPublicDocumentUseCase) },
         onExportDbTapped = { settingsViewModel.onExportDbTapped(createPublicDocumentUseCase) },
         onImportDbTapped = { settingsViewModel.onImportDbTapped(openPublicDocumentUseCase) },
-        onVariabilityMiningPreviewTapped = settingsViewModel::onVariabilityMiningPreviewTapped,
-        onClearVariabilityProfileTapped = settingsViewModel::onClearVariabilityProfileTapped,
-        onCopyVariabilityRequestJson = settingsViewModel::onCopyVariabilityRequestJson,
-        onCopyVariabilityResponseJson = settingsViewModel::onCopyVariabilityResponseJson,
-        onVariabilityMiningRequestJsonExpansionBitsChange =
-            settingsViewModel::onVariabilityMiningRequestJsonExpansionBitsChange,
-        onVariabilityMiningResponseJsonExpansionBitsChange =
-            settingsViewModel::onVariabilityMiningResponseJsonExpansionBitsChange,
-        onVariabilityMiningRequestJsonSectionExpandedChange =
-            settingsViewModel::onVariabilityMiningRequestJsonSectionExpandedChange,
-        onVariabilityMiningResponseJsonSectionExpandedChange =
-            settingsViewModel::onVariabilityMiningResponseJsonSectionExpandedChange,
     )
 
     if (settingsUiState.showTargetsSettings) {
@@ -82,9 +66,8 @@ fun SettingsScreen(
     }
 }
 
-private tailrec fun Context.findActivity(): Activity? =
-    when (this) {
-        is Activity -> this
-        is ContextWrapper -> baseContext.findActivity()
-        else -> null
-    }
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}

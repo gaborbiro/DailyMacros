@@ -45,8 +45,11 @@ class NutrientAnalysisWorker @AssistedInject constructor(
                     recordId = recordId,
                 )
             }
-            val works = WorkManager.getInstance(appContext)
-                .getWorkInfosByTag(getTag(recordId)).await()
+            val works = runCatching {
+                WorkManager.getInstance(appContext)
+                    .getWorkInfosByTag(getTag(recordId))
+                    .await()
+            }.getOrElse { emptyList() }
             if (works.none { it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.RUNNING }) {
                 val workRequest = PeriodicWorkRequestBuilder<NutrientAnalysisWorker>(
                     repeatInterval = 15.minutes.toJavaDuration()
@@ -68,7 +71,9 @@ class NutrientAnalysisWorker @AssistedInject constructor(
         }
 
         fun cancelWorkRequest(appContext: Context, recordId: Long) {
-            WorkManager.getInstance(appContext).cancelAllWorkByTag(getTag(recordId))
+            runCatching {
+                WorkManager.getInstance(appContext).cancelAllWorkByTag(getTag(recordId))
+            }
         }
 
         private fun getTag(recordId: Long): String {

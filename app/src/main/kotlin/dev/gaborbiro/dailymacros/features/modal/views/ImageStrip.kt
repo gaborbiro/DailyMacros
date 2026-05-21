@@ -40,6 +40,7 @@ import dev.gaborbiro.dailymacros.features.common.views.LocalImage
 fun ImageStrip(
     images: List<String>,
     showAddPhotoButtons: Boolean,
+    showImageDeleteButton: Boolean = true,
     onImageTapped: (String) -> Unit,
     onImageDeleteTapped: (String) -> Unit,
     onAddImageViaCameraTapped: () -> Unit,
@@ -75,22 +76,24 @@ fun ImageStrip(
                     contentScale = ContentScale.Crop,
                     contentDescription = "",
                 )
-                IconButton(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .size(24.dp),
-                    onClick = { onImageDeleteTapped(name) },
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = Color.Gray.copy(alpha = .8f),
-                        contentColor = Color.Red,
-                    ),
-                ) {
-                    Icon(
+                if (showImageDeleteButton) {
+                    IconButton(
                         modifier = Modifier
-                            .size(20.dp),
-                        imageVector = Icons.Filled.Clear,
-                        contentDescription = "Delete Button",
-                    )
+                            .align(Alignment.TopEnd)
+                            .size(24.dp),
+                        onClick = { onImageDeleteTapped(name) },
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = Color.Gray.copy(alpha = .8f),
+                            contentColor = Color.Red,
+                        ),
+                    ) {
+                        Icon(
+                            modifier = Modifier
+                                .size(20.dp),
+                            imageVector = Icons.Filled.Clear,
+                            contentDescription = "Delete Button",
+                        )
+                    }
                 }
             }
         }
@@ -161,6 +164,7 @@ private fun ImageStripPreviewViewOnly() {
         ImageStrip(
             images = listOf("1", "2"),
             showAddPhotoButtons = false,
+            showImageDeleteButton = false,
             onImageTapped = {},
             onImageDeleteTapped = {},
             onAddImageViaCameraTapped = {},

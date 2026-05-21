@@ -23,18 +23,27 @@ interface TemplatesDAO {
     suspend fun countAllTemplates(): Int
 
     /**
-     * Number of templates with `createdAtEpochMs > afterExclusive OR updatedAtEpochMs >
-     * afterExclusive` (strictly greater — same **exclusive** watermark semantics as
-     * [RecordsDAO.getRecentForVariabilityMining]). Used for incremental mine “pending” counts in
-     * settings; a watermark of 0 still requires timestamps **> 0** to match.
+     * Templates in the same explicit variant family as [templateId]: walk up `parentTemplateId` to
+     * the root, then include the root and every descendant template.
      */
     @Query(
         """
-        SELECT COUNT(*) FROM templates
-        WHERE createdAtEpochMs > :afterExclusive OR updatedAtEpochMs > :afterExclusive
-        """
+        WITH RECURSIVE ancestors AS (
+            SELECT _id, parentTemplateId FROM templates WHERE _id = :templateId
+            UNION ALL
+            SELECT t._id, t.parentTemplateId FROM templates t
+            INNER JOIN ancestors a ON t._id = a.parentTemplateId
+        ),
+        tree AS (
+            SELECT a._id FROM ancestors a WHERE a.parentTemplateId IS NULL
+            UNION ALL
+            SELECT t._id FROM templates t
+            INNER JOIN tree ON t.parentTemplateId = tree._id
+        )
+        SELECT _id FROM tree
+        """,
     )
-    suspend fun countTemplatesWithActivityAfter(afterExclusive: Long): Int
+    suspend fun getTemplateIdsInVariantFamily(templateId: Long): List<Long>
 
     @Upsert
     suspend fun insertOrUpdate(macros: MacrosEntity): Long

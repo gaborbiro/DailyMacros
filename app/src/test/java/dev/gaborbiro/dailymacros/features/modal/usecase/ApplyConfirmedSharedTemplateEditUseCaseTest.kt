@@ -2,7 +2,8 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import androidx.work.testing.WorkManagerTestInitHelper
+import android.app.Application
+import dev.gaborbiro.dailymacros.test.WorkManagerTestSupport
 import dev.gaborbiro.dailymacros.features.modal.model.ChangeImagesTarget
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
@@ -17,7 +18,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [33], manifest = Config.NONE)
+@Config(sdk = [33], manifest = Config.NONE, application = Application::class)
 class ApplyConfirmedSharedTemplateEditUseCaseTest {
 
     private lateinit var context: Context
@@ -25,12 +26,12 @@ class ApplyConfirmedSharedTemplateEditUseCaseTest {
     @Before
     fun setup() {
         context = ApplicationProvider.getApplicationContext()
-        WorkManagerTestInitHelper.initializeTestWorkManager(context)
+        WorkManagerTestSupport.setUp(context)
     }
 
     @After
     fun tearDown() {
-        WorkManagerTestInitHelper.closeWorkDatabase()
+        WorkManagerTestSupport.tearDown(context)
     }
 
     @Test

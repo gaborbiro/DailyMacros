@@ -5,12 +5,9 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecogniti
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.VariabilityMiningResult
-import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.extractAssistantJsonText
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toApiModel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toFoodRecognitionResponse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toNutrientAnalysisResponse
-import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.variabilityMiningRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.ChatGPTService
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repositories.chatgpt.util.parse
@@ -42,18 +39,6 @@ class ChatGPTRepositoryImpl(
                 )
                 return@runCatching parse(response)
                     .toNutrientAnalysisResponse(imageCount = request.base64Images.size)
-            }
-        }
-    }
-
-    override suspend fun mineMealVariability(userMessageJson: String): VariabilityMiningResult {
-        return mappingApiErrors {
-            runCatching(logTag = "mineMealVariability") {
-                val response = service.callResponses(
-                    request = variabilityMiningRequest(userMessageJson),
-                )
-                val body = parse(response)
-                VariabilityMiningResult(profileJson = body.extractAssistantJsonText())
             }
         }
     }

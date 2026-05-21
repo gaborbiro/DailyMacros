@@ -2,7 +2,7 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import android.content.Context
 import android.util.Log
-import dev.gaborbiro.dailymacros.features.common.workers.NutrientAnalysisWorker
+import dev.gaborbiro.dailymacros.features.shared.NutrientAnalysisWorker
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject

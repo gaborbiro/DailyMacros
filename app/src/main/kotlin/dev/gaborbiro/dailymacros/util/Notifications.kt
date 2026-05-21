@@ -8,11 +8,10 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.features.modal.getViewRecordDetailsIntent
+import dev.gaborbiro.dailymacros.features.shared.notifications.CHANNEL_ID_FOREGROUND
 
 private const val CHANNEL_ID_GENERAL = "general"
 const val CHANNEL_ID_ERROR = "error"
-/** High-importance channel for failed background AI work (e.g. [NutrientAnalysisWorker], [MineMealVariabilityWorker]). */
-const val CHANNEL_ID_FOREGROUND = "foreground"
 
 fun Context.createNotificationChannels() {
     val generalChannel = NotificationChannel(

@@ -4,7 +4,6 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecogniti
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.VariabilityMiningResult
 
 /**
  * All operations translate API/transport failures into [dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError]
@@ -17,11 +16,4 @@ interface ChatGPTRepository {
 
     /** @throws dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError on any API/transport failure. */
     suspend fun analyseNutrients(request: NutrientAnalysisRequest): NutrientAnalysis
-
-    /**
-     * [userMessageJson] is the full user payload (e.g. meal_observations envelope) as a JSON string.
-     *
-     * @throws dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError on any API/transport failure.
-     */
-    suspend fun mineMealVariability(userMessageJson: String): VariabilityMiningResult
 }

@@ -42,16 +42,10 @@ class RecordsRepositoryImpl @Inject constructor(
         .get(since?.toInstant()?.toEpochMilli() ?: 0L)
         .map(mapper::map)
 
-    override suspend fun getRecentRecords(limit: Int): List<Record> =
-        recordsDAO.getRecent(limit).map(mapper::map)
-
-    override suspend fun getRecordsForVariabilityDelta(limit: Int, afterWatermarkExclusive: Long): List<Record> =
-        recordsDAO.getRecentForVariabilityMining(limit, afterWatermarkExclusive).map(mapper::map)
+    override suspend fun getTemplateIdsInSameVariantFamily(templateId: Long): List<Long> =
+        templatesDAO.getTemplateIdsInVariantFamily(templateId)
 
     override suspend fun countTemplates(): Int = templatesDAO.countAllTemplates()
-
-    override suspend fun countTemplatesPendingVariabilityAfterWatermark(afterWatermarkExclusive: Long): Int =
-        templatesDAO.countTemplatesWithActivityAfter(afterWatermarkExclusive)
 
     override fun getMostRecentRecord(): Record? {
         return recordsDAO.getMostRecentRecord()

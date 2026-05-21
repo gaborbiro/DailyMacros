@@ -14,11 +14,13 @@ class CreateRecordWithNewTemplateUseCase @Inject constructor(
         images: List<String>,
         title: String,
         description: String,
+        parentTemplateId: Long? = null,
     ): Long {
         val templateId = createTemplateUseCase.execute(
             images = images,
             title = title,
             description = description,
+            parentTemplateId = parentTemplateId,
         )
         return createRecordFromTemplateUseCase.execute(templateId)
     }

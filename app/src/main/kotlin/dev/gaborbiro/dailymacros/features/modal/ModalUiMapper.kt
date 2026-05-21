@@ -5,10 +5,11 @@ import dev.gaborbiro.dailymacros.features.shared.MacrosNotificationTextMapper
 import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
-import dev.gaborbiro.dailymacros.features.modal.model.VariabilityArchetypePickerEntry
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.variability.VariabilityArchetype
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import javax.inject.Inject
 
 class ModalUiMapper @Inject constructor(
@@ -20,18 +21,14 @@ class ModalUiMapper @Inject constructor(
     fun mapDomainErrorToUserMessage(error: ChatGPTDomainError): String =
         macrosNotificationTextMapper.mapDomainErrorToUserMessage(error)
 
-    /**
-     * Whether record details should show the “different meal type” variability link(s).
-     */
-    fun mapShowVariabilityDifferentMealLink(
-        allowEdit: Boolean,
-        variabilityArchetypePickerEntries: List<VariabilityArchetypePickerEntry>,
-        variabilityArchetypes: List<VariabilityArchetype>,
-    ): Boolean {
-        if (!allowEdit) return false
-        if (variabilityArchetypePickerEntries.isEmpty()) return false
-        return variabilityArchetypes.isNotEmpty()
-    }
+    fun mapNutrientBreakdownFromTemplate(template: Template): NutrientBreakdownUiModel =
+        mapNutrientBreakdowns(
+            Record(
+                recordId = 0L,
+                timestamp = ZonedDateTime.now(ZoneOffset.UTC),
+                template = template,
+            ),
+        )
 
     fun mapNutrientBreakdowns(
         record: Record,

@@ -7,14 +7,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
+import dev.gaborbiro.dailymacros.features.modal.model.hasUnsavedEdits
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.RecognisedFood
-import dev.gaborbiro.dailymacros.features.modal.model.VariabilityArchetypePickerEntry
 import dev.gaborbiro.dailymacros.features.modal.views.RecordDetailsDialogButtons
 import dev.gaborbiro.dailymacros.features.modal.views.RecordDetailsDialogContent
-import dev.gaborbiro.dailymacros.features.modal.views.ScrollableContentDialog
 
 internal data class DeconstructedDialogHandle(
     val title: TextFieldValue,
@@ -26,10 +28,7 @@ internal data class DeconstructedDialogHandle(
     val description: TextFieldValue,
     val nutrientBreakdown: NutrientBreakdownUiModel?,
     val allowEdit: Boolean,
-    val variabilityArchetypePickerEntries: List<VariabilityArchetypePickerEntry>,
-    val saveButtonText: String,
     val showKeyboardOnOpen: Boolean,
-    val showVariabilityDifferentMealLink: Boolean,
     val titleValidationError: String?,
 )
 
@@ -48,11 +47,6 @@ internal fun deconstructDialogHandle(
     val allowEdit = (dialogHandle as? DialogHandle.RecordDetailsDialog.View)
         ?.allowEdit
         ?: true
-    val variabilityArchetypePickerEntries =
-        (dialogHandle as? DialogHandle.RecordDetailsDialog.View)?.variabilityArchetypePickerEntries
-            ?: emptyList()
-    val saveButtonText =
-        if (dialogHandle is DialogHandle.RecordDetailsDialog.View) "Update and Analyze" else "Add and Analyze"
     val showKeyboardOnOpen = when (dialogHandle) {
         is DialogHandle.RecordDetailsDialog.Edit -> true
         is DialogHandle.RecordDetailsDialog.View -> false
@@ -67,18 +61,11 @@ internal fun deconstructDialogHandle(
         description = dialogHandle.description,
         nutrientBreakdown = nutrientBreakdown,
         allowEdit = allowEdit,
-        variabilityArchetypePickerEntries = variabilityArchetypePickerEntries,
-        saveButtonText = saveButtonText,
         showKeyboardOnOpen = showKeyboardOnOpen,
-        showVariabilityDifferentMealLink = dialogHandle.showVariabilityDifferentMealLink,
         titleValidationError = dialogHandle.titleValidationError,
     )
 }
 
-/**
- * Studio layout preview only: avoids [ScrollableContentDialog] (Dialog + nested measure) which can trip
- * layoutlib’s cooperative interrupt loop breaker.
- */
 @Composable
 internal fun RecordDetailsDialogPreview(
     dialogHandle: DialogHandle.RecordDetailsDialog,
@@ -92,10 +79,11 @@ internal fun RecordDetailsDialogPreview(
     onDismissRequested: () -> Unit = {},
     onImagesInfoButtonTapped: () -> Unit = {},
     onRunAIButtonTapped: () -> Unit = {},
-    onVariabilityDifferentMealLinkTapped: (archetypeKey: String) -> Unit = { _ -> },
 ) {
     val ui = deconstructDialogHandle(dialogHandle)
     val showKeyboardOnOpen = remember(dialogHandle) { ui.showKeyboardOnOpen }
+    val viewDialog = dialogHandle as? DialogHandle.RecordDetailsDialog.View
+    val showCloseOnly = viewDialog != null && !viewDialog.allowEdit
     ViewPreviewContext {
         Column(Modifier.verticalScroll(rememberScrollState())) {
             RecordDetailsDialogContent(
@@ -103,6 +91,7 @@ internal fun RecordDetailsDialogPreview(
                 onDescriptionChanged = onDescriptionChanged,
                 showKeyboardOnOpen = showKeyboardOnOpen,
                 images = ui.images,
+                showImageDeleteButton = ui.allowEdit,
                 title = ui.title,
                 showRunAIButton = ui.showRunAIButton,
                 titleHint = ui.titleHint,
@@ -118,16 +107,86 @@ internal fun RecordDetailsDialogPreview(
                 onAddImageViaPickerTapped = onAddImageViaPickerTapped,
                 onImagesInfoButtonTapped = onImagesInfoButtonTapped,
                 onRunAIButtonTapped = onRunAIButtonTapped,
-                showVariabilityDifferentMealLink = ui.showVariabilityDifferentMealLink,
-                variabilityArchetypePickerEntries = ui.variabilityArchetypePickerEntries,
-                onVariabilityDifferentMealLinkTapped = onVariabilityDifferentMealLinkTapped,
+                variantPickerOptions = viewDialog?.variantPickerOptions,
+                selectedVariantTemplateId = viewDialog?.templateDbId ?: 0L,
+                onVariantTemplatePicked = {},
+                showQuickPickStar = viewDialog != null,
+                quickPickStarred = viewDialog?.quickPickStarred == true,
+                onQuickPickStarToggled = {},
             )
-            RecordDetailsDialogButtons(
-                allowEdit = ui.allowEdit,
-                saveButtonText = ui.saveButtonText,
-                onDismissRequested = onDismissRequested,
-                onSubmitButtonTapped = onSubmitButtonTapped,
-            )
+            when (dialogHandle) {
+                is DialogHandle.RecordDetailsDialog.Edit -> {
+                    RecordDetailsDialogButtons(
+                        showCloseOnly = false,
+                        showSaveAndAdd = false,
+                        primaryEnabled = true,
+                        primaryLabel = stringResource(R.string.meal_details_action_save),
+                        saveAndAddLabel = null,
+                        onDismissRequested = onDismissRequested,
+                        onSaveTapped = onSubmitButtonTapped,
+                        onSaveAndAddTapped = {},
+                    )
+                }
+
+                is DialogHandle.RecordDetailsDialog.View -> {
+                    val showCloseOnlyRow = showCloseOnly
+                    val dirty = dialogHandle.hasUnsavedEdits()
+                    when {
+                        showCloseOnlyRow -> {
+                            RecordDetailsDialogButtons(
+                                showCloseOnly = true,
+                                showSaveAndAdd = false,
+                                primaryEnabled = true,
+                                primaryLabel = null,
+                                saveAndAddLabel = null,
+                                onDismissRequested = onDismissRequested,
+                                onSaveTapped = onSubmitButtonTapped,
+                                onSaveAndAddTapped = {},
+                            )
+                        }
+                        dialogHandle.openedFromTemplateDetailsOnly -> {
+                            RecordDetailsDialogButtons(
+                                showCloseOnly = false,
+                                showSaveAndAdd = false,
+                                primaryEnabled = true,
+                                primaryLabel = if (dirty) {
+                                    stringResource(R.string.meal_details_action_add_new_template)
+                                } else {
+                                    stringResource(R.string.meal_details_action_add_new)
+                                },
+                                saveAndAddLabel = null,
+                                onDismissRequested = onDismissRequested,
+                                onSaveTapped = onSubmitButtonTapped,
+                                onSaveAndAddTapped = {},
+                            )
+                        }
+                        else -> {
+                            RecordDetailsDialogButtons(
+                                showCloseOnly = false,
+                                showSaveAndAdd = true,
+                                primaryEnabled = dirty,
+                                primaryLabel = if (dialogHandle.linkedRecordCountForTemplate == 1) {
+                                    stringResource(R.string.meal_details_action_update)
+                                } else {
+                                    pluralStringResource(
+                                        R.plurals.meal_details_update_linked_records,
+                                        dialogHandle.linkedRecordCountForTemplate,
+                                        dialogHandle.linkedRecordCountForTemplate,
+                                    )
+                                },
+                                saveAndAddLabel = if (dirty) {
+                                    stringResource(R.string.meal_details_action_add_new_template)
+                                } else {
+                                    stringResource(R.string.meal_details_action_add_new)
+                                },
+                                onDismissRequested = onDismissRequested,
+                                onSaveTapped = onSubmitButtonTapped,
+                                onSaveAndAddTapped = onSubmitButtonTapped,
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

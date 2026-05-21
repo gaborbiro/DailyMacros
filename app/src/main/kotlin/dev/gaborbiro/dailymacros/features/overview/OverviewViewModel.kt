@@ -6,8 +6,9 @@ import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.features.common.utils.combine
-import dev.gaborbiro.dailymacros.features.common.workers.NutrientAnalysisWorker
+import dev.gaborbiro.dailymacros.features.shared.NutrientAnalysisWorker
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.ListMealVariantsForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiState
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiUpdates
 import dev.gaborbiro.dailymacros.features.overview.usecase.CancelMacrosAnalysisForRecordUseCase
@@ -17,11 +18,13 @@ import dev.gaborbiro.dailymacros.features.overview.usecase.ResolveOverviewCoachM
 import dev.gaborbiro.dailymacros.features.overview.usecase.ResolveOverviewObserveSinceEpochMillisUseCase
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
+import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -31,13 +34,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.seconds
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class OverviewViewModel @Inject constructor(
     application: Application,
@@ -50,6 +54,7 @@ class OverviewViewModel @Inject constructor(
     private val deleteUnusedTemplateIfOrphaned: DeleteUnusedTemplateIfOrphanedUseCase,
     private val cancelMacrosAnalysisForRecord: CancelMacrosAnalysisForRecordUseCase,
     private val applyQuickPickOverrideAndReloadWidget: ApplyQuickPickOverrideAndReloadWidgetUseCase,
+    private val listMealVariantsForTemplateUseCase: ListMealVariantsForTemplateUseCase,
     private val createRecordFromTemplateUseCase: CreateRecordFromTemplateUseCase,
 ) : AndroidViewModel(application) {
 
@@ -92,12 +97,13 @@ class OverviewViewModel @Inject constructor(
             val sinceMillis = resolveObserveSinceEpochMillis.execute(searchBlank, sinceEpochMillis)
             recordsRepository.observeRecords(search, sinceEpochMillis = sinceMillis)
                 .combine(flowOf(settingsRepository.getTargets()))
-                .map { (records: List<Record>, targets: Targets) ->
-                    if (searchBlank) {
+                .mapLatest { (records: List<Record>, targets: Targets) ->
+                    val items = if (searchBlank) {
                         uiMapper.map(records, targets)
                     } else {
                         uiMapper.mapSearchResults(records)
                     }
+                    enrichRecordRowsWithOtherVariantsIcon(items)
                 }
                 .collect { records: List<ListUiModelBase> ->
                     val hasMore = computeHasMoreItems.execute(
@@ -142,6 +148,17 @@ class OverviewViewModel @Inject constructor(
                 }
         }
     }
+
+    private suspend fun enrichRecordRowsWithOtherVariantsIcon(items: List<ListUiModelBase>): List<ListUiModelBase> =
+        items.map { item ->
+            when (item) {
+                is ListUiModelRecord -> {
+                    val show = listMealVariantsForTemplateUseCase.hasOtherVariants(item.templateId)
+                    item.copy(showOtherLoggedVariantsIcon = show)
+                }
+                else -> item
+            }
+        }
 
     fun onCoachMarkDismissed() {
         _viewState.update {

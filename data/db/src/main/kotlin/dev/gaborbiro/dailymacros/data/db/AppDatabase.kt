@@ -15,11 +15,6 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatusEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TopContributorsEntity
-import dev.gaborbiro.dailymacros.data.db.model.entity.VariabilityArchetypeEntity
-import dev.gaborbiro.dailymacros.data.db.model.entity.VariabilitySlotEntity
-import dev.gaborbiro.dailymacros.data.db.model.entity.VariabilitySnapshotEntity
-import dev.gaborbiro.dailymacros.data.db.model.entity.VariabilityVariantEntity
-import dev.gaborbiro.dailymacros.data.db.model.entity.VariabilityVariantEvidenceEntity
 import java.time.LocalDateTime
 import java.time.ZoneId
 
@@ -32,13 +27,8 @@ import java.time.ZoneId
         ImageEntity::class,
         RequestStatusEntity::class,
         QuickPickOverrideEntity::class,
-        VariabilitySnapshotEntity::class,
-        VariabilityArchetypeEntity::class,
-        VariabilitySlotEntity::class,
-        VariabilityVariantEntity::class,
-        VariabilityVariantEvidenceEntity::class,
     ],
-    version = 13,
+    version = 14,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -51,7 +41,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun recordsDAO(): RecordsDAO
     abstract fun templatesDAO(): TemplatesDAO
     abstract fun requestStatusDAO(): RequestStatusDAO
-    abstract fun variabilityDao(): VariabilityDao
 
     companion object {
 
@@ -73,6 +62,7 @@ abstract class AppDatabase : RoomDatabase() {
                 .addMigrations(MIGRATION_10_11)
                 .addMigrations(MIGRATION_11_12)
                 .addMigrations(MIGRATION_12_13)
+                .addMigrations(MIGRATION_13_14)
                 .build()
         }
     }
@@ -376,6 +366,24 @@ val MIGRATION_12_13 = object : Migration(12, 13) {
         db.execSQL("ALTER TABLE templates ADD COLUMN updatedAtEpochMs INTEGER NOT NULL DEFAULT 0")
         db.execSQL(
             "ALTER TABLE variability_snapshots ADD COLUMN templatesIngestWatermarkEpochMs INTEGER NOT NULL DEFAULT 0",
+        )
+    }
+}
+
+val MIGRATION_13_14 = object : Migration(13, 14) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DROP TABLE IF EXISTS `variability_variant_evidence`")
+        db.execSQL("DROP TABLE IF EXISTS `variability_variants`")
+        db.execSQL("DROP TABLE IF EXISTS `variability_slots`")
+        db.execSQL("DROP TABLE IF EXISTS `variability_archetypes`")
+        db.execSQL("DROP TABLE IF EXISTS `variability_snapshots`")
+        db.execSQL(
+            "DELETE FROM sqlite_sequence WHERE `name` IN (" +
+                "'variability_snapshots', " +
+                "'variability_archetypes', " +
+                "'variability_slots', " +
+                "'variability_variants', " +
+                "'variability_variant_evidence')",
         )
     }
 }
