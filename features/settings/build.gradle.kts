@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":repositories:backup"))
     implementation(project(":core:design"))
     implementation(project(":features:common"))
+    implementation(project(":features:shared"))
     implementation(project(":repositories:settings"))
     implementation(project(":repositories:records"))
     implementation(project(":repositories:chatgpt"))

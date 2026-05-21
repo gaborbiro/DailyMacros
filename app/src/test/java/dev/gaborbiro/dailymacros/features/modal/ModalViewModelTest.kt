@@ -42,6 +42,9 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImage
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -108,6 +111,27 @@ class ModalViewModelTest {
             error("unused")
     }
 
+    private val disabledTarget = Target(enabled = false)
+
+    private val testSettingsRepository = object : SettingsRepository {
+        override fun getTargets(): Targets = Targets(
+            calories = disabledTarget,
+            protein = disabledTarget,
+            salt = disabledTarget,
+            fat = disabledTarget,
+            carbs = disabledTarget,
+            fibre = disabledTarget,
+            ofWhichSaturated = disabledTarget,
+            ofWhichSugar = disabledTarget,
+        )
+
+        override fun setTargets(targets: Targets) = Unit
+
+        override fun getDiaryDayStartHour(): Int = 0
+
+        override fun setDiaryDayStartHour(hourOfDay: Int) = Unit
+    }
+
     private fun viewModel(repo: RecordsRepository = BaseRecordsRepositoryStub()): ModalViewModel {
         val app = ApplicationProvider.getApplicationContext<Application>()
         val nutrients = NutrientsUiMapper()
@@ -128,6 +152,7 @@ class ModalViewModelTest {
             buildRecordDetailsViewDialogUseCase = buildDetails,
             resolveFirstRecordIdForTemplateUseCase = ResolveFirstRecordIdForTemplateUseCase(repo),
             listMealVariantsForTemplateUseCase = listMealVariants,
+            settingsRepository = testSettingsRepository,
             createRecordFromTemplateUseCase = createFromTemplate,
             createTemplateUseCase = createTemplate,
             createRecordWithNewTemplateUseCase = CreateRecordWithNewTemplateUseCase(createTemplate, createFromTemplate),

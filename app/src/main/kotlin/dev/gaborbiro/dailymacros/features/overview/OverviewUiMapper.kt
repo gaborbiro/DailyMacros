@@ -4,6 +4,10 @@ import android.icu.text.DecimalFormat
 import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.shared.RecordsMapper
 import dev.gaborbiro.dailymacros.features.shared.SharedRecordsUiMapper
+import dev.gaborbiro.dailymacros.features.shared.diaryDayStartTime
+import dev.gaborbiro.dailymacros.features.shared.diaryDayWindowStart
+import dev.gaborbiro.dailymacros.features.shared.logicalDiaryDate
+import dev.gaborbiro.dailymacros.features.shared.logicalDiaryToday
 import dev.gaborbiro.dailymacros.features.overview.model.DailySummaryEntry
 import dev.gaborbiro.dailymacros.features.overview.model.ChangeDirection
 import dev.gaborbiro.dailymacros.features.overview.model.ChangeIndicator
@@ -14,10 +18,13 @@ import dev.gaborbiro.dailymacros.features.shared.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.overview.model.NutrientSummaryStatEntry
 import dev.gaborbiro.dailymacros.features.shared.model.TravelDay
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import java.time.Duration
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.WeekFields
 import java.util.Locale
@@ -29,6 +36,7 @@ class OverviewUiMapper @Inject constructor(
     private val recordsUiMapper: SharedRecordsUiMapper,
     private val nutrientsUiMapper: NutrientsUiMapper,
     private val recordsMapper: RecordsMapper,
+    private val settingsRepository: SettingsRepository,
 ) {
 
     fun mapSearchResults(
@@ -46,9 +54,10 @@ class OverviewUiMapper @Inject constructor(
         val result = mutableListOf<ListUiModelBase>()
         val currentWeek = mutableListOf<TravelDay>()
         var previousWeek: List<TravelDay>? = null
-        val today = LocalDate.now()
+        val dayStart = diaryDayStartTime(settingsRepository.getDiaryDayStartHour())
+        val today = logicalDiaryToday(ZoneId.systemDefault(), dayStart)
 
-        val grouped = records.groupByWallClockDay()
+        val grouped = records.groupByWallClockDay(dayStart)
 
         grouped.forEachIndexed { index, travelDay ->
             currentWeek += travelDay
@@ -113,7 +122,9 @@ class OverviewUiMapper @Inject constructor(
         val infoMessage = buildTimezoneInfo(day)
 
         return ListUiModelDailySummary(
-            listItemId = day.day.atStartOfDay(day.startZone).toInstant().toEpochMilli(),
+            listItemId = diaryDayWindowStart(day.day, day.diaryDayStart, day.startZone)
+                .toInstant()
+                .toEpochMilli(),
             dayTitle = mapDayTitleTimestamp(day.day),
             infoMessage = infoMessage,
             entries = progressItems,
@@ -588,12 +599,12 @@ class OverviewUiMapper @Inject constructor(
         return if (scores.isEmpty()) 0f else scores.average().toFloat()
     }
 
-    private fun List<Record>.groupByWallClockDay(): List<TravelDay> {
+    private fun List<Record>.groupByWallClockDay(dayStart: LocalTime): List<TravelDay> {
         return this
             .sortedBy { it.timestamp.toInstant() }
             .groupByTo(
                 destination = sortedMapOf(),
-                keySelector = { it.timestamp.toLocalDate() },
+                keySelector = { it.timestamp.logicalDiaryDate(dayStart) },
                 valueTransform = { it }
             )
             .map { (day, records) ->
@@ -604,6 +615,7 @@ class OverviewUiMapper @Inject constructor(
                     day = day,
                     firstLog = start,
                     lastLog = end,
+                    diaryDayStart = dayStart,
                 )
             }
     }

@@ -4,21 +4,23 @@ import android.content.res.Configuration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -28,15 +30,18 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.gaborbiro.dailymacros.features.settings.R
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,10 +51,43 @@ internal fun SettingsView(
     snackbarHostState: SnackbarHostState,
     onBackNavigateRequested: () -> Unit,
     onTargetsSettingTapped: () -> Unit,
+    onDiaryDayStartTapped: () -> Unit,
+    onDiaryDayStartDialogDismissed: () -> Unit,
+    onDiaryDayStartHourSelected: (Int) -> Unit,
     onExportSettingTapped: () -> Unit,
     onExportDbTapped: () -> Unit,
     onImportDbTapped: () -> Unit,
 ) {
+
+    if (viewState.showDiaryDayStartDialog) {
+        AlertDialog(
+            onDismissRequest = onDiaryDayStartDialogDismissed,
+            title = {
+                Text(text = stringResource(R.string.settings_diary_day_start_dialog_title))
+            },
+            text = {
+                Column {
+                    listOf(
+                        0 to R.string.settings_diary_day_start_option_midnight,
+                        1 to R.string.settings_diary_day_start_option_1am,
+                        2 to R.string.settings_diary_day_start_option_2am,
+                    ).forEach { (hour, labelRes) ->
+                        TextButton(
+                            onClick = { onDiaryDayStartHourSelected(hour) },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(labelRes))
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = onDiaryDayStartDialogDismissed) {
+                    Text(stringResource(R.string.settings_diary_day_start_dialog_close))
+                }
+            },
+        )
+    }
 
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
@@ -88,6 +126,11 @@ internal fun SettingsView(
                 .imePadding(),
         ) {
             SettingRow(title = "Daily targets", onTapped = onTargetsSettingTapped)
+            SettingRow(
+                title = stringResource(R.string.settings_diary_day_start_row),
+                subtitle = diaryDayStartSummary(viewState.diaryDayStartHour),
+                onTapped = onDiaryDayStartTapped,
+            )
             SettingRow(title = "Export summary JSON", onTapped = onExportSettingTapped)
             val backupIdle =
                 !viewState.exportDataInProgress && !viewState.importDataInProgress
@@ -122,8 +165,19 @@ internal fun SettingsView(
 }
 
 @Composable
+private fun diaryDayStartSummary(hour: Int): String {
+    val h = hour.coerceIn(0, 2)
+    return when (h) {
+        0 -> stringResource(R.string.settings_diary_day_start_option_midnight)
+        1 -> stringResource(R.string.settings_diary_day_start_option_1am)
+        else -> stringResource(R.string.settings_diary_day_start_option_2am)
+    }
+}
+
+@Composable
 private fun SettingRow(
     title: String,
+    subtitle: String? = null,
     enabled: Boolean = true,
     trailing: @Composable (() -> Unit)? = null,
     onTapped: () -> Unit,
@@ -138,12 +192,21 @@ private fun SettingRow(
             .alpha(if (enabled) 1f else 0.6f),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
+        Column(
             modifier = Modifier
                 .weight(1f)
                 .padding(16.dp),
-            text = title,
-        )
+        ) {
+            Text(text = title)
+            if (subtitle != null) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
         trailing?.invoke()
         Spacer(modifier = Modifier.padding(end = 16.dp))
     }
@@ -158,10 +221,14 @@ private fun SettingsViewPreview() {
             viewState = SettingsUiState(
                 showTargetsSettings = true,
                 bottomLabel = "Bottom Label",
+                diaryDayStartHour = 1,
             ),
             snackbarHostState = remember { SnackbarHostState() },
             onBackNavigateRequested = {},
             onTargetsSettingTapped = {},
+            onDiaryDayStartTapped = {},
+            onDiaryDayStartDialogDismissed = {},
+            onDiaryDayStartHourSelected = {},
             onExportSettingTapped = {},
             onExportDbTapped = {},
             onImportDbTapped = {},

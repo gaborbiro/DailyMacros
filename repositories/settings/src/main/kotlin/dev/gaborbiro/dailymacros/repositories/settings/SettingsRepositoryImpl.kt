@@ -40,7 +40,19 @@ class SettingsRepositoryImpl @Inject constructor(
         return mapper.map(json)
     }
 
+    override fun getDiaryDayStartHour(): Int =
+        prefs.getInt(KEY_DIARY_DAY_START_HOUR, DEFAULT_DIARY_DAY_START_HOUR)
+            .coerceIn(0, 23)
+
+    override fun setDiaryDayStartHour(hourOfDay: Int) {
+        prefs.edit {
+            putInt(KEY_DIARY_DAY_START_HOUR, hourOfDay.coerceIn(0, 23))
+        }
+    }
+
     companion object {
         private const val KEY_TARGETS = "targets_json"
+        private const val KEY_DIARY_DAY_START_HOUR = "diary_day_start_hour"
+        private const val DEFAULT_DIARY_DAY_START_HOUR = 0
     }
 }

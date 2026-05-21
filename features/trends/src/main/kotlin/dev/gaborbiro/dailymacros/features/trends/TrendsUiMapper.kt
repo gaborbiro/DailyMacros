@@ -1,15 +1,21 @@
 package dev.gaborbiro.dailymacros.features.trends
 
 import androidx.compose.ui.graphics.Color
+import dev.gaborbiro.dailymacros.features.shared.diaryDayStartTime
+import dev.gaborbiro.dailymacros.features.shared.logicalDiaryDate
+import dev.gaborbiro.dailymacros.features.shared.logicalDiaryToday
 import dev.gaborbiro.dailymacros.features.trends.model.ChartDataPoint
 import dev.gaborbiro.dailymacros.features.trends.model.ChartDataset
 import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsChartUiModel
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.YearMonth
+import java.time.ZoneId
 import java.time.format.TextStyle
 import java.time.temporal.WeekFields
 import java.util.Locale
@@ -17,14 +23,24 @@ import javax.inject.Inject
 
 class TrendsUiMapper @Inject constructor(
     private val preferences: TrendsPreferences,
+    private val settingsRepository: SettingsRepository,
 ) {
+
+    private val diaryDayStart: LocalTime
+        get() = diaryDayStartTime(settingsRepository.getDiaryDayStartHour())
+
+    private fun Record.diaryKeyDate(): LocalDate =
+        timestamp.logicalDiaryDate(diaryDayStart)
+
+    private fun logicalToday(): LocalDate =
+        logicalDiaryToday(ZoneId.systemDefault(), diaryDayStart)
 
     fun mapDaysCharts(
         records: List<Record>,
         dayQualifier: DayQualifier,
         targets: Targets,
     ): List<TrendsChartUiModel> {
-        val recordsByPeriod = records.groupBy { it.timestamp.toLocalDate() }
+        val recordsByPeriod = records.groupBy { it.diaryKeyDate() }
 
         val days: List<LocalDate> = generateSequence(
             from = recordsByPeriod.keys.minOrNull(),
@@ -49,7 +65,7 @@ class TrendsUiMapper @Inject constructor(
             }
         }
 
-        val today = LocalDate.now()
+        val today = logicalToday()
 
         return mapCharts(
             timeRange = days,
@@ -77,7 +93,7 @@ class TrendsUiMapper @Inject constructor(
         val weekFields = WeekFields.of(Locale.getDefault())
 
         val recordsByPeriod = records.groupBy { record ->
-            record.timestamp.toLocalDate().with(weekFields.dayOfWeek(), 1)
+            record.diaryKeyDate().with(weekFields.dayOfWeek(), 1)
         }
 
         val weeks: List<LocalDate> = generateSequence(
@@ -98,7 +114,7 @@ class TrendsUiMapper @Inject constructor(
             }
         }
 
-        val today = LocalDate.now()
+        val today = logicalToday()
 
         return mapCharts(
             timeRange = weeks,
@@ -146,7 +162,7 @@ class TrendsUiMapper @Inject constructor(
         aggregationMode: DayQualifier,
         targets: Targets,
     ): List<TrendsChartUiModel> {
-        val recordsByPeriod = records.groupBy { YearMonth.from(it.timestamp.toLocalDate()) }
+        val recordsByPeriod = records.groupBy { YearMonth.from(it.diaryKeyDate()) }
 
         val months: List<YearMonth> = generateSequence(
             from = recordsByPeriod.keys.minOrNull(),
@@ -157,8 +173,8 @@ class TrendsUiMapper @Inject constructor(
         fun monthLabel(ym: YearMonth): String =
             ym.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
 
-        val thisMonth = YearMonth.now()
-        val todayDate = LocalDate.now()
+        val todayDate = logicalToday()
+        val thisMonth = YearMonth.from(todayDate)
 
         return mapCharts(
             timeRange = months,
@@ -277,7 +293,7 @@ class TrendsUiMapper @Inject constructor(
 
             DayQualifier.ONLY_LOGGED_DAYS ->
                 records
-                    .map { it.timestamp.toLocalDate() }
+                    .map { it.diaryKeyDate() }
                     .distinct()
 
             DayQualifier.ONLY_QUALIFIED_DAYS -> {
@@ -295,7 +311,7 @@ class TrendsUiMapper @Inject constructor(
         records
             .mapNotNull { record ->
                 record.template.nutrients.calories?.toFloat()?.let {
-                    record.timestamp.toLocalDate() to it
+                    record.diaryKeyDate() to it
                 }
             }
             .groupBy({ it.first }, { it.second })
@@ -314,7 +330,7 @@ class TrendsUiMapper @Inject constructor(
                 records[key]
                     ?.mapNotNull { record ->
                         valueProvider(record)?.let { value ->
-                            record.timestamp.toLocalDate() to value
+                            record.diaryKeyDate() to value
                         }
                     }
                     ?.groupBy({ it.first }, { it.second })
