@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -19,7 +20,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.IconButton
@@ -464,6 +464,7 @@ private fun VariantTemplateDropdown(
     onTemplatePicked: (Long) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val menuScrollState = rememberScrollState()
     val selected = options.find { it.templateId == selectedTemplateId } ?: options.firstOrNull()
     val summaryForField = selected?.let { "${it.title}\n${it.lastUsedDateLabel}" } ?: ""
     val pickVariantLabel = stringResource(R.string.meal_details_pick_variant_cd)
@@ -498,11 +499,9 @@ private fun VariantTemplateDropdown(
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
+            scrollState = menuScrollState,
         ) {
-            options.forEachIndexed { index, option ->
-                if (index == 1) {
-                    HorizontalDivider()
-                }
+            options.forEach { option ->
                 DropdownMenuItem(
                     text = {
                         Column {
