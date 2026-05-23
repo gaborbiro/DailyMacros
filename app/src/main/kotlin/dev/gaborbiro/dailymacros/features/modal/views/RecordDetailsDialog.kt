@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.modal.views
 
 import android.content.res.Configuration
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -19,11 +21,11 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +44,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -464,9 +467,11 @@ private fun VariantTemplateDropdown(
     onTemplatePicked: (Long) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val selected = options.find { it.templateId == selectedTemplateId } ?: options.firstOrNull()
-    val summaryForField = selected?.let { "${it.title}\n${it.lastUsedDateLabel}" } ?: ""
+    val menuScrollState = rememberScrollState()
+    val selectedOption = options.find { it.templateId == selectedTemplateId } ?: options.firstOrNull()
+    val summaryForField = selectedOption?.let { "${it.title}\n${it.lastUsedDateLabel}" } ?: ""
     val pickVariantLabel = stringResource(R.string.meal_details_pick_variant_cd)
+    val selectedRowLabel = stringResource(R.string.meal_details_variant_row_selected_cd)
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = it },
@@ -498,12 +503,28 @@ private fun VariantTemplateDropdown(
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
+            scrollState = menuScrollState,
         ) {
-            options.forEachIndexed { index, option ->
-                if (index == 1) {
-                    HorizontalDivider()
-                }
+            options.forEach { option ->
+                val isSelected = option.templateId == selectedTemplateId
                 DropdownMenuItem(
+                    modifier = Modifier.semantics {
+                        selected = isSelected
+                    },
+                    leadingIcon = {
+                        Box(
+                            modifier = Modifier.size(24.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            if (isSelected) {
+                                Icon(
+                                    imageVector = Icons.Filled.Check,
+                                    contentDescription = selectedRowLabel,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                )
+                            }
+                        }
+                    },
                     text = {
                         Column {
                             Text(

@@ -41,6 +41,10 @@ data class RecordDetailsPristineSnapshot(
 )
 
 fun MealVariantListResult.toPickerOptions(diaryDayStartHour: Int): List<MealVariantPickerOption> {
+    val zone = current.lastUsed?.zone
+        ?: others.firstOrNull()?.lastUsed?.zone
+        ?: ZonedDateTime.now().zone
+    val epochStart = ZonedDateTime.of(1970, 1, 1, 0, 0, 0, 0, zone)
     fun opt(row: MealVariantListRow): MealVariantPickerOption {
         val dateLabel = row.lastUsed?.let { formatMealVariantPickerDateOnly(it, diaryDayStartHour) } ?: ""
         return MealVariantPickerOption(
@@ -50,5 +54,9 @@ fun MealVariantListResult.toPickerOptions(diaryDayStartHour: Int): List<MealVari
             isCurrentVariant = row.isCurrent,
         )
     }
-    return listOf(opt(current)) + others.map { opt(it) }
+    val merged = (listOf(current) + others).sortedWith(
+        compareByDescending<MealVariantListRow> { it.lastUsed ?: epochStart }
+            .thenBy { it.title },
+    )
+    return merged.map { opt(it) }
 }
