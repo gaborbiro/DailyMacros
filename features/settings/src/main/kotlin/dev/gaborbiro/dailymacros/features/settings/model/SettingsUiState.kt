@@ -5,4 +5,6 @@ data class SettingsUiState(
     val bottomLabel: String,
     val exportDataInProgress: Boolean = false,
     val importDataInProgress: Boolean = false,
+    val diaryDayStartHour: Int = 0,
+    val showDiaryDayStartDialog: Boolean = false,
 )

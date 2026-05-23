@@ -40,6 +40,7 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
+import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import ellipsize
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -67,6 +68,7 @@ class ModalViewModel @Inject constructor(
     private val buildRecordDetailsViewDialogUseCase: BuildRecordDetailsViewDialogUseCase,
     private val resolveFirstRecordIdForTemplateUseCase: ResolveFirstRecordIdForTemplateUseCase,
     private val listMealVariantsForTemplateUseCase: ListMealVariantsForTemplateUseCase,
+    private val settingsRepository: SettingsRepository,
     private val createRecordFromTemplateUseCase: CreateRecordFromTemplateUseCase,
     private val createTemplateUseCase: CreateTemplateUseCase,
     private val createRecordWithNewTemplateUseCase: CreateRecordWithNewTemplateUseCase,
@@ -469,7 +471,8 @@ class ModalViewModel @Inject constructor(
     ): DialogHandle.RecordDetailsDialog.View {
         val base = buildRecordDetailsViewDialogUseCase.execute(record, edit, templateDetailsMode)
         val variantList = listMealVariantsForTemplateUseCase.execute(record.template.dbId)
-        val options = variantList?.takeIf { it.hasOtherVariants }?.toPickerOptions()
+        val options = variantList?.takeIf { it.hasOtherVariants }
+            ?.toPickerOptions(settingsRepository.getDiaryDayStartHour())
         val starred = resolveQuickPickStarred(record.template)
         val linkedCount = recordsRepository.countRecordsForTemplate(record.template.dbId)
         return base.copy(

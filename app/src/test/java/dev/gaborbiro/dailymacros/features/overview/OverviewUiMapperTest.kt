@@ -8,6 +8,9 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -23,10 +26,32 @@ class OverviewUiMapperTest {
 
     private val zone = ZoneId.of("UTC")
 
+    private val disabledTarget = Target(enabled = false)
+
+    private val testSettingsRepository = object : SettingsRepository {
+        override fun getTargets(): Targets = Targets(
+            calories = disabledTarget,
+            protein = disabledTarget,
+            salt = disabledTarget,
+            fat = disabledTarget,
+            carbs = disabledTarget,
+            fibre = disabledTarget,
+            ofWhichSaturated = disabledTarget,
+            ofWhichSugar = disabledTarget,
+        )
+
+        override fun setTargets(targets: Targets) = Unit
+
+        override fun getDiaryDayStartHour(): Int = 0
+
+        override fun setDiaryDayStartHour(hourOfDay: Int) = Unit
+    }
+
     private val mapper = OverviewUiMapper(
         recordsUiMapper = SharedRecordsUiMapper(NutrientsUiMapper()),
         nutrientsUiMapper = NutrientsUiMapper(),
         recordsMapper = RecordsMapper(),
+        settingsRepository = testSettingsRepository,
     )
 
     private fun stubTemplate(dbId: Long, name: String) = Template(

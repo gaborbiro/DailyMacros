@@ -4,8 +4,13 @@ import com.google.gson.GsonBuilder
 import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.SharePublicUriLauncher
 import dev.gaborbiro.dailymacros.features.settings.export.StreamWriter
+import dev.gaborbiro.dailymacros.features.shared.diaryDayStartTime
+import dev.gaborbiro.dailymacros.features.shared.logicalDiaryDate
+import dev.gaborbiro.dailymacros.features.shared.logicalDiaryToday
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import java.io.OutputStream
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import javax.inject.Inject
 
@@ -13,6 +18,7 @@ class ExportFoodDiaryUseCase @Inject constructor(
     private val recordRepository: RecordsRepository,
     private val streamWriter: StreamWriter,
     private val sharePublicUriLauncher: SharePublicUriLauncher,
+    private val settingsRepository: SettingsRepository,
 ) {
 
     private val gson = GsonBuilder()
@@ -56,8 +62,13 @@ class ExportFoodDiaryUseCase @Inject constructor(
                 )
             }
 
-        val from = records.minOf { it.timestamp }.toLocalDate()
-        val to = ZonedDateTime.now().toLocalDate()
+        val dayStart = diaryDayStartTime(settingsRepository.getDiaryDayStartHour())
+        val zone = ZoneId.systemDefault()
+        val from = records.minOf { it.timestamp }.logicalDiaryDate(dayStart)
+        val to = maxOf(
+            logicalDiaryToday(zone, dayStart),
+            records.maxOf { it.timestamp }.logicalDiaryDate(dayStart),
+        )
         val fileName =
             "food-diary-${from}_to_${to}.json"
 

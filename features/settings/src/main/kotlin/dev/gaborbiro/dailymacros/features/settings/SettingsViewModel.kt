@@ -12,6 +12,7 @@ import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteD
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseUseCase
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
+import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -26,6 +27,7 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     application: Application,
     appInfo: SettingsAppInfo,
+    private val settingsRepository: SettingsRepository,
     private val exportFoodDiaryUseCase: ExportFoodDiaryUseCase,
     private val exportSqliteDatabaseUseCase: ExportSqliteDatabaseUseCase,
     private val importSqliteDatabaseUseCase: ImportSqliteDatabaseUseCase,
@@ -35,6 +37,7 @@ class SettingsViewModel @Inject constructor(
         SettingsUiState(
             showTargetsSettings = false,
             bottomLabel = appInfo.versionLabel,
+            diaryDayStartHour = settingsRepository.getDiaryDayStartHour(),
         ),
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
@@ -60,6 +63,25 @@ class SettingsViewModel @Inject constructor(
     fun onTargetsSettingsCloseRequested() {
         _uiState.update {
             it.copy(showTargetsSettings = false)
+        }
+    }
+
+    fun onDiaryDayStartRowTapped() {
+        _uiState.update { it.copy(showDiaryDayStartDialog = true) }
+    }
+
+    fun onDiaryDayStartDialogDismissed() {
+        _uiState.update { it.copy(showDiaryDayStartDialog = false) }
+    }
+
+    fun onDiaryDayStartHourSelected(hourOfDay: Int) {
+        val hour = hourOfDay.coerceIn(0, 2)
+        settingsRepository.setDiaryDayStartHour(hour)
+        _uiState.update {
+            it.copy(
+                diaryDayStartHour = hour,
+                showDiaryDayStartDialog = false,
+            )
         }
     }
 

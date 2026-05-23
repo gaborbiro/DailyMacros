@@ -7,4 +7,9 @@ interface SettingsRepository {
     fun getTargets(): Targets
 
     fun setTargets(targets: Targets)
+
+    /** Hour of day (0–23) when the food diary day rolls over; 0 means midnight. */
+    fun getDiaryDayStartHour(): Int
+
+    fun setDiaryDayStartHour(hourOfDay: Int)
 }
