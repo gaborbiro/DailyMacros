@@ -2,12 +2,27 @@ package dev.gaborbiro.dailymacros.features.modal.views
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -32,7 +47,6 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -453,6 +467,33 @@ private fun ColumnScope.RecordDetailsViewBody(
     val browseInteractive = browseMode && view.allowEdit && !showCloseOnly
     val browseReadOnly = browseMode && (showCloseOnly || !view.allowEdit)
     var macrosExpanded by remember(view.recordId, view.templateDbId) { mutableStateOf(false) }
+    var variantPickerRevealed by remember(view.recordId, view.templateDbId) { mutableStateOf(false) }
+
+    if (browseMode && !variantPickerOptions.isNullOrEmpty()) {
+        if (!variantPickerRevealed) {
+            TextButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = PaddingDefault)
+                    .padding(top = PaddingDefault),
+                contentPadding = PaddingValues(vertical = 4.dp),
+                onClick = { variantPickerRevealed = true },
+            ) {
+                Text(
+                    text = stringResource(R.string.meal_details_variant_different_link),
+                    style = MaterialTheme.typography.labelLarge,
+                )
+            }
+        } else {
+            VariantTemplateDropdown(
+                options = variantPickerOptions,
+                selectedTemplateId = selectedVariantTemplateId,
+                titleHint = titleHint,
+                titleErrorMessage = titleErrorMessage,
+                onTemplatePicked = onVariantTemplatePicked,
+            )
+        }
+    }
 
     ImageStrip(
         modifier = Modifier
@@ -469,16 +510,6 @@ private fun ColumnScope.RecordDetailsViewBody(
         onAddImageViaPickerTapped = onAddImageViaPickerTapped,
         onInfoButtonTapped = onImagesInfoButtonTapped,
     )
-
-    if (browseMode && !variantPickerOptions.isNullOrEmpty()) {
-        VariantTemplateDropdown(
-            options = variantPickerOptions,
-            selectedTemplateId = selectedVariantTemplateId,
-            titleHint = titleHint,
-            titleErrorMessage = titleErrorMessage,
-            onTemplatePicked = onVariantTemplatePicked,
-        )
-    }
 
     if (view.isEditing) {
         TextField(
@@ -588,27 +619,44 @@ private fun ColumnScope.RecordDetailsViewBody(
 
         if (nutrientBreakdown != null) {
             Spacer(modifier = Modifier.height(PaddingDefault))
+            val macroFadeSpec = tween<Float>(durationMillis = 220)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = PaddingDefault),
+                    .padding(horizontal = PaddingDefault)
+                    .animateContentSize(animationSpec = tween(durationMillis = 280)),
             ) {
-                CompactMacroNutrientsGrid(
-                    modifier = Modifier.fillMaxWidth(),
-                    nutrients = view.compactNutrients,
-                )
-                Spacer(modifier = Modifier.height(PaddingHalf))
-                if (macrosExpanded) {
-                    NutrientsIndentedList(nutrientBreakdown = nutrientBreakdown)
-                    Spacer(modifier = Modifier.height(PaddingHalf))
+                AnimatedVisibility(
+                    visible = !macrosExpanded,
+                    enter = fadeIn(macroFadeSpec) + expandVertically(),
+                    exit = fadeOut(macroFadeSpec) + shrinkVertically(),
+                ) {
+                    CompactMacroNutrientsGrid(
+                        modifier = Modifier.fillMaxWidth(),
+                        nutrients = view.compactNutrients,
+                    )
                 }
-                OutlinedButton(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = { macrosExpanded = !macrosExpanded },
-                    contentPadding = PaddingValues(vertical = 10.dp),
+                AnimatedVisibility(
+                    visible = macrosExpanded,
+                    enter = fadeIn(macroFadeSpec) + expandVertically(),
+                    exit = fadeOut(macroFadeSpec) + shrinkVertically(),
+                ) {
+                    NutrientsIndentedList(nutrientBreakdown = nutrientBreakdown)
+                }
+                Spacer(modifier = Modifier.height(PaddingHalf))
+                val macroToggleShape = RoundedCornerShape(4.dp)
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(32.dp)
+                        .clip(macroToggleShape)
+                        .border(BorderStroke(1.dp, MaterialTheme.colorScheme.outline), macroToggleShape)
+                        .clickable { macrosExpanded = !macrosExpanded },
+                    shape = macroToggleShape,
+                    color = MaterialTheme.colorScheme.surface,
                 ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxSize(),
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -620,7 +668,7 @@ private fun ColumnScope.RecordDetailsViewBody(
                             },
                             style = MaterialTheme.typography.labelLarge,
                         )
-                        Spacer(modifier = Modifier.size(8.dp))
+                        Spacer(modifier = Modifier.size(6.dp))
                         Icon(
                             imageVector = if (macrosExpanded) {
                                 Icons.Filled.KeyboardArrowUp
@@ -628,6 +676,7 @@ private fun ColumnScope.RecordDetailsViewBody(
                                 Icons.Filled.KeyboardArrowDown
                             },
                             contentDescription = null,
+                            modifier = Modifier.size(18.dp),
                         )
                     }
                 }
