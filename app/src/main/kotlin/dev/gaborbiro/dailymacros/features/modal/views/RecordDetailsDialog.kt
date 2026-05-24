@@ -2,19 +2,17 @@ package dev.gaborbiro.dailymacros.features.modal.views
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
-import androidx.compose.material3.TextButton
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -69,6 +67,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -199,11 +199,6 @@ internal fun RecordDetailsDialog(
                                         dialogHandle.linkedRecordCountForTemplate,
                                         dialogHandle.linkedRecordCountForTemplate,
                                     )
-                                },
-                                saveAndAddLabel = if (dirty) {
-                                    stringResource(R.string.meal_details_action_add_new_template)
-                                } else {
-                                    stringResource(R.string.meal_details_action_add_new)
                                 },
                                 onUpdate = onSaveDetailsTapped,
                                 onSaveAndAdd = onSaveAndAddDetailsTapped,
@@ -471,19 +466,20 @@ private fun ColumnScope.RecordDetailsViewBody(
 
     if (browseMode && !variantPickerOptions.isNullOrEmpty()) {
         if (!variantPickerRevealed) {
-            TextButton(
+            Text(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = PaddingDefault)
-                    .padding(top = PaddingDefault),
-                contentPadding = PaddingValues(vertical = 4.dp),
-                onClick = { variantPickerRevealed = true },
-            ) {
-                Text(
-                    text = stringResource(R.string.meal_details_variant_different_link),
-                    style = MaterialTheme.typography.labelLarge,
-                )
-            }
+                    .padding(top = PaddingDefault)
+                    .padding(vertical = 4.dp)
+                    .clickable { variantPickerRevealed = true },
+                text = stringResource(R.string.meal_details_variant_different_link),
+                style = MaterialTheme.typography.labelLarge.copy(
+                    color = MaterialTheme.colorScheme.primary,
+                    textDecoration = TextDecoration.Underline,
+                ),
+                textAlign = TextAlign.Start,
+            )
         } else {
             VariantTemplateDropdown(
                 options = variantPickerOptions,
@@ -626,22 +622,22 @@ private fun ColumnScope.RecordDetailsViewBody(
                     .padding(horizontal = PaddingDefault)
                     .animateContentSize(animationSpec = tween(durationMillis = 280)),
             ) {
-                AnimatedVisibility(
-                    visible = !macrosExpanded,
-                    enter = fadeIn(macroFadeSpec) + expandVertically(),
-                    exit = fadeOut(macroFadeSpec) + shrinkVertically(),
-                ) {
-                    CompactMacroNutrientsGrid(
-                        modifier = Modifier.fillMaxWidth(),
-                        nutrients = view.compactNutrients,
-                    )
-                }
-                AnimatedVisibility(
-                    visible = macrosExpanded,
-                    enter = fadeIn(macroFadeSpec) + expandVertically(),
-                    exit = fadeOut(macroFadeSpec) + shrinkVertically(),
-                ) {
-                    NutrientsIndentedList(nutrientBreakdown = nutrientBreakdown)
+                AnimatedContent(
+                    targetState = macrosExpanded,
+                    transitionSpec = {
+                        fadeIn(macroFadeSpec) togetherWith fadeOut(macroFadeSpec)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = "mealDetailsMacrosExpand",
+                ) { expanded ->
+                    if (expanded) {
+                        NutrientsIndentedList(nutrientBreakdown = nutrientBreakdown)
+                    } else {
+                        CompactMacroNutrientsGrid(
+                            modifier = Modifier.fillMaxWidth(),
+                            nutrients = view.compactNutrients,
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.height(PaddingHalf))
                 val macroToggleShape = RoundedCornerShape(4.dp)

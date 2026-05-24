@@ -1,6 +1,9 @@
 package dev.gaborbiro.dailymacros.features.modal.views
 
 import android.content.res.Configuration
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -11,8 +14,6 @@ import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.LocalExtraColorScheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingDouble
-import dev.gaborbiro.dailymacros.design.PaddingHalf
-import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 
@@ -20,11 +21,15 @@ import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 internal fun NutrientsIndentedList(
     nutrientBreakdown: NutrientBreakdownUiModel,
 ) {
-    nutrientBreakdown.calories?.let {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = PaddingDefault),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        nutrientBreakdown.calories?.let {
         OutlinedText(
-            modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(top = PaddingQuarter),
+            modifier = Modifier.fillMaxWidth(),
             text = it,
             contentColor = Color.Black,
             backgroundColor = LocalExtraColorScheme.current.caloriesColor,
@@ -35,9 +40,7 @@ internal fun NutrientsIndentedList(
 
     nutrientBreakdown.protein?.let {
         OutlinedText(
-            modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(top = PaddingQuarter),
+            modifier = Modifier.fillMaxWidth(),
             text = it,
             contentColor = Color.Black,
             backgroundColor = LocalExtraColorScheme.current.proteinColor,
@@ -48,9 +51,7 @@ internal fun NutrientsIndentedList(
 
     nutrientBreakdown.fat?.let {
         OutlinedText(
-            modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(top = PaddingQuarter),
+            modifier = Modifier.fillMaxWidth(),
             text = it,
             contentColor = Color.Black,
             backgroundColor = LocalExtraColorScheme.current.fatColor,
@@ -62,8 +63,8 @@ internal fun NutrientsIndentedList(
     nutrientBreakdown.ofWhichSaturated?.let {
         OutlinedText(
             modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(start = PaddingDefault, top = PaddingQuarter),
+                .fillMaxWidth()
+                .padding(start = PaddingDefault),
             text = it,
             contentColor = Color.Black,
             backgroundColor = LocalExtraColorScheme.current.fatColor,
@@ -74,9 +75,7 @@ internal fun NutrientsIndentedList(
 
     nutrientBreakdown.carbs?.let {
         OutlinedText(
-            modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(top = PaddingQuarter),
+            modifier = Modifier.fillMaxWidth(),
             text = it,
             contentColor = Color.Black,
             backgroundColor = LocalExtraColorScheme.current.carbsColor,
@@ -88,8 +87,8 @@ internal fun NutrientsIndentedList(
     nutrientBreakdown.ofWhichSugar?.let {
         OutlinedText(
             modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(start = PaddingDefault, top = PaddingQuarter),
+                .fillMaxWidth()
+                .padding(start = PaddingDefault),
             text = it,
             contentColor = Color.Black,
             backgroundColor = LocalExtraColorScheme.current.carbsColor,
@@ -101,8 +100,8 @@ internal fun NutrientsIndentedList(
     nutrientBreakdown.ofWhichAddedSugar?.let {
         OutlinedText(
             modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(start = PaddingDouble, top = PaddingQuarter),
+                .fillMaxWidth()
+                .padding(start = PaddingDouble),
             text = it,
             contentColor = Color.Black,
             backgroundColor = LocalExtraColorScheme.current.carbsColor,
@@ -113,9 +112,7 @@ internal fun NutrientsIndentedList(
 
     nutrientBreakdown.salt?.let {
         OutlinedText(
-            modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(top = PaddingQuarter),
+            modifier = Modifier.fillMaxWidth(),
             text = it,
             contentColor = Color.Black,
             backgroundColor = LocalExtraColorScheme.current.saltColor,
@@ -126,9 +123,7 @@ internal fun NutrientsIndentedList(
 
     nutrientBreakdown.fibre?.let {
         OutlinedText(
-            modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(top = PaddingQuarter),
+            modifier = Modifier.fillMaxWidth(),
             text = it,
             contentColor = Color.Black,
             backgroundColor = LocalExtraColorScheme.current.fibreColor,
@@ -139,13 +134,12 @@ internal fun NutrientsIndentedList(
 
     nutrientBreakdown.notes?.let {
         OutlinedText(
-            modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(top = PaddingHalf),
+            modifier = Modifier.fillMaxWidth(),
             text = it,
             border = null,
             elevation = 0.dp,
         )
+    }
     }
 }
 

@@ -181,11 +181,6 @@ internal fun RecordDetailsDialogPreview(
                                         dialogHandle.linkedRecordCountForTemplate,
                                     )
                                 },
-                                saveAndAddLabel = if (dirty) {
-                                    stringResource(R.string.meal_details_action_add_new_template)
-                                } else {
-                                    stringResource(R.string.meal_details_action_add_new)
-                                },
                                 onUpdate = onSubmitButtonTapped,
                                 onSaveAndAdd = onSubmitButtonTapped,
                                 onCancel = onDismissRequested,

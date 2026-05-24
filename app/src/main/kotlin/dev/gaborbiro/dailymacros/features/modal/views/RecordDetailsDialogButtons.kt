@@ -114,7 +114,6 @@ internal fun RecordDetailsViewBrowseButtons(
 internal fun RecordDetailsViewEditButtons(
     primaryEnabled: Boolean,
     primaryLabel: String,
-    saveAndAddLabel: String,
     onUpdate: () -> Unit,
     onSaveAndAdd: () -> Unit,
     onCancel: () -> Unit,
@@ -138,9 +137,10 @@ internal fun RecordDetailsViewEditButtons(
         OutlinedButton(
             modifier = Modifier.fillMaxWidth(),
             onClick = onSaveAndAdd,
+            enabled = primaryEnabled,
         ) {
             Text(
-                text = saveAndAddLabel,
+                text = stringResource(R.string.meal_details_action_add_new_template),
                 style = MaterialTheme.typography.labelLarge,
             )
         }
