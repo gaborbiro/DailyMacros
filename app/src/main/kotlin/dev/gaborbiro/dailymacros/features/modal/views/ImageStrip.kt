@@ -41,6 +41,7 @@ fun ImageStrip(
     images: List<String>,
     showAddPhotoButtons: Boolean,
     showImageDeleteButton: Boolean = true,
+    showInfoButton: Boolean = false,
     onImageTapped: (String) -> Unit,
     onImageDeleteTapped: (String) -> Unit,
     onAddImageViaCameraTapped: () -> Unit,
@@ -129,11 +130,13 @@ fun ImageStrip(
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
-            IconButton(onClick = onInfoButtonTapped) {
-                Icon(
-                    imageVector = Icons.Outlined.Info,
-                    contentDescription = "Info"
-                )
+            if (showInfoButton) {
+                IconButton(onClick = onInfoButtonTapped) {
+                    Icon(
+                        imageVector = Icons.Outlined.Info,
+                        contentDescription = "Info"
+                    )
+                }
             }
         }
     }
@@ -147,6 +150,7 @@ private fun ImageStripPreview() {
         ImageStrip(
             images = listOf("1", "2"),
             showAddPhotoButtons = true,
+            showInfoButton = true,
             onImageTapped = {},
             onImageDeleteTapped = {},
             onAddImageViaCameraTapped = {},

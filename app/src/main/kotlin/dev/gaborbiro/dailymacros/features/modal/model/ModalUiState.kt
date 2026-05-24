@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.modal.model
 
 import androidx.compose.ui.text.input.TextFieldValue
+import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 
 data class ModalUiState(
     val rootDialog: DialogHandle? = null,
@@ -60,7 +61,9 @@ sealed class DialogHandle {
             /** Source template for fork when opened from quick-pick template details (Add). */
             val variabilityAnchorTemplateDbId: Long,
             val nutrientBreakdown: NutrientBreakdownUiModel?,
+            val compactNutrients: NutrientsUiModel,
             val allowEdit: Boolean,
+            val isEditing: Boolean = false,
             override val titleHint: String,
             override val titleValidationError: String? = null,
             override val title: TextFieldValue,

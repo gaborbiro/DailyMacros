@@ -4,6 +4,7 @@ import dev.gaborbiro.dailymacros.features.common.views.NutrientDisplayLine
 import dev.gaborbiro.dailymacros.features.shared.MacrosNotificationTextMapper
 import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientBreakdown
+import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
@@ -29,6 +30,9 @@ class ModalUiMapper @Inject constructor(
                 template = template,
             ),
         )
+
+    fun mapCompactNutrients(record: Record): NutrientsUiModel =
+        nutrientsUiMapper.mapRecordNutrients(record.template.nutrients)
 
     fun mapNutrientBreakdowns(
         record: Record,

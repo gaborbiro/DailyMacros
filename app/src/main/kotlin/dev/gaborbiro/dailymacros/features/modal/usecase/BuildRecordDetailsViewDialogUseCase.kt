@@ -29,18 +29,21 @@ class BuildRecordDetailsViewDialogUseCase @Inject constructor(
             description = TextFieldValue(tmpl.description),
             images = tmpl.images,
             nutrientBreakdown = uiMapper.mapNutrientBreakdowns(record),
+            compactNutrients = uiMapper.mapCompactNutrients(record),
             allowEdit = allowEdit,
             titleHint = "Give your meal a title",
             titleValidationError = null,
             openedFromTemplateDetailsOnly = templateDetailsMode,
             variantPickerOptions = null,
             quickPickStarred = false,
+            linkedRecordCountForTemplate = 0,
             pristineSnapshot = RecordDetailsPristineSnapshot(
                 templateDbId = tmpl.dbId,
                 title = tmpl.name,
                 description = tmpl.description,
                 images = tmpl.images,
             ),
+            isEditing = false,
         )
     }
 }
