@@ -17,6 +17,7 @@ import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiState
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
 import dev.gaborbiro.dailymacros.features.modal.model.hasUnsavedEdits
+import dev.gaborbiro.dailymacros.features.modal.model.recordDetailsEditPristineSnapshot
 import dev.gaborbiro.dailymacros.features.modal.model.toPickerOptions
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyConfirmedSharedTemplateEditUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
@@ -116,6 +117,11 @@ class ModalViewModel @Inject constructor(
                 images = emptyList(),
                 recognisedFood = null,
                 showProgressIndicator = false,
+                pristineSnapshot = recordDetailsEditPristineSnapshot(
+                    title = TextFieldValue(),
+                    description = TextFieldValue(),
+                    images = emptyList(),
+                ),
             )
         )
     }
@@ -185,6 +191,11 @@ class ModalViewModel @Inject constructor(
                             description = TextFieldValue(),
                             images = persistedFilenames,
                             recognisedFood = null,
+                            pristineSnapshot = recordDetailsEditPristineSnapshot(
+                                title = TextFieldValue(),
+                                description = TextFieldValue(),
+                                images = persistedFilenames,
+                            ),
                         )
                     )
                     runFoodRecognition(persistedFilenames)
@@ -206,6 +217,11 @@ class ModalViewModel @Inject constructor(
                     description = TextFieldValue(),
                     images = persistedFilenames,
                     recognisedFood = null,
+                    pristineSnapshot = recordDetailsEditPristineSnapshot(
+                        title = TextFieldValue(),
+                        description = TextFieldValue(),
+                        images = persistedFilenames,
+                    ),
                 )
             )
             runFoodRecognition(persistedFilenames)

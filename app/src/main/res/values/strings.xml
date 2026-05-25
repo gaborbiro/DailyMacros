@@ -23,6 +23,10 @@
     <string name="meal_details_switch_variant_message">You changed something in this meal. Switch to another version anyway? You’ll lose those edits.</string>
     <string name="meal_details_switch_variant_confirm">Switch</string>
     <string name="meal_details_switch_variant_cancel">Keep editing</string>
+    <string name="meal_details_close_unsaved_title">@string/meal_details_switch_variant_title</string>
+    <string name="meal_details_close_unsaved_message">You have unsaved changes. If you close now, those changes will be lost.</string>
+    <string name="meal_details_close_unsaved_discard">Discard</string>
+    <string name="meal_details_close_unsaved_keep_editing">@string/meal_details_switch_variant_cancel</string>
     <plurals name="meal_details_update_linked_records">
         <item quantity="other">Update %d meals</item>
     </plurals>

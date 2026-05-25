@@ -84,6 +84,7 @@ import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.RecordDetailsPristineSnapshot
 import dev.gaborbiro.dailymacros.features.modal.model.RecognisedFood
 import dev.gaborbiro.dailymacros.features.modal.model.hasUnsavedEdits
+import dev.gaborbiro.dailymacros.features.modal.model.recordDetailsEditPristineSnapshot
 import dev.gaborbiro.dailymacros.features.modal.usecase.RecordDetailsDialogPreview
 import dev.gaborbiro.dailymacros.features.modal.usecase.deconstructDialogHandle
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
@@ -122,8 +123,18 @@ internal fun RecordDetailsDialog(
             dialogHandle.isEditing && dialogHandle.allowEdit
     }
 
+    var closeUnsavedConfirmVisible by remember { mutableStateOf(false) }
+
+    fun requestDismissRecordDetails() {
+        if (dialogHandle.hasUnsavedEdits()) {
+            closeUnsavedConfirmVisible = true
+        } else {
+            onDismissRequested()
+        }
+    }
+
     ScrollableContentDialog(
-        onDismissRequested = onDismissRequested,
+        onDismissRequested = { requestDismissRecordDetails() },
         content = {
             RecordDetailsDialogContent(
                 dialogHandle = dialogHandle,
@@ -166,7 +177,7 @@ internal fun RecordDetailsDialog(
                         primaryEnabled = true,
                         primaryLabel = stringResource(R.string.meal_details_action_save),
                         saveAndAddLabel = null,
-                        onDismissRequested = onDismissRequested,
+                        onDismissRequested = { requestDismissRecordDetails() },
                         onSaveTapped = onSubmitButtonTapped,
                         onSaveAndAddTapped = {},
                     )
@@ -182,7 +193,7 @@ internal fun RecordDetailsDialog(
                                 primaryEnabled = true,
                                 primaryLabel = null,
                                 saveAndAddLabel = null,
-                                onDismissRequested = onDismissRequested,
+                                onDismissRequested = { requestDismissRecordDetails() },
                                 onSaveTapped = {},
                                 onSaveAndAddTapped = {},
                             )
@@ -209,7 +220,7 @@ internal fun RecordDetailsDialog(
                         else -> {
                             RecordDetailsViewBrowseButtons(
                                 onLogMealAgain = onSaveAndAddDetailsTapped,
-                                onDismissRequested = onDismissRequested,
+                                onDismissRequested = { requestDismissRecordDetails() },
                             )
                         }
                     }
@@ -217,6 +228,16 @@ internal fun RecordDetailsDialog(
             }
         },
     )
+
+    if (closeUnsavedConfirmVisible) {
+        RecordDetailsCloseUnsavedDialog(
+            onDiscard = {
+                closeUnsavedConfirmVisible = false
+                onDismissRequested()
+            },
+            onKeepEditing = { closeUnsavedConfirmVisible = false },
+        )
+    }
 }
 
 @Composable
@@ -462,7 +483,7 @@ private fun ColumnScope.RecordDetailsViewBody(
     val browseInteractive = browseMode && view.allowEdit && !showCloseOnly
     val browseReadOnly = browseMode && (showCloseOnly || !view.allowEdit)
     var macrosExpanded by remember(view.recordId, view.templateDbId) { mutableStateOf(false) }
-    var variantPickerRevealed by remember(view.recordId, view.templateDbId) { mutableStateOf(false) }
+    var variantPickerRevealed by remember(view.recordId) { mutableStateOf(false) }
 
     if (browseMode && !variantPickerOptions.isNullOrEmpty()) {
         if (!variantPickerRevealed) {
@@ -842,6 +863,11 @@ private fun NoteInputDialogContentPreviewSuggestion() {
                 title = "This is a title suggestion",
                 description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
             ),
+            pristineSnapshot = recordDetailsEditPristineSnapshot(
+                title = TextFieldValue(),
+                description = TextFieldValue(),
+                images = listOf("1", "2"),
+            ),
         ),
     )
 }
@@ -858,6 +884,11 @@ private fun NoteInputDialogContentPreview() {
             images = listOf("1", "2"),
             showProgressIndicator = true,
             recognisedFood = null,
+            pristineSnapshot = recordDetailsEditPristineSnapshot(
+                title = TextFieldValue(),
+                description = TextFieldValue(),
+                images = listOf("1", "2"),
+            ),
         ),
     )
 }
@@ -876,6 +907,11 @@ private fun NoteInputDialogContentPreviewError() {
             recognisedFood = RecognisedFood(
                 title = "This is a title suggestion",
                 description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
+            ),
+            pristineSnapshot = recordDetailsEditPristineSnapshot(
+                title = TextFieldValue(),
+                description = TextFieldValue(),
+                images = listOf("1", "2"),
             ),
         ),
     )
