@@ -92,6 +92,11 @@ import dev.gaborbiro.dailymacros.ui.components.CompactMacroNutrientsGrid
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 
+private sealed class PendingRecordDetailsDiscard {
+    data object CloseDialog : PendingRecordDetailsDiscard()
+    data object ExitEditMode : PendingRecordDetailsDiscard()
+}
+
 @Composable
 internal fun RecordDetailsDialog(
     dialogHandle: DialogHandle.RecordDetailsDialog,
@@ -123,11 +128,11 @@ internal fun RecordDetailsDialog(
             dialogHandle.isEditing && dialogHandle.allowEdit
     }
 
-    var closeUnsavedConfirmVisible by remember { mutableStateOf(false) }
+    var pendingDiscard by remember { mutableStateOf<PendingRecordDetailsDiscard?>(null) }
 
     fun requestDismissRecordDetails() {
         if (dialogHandle.hasUnsavedEdits()) {
-            closeUnsavedConfirmVisible = true
+            pendingDiscard = PendingRecordDetailsDiscard.CloseDialog
         } else {
             onDismissRequested()
         }
@@ -213,7 +218,13 @@ internal fun RecordDetailsDialog(
                                 },
                                 onUpdate = onSaveDetailsTapped,
                                 onSaveAndAdd = onSaveAndAddDetailsTapped,
-                                onCancel = onRecordDetailsEditCancelled,
+                                onCancel = {
+                                    if (dialogHandle.hasUnsavedEdits()) {
+                                        pendingDiscard = PendingRecordDetailsDiscard.ExitEditMode
+                                    } else {
+                                        onRecordDetailsEditCancelled()
+                                    }
+                                },
                             )
                         }
 
@@ -229,13 +240,17 @@ internal fun RecordDetailsDialog(
         },
     )
 
-    if (closeUnsavedConfirmVisible) {
+    if (pendingDiscard != null) {
         RecordDetailsCloseUnsavedDialog(
             onDiscard = {
-                closeUnsavedConfirmVisible = false
-                onDismissRequested()
+                val pending = pendingDiscard ?: return@RecordDetailsCloseUnsavedDialog
+                pendingDiscard = null
+                when (pending) {
+                    PendingRecordDetailsDiscard.CloseDialog -> onDismissRequested()
+                    PendingRecordDetailsDiscard.ExitEditMode -> onRecordDetailsEditCancelled()
+                }
             },
-            onKeepEditing = { closeUnsavedConfirmVisible = false },
+            onKeepEditing = { pendingDiscard = null },
         )
     }
 }
@@ -483,7 +498,8 @@ private fun ColumnScope.RecordDetailsViewBody(
     val browseInteractive = browseMode && view.allowEdit && !showCloseOnly
     val browseReadOnly = browseMode && (showCloseOnly || !view.allowEdit)
     var macrosExpanded by remember(view.recordId, view.templateDbId) { mutableStateOf(false) }
-    var variantPickerRevealed by remember(view.recordId) { mutableStateOf(false) }
+    // Session-scoped: survives View state replacements (e.g. variant switch) until this dialog leaves composition.
+    var variantPickerRevealed by remember { mutableStateOf(false) }
 
     if (browseMode && !variantPickerOptions.isNullOrEmpty()) {
         if (!variantPickerRevealed) {
