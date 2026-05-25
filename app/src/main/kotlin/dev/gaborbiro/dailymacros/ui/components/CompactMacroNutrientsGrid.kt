@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.ui.components
 
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +13,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
@@ -20,12 +22,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.darkExtraColorScheme
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
+import kotlin.math.floor
 
 /**
- * Two-row macro summary matching the overview meal list layout.
+ * Macro summary for list rows and dialogs: equal-width cells per row using [MacroRow].
+ * Column count is derived from available width (1–3) so narrow rows get wider cells and less truncation.
  */
 @Composable
 fun CompactMacroNutrientsGrid(
@@ -33,21 +36,44 @@ fun CompactMacroNutrientsGrid(
     modifier: Modifier = Modifier,
 ) {
     val colors = darkExtraColorScheme
-    Column(modifier = modifier) {
-        MacroRow(
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            MacroPill(text = nutrients.calories.orEmpty(), bg = colors.caloriesColor, protectEndOfText = false)
-            MacroPill(text = nutrients.protein.orEmpty(), bg = colors.proteinColor)
-            MacroPill(text = nutrients.fat.orEmpty(), bg = colors.fatColor)
+    val rowSpacing = 8.dp
+    val cellSpacing = 8.dp
+    /** When the row is narrower than ~3 cells at this width, drop to 2 or 1 columns. */
+    val minCellWidth = 88.dp
+
+    val slots = listOf(
+        Triple(nutrients.calories.orEmpty(), colors.caloriesColor, false),
+        Triple(nutrients.protein.orEmpty(), colors.proteinColor, true),
+        Triple(nutrients.fat.orEmpty(), colors.fatColor, true),
+        Triple(nutrients.carbs.orEmpty(), colors.carbsColor, true),
+        Triple(nutrients.salt.orEmpty(), colors.saltColor, true),
+        Triple(nutrients.fibre.orEmpty(), colors.fibreColor, true),
+    )
+
+    BoxWithConstraints(modifier = modifier) {
+        val columns = remember(maxWidth) {
+            val ratio = (maxWidth + cellSpacing) / (minCellWidth + cellSpacing)
+            floor(ratio).toInt().coerceIn(1, 3)
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        MacroRow(
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            MacroPill(text = nutrients.carbs.orEmpty(), bg = colors.carbsColor)
-            MacroPill(text = nutrients.salt.orEmpty(), bg = colors.saltColor)
-            MacroPill(text = nutrients.fibre.orEmpty(), bg = colors.fibreColor)
+
+        Column(modifier = Modifier.fillMaxWidth()) {
+            slots.chunked(columns).forEachIndexed { index, chunk ->
+                if (index > 0) {
+                    Spacer(modifier = Modifier.height(rowSpacing))
+                }
+                MacroRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    spacing = cellSpacing,
+                ) {
+                    chunk.forEach { (text, bg, protect) ->
+                        MacroPill(
+                            text = text,
+                            bg = bg,
+                            protectEndOfText = protect,
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -74,7 +100,7 @@ private fun MacroPill(
     ) {
         Text(
             modifier = Modifier
-                .padding(horizontal = PaddingHalf, vertical = 6.dp),
+                .padding(horizontal = 6.dp, vertical = 4.dp),
             text = text,
             color = color,
             maxLines = 1,
