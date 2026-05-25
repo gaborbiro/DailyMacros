@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -128,6 +129,7 @@ internal fun ScrollableContentDialog(
                                         scrollState = scrollState,
                                         autoFade = false,
                                     )
+                                    .padding(bottom = PaddingDefault),
                             ) {
                                 content()
                             }
@@ -162,6 +164,7 @@ internal fun ScrollableContentDialog(
                             )
                         }
 
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         buttons()
                     }
                 }

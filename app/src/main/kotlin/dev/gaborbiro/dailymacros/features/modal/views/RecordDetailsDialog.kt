@@ -11,7 +11,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Box
@@ -23,6 +22,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -367,8 +367,8 @@ private fun ColumnScope.RecordDetailsCreateBody(
     ImageStrip(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = PaddingDefault)
-            .padding(bottom = PaddingDefault),
+            .padding(top = 12.dp)
+            .padding(bottom = 12.dp),
         showAddPhotoButtons = true,
         showImageDeleteButton = true,
         showInfoButton = true,
@@ -449,7 +449,7 @@ private fun ColumnScope.RecordDetailsCreateBody(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = PaddingDefault)
-            .height(96.dp),
+            .heightIn(min = 120.dp),
         textStyle = MaterialTheme.typography.bodyMedium,
         placeholder = {
             Text(
@@ -508,7 +508,7 @@ private fun ColumnScope.RecordDetailsViewBody(
                     .fillMaxWidth()
                     .padding(horizontal = PaddingDefault)
                     .padding(top = PaddingDefault)
-                    .padding(vertical = 4.dp)
+                    .padding(vertical = 8.dp)
                     .clickable { variantPickerRevealed = true },
                 text = stringResource(R.string.meal_details_variant_different_link),
                 style = MaterialTheme.typography.labelLarge.copy(
@@ -531,8 +531,8 @@ private fun ColumnScope.RecordDetailsViewBody(
     ImageStrip(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = PaddingDefault)
-            .padding(bottom = PaddingDefault),
+            .padding(top = 12.dp)
+            .padding(bottom = 12.dp),
         showAddPhotoButtons = showPhotoManagement,
         showImageDeleteButton = showPhotoManagement,
         showInfoButton = showPhotoManagement,
@@ -583,7 +583,7 @@ private fun ColumnScope.RecordDetailsViewBody(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = PaddingDefault)
-                .height(96.dp),
+                .heightIn(min = 120.dp),
             textStyle = MaterialTheme.typography.bodyMedium,
             placeholder = {
                 Text(
@@ -604,13 +604,14 @@ private fun ColumnScope.RecordDetailsViewBody(
         Row(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
+                .padding(top = 12.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 modifier = Modifier.weight(1f),
                 text = title.text,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.titleMedium,
             )
             if (showQuickPickStar) {
                 IconButton(onClick = onQuickPickStarToggled) {
@@ -643,20 +644,20 @@ private fun ColumnScope.RecordDetailsViewBody(
             Text(
                 modifier = Modifier
                     .padding(horizontal = PaddingDefault)
-                    .padding(top = PaddingDefault)
+                    .padding(top = 12.dp)
                     .fillMaxWidth(),
                 text = description.text,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
         if (nutrientBreakdown != null) {
-            Spacer(modifier = Modifier.height(PaddingDefault))
+            Spacer(modifier = Modifier.height(20.dp))
             val macroFadeSpec = tween<Float>(durationMillis = 220)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = PaddingDefault)
                     .animateContentSize(animationSpec = tween(durationMillis = 280)),
             ) {
                 AnimatedContent(
@@ -671,22 +672,28 @@ private fun ColumnScope.RecordDetailsViewBody(
                         NutrientsIndentedList(nutrientBreakdown = nutrientBreakdown)
                     } else {
                         CompactMacroNutrientsGrid(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = PaddingDefault),
                             nutrients = view.compactNutrients,
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(PaddingHalf))
-                val macroToggleShape = RoundedCornerShape(4.dp)
+                Spacer(modifier = Modifier.height(12.dp))
+                val macroToggleShape = MaterialTheme.shapes.small
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(32.dp)
+                        .padding(horizontal = PaddingDefault)
+                        .height(44.dp)
                         .clip(macroToggleShape)
-                        .border(BorderStroke(1.dp, MaterialTheme.colorScheme.outline), macroToggleShape)
+                        .border(
+                            BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)),
+                            macroToggleShape,
+                        )
                         .clickable { macrosExpanded = !macrosExpanded },
                     shape = macroToggleShape,
-                    color = MaterialTheme.colorScheme.surface,
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
                 ) {
                     Row(
                         modifier = Modifier.fillMaxSize(),
@@ -715,7 +722,7 @@ private fun ColumnScope.RecordDetailsViewBody(
                 }
             }
         } else if (view.compactNutrients.hasAnyVisibleMacro()) {
-            Spacer(modifier = Modifier.height(PaddingDefault))
+            Spacer(modifier = Modifier.height(20.dp))
             CompactMacroNutrientsGrid(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -749,6 +756,7 @@ private fun VariantTemplateDropdown(
         onExpandedChange = { expanded = it },
         modifier = Modifier
             .padding(horizontal = PaddingDefault)
+            .padding(top = PaddingDefault, bottom = 8.dp)
             .fillMaxWidth()
             .semantics { contentDescription = pickVariantLabel },
     ) {
@@ -798,11 +806,12 @@ private fun VariantTemplateDropdown(
                         }
                     },
                     text = {
-                        Column {
+                        Column(Modifier.padding(vertical = 4.dp)) {
                             Text(
                                 text = option.title,
                                 style = MaterialTheme.typography.bodyLarge,
                             )
+                            Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = option.lastUsedDateLabel,
                                 style = MaterialTheme.typography.bodySmall,

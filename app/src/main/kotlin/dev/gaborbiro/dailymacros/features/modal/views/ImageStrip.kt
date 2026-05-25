@@ -59,7 +59,7 @@ fun ImageStrip(
                 autoFade = false,
             )
             .padding(start = PaddingDefault),
-        horizontalArrangement = Arrangement.spacedBy(PaddingHalf),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // contentPadding = PaddingValues(horizontal = horizontalPadding, vertical = PaddingQuarter),

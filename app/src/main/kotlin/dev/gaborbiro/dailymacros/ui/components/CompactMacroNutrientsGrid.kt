@@ -20,7 +20,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.design.PaddingQuarter
+import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.darkExtraColorScheme
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 
@@ -41,7 +41,7 @@ fun CompactMacroNutrientsGrid(
             MacroPill(text = nutrients.protein.orEmpty(), bg = colors.proteinColor)
             MacroPill(text = nutrients.fat.orEmpty(), bg = colors.fatColor)
         }
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         MacroRow(
             modifier = Modifier.fillMaxWidth(),
         ) {
@@ -70,17 +70,17 @@ private fun MacroPill(
     Card(
         modifier = Modifier,
         colors = CardDefaults.cardColors(containerColor = bg),
-        shape = RoundedCornerShape(4.dp),
+        shape = RoundedCornerShape(10.dp),
     ) {
         Text(
             modifier = Modifier
-                .padding(horizontal = PaddingQuarter, vertical = 2.dp),
+                .padding(horizontal = PaddingHalf, vertical = 6.dp),
             text = text,
             color = color,
             maxLines = 1,
             softWrap = false,
             overflow = if (protectEndOfText) TextOverflow.StartEllipsis else TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.labelMedium,
         )
     }
 }
@@ -88,7 +88,7 @@ private fun MacroPill(
 @Composable
 private fun MacroRow(
     modifier: Modifier = Modifier,
-    spacing: Dp = 4.dp,
+    spacing: Dp = 8.dp,
     content: @Composable () -> Unit
 ) {
     val spacingPx = with(LocalDensity.current) { spacing.roundToPx() }

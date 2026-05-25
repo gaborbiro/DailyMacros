@@ -30,8 +30,9 @@ internal fun RecordDetailsDialogButtons(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(PaddingDefault),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+            .padding(horizontal = PaddingDefault)
+            .padding(top = 12.dp, bottom = PaddingDefault),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         if (showCloseOnly) {
             TextButton(
@@ -86,8 +87,9 @@ internal fun RecordDetailsViewBrowseButtons(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(PaddingDefault),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+            .padding(horizontal = PaddingDefault)
+            .padding(top = 12.dp, bottom = PaddingDefault),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Button(
             modifier = Modifier.fillMaxWidth(),
@@ -121,8 +123,9 @@ internal fun RecordDetailsViewEditButtons(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(PaddingDefault),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+            .padding(horizontal = PaddingDefault)
+            .padding(top = 12.dp, bottom = PaddingDefault),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Button(
             modifier = Modifier.fillMaxWidth(),

@@ -25,7 +25,7 @@ internal fun NutrientsIndentedList(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = PaddingDefault),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         nutrientBreakdown.calories?.let {
         OutlinedText(
@@ -134,10 +134,15 @@ internal fun NutrientsIndentedList(
 
     nutrientBreakdown.notes?.let {
         OutlinedText(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp),
             text = it,
             border = null,
             elevation = 0.dp,
+            backgroundColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            textStyle = MaterialTheme.typography.bodyMedium,
         )
     }
     }
