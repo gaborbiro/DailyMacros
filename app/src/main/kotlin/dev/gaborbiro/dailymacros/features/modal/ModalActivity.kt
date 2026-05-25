@@ -197,6 +197,8 @@ class ModalActivity : AppCompatActivity() {
                 onRunAIButtonTapped = viewModel::onRunAIButtonTapped,
                 onVariantTemplatePicked = viewModel::onVariantTemplateSelected,
                 onQuickPickStarToggled = viewModel::onQuickPickStarToggled,
+                onRecordDetailsEditStarted = viewModel::onRecordDetailsEditStarted,
+                onRecordDetailsEditCancelled = viewModel::onRecordDetailsEditCancelled,
             )
 
             is DialogHandle.ConfirmSwitchTemplateDialog -> ConfirmSwitchTemplateDialog(

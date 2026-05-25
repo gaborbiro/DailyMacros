@@ -17,6 +17,8 @@ import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.RecognisedFood
 import dev.gaborbiro.dailymacros.features.modal.views.RecordDetailsDialogButtons
 import dev.gaborbiro.dailymacros.features.modal.views.RecordDetailsDialogContent
+import dev.gaborbiro.dailymacros.features.modal.views.RecordDetailsViewBrowseButtons
+import dev.gaborbiro.dailymacros.features.modal.views.RecordDetailsViewEditButtons
 
 internal data class DeconstructedDialogHandle(
     val title: TextFieldValue,
@@ -84,14 +86,21 @@ internal fun RecordDetailsDialogPreview(
     val showKeyboardOnOpen = remember(dialogHandle) { ui.showKeyboardOnOpen }
     val viewDialog = dialogHandle as? DialogHandle.RecordDetailsDialog.View
     val showCloseOnly = viewDialog != null && !viewDialog.allowEdit
+    val showPhotoManagement = when (dialogHandle) {
+        is DialogHandle.RecordDetailsDialog.Edit -> true
+        is DialogHandle.RecordDetailsDialog.View ->
+            dialogHandle.isEditing && dialogHandle.allowEdit && !showCloseOnly
+    }
     ViewPreviewContext {
         Column(Modifier.verticalScroll(rememberScrollState())) {
             RecordDetailsDialogContent(
+                dialogHandle = dialogHandle,
                 onTitleChanged = onTitleChanged,
                 onDescriptionChanged = onDescriptionChanged,
                 showKeyboardOnOpen = showKeyboardOnOpen,
+                showCloseOnly = showCloseOnly,
+                showPhotoManagement = showPhotoManagement,
                 images = ui.images,
-                showImageDeleteButton = ui.allowEdit,
                 title = ui.title,
                 showRunAIButton = ui.showRunAIButton,
                 titleHint = ui.titleHint,
@@ -99,7 +108,6 @@ internal fun RecordDetailsDialogPreview(
                 showProgressIndicator = ui.showProgressIndicator,
                 description = ui.description,
                 titleErrorMessage = ui.titleValidationError,
-                allowEdit = ui.allowEdit,
                 nutrientBreakdown = ui.nutrientBreakdown,
                 onImageTapped = onImageTapped,
                 onImageDeleteTapped = onImageDeleteTapped,
@@ -110,9 +118,10 @@ internal fun RecordDetailsDialogPreview(
                 variantPickerOptions = viewDialog?.variantPickerOptions,
                 selectedVariantTemplateId = viewDialog?.templateDbId ?: 0L,
                 onVariantTemplatePicked = {},
-                showQuickPickStar = viewDialog != null,
+                showQuickPickStar = viewDialog != null && (viewDialog?.allowEdit == true),
                 quickPickStarred = viewDialog?.quickPickStarred == true,
                 onQuickPickStarToggled = {},
+                onBeginViewEdit = {},
             )
             when (dialogHandle) {
                 is DialogHandle.RecordDetailsDialog.Edit -> {
@@ -160,10 +169,8 @@ internal fun RecordDetailsDialogPreview(
                                 onSaveAndAddTapped = {},
                             )
                         }
-                        else -> {
-                            RecordDetailsDialogButtons(
-                                showCloseOnly = false,
-                                showSaveAndAdd = true,
+                        dialogHandle.isEditing -> {
+                            RecordDetailsViewEditButtons(
                                 primaryEnabled = dirty,
                                 primaryLabel = if (dialogHandle.linkedRecordCountForTemplate == 1) {
                                     stringResource(R.string.meal_details_action_update)
@@ -174,14 +181,15 @@ internal fun RecordDetailsDialogPreview(
                                         dialogHandle.linkedRecordCountForTemplate,
                                     )
                                 },
-                                saveAndAddLabel = if (dirty) {
-                                    stringResource(R.string.meal_details_action_add_new_template)
-                                } else {
-                                    stringResource(R.string.meal_details_action_add_new)
-                                },
+                                onUpdate = onSubmitButtonTapped,
+                                onSaveAndAdd = onSubmitButtonTapped,
+                                onCancel = onDismissRequested,
+                            )
+                        }
+                        else -> {
+                            RecordDetailsViewBrowseButtons(
+                                onLogMealAgain = onSubmitButtonTapped,
                                 onDismissRequested = onDismissRequested,
-                                onSaveTapped = onSubmitButtonTapped,
-                                onSaveAndAddTapped = onSubmitButtonTapped,
                             )
                         }
                     }

@@ -18,21 +18,20 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 
 @Composable
 internal fun OutlinedText(
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+    contentPadding: PaddingValues = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
     text: String,
     backgroundColor: Color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
     contentColor: Color = MaterialTheme.colorScheme.primary,
     border: BorderStroke? = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
     elevation: Dp = 0.dp,
-    textStyle: TextStyle = MaterialTheme.typography.bodySmall,
+    textStyle: TextStyle = MaterialTheme.typography.bodyMedium,
 ) {
-    val shape = RoundedCornerShape(16.dp) // pill
+    val shape = RoundedCornerShape(12.dp)
 
     Surface(
         modifier = modifier,
@@ -45,13 +44,11 @@ internal fun OutlinedText(
     ) {
         Row(
             modifier = Modifier
-                .defaultMinSize(minHeight = 24.dp) // make it thinner than default buttons
+                .defaultMinSize(minHeight = 28.dp)
                 .padding(contentPadding),
             verticalAlignment = Alignment.Top,
         ) {
             Text(
-                modifier = Modifier
-                    .padding(horizontal = PaddingHalf),
                 text = text,
                 style = textStyle,
             )

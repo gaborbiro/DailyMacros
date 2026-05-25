@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.modal.model
 
 import androidx.compose.ui.text.input.TextFieldValue
+import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 
 data class ModalUiState(
     val rootDialog: DialogHandle? = null,
@@ -39,6 +40,7 @@ sealed class DialogHandle {
             val showProgressIndicator: Boolean = false,
             val showRunAIButton: Boolean = false,
             val recognisedFood: RecognisedFood?,
+            val pristineSnapshot: RecordDetailsPristineSnapshot,
         ) : RecordDetailsDialog(
             titleHint = titleHint,
             titleValidationError = titleValidationError,
@@ -60,7 +62,9 @@ sealed class DialogHandle {
             /** Source template for fork when opened from quick-pick template details (Add). */
             val variabilityAnchorTemplateDbId: Long,
             val nutrientBreakdown: NutrientBreakdownUiModel?,
+            val compactNutrients: NutrientsUiModel,
             val allowEdit: Boolean,
+            val isEditing: Boolean = false,
             override val titleHint: String,
             override val titleValidationError: String? = null,
             override val title: TextFieldValue,
@@ -103,9 +107,25 @@ sealed class DialogHandle {
     data class InfoDialog(val message: String) : DialogHandle()
 }
 
+/** Baseline for unsaved detection on create-record [DialogHandle.RecordDetailsDialog.Edit]. */
+fun recordDetailsEditPristineSnapshot(
+    title: TextFieldValue,
+    description: TextFieldValue,
+    images: List<String>,
+): RecordDetailsPristineSnapshot =
+    RecordDetailsPristineSnapshot(
+        templateDbId = 0L,
+        title = title.text,
+        description = description.text,
+        images = images,
+    )
+
 /** True when title, description, or images differ from when the dialog was opened. */
-fun DialogHandle.RecordDetailsDialog.View.hasUnsavedEdits(): Boolean {
-    val p = pristineSnapshot
+fun DialogHandle.RecordDetailsDialog.hasUnsavedEdits(): Boolean {
+    val p = when (this) {
+        is DialogHandle.RecordDetailsDialog.View -> pristineSnapshot
+        is DialogHandle.RecordDetailsDialog.Edit -> pristineSnapshot
+    }
     return title.text != p.title ||
         description.text != p.description ||
         images != p.images

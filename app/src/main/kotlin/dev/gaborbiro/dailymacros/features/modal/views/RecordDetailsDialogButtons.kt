@@ -30,8 +30,9 @@ internal fun RecordDetailsDialogButtons(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(PaddingDefault),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+            .padding(horizontal = PaddingDefault)
+            .padding(top = 12.dp, bottom = PaddingDefault),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         if (showCloseOnly) {
             TextButton(
@@ -74,6 +75,86 @@ internal fun RecordDetailsDialogButtons(
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
+        }
+    }
+}
+
+@Composable
+internal fun RecordDetailsViewBrowseButtons(
+    onLogMealAgain: () -> Unit,
+    onDismissRequested: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = PaddingDefault)
+            .padding(top = 12.dp, bottom = PaddingDefault),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Button(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = onLogMealAgain,
+        ) {
+            Text(
+                text = stringResource(R.string.meal_details_action_add_new),
+                style = MaterialTheme.typography.labelLarge,
+            )
+        }
+        TextButton(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = onDismissRequested,
+        ) {
+            Text(
+                text = stringResource(R.string.meal_details_action_close),
+                style = MaterialTheme.typography.labelLarge,
+            )
+        }
+    }
+}
+
+@Composable
+internal fun RecordDetailsViewEditButtons(
+    primaryEnabled: Boolean,
+    primaryLabel: String,
+    onUpdate: () -> Unit,
+    onSaveAndAdd: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = PaddingDefault)
+            .padding(top = 12.dp, bottom = PaddingDefault),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Button(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = onUpdate,
+            enabled = primaryEnabled,
+        ) {
+            Text(
+                text = primaryLabel,
+                style = MaterialTheme.typography.labelLarge,
+            )
+        }
+        OutlinedButton(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = onSaveAndAdd,
+            enabled = primaryEnabled,
+        ) {
+            Text(
+                text = stringResource(R.string.meal_details_action_add_new_template),
+                style = MaterialTheme.typography.labelLarge,
+            )
+        }
+        TextButton(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = onCancel,
+        ) {
+            Text(
+                text = stringResource(R.string.meal_details_action_cancel),
+                style = MaterialTheme.typography.labelLarge,
+            )
         }
     }
 }

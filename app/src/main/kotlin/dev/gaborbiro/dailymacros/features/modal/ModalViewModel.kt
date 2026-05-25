@@ -17,6 +17,7 @@ import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiState
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
 import dev.gaborbiro.dailymacros.features.modal.model.hasUnsavedEdits
+import dev.gaborbiro.dailymacros.features.modal.model.recordDetailsEditPristineSnapshot
 import dev.gaborbiro.dailymacros.features.modal.model.toPickerOptions
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyConfirmedSharedTemplateEditUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
@@ -116,6 +117,11 @@ class ModalViewModel @Inject constructor(
                 images = emptyList(),
                 recognisedFood = null,
                 showProgressIndicator = false,
+                pristineSnapshot = recordDetailsEditPristineSnapshot(
+                    title = TextFieldValue(),
+                    description = TextFieldValue(),
+                    images = emptyList(),
+                ),
             )
         )
     }
@@ -173,6 +179,7 @@ class ModalViewModel @Inject constructor(
                 }
 
                 is DialogHandle.RecordDetailsDialog.View -> {
+                    if (!root.isEditing) return@runSafely
                     setRoot(root.copy(images = root.images + persistedFilenames))
                 }
 
@@ -184,6 +191,11 @@ class ModalViewModel @Inject constructor(
                             description = TextFieldValue(),
                             images = persistedFilenames,
                             recognisedFood = null,
+                            pristineSnapshot = recordDetailsEditPristineSnapshot(
+                                title = TextFieldValue(),
+                                description = TextFieldValue(),
+                                images = persistedFilenames,
+                            ),
                         )
                     )
                     runFoodRecognition(persistedFilenames)
@@ -205,6 +217,11 @@ class ModalViewModel @Inject constructor(
                     description = TextFieldValue(),
                     images = persistedFilenames,
                     recognisedFood = null,
+                    pristineSnapshot = recordDetailsEditPristineSnapshot(
+                        title = TextFieldValue(),
+                        description = TextFieldValue(),
+                        images = persistedFilenames,
+                    ),
                 )
             )
             runFoodRecognition(persistedFilenames)
@@ -229,7 +246,32 @@ class ModalViewModel @Inject constructor(
             recordDetailsJob = null
             val recordId = resolveFirstRecordIdForTemplateUseCase.execute(templateId) ?: return@runSafely
             val record = recordsRepository.get(recordId) ?: return@runSafely
-            setRoot(buildEnrichedView(record = record, edit = true, templateDetailsMode = true))
+            setRoot(buildEnrichedView(record = record, edit = false, templateDetailsMode = true))
+        }
+    }
+
+    fun onRecordDetailsEditStarted() {
+        updateRoot<DialogHandle.RecordDetailsDialog.View> {
+            it.copy(isEditing = true)
+        }
+    }
+
+    fun onRecordDetailsEditCancelled() {
+        updateRoot<DialogHandle.RecordDetailsDialog.View> { v ->
+            if (!v.isEditing) {
+                v
+            } else {
+                val p = v.pristineSnapshot
+                val title = p.title
+                val desc = p.description
+                v.copy(
+                    isEditing = false,
+                    title = TextFieldValue(title, selection = TextRange(title.length)),
+                    description = TextFieldValue(desc, selection = TextRange(desc.length)),
+                    images = p.images,
+                    titleValidationError = null,
+                )
+            }
         }
     }
 
@@ -260,15 +302,29 @@ class ModalViewModel @Inject constructor(
 
     fun onTitleChanged(title: TextFieldValue) {
         updateRoot<DialogHandle.RecordDetailsDialog> {
-            it
-                .withTitle(title)
-                .withTitleValidationError(null)
+            when (it) {
+                is DialogHandle.RecordDetailsDialog.View ->
+                    if (!it.isEditing) {
+                        it
+                    } else {
+                        it.withTitle(title).withTitleValidationError(null)
+                    }
+
+                is DialogHandle.RecordDetailsDialog.Edit ->
+                    it.withTitle(title).withTitleValidationError(null)
+            }
         }
     }
 
     fun onDescriptionChanged(description: TextFieldValue) {
         updateRoot<DialogHandle.RecordDetailsDialog> {
-            it.withDescription(description)
+            when (it) {
+                is DialogHandle.RecordDetailsDialog.View ->
+                    if (!it.isEditing) it else it.withDescription(description)
+
+                is DialogHandle.RecordDetailsDialog.Edit ->
+                    it.withDescription(description)
+            }
         }
     }
 
@@ -282,7 +338,9 @@ class ModalViewModel @Inject constructor(
     fun onImageDeleteTapped(image: String) {
         updateRoot<DialogHandle.RecordDetailsDialog> {
             when (it) {
-                is DialogHandle.RecordDetailsDialog.View -> it.copy(images = it.images - image)
+                is DialogHandle.RecordDetailsDialog.View ->
+                    if (!it.isEditing) it else it.copy(images = it.images - image)
+
                 is DialogHandle.RecordDetailsDialog.Edit -> it.copy(images = it.images - image)
             }
         }
@@ -308,6 +366,7 @@ class ModalViewModel @Inject constructor(
 
     fun onSaveDetailsTapped() {
         val details = (_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View) ?: return
+        if (!details.isEditing) return
         if (details.openedFromTemplateDetailsOnly) return
         runSafely {
             handleEditRecordDialogSubmitted(details)
@@ -329,6 +388,7 @@ class ModalViewModel @Inject constructor(
     fun onVariantTemplateSelected(templateId: Long) {
         runSafely {
             val root = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return@runSafely
+            if (root.isEditing) return@runSafely
             if (templateId == root.templateDbId) return@runSafely
             if (root.hasUnsavedEdits()) {
                 pushOverlay(
@@ -352,6 +412,7 @@ class ModalViewModel @Inject constructor(
     fun onQuickPickStarToggled() {
         runSafely {
             val root = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return@runSafely
+            if (root.isEditing) return@runSafely
             val templateId = root.templateDbId
             if (root.quickPickStarred) {
                 applyQuickPickOverrideAndReloadWidgetUseCase.execute(
@@ -469,17 +530,32 @@ class ModalViewModel @Inject constructor(
         edit: Boolean,
         templateDetailsMode: Boolean,
     ): DialogHandle.RecordDetailsDialog.View {
+        val existing = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View
         val base = buildRecordDetailsViewDialogUseCase.execute(record, edit, templateDetailsMode)
         val variantList = listMealVariantsForTemplateUseCase.execute(record.template.dbId)
         val options = variantList?.takeIf { it.hasOtherVariants }
             ?.toPickerOptions(settingsRepository.getDiaryDayStartHour())
         val starred = resolveQuickPickStarred(record.template)
         val linkedCount = recordsRepository.countRecordsForTemplate(record.template.dbId)
-        return base.copy(
-            variantPickerOptions = options,
-            quickPickStarred = starred,
-            linkedRecordCountForTemplate = linkedCount,
-        )
+        return if (existing != null && existing.recordId == record.recordId && existing.isEditing) {
+            base.copy(
+                variantPickerOptions = options,
+                quickPickStarred = starred,
+                linkedRecordCountForTemplate = linkedCount,
+                isEditing = true,
+                title = existing.title,
+                description = existing.description,
+                images = existing.images,
+                titleValidationError = existing.titleValidationError,
+                pristineSnapshot = existing.pristineSnapshot,
+            )
+        } else {
+            base.copy(
+                variantPickerOptions = options,
+                quickPickStarred = starred,
+                linkedRecordCountForTemplate = linkedCount,
+            )
+        }
     }
 
     private suspend fun resolveQuickPickStarred(template: Template): Boolean {
