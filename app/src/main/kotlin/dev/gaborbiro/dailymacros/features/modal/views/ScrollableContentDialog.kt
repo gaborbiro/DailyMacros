@@ -48,7 +48,7 @@ import kotlin.math.min
 internal fun ScrollableContentDialog(
     onDismissRequested: () -> Unit,
     content: @Composable ColumnScope.() -> Unit,
-    buttons: @Composable () -> Unit,
+    footer: @Composable () -> Unit,
     errorMessages: Flow<String>,
     /**
      * When true (default), tapping the dimmed area outside the card dismisses the dialog.
@@ -79,7 +79,7 @@ internal fun ScrollableContentDialog(
 
         Scaffold(
             modifier = Modifier
-                .fillMaxSize(),
+                .fillMaxWidth(),
             containerColor = Color.Transparent,
             contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
             snackbarHost = {
@@ -92,7 +92,7 @@ internal fun ScrollableContentDialog(
             // so they do not fall through the transparent [BoxWithConstraints] margin around the card.
             Box(
                 Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .pointerInput(dismissOnOutsideTap) {
                         detectTapGestures(
                             onTap = {
@@ -105,7 +105,7 @@ internal fun ScrollableContentDialog(
             )
             BoxWithConstraints(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .padding(paddingValues)
             ) {
                 val max = this.maxHeight
@@ -165,7 +165,8 @@ internal fun ScrollableContentDialog(
                         }
 
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                        buttons()
+
+                        footer()
                     }
                 }
             }

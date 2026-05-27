@@ -25,7 +25,6 @@ internal data class DeconstructedDialogHandle(
     val titleHint: String,
     val showRunAIButton: Boolean,
     val images: List<String>,
-    val analysis: RecognisedFood?,
     val showProgressIndicator: Boolean,
     val description: TextFieldValue,
     val nutrientBreakdown: NutrientBreakdownUiModel?,
@@ -40,8 +39,6 @@ internal fun deconstructDialogHandle(
     val showRunAIButton = (dialogHandle as? DialogHandle.RecordDetailsDialog.Edit)
         ?.showRunAIButton
         ?: false
-    val analysis = (dialogHandle as? DialogHandle.RecordDetailsDialog.Edit)
-        ?.recognisedFood
     val showProgressIndicator = (dialogHandle as? DialogHandle.RecordDetailsDialog.Edit)
         ?.showProgressIndicator
     val nutrientBreakdown = (dialogHandle as? DialogHandle.RecordDetailsDialog.View)
@@ -58,7 +55,6 @@ internal fun deconstructDialogHandle(
         titleHint = dialogHandle.titleHint,
         showRunAIButton = showRunAIButton,
         images = dialogHandle.images,
-        analysis = analysis,
         showProgressIndicator = showProgressIndicator ?: false,
         description = dialogHandle.description,
         nutrientBreakdown = nutrientBreakdown,
@@ -104,7 +100,6 @@ internal fun RecordDetailsDialogPreview(
                 title = ui.title,
                 showRunAIButton = ui.showRunAIButton,
                 titleHint = ui.titleHint,
-                analysis = ui.analysis,
                 showProgressIndicator = ui.showProgressIndicator,
                 description = ui.description,
                 titleErrorMessage = ui.titleValidationError,
@@ -118,7 +113,7 @@ internal fun RecordDetailsDialogPreview(
                 variantPickerOptions = viewDialog?.variantPickerOptions,
                 selectedVariantTemplateId = viewDialog?.templateDbId ?: 0L,
                 onVariantTemplatePicked = {},
-                showQuickPickStar = viewDialog != null && (viewDialog?.allowEdit == true),
+                showQuickPickStar = viewDialog != null && viewDialog.allowEdit,
                 quickPickStarred = viewDialog?.quickPickStarred == true,
                 onQuickPickStarToggled = {},
                 onBeginViewEdit = {},

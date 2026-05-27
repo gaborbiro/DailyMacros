@@ -1,150 +1,182 @@
 package dev.gaborbiro.dailymacros.features.modal.views
 
 import android.content.res.Configuration
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.LocalExtraColorScheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingDouble
+import dev.gaborbiro.dailymacros.design.PaddingHalf
+import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 
 @Composable
 internal fun NutrientsIndentedList(
+    modifier: Modifier = Modifier,
     nutrientBreakdown: NutrientBreakdownUiModel,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = PaddingDefault),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = modifier
     ) {
         nutrientBreakdown.calories?.let {
-        OutlinedText(
-            modifier = Modifier.fillMaxWidth(),
-            text = it,
-            contentColor = Color.Black,
-            backgroundColor = LocalExtraColorScheme.current.caloriesColor,
-            border = null,
-            elevation = 0.dp,
-        )
-    }
+            OutlinedText(
+                text = it,
+                contentColor = Color.Black,
+                backgroundColor = LocalExtraColorScheme.current.caloriesColor,
+                border = null,
+                elevation = 0.dp,
+            )
+            Spacer(
+                modifier = Modifier
+                    .height(PaddingHalf)
+            )
+        }
 
-    nutrientBreakdown.protein?.let {
-        OutlinedText(
-            modifier = Modifier.fillMaxWidth(),
-            text = it,
-            contentColor = Color.Black,
-            backgroundColor = LocalExtraColorScheme.current.proteinColor,
-            border = null,
-            elevation = 0.dp,
-        )
-    }
+        nutrientBreakdown.protein?.let {
+            OutlinedText(
+                text = it,
+                contentColor = Color.Black,
+                backgroundColor = LocalExtraColorScheme.current.proteinColor,
+                border = null,
+                elevation = 0.dp,
+            )
+            Spacer(
+                modifier = Modifier
+                    .height(PaddingHalf)
+            )
+        }
 
-    nutrientBreakdown.fat?.let {
-        OutlinedText(
-            modifier = Modifier.fillMaxWidth(),
-            text = it,
-            contentColor = Color.Black,
-            backgroundColor = LocalExtraColorScheme.current.fatColor,
-            border = null,
-            elevation = 0.dp,
-        )
-    }
+        nutrientBreakdown.fat?.let {
+            OutlinedText(
+                text = it,
+                contentColor = Color.Black,
+                backgroundColor = LocalExtraColorScheme.current.fatColor,
+                border = null,
+                elevation = 0.dp,
+            )
+            Spacer(
+                modifier = Modifier
+                    .height(PaddingHalf)
+            )
+        }
 
-    nutrientBreakdown.ofWhichSaturated?.let {
-        OutlinedText(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = PaddingDefault),
-            text = it,
-            contentColor = Color.Black,
-            backgroundColor = LocalExtraColorScheme.current.fatColor,
-            border = null,
-            elevation = 0.dp,
-        )
-    }
+        nutrientBreakdown.ofWhichSaturated?.let {
+            OutlinedText(
+                modifier = Modifier
+                    .padding(start = PaddingDefault),
+                text = it,
+                contentColor = Color.Black,
+                backgroundColor = LocalExtraColorScheme.current.fatColor,
+                border = null,
+                elevation = 0.dp,
+            )
+            Spacer(
+                modifier = Modifier
+                    .height(PaddingHalf)
+            )
+        }
 
-    nutrientBreakdown.carbs?.let {
-        OutlinedText(
-            modifier = Modifier.fillMaxWidth(),
-            text = it,
-            contentColor = Color.Black,
-            backgroundColor = LocalExtraColorScheme.current.carbsColor,
-            border = null,
-            elevation = 0.dp,
-        )
-    }
+        nutrientBreakdown.carbs?.let {
+            OutlinedText(
+                text = it,
+                contentColor = Color.Black,
+                backgroundColor = LocalExtraColorScheme.current.carbsColor,
+                border = null,
+                elevation = 0.dp,
+            )
+            Spacer(
+                modifier = Modifier
+                    .height(PaddingHalf)
+            )
+        }
 
-    nutrientBreakdown.ofWhichSugar?.let {
-        OutlinedText(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = PaddingDefault),
-            text = it,
-            contentColor = Color.Black,
-            backgroundColor = LocalExtraColorScheme.current.carbsColor,
-            border = null,
-            elevation = 0.dp,
-        )
-    }
+        nutrientBreakdown.ofWhichSugar?.let {
+            OutlinedText(
+                modifier = Modifier
+                    .padding(start = PaddingDefault),
+                text = it,
+                contentColor = Color.Black,
+                backgroundColor = LocalExtraColorScheme.current.carbsColor,
+                border = null,
+                elevation = 0.dp,
+            )
+            Spacer(
+                modifier = Modifier
+                    .height(PaddingHalf)
+            )
+        }
 
-    nutrientBreakdown.ofWhichAddedSugar?.let {
-        OutlinedText(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = PaddingDouble),
-            text = it,
-            contentColor = Color.Black,
-            backgroundColor = LocalExtraColorScheme.current.carbsColor,
-            border = null,
-            elevation = 0.dp,
-        )
-    }
+        nutrientBreakdown.ofWhichAddedSugar?.let {
+            OutlinedText(
+                modifier = Modifier
+                    .padding(start = PaddingDouble),
+                text = it,
+                contentColor = Color.Black,
+                backgroundColor = LocalExtraColorScheme.current.carbsColor,
+                border = null,
+                elevation = 0.dp,
+            )
+            Spacer(
+                modifier = Modifier
+                    .height(PaddingHalf)
+            )
+        }
 
-    nutrientBreakdown.salt?.let {
-        OutlinedText(
-            modifier = Modifier.fillMaxWidth(),
-            text = it,
-            contentColor = Color.Black,
-            backgroundColor = LocalExtraColorScheme.current.saltColor,
-            border = null,
-            elevation = 0.dp,
-        )
-    }
+        nutrientBreakdown.salt?.let {
+            OutlinedText(
+                text = it,
+                contentColor = Color.Black,
+                backgroundColor = LocalExtraColorScheme.current.saltColor,
+                border = null,
+                elevation = 0.dp,
+            )
+            Spacer(
+                modifier = Modifier
+                    .height(PaddingHalf)
+            )
+        }
 
-    nutrientBreakdown.fibre?.let {
-        OutlinedText(
-            modifier = Modifier.fillMaxWidth(),
-            text = it,
-            contentColor = Color.Black,
-            backgroundColor = LocalExtraColorScheme.current.fibreColor,
-            border = null,
-            elevation = 0.dp,
-        )
-    }
+        nutrientBreakdown.fibre?.let {
+            OutlinedText(
+                text = it,
+                contentColor = Color.Black,
+                backgroundColor = LocalExtraColorScheme.current.fibreColor,
+                border = null,
+                elevation = 0.dp,
+            )
+        }
 
-    nutrientBreakdown.notes?.let {
-        OutlinedText(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 4.dp),
-            text = it,
-            border = null,
-            elevation = 0.dp,
-            backgroundColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            textStyle = MaterialTheme.typography.bodyMedium,
-        )
-    }
+        nutrientBreakdown.notes?.let {
+            Spacer(
+                modifier = Modifier
+                    .height(PaddingDefault)
+            )
+            Text(
+                text = "AI notes:",
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    textDecoration = TextDecoration.Underline,
+                ),
+            )
+            Spacer(
+                modifier = Modifier
+                    .height(PaddingQuarter)
+            )
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
     }
 }
 

@@ -27,7 +27,8 @@ internal fun OutlinedText(
     text: String,
     backgroundColor: Color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
     contentColor: Color = MaterialTheme.colorScheme.primary,
-    border: BorderStroke? = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+    borderColor: Color = MaterialTheme.colorScheme.primary,
+    border: BorderStroke? = BorderStroke(width = 1.dp, color = borderColor),
     elevation: Dp = 0.dp,
     textStyle: TextStyle = MaterialTheme.typography.bodyMedium,
 ) {

@@ -239,7 +239,7 @@ class NutrientsUiMapper @Inject constructor() {
         return text
             ?.takeIf { it.isNotBlank() }
             ?.let {
-                "\n    ($it)"
+                " ($it)"
             } ?: ""
     }
 

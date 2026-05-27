@@ -22,15 +22,6 @@ class ModalUiMapper @Inject constructor(
     fun mapDomainErrorToUserMessage(error: ChatGPTDomainError): String =
         macrosNotificationTextMapper.mapDomainErrorToUserMessage(error)
 
-    fun mapNutrientBreakdownFromTemplate(template: Template): NutrientBreakdownUiModel =
-        mapNutrientBreakdowns(
-            Record(
-                recordId = 0L,
-                timestamp = ZonedDateTime.now(ZoneOffset.UTC),
-                template = template,
-            ),
-        )
-
     fun mapCompactNutrients(record: Record): NutrientsUiModel =
         nutrientsUiMapper.mapRecordNutrients(record.template.nutrients)
 
