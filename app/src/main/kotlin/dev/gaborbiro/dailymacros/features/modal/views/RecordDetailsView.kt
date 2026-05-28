@@ -274,7 +274,14 @@ fun ColumnScope.RecordDetailsView(
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = PaddingHalf),
+                    .padding(horizontal = PaddingHalf)
+                    .let {
+                        if (macrosExpanded) {
+                            it
+                        } else {
+                            it.clickable { macrosExpanded = true }
+                        }
+                    },
                 color = Color.Transparent,
                 shape = MaterialTheme.shapes.small,
                 border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.primary.copy(alpha = .45f)),
@@ -290,7 +297,6 @@ fun ColumnScope.RecordDetailsView(
                         },
                         label = "mealDetailsMacrosExpand",
                     ) { expanded ->
-
                         if (expanded) {
                             NutrientsIndentedList(
                                 modifier = Modifier
@@ -312,7 +318,13 @@ fun ColumnScope.RecordDetailsView(
                         modifier = Modifier
                             .height(28.dp)
                             .fillMaxWidth()
-                            .clickable { macrosExpanded = !macrosExpanded },
+                            .let {
+                                if (macrosExpanded) {
+                                    it.clickable { macrosExpanded = false }
+                                } else {
+                                    it
+                                }
+                            },
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
