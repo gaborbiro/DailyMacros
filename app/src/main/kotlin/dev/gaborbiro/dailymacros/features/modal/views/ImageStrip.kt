@@ -8,10 +8,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
@@ -25,12 +28,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
-import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.common.utils.horizontalScrollWithBar
 import dev.gaborbiro.dailymacros.features.common.views.LocalImage
@@ -41,9 +44,12 @@ fun ImageStrip(
     images: List<String>,
     showAddPhotoButtons: Boolean,
     showImageDeleteButton: Boolean = true,
+    showImageReorderButtons: Boolean = false,
     showInfoButton: Boolean = false,
     onImageTapped: (String) -> Unit,
     onImageDeleteTapped: (String) -> Unit,
+    onImageMoveLeftTapped: (String) -> Unit = {},
+    onImageMoveRightTapped: (String) -> Unit = {},
     onAddImageViaCameraTapped: () -> Unit,
     onAddImageViaPickerTapped: () -> Unit,
     modifier: Modifier = Modifier,
@@ -51,6 +57,16 @@ fun ImageStrip(
     onInfoButtonTapped: () -> Unit,
 ) {
     val shape = RoundedCornerShape(12.dp)
+    val imageControlColors = IconButtonDefaults.filledIconButtonColors(
+        containerColor = Color.Gray.copy(alpha = .8f),
+        contentColor = Color.White,
+        disabledContainerColor = Color.Gray.copy(alpha = .4f),
+        disabledContentColor = Color.White.copy(alpha = .5f),
+    )
+    val imageDeleteColors = IconButtonDefaults.filledIconButtonColors(
+        containerColor = Color.Gray.copy(alpha = .8f),
+        contentColor = Color.Red,
+    )
 
     Row(
         modifier = modifier
@@ -62,7 +78,6 @@ fun ImageStrip(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // contentPadding = PaddingValues(horizontal = horizontalPadding, vertical = PaddingQuarter),
         images.forEachIndexed { index, name ->
             Box(
                 modifier = Modifier
@@ -83,17 +98,48 @@ fun ImageStrip(
                             .align(Alignment.TopEnd)
                             .size(24.dp),
                         onClick = { onImageDeleteTapped(name) },
-                        colors = IconButtonDefaults.filledIconButtonColors(
-                            containerColor = Color.Gray.copy(alpha = .8f),
-                            contentColor = Color.Red,
-                        ),
+                        colors = imageDeleteColors,
                     ) {
                         Icon(
-                            modifier = Modifier
-                                .size(20.dp),
+                            modifier = Modifier.size(20.dp),
                             imageVector = Icons.Filled.Clear,
                             contentDescription = "Delete Button",
                         )
+                    }
+                }
+                if (showImageReorderButtons && images.size > 1) {
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .background(Color.Gray.copy(alpha = .8f)),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        IconButton(
+                            modifier = Modifier.size(24.dp),
+                            enabled = index > 0,
+                            onClick = { onImageMoveLeftTapped(name) },
+                            colors = imageControlColors,
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(18.dp),
+                                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                                contentDescription = stringResource(R.string.meal_details_image_move_left_cd),
+                            )
+                        }
+                        IconButton(
+                            modifier = Modifier.size(24.dp),
+                            enabled = index < images.lastIndex,
+                            onClick = { onImageMoveRightTapped(name) },
+                            colors = imageControlColors,
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(18.dp),
+                                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                contentDescription = stringResource(R.string.meal_details_image_move_right_cd),
+                            )
+                        }
                     }
                 }
             }
@@ -150,9 +196,12 @@ private fun ImageStripPreview() {
         ImageStrip(
             images = listOf("1", "2"),
             showAddPhotoButtons = true,
+            showImageReorderButtons = true,
             showInfoButton = true,
             onImageTapped = {},
             onImageDeleteTapped = {},
+            onImageMoveLeftTapped = {},
+            onImageMoveRightTapped = {},
             onAddImageViaCameraTapped = {},
             onAddImageViaPickerTapped = {},
             onInfoButtonTapped = {},

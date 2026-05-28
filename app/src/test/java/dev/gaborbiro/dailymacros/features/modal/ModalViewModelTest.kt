@@ -217,6 +217,40 @@ class ModalViewModelTest {
     }
 
     @Test
+    fun `image reorder swaps photos in edit mode`() = runTest(testDispatcher) {
+        val tpl = ModalRecordFixtures.template(
+            dbId = 7L,
+            name = "Soup",
+            images = listOf("a.jpg", "b.jpg", "c.jpg"),
+        )
+        val rec = ModalRecordFixtures.record(5L, tpl)
+        val repo = object : BaseRecordsRepositoryStub() {
+            override fun observe(recordId: Long) = flowOf(rec)
+            override suspend fun get(recordId: Long) = rec.takeIf { it.recordId == recordId }
+            override suspend fun countRecordsForTemplate(templateId: Long) = 1
+            override suspend fun getRecordsByTemplate(templateId: Long) = listOf(rec)
+            override suspend fun getTemplateIdsInSameVariantFamily(templateId: Long) = listOf(templateId)
+            override suspend fun getTemplate(templateId: Long) = tpl
+        }
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        vm.onRecordDetailsEditStarted()
+        vm.onImageMoveRightTapped("a.jpg")
+        advanceUntilIdle()
+        var root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertEquals(listOf("b.jpg", "a.jpg", "c.jpg"), root.images)
+        vm.onImageMoveLeftTapped("c.jpg")
+        advanceUntilIdle()
+        root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertEquals(listOf("b.jpg", "c.jpg", "a.jpg"), root.images)
+        vm.onImageMoveLeftTapped("b.jpg")
+        advanceUntilIdle()
+        root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertEquals(listOf("b.jpg", "c.jpg", "a.jpg"), root.images)
+    }
+
+    @Test
     fun `add and analyze submit saves template and record before clearing dialog`() = runTest(testDispatcher) {
         var saveTemplateCalls = 0
         var saveRecordCalls = 0

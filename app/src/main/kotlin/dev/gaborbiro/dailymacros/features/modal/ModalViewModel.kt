@@ -346,6 +346,38 @@ class ModalViewModel @Inject constructor(
         }
     }
 
+    fun onImageMoveLeftTapped(image: String) {
+        updateRoot<DialogHandle.RecordDetailsDialog> {
+            val index = it.images.indexOf(image)
+            if (index <= 0) return@updateRoot it
+            val newImages = it.images.toMutableList().apply {
+                add(index - 1, removeAt(index))
+            }
+            when (it) {
+                is DialogHandle.RecordDetailsDialog.View ->
+                    if (!it.isEditing) it else it.copy(images = newImages)
+
+                is DialogHandle.RecordDetailsDialog.Edit -> it.copy(images = newImages)
+            }
+        }
+    }
+
+    fun onImageMoveRightTapped(image: String) {
+        updateRoot<DialogHandle.RecordDetailsDialog> {
+            val index = it.images.indexOf(image)
+            if (index < 0 || index >= it.images.lastIndex) return@updateRoot it
+            val newImages = it.images.toMutableList().apply {
+                add(index + 1, removeAt(index))
+            }
+            when (it) {
+                is DialogHandle.RecordDetailsDialog.View ->
+                    if (!it.isEditing) it else it.copy(images = newImages)
+
+                is DialogHandle.RecordDetailsDialog.Edit -> it.copy(images = newImages)
+            }
+        }
+    }
+
     fun onAddImageViaCameraTapped() {
         pushOverlay(DialogHandle.ImageInput(type = ImageInputType.Camera))
     }
