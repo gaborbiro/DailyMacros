@@ -142,10 +142,10 @@ fun ColumnScope.RecordDetailsView(
             .fillMaxWidth()
             .padding(top = 12.dp)
             .padding(bottom = 12.dp),
-        showAddPhotoButtons = showPhotoManagement,
+        showAddPhotoButtons = false,
         showImageDeleteButton = showPhotoManagement,
         showImageReorderButtons = showPhotoManagement,
-        showInfoButton = showPhotoManagement,
+        showInfoButton = false,
         images = images,
         onImageTapped = onImageTapped,
         onImageDeleteTapped = onImageDeleteTapped,

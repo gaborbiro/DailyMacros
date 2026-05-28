@@ -17,6 +17,7 @@ import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiState
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
 import dev.gaborbiro.dailymacros.features.modal.model.hasUnsavedEdits
+import dev.gaborbiro.dailymacros.features.modal.model.imagesRequireMacroReanalysis
 import dev.gaborbiro.dailymacros.features.modal.model.recordDetailsEditPristineSnapshot
 import dev.gaborbiro.dailymacros.features.modal.model.toPickerOptions
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyConfirmedSharedTemplateEditUseCase
@@ -698,26 +699,50 @@ class ModalViewModel @Inject constructor(
         )
         when (result) {
             is EditValidationResult.Valid -> {
+                val pristine = dialogHandle.pristineSnapshot
+                val imagesNeedReanalysis = imagesRequireMacroReanalysis(
+                    pristine.images,
+                    dialogHandle.images,
+                )
+                val templateImages = dialogHandle.images.map { TemplateImageUpdate(filename = it) }
                 if (isVariedTemplateFamily(dialogHandle)) {
                     recordsRepository.updateTemplate(
                         templateId = dialogHandle.templateDbId,
                         name = title,
                         description = description,
-                        templateImages = dialogHandle.images.map { TemplateImageUpdate(filename = it) },
+                        templateImages = templateImages,
                     )
-                    scheduleMacroAnalysisForAllRecordsUsingTemplate(dialogHandle.templateDbId)
+                    if (imagesNeedReanalysis) {
+                        scheduleMacroAnalysisForAllRecordsUsingTemplate(dialogHandle.templateDbId)
+                    }
                 } else {
-                    updateRecordWithNewTemplateUseCase.execute(
-                        recordId = dialogHandle.recordId,
-                        images = dialogHandle.images,
-                        title = title,
-                        description = description,
-                    )
-                    NutrientAnalysisWorker.setWorkRequest(
-                        appContext = application,
-                        recordId = dialogHandle.recordId,
-                        force = true,
-                    )
+                    val imagesReorderedOnly =
+                        dialogHandle.images != pristine.images && !imagesNeedReanalysis
+                    if (imagesReorderedOnly &&
+                        title == pristine.title.trim() &&
+                        description == pristine.description.trim()
+                    ) {
+                        recordsRepository.updateTemplate(
+                            templateId = dialogHandle.templateDbId,
+                            name = title,
+                            description = description,
+                            templateImages = templateImages,
+                        )
+                    } else {
+                        updateRecordWithNewTemplateUseCase.execute(
+                            recordId = dialogHandle.recordId,
+                            images = dialogHandle.images,
+                            title = title,
+                            description = description,
+                        )
+                        if (imagesNeedReanalysis) {
+                            NutrientAnalysisWorker.setWorkRequest(
+                                appContext = application,
+                                recordId = dialogHandle.recordId,
+                                force = true,
+                            )
+                        }
+                    }
                 }
                 closeAll()
             }

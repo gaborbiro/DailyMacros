@@ -131,6 +131,10 @@ fun DialogHandle.RecordDetailsDialog.hasUnsavedEdits(): Boolean {
         images != p.images
 }
 
+/** True when photos were added or removed (not merely reordered). */
+fun imagesRequireMacroReanalysis(pristine: List<String>, current: List<String>): Boolean =
+    pristine.toSet() != current.toSet()
+
 data class RecognisedFood(
     val title: String?,
     val description: String?,
