@@ -79,7 +79,7 @@ internal fun ScrollableContentDialog(
 
         Scaffold(
             modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxSize(),
             containerColor = Color.Transparent,
             contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
             snackbarHost = {
@@ -92,7 +92,7 @@ internal fun ScrollableContentDialog(
             // so they do not fall through the transparent [BoxWithConstraints] margin around the card.
             Box(
                 Modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .pointerInput(dismissOnOutsideTap) {
                         detectTapGestures(
                             onTap = {
@@ -105,7 +105,7 @@ internal fun ScrollableContentDialog(
             )
             BoxWithConstraints(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .padding(paddingValues)
             ) {
                 val max = this.maxHeight

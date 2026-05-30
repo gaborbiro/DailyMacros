@@ -157,7 +157,7 @@ internal fun NutrientsIndentedList(
             )
         }
 
-        nutrientBreakdown.notes?.let {
+        nutrientBreakdown.notes?.takeIf { it.isNotBlank() }?.let {
             Spacer(
                 modifier = Modifier
                     .height(PaddingDefault)

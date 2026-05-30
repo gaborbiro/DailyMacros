@@ -71,6 +71,7 @@ import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.MealVariantPickerOption
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.RecordDetailsPristineSnapshot
+import dev.gaborbiro.dailymacros.features.modal.model.hasDisplayableContent
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.ui.components.CompactMacroNutrientsGrid
 
@@ -106,6 +107,7 @@ fun ColumnScope.RecordDetailsView(
     val browseMode = !view.isEditing
     val browseInteractive = browseMode && view.allowEdit && !showCloseOnly
     val browseReadOnly = browseMode && (showCloseOnly || !view.allowEdit)
+    val showImageControls = showPhotoManagement || (view.isEditing && view.allowEdit && !showCloseOnly)
     var macrosExpanded by remember(view.recordId, view.templateDbId) { mutableStateOf(macrosExpanded) }
     // Session-scoped: survives View state replacements (e.g. variant switch) until this dialog leaves composition.
     var variantPickerRevealed by remember { mutableStateOf(false) }
@@ -142,10 +144,9 @@ fun ColumnScope.RecordDetailsView(
             .fillMaxWidth()
             .padding(top = 12.dp)
             .padding(bottom = 12.dp),
-        showAddPhotoButtons = false,
-        showImageDeleteButton = showPhotoManagement,
-        showImageReorderButtons = showPhotoManagement,
-        showInfoButton = false,
+        showAddPhotoButtons = showImageControls,
+        showImageDeleteButton = showImageControls,
+        showInfoButton = showImageControls,
         images = images,
         onImageTapped = onImageTapped,
         onImageDeleteTapped = onImageDeleteTapped,
@@ -269,7 +270,7 @@ fun ColumnScope.RecordDetailsView(
             )
         }
 
-        if (nutrientBreakdown != null) {
+        if (nutrientBreakdown?.hasDisplayableContent() == true) {
             Spacer(
                 modifier = Modifier
                     .height(20.dp)
