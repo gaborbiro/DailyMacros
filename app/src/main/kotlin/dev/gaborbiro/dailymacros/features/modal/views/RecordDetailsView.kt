@@ -146,6 +146,7 @@ fun ColumnScope.RecordDetailsView(
             .padding(bottom = 12.dp),
         showAddPhotoButtons = showImageControls,
         showImageDeleteButton = showImageControls,
+        showImageReorderButtons = showImageControls,
         showInfoButton = showImageControls,
         images = images,
         onImageTapped = onImageTapped,
