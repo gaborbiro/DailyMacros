@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -47,6 +48,7 @@ fun ImageStrip(
     showImageReorderButtons: Boolean = false,
     showInfoButton: Boolean = false,
     onImageTapped: (String) -> Unit,
+    onImageDownloadTapped: (String) -> Unit,
     onImageDeleteTapped: (String) -> Unit,
     onImageMoveLeftTapped: (String) -> Unit = {},
     onImageMoveRightTapped: (String) -> Unit = {},
@@ -83,15 +85,32 @@ fun ImageStrip(
                 modifier = Modifier
                     .size(tileSize)
                     .clip(shape)
-                    .border(1.dp, Color.Black.copy(alpha = 0.06f), shape)
-                    .clickable { onImageTapped(name) }
+                    .border(1.dp, Color.Black.copy(alpha = 0.06f), shape),
             ) {
                 LocalImage(
                     name = name,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable { onImageTapped(name) },
                     contentScale = ContentScale.Crop,
                     contentDescription = "",
                 )
+                IconButton(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .size(24.dp),
+                    onClick = { onImageDownloadTapped(name) },
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = Color.Gray.copy(alpha = .8f),
+                        contentColor = Color.White,
+                    ),
+                ) {
+                    Icon(
+                        modifier = Modifier.size(20.dp),
+                        imageVector = Icons.Outlined.Download,
+                        contentDescription = stringResource(R.string.meal_details_photo_download_cd),
+                    )
+                }
                 if (showImageDeleteButton) {
                     IconButton(
                         modifier = Modifier
@@ -199,6 +218,7 @@ private fun ImageStripPreview() {
             showImageReorderButtons = true,
             showInfoButton = true,
             onImageTapped = {},
+            onImageDownloadTapped = {},
             onImageDeleteTapped = {},
             onImageMoveLeftTapped = {},
             onImageMoveRightTapped = {},
@@ -219,6 +239,7 @@ private fun ImageStripPreviewViewOnly() {
             showAddPhotoButtons = false,
             showImageDeleteButton = false,
             onImageTapped = {},
+            onImageDownloadTapped = {},
             onImageDeleteTapped = {},
             onAddImageViaCameraTapped = {},
             onAddImageViaPickerTapped = {},

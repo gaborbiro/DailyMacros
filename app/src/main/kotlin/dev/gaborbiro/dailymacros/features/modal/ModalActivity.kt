@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.features.modal
 import android.app.ComponentCaller
 import android.app.KeyguardManager
 import android.content.Intent
+import android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -22,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.data.file.domain.FileStore
 import dev.gaborbiro.dailymacros.data.image.DefaultFoodPicExt
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
@@ -32,6 +34,7 @@ import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
+import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates.ShareImage
 import dev.gaborbiro.dailymacros.features.modal.views.EditTargetConfirmationDialog
 import dev.gaborbiro.dailymacros.features.modal.views.ImageDialog
 import dev.gaborbiro.dailymacros.features.modal.views.ConfirmSwitchTemplateDialog
@@ -100,6 +103,24 @@ class ModalActivity : AppCompatActivity() {
                 viewModel.uiUpdates
                     .filterIsInstance<ModalUiUpdates.Close>()
                     .collect { finish() }
+            }
+
+            LaunchedEffect(viewModel) {
+                viewModel.uiUpdates
+                    .filterIsInstance<ShareImage>()
+                    .collect { update ->
+                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                            type = "image/jpeg"
+                            putExtra(Intent.EXTRA_STREAM, update.uri)
+                            addFlags(FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                        startActivity(
+                            Intent.createChooser(
+                                shareIntent,
+                                getString(R.string.meal_details_photo_share_chooser_title),
+                            ),
+                        )
+                    }
             }
         }
     }
@@ -189,6 +210,7 @@ class ModalActivity : AppCompatActivity() {
                 onTitleChanged = viewModel::onTitleChanged,
                 onDescriptionChanged = viewModel::onDescriptionChanged,
                 onImageTapped = viewModel::onImageTapped,
+                onImageDownloadTapped = viewModel::onImageDownloadTapped,
                 onImageDeleteTapped = viewModel::onImageDeleteTapped,
                 onImageMoveLeftTapped = viewModel::onImageMoveLeftTapped,
                 onImageMoveRightTapped = viewModel::onImageMoveRightTapped,

@@ -26,6 +26,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ListMealVariantsForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ModalRecordFixtures
 import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveFirstRecordIdForTemplateUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.ExportImageToGalleryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
@@ -161,6 +162,7 @@ class ModalViewModelTest {
             validateEditRecordUseCase = ValidateEditRecordUseCase(repo),
             validateCreateRecordUseCase = ValidateCreateRecordUseCase(),
             saveImageUseCase = SaveImageUseCase(app, imageStore),
+            exportImageToGalleryUseCase = ExportImageToGalleryUseCase(app, imageStore),
             getRecordImageUseCase = GetRecordImageUseCase(repo),
             getTemplateImageUseCase = GetTemplateImageUseCase(repo),
             foodRecognitionUseCase = FoodRecognitionUseCase(app, imageStore, VmFakeChatGpt()),

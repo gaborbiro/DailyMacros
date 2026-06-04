@@ -32,6 +32,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ListMealVariantsForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveFirstRecordIdForTemplateUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.ExportImageToGalleryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
@@ -78,6 +79,7 @@ class ModalViewModel @Inject constructor(
     private val validateEditRecordUseCase: ValidateEditRecordUseCase,
     private val validateCreateRecordUseCase: ValidateCreateRecordUseCase,
     private val saveImageUseCase: SaveImageUseCase,
+    private val exportImageToGalleryUseCase: ExportImageToGalleryUseCase,
     private val getRecordImageUseCase: GetRecordImageUseCase,
     private val getTemplateImageUseCase: GetTemplateImageUseCase,
     private val foodRecognitionUseCase: FoodRecognitionUseCase,
@@ -334,6 +336,13 @@ class ModalViewModel @Inject constructor(
         val allImages = (root as? DialogHandle.RecordDetailsDialog)?.images ?: listOf(image)
         val index = allImages.indexOf(image).coerceAtLeast(0)
         pushOverlay(DialogHandle.ViewImageDialog("", allImages, index))
+    }
+
+    fun onImageDownloadTapped(image: String) {
+        runSafely {
+            val exportedUri = exportImageToGalleryUseCase.execute(image)
+            _uiUpdates.send(ModalUiUpdates.ShareImage(exportedUri))
+        }
     }
 
     fun onImageDeleteTapped(image: String) {
