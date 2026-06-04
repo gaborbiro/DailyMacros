@@ -21,7 +21,9 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,11 +48,13 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
@@ -62,6 +66,7 @@ import kotlin.math.roundToInt
 fun ImageDialog(
     dialogHandle: DialogHandle.ViewImageDialog,
     onDismissRequested: () -> Unit,
+    onImageDownloadTapped: (String) -> Unit,
 ) {
     Dialog(
         onDismissRequest = onDismissRequested,
@@ -83,6 +88,7 @@ fun ImageDialog(
                 )
 
                 CloseButton(onTapped = onDismissRequested)
+                DownloadButton(onTapped = { onImageDownloadTapped(images[0]) })
             }
         } else {
             val pagerState = rememberPagerState(
@@ -114,6 +120,9 @@ fun ImageDialog(
                 }
 
                 CloseButton(onTapped = onDismissRequested)
+                DownloadButton(
+                    onTapped = { onImageDownloadTapped(images[pagerState.currentPage]) },
+                )
 
                 PagerIndicator(
                     pagerState = pagerState,
@@ -161,9 +170,26 @@ private fun BoxScope.CloseButton(onTapped: () -> Unit) {
         Icon(
             modifier = Modifier
                 .size(64.dp),
-            imageVector = androidx.compose.material.icons.Icons.Default.Close,
+            imageVector = Icons.Default.Close,
             tint = Color.White,
             contentDescription = "Close",
+        )
+    }
+}
+
+@Composable
+private fun BoxScope.DownloadButton(onTapped: () -> Unit) {
+    IconButton(
+        modifier = Modifier
+            .align(Alignment.BottomStart)
+            .padding(horizontal = PaddingDefault, vertical = PaddingDefault),
+        onClick = onTapped,
+    ) {
+        Icon(
+            modifier = Modifier.size(48.dp),
+            imageVector = Icons.Outlined.Download,
+            tint = Color.White,
+            contentDescription = stringResource(R.string.meal_details_photo_download_cd),
         )
     }
 }
@@ -344,6 +370,7 @@ private fun ViewImageDialogPreview() {
                 images = listOf("1"),
             ),
             onDismissRequested = {},
+            onImageDownloadTapped = {},
         )
     }
 }
@@ -359,6 +386,7 @@ private fun ViewImageDialogPreviewMulti() {
                 images = listOf("1", "2", "3", "4"),
             ),
             onDismissRequested = {},
+            onImageDownloadTapped = {},
         )
     }
 }

@@ -210,7 +210,6 @@ class ModalActivity : AppCompatActivity() {
                 onTitleChanged = viewModel::onTitleChanged,
                 onDescriptionChanged = viewModel::onDescriptionChanged,
                 onImageTapped = viewModel::onImageTapped,
-                onImageDownloadTapped = viewModel::onImageDownloadTapped,
                 onImageDeleteTapped = viewModel::onImageDeleteTapped,
                 onImageMoveLeftTapped = viewModel::onImageMoveLeftTapped,
                 onImageMoveRightTapped = viewModel::onImageMoveRightTapped,
@@ -239,6 +238,7 @@ class ModalActivity : AppCompatActivity() {
             is DialogHandle.ViewImageDialog -> ImageDialog(
                 dialogHandle = dialogHandle,
                 onDismissRequested = onDismissRequested,
+                onImageDownloadTapped = viewModel::onImageDownloadTapped,
             )
 
             is DialogHandle.ImageInput -> {
