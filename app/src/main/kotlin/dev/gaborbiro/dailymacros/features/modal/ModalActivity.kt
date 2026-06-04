@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
 import android.net.Uri
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.PickVisualMediaRequest
@@ -103,6 +104,18 @@ class ModalActivity : AppCompatActivity() {
                 viewModel.uiUpdates
                     .filterIsInstance<ModalUiUpdates.Close>()
                     .collect { finish() }
+            }
+
+            LaunchedEffect(viewModel) {
+                viewModel.uiUpdates
+                    .filterIsInstance<ModalUiUpdates.ShowToast>()
+                    .collect { update ->
+                        Toast.makeText(
+                            this@ModalActivity,
+                            update.message,
+                            Toast.LENGTH_LONG,
+                        ).show()
+                    }
             }
 
             LaunchedEffect(viewModel) {

@@ -32,6 +32,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ListMealVariantsForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveFirstRecordIdForTemplateUseCase
+import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.features.modal.usecase.ExportImageToGalleryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
@@ -341,6 +342,14 @@ class ModalViewModel @Inject constructor(
     fun onImageDownloadTapped(image: String) {
         runSafely {
             val exportedUri = exportImageToGalleryUseCase.execute(image)
+            _uiUpdates.send(
+                ModalUiUpdates.ShowToast(
+                    application.getString(
+                        R.string.meal_details_photo_exported_toast,
+                        ExportImageToGalleryUseCase.GALLERY_ALBUM_FOLDER,
+                    ),
+                ),
+            )
             _uiUpdates.send(ModalUiUpdates.ShareImage(exportedUri))
         }
     }
