@@ -95,45 +95,39 @@ class ModalActivity : AppCompatActivity() {
                         Dialog(
                             dialogHandle = it,
                             errorMessages = errorMessages,
+                            photoExportInProgress = viewState.photoExportInProgress,
                         )
                     }
                 }
             }
 
             LaunchedEffect(viewModel) {
-                viewModel.uiUpdates
-                    .filterIsInstance<ModalUiUpdates.Close>()
-                    .collect { finish() }
-            }
-
-            LaunchedEffect(viewModel) {
-                viewModel.uiUpdates
-                    .filterIsInstance<ModalUiUpdates.ShowToast>()
-                    .collect { update ->
-                        Toast.makeText(
-                            this@ModalActivity,
-                            update.message,
-                            Toast.LENGTH_LONG,
-                        ).show()
-                    }
-            }
-
-            LaunchedEffect(viewModel) {
-                viewModel.uiUpdates
-                    .filterIsInstance<ShareImage>()
-                    .collect { update ->
-                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                            type = "image/jpeg"
-                            putExtra(Intent.EXTRA_STREAM, update.uri)
-                            addFlags(FLAG_GRANT_READ_URI_PERMISSION)
+                viewModel.uiUpdates.collect { update ->
+                    when (update) {
+                        ModalUiUpdates.Close -> finish()
+                        is ModalUiUpdates.ShowToast -> {
+                            Toast.makeText(
+                                this@ModalActivity,
+                                update.message,
+                                Toast.LENGTH_LONG,
+                            ).show()
                         }
-                        startActivity(
-                            Intent.createChooser(
-                                shareIntent,
-                                getString(R.string.meal_details_photo_share_chooser_title),
-                            ),
-                        )
+                        is ShareImage -> {
+                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                type = "image/jpeg"
+                                putExtra(Intent.EXTRA_STREAM, update.uri)
+                                addFlags(FLAG_GRANT_READ_URI_PERMISSION)
+                            }
+                            startActivity(
+                                Intent.createChooser(
+                                    shareIntent,
+                                    getString(R.string.meal_details_photo_share_chooser_title),
+                                ),
+                            )
+                        }
+                        is ModalUiUpdates.Error -> Unit
                     }
+                }
             }
         }
     }
@@ -205,6 +199,7 @@ class ModalActivity : AppCompatActivity() {
     fun Dialog(
         dialogHandle: DialogHandle?,
         errorMessages: Flow<String>,
+        photoExportInProgress: Boolean,
     ) {
         val onDismissRequested: () -> Unit =
             remember(dialogHandle) {
@@ -252,6 +247,7 @@ class ModalActivity : AppCompatActivity() {
                 dialogHandle = dialogHandle,
                 onDismissRequested = onDismissRequested,
                 onImageDownloadTapped = viewModel::onImageDownloadTapped,
+                photoExportInProgress = photoExportInProgress,
             )
 
             is DialogHandle.ImageInput -> {
