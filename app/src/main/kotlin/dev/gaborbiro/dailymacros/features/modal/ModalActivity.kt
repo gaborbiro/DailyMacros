@@ -190,6 +190,8 @@ class ModalActivity : AppCompatActivity() {
                 onDescriptionChanged = viewModel::onDescriptionChanged,
                 onImageTapped = viewModel::onImageTapped,
                 onImageDeleteTapped = viewModel::onImageDeleteTapped,
+                onImageMoveLeftTapped = viewModel::onImageMoveLeftTapped,
+                onImageMoveRightTapped = viewModel::onImageMoveRightTapped,
                 onAddImageViaCameraTapped = viewModel::onAddImageViaCameraTapped,
                 onAddImageViaPickerTapped = viewModel::onAddImageViaPickerTapped,
                 onDismissRequested = onDismissRequested,

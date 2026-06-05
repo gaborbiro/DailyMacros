@@ -17,6 +17,7 @@ import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiState
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
 import dev.gaborbiro.dailymacros.features.modal.model.hasUnsavedEdits
+import dev.gaborbiro.dailymacros.features.modal.model.imagesRequireMacroReanalysis
 import dev.gaborbiro.dailymacros.features.modal.model.recordDetailsEditPristineSnapshot
 import dev.gaborbiro.dailymacros.features.modal.model.toPickerOptions
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyConfirmedSharedTemplateEditUseCase
@@ -346,6 +347,38 @@ class ModalViewModel @Inject constructor(
         }
     }
 
+    fun onImageMoveLeftTapped(image: String) {
+        updateRoot<DialogHandle.RecordDetailsDialog> {
+            val index = it.images.indexOf(image)
+            if (index <= 0) return@updateRoot it
+            val newImages = it.images.toMutableList().apply {
+                add(index - 1, removeAt(index))
+            }
+            when (it) {
+                is DialogHandle.RecordDetailsDialog.View ->
+                    if (!it.isEditing) it else it.copy(images = newImages)
+
+                is DialogHandle.RecordDetailsDialog.Edit -> it.copy(images = newImages)
+            }
+        }
+    }
+
+    fun onImageMoveRightTapped(image: String) {
+        updateRoot<DialogHandle.RecordDetailsDialog> {
+            val index = it.images.indexOf(image)
+            if (index < 0 || index >= it.images.lastIndex) return@updateRoot it
+            val newImages = it.images.toMutableList().apply {
+                add(index + 1, removeAt(index))
+            }
+            when (it) {
+                is DialogHandle.RecordDetailsDialog.View ->
+                    if (!it.isEditing) it else it.copy(images = newImages)
+
+                is DialogHandle.RecordDetailsDialog.Edit -> it.copy(images = newImages)
+            }
+        }
+    }
+
     fun onAddImageViaCameraTapped() {
         pushOverlay(DialogHandle.ImageInput(type = ImageInputType.Camera))
     }
@@ -666,26 +699,50 @@ class ModalViewModel @Inject constructor(
         )
         when (result) {
             is EditValidationResult.Valid -> {
+                val pristine = dialogHandle.pristineSnapshot
+                val imagesNeedReanalysis = imagesRequireMacroReanalysis(
+                    pristine.images,
+                    dialogHandle.images,
+                )
+                val templateImages = dialogHandle.images.map { TemplateImageUpdate(filename = it) }
                 if (isVariedTemplateFamily(dialogHandle)) {
                     recordsRepository.updateTemplate(
                         templateId = dialogHandle.templateDbId,
                         name = title,
                         description = description,
-                        templateImages = dialogHandle.images.map { TemplateImageUpdate(filename = it) },
+                        templateImages = templateImages,
                     )
-                    scheduleMacroAnalysisForAllRecordsUsingTemplate(dialogHandle.templateDbId)
+                    if (imagesNeedReanalysis) {
+                        scheduleMacroAnalysisForAllRecordsUsingTemplate(dialogHandle.templateDbId)
+                    }
                 } else {
-                    updateRecordWithNewTemplateUseCase.execute(
-                        recordId = dialogHandle.recordId,
-                        images = dialogHandle.images,
-                        title = title,
-                        description = description,
-                    )
-                    NutrientAnalysisWorker.setWorkRequest(
-                        appContext = application,
-                        recordId = dialogHandle.recordId,
-                        force = true,
-                    )
+                    val imagesReorderedOnly =
+                        dialogHandle.images != pristine.images && !imagesNeedReanalysis
+                    if (imagesReorderedOnly &&
+                        title == pristine.title.trim() &&
+                        description == pristine.description.trim()
+                    ) {
+                        recordsRepository.updateTemplate(
+                            templateId = dialogHandle.templateDbId,
+                            name = title,
+                            description = description,
+                            templateImages = templateImages,
+                        )
+                    } else {
+                        updateRecordWithNewTemplateUseCase.execute(
+                            recordId = dialogHandle.recordId,
+                            images = dialogHandle.images,
+                            title = title,
+                            description = description,
+                        )
+                        if (imagesNeedReanalysis) {
+                            NutrientAnalysisWorker.setWorkRequest(
+                                appContext = application,
+                                recordId = dialogHandle.recordId,
+                                force = true,
+                            )
+                        }
+                    }
                 }
                 closeAll()
             }
