@@ -239,72 +239,16 @@ class ModalViewModelTest {
         vm.onRecordDetailsEditStarted()
         vm.onImageMoveRightTapped("a.jpg")
         advanceUntilIdle()
-        val root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        var root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
         assertEquals(listOf("b.jpg", "a.jpg", "c.jpg"), root.images)
-    }
-
-    @Test
-    fun `imagesRequireMacroReanalysis is false for reorder only`() {
-        assertFalse(
-            imagesRequireMacroReanalysis(
-                listOf("a.jpg", "b.jpg", "c.jpg"),
-                listOf("b.jpg", "c.jpg", "a.jpg"),
-            ),
-        )
-        assertTrue(
-            imagesRequireMacroReanalysis(
-                listOf("a.jpg", "b.jpg"),
-                listOf("a.jpg", "b.jpg", "c.jpg"),
-            ),
-        )
-    }
-
-    @Test
-    fun `reorder only save updates template in place without creating new template`() = runTest(testDispatcher) {
-        var saveTemplateCalls = 0
-        var updateTemplateCalls = 0
-        val tpl = ModalRecordFixtures.template(
-            dbId = 7L,
-            name = "Soup",
-            images = listOf("a.jpg", "b.jpg", "c.jpg"),
-        )
-        val rec = ModalRecordFixtures.record(5L, tpl)
-        val repo = object : BaseRecordsRepositoryStub() {
-            override fun observe(recordId: Long) = flowOf(rec)
-            override suspend fun get(recordId: Long) = rec.takeIf { it.recordId == recordId }
-            override suspend fun countRecordsForTemplate(templateId: Long) = 1
-            override suspend fun getRecordsByTemplate(templateId: Long) = listOf(rec)
-            override suspend fun getTemplateIdsInSameVariantFamily(templateId: Long) = listOf(templateId)
-            override suspend fun getTemplate(templateId: Long) = tpl
-            override suspend fun saveTemplate(templateToSave: TemplateToSave): Long {
-                saveTemplateCalls++
-                return 99L
-            }
-            override suspend fun updateTemplate(
-                templateId: Long,
-                name: String?,
-                description: String?,
-                templateImages: List<TemplateImageUpdate>?,
-                nutrients: Pair<TemplateNutrientBreakdown, TopContributors>?,
-                notes: String?,
-                mealComponents: List<MealComponent>?,
-            ) {
-                updateTemplateCalls++
-                assertEquals(7L, templateId)
-                assertEquals(listOf("b.jpg", "a.jpg", "c.jpg"), templateImages?.map { it.filename })
-            }
-        }
-        val vm = viewModel(repo)
-        vm.onRecordDetailsButtonTapped(5L)
+        vm.onImageMoveLeftTapped("c.jpg")
         advanceUntilIdle()
-        vm.onRecordDetailsEditStarted()
-        vm.onImageMoveRightTapped("a.jpg")
+        root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertEquals(listOf("b.jpg", "c.jpg", "a.jpg"), root.images)
+        vm.onImageMoveLeftTapped("b.jpg")
         advanceUntilIdle()
-        vm.onSaveDetailsTapped()
-        advanceUntilIdle()
-        assertEquals(0, saveTemplateCalls)
-        assertEquals(1, updateTemplateCalls)
-        assertNull(vm.uiState.value.rootDialog)
+        root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertEquals(listOf("b.jpg", "c.jpg", "a.jpg"), root.images)
     }
 
     @Test

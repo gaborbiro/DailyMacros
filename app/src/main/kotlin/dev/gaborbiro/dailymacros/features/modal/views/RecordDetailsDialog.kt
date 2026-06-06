@@ -59,7 +59,7 @@ internal fun RecordDetailsDialog(
     val showPhotoManagement = when (dialogHandle) {
         is DialogHandle.RecordDetailsDialog.Edit -> true
         is DialogHandle.RecordDetailsDialog.View ->
-            dialogHandle.isEditing && dialogHandle.allowEdit
+            dialogHandle.isEditing && dialogHandle.allowEdit && !showCloseOnly
     }
 
     var pendingDiscard by remember { mutableStateOf<PendingRecordDetailsDiscard?>(null) }
