@@ -3,8 +3,10 @@ package dev.gaborbiro.dailymacros.features.modal
 import android.app.ComponentCaller
 import android.app.KeyguardManager
 import android.content.Intent
+import android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
 import android.net.Uri
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.PickVisualMediaRequest
@@ -22,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.data.file.domain.FileStore
 import dev.gaborbiro.dailymacros.data.image.DefaultFoodPicExt
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
@@ -32,6 +35,7 @@ import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
+import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates.ShareImage
 import dev.gaborbiro.dailymacros.features.modal.views.EditTargetConfirmationDialog
 import dev.gaborbiro.dailymacros.features.modal.views.ImageDialog
 import dev.gaborbiro.dailymacros.features.modal.views.ConfirmSwitchTemplateDialog
@@ -91,15 +95,39 @@ class ModalActivity : AppCompatActivity() {
                         Dialog(
                             dialogHandle = it,
                             errorMessages = errorMessages,
+                            photoExportInProgress = viewState.photoExportInProgress,
                         )
                     }
                 }
             }
 
             LaunchedEffect(viewModel) {
-                viewModel.uiUpdates
-                    .filterIsInstance<ModalUiUpdates.Close>()
-                    .collect { finish() }
+                viewModel.uiUpdates.collect { update ->
+                    when (update) {
+                        ModalUiUpdates.Close -> finish()
+                        is ModalUiUpdates.ShowToast -> {
+                            Toast.makeText(
+                                this@ModalActivity,
+                                update.message,
+                                Toast.LENGTH_LONG,
+                            ).show()
+                        }
+                        is ShareImage -> {
+                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                type = "image/jpeg"
+                                putExtra(Intent.EXTRA_STREAM, update.uri)
+                                addFlags(FLAG_GRANT_READ_URI_PERMISSION)
+                            }
+                            startActivity(
+                                Intent.createChooser(
+                                    shareIntent,
+                                    getString(R.string.meal_details_photo_share_chooser_title),
+                                ),
+                            )
+                        }
+                        is ModalUiUpdates.Error -> Unit
+                    }
+                }
             }
         }
     }
@@ -171,6 +199,7 @@ class ModalActivity : AppCompatActivity() {
     fun Dialog(
         dialogHandle: DialogHandle?,
         errorMessages: Flow<String>,
+        photoExportInProgress: Boolean,
     ) {
         val onDismissRequested: () -> Unit =
             remember(dialogHandle) {
@@ -217,6 +246,8 @@ class ModalActivity : AppCompatActivity() {
             is DialogHandle.ViewImageDialog -> ImageDialog(
                 dialogHandle = dialogHandle,
                 onDismissRequested = onDismissRequested,
+                onImageDownloadTapped = viewModel::onImageDownloadTapped,
+                photoExportInProgress = photoExportInProgress,
             )
 
             is DialogHandle.ImageInput -> {

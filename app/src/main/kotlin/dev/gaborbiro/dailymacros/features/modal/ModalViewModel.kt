@@ -32,6 +32,8 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ListMealVariantsForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveFirstRecordIdForTemplateUseCase
+import dev.gaborbiro.dailymacros.R
+import dev.gaborbiro.dailymacros.features.modal.usecase.ExportImageToGalleryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
@@ -47,7 +49,6 @@ import ellipsize
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
@@ -55,7 +56,9 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
@@ -78,6 +81,7 @@ class ModalViewModel @Inject constructor(
     private val validateEditRecordUseCase: ValidateEditRecordUseCase,
     private val validateCreateRecordUseCase: ValidateCreateRecordUseCase,
     private val saveImageUseCase: SaveImageUseCase,
+    private val exportImageToGalleryUseCase: ExportImageToGalleryUseCase,
     private val getRecordImageUseCase: GetRecordImageUseCase,
     private val getTemplateImageUseCase: GetTemplateImageUseCase,
     private val foodRecognitionUseCase: FoodRecognitionUseCase,
@@ -89,10 +93,11 @@ class ModalViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ModalUiState())
     val uiState: StateFlow<ModalUiState> = _uiState.asStateFlow()
 
-    private val _uiUpdates = Channel<ModalUiUpdates>(Channel.BUFFERED)
-    val uiUpdates: Flow<ModalUiUpdates> = _uiUpdates.receiveAsFlow()
+    private val _uiUpdates = MutableSharedFlow<ModalUiUpdates>(extraBufferCapacity = 16)
+    val uiUpdates: SharedFlow<ModalUiUpdates> = _uiUpdates.asSharedFlow()
 
     private var recogniseFoodJob: Job? = null
+    private var photoExportJob: Job? = null
 
     private var recordDetailsJob: Job? = null
 
@@ -134,7 +139,7 @@ class ModalViewModel @Inject constructor(
                     setRoot(imageDialog)
                 }
                 ?: run {
-                    _uiUpdates.send(ModalUiUpdates.Close)
+                    _uiUpdates.emit(ModalUiUpdates.Close)
                 }
         }
     }
@@ -146,7 +151,7 @@ class ModalViewModel @Inject constructor(
                     setRoot(imageDialog)
                 }
                 ?: run {
-                    _uiUpdates.send(ModalUiUpdates.Close)
+                    _uiUpdates.emit(ModalUiUpdates.Close)
                 }
         }
     }
@@ -334,6 +339,27 @@ class ModalViewModel @Inject constructor(
         val allImages = (root as? DialogHandle.RecordDetailsDialog)?.images ?: listOf(image)
         val index = allImages.indexOf(image).coerceAtLeast(0)
         pushOverlay(DialogHandle.ViewImageDialog("", allImages, index))
+    }
+
+    fun onImageDownloadTapped(image: String) {
+        if (photoExportJob?.isActive == true) return
+        photoExportJob = runSafely {
+            _uiState.update { it.copy(photoExportInProgress = true) }
+            try {
+                val exportedUri = exportImageToGalleryUseCase.execute(image)
+                _uiUpdates.emit(
+                    ModalUiUpdates.ShowToast(
+                        application.getString(
+                            R.string.meal_details_photo_exported_toast,
+                            ExportImageToGalleryUseCase.GALLERY_ALBUM_FOLDER,
+                        ),
+                    ),
+                )
+                _uiUpdates.emit(ModalUiUpdates.ShareImage(exportedUri))
+            } finally {
+                _uiState.update { it.copy(photoExportInProgress = false) }
+            }
+        }
     }
 
     fun onImageDeleteTapped(image: String) {
@@ -854,7 +880,7 @@ class ModalViewModel @Inject constructor(
             else -> exception.message ?: exception.cause?.message
         }
         viewModelScope.launch {
-            _uiUpdates.send(
+            _uiUpdates.emit(
                 ModalUiUpdates.Error(
                     message?.ellipsize(
                         300
@@ -886,14 +912,16 @@ class ModalViewModel @Inject constructor(
     private fun closeAll() {
         recogniseFoodJob?.cancel()
         recordDetailsJob?.cancel()
+        photoExportJob?.cancel()
         _uiState.update {
             it.copy(
                 rootDialog = null,
                 overlayDialog = null,
+                photoExportInProgress = false,
             )
         }
         viewModelScope.launch {
-            _uiUpdates.send(ModalUiUpdates.Close)
+            _uiUpdates.emit(ModalUiUpdates.Close)
         }
     }
 

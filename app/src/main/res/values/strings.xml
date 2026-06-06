@@ -19,8 +19,11 @@
     <string name="meal_details_description_placeholder">Notes, ingredients, or how you made it</string>
     <string name="meal_details_quick_pick_star_cd">Add meal to Quick Picks</string>
     <string name="meal_details_quick_pick_unstar_cd">Remove meal from Quick Picks</string>
+    <string name="meal_details_photo_download_cd">Save photo to device</string>
+    <string name="meal_details_photo_share_chooser_title">Share photo</string>
     <string name="meal_details_image_move_left_cd">Move photo left</string>
     <string name="meal_details_image_move_right_cd">Move photo right</string>
+    <string name="meal_details_photo_exported_toast">Photo saved to Pictures/%1$s</string>
     <string name="meal_details_switch_variant_title">Discard changes?</string>
     <string name="meal_details_switch_variant_message">You changed something in this meal. Switch to another version anyway? You’ll lose those edits.</string>
     <string name="meal_details_switch_variant_confirm">Switch</string>

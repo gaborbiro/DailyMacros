@@ -84,7 +84,7 @@ fun ImageStrip(
                     .size(tileSize)
                     .clip(shape)
                     .border(1.dp, Color.Black.copy(alpha = 0.06f), shape)
-                    .clickable { onImageTapped(name) }
+                    .clickable { onImageTapped(name) },
             ) {
                 LocalImage(
                     name = name,

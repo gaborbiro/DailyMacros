@@ -21,10 +21,14 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -37,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -46,11 +51,13 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
@@ -62,6 +69,8 @@ import kotlin.math.roundToInt
 fun ImageDialog(
     dialogHandle: DialogHandle.ViewImageDialog,
     onDismissRequested: () -> Unit,
+    onImageDownloadTapped: (String) -> Unit,
+    photoExportInProgress: Boolean,
 ) {
     Dialog(
         onDismissRequest = onDismissRequested,
@@ -83,6 +92,11 @@ fun ImageDialog(
                 )
 
                 CloseButton(onTapped = onDismissRequested)
+                DownloadButton(
+                    onTapped = { onImageDownloadTapped(images[0]) },
+                    enabled = !photoExportInProgress,
+                    isLoading = photoExportInProgress,
+                )
             }
         } else {
             val pagerState = rememberPagerState(
@@ -114,6 +128,11 @@ fun ImageDialog(
                 }
 
                 CloseButton(onTapped = onDismissRequested)
+                DownloadButton(
+                    onTapped = { onImageDownloadTapped(images[pagerState.currentPage]) },
+                    enabled = !photoExportInProgress,
+                    isLoading = photoExportInProgress,
+                )
 
                 PagerIndicator(
                     pagerState = pagerState,
@@ -155,16 +174,54 @@ private fun BoxScope.CloseButton(onTapped: () -> Unit) {
     IconButton(
         modifier = Modifier
             .align(Alignment.TopEnd)
+            .zIndex(1f)
             .padding(horizontal = PaddingDefault),
         onClick = onTapped,
     ) {
         Icon(
             modifier = Modifier
                 .size(64.dp),
-            imageVector = androidx.compose.material.icons.Icons.Default.Close,
+            imageVector = Icons.Default.Close,
             tint = Color.White,
             contentDescription = "Close",
         )
+    }
+}
+
+@Composable
+private fun BoxScope.DownloadButton(
+    onTapped: () -> Unit,
+    enabled: Boolean,
+    isLoading: Boolean,
+) {
+    FilledIconButton(
+        onClick = onTapped,
+        enabled = enabled && !isLoading,
+        modifier = Modifier
+            .align(Alignment.BottomStart)
+            .zIndex(1f)
+            .padding(horizontal = PaddingDefault, vertical = PaddingDefault)
+            .size(56.dp),
+        colors = IconButtonDefaults.filledIconButtonColors(
+            containerColor = Color.White.copy(alpha = 0.24f),
+            contentColor = Color.White,
+            disabledContainerColor = Color.White.copy(alpha = 0.14f),
+            disabledContentColor = Color.White.copy(alpha = 0.5f),
+        ),
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(28.dp),
+                color = Color.White,
+                strokeWidth = 2.dp,
+            )
+        } else {
+            Icon(
+                modifier = Modifier.size(28.dp),
+                imageVector = Icons.Outlined.Download,
+                contentDescription = stringResource(R.string.meal_details_photo_download_cd),
+            )
+        }
     }
 }
 
@@ -344,6 +401,8 @@ private fun ViewImageDialogPreview() {
                 images = listOf("1"),
             ),
             onDismissRequested = {},
+            onImageDownloadTapped = {},
+            photoExportInProgress = false,
         )
     }
 }
@@ -359,6 +418,8 @@ private fun ViewImageDialogPreviewMulti() {
                 images = listOf("1", "2", "3", "4"),
             ),
             onDismissRequested = {},
+            onImageDownloadTapped = {},
+            photoExportInProgress = false,
         )
     }
 }

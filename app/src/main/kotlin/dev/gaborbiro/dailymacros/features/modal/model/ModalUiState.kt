@@ -6,6 +6,7 @@ import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 data class ModalUiState(
     val rootDialog: DialogHandle? = null,
     val overlayDialog: DialogHandle? = null,
+    val photoExportInProgress: Boolean = false,
 )
 
 sealed class DialogHandle {
