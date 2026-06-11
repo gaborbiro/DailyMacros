@@ -10,6 +10,7 @@ data class MealVariantListRow(
     val title: String,
     val lastUsed: ZonedDateTime?,
     val isCurrent: Boolean,
+    val componentNames: List<String> = emptyList(),
 )
 
 data class MealVariantListResult(
@@ -30,6 +31,7 @@ data class MealVariantPickerOption(
     val title: String,
     val lastUsedDateLabel: String,
     val isCurrentVariant: Boolean,
+    val componentsSubtitle: String = "",
 )
 
 /** Baseline for detecting unsaved edits in record details (title, description, images). */
@@ -52,6 +54,7 @@ fun MealVariantListResult.toPickerOptions(diaryDayStartHour: Int): List<MealVari
             title = row.title,
             lastUsedDateLabel = dateLabel,
             isCurrentVariant = row.isCurrent,
+            componentsSubtitle = row.componentNames.joinToString(", "),
         )
     }
     val merged = (listOf(current) + others).sortedWith(
