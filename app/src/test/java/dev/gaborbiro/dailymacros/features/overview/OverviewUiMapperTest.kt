@@ -45,6 +45,9 @@ class OverviewUiMapperTest {
         override fun getDiaryDayStartHour(): Int = 0
 
         override fun setDiaryDayStartHour(hourOfDay: Int) = Unit
+
+        override fun getPromptCustomizations(): Map<String, String> = emptyMap()
+        override fun setPromptCustomizations(values: Map<String, String>) = Unit
     }
 
     private val mapper = OverviewUiMapper(

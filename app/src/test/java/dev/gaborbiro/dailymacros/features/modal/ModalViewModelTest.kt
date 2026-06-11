@@ -111,6 +111,9 @@ class ModalViewModelTest {
 
         override suspend fun analyseNutrients(request: NutrientAnalysisRequest): NutrientAnalysis =
             error("unused")
+
+        override fun getRecognitionPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
+        override fun getAnalysisPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
     }
 
     private val disabledTarget = Target(enabled = false)
@@ -132,6 +135,9 @@ class ModalViewModelTest {
         override fun getDiaryDayStartHour(): Int = 0
 
         override fun setDiaryDayStartHour(hourOfDay: Int) = Unit
+
+        override fun getPromptCustomizations(): Map<String, String> = emptyMap()
+        override fun setPromptCustomizations(values: Map<String, String>) = Unit
     }
 
     private fun viewModel(repo: RecordsRepository = BaseRecordsRepositoryStub()): ModalViewModel {
@@ -165,7 +171,7 @@ class ModalViewModelTest {
             exportImageToGalleryUseCase = ExportImageToGalleryUseCase(app, imageStore),
             getRecordImageUseCase = GetRecordImageUseCase(repo),
             getTemplateImageUseCase = GetTemplateImageUseCase(repo),
-            foodRecognitionUseCase = FoodRecognitionUseCase(app, imageStore, VmFakeChatGpt()),
+            foodRecognitionUseCase = FoodRecognitionUseCase(app, imageStore, VmFakeChatGpt(), testSettingsRepository),
             applyQuickPickOverrideAndReloadWidgetUseCase = ApplyQuickPickOverrideAndReloadWidgetUseCase(repo),
             applyConfirmedSharedTemplateEditUseCase = ApplyConfirmedSharedTemplateEditUseCase(
                 updateRecordWithNewTemplateUseCase = updateRec,
