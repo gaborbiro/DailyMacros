@@ -9,6 +9,7 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.BuildConfig
 import dev.gaborbiro.dailymacros.repositories.chatgpt.di.ForImageUploadChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError
+import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.MealComponent as ChatGPTMealComponent
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusRepository
@@ -31,6 +32,7 @@ class NutrientAnalysisUseCase @Inject constructor(
     private val recordsMapper: RecordsMapper,
     private val macrosNotificationTextMapper: MacrosNotificationTextMapper,
     private val macroResultsNotificationSender: MacroResultsNotificationSender,
+    private val settingsRepository: SettingsRepository,
 ) {
 
     suspend fun execute(
@@ -52,7 +54,7 @@ class NutrientAnalysisUseCase @Inject constructor(
                     request = recordsMapper.mapToNutrientAnalysisRequest(
                         record = record,
                         base64Images = base64Images,
-                    )
+                    ).copy(customizations = settingsRepository.getPromptCustomizations())
                 )
             }
 

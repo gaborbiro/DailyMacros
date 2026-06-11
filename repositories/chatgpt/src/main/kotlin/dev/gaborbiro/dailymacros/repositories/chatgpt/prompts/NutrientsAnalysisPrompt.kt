@@ -22,7 +22,7 @@ internal fun NutrientAnalysisRequest.toApiModel() = ChatGPTRequest(
     input = listOf(
         ContentEntry(
             role = Role.system,
-            content = listOf(InputContent.Text(sharedSystemPrompt())),
+            content = listOf(InputContent.Text(analysisSystemPrompt(this.customizations))),
         ),
         ContentEntry(
             role = Role.user,

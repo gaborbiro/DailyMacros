@@ -12,4 +12,9 @@ interface SettingsRepository {
     fun getDiaryDayStartHour(): Int
 
     fun setDiaryDayStartHour(hourOfDay: Int)
+
+    /** Returns user overrides for AI prompt editable segments, keyed by segment ID. */
+    fun getPromptCustomizations(): Map<String, String>
+
+    fun setPromptCustomizations(values: Map<String, String>)
 }

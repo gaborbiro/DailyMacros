@@ -4,4 +4,5 @@ data class NutrientAnalysisRequest(
     val base64Images: List<String>,
     val title: String,
     val description: String,
+    val customizations: Map<String, String> = emptyMap(),
 )

@@ -7,6 +7,7 @@ import dev.gaborbiro.dailymacros.features.modal.model.RecognisedFood
 import dev.gaborbiro.dailymacros.repositories.chatgpt.di.ForImageUploadChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
+import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.util.showTextNotification
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlin.random.Random
@@ -16,6 +17,7 @@ class FoodRecognitionUseCase @Inject constructor(
     @ApplicationContext private val appContext: Context,
     private val imageStore: ImageStore,
     @ForImageUploadChatGpt private val chatGPTRepository: ChatGPTRepository,
+    private val settingsRepository: SettingsRepository,
 ) {
 
     suspend fun execute(images: List<String>): RecognisedFood {
@@ -26,6 +28,7 @@ class FoodRecognitionUseCase @Inject constructor(
         val response = chatGPTRepository.recogniseFood(
             request = FoodRecognitionRequest(
                 base64Images = base64Images,
+                customizations = settingsRepository.getPromptCustomizations(),
             )
         )
         val cachedTokens = "Cached tokens: ${response.cachedTokens}"

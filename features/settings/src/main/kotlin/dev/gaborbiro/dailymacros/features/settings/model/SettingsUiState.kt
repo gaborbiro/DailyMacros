@@ -7,4 +7,5 @@ data class SettingsUiState(
     val importDataInProgress: Boolean = false,
     val diaryDayStartHour: Int = 0,
     val showDiaryDayStartDialog: Boolean = false,
+    val showPromptEditor: Boolean = false,
 )

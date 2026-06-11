@@ -19,7 +19,7 @@ internal fun FoodRecognitionRequest.toApiModel() = ChatGPTRequest(
     input = listOf(
         ContentEntry(
             role = Role.system,
-            content = listOf(InputContent.Text(sharedSystemPrompt())),
+            content = listOf(InputContent.Text(recognitionSystemPrompt(this.customizations))),
         ),
         ContentEntry(
             role = Role.user,

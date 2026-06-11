@@ -4,6 +4,7 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecogniti
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
 
 /**
  * All operations translate API/transport failures into [dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError]
@@ -16,4 +17,8 @@ interface ChatGPTRepository {
 
     /** @throws dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError on any API/transport failure. */
     suspend fun analyseNutrients(request: NutrientAnalysisRequest): NutrientAnalysis
+
+    fun getRecognitionPromptSegments(): List<PromptSegment>
+
+    fun getAnalysisPromptSegments(): List<PromptSegment>
 }
