@@ -49,6 +49,7 @@ import ellipsize
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
@@ -307,6 +308,15 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onTitleChanged(title: TextFieldValue) {
+        val root = _uiState.value.rootDialog
+        if (root is DialogHandle.RecordDetailsDialog.Edit && title.text.isNotBlank() && title.text != root.title.text) {
+            if (recogniseFoodJob?.isActive == true) {
+                recogniseFoodJob?.cancel()
+                updateRoot<DialogHandle.RecordDetailsDialog.Edit> {
+                    it.copy(showProgressIndicator = false, showRunAIButton = true)
+                }
+            }
+        }
         updateRoot<DialogHandle.RecordDetailsDialog> {
             when (it) {
                 is DialogHandle.RecordDetailsDialog.View ->
@@ -534,6 +544,7 @@ class ModalViewModel @Inject constructor(
     private fun runFoodRecognition(images: List<String>) {
         recogniseFoodJob?.cancel()
         recogniseFoodJob = runSafely {
+            delay(1500L)
             updateRoot<DialogHandle.RecordDetailsDialog.Edit> {
                 it.copy(showProgressIndicator = true)
             }
