@@ -23,10 +23,12 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ANALYSIS_EXTRA
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ANALYSIS_INTRO
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ANALYSIS_PACKAGING_RULE
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ANALYSIS_PRINCIPLES
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ANALYSIS_USER_EXTRA
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_RECOGNITION_APPROACH
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_RECOGNITION_EXTRA
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_RECOGNITION_INTRO
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_RECOGNITION_TASK
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_RECOGNITION_USER_EXTRA
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toApiModel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toFoodRecognitionResponse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toNutrientAnalysisResponse
@@ -66,11 +68,13 @@ class ChatGPTRepositoryImpl(
     }
 
     override fun getRecognitionPromptSegments(): List<PromptSegment> = listOf(
+        PromptSegment.Locked("— system message —\n"),
         PromptSegment.Editable(
             id = SEG_RECOGNITION_INTRO,
             label = "Role",
             defaultText = DEFAULT_RECOGNITION_INTRO,
         ),
+        PromptSegment.Locked("The user provides one or more photos of a meal, drink, or food item.\n"),
         PromptSegment.Editable(
             id = SEG_RECOGNITION_APPROACH,
             label = "Identification instruction",
@@ -83,7 +87,7 @@ class ChatGPTRepositoryImpl(
         ),
         PromptSegment.Editable(
             id = SEG_RECOGNITION_EXTRA,
-            label = "Extra rules (optional)",
+            label = "Extra system rules (optional)",
             defaultText = "",
             hint = "More rules (optional)",
         ),
@@ -94,14 +98,26 @@ class ChatGPTRepositoryImpl(
             label = "Task instruction",
             defaultText = DEFAULT_RECOGNITION_TASK,
         ),
+        PromptSegment.Editable(
+            id = SEG_RECOGNITION_USER_EXTRA,
+            label = "Extra user rules (optional)",
+            defaultText = "",
+            hint = "More rules (optional)",
+        ),
         PromptSegment.Locked("\n\n$RECOGNITION_OUTPUT_FORMAT"),
     )
 
     override fun getAnalysisPromptSegments(): List<PromptSegment> = listOf(
+        PromptSegment.Locked("— system message —\n"),
         PromptSegment.Editable(
             id = SEG_ANALYSIS_INTRO,
             label = "Role",
             defaultText = DEFAULT_ANALYSIS_INTRO,
+        ),
+        PromptSegment.Locked(
+            "\nThe user may provide:\n" +
+            "• Photos of a meal or drink.\n" +
+            "• A title and/or description.\n"
         ),
         PromptSegment.Editable(
             id = SEG_ANALYSIS_PRINCIPLES,
@@ -126,7 +142,7 @@ class ChatGPTRepositoryImpl(
         ),
         PromptSegment.Editable(
             id = SEG_ANALYSIS_EXTRA,
-            label = "Extra rules (optional)",
+            label = "Extra system rules (optional)",
             defaultText = "",
             hint = "More rules (optional)",
         ),
@@ -149,6 +165,12 @@ class ChatGPTRepositoryImpl(
             id = SEG_ANALYSIS_CONTRIBUTOR_HINT,
             label = "Contributor ingredients hint",
             defaultText = DEFAULT_ANALYSIS_CONTRIBUTOR_HINT,
+        ),
+        PromptSegment.Editable(
+            id = SEG_ANALYSIS_USER_EXTRA,
+            label = "Extra user rules (optional)",
+            defaultText = "",
+            hint = "More rules (optional)",
         ),
         PromptSegment.Locked(
             "\nIf estimation is not possible:\n" +

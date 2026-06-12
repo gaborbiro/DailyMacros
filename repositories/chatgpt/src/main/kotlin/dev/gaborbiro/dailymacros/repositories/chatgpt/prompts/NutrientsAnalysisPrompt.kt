@@ -49,6 +49,11 @@ internal fun NutrientAnalysisRequest.toApiModel() = ChatGPTRequest(
                     appendLine()
                     appendLine("topContributorIngredients RULES:")
                     appendLine(req.customizations.segment(SEG_ANALYSIS_CONTRIBUTOR_HINT, DEFAULT_ANALYSIS_CONTRIBUTOR_HINT))
+                    val userExtra = req.customizations[SEG_ANALYSIS_USER_EXTRA]?.trim().orEmpty()
+                    if (userExtra.isNotBlank()) {
+                        appendLine()
+                        appendLine(userExtra)
+                    }
                     appendLine()
                     appendLine("If estimation is not possible:")
                     append("""{"error": "<one short, specific sentence explaining what is missing or unclear>"}""")

@@ -5,15 +5,17 @@ internal const val SEG_RECOGNITION_INTRO = "recognition_intro"
 internal const val SEG_RECOGNITION_APPROACH = "recognition_approach"
 internal const val SEG_RECOGNITION_TASK = "recognition_task"
 internal const val SEG_RECOGNITION_EXTRA = "recognition_extra"
+internal const val SEG_RECOGNITION_USER_EXTRA = "recognition_user_extra"
 internal const val SEG_ANALYSIS_INTRO = "analysis_intro"
 internal const val SEG_ANALYSIS_PRINCIPLES = "analysis_principles"
 internal const val SEG_ANALYSIS_PACKAGING_RULE = "analysis_packaging_rule"
 internal const val SEG_ANALYSIS_EXTRA = "analysis_extra"
+internal const val SEG_ANALYSIS_USER_EXTRA = "analysis_user_extra"
 internal const val SEG_ANALYSIS_CONFLICT_RESOLUTION = "analysis_conflict_resolution"
 internal const val SEG_ANALYSIS_CONTRIBUTOR_HINT = "analysis_contributor_hint"
 
 internal val DEFAULT_RECOGNITION_INTRO =
-    "You are a food identifier for a macronutrient tracker app.\nThe user provides one or more photos of a meal, drink, or food item."
+    "You are a food identifier for a macronutrient tracker app."
 
 internal val DEFAULT_RECOGNITION_APPROACH =
     "Identify what is shown and return a concise English title."
@@ -21,13 +23,8 @@ internal val DEFAULT_RECOGNITION_APPROACH =
 internal val DEFAULT_RECOGNITION_TASK =
     "Concisely identify the food shown in the photos."
 
-internal val DEFAULT_ANALYSIS_INTRO = """
-You are a nutritional analyst for a macronutrient tracker app.
-
-The user may provide:
-• Photos of a meal or drink.
-• A title and/or description.
-""".trimIndent()
+internal val DEFAULT_ANALYSIS_INTRO =
+    "You are a nutritional analyst for a macronutrient tracker app."
 
 internal val DEFAULT_ANALYSIS_PRINCIPLES = """
 - Perfect accuracy is less important than reliability and consistency.
@@ -54,6 +51,7 @@ internal fun Map<String, String>.segment(id: String, default: String): String =
 
 internal fun recognitionSystemPrompt(customizations: Map<String, String>): String = buildString {
     appendLine(customizations.segment(SEG_RECOGNITION_INTRO, DEFAULT_RECOGNITION_INTRO))
+    appendLine("The user provides one or more photos of a meal, drink, or food item.")
     appendLine()
     appendLine(customizations.segment(SEG_RECOGNITION_APPROACH, DEFAULT_RECOGNITION_APPROACH))
     appendLine()
@@ -67,6 +65,10 @@ internal fun recognitionSystemPrompt(customizations: Map<String, String>): Strin
 
 internal fun analysisSystemPrompt(customizations: Map<String, String>): String = buildString {
     appendLine(customizations.segment(SEG_ANALYSIS_INTRO, DEFAULT_ANALYSIS_INTRO))
+    appendLine()
+    appendLine("The user may provide:")
+    appendLine("• Photos of a meal or drink.")
+    appendLine("• A title and/or description.")
     appendLine()
     appendLine("General principles:")
     appendLine(customizations.segment(SEG_ANALYSIS_PRINCIPLES, DEFAULT_ANALYSIS_PRINCIPLES))

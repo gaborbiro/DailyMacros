@@ -36,6 +36,11 @@ internal fun FoodRecognitionRequest.toApiModel() = ChatGPTRequest(
                     appendLine("TASK: RECOGNITION")
                     appendLine()
                     appendLine(req.customizations.segment(SEG_RECOGNITION_TASK, DEFAULT_RECOGNITION_TASK))
+                    val userExtra = req.customizations[SEG_RECOGNITION_USER_EXTRA]?.trim().orEmpty()
+                    if (userExtra.isNotBlank()) {
+                        appendLine()
+                        appendLine(userExtra)
+                    }
                     appendLine()
                     append(RECOGNITION_OUTPUT_FORMAT)
                 })
