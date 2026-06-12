@@ -31,22 +31,14 @@ internal fun FoodRecognitionRequest.toApiModel() = ChatGPTRequest(
         ContentEntry(
             role = Role.user,
             content = listOf(
-                InputContent.Text(
-                    """
-TASK: RECOGNITION
-
-Identify the food shown. Return JSON with a concise English title.
-
-Output JSON format:
-{
-  "title": ""
-}
-If food cannot be determined:
-{
-  "error": "<one short sentence explaining clearly why food cannot be determined>"
-}
-"""
-                )
+                InputContent.Text(buildString {
+                    val req = this@toApiModel
+                    appendLine("TASK: RECOGNITION")
+                    appendLine()
+                    appendLine(req.customizations.segment(SEG_RECOGNITION_TASK, DEFAULT_RECOGNITION_TASK))
+                    appendLine()
+                    append(RECOGNITION_OUTPUT_FORMAT)
+                })
             )
         )
     )
@@ -90,3 +82,14 @@ internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionResult 
             cachedTokens = cachedTokens,
         )
 }
+
+internal val RECOGNITION_OUTPUT_FORMAT = """
+Output JSON format:
+{
+  "title": ""
+}
+If food cannot be determined:
+{
+  "error": "<one short sentence explaining clearly why food cannot be determined>"
+}
+""".trimIndent()

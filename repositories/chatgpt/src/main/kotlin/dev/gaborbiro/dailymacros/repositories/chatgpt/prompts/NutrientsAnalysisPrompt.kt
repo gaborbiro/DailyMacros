@@ -47,6 +47,7 @@ internal fun NutrientAnalysisRequest.toApiModel() = ChatGPTRequest(
                     appendLine()
                     appendLine(ANALYSIS_OUTPUT_SCHEMA)
                     appendLine()
+                    appendLine("topContributorIngredients RULES:")
                     appendLine(req.customizations.segment(SEG_ANALYSIS_CONTRIBUTOR_HINT, DEFAULT_ANALYSIS_CONTRIBUTOR_HINT))
                     appendLine()
                     appendLine("If estimation is not possible:")
