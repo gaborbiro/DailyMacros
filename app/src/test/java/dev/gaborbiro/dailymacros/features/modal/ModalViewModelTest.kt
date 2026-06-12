@@ -105,7 +105,6 @@ class ModalViewModelTest {
     private class VmFakeChatGpt : ChatGPTRepository {
         override suspend fun recogniseFood(request: FoodRecognitionRequest) = FoodRecognitionResult(
             title = "X",
-            description = "Y",
             cachedTokens = 0,
         )
 

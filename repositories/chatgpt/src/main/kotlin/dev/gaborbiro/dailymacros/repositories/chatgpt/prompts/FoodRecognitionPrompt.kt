@@ -13,6 +13,7 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.OutputConten
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ReasoningLevel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.Role
 
+
 internal fun FoodRecognitionRequest.toApiModel() = ChatGPTRequest(
     model = foodPhotoRecognitionModel,
     reasoning = ReasoningLevel(foodPhotoRecognitionReasoningEffort),
@@ -34,19 +35,11 @@ internal fun FoodRecognitionRequest.toApiModel() = ChatGPTRequest(
                     """
 TASK: RECOGNITION
 
-Return structured food breakdown suitable for later nutrient estimation.
+Identify the food shown. Return JSON with a concise English title.
 
 Output JSON format:
 {
-  "components": [
-    {
-      "name": "",
-      "estimatedAmount": "",
-      "confidence": "high|medium|low"
-    }
-  ],
-  "title": "",
-  "description": ""
+  "title": ""
 }
 If food cannot be determined:
 {
@@ -78,8 +71,6 @@ internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionResult 
 
     class FoodDescription(
         @SerializedName("title") val title: String?,
-        @SerializedName("description") val description: String?,
-        @SerializedName("components") val components: List<Component>?,
         @SerializedName("error") val error: String?,
     )
 
@@ -89,29 +80,13 @@ internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionResult 
             if (foodDescription.error != null) {
                 throw ChatGPTApiError.GenericApiError(foodDescription.error)
             }
-            val components = foodDescription.components.orEmpty()
-            val componentStr = components.joinToString("\n") { component ->
-                val confidence = when (component.confidence) {
-                    "medium" -> "?"
-                    "low" -> "??"
-                    else -> null
-                }
-                "${component.estimatedAmount} ${component.name} ${confidence?.let { "($it)" } ?: ""}"
-            }
-            val descriptionItems = listOfNotNull(
-                foodDescription.description.takeIf { it.isNullOrBlank().not() },
-                componentStr
-            )
-
             FoodRecognitionResult(
                 title = foodDescription.title.takeIf { it.isNullOrBlank().not() },
-                description = descriptionItems.joinToString("\nComponents:\n").takeIf { it.isNotBlank() },
                 cachedTokens = cachedTokens,
             )
         }
         ?: FoodRecognitionResult(
             title = null,
-            description = null,
             cachedTokens = cachedTokens,
         )
 }

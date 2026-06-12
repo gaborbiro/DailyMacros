@@ -35,7 +35,6 @@ class FoodRecognitionUseCaseTest {
     private class FakeChatGpt : ChatGPTRepository {
         override suspend fun recogniseFood(request: FoodRecognitionRequest) = FoodRecognitionResult(
             title = "Oats",
-            description = "Porridge",
             cachedTokens = 12,
         )
 
@@ -69,6 +68,5 @@ class FoodRecognitionUseCaseTest {
         val ctx: Context = ApplicationProvider.getApplicationContext()
         val result = FoodRecognitionUseCase(ctx, FakeImageStore(), FakeChatGpt(), fakeSettingsRepository).execute(listOf("pic.jpg"))
         assertEquals("Oats", result.title)
-        assertEquals("Porridge", result.description)
     }
 }

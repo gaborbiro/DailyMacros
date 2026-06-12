@@ -138,7 +138,6 @@ fun imagesRequireMacroReanalysis(pristine: List<String>, current: List<String>):
 
 data class RecognisedFood(
     val title: String?,
-    val description: String?,
 )
 
 sealed class ImageInputType {

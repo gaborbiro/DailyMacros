@@ -35,7 +35,6 @@ class FoodRecognitionUseCase @Inject constructor(
         appContext.showTextNotification(Random(564).nextLong(), cachedTokens)
         return RecognisedFood(
             title = response.title,
-            description = response.description,
         )
     }
 }
