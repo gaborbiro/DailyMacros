@@ -5,6 +5,8 @@ internal const val SEG_RECOGNITION_APPROACH = "recognition_approach"
 internal const val SEG_RECOGNITION_CONTEXT = "recognition_context"
 internal const val SEG_ANALYSIS_PRINCIPLES = "analysis_principles"
 internal const val SEG_ANALYSIS_CONTEXT = "analysis_context"
+internal const val SEG_ANALYSIS_CONFLICT_RESOLUTION = "analysis_conflict_resolution"
+internal const val SEG_ANALYSIS_CONTRIBUTOR_HINT = "analysis_contributor_hint"
 
 internal val DEFAULT_RECOGNITION_APPROACH =
     "Identify what is shown and return a concise English title, a brief description, and a list of visible components with confidence levels."
@@ -14,6 +16,12 @@ internal val DEFAULT_ANALYSIS_PRINCIPLES = """
 - When ingredients are visible or described but quantities are unclear, estimate typical portions.
 - When quantity is unclear, prefer to underestimate rather than overestimate.
 """.trimIndent()
+
+internal val DEFAULT_ANALYSIS_CONFLICT_RESOLUTION =
+    "Use both images and provided text.\nIf text contradicts image, prefer text."
+
+internal val DEFAULT_ANALYSIS_CONTRIBUTOR_HINT =
+    "In topContributorIngredients list out those ingredients that meaningfully contributed to the estimation, in decreasing order of significance. Be brief, e.g. \"bread\" instead of \"whole-grain sourdough bread\"."
 
 internal fun Map<String, String>.segment(id: String, default: String): String =
     this[id]?.takeIf { it.isNotBlank() } ?: default

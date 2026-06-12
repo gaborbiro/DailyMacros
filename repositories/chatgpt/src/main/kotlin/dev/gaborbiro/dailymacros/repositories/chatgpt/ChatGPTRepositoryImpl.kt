@@ -6,9 +6,14 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecogniti
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.ANALYSIS_OUTPUT_SCHEMA
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_ANALYSIS_CONFLICT_RESOLUTION
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_ANALYSIS_CONTRIBUTOR_HINT
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_ANALYSIS_PRINCIPLES
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_RECOGNITION_APPROACH
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ANALYSIS_CONFLICT_RESOLUTION
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ANALYSIS_CONTEXT
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ANALYSIS_CONTRIBUTOR_HINT
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ANALYSIS_PRINCIPLES
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_RECOGNITION_APPROACH
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_RECOGNITION_CONTEXT
@@ -71,6 +76,15 @@ class ChatGPTRepositoryImpl(
             defaultText = "",
             hint = "E.g. \"I mostly eat Portuguese home cooking\" or \"I often photograph restaurant meals\"",
         ),
+        PromptSegment.Locked(
+            "\n— user message —\n" +
+            "TASK: RECOGNITION\n\n" +
+            "Identify the food shown. Return JSON with a concise English title.\n\n" +
+            "Output JSON format:\n" +
+            "{\n  \"title\": \"\"\n}\n" +
+            "If food cannot be determined:\n" +
+            "{\n  \"error\": \"<one short sentence explaining clearly why food cannot be determined>\"\n}"
+        ),
     )
 
     override fun getAnalysisPromptSegments(): List<PromptSegment> = listOf(
@@ -102,6 +116,24 @@ class ChatGPTRepositoryImpl(
             label = "Dietary context (optional)",
             defaultText = "",
             hint = "E.g. \"I mostly eat Portuguese home cooking\" or \"I track a high-protein diet\"",
+        ),
+        PromptSegment.Locked("\n— user message —\nTASK: NUTRIENT_ESTIMATION\n"),
+        PromptSegment.Editable(
+            id = SEG_ANALYSIS_CONFLICT_RESOLUTION,
+            label = "Input priority",
+            defaultText = DEFAULT_ANALYSIS_CONFLICT_RESOLUTION,
+        ),
+        PromptSegment.Locked(
+            "\nTitle: [meal title]\nDescription: [meal description]\n\n" + ANALYSIS_OUTPUT_SCHEMA + "\n"
+        ),
+        PromptSegment.Editable(
+            id = SEG_ANALYSIS_CONTRIBUTOR_HINT,
+            label = "Contributor ingredients hint",
+            defaultText = DEFAULT_ANALYSIS_CONTRIBUTOR_HINT,
+        ),
+        PromptSegment.Locked(
+            "\nIf estimation is not possible:\n" +
+            "{\"error\": \"<one short, specific sentence explaining what is missing or unclear>\"}"
         ),
     )
 
