@@ -36,7 +36,7 @@ TASK: RECOGNITION
 
 Return structured food breakdown suitable for later nutrient estimation.
 
-Output format:
+Output JSON format:
 {
   "components": [
     {
