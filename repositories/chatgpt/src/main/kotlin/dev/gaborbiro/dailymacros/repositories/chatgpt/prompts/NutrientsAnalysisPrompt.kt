@@ -105,11 +105,11 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(imageCount: Int): Nutrie
             "low" -> "??"
             else -> null
         }
-        "${component.estimatedAmount} ${component.name} ${confidence?.let { "($it)" } ?: ""}"
+        "- ${component.estimatedAmount} ${component.name} ${confidence?.let { "($it)" } ?: ""}"
     }
     val notesItems = listOfNotNull(
         response.notes.takeIf { it.isNullOrBlank().not() },
-        componentStr?.let { "Components:\n$it" }
+        componentStr?.let { "\nComponents:\n$it" }
     )
 
     val representativeFlags =
