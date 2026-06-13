@@ -53,13 +53,11 @@ class ChatGPTRepositoryImpl(
     }
 
     override fun getRecognitionPromptSegments(): List<PromptSegment> = listOf(
-        PromptSegment.Locked("— system message —\n"),
         PromptSegment.Editable(
             id = SEG_RECOGNITION_SYSTEM,
             label = "System message",
             defaultText = DEFAULT_RECOGNITION_SYSTEM,
         ),
-        PromptSegment.Locked("\n— photos —\n\n— user message —\n"),
         PromptSegment.Editable(
             id = SEG_RECOGNITION_USER,
             label = "User message",
@@ -68,13 +66,11 @@ class ChatGPTRepositoryImpl(
     )
 
     override fun getAnalysisPromptSegments(): List<PromptSegment> = listOf(
-        PromptSegment.Locked("— system message —\n"),
         PromptSegment.Editable(
             id = SEG_ANALYSIS_SYSTEM,
             label = "System message",
             defaultText = DEFAULT_ANALYSIS_SYSTEM,
         ),
-        PromptSegment.Locked("\n— photos —\n\n— user message —\n"),
         PromptSegment.Editable(
             id = SEG_ANALYSIS_USER,
             label = "User message",

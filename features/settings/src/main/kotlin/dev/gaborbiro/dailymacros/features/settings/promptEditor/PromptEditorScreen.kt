@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.gaborbiro.dailymacros.features.settings.promptEditor.views.PromptEditorBottomSheet
+import dev.gaborbiro.dailymacros.features.settings.promptEditor.views.PromptEditorView
 
 @Composable
 fun PromptEditorScreen(
@@ -13,13 +13,13 @@ fun PromptEditorScreen(
 ) {
     val viewState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    PromptEditorBottomSheet(
+    PromptEditorView(
         viewState = viewState,
-        events = viewModel.uiUpdates,
         onDismissRequested = viewModel::onBottomSheetDismissRequested,
         onValueChanged = viewModel::onValueChanged,
-        onResetSegment = viewModel::onResetSegment,
+        onResetTab = viewModel::onResetTab,
         onSaveTapped = viewModel::onSaveTapped,
+        onVersionSelected = viewModel::onVersionSelected,
         onExitDialogSaveTapped = viewModel::onExitDialogSaveTapped,
         onExitDialogDiscardTapped = viewModel::onExitDialogDiscardTapped,
         onExitDialogDismissed = viewModel::onExitDialogDismissed,
@@ -28,7 +28,7 @@ fun PromptEditorScreen(
     LaunchedEffect(viewModel) {
         viewModel.uiUpdates.collect { event ->
             when (event) {
-                PromptEditorUiUpdates.Close -> onCloseRequested()
+                PromptEditorUiUpdates.Hide, PromptEditorUiUpdates.Close -> onCloseRequested()
                 else -> Unit
             }
         }

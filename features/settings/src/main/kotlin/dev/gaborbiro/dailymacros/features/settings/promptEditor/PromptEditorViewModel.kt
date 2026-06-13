@@ -36,12 +36,19 @@ class PromptEditorViewModel @Inject constructor(
     val uiUpdates: SharedFlow<PromptEditorUiUpdates> = _uiUpdates.asSharedFlow()
 
     init {
-        val saved = settingsRepository.getPromptCustomizations()
+        val versions = settingsRepository.getPromptVersions()
+        val selectedIndex = if (versions.isNotEmpty()) versions.lastIndex else -1
+        val customizations = when {
+            selectedIndex >= 0 -> versions[selectedIndex].customizations
+            else -> settingsRepository.getPromptCustomizations()
+        }
         _uiState.value = PromptEditorUiState(
             recognitionSegments = chatGPTRepository.getRecognitionPromptSegments(),
             analysisSegments = chatGPTRepository.getAnalysisPromptSegments(),
-            currentValues = saved,
-            originalValues = saved,
+            currentValues = customizations,
+            originalValues = customizations,
+            versions = versions,
+            selectedVersionIndex = selectedIndex,
         )
     }
 
@@ -49,15 +56,27 @@ class PromptEditorViewModel @Inject constructor(
         _uiState.update { it.copy(currentValues = it.currentValues + (segmentId to text)) }
     }
 
-    fun onResetSegment(segmentId: String) {
-        _uiState.update { it.copy(currentValues = it.currentValues - segmentId) }
+    fun onResetTab(segmentIds: List<String>) {
+        _uiState.update { it.copy(currentValues = it.currentValues - segmentIds.toSet()) }
+    }
+
+    fun onVersionSelected(index: Int) {
+        if (_uiState.value.hasUnsavedChanges) {
+            _uiState.update { it.copy(pendingVersionIndex = index, showExitDialog = true) }
+        } else {
+            applyVersion(index)
+        }
     }
 
     fun onSaveTapped() {
-        val values = _uiState.value.currentValues.filterValues { it.isNotBlank() }
-        settingsRepository.setPromptCustomizations(values)
-        _uiState.update { it.copy(originalValues = values, currentValues = values, showExitDialog = false) }
-        viewModelScope.launch { _uiUpdates.emit(PromptEditorUiUpdates.Hide) }
+        val pending = _uiState.value.pendingVersionIndex
+        persistCurrentVersion()
+        _uiState.update { it.copy(showExitDialog = false, pendingVersionIndex = null) }
+        if (pending != null) {
+            applyVersion(pending)
+        } else {
+            viewModelScope.launch { _uiUpdates.emit(PromptEditorUiUpdates.Hide) }
+        }
     }
 
     fun onBottomSheetDismissRequested() {
@@ -73,13 +92,46 @@ class PromptEditorViewModel @Inject constructor(
     }
 
     fun onExitDialogDiscardTapped() {
+        val pending = _uiState.value.pendingVersionIndex
         val original = _uiState.value.originalValues
-        _uiState.update { it.copy(currentValues = original, showExitDialog = false) }
-        viewModelScope.launch { _uiUpdates.emit(PromptEditorUiUpdates.Close) }
+        _uiState.update {
+            it.copy(currentValues = original, showExitDialog = false, pendingVersionIndex = null)
+        }
+        if (pending != null) {
+            applyVersion(pending)
+        } else {
+            viewModelScope.launch { _uiUpdates.emit(PromptEditorUiUpdates.Close) }
+        }
     }
 
     fun onExitDialogDismissed() {
-        _uiState.update { it.copy(showExitDialog = false) }
+        _uiState.update { it.copy(showExitDialog = false, pendingVersionIndex = null) }
         viewModelScope.launch { _uiUpdates.emit(PromptEditorUiUpdates.Show) }
+    }
+
+    private fun persistCurrentVersion() {
+        val values = _uiState.value.currentValues.filterValues { it.isNotBlank() }
+        val newVersion = settingsRepository.savePromptVersion(values)
+        val newVersions = settingsRepository.getPromptVersions()
+        val newIndex = newVersions.indexOfFirst { it.version == newVersion.version }
+        _uiState.update {
+            it.copy(
+                originalValues = values,
+                currentValues = values,
+                versions = newVersions,
+                selectedVersionIndex = newIndex,
+            )
+        }
+    }
+
+    private fun applyVersion(index: Int) {
+        val customizations = _uiState.value.versions.getOrNull(index)?.customizations ?: emptyMap()
+        _uiState.update {
+            it.copy(
+                currentValues = customizations,
+                originalValues = customizations,
+                selectedVersionIndex = index,
+            )
+        }
     }
 }

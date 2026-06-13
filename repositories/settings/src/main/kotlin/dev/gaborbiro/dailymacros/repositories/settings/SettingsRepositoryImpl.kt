@@ -6,6 +6,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository as SettingsRepository
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import javax.inject.Inject
@@ -18,6 +19,7 @@ class SettingsRepositoryImpl @Inject constructor(
 ) : SettingsRepository {
 
     private val prefs = context.getSharedPreferences("settings2", Context.MODE_PRIVATE)
+    private val gson = Gson()
 
     override fun setTargets(targets: Targets) {
         val json = mapper.map(targets)
@@ -55,13 +57,35 @@ class SettingsRepositoryImpl @Inject constructor(
     override fun getPromptCustomizations(): Map<String, String> {
         val json = prefs.getString(KEY_PROMPT_CUSTOMIZATIONS, null) ?: return emptyMap()
         val type = object : TypeToken<Map<String, String>>() {}.type
-        return runCatching { Gson().fromJson<Map<String, String>>(json, type) }.getOrDefault(emptyMap())
+        return runCatching { gson.fromJson<Map<String, String>>(json, type) }.getOrDefault(emptyMap())
     }
 
     override fun setPromptCustomizations(values: Map<String, String>) {
         prefs.edit {
-            putString(KEY_PROMPT_CUSTOMIZATIONS, Gson().toJson(values))
+            putString(KEY_PROMPT_CUSTOMIZATIONS, gson.toJson(values))
         }
+    }
+
+    override fun getPromptVersions(): List<PromptVersion> {
+        val json = prefs.getString(KEY_PROMPT_VERSIONS, null) ?: return emptyList()
+        val type = object : TypeToken<List<PromptVersion>>() {}.type
+        return runCatching { gson.fromJson<List<PromptVersion>>(json, type) }.getOrDefault(emptyList())
+    }
+
+    override fun savePromptVersion(customizations: Map<String, String>): PromptVersion {
+        val existing = getPromptVersions()
+        val nextVersion = (existing.maxOfOrNull { it.version } ?: 0) + 1
+        val newVersion = PromptVersion(
+            version = nextVersion,
+            createdAt = System.currentTimeMillis(),
+            customizations = customizations,
+        )
+        val updated = existing + newVersion
+        prefs.edit {
+            putString(KEY_PROMPT_VERSIONS, gson.toJson(updated))
+            putString(KEY_PROMPT_CUSTOMIZATIONS, gson.toJson(customizations))
+        }
+        return newVersion
     }
 
     companion object {
@@ -69,5 +93,6 @@ class SettingsRepositoryImpl @Inject constructor(
         private const val KEY_DIARY_DAY_START_HOUR = "diary_day_start_hour"
         private const val DEFAULT_DIARY_DAY_START_HOUR = 0
         private const val KEY_PROMPT_CUSTOMIZATIONS = "prompt_customizations_json"
+        private const val KEY_PROMPT_VERSIONS = "prompt_versions_json"
     }
 }

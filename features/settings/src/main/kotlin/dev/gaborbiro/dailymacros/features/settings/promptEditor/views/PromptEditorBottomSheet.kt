@@ -3,188 +3,163 @@ package dev.gaborbiro.dailymacros.features.settings.promptEditor.views
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.ModalBottomSheetProperties
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorUiUpdates
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.model.PromptEditorUiState
 import dev.gaborbiro.dailymacros.features.settings.util.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
-import kotlinx.coroutines.flow.Flow
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun PromptEditorBottomSheet(
+internal fun PromptEditorView(
     viewState: PromptEditorUiState,
-    events: Flow<PromptEditorUiUpdates>,
     onDismissRequested: () -> Unit,
     onValueChanged: (String, String) -> Unit,
-    onResetSegment: (String) -> Unit,
+    onResetTab: (List<String>) -> Unit,
     onSaveTapped: () -> Unit,
+    onVersionSelected: (Int) -> Unit,
     onExitDialogSaveTapped: () -> Unit,
     onExitDialogDiscardTapped: () -> Unit,
     onExitDialogDismissed: () -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val systemBarHeight = with(LocalDensity.current) { WindowInsets.systemBars.getTop(this) }
+    var selectedTab by remember { mutableIntStateOf(0) }
+    val tabs = listOf("Recognition", "Analysis")
+    val currentSegments = if (selectedTab == 0) viewState.recognitionSegments else viewState.analysisSegments
+    val editableIds = currentSegments.filterIsInstance<PromptSegment.Editable>().map { it.id }
 
-    LaunchedEffect(Unit) {
-        events.collect { event ->
-            when (event) {
-                PromptEditorUiUpdates.Show -> sheetState.show()
-                PromptEditorUiUpdates.Hide -> {
-                    sheetState.hide()
-                    onDismissRequested()
-                }
-                PromptEditorUiUpdates.Close -> Unit
-            }
-        }
-    }
-
-    ModalBottomSheet(
-        containerColor = MaterialTheme.colorScheme.surface,
-        sheetState = sheetState,
-        contentWindowInsets = { WindowInsets(0, systemBarHeight, 0, 0) },
+    Dialog(
         onDismissRequest = onDismissRequested,
-        properties = ModalBottomSheetProperties(shouldDismissOnBackPress = true),
+        properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
-        // Header
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background,
         ) {
-            Text(
-                text = "AI Prompts",
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(end = 16.dp),
-            )
-            Spacer(Modifier.weight(1f))
-            TextButton(
-                onClick = onSaveTapped,
-                enabled = viewState.canSave,
-                contentPadding = ButtonDefaults.TextButtonContentPadding,
-            ) {
-                Text(
-                    text = "Save",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                )
-            }
-        }
-        Text(
-            text = "Edit the system message to change AI behaviour. Grey sections are locked.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-        )
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = { Text("AI Prompts") },
+                        navigationIcon = {
+                            IconButton(onClick = onDismissRequested) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back",
+                                )
+                            }
+                        },
+                        actions = {
+                            IconButton(
+                                onClick = { onResetTab(editableIds) },
+                                enabled = editableIds.any { viewState.currentValues.containsKey(it) },
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Refresh,
+                                    contentDescription = "Reset tab to defaults",
+                                )
+                            }
+                            TextButton(
+                                onClick = onSaveTapped,
+                                enabled = viewState.canSave,
+                            ) {
+                                Text("Save")
+                            }
+                        },
+                    )
+                },
+            ) { paddingValues ->
+                Column(
+                    modifier = Modifier
+                        .padding(paddingValues)
+                        .fillMaxSize(),
+                ) {
+                    Text(
+                        text = "Changes take effect on the next AI query.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    )
 
-        // Tabs
-        var selectedTab by remember { mutableIntStateOf(0) }
-        val tabs = listOf("Recognition", "Analysis")
-        PrimaryTabRow(selectedTabIndex = selectedTab) {
-            tabs.forEachIndexed { index, title ->
-                Tab(
-                    selected = selectedTab == index,
-                    onClick = { selectedTab = index },
-                    text = { Text(title) },
-                )
-            }
-        }
+                    VersionPicker(
+                        versions = viewState.versions,
+                        selectedIndex = viewState.selectedVersionIndex,
+                        onVersionSelected = onVersionSelected,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
 
-        val segments = if (selectedTab == 0) viewState.recognitionSegments else viewState.analysisSegments
-
-        Column(
-            modifier = Modifier
-                .verticalScrollWithBar(autoFade = false)
-                .padding(16.dp)
-                .imePadding()
-        ) {
-            segments.forEach { segment ->
-                when (segment) {
-                    is PromptSegment.Locked -> {
-                        Text(
-                            text = segment.text,
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                fontFamily = FontFamily.Monospace,
-                                fontSize = 11.sp,
-                            ),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 2.dp),
-                        )
-                    }
-                    is PromptSegment.Editable -> {
-                        Spacer(Modifier.height(8.dp))
-                        val currentText = viewState.currentValues[segment.id] ?: segment.defaultText
-                        val isOverridden = viewState.currentValues.containsKey(segment.id) &&
-                            viewState.currentValues[segment.id] != segment.defaultText
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.Top,
-                        ) {
-                            OutlinedTextField(
-                                value = currentText,
-                                onValueChange = { onValueChanged(segment.id, it) },
-                                label = { Text(segment.label) },
-                                placeholder = if (segment.hint.isNotBlank()) {
-                                    { Text(segment.hint, style = MaterialTheme.typography.bodySmall) }
-                                } else null,
-                                modifier = Modifier.weight(1f),
-                                minLines = if (currentText.contains('\n')) {
-                                    currentText.lines().size.coerceIn(3, 10)
-                                } else 1,
+                    PrimaryTabRow(selectedTabIndex = selectedTab) {
+                        tabs.forEachIndexed { index, title ->
+                            Tab(
+                                selected = selectedTab == index,
+                                onClick = { selectedTab = index },
+                                text = { Text(title) },
                             )
-                            if (isOverridden) {
-                                Spacer(Modifier.width(4.dp))
-                                IconButton(
-                                    onClick = { onResetSegment(segment.id) },
-                                    modifier = Modifier.padding(top = 4.dp),
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Refresh,
-                                        contentDescription = "Reset to default",
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        }
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .verticalScrollWithBar(autoFade = false)
+                            .padding(16.dp)
+                            .imePadding(),
+                    ) {
+                        currentSegments.forEach { segment ->
+                            when (segment) {
+                                is PromptSegment.Locked -> Unit
+                                is PromptSegment.Editable -> {
+                                    val currentText = viewState.currentValues[segment.id] ?: segment.defaultText
+                                    OutlinedTextField(
+                                        value = currentText,
+                                        onValueChange = { onValueChanged(segment.id, it) },
+                                        label = { Text(segment.label) },
+                                        placeholder = if (segment.hint.isNotBlank()) {
+                                            { Text(segment.hint, style = MaterialTheme.typography.bodySmall) }
+                                        } else null,
+                                        modifier = Modifier.fillMaxWidth(),
+                                        minLines = currentText.lines().size.coerceIn(3, 20),
                                     )
+                                    Spacer(Modifier.height(16.dp))
                                 }
                             }
                         }
-                        Spacer(Modifier.height(8.dp))
                     }
                 }
             }
@@ -208,5 +183,61 @@ internal fun PromptEditorBottomSheet(
                 }
             },
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun VersionPicker(
+    versions: List<PromptVersion>,
+    selectedIndex: Int,
+    onVersionSelected: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val dateFormatter = remember { SimpleDateFormat("MMM d, yyyy", Locale.US) }
+
+    fun PromptVersion.label() = "v${version} · ${dateFormatter.format(Date(createdAt))}"
+
+    val displayText = when {
+        versions.isEmpty() -> "No saved versions yet"
+        selectedIndex >= 0 -> versions[selectedIndex].label()
+        else -> "Select a version"
+    }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded && versions.isNotEmpty(),
+        onExpandedChange = { if (versions.isNotEmpty()) expanded = !expanded },
+        modifier = modifier,
+    ) {
+        OutlinedTextField(
+            value = displayText,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Version") },
+            trailingIcon = {
+                if (versions.isNotEmpty()) {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+            enabled = versions.isNotEmpty(),
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            versions.forEachIndexed { index, version ->
+                DropdownMenuItem(
+                    text = { Text(version.label()) },
+                    onClick = {
+                        expanded = false
+                        onVersionSelected(index)
+                    },
+                )
+            }
+        }
     }
 }
