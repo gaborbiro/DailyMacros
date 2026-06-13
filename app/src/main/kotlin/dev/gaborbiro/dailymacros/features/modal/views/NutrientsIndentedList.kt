@@ -158,24 +158,35 @@ internal fun NutrientsIndentedList(
         }
 
         nutrientBreakdown.notes?.takeIf { it.isNotBlank() }?.let {
-            Spacer(
-                modifier = Modifier
-                    .height(PaddingDefault)
-            )
+            Spacer(modifier = Modifier.height(PaddingDefault))
             Text(
                 text = "AI notes:",
                 style = MaterialTheme.typography.bodyLarge.copy(
                     textDecoration = TextDecoration.Underline,
                 ),
             )
-            Spacer(
-                modifier = Modifier
-                    .height(PaddingQuarter)
-            )
+            Spacer(modifier = Modifier.height(PaddingQuarter))
             Text(
                 text = it,
                 style = MaterialTheme.typography.bodyMedium,
             )
+        }
+
+        if (nutrientBreakdown.components.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(PaddingDefault))
+            Text(
+                text = "Components:",
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    textDecoration = TextDecoration.Underline,
+                ),
+            )
+            Spacer(modifier = Modifier.height(PaddingQuarter))
+            nutrientBreakdown.components.forEach { line ->
+                Text(
+                    text = line,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
         }
     }
 }

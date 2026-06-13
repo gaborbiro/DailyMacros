@@ -99,26 +99,13 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(imageCount: Int): Nutrie
             confidence = component.confidence?.trim().orEmpty().ifEmpty { "high" },
         )
     }
-    val componentStr = structuredComponents.joinToString("\n") { component ->
-        val confidence = when (component.confidence) {
-            "medium" -> "?"
-            "low" -> "??"
-            else -> null
-        }
-        "- ${component.estimatedAmount} ${component.name} ${confidence?.let { "($it)" } ?: ""}"
-    }
-    val notesItems = listOfNotNull(
-        response.notes.takeIf { it.isNullOrBlank().not() },
-        componentStr?.let { "\nComponents:\n$it" }
-    )
-
     val representativeFlags =
         normalizeRepresentativeOfMealFlags(imageCount, response.representativeOfMeal)
 
     return NutrientAnalysis(
         nutrients = nutrients,
         title = response.title,
-        notes = notesItems.joinToString("\n").takeIf { it.isNotBlank() },
+        notes = response.notes.takeIf { it.isNullOrBlank().not() },
         components = structuredComponents,
         isRepresentativeOfMealByImageIndex = representativeFlags,
         cachedTokens = cachedTokens,

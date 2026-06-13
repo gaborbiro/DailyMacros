@@ -156,9 +156,10 @@ data class NutrientBreakdownUiModel(
     val salt: String?,
     val fibre: String?,
     val notes: String?,
+    val components: List<String> = emptyList(),
 )
 
-/** True when the breakdown has at least one macro line or non-blank AI notes to show. */
+/** True when the breakdown has at least one macro line, non-blank AI notes, or components to show. */
 fun NutrientBreakdownUiModel.hasDisplayableContent(): Boolean =
     sequenceOf(
         calories,
@@ -170,4 +171,4 @@ fun NutrientBreakdownUiModel.hasDisplayableContent(): Boolean =
         ofWhichAddedSugar,
         salt,
         fibre,
-    ).any { !it.isNullOrBlank() } || !notes.isNullOrBlank()
+    ).any { !it.isNullOrBlank() } || !notes.isNullOrBlank() || components.isNotEmpty()

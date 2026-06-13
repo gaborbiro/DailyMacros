@@ -37,7 +37,7 @@ class RecordsApiMapper @Inject constructor() {
             createdAtEpochMs = template.entity.createdAtEpochMs,
             updatedAtEpochMs = template.entity.updatedAtEpochMs,
             nutrients = template.macros?.let(::map) ?: TemplateNutrientBreakdown(),
-            notes = template.macros?.notes ?: "",
+            notes = (template.macros?.notes ?: "").substringBefore("\nComponents:\n").trimEnd().takeIf { it.isNotBlank() } ?: "",
             mealComponents = decodeMealComponentsJson(template.macros?.analysisComponentsJson),
             topContributors = template.topContributors?.let(::map) ?: TopContributors(),
             isPending = template.requestStatus?.status == RequestStatusEntity.Status.PENDING,
