@@ -30,7 +30,7 @@ internal fun FoodRecognitionRequest.toApiModel() = ChatGPTRequest(
         ),
         ContentEntry(
             role = Role.user,
-            content = listOf(InputContent.Text(RECOGNITION_TASK_MESSAGE)),
+            content = listOf(InputContent.Text(this.customizations.systemPrompt(SEG_RECOGNITION_USER, DEFAULT_RECOGNITION_USER))),
         )
     )
 )
@@ -74,17 +74,3 @@ internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionResult 
         )
 }
 
-internal val RECOGNITION_TASK_MESSAGE = """
-TASK: RECOGNITION
-
-Concisely identify the food shown in the photos.
-
-Output JSON format:
-{
-  "title": ""
-}
-If food cannot be determined:
-{
-  "error": "<one short sentence explaining clearly why food cannot be determined>"
-}
-""".trimIndent()

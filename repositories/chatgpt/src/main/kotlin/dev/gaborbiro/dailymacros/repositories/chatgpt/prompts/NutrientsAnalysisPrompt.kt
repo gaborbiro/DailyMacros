@@ -34,26 +34,9 @@ internal fun NutrientAnalysisRequest.toApiModel() = ChatGPTRequest(
             role = Role.user,
             content = listOf(
                 InputContent.Text(
-                    """
-TASK: NUTRIENT_ESTIMATION
-
-Use both images and provided text.
-If text contradicts image, prefer text.
-
-Title:
-${this.title}
-
-Description:
-${this.description}
-
-$ANALYSIS_OUTPUT_SCHEMA
-
-topContributorIngredients RULES:
-list out those ingredients that meaningfully contributed to the estimation, in decreasing order of significance. Be brief, e.g. "bread" instead of "whole-grain sourdough bread".
-
-If estimation is not possible:
-{"error": "<one short, specific sentence explaining what is missing or unclear>"}
-""".trimIndent()
+                    this.customizations.systemPrompt(SEG_ANALYSIS_USER, DEFAULT_ANALYSIS_USER)
+                        .replace("{title}", this.title.orEmpty())
+                        .replace("{description}", this.description.orEmpty())
                 )
             )
         )
@@ -171,25 +154,3 @@ private data class NutrientApiModel(
     @SerializedName("topContributorIngredients") val topContributorIngredients: String?,
 )
 
-internal val ANALYSIS_OUTPUT_SCHEMA = """
-Output format:
-{
-  "nutrients": {
-    "calories": 0.0,
-    "protein": { "grams": 0.0, "topContributorIngredients": "" },
-    "fat": { "grams": 0.0, "topContributorIngredients": "" },
-    "ofWhichSaturated": { "grams": 0.0, "topContributorIngredients": "" },
-    "carbohydrate": { "grams": 0.0, "topContributorIngredients": "" },
-    "ofWhichSugar": { "grams": 0.0, "topContributorIngredients": "" },
-    "ofWhichAddedSugar": { "grams": 0.0, "topContributorIngredients": "" },
-    "salt": { "grams": 0.00, "topContributorIngredients": "" },
-    "fibre": { "grams": 0.0, "topContributorIngredients": "" }
-  },
-  "components": [{ "name": "", "estimatedAmount": "", "confidence": "high|medium|low" }],
-  "title": "",
-  "notes": "",
-  "representative_of_meal": [ true, false ]
-}
-
-The "representative_of_meal" array MUST have the same length and order as the user-submitted meal photos (index 0 = first photo). Each entry is true if that photo clearly shows the prepared dish or at least some food that belongs to that dish; false for nutrition labels only, packaging-only shots, unrelated scenes, receipts, people, empty plates, or when unclear. If you omit "representative_of_meal", every image is treated as unknown for that classification downstream.
-""".trimIndent()

@@ -6,12 +6,14 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecogniti
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
-import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.ANALYSIS_OUTPUT_SCHEMA
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_ANALYSIS_SYSTEM
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_ANALYSIS_USER
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_RECOGNITION_SYSTEM
-import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.RECOGNITION_TASK_MESSAGE
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_RECOGNITION_USER
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ANALYSIS_SYSTEM
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ANALYSIS_USER
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_RECOGNITION_SYSTEM
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_RECOGNITION_USER
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toApiModel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toFoodRecognitionResponse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toNutrientAnalysisResponse
@@ -57,8 +59,12 @@ class ChatGPTRepositoryImpl(
             label = "System message",
             defaultText = DEFAULT_RECOGNITION_SYSTEM,
         ),
-        PromptSegment.Locked("\n— photos —\n"),
-        PromptSegment.Locked("\n— user message —\n\n$RECOGNITION_TASK_MESSAGE"),
+        PromptSegment.Locked("\n— photos —\n\n— user message —\n"),
+        PromptSegment.Editable(
+            id = SEG_RECOGNITION_USER,
+            label = "User message",
+            defaultText = DEFAULT_RECOGNITION_USER,
+        ),
     )
 
     override fun getAnalysisPromptSegments(): List<PromptSegment> = listOf(
@@ -68,20 +74,12 @@ class ChatGPTRepositoryImpl(
             label = "System message",
             defaultText = DEFAULT_ANALYSIS_SYSTEM,
         ),
-        PromptSegment.Locked("\n— photos —\n"),
-        PromptSegment.Locked(
-            "\n— user message —\n\n" +
-            "TASK: NUTRIENT_ESTIMATION\n\n" +
-            "Use both images and provided text.\n" +
-            "If text contradicts image, prefer text.\n\n" +
-            "Title: [meal title]\n" +
-            "Description: [meal description]\n\n" +
-            ANALYSIS_OUTPUT_SCHEMA + "\n\n" +
-            "topContributorIngredients RULES:\n" +
-            "list out those ingredients that meaningfully contributed to the estimation, " +
-            "in decreasing order of significance. Be brief, e.g. \"bread\" instead of \"whole-grain sourdough bread\".\n\n" +
-            "If estimation is not possible:\n" +
-            "{\"error\": \"<one short, specific sentence explaining what is missing or unclear>\"}"
+        PromptSegment.Locked("\n— photos —\n\n— user message —\n"),
+        PromptSegment.Editable(
+            id = SEG_ANALYSIS_USER,
+            label = "User message",
+            defaultText = DEFAULT_ANALYSIS_USER,
+            hint = "Use {title} and {description} as placeholders for the meal title and description.",
         ),
     )
 
