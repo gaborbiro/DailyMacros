@@ -20,7 +20,7 @@ internal fun FoodRecognitionRequest.toApiModel() = ChatGPTRequest(
     input = listOf(
         ContentEntry(
             role = Role.system,
-            content = listOf(InputContent.Text(recognitionSystemPrompt(this.customizations))),
+            content = listOf(InputContent.Text(this.customizations.systemPrompt(SEG_RECOGNITION_SYSTEM, DEFAULT_RECOGNITION_SYSTEM))),
         ),
         ContentEntry(
             role = Role.user,
@@ -30,21 +30,7 @@ internal fun FoodRecognitionRequest.toApiModel() = ChatGPTRequest(
         ),
         ContentEntry(
             role = Role.user,
-            content = listOf(
-                InputContent.Text(buildString {
-                    val req = this@toApiModel
-                    appendLine("TASK: RECOGNITION")
-                    appendLine()
-                    appendLine(req.customizations.segment(SEG_RECOGNITION_TASK, DEFAULT_RECOGNITION_TASK))
-                    val userExtra = req.customizations[SEG_RECOGNITION_USER_EXTRA]?.trim().orEmpty()
-                    if (userExtra.isNotBlank()) {
-                        appendLine()
-                        appendLine(userExtra)
-                    }
-                    appendLine()
-                    append(RECOGNITION_OUTPUT_FORMAT)
-                })
-            )
+            content = listOf(InputContent.Text(RECOGNITION_TASK_MESSAGE)),
         )
     )
 )
@@ -88,7 +74,11 @@ internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionResult 
         )
 }
 
-internal val RECOGNITION_OUTPUT_FORMAT = """
+internal val RECOGNITION_TASK_MESSAGE = """
+TASK: RECOGNITION
+
+Concisely identify the food shown in the photos.
+
 Output JSON format:
 {
   "title": ""

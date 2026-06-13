@@ -22,7 +22,7 @@ internal fun NutrientAnalysisRequest.toApiModel() = ChatGPTRequest(
     input = listOf(
         ContentEntry(
             role = Role.system,
-            content = listOf(InputContent.Text(analysisSystemPrompt(this.customizations))),
+            content = listOf(InputContent.Text(this.customizations.systemPrompt(SEG_ANALYSIS_SYSTEM, DEFAULT_ANALYSIS_SYSTEM))),
         ),
         ContentEntry(
             role = Role.user,
@@ -33,31 +33,28 @@ internal fun NutrientAnalysisRequest.toApiModel() = ChatGPTRequest(
         ContentEntry(
             role = Role.user,
             content = listOf(
-                InputContent.Text(buildString {
-                    val req = this@toApiModel
-                    appendLine("TASK: NUTRIENT_ESTIMATION")
-                    appendLine()
-                    appendLine(req.customizations.segment(SEG_ANALYSIS_CONFLICT_RESOLUTION, DEFAULT_ANALYSIS_CONFLICT_RESOLUTION))
-                    appendLine()
-                    appendLine("Title:")
-                    appendLine(req.title)
-                    appendLine()
-                    appendLine("Description:")
-                    appendLine(req.description)
-                    appendLine()
-                    appendLine(ANALYSIS_OUTPUT_SCHEMA)
-                    appendLine()
-                    appendLine("topContributorIngredients RULES:")
-                    appendLine(req.customizations.segment(SEG_ANALYSIS_CONTRIBUTOR_HINT, DEFAULT_ANALYSIS_CONTRIBUTOR_HINT))
-                    val userExtra = req.customizations[SEG_ANALYSIS_USER_EXTRA]?.trim().orEmpty()
-                    if (userExtra.isNotBlank()) {
-                        appendLine()
-                        appendLine(userExtra)
-                    }
-                    appendLine()
-                    appendLine("If estimation is not possible:")
-                    append("""{"error": "<one short, specific sentence explaining what is missing or unclear>"}""")
-                })
+                InputContent.Text(
+                    """
+TASK: NUTRIENT_ESTIMATION
+
+Use both images and provided text.
+If text contradicts image, prefer text.
+
+Title:
+${this.title}
+
+Description:
+${this.description}
+
+$ANALYSIS_OUTPUT_SCHEMA
+
+topContributorIngredients RULES:
+list out those ingredients that meaningfully contributed to the estimation, in decreasing order of significance. Be brief, e.g. "bread" instead of "whole-grain sourdough bread".
+
+If estimation is not possible:
+{"error": "<one short, specific sentence explaining what is missing or unclear>"}
+""".trimIndent()
+                )
             )
         )
     )

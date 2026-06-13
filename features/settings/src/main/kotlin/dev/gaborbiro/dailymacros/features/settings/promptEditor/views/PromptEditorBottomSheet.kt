@@ -107,7 +107,7 @@ internal fun PromptEditorBottomSheet(
             }
         }
         Text(
-            text = "Grey text is locked. Edit the white sections to change AI behaviour.",
+            text = "Edit the system message to change AI behaviour. Grey sections are locked.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
