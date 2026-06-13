@@ -173,6 +173,7 @@ class ModalViewModel @Inject constructor(
 
             when (val root = _uiState.value.rootDialog) {
                 is DialogHandle.RecordDetailsDialog.Edit -> {
+                    if (persistedFilenames.isEmpty()) return@runSafely
                     val updatedImages = root.images + persistedFilenames
                     setRoot(
                         root.copy(
@@ -414,10 +415,12 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onAddImageViaCameraTapped() {
+        recogniseFoodJob?.cancel()
         pushOverlay(DialogHandle.ImageInput(type = ImageInputType.Camera))
     }
 
     fun onAddImageViaPickerTapped() {
+        recogniseFoodJob?.cancel()
         pushOverlay(DialogHandle.ImageInput(type = ImageInputType.BrowseImages))
     }
 
