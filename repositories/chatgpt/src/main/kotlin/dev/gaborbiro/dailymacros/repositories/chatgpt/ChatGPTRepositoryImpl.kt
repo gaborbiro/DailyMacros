@@ -5,6 +5,15 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecogniti
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_ANALYSIS_SYSTEM
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_ANALYSIS_USER
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_RECOGNITION_SYSTEM
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_RECOGNITION_USER
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ANALYSIS_SYSTEM
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ANALYSIS_USER
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_RECOGNITION_SYSTEM
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_RECOGNITION_USER
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toApiModel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toFoodRecognitionResponse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toNutrientAnalysisResponse
@@ -42,6 +51,35 @@ class ChatGPTRepositoryImpl(
             }
         }
     }
+
+    override fun getRecognitionPromptSegments(): List<PromptSegment> = listOf(
+        PromptSegment.Editable(
+            id = SEG_RECOGNITION_SYSTEM,
+            label = "System message",
+            defaultText = DEFAULT_RECOGNITION_SYSTEM,
+        ),
+        PromptSegment.Locked("{photos}"),
+        PromptSegment.Editable(
+            id = SEG_RECOGNITION_USER,
+            label = "User message",
+            defaultText = DEFAULT_RECOGNITION_USER,
+        ),
+    )
+
+    override fun getAnalysisPromptSegments(): List<PromptSegment> = listOf(
+        PromptSegment.Editable(
+            id = SEG_ANALYSIS_SYSTEM,
+            label = "System message",
+            defaultText = DEFAULT_ANALYSIS_SYSTEM,
+        ),
+        PromptSegment.Locked("{photos}"),
+        PromptSegment.Editable(
+            id = SEG_ANALYSIS_USER,
+            label = "User message",
+            defaultText = DEFAULT_ANALYSIS_USER,
+            hint = "Use {title} and {description} as placeholders for the meal title and description.",
+        ),
+    )
 
     private inline fun <T> mappingApiErrors(block: () -> T): T {
         return try {

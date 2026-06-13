@@ -173,6 +173,7 @@ class ModalViewModel @Inject constructor(
 
             when (val root = _uiState.value.rootDialog) {
                 is DialogHandle.RecordDetailsDialog.Edit -> {
+                    if (persistedFilenames.isEmpty()) return@runSafely
                     val updatedImages = root.images + persistedFilenames
                     setRoot(
                         root.copy(
@@ -180,9 +181,7 @@ class ModalViewModel @Inject constructor(
                             recognisedFood = null,
                         )
                     )
-                    if (root.images.isEmpty()) { // only run the food recognition automatically for the first (batch of) images
-                        runFoodRecognition(updatedImages)
-                    }
+                    runFoodRecognition(updatedImages)
                 }
 
                 is DialogHandle.RecordDetailsDialog.View -> {
@@ -416,10 +415,12 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onAddImageViaCameraTapped() {
+        recogniseFoodJob?.cancel()
         pushOverlay(DialogHandle.ImageInput(type = ImageInputType.Camera))
     }
 
     fun onAddImageViaPickerTapped() {
+        recogniseFoodJob?.cancel()
         pushOverlay(DialogHandle.ImageInput(type = ImageInputType.BrowseImages))
     }
 
@@ -514,7 +515,7 @@ class ModalViewModel @Inject constructor(
 
     fun onRunAIButtonTapped() {
         updateRoot<DialogHandle.RecordDetailsDialog.Edit> {
-            runFoodRecognition(it.images)
+            runFoodRecognition(it.images, withDelay = false)
             it.copy(
                 title = TextFieldValue()
             )
@@ -541,10 +542,10 @@ class ModalViewModel @Inject constructor(
             }
     }
 
-    private fun runFoodRecognition(images: List<String>) {
+    private fun runFoodRecognition(images: List<String>, withDelay: Boolean = true) {
         recogniseFoodJob?.cancel()
         recogniseFoodJob = runSafely {
-            delay(1500L)
+            if (withDelay) delay(1500L)
             updateRoot<DialogHandle.RecordDetailsDialog.Edit> {
                 it.copy(showProgressIndicator = true)
             }

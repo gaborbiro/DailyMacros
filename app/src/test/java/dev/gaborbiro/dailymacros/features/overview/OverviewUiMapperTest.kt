@@ -45,6 +45,12 @@ class OverviewUiMapperTest {
         override fun getDiaryDayStartHour(): Int = 0
 
         override fun setDiaryDayStartHour(hourOfDay: Int) = Unit
+
+        override fun getPromptCustomizations(): Map<String, String> = emptyMap()
+        override fun setPromptCustomizations(values: Map<String, String>) = Unit
+        override fun getPromptVersions() = emptyList<dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion>()
+        override fun savePromptVersion(customizations: Map<String, String>) = dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion(1, 0L, emptyMap())
+        override fun deletePromptVersion(version: Int) {}
     }
 
     private val mapper = OverviewUiMapper(

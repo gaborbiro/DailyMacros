@@ -51,6 +51,7 @@ internal fun SettingsView(
     snackbarHostState: SnackbarHostState,
     onBackNavigateRequested: () -> Unit,
     onTargetsSettingTapped: () -> Unit,
+    onPromptEditorTapped: () -> Unit,
     onDiaryDayStartTapped: () -> Unit,
     onDiaryDayStartDialogDismissed: () -> Unit,
     onDiaryDayStartHourSelected: (Int) -> Unit,
@@ -126,6 +127,7 @@ internal fun SettingsView(
                 .imePadding(),
         ) {
             SettingRow(title = "Daily targets", onTapped = onTargetsSettingTapped)
+            SettingRow(title = "Customise AI", onTapped = onPromptEditorTapped)
             SettingRow(
                 title = stringResource(R.string.settings_diary_day_start_row),
                 subtitle = diaryDayStartSummary(viewState.diaryDayStartHour),
@@ -226,6 +228,7 @@ private fun SettingsViewPreview() {
             snackbarHostState = remember { SnackbarHostState() },
             onBackNavigateRequested = {},
             onTargetsSettingTapped = {},
+            onPromptEditorTapped = {},
             onDiaryDayStartTapped = {},
             onDiaryDayStartDialogDismissed = {},
             onDiaryDayStartHourSelected = {},

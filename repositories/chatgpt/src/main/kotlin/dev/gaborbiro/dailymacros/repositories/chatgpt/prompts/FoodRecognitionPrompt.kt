@@ -13,13 +13,17 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.OutputConten
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ReasoningLevel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.Role
 
+
 internal fun FoodRecognitionRequest.toApiModel() = ChatGPTRequest(
     model = foodPhotoRecognitionModel,
     reasoning = ReasoningLevel(foodPhotoRecognitionReasoningEffort),
     input = listOf(
         ContentEntry(
             role = Role.system,
-            content = listOf(InputContent.Text(sharedSystemPrompt())),
+            content = listOf(InputContent.Text(
+                this.customizations.systemPrompt(SEG_RECOGNITION_SYSTEM, DEFAULT_RECOGNITION_SYSTEM)
+                    .replace("{phone_language}", this.phoneLanguage)
+            )),
         ),
         ContentEntry(
             role = Role.user,
@@ -29,32 +33,10 @@ internal fun FoodRecognitionRequest.toApiModel() = ChatGPTRequest(
         ),
         ContentEntry(
             role = Role.user,
-            content = listOf(
-                InputContent.Text(
-                    """
-TASK: RECOGNITION
-
-Return structured food breakdown suitable for later nutrient estimation.
-
-Output format:
-{
-  "components": [
-    {
-      "name": "",
-      "estimatedAmount": "",
-      "confidence": "high|medium|low"
-    }
-  ],
-  "title": "",
-  "description": ""
-}
-If food cannot be determined:
-{
-  "error": "<one short sentence explaining clearly why food cannot be determined>"
-}
-"""
-                )
-            )
+            content = listOf(InputContent.Text(
+                this.customizations.systemPrompt(SEG_RECOGNITION_USER, DEFAULT_RECOGNITION_USER)
+                    .replace("{phone_language}", this.phoneLanguage)
+            )),
         )
     )
 )
@@ -78,8 +60,6 @@ internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionResult 
 
     class FoodDescription(
         @SerializedName("title") val title: String?,
-        @SerializedName("description") val description: String?,
-        @SerializedName("components") val components: List<Component>?,
         @SerializedName("error") val error: String?,
     )
 
@@ -89,29 +69,14 @@ internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionResult 
             if (foodDescription.error != null) {
                 throw ChatGPTApiError.GenericApiError(foodDescription.error)
             }
-            val components = foodDescription.components.orEmpty()
-            val componentStr = components.joinToString("\n") { component ->
-                val confidence = when (component.confidence) {
-                    "medium" -> "?"
-                    "low" -> "??"
-                    else -> null
-                }
-                "${component.estimatedAmount} ${component.name} ${confidence?.let { "($it)" } ?: ""}"
-            }
-            val descriptionItems = listOfNotNull(
-                foodDescription.description.takeIf { it.isNullOrBlank().not() },
-                componentStr
-            )
-
             FoodRecognitionResult(
                 title = foodDescription.title.takeIf { it.isNullOrBlank().not() },
-                description = descriptionItems.joinToString("\nComponents:\n").takeIf { it.isNotBlank() },
                 cachedTokens = cachedTokens,
             )
         }
         ?: FoodRecognitionResult(
             title = null,
-            description = null,
             cachedTokens = cachedTokens,
         )
 }
+

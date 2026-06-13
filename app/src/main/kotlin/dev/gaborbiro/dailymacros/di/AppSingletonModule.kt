@@ -27,7 +27,7 @@ object AppSingletonModule {
     fun settingsAppInfo(appPrefs: AppPrefs): SettingsAppInfo =
         object : SettingsAppInfo {
             override val versionLabel: String
-                get() = "v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})  |  UserID: ${appPrefs.userUUID}"
+                get() = "v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) [${BuildConfig.GIT_HASH}]  |  UserID: ${appPrefs.userUUID}"
         }
 
     @Provides

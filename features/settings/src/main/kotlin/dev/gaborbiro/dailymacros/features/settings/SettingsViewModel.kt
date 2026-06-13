@@ -66,6 +66,14 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun onPromptEditorTapped() {
+        _uiState.update { it.copy(showPromptEditor = true) }
+    }
+
+    fun onPromptEditorCloseRequested() {
+        _uiState.update { it.copy(showPromptEditor = false) }
+    }
+
     fun onDiaryDayStartRowTapped() {
         _uiState.update { it.copy(showDiaryDayStartDialog = true) }
     }

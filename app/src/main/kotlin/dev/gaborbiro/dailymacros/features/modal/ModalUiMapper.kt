@@ -7,6 +7,7 @@ import dev.gaborbiro.dailymacros.features.shared.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.ComponentConfidence
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import java.time.ZoneOffset
@@ -102,6 +103,14 @@ class ModalUiMapper @Inject constructor(
                         )
             },
             notes = notes,
+            components = record.template.mealComponents.map { component ->
+                val confidence = when (component.confidence) {
+                    ComponentConfidence.MEDIUM -> " (?)"
+                    ComponentConfidence.LOW -> " (??)"
+                    else -> ""
+                }
+                "- ${component.estimatedAmount} ${component.name}$confidence"
+            },
         )
     }
 

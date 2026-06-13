@@ -333,7 +333,6 @@ private fun NoteInputDialogContentPreviewSuggestion() {
             images = listOf("1", "2"),
             recognisedFood = RecognisedFood(
                 title = "This is a title suggestion",
-                description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
             ),
             pristineSnapshot = recordDetailsEditPristineSnapshot(
                 title = TextFieldValue(),
@@ -378,7 +377,6 @@ private fun NoteInputDialogContentPreviewError() {
             images = listOf("1", "2"),
             recognisedFood = RecognisedFood(
                 title = "This is a title suggestion",
-                description = "This ready meal contains curry of beef (caril de vitela), basmati rice, leeks, and carrots. It is labeled as medium size (250g) and high in carbohydrates. The dish also contains tomato pulp, onion, olive oil, curry spice blend, celery, turmeric, and salt.",
             ),
             pristineSnapshot = recordDetailsEditPristineSnapshot(
                 title = TextFieldValue(),

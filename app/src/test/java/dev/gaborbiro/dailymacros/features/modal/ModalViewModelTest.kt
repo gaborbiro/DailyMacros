@@ -105,12 +105,14 @@ class ModalViewModelTest {
     private class VmFakeChatGpt : ChatGPTRepository {
         override suspend fun recogniseFood(request: FoodRecognitionRequest) = FoodRecognitionResult(
             title = "X",
-            description = "Y",
             cachedTokens = 0,
         )
 
         override suspend fun analyseNutrients(request: NutrientAnalysisRequest): NutrientAnalysis =
             error("unused")
+
+        override fun getRecognitionPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
+        override fun getAnalysisPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
     }
 
     private val disabledTarget = Target(enabled = false)
@@ -132,6 +134,12 @@ class ModalViewModelTest {
         override fun getDiaryDayStartHour(): Int = 0
 
         override fun setDiaryDayStartHour(hourOfDay: Int) = Unit
+
+        override fun getPromptCustomizations(): Map<String, String> = emptyMap()
+        override fun setPromptCustomizations(values: Map<String, String>) = Unit
+        override fun getPromptVersions() = emptyList<dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion>()
+        override fun savePromptVersion(customizations: Map<String, String>) = dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion(1, 0L, emptyMap())
+        override fun deletePromptVersion(version: Int) {}
     }
 
     private fun viewModel(repo: RecordsRepository = BaseRecordsRepositoryStub()): ModalViewModel {
@@ -165,7 +173,7 @@ class ModalViewModelTest {
             exportImageToGalleryUseCase = ExportImageToGalleryUseCase(app, imageStore),
             getRecordImageUseCase = GetRecordImageUseCase(repo),
             getTemplateImageUseCase = GetTemplateImageUseCase(repo),
-            foodRecognitionUseCase = FoodRecognitionUseCase(app, imageStore, VmFakeChatGpt()),
+            foodRecognitionUseCase = FoodRecognitionUseCase(app, imageStore, VmFakeChatGpt(), testSettingsRepository),
             applyQuickPickOverrideAndReloadWidgetUseCase = ApplyQuickPickOverrideAndReloadWidgetUseCase(repo),
             applyConfirmedSharedTemplateEditUseCase = ApplyConfirmedSharedTemplateEditUseCase(
                 updateRecordWithNewTemplateUseCase = updateRec,

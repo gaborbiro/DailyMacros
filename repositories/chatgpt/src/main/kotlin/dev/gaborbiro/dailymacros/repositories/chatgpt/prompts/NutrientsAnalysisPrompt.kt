@@ -22,7 +22,10 @@ internal fun NutrientAnalysisRequest.toApiModel() = ChatGPTRequest(
     input = listOf(
         ContentEntry(
             role = Role.system,
-            content = listOf(InputContent.Text(sharedSystemPrompt())),
+            content = listOf(InputContent.Text(
+                this.customizations.systemPrompt(SEG_ANALYSIS_SYSTEM, DEFAULT_ANALYSIS_SYSTEM)
+                    .replace("{phone_language}", this.phoneLanguage)
+            )),
         ),
         ContentEntry(
             role = Role.user,
@@ -34,76 +37,10 @@ internal fun NutrientAnalysisRequest.toApiModel() = ChatGPTRequest(
             role = Role.user,
             content = listOf(
                 InputContent.Text(
-                    """
-TASK: NUTRIENT_ESTIMATION
-
-Use both images and provided text.
-If text contradicts image, prefer text.
-
-Title:
-${this.title}
-
-Description:
-${this.description}
-
-Output format:
-{
-  "nutrients": {
-    "calories": 0.0,
-    "protein": {
-        grams: 0.0,
-        topContributorIngredients: "",
-    },
-    "fat": {
-        grams: 0.0,
-        topContributorIngredients: "",
-    },
-    "ofWhichSaturated": {
-        grams: 0.0,
-        topContributorIngredients: "",
-    },
-    "carbohydrate": {
-        grams: 0.0,
-        topContributorIngredients: "",
-    },
-    "ofWhichSugar": {
-        grams: 0.0,
-        topContributorIngredients: "",
-    },
-    "ofWhichAddedSugar": {
-        grams: 0.0,
-        topContributorIngredients: "",
-    },
-    "salt": {
-        grams: 0.00,
-        topContributorIngredients: "",
-    },
-    "fibre": {
-        grams: 0.0,
-        topContributorIngredients: "",
-    },
-  },
-  "components": [
-    {
-      "name": "",
-      "estimatedAmount": "",
-      "confidence": "high|medium|low"
-    }
-  ],
-  "title": "",
-  "notes": "",
-  "representative_of_meal": [ true, false ]
-}
-
-The "representative_of_meal" array MUST have the same length and order as the user-submitted meal photos (index 0 = first photo). Each entry is true if that photo clearly shows the prepared dish or at least some food that belongs to that dish; false for nutrition labels only, packaging-only shots, unrelated scenes, receipts, people, empty plates, or when unclear. If you omit "representative_of_meal", every image is treated as unknown for that classification downstream.
-
-In topContributorIngredients list out those ingredients that meaningfully contributed to the estimation, in decreasing order of significance. Be brief, For ex "bread" instead of "whole-grain sourdough bread".
-
-If estimation is not possible:
-{
-  "error": "<one short, specific sentence explaining what is missing or unclear>"
-}
-"""
+                    this.customizations.systemPrompt(SEG_ANALYSIS_USER, DEFAULT_ANALYSIS_USER)
+                        .replace("{phone_language}", this.phoneLanguage)
+                        .replace("{title}", this.title.orEmpty())
+                        .replace("{description}", this.description.orEmpty())
                 )
             )
         )
@@ -162,26 +99,13 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(imageCount: Int): Nutrie
             confidence = component.confidence?.trim().orEmpty().ifEmpty { "high" },
         )
     }
-    val componentStr = structuredComponents.joinToString("\n") { component ->
-        val confidence = when (component.confidence) {
-            "medium" -> "?"
-            "low" -> "??"
-            else -> null
-        }
-        "${component.estimatedAmount} ${component.name} ${confidence?.let { "($it)" } ?: ""}"
-    }
-    val notesItems = listOfNotNull(
-        response.notes.takeIf { it.isNullOrBlank().not() },
-        componentStr?.let { "Components:\n$it" }
-    )
-
     val representativeFlags =
         normalizeRepresentativeOfMealFlags(imageCount, response.representativeOfMeal)
 
     return NutrientAnalysis(
         nutrients = nutrients,
         title = response.title,
-        notes = notesItems.joinToString("\n").takeIf { it.isNotBlank() },
+        notes = response.notes.takeIf { it.isNullOrBlank().not() },
         components = structuredComponents,
         isRepresentativeOfMealByImageIndex = representativeFlags,
         cachedTokens = cachedTokens,
@@ -220,3 +144,4 @@ private data class NutrientApiModel(
     @SerializedName("grams") val grams: Number?,
     @SerializedName("topContributorIngredients") val topContributorIngredients: String?,
 )
+

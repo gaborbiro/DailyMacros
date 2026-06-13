@@ -16,6 +16,8 @@ import dev.gaborbiro.dailymacros.features.settings.export.ProcessRestarter
 import dev.gaborbiro.dailymacros.features.settings.export.rememberCreatePublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.rememberOpenPublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
+import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorScreen
+import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsViewModel
 import dev.gaborbiro.dailymacros.features.settings.views.SettingsView
@@ -24,6 +26,7 @@ import dev.gaborbiro.dailymacros.features.settings.views.SettingsView
 fun SettingsScreen(
     settingsViewModel: SettingsViewModel,
     targetsSettingsViewModel: TargetsSettingsViewModel,
+    promptEditorViewModel: PromptEditorViewModel,
     navController: NavHostController,
 ) {
     val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
@@ -53,6 +56,7 @@ fun SettingsScreen(
         snackbarHostState = snackbarHostState,
         onBackNavigateRequested = settingsViewModel::onBackNavigateRequested,
         onTargetsSettingTapped = settingsViewModel::onTargetsSettingsTapped,
+        onPromptEditorTapped = settingsViewModel::onPromptEditorTapped,
         onDiaryDayStartTapped = settingsViewModel::onDiaryDayStartRowTapped,
         onDiaryDayStartDialogDismissed = settingsViewModel::onDiaryDayStartDialogDismissed,
         onDiaryDayStartHourSelected = settingsViewModel::onDiaryDayStartHourSelected,
@@ -65,6 +69,13 @@ fun SettingsScreen(
         TargetsSettingsScreen(
             viewModel = targetsSettingsViewModel,
             onCloseRequested = settingsViewModel::onTargetsSettingsCloseRequested,
+        )
+    }
+
+    if (settingsUiState.showPromptEditor) {
+        PromptEditorScreen(
+            viewModel = promptEditorViewModel,
+            onCloseRequested = settingsViewModel::onPromptEditorCloseRequested,
         )
     }
 }

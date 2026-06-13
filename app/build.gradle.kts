@@ -11,6 +11,14 @@ plugins {
 private val appVersionName = "1.10.0"
 private val appVersionCode = 24
 
+private val gitHash: String = try {
+    providers.exec {
+        commandLine("git", "rev-parse", "--short", "HEAD")
+    }.standardOutput.asText.get().trim()
+} catch (_: Exception) {
+    "unknown"
+}
+
 android {
     namespace = "dev.gaborbiro.dailymacros"
     compileSdk = libs.versions.android.sdk.compile.get().toInt()
@@ -21,6 +29,7 @@ android {
         targetSdk = libs.versions.android.sdk.target.get().toInt()
         versionName = appVersionName
         versionCode = appVersionCode
+        buildConfigField("String", "GIT_HASH", "\"$gitHash\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
