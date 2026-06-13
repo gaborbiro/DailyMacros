@@ -57,7 +57,10 @@ class SettingsRepositoryImpl @Inject constructor(
     override fun getPromptCustomizations(): Map<String, String> {
         val json = prefs.getString(KEY_PROMPT_CUSTOMIZATIONS, null) ?: return emptyMap()
         val type = object : TypeToken<Map<String, String>>() {}.type
-        return runCatching { gson.fromJson<Map<String, String>>(json, type) }.getOrDefault(emptyMap())
+        val raw = runCatching { gson.fromJson<Map<String, String>>(json, type) }.getOrDefault(emptyMap())
+        val migrated = raw.migrateLanguagePlaceholders()
+        if (migrated != raw) setPromptCustomizations(migrated)
+        return migrated
     }
 
     override fun setPromptCustomizations(values: Map<String, String>) {
@@ -69,7 +72,15 @@ class SettingsRepositoryImpl @Inject constructor(
     override fun getPromptVersions(): List<PromptVersion> {
         val json = prefs.getString(KEY_PROMPT_VERSIONS, null) ?: return emptyList()
         val type = object : TypeToken<List<PromptVersion>>() {}.type
-        return runCatching { gson.fromJson<List<PromptVersion>>(json, type) }.getOrDefault(emptyList())
+        val raw = runCatching { gson.fromJson<List<PromptVersion>>(json, type) }.getOrDefault(emptyList())
+        val migrated = raw.map { version ->
+            val migratedCustomizations = version.customizations.migrateLanguagePlaceholders()
+            version.copy(customizations = migratedCustomizations)
+        }
+        if (migrated.zip(raw).any { (m, r) -> m.customizations != r.customizations }) {
+            prefs.edit { putString(KEY_PROMPT_VERSIONS, gson.toJson(migrated)) }
+        }
+        return migrated
     }
 
     override fun savePromptVersion(customizations: Map<String, String>): PromptVersion {
@@ -86,6 +97,25 @@ class SettingsRepositoryImpl @Inject constructor(
             putString(KEY_PROMPT_CUSTOMIZATIONS, gson.toJson(customizations))
         }
         return newVersion
+    }
+
+    private fun Map<String, String>.migrateLanguagePlaceholders(): Map<String, String> {
+        val keysToMigrate = setOf("recognition_system", "analysis_system")
+        var changed = false
+        val result = mapValues { (key, value) ->
+            if (key in keysToMigrate && "{phone_language}" !in value) {
+                val migrated = value
+                    .replace("concise English title", "concise {phone_language} title")
+                    .replace("MUST be in English.", "MUST be in {phone_language}.")
+                    .replace("not in English,", "not in {phone_language},")
+                    .replace("into English before", "into {phone_language} before")
+                if (migrated != value) changed = true
+                migrated
+            } else {
+                value
+            }
+        }
+        return if (changed) result else this
     }
 
     companion object {
