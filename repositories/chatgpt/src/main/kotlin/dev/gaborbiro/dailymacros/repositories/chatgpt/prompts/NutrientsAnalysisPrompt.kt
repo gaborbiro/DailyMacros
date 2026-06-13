@@ -22,7 +22,10 @@ internal fun NutrientAnalysisRequest.toApiModel() = ChatGPTRequest(
     input = listOf(
         ContentEntry(
             role = Role.system,
-            content = listOf(InputContent.Text(this.customizations.systemPrompt(SEG_ANALYSIS_SYSTEM, DEFAULT_ANALYSIS_SYSTEM))),
+            content = listOf(InputContent.Text(
+                this.customizations.systemPrompt(SEG_ANALYSIS_SYSTEM, DEFAULT_ANALYSIS_SYSTEM)
+                    .replace("{phone_language}", this.phoneLanguage)
+            )),
         ),
         ContentEntry(
             role = Role.user,
@@ -35,6 +38,7 @@ internal fun NutrientAnalysisRequest.toApiModel() = ChatGPTRequest(
             content = listOf(
                 InputContent.Text(
                     this.customizations.systemPrompt(SEG_ANALYSIS_USER, DEFAULT_ANALYSIS_USER)
+                        .replace("{phone_language}", this.phoneLanguage)
                         .replace("{title}", this.title.orEmpty())
                         .replace("{description}", this.description.orEmpty())
                 )

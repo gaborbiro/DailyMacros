@@ -20,7 +20,10 @@ internal fun FoodRecognitionRequest.toApiModel() = ChatGPTRequest(
     input = listOf(
         ContentEntry(
             role = Role.system,
-            content = listOf(InputContent.Text(this.customizations.systemPrompt(SEG_RECOGNITION_SYSTEM, DEFAULT_RECOGNITION_SYSTEM))),
+            content = listOf(InputContent.Text(
+                this.customizations.systemPrompt(SEG_RECOGNITION_SYSTEM, DEFAULT_RECOGNITION_SYSTEM)
+                    .replace("{phone_language}", this.phoneLanguage)
+            )),
         ),
         ContentEntry(
             role = Role.user,
@@ -30,7 +33,10 @@ internal fun FoodRecognitionRequest.toApiModel() = ChatGPTRequest(
         ),
         ContentEntry(
             role = Role.user,
-            content = listOf(InputContent.Text(this.customizations.systemPrompt(SEG_RECOGNITION_USER, DEFAULT_RECOGNITION_USER))),
+            content = listOf(InputContent.Text(
+                this.customizations.systemPrompt(SEG_RECOGNITION_USER, DEFAULT_RECOGNITION_USER)
+                    .replace("{phone_language}", this.phoneLanguage)
+            )),
         )
     )
 )

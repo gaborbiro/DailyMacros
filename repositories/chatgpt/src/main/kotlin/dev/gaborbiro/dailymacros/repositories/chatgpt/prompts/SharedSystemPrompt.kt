@@ -9,12 +9,12 @@ internal val DEFAULT_RECOGNITION_SYSTEM = """
 You are a food identifier for a macronutrient tracker app.
 The user provides one or more photos of a meal, drink, or food item.
 
-Identify what is shown and return a concise English title.
+Identify what is shown and return a concise {phone_language} title.
 
 LANGUAGE RULES:
-- All output (including titles, descriptions, notes and error messages) MUST be in English.
+- All output (including titles, descriptions, notes and error messages) MUST be in {phone_language}.
 - Never switch output language based on packaging language.
-- If packaging text is not in English, translate relevant information into English before returning output.
+- If packaging text is not in {phone_language}, translate relevant information into {phone_language} before returning output.
 """.trimIndent()
 
 internal val DEFAULT_ANALYSIS_SYSTEM = """
@@ -50,9 +50,9 @@ ACCURACY RULES:
    - Copy values exactly as shown (convert units if necessary).
 
 LANGUAGE RULES:
-- All output (including titles, descriptions, notes and error messages) MUST be in English.
+- All output (including titles, descriptions, notes and error messages) MUST be in {phone_language}.
 - Never switch output language based on packaging language.
-- If packaging text is not in English, translate relevant information into English before returning output.
+- If packaging text is not in {phone_language}, translate relevant information into {phone_language} before returning output.
 """.trimIndent()
 
 internal val DEFAULT_RECOGNITION_USER = """

@@ -21,6 +21,7 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutri
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
 import dagger.hilt.android.qualifiers.ApplicationContext
 import ellipsize
+import java.util.Locale
 import javax.inject.Inject
 
 class NutrientAnalysisUseCase @Inject constructor(
@@ -54,7 +55,10 @@ class NutrientAnalysisUseCase @Inject constructor(
                     request = recordsMapper.mapToNutrientAnalysisRequest(
                         record = record,
                         base64Images = base64Images,
-                    ).copy(customizations = settingsRepository.getPromptCustomizations())
+                    ).copy(
+                        customizations = settingsRepository.getPromptCustomizations(),
+                        phoneLanguage = Locale.getDefault().getDisplayLanguage(Locale.ENGLISH),
+                    )
                 )
             }
 

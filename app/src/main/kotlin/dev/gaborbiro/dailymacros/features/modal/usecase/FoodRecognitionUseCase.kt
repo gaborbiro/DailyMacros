@@ -10,6 +10,7 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecogniti
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.util.showTextNotification
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.Locale
 import kotlin.random.Random
 import javax.inject.Inject
 
@@ -29,6 +30,7 @@ class FoodRecognitionUseCase @Inject constructor(
             request = FoodRecognitionRequest(
                 base64Images = base64Images,
                 customizations = settingsRepository.getPromptCustomizations(),
+                phoneLanguage = Locale.getDefault().getDisplayLanguage(Locale.ENGLISH),
             )
         )
         val cachedTokens = "Cached tokens: ${response.cachedTokens}"

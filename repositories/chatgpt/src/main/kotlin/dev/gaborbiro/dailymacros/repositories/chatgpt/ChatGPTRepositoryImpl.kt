@@ -58,6 +58,7 @@ class ChatGPTRepositoryImpl(
             label = "System message",
             defaultText = DEFAULT_RECOGNITION_SYSTEM,
         ),
+        PromptSegment.Locked("{photos}"),
         PromptSegment.Editable(
             id = SEG_RECOGNITION_USER,
             label = "User message",
@@ -71,6 +72,7 @@ class ChatGPTRepositoryImpl(
             label = "System message",
             defaultText = DEFAULT_ANALYSIS_SYSTEM,
         ),
+        PromptSegment.Locked("{photos}"),
         PromptSegment.Editable(
             id = SEG_ANALYSIS_USER,
             label = "User message",

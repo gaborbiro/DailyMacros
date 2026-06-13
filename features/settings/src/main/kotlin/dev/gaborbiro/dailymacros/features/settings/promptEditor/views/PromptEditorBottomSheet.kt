@@ -35,6 +35,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -143,7 +144,18 @@ internal fun PromptEditorView(
                     ) {
                         currentSegments.forEach { segment ->
                             when (segment) {
-                                is PromptSegment.Locked -> Unit
+                                is PromptSegment.Locked -> {
+                                    Text(
+                                        text = segment.text,
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontFamily = FontFamily.Monospace,
+                                        ),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 12.dp),
+                                    )
+                                }
                                 is PromptSegment.Editable -> {
                                     val currentText = viewState.currentValues[segment.id] ?: segment.defaultText
                                     OutlinedTextField(
