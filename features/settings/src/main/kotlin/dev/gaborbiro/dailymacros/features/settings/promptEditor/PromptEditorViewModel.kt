@@ -36,8 +36,8 @@ class PromptEditorViewModel @Inject constructor(
     val uiUpdates: SharedFlow<PromptEditorUiUpdates> = _uiUpdates.asSharedFlow()
 
     init {
-        val versions = settingsRepository.getPromptVersions()
-        val selectedIndex = if (versions.isNotEmpty()) versions.lastIndex else -1
+        val versions = settingsRepository.getPromptVersions().sortedByDescending { it.version }
+        val selectedIndex = if (versions.isNotEmpty()) 0 else -1
         val customizations = when {
             selectedIndex >= 0 -> versions[selectedIndex].customizations
             else -> settingsRepository.getPromptCustomizations()
@@ -109,10 +109,32 @@ class PromptEditorViewModel @Inject constructor(
         viewModelScope.launch { _uiUpdates.emit(PromptEditorUiUpdates.Show) }
     }
 
+    fun onDeleteVersion(index: Int) {
+        val state = _uiState.value
+        val versionToDelete = state.versions.getOrNull(index) ?: return
+        settingsRepository.deletePromptVersion(versionToDelete.version)
+        val updatedVersions = state.versions.toMutableList().also { it.removeAt(index) }
+        val newSelectedIndex = when {
+            updatedVersions.isEmpty() -> -1
+            state.selectedVersionIndex == index -> 0.coerceAtMost(updatedVersions.lastIndex)
+            state.selectedVersionIndex > index -> state.selectedVersionIndex - 1
+            else -> state.selectedVersionIndex
+        }
+        val newCustomizations = updatedVersions.getOrNull(newSelectedIndex)?.customizations ?: emptyMap()
+        _uiState.update {
+            it.copy(
+                versions = updatedVersions,
+                selectedVersionIndex = newSelectedIndex,
+                currentValues = newCustomizations,
+                originalValues = newCustomizations,
+            )
+        }
+    }
+
     private fun persistCurrentVersion() {
         val values = _uiState.value.currentValues.filterValues { it.isNotBlank() }
         val newVersion = settingsRepository.savePromptVersion(values)
-        val newVersions = settingsRepository.getPromptVersions()
+        val newVersions = settingsRepository.getPromptVersions().sortedByDescending { it.version }
         val newIndex = newVersions.indexOfFirst { it.version == newVersion.version }
         _uiState.update {
             it.copy(

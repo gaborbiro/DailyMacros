@@ -139,6 +139,7 @@ class ModalViewModelTest {
         override fun setPromptCustomizations(values: Map<String, String>) = Unit
         override fun getPromptVersions() = emptyList<dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion>()
         override fun savePromptVersion(customizations: Map<String, String>) = dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion(1, 0L, emptyMap())
+        override fun deletePromptVersion(version: Int) {}
     }
 
     private fun viewModel(repo: RecordsRepository = BaseRecordsRepositoryStub()): ModalViewModel {

@@ -23,4 +23,7 @@ interface SettingsRepository {
 
     /** Creates a new version with the given customizations, persists it, and returns it. */
     fun savePromptVersion(customizations: Map<String, String>): PromptVersion
+
+    /** Deletes the version with the given version number. */
+    fun deletePromptVersion(version: Int)
 }

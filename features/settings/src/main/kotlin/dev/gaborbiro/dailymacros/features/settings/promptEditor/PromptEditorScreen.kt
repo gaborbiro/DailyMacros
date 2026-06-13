@@ -20,6 +20,7 @@ fun PromptEditorScreen(
         onResetTab = viewModel::onResetTab,
         onSaveTapped = viewModel::onSaveTapped,
         onVersionSelected = viewModel::onVersionSelected,
+        onDeleteVersion = viewModel::onDeleteVersion,
         onExitDialogSaveTapped = viewModel::onExitDialogSaveTapped,
         onExitDialogDiscardTapped = viewModel::onExitDialogDiscardTapped,
         onExitDialogDismissed = viewModel::onExitDialogDismissed,

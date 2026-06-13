@@ -83,6 +83,12 @@ class SettingsRepositoryImpl @Inject constructor(
         return migrated
     }
 
+    override fun deletePromptVersion(version: Int) {
+        val existing = getPromptVersions()
+        val updated = existing.filter { it.version != version }
+        prefs.edit { putString(KEY_PROMPT_VERSIONS, gson.toJson(updated)) }
+    }
+
     override fun savePromptVersion(customizations: Map<String, String>): PromptVersion {
         val existing = getPromptVersions()
         val nextVersion = (existing.maxOfOrNull { it.version } ?: 0) + 1

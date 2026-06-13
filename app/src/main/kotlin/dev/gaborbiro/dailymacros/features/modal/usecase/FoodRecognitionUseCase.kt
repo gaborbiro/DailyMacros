@@ -8,10 +8,8 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.di.ForImageUploadChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
-import dev.gaborbiro.dailymacros.util.showTextNotification
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.Locale
-import kotlin.random.Random
 import javax.inject.Inject
 
 class FoodRecognitionUseCase @Inject constructor(
@@ -33,10 +31,9 @@ class FoodRecognitionUseCase @Inject constructor(
                 phoneLanguage = Locale.getDefault().getDisplayLanguage(Locale.ENGLISH),
             )
         )
-        val cachedTokens = "Cached tokens: ${response.cachedTokens}"
-        appContext.showTextNotification(Random(564).nextLong(), cachedTokens)
         return RecognisedFood(
             title = response.title,
         )
     }
 }
+

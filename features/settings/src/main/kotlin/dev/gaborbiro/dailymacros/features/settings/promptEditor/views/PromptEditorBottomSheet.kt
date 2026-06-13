@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
@@ -56,6 +57,7 @@ internal fun PromptEditorView(
     onResetTab: (List<String>) -> Unit,
     onSaveTapped: () -> Unit,
     onVersionSelected: (Int) -> Unit,
+    onDeleteVersion: (Int) -> Unit,
     onExitDialogSaveTapped: () -> Unit,
     onExitDialogDiscardTapped: () -> Unit,
     onExitDialogDismissed: () -> Unit,
@@ -121,6 +123,7 @@ internal fun PromptEditorView(
                         versions = viewState.versions,
                         selectedIndex = viewState.selectedVersionIndex,
                         onVersionSelected = onVersionSelected,
+                        onDeleteVersion = onDeleteVersion,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -204,6 +207,7 @@ private fun VersionPicker(
     versions: List<PromptVersion>,
     selectedIndex: Int,
     onVersionSelected: (Int) -> Unit,
+    onDeleteVersion: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -244,6 +248,18 @@ private fun VersionPicker(
             versions.forEachIndexed { index, version ->
                 DropdownMenuItem(
                     text = { Text(version.label()) },
+                    trailingIcon = {
+                        IconButton(onClick = {
+                            expanded = false
+                            onDeleteVersion(index)
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete version ${version.version}",
+                                tint = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                    },
                     onClick = {
                         expanded = false
                         onVersionSelected(index)
