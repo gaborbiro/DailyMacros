@@ -257,25 +257,27 @@ class OverviewUiMapper @Inject constructor(
 
     private fun buildTimezoneInfo(day: TravelDay): String? {
         val startZone = day.startZone
-        val endZone = day.endZone
+        // For the current diary day, use the live device timezone so mid-flight
+        // timezone changes are reflected without requiring a new log entry.
+        val endZone = if (day.day == LocalDate.now(ZoneId.systemDefault())) {
+            ZoneId.systemDefault()
+        } else {
+            day.endZone
+        }
         if (startZone == endZone) return null
 
-        val deltaHours = day.duration.toHours() - 24
+        val deltaHours = day.durationWithEndZone(endZone).toHours() - 24
         val absHours = deltaHours.absoluteValue
         val absPct = (absHours / 24f * 100).toInt()
 
         if (absHours <= 2) return null
 
         return if (deltaHours < 0) {
-            // Flying east: body clock behind local time, day is shorter
             "\uD83D\uDCA1 Timezone jump: your body clock is $absHours hrs behind local time ($absPct% shorter day).\n" +
-                "From your body's perspective, locals are winding down while your circadian rhythm is still in the afternoon. " +
                 "Try to go to bed when locals do \u2014 it will feel too early, but that's your body adjusting. " +
                 "You can ease in gradually over a few nights, or use melatonin to reset faster."
         } else {
-            // Flying west: body clock ahead of local time, day is longer
             "\uD83D\uDCA1 Timezone jump: your body clock is $deltaHours hrs ahead of local time ($absPct% longer day).\n" +
-                "From your body's perspective, your circadian rhythm says it's time for sleep while locals are still going. " +
                 "Try to go to bed when locals do \u2014 it will feel too late. " +
                 "Follow local meal times; don't skip local dinner just because you already ate on the plane."
         }
