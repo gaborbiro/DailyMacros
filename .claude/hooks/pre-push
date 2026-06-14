@@ -1,0 +1,30 @@
+#!/bin/bash
+set -euo pipefail
+
+REPO_OWNER="gaborbiro"
+REPO_NAME="DailyMacros"
+
+while read local_ref local_sha remote_ref remote_sha; do
+    BRANCH="${remote_ref#refs/heads/}"
+
+    if [ -z "${GITHUB_TOKEN:-}" ]; then
+        echo "⚠ pre-push: GITHUB_TOKEN not set, skipping PR state check for '$BRANCH'"
+        continue
+    fi
+
+    RESPONSE=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+        "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/pulls?head=$REPO_OWNER:$BRANCH&state=all&per_page=1" 2>/dev/null || echo "[]")
+
+    STATE=$(echo "$RESPONSE" | grep -o '"state":"[^"]*"' | head -1 | cut -d'"' -f4)
+    MERGED=$(echo "$RESPONSE" | grep -o '"merged":true' | head -1)
+
+    if [ "$MERGED" = '"merged":true' ] || [ "$STATE" = "closed" ]; then
+        echo ""
+        echo "❌ Push blocked: the PR for branch '$BRANCH' is already MERGED/CLOSED."
+        echo "   Create a new branch from master instead (cursor/description-XXXX)."
+        echo ""
+        exit 1
+    fi
+done
+
+exit 0
