@@ -62,9 +62,10 @@ class OverviewUiMapper @Inject constructor(
         val grouped = records.groupByWallClockDay(dayStart)
 
         grouped.forEachIndexed { index, travelDay ->
+            val previousTravelDay = grouped.getOrNull(index - 1)
             currentWeek += travelDay
             result += travelDay.records.map { recordsUiMapper.map(record = it, timeOnly = true) }
-            result += mapDailyNutrientProgressTable(travelDay, targets)
+            result += mapDailyNutrientProgressTable(travelDay, previousTravelDay, targets)
 
             val lookAhead = grouped.getOrNull(index + 1)
             val weekEnded =
@@ -91,6 +92,7 @@ class OverviewUiMapper @Inject constructor(
 
     private fun mapDailyNutrientProgressTable(
         day: TravelDay,
+        previousDay: TravelDay?,
         targets: Targets,
     ): ListUiModelDailySummary {
         val records = day.records
@@ -119,7 +121,7 @@ class OverviewUiMapper @Inject constructor(
             fibre = totalFibre,
         )
 
-        val travelDelta = effectiveTravelDelta(day)
+        val travelDelta = effectiveTravelDelta(day, previousDay)
         val effectiveTargets = if (travelDelta != null) {
             targets.scale((24.0 + travelDelta) / 24.0)
         } else {
@@ -265,15 +267,28 @@ class OverviewUiMapper @Inject constructor(
     }
 
     /** Returns deltaHours (negative = shorter/eastbound, positive = longer/westbound),
-     *  or null if the day has no significant timezone shift. */
-    private fun effectiveTravelDelta(day: TravelDay): Long? {
+     *  or null if the day has no significant timezone shift.
+     *
+     *  If the previous day was already mid-flight (its startZone != endZone), we use the
+     *  previous day's startZone as the anchor so multi-day flights trace back to the true
+     *  departure timezone rather than a mid-flight zone the phone happened to be in at midnight. */
+    private fun effectiveTravelDelta(day: TravelDay, previousDay: TravelDay?): Long? {
+        val startZone = if (previousDay != null && previousDay.startZone != previousDay.endZone) {
+            previousDay.startZone
+        } else {
+            day.startZone
+        }
         val endZone = if (day.day == LocalDate.now(ZoneId.systemDefault())) {
             ZoneId.systemDefault()
         } else {
             day.endZone
         }
-        if (day.startZone == endZone) return null
-        val deltaHours = day.durationWithEndZone(endZone).toHours() - 24
+        if (startZone == endZone) return null
+        val duration = Duration.between(
+            diaryDayWindowStart(day.day, day.diaryDayStart, startZone).toInstant(),
+            diaryDayWindowStart(day.day.plusDays(1), day.diaryDayStart, endZone).toInstant(),
+        )
+        val deltaHours = duration.toHours() - 24
         return if (deltaHours.absoluteValue > 2) deltaHours else null
     }
 
