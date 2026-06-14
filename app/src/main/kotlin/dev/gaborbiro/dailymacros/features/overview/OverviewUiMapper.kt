@@ -299,8 +299,8 @@ class OverviewUiMapper @Inject constructor(
 
         val advisory = if (deltaHours < 0) {
             "\uD83D\uDCA1 Timezone jump: your body clock is $absHours hrs behind local time ($absPct% shorter day).\n" +
-                "Try to go to bed when locals do \u2014 it will feel too early, but that's your body adjusting. " +
-                "You can ease in gradually over a few nights, or use melatonin to reset faster."
+                "Try to go to bed when locals do. Or as close as you can. " +
+                "Meals tend to pile up on shorter days \u2014 consider a lighter meal during the journey."
         } else {
             val dinnerNote = if (LocalTime.now(ZoneId.systemDefault()).hour >= 15) {
                 " Even if you ate during your journey, try not to skip local dinner \u2014 restaurants may be closed by the time hunger kicks in."
@@ -309,7 +309,7 @@ class OverviewUiMapper @Inject constructor(
                 "Try to go to bed when locals do \u2014 it will feel too late. " +
                 "Follow local meal times if you can.$dinnerNote"
         }
-        return "$advisory\n\nYour daily targets have been scaled to match this ${24 + deltaHours}-hr day."
+        return "$advisory\nYour daily targets have been scaled to match this ${24 + deltaHours}-hr day."
     }
 
     private fun Targets.scale(factor: Double): Targets {
