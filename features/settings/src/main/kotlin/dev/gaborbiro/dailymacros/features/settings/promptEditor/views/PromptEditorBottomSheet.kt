@@ -86,9 +86,16 @@ internal fun PromptEditorView(
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 val max = collapsingMaxPx
-                if (max <= 0f) return Offset.Zero
+                if (max <= 0f || available.y >= 0f) return Offset.Zero
                 val prev = hiddenPx
                 hiddenPx = (prev - available.y).coerceIn(0f, max)
+                return Offset(0f, prev - hiddenPx)
+            }
+
+            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+                if (available.y <= 0f) return Offset.Zero
+                val prev = hiddenPx
+                hiddenPx = (prev - available.y).coerceAtLeast(0f)
                 return Offset(0f, prev - hiddenPx)
             }
         }
