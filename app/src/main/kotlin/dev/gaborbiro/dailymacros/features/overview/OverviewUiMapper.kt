@@ -261,27 +261,23 @@ class OverviewUiMapper @Inject constructor(
         if (startZone == endZone) return null
 
         val deltaHours = day.duration.toHours() - 24
-        val percent = (deltaHours / 24f * 100).toInt()
+        val absHours = deltaHours.absoluteValue
+        val absPct = (absHours / 24f * 100).toInt()
 
-        if (deltaHours.absoluteValue <= 2) return null
+        if (absHours <= 2) return null
 
-        val direction = if (deltaHours > 0) "longer" else "shorter"
-        val advice = if (deltaHours > 0) {
-            "This means the day's events are pushed back (end of the day, your bedtime, meals...). " +
-                    "Try to go to bed later, when locals do (but don't drink coffee after 5pm local time)." +
-                    "Try to follow local meal-times. Don't skip local dinner, just because " +
-                    "you already had dinner on the airplane. Restaurants might be closed for " +
-                    "the night. Try to have smaller meals leading up to your arrival, to prevent over-eating."
+        return if (deltaHours < 0) {
+            // Flying east: body clock behind local time, day is shorter
+            "\uD83D\uDCA1 Timezone jump: your body clock is $absHours hrs behind local time ($absPct% shorter day).\n" +
+                "From your body's perspective, locals are winding down while your circadian rhythm is still in the afternoon. " +
+                "Try to go to bed when locals do \u2014 it will feel too early, but that's your body adjusting. " +
+                "You can ease in gradually over a few nights, or use melatonin to reset faster."
         } else {
-            "This means the day's events get brought up (end of the day, your bedtime, meals...). " +
-                    "Try to go to bed earlier, when locals do. If the difference is extreme, " +
-                    "expect a few days of adjustment. For example in case of an 8 hour jet " +
-                    "lag, on the first day go to bed 6 hours after locals do, then 4 hours, then 2..."
-        }
-
-        return buildString {
-            append("\uD83D\uDCA1 Due to timezone change this day is $deltaHours hrs $direction ($percent%).\n")
-            append(advice)
+            // Flying west: body clock ahead of local time, day is longer
+            "\uD83D\uDCA1 Timezone jump: your body clock is $deltaHours hrs ahead of local time ($absPct% longer day).\n" +
+                "From your body's perspective, your circadian rhythm says it's time for sleep while locals are still going. " +
+                "Try to go to bed when locals do \u2014 it will feel too late. " +
+                "Follow local meal times; don't skip local dinner just because you already ate on the plane."
         }
     }
 
