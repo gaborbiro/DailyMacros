@@ -16,7 +16,6 @@ fun TargetsSettingsScreen(
 
     TargetsSettingsBottomSheet(
         viewState = viewState,
-        events = viewModel.uiUpdates,
         onDismissRequested = viewModel::onBottomSheetDismissRequested,
         onTargetChanged = viewModel::onTargetChanged,
         onResetTapped = viewModel::onTargetsResetTapped,
@@ -28,10 +27,8 @@ fun TargetsSettingsScreen(
     LaunchedEffect(viewModel) {
         viewModel.uiUpdates.collect { event ->
             when (event) {
-                TargetsSettingsUiUpdates.Close -> onCloseRequested()
-                else -> {
-                    // nothing to do
-                }
+                TargetsSettingsUiUpdates.Hide, TargetsSettingsUiUpdates.Close -> onCloseRequested()
+                else -> {}
             }
         }
     }
