@@ -2,7 +2,6 @@ package dev.gaborbiro.dailymacros.features.settings.targetsSettings.views
 
 import android.content.res.Configuration
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,41 +10,43 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.systemGestures
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RangeSlider
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.views.NutrientDisplayLine
@@ -53,19 +54,15 @@ import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.FieldEr
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.MacroType
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetUiModel
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetsSettingsUiState
-import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetsSettingsUiUpdates
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.ValidationError
 import dev.gaborbiro.dailymacros.features.settings.util.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.features.settings.views.SettingsPreviewContext
 import dev.gaborbiro.dailymacros.features.settings.views.SettingsViewPreviewContext
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun TargetsSettingsBottomSheet(
     viewState: TargetsSettingsUiState,
-    events: Flow<TargetsSettingsUiUpdates>,
     onDismissRequested: () -> Unit,
     onTargetChanged: (MacroType, TargetUiModel) -> Unit,
     onResetTapped: () -> Unit,
@@ -73,73 +70,77 @@ internal fun TargetsSettingsBottomSheet(
     onUnsavedTargetsDiscardTapped: () -> Unit,
     onUnsavedTargetsDismissRequested: () -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-        confirmValueChange = { true },
-    )
-    LaunchedEffect(Unit) {
-        events.collect { event ->
-            when (event) {
-                TargetsSettingsUiUpdates.Show -> sheetState.show()
-                TargetsSettingsUiUpdates.Hide -> {
-                    sheetState.hide()
-                    onDismissRequested()
-                }
-
-                TargetsSettingsUiUpdates.Close -> {
-                    // nothing to do
-                }
-            }
-        }
-    }
-    val systemBarHeight = with(LocalDensity.current) {
-        WindowInsets.systemBars.getTop(this)
-    }
-    ModalBottomSheet(
-        containerColor = MaterialTheme.colorScheme.surface,
-        sheetState = sheetState,
-        contentWindowInsets = { WindowInsets(0, systemBarHeight, 0, 0) },
+    Dialog(
         onDismissRequest = onDismissRequested,
-        properties = ModalBottomSheetProperties(
-            shouldDismissOnBackPress = true,
-        ),
+        properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
-        TargetsHeader(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.surface)
-                .padding(horizontal = 16.dp),
-            saveButtonEnabled = viewState.canSave,
-            resetButtonVisible = viewState.canReset,
-            onSaveTapped = onSaveTapped,
-            onResetTapped = onResetTapped,
-        )
-        Column(
-            modifier = Modifier
-                .verticalScrollWithBar(autoFade = false)
-                .padding(16.dp)
-                .imePadding()
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.surface,
         ) {
-            val ordered = listOf(
-                Triple(MacroType.CALORIES, "Calories ", NutrientDisplayLine.Calories.unit),
-                Triple(MacroType.PROTEIN, "Protein ", NutrientDisplayLine.Protein.unit),
-                Triple(MacroType.SALT, "Salt ", NutrientDisplayLine.Salt.unit),
-                Triple(MacroType.FIBRE, "Fibre ", NutrientDisplayLine.Fibre.unit),
-                Triple(MacroType.FAT, "Fat ", NutrientDisplayLine.Fat.unit),
-                Triple(MacroType.SATURATED, "of which saturated ", NutrientDisplayLine.OfWhichSaturated.unit),
-                Triple(MacroType.CARBS, "Carbs ", NutrientDisplayLine.Carb.unit),
-                Triple(MacroType.SUGAR, "of which sugar ", NutrientDisplayLine.OfWhichSugar.unit),
-            )
-
-            ordered.forEach { (type, label, unit) ->
-                val target = viewState.targets[type]
-                if (target != null) {
-                    MacroRow(
-                        label = label,
-                        unit = unit,
-                        target = target,
-                        error = viewState.errors[type],
-                        onChange = { onTargetChanged(type, it) }
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = { Text("Daily targets") },
+                        navigationIcon = {
+                            IconButton(onClick = onDismissRequested) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back",
+                                )
+                            }
+                        },
+                        actions = {
+                            TextButton(
+                                onClick = onResetTapped,
+                                enabled = viewState.canReset,
+                            ) {
+                                Text("Reset")
+                            }
+                            TextButton(
+                                onClick = onSaveTapped,
+                                enabled = viewState.canSave,
+                            ) {
+                                Text("Save")
+                            }
+                        },
                     )
+                },
+            ) { paddingValues ->
+                Column(
+                    modifier = Modifier
+                        .padding(paddingValues)
+                        .verticalScrollWithBar(autoFade = false)
+                        .padding(16.dp)
+                        .imePadding(),
+                ) {
+                    Text(
+                        text = "Feel free to disable the ones you don't care about",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(bottom = 16.dp),
+                    )
+                    val ordered = listOf(
+                        Triple(MacroType.CALORIES, "Calories ", NutrientDisplayLine.Calories.unit),
+                        Triple(MacroType.PROTEIN, "Protein ", NutrientDisplayLine.Protein.unit),
+                        Triple(MacroType.SALT, "Salt ", NutrientDisplayLine.Salt.unit),
+                        Triple(MacroType.FIBRE, "Fibre ", NutrientDisplayLine.Fibre.unit),
+                        Triple(MacroType.FAT, "Fat ", NutrientDisplayLine.Fat.unit),
+                        Triple(MacroType.SATURATED, "of which saturated ", NutrientDisplayLine.OfWhichSaturated.unit),
+                        Triple(MacroType.CARBS, "Carbs ", NutrientDisplayLine.Carb.unit),
+                        Triple(MacroType.SUGAR, "of which sugar ", NutrientDisplayLine.OfWhichSugar.unit),
+                    )
+                    ordered.forEach { (type, label, unit) ->
+                        val target = viewState.targets[type]
+                        if (target != null) {
+                            MacroRow(
+                                label = label,
+                                unit = unit,
+                                target = target,
+                                error = viewState.errors[type],
+                                onChange = { onTargetChanged(type, it) }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -184,8 +185,7 @@ private fun MacroRow(
                 )
             }
             Text(
-                modifier = Modifier
-                    .padding(vertical = PaddingDefault),
+                modifier = Modifier.padding(vertical = PaddingDefault),
                 text = label,
                 style = style
             )
@@ -325,7 +325,6 @@ private fun TargetsSettingsBottomSheetPreview_Default() {
                 canSave = false,
                 showExitDialog = false,
             ),
-            events = emptyFlow(),
             onDismissRequested = {},
             onTargetChanged = { _, _ -> },
             onResetTapped = {},
@@ -348,7 +347,6 @@ private fun TargetsSettingsBottomSheetPreview_DirtyValid() {
                 canSave = true,
                 showExitDialog = false,
             ),
-            events = emptyFlow(),
             onDismissRequested = {},
             onTargetChanged = { _, _ -> },
             onResetTapped = {},
@@ -371,7 +369,6 @@ private fun TargetsSettingsBottomSheetPreview_DirtyInvalid() {
                 canSave = false,
                 showExitDialog = false,
             ),
-            events = emptyFlow(),
             onDismissRequested = {},
             onTargetChanged = { _, _ -> },
             onResetTapped = {},

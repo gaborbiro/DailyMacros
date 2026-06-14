@@ -1,5 +1,11 @@
 package dev.gaborbiro.dailymacros.features.settings.promptEditor.views
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,10 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,11 +36,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -67,6 +75,21 @@ internal fun PromptEditorView(
     val currentSegments = if (selectedTab == 0) viewState.recognitionSegments else viewState.analysisSegments
     val editableIds = currentSegments.filterIsInstance<PromptSegment.Editable>().map { it.id }
 
+    val recognitionScrollState = rememberScrollState()
+    val analysisScrollState = rememberScrollState()
+    val activeScrollState: ScrollState = if (selectedTab == 0) recognitionScrollState else analysisScrollState
+
+    var headerExpanded by remember { mutableStateOf(true) }
+    LaunchedEffect(activeScrollState) {
+        headerExpanded = true
+        var prev = activeScrollState.value
+        snapshotFlow { activeScrollState.value }.collect { current ->
+            if (current < prev) headerExpanded = true
+            else if (current > prev) headerExpanded = false
+            prev = current
+        }
+    }
+
     Dialog(
         onDismissRequest = onDismissRequested,
         properties = DialogProperties(usePlatformDefaultWidth = false),
@@ -88,14 +111,11 @@ internal fun PromptEditorView(
                             }
                         },
                         actions = {
-                            IconButton(
+                            TextButton(
                                 onClick = { onResetTab(editableIds) },
                                 enabled = editableIds.any { viewState.currentValues.containsKey(it) },
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Refresh,
-                                    contentDescription = "Reset tab to defaults",
-                                )
+                                Text("Reset")
                             }
                             TextButton(
                                 onClick = onSaveTapped,
@@ -112,36 +132,50 @@ internal fun PromptEditorView(
                         .padding(paddingValues)
                         .fillMaxSize(),
                 ) {
-                    Text(
-                        text = "Changes take effect on the next AI query.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                    )
-
-                    VersionPicker(
-                        versions = viewState.versions,
-                        selectedIndex = viewState.selectedVersionIndex,
-                        onVersionSelected = onVersionSelected,
-                        onDeleteVersion = onDeleteVersion,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                    )
-
-                    PrimaryTabRow(selectedTabIndex = selectedTab) {
-                        tabs.forEachIndexed { index, title ->
-                            Tab(
-                                selected = selectedTab == index,
-                                onClick = { selectedTab = index },
-                                text = { Text(title) },
+                    AnimatedVisibility(
+                        visible = headerExpanded,
+                        enter = expandVertically() + fadeIn(),
+                        exit = shrinkVertically() + fadeOut(),
+                    ) {
+                        Column {
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                text = "Changes take effect on the next AI query.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                             )
+                            VersionPicker(
+                                versions = viewState.versions,
+                                selectedIndex = viewState.selectedVersionIndex,
+                                onVersionSelected = onVersionSelected,
+                                onDeleteVersion = onDeleteVersion,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                            )
+                        }
+                    }
+
+                    AnimatedVisibility(
+                        visible = headerExpanded,
+                        enter = expandVertically() + fadeIn(),
+                        exit = shrinkVertically() + fadeOut(),
+                    ) {
+                        PrimaryTabRow(selectedTabIndex = selectedTab) {
+                            tabs.forEachIndexed { index, title ->
+                                Tab(
+                                    selected = selectedTab == index,
+                                    onClick = { selectedTab = index },
+                                    text = { Text(title) },
+                                )
+                            }
                         }
                     }
 
                     Column(
                         modifier = Modifier
-                            .verticalScrollWithBar(autoFade = false)
+                            .verticalScrollWithBar(scrollState = activeScrollState, autoFade = false)
                             .padding(16.dp)
                             .imePadding(),
                     ) {
