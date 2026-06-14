@@ -1,10 +1,5 @@
 package dev.gaborbiro.dailymacros.features.settings.promptEditor.views
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,13 +31,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -78,17 +71,6 @@ internal fun PromptEditorView(
     val recognitionScrollState = rememberScrollState()
     val analysisScrollState = rememberScrollState()
     val activeScrollState: ScrollState = if (selectedTab == 0) recognitionScrollState else analysisScrollState
-
-    var headerExpanded by remember { mutableStateOf(true) }
-    LaunchedEffect(activeScrollState) {
-        headerExpanded = true
-        var prev = activeScrollState.value
-        snapshotFlow { activeScrollState.value }.collect { current ->
-            if (current < prev) headerExpanded = true
-            else if (current > prev) headerExpanded = false
-            prev = current
-        }
-    }
 
     Dialog(
         onDismissRequest = onDismissRequested,
@@ -132,44 +114,13 @@ internal fun PromptEditorView(
                         .padding(paddingValues)
                         .fillMaxSize(),
                 ) {
-                    AnimatedVisibility(
-                        visible = headerExpanded,
-                        enter = expandVertically() + fadeIn(),
-                        exit = shrinkVertically() + fadeOut(),
-                    ) {
-                        Column {
-                            Spacer(Modifier.height(8.dp))
-                            Text(
-                                text = "Changes take effect on the next AI query.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    PrimaryTabRow(selectedTabIndex = selectedTab) {
+                        tabs.forEachIndexed { index, title ->
+                            Tab(
+                                selected = selectedTab == index,
+                                onClick = { selectedTab = index },
+                                text = { Text(title) },
                             )
-                            VersionPicker(
-                                versions = viewState.versions,
-                                selectedIndex = viewState.selectedVersionIndex,
-                                onVersionSelected = onVersionSelected,
-                                onDeleteVersion = onDeleteVersion,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                            )
-                        }
-                    }
-
-                    AnimatedVisibility(
-                        visible = headerExpanded,
-                        enter = expandVertically() + fadeIn(),
-                        exit = shrinkVertically() + fadeOut(),
-                    ) {
-                        PrimaryTabRow(selectedTabIndex = selectedTab) {
-                            tabs.forEachIndexed { index, title ->
-                                Tab(
-                                    selected = selectedTab == index,
-                                    onClick = { selectedTab = index },
-                                    text = { Text(title) },
-                                )
-                            }
                         }
                     }
 
@@ -179,6 +130,24 @@ internal fun PromptEditorView(
                             .padding(16.dp)
                             .imePadding(),
                     ) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = "Changes take effect on the next AI query.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(vertical = 4.dp),
+                        )
+                        VersionPicker(
+                            versions = viewState.versions,
+                            selectedIndex = viewState.selectedVersionIndex,
+                            onVersionSelected = onVersionSelected,
+                            onDeleteVersion = onDeleteVersion,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                        )
+                        Spacer(Modifier.height(8.dp))
+
                         currentSegments.forEach { segment ->
                             when (segment) {
                                 is PromptSegment.Locked -> {
