@@ -78,7 +78,9 @@ class ImageStoreImpl @Inject constructor(
                     val bmp: Bitmap? = if (thumbnail) {
                         decodeIfExists(thumbName(filename), thumbStore) ?: decodeAndCreateThumb(filename)
                     } else {
+                        // Full-size lives in cache and may have been evicted; fall back to thumbnail.
                         decodeIfExists(filename, fullSizeStore)
+                            ?: decodeIfExists(thumbName(filename), thumbStore)
                     }
 
                     // cache or purge on miss

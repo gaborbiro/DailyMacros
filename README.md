@@ -14,11 +14,26 @@
 
 ./gradlew versionCatalogUpdate
 
-## Backup and Restore images (not really needed anymore since there's a complete export solution in Settings now)
+## Migrate existing images to new folder layout (one-time, after updating to this layout)
 
+Full-size photos moved to cache, thumbnails moved to `files/thumbnails/`:
+
+```powershell
+# Windows – pull thumbnails from device, push back to new location
 cmd /c 'adb exec-out run-as dev.gaborbiro.dailymacros tar -cf - files/public > "%USERPROFILE%\Desktop\public-backup.tar"'
-tar -tf "$env:USERPROFILE\Desktop\public-backup.tar" | Select-Object -First 20
-cmd /c 'adb exec-in run-as dev.gaborbiro.dailymacros sh -c "cat > public-backup.tar" < "%USERPROFILE%\Desktop\public-backup.tar"'
+```
 
-Extract it to restore_tmp folder. This will put them in restore_tmp/files/public subfolder
-adb shell "run-as dev.gaborbiro.dailymacros sh -c 'tar -xf public-backup.tar -C .'"
+```bash
+# On-device migration via adb shell
+adb shell "run-as dev.gaborbiro.dailymacros sh -c '
+  mkdir -p cache/photos files/thumbnails
+  for f in files/public/*; do
+    name=\$(basename \"\$f\")
+    case \"\$name\" in
+      *-thumb*) mv \"\$f\" files/thumbnails/ ;;
+      *)        mv \"\$f\" cache/photos/ ;;
+    esac
+  done
+  rmdir files/public 2>/dev/null || true
+'"
+```
