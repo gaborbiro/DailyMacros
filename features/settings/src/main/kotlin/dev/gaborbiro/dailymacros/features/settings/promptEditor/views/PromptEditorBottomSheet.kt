@@ -32,12 +32,20 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -71,6 +79,20 @@ internal fun PromptEditorView(
     val recognitionScrollState = rememberScrollState()
     val analysisScrollState = rememberScrollState()
     val activeScrollState: ScrollState = if (selectedTab == 0) recognitionScrollState else analysisScrollState
+
+    var hiddenPx by remember { mutableFloatStateOf(0f) }
+    var collapsingMaxPx by remember { mutableFloatStateOf(0f) }
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                val max = collapsingMaxPx
+                if (max <= 0f) return Offset.Zero
+                val prev = hiddenPx
+                hiddenPx = (prev - available.y).coerceIn(0f, max)
+                return Offset(0f, prev - hiddenPx)
+            }
+        }
+    }
 
     Dialog(
         onDismissRequest = onDismissRequested,
@@ -112,8 +134,41 @@ internal fun PromptEditorView(
                 Column(
                     modifier = Modifier
                         .padding(paddingValues)
-                        .fillMaxSize(),
+                        .fillMaxSize()
+                        .nestedScroll(nestedScrollConnection),
                 ) {
+                    Column(
+                        modifier = Modifier
+                            .clipToBounds()
+                            .layout { measurable, constraints ->
+                                val placeable = measurable.measure(
+                                    constraints.copy(maxHeight = Constraints.Infinity)
+                                )
+                                collapsingMaxPx = placeable.height.toFloat()
+                                val clampedH = (placeable.height - hiddenPx.toInt()).coerceAtLeast(0)
+                                layout(placeable.width, clampedH) {
+                                    placeable.placeRelative(0, 0)
+                                }
+                            },
+                    ) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = "Changes take effect on the next AI query.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        )
+                        VersionPicker(
+                            versions = viewState.versions,
+                            selectedIndex = viewState.selectedVersionIndex,
+                            onVersionSelected = onVersionSelected,
+                            onDeleteVersion = onDeleteVersion,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                        )
+                    }
+
                     PrimaryTabRow(selectedTabIndex = selectedTab) {
                         tabs.forEachIndexed { index, title ->
                             Tab(
@@ -130,24 +185,6 @@ internal fun PromptEditorView(
                             .padding(16.dp)
                             .imePadding(),
                     ) {
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            text = "Changes take effect on the next AI query.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(vertical = 4.dp),
-                        )
-                        VersionPicker(
-                            versions = viewState.versions,
-                            selectedIndex = viewState.selectedVersionIndex,
-                            onVersionSelected = onVersionSelected,
-                            onDeleteVersion = onDeleteVersion,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                        )
-                        Spacer(Modifier.height(8.dp))
-
                         currentSegments.forEach { segment ->
                             when (segment) {
                                 is PromptSegment.Locked -> {
