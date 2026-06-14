@@ -28,6 +28,8 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.WeekFields
 import java.util.Locale
+import kotlin.math.absoluteValue
+import kotlin.math.roundToInt
 import javax.inject.Inject
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
@@ -117,9 +119,16 @@ class OverviewUiMapper @Inject constructor(
             fibre = totalFibre,
         )
 
-        val progressItems = buildDailyNutrientProgressItems(totalNutrientBreakdown, targets)
+        val travelDelta = effectiveTravelDelta(day)
+        val effectiveTargets = if (travelDelta != null) {
+            targets.scale((24.0 + travelDelta) / 24.0)
+        } else {
+            targets
+        }
 
-        val infoMessage = buildTimezoneInfo(day)
+        val progressItems = buildDailyNutrientProgressItems(totalNutrientBreakdown, effectiveTargets)
+
+        val infoMessage = buildTimezoneInfo(travelDelta)
 
         return ListUiModelDailySummary(
             listItemId = diaryDayWindowStart(day.day, day.diaryDayStart, day.startZone)
@@ -255,24 +264,25 @@ class OverviewUiMapper @Inject constructor(
         }
     }
 
-    private fun buildTimezoneInfo(day: TravelDay): String? {
-        val startZone = day.startZone
-        // For the current diary day, use the live device timezone so mid-flight
-        // timezone changes are reflected without requiring a new log entry.
+    /** Returns deltaHours (negative = shorter/eastbound, positive = longer/westbound),
+     *  or null if the day has no significant timezone shift. */
+    private fun effectiveTravelDelta(day: TravelDay): Long? {
         val endZone = if (day.day == LocalDate.now(ZoneId.systemDefault())) {
             ZoneId.systemDefault()
         } else {
             day.endZone
         }
-        if (startZone == endZone) return null
-
+        if (day.startZone == endZone) return null
         val deltaHours = day.durationWithEndZone(endZone).toHours() - 24
+        return if (deltaHours.absoluteValue > 2) deltaHours else null
+    }
+
+    private fun buildTimezoneInfo(deltaHours: Long?): String? {
+        if (deltaHours == null) return null
         val absHours = deltaHours.absoluteValue
         val absPct = (absHours / 24f * 100).toInt()
 
-        if (absHours <= 2) return null
-
-        return if (deltaHours < 0) {
+        val advisory = if (deltaHours < 0) {
             "\uD83D\uDCA1 Timezone jump: your body clock is $absHours hrs behind local time ($absPct% shorter day).\n" +
                 "Try to go to bed when locals do \u2014 it will feel too early, but that's your body adjusting. " +
                 "You can ease in gradually over a few nights, or use melatonin to reset faster."
@@ -281,6 +291,24 @@ class OverviewUiMapper @Inject constructor(
                 "Try to go to bed when locals do \u2014 it will feel too late. " +
                 "Follow local meal times; don't skip local dinner just because you already ate on the plane."
         }
+        return "$advisory\n\nYour daily targets have been scaled to match this ${24 + deltaHours}-hr day."
+    }
+
+    private fun Targets.scale(factor: Double): Targets {
+        fun Target.scaled() = copy(
+            min = min?.let { (it * factor).roundToInt() },
+            max = max?.let { (it * factor).roundToInt() },
+        )
+        return copy(
+            calories = calories.scaled(),
+            protein = protein.scaled(),
+            salt = salt.scaled(),
+            fat = fat.scaled(),
+            carbs = carbs.scaled(),
+            fibre = fibre.scaled(),
+            ofWhichSaturated = ofWhichSaturated.scaled(),
+            ofWhichSugar = ofWhichSugar.scaled(),
+        )
     }
 
     private fun mapWeeklySummary(
