@@ -299,7 +299,7 @@ class OverviewUiMapper @Inject constructor(
 
         val advisory = if (deltaHours < 0) {
             "\uD83D\uDCA1 Timezone jump: your body clock is $absHours hrs behind local time ($absPct% shorter day).\n" +
-                "Try to go to bed when locals do. Or as close as you can. " +
+                "Try to go to bed when locals do. Or as close as you can.\n" +
                 "Meals tend to pile up on shorter days \u2014 consider a lighter meal during the journey."
         } else {
             val dinnerNote = if (LocalTime.now(ZoneId.systemDefault()).hour >= 15) {
