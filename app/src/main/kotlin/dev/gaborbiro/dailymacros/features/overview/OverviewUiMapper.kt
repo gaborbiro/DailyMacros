@@ -28,6 +28,8 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.WeekFields
 import java.util.Locale
+import kotlin.math.absoluteValue
+import kotlin.math.roundToInt
 import javax.inject.Inject
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
@@ -60,9 +62,10 @@ class OverviewUiMapper @Inject constructor(
         val grouped = records.groupByWallClockDay(dayStart)
 
         grouped.forEachIndexed { index, travelDay ->
+            val previousTravelDay = grouped.getOrNull(index - 1)
             currentWeek += travelDay
             result += travelDay.records.map { recordsUiMapper.map(record = it, timeOnly = true) }
-            result += mapDailyNutrientProgressTable(travelDay, targets)
+            result += mapDailyNutrientProgressTable(travelDay, previousTravelDay, targets)
 
             val lookAhead = grouped.getOrNull(index + 1)
             val weekEnded =
@@ -89,6 +92,7 @@ class OverviewUiMapper @Inject constructor(
 
     private fun mapDailyNutrientProgressTable(
         day: TravelDay,
+        previousDay: TravelDay?,
         targets: Targets,
     ): ListUiModelDailySummary {
         val records = day.records
@@ -117,9 +121,16 @@ class OverviewUiMapper @Inject constructor(
             fibre = totalFibre,
         )
 
-        val progressItems = buildDailyNutrientProgressItems(totalNutrientBreakdown, targets)
+        val travelDelta = effectiveTravelDelta(day, previousDay)
+        val effectiveTargets = if (travelDelta != null) {
+            targets.scale((24.0 + travelDelta) / 24.0)
+        } else {
+            targets
+        }
 
-        val infoMessage = buildTimezoneInfo(day)
+        val progressItems = buildDailyNutrientProgressItems(totalNutrientBreakdown, effectiveTargets)
+
+        val infoMessage = buildTimezoneInfo(travelDelta)
 
         return ListUiModelDailySummary(
             listItemId = diaryDayWindowStart(day.day, day.diaryDayStart, day.startZone)
@@ -255,34 +266,67 @@ class OverviewUiMapper @Inject constructor(
         }
     }
 
-    private fun buildTimezoneInfo(day: TravelDay): String? {
-        val startZone = day.startZone
-        val endZone = day.endZone
-        if (startZone == endZone) return null
-
-        val deltaHours = day.duration.toHours() - 24
-        val percent = (deltaHours / 24f * 100).toInt()
-
-        if (deltaHours.absoluteValue <= 2) return null
-
-        val direction = if (deltaHours > 0) "longer" else "shorter"
-        val advice = if (deltaHours > 0) {
-            "This means the day's events are pushed back (end of the day, your bedtime, meals...). " +
-                    "Try to go to bed later, when locals do (but don't drink coffee after 5pm local time)." +
-                    "Try to follow local meal-times. Don't skip local dinner, just because " +
-                    "you already had dinner on the airplane. Restaurants might be closed for " +
-                    "the night. Try to have smaller meals leading up to your arrival, to prevent over-eating."
+    /** Returns deltaHours (negative = shorter/eastbound, positive = longer/westbound),
+     *  or null if the day has no significant timezone shift.
+     *
+     *  If the previous day was already mid-flight (its startZone != endZone), we use the
+     *  previous day's startZone as the anchor so multi-day flights trace back to the true
+     *  departure timezone rather than a mid-flight zone the phone happened to be in at midnight. */
+    private fun effectiveTravelDelta(day: TravelDay, previousDay: TravelDay?): Long? {
+        val startZone = if (previousDay != null && previousDay.startZone != previousDay.endZone) {
+            previousDay.startZone
         } else {
-            "This means the day's events get brought up (end of the day, your bedtime, meals...). " +
-                    "Try to go to bed earlier, when locals do. If the difference is extreme, " +
-                    "expect a few days of adjustment. For example in case of an 8 hour jet " +
-                    "lag, on the first day go to bed 6 hours after locals do, then 4 hours, then 2..."
+            day.startZone
         }
+        val endZone = if (day.day == LocalDate.now(ZoneId.systemDefault())) {
+            ZoneId.systemDefault()
+        } else {
+            day.endZone
+        }
+        if (startZone == endZone) return null
+        val duration = Duration.between(
+            diaryDayWindowStart(day.day, day.diaryDayStart, startZone).toInstant(),
+            diaryDayWindowStart(day.day.plusDays(1), day.diaryDayStart, endZone).toInstant(),
+        )
+        val deltaHours = duration.toHours() - 24
+        return if (deltaHours.absoluteValue > 2) deltaHours else null
+    }
 
-        return buildString {
-            append("\uD83D\uDCA1 Due to timezone change this day is $deltaHours hrs $direction ($percent%).\n")
-            append(advice)
+    private fun buildTimezoneInfo(deltaHours: Long?): String? {
+        if (deltaHours == null) return null
+        val absHours = deltaHours.absoluteValue
+        val absPct = (absHours / 24f * 100).toInt()
+
+        val advisory = if (deltaHours < 0) {
+            "\uD83D\uDCA1 Timezone jump: your body clock is $absHours hrs behind local time ($absPct% shorter day).\n" +
+                "Try to go to bed when locals do \u2014 it will feel too early, but that's your body adjusting. " +
+                "You can ease in gradually over a few nights, or use melatonin to reset faster."
+        } else {
+            val dinnerNote = if (LocalTime.now(ZoneId.systemDefault()).hour >= 15) {
+                " Even if you ate during your journey, try not to skip local dinner \u2014 restaurants may be closed by the time hunger kicks in."
+            } else ""
+            "\uD83D\uDCA1 Timezone jump: your body clock is $deltaHours hrs ahead of local time ($absPct% longer day).\n" +
+                "Try to go to bed when locals do \u2014 it will feel too late. " +
+                "Follow local meal times if you can.$dinnerNote"
         }
+        return "$advisory\n\nYour daily targets have been scaled to match this ${24 + deltaHours}-hr day."
+    }
+
+    private fun Targets.scale(factor: Double): Targets {
+        fun Target.scaled() = copy(
+            min = min?.let { (it * factor).roundToInt() },
+            max = max?.let { (it * factor).roundToInt() },
+        )
+        return copy(
+            calories = calories.scaled(),
+            protein = protein.scaled(),
+            salt = salt.scaled(),
+            fat = fat.scaled(),
+            carbs = carbs.scaled(),
+            fibre = fibre.scaled(),
+            ofWhichSaturated = ofWhichSaturated.scaled(),
+            ofWhichSugar = ofWhichSugar.scaled(),
+        )
     }
 
     private fun mapWeeklySummary(

@@ -17,10 +17,12 @@ data class TravelDay(
     val diaryDayStart: LocalTime = LocalTime.MIDNIGHT,
 ) {
     val duration: Duration
-        get() = Duration.between(
-            diaryDayWindowStart(day, diaryDayStart, startZone).toInstant(),
-            diaryDayWindowStart(day.plusDays(1), diaryDayStart, endZone).toInstant(),
-        )
+        get() = durationWithEndZone(endZone)
+
+    fun durationWithEndZone(zone: ZoneId): Duration = Duration.between(
+        diaryDayWindowStart(day, diaryDayStart, startZone).toInstant(),
+        diaryDayWindowStart(day.plusDays(1), diaryDayStart, zone).toInstant(),
+    )
 
     val startZone: ZoneId get() = firstLog.zone
     val endZone: ZoneId get() = lastLog.zone
