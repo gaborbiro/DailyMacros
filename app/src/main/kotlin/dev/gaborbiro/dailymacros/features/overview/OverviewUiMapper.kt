@@ -273,7 +273,9 @@ class OverviewUiMapper @Inject constructor(
      *  previous day's startZone as the anchor so multi-day flights trace back to the true
      *  departure timezone rather than a mid-flight zone the phone happened to be in at midnight. */
     private fun effectiveTravelDelta(day: TravelDay, previousDay: TravelDay?): Long? {
-        val startZone = if (previousDay != null && previousDay.startZone != previousDay.endZone) {
+        val startZone = if (day.startZone != day.endZone
+                            && previousDay != null
+                            && previousDay.startZone != previousDay.endZone) {
             previousDay.startZone
         } else {
             day.startZone
