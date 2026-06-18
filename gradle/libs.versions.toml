@@ -65,6 +65,7 @@ javax-inject = "1"
 accompanist = "0.36.0"
 google-gson = "2.13.2"
 google-mlkit-image-labeling = "17.0.9"
+google-play-services-auth = "21.3.0"
 # @pin
 guava = "33.4.8-android"
 commons-compress = "1.27.1"
@@ -174,6 +175,7 @@ accompanist-navigation-animation = { module = "com.google.accompanist:accompanis
 # -------------------------------------------------------------------------------
 google-guava = { module = "com.google.guava:guava", version.ref = "guava" }
 google-mlkit-image-labeling = { module = "com.google.mlkit:image-labeling", version.ref = "google-mlkit-image-labeling" }
+google-play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "google-play-services-auth" }
 # ========================= DEPENDENCY INJECTION ==================================
 # -------------------------------------------------------------------------------
 dagger-hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "dagger" }

@@ -1,8 +1,14 @@
 package dev.gaborbiro.dailymacros.features.settings
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.auth.GoogleAuthException
+import com.google.android.gms.auth.GoogleAuthUtil
+import com.google.android.gms.auth.UserRecoverableAuthException
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.OpenPublicDocumentUseCase
@@ -10,9 +16,14 @@ import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDia
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportSqliteDatabaseUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseResult
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseUseCase
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.RestoreFromDriveUseCase
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.SyncDatabaseUseCase
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.SyncResult
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -21,6 +32,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -31,6 +43,8 @@ class SettingsViewModel @Inject constructor(
     private val exportFoodDiaryUseCase: ExportFoodDiaryUseCase,
     private val exportSqliteDatabaseUseCase: ExportSqliteDatabaseUseCase,
     private val importSqliteDatabaseUseCase: ImportSqliteDatabaseUseCase,
+    private val syncDatabaseUseCase: SyncDatabaseUseCase,
+    private val restoreFromDriveUseCase: RestoreFromDriveUseCase,
 ) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(
@@ -38,6 +52,9 @@ class SettingsViewModel @Inject constructor(
             showTargetsSettings = false,
             bottomLabel = appInfo.versionLabel,
             diaryDayStartHour = settingsRepository.getDiaryDayStartHour(),
+            cloudSyncProvider = settingsRepository.getCloudSyncProvider(),
+            cloudSyncEmail = settingsRepository.getCloudSyncEmail(),
+            lastSyncedEpochMs = settingsRepository.getLastSyncedEpochMs(),
         ),
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
@@ -46,24 +63,16 @@ class SettingsViewModel @Inject constructor(
     val uiUpdates: SharedFlow<SettingsUiUpdates> = _uiUpdates.asSharedFlow()
 
     fun onBackNavigateRequested() {
-        _uiState.update {
-            it.copy(showTargetsSettings = false)
-        }
-        viewModelScope.launch {
-            _uiUpdates.emit(SettingsUiUpdates.NavigateBack)
-        }
+        _uiState.update { it.copy(showTargetsSettings = false) }
+        viewModelScope.launch { _uiUpdates.emit(SettingsUiUpdates.NavigateBack) }
     }
 
     fun onTargetsSettingsTapped() {
-        _uiState.update {
-            it.copy(showTargetsSettings = true)
-        }
+        _uiState.update { it.copy(showTargetsSettings = true) }
     }
 
     fun onTargetsSettingsCloseRequested() {
-        _uiState.update {
-            it.copy(showTargetsSettings = false)
-        }
+        _uiState.update { it.copy(showTargetsSettings = false) }
     }
 
     fun onPromptEditorTapped() {
@@ -85,29 +94,18 @@ class SettingsViewModel @Inject constructor(
     fun onDiaryDayStartHourSelected(hourOfDay: Int) {
         val hour = hourOfDay.coerceIn(0, 2)
         settingsRepository.setDiaryDayStartHour(hour)
-        _uiState.update {
-            it.copy(
-                diaryDayStartHour = hour,
-                showDiaryDayStartDialog = false,
-            )
-        }
+        _uiState.update { it.copy(diaryDayStartHour = hour, showDiaryDayStartDialog = false) }
     }
 
     fun onExportSettingsTapped(createPublicDocumentUseCase: CreatePublicDocumentUseCase) {
-        viewModelScope.launch {
-            exportFoodDiaryUseCase.execute(createPublicDocumentUseCase)
-        }
+        viewModelScope.launch { exportFoodDiaryUseCase.execute(createPublicDocumentUseCase) }
     }
 
     fun onExportDbTapped(createPublicDocumentUseCase: CreatePublicDocumentUseCase) {
         viewModelScope.launch {
             _uiState.update { it.copy(exportDataInProgress = true) }
             runCatching { exportSqliteDatabaseUseCase.execute(createPublicDocumentUseCase) }
-                .onFailure { t ->
-                    _uiUpdates.emit(
-                        SettingsUiUpdates.ShowSnackbar(t.message ?: t.toString()),
-                    )
-                }
+                .onFailure { t -> _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar(t.message ?: t.toString())) }
             _uiState.update { it.copy(exportDataInProgress = false) }
         }
     }
@@ -118,17 +116,133 @@ class SettingsViewModel @Inject constructor(
             when (val result = importSqliteDatabaseUseCase.execute(openPublicDocumentUseCase)) {
                 ImportSqliteDatabaseResult.Cancelled -> Unit
                 ImportSqliteDatabaseResult.InvalidFile ->
-                    _uiUpdates.emit(
-                        SettingsUiUpdates.ShowSnackbar("That file is not a valid backup (.tar)"),
-                    )
-
+                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("That file is not a valid backup (.tar)"))
                 ImportSqliteDatabaseResult.RestartPending ->
                     _uiUpdates.emit(SettingsUiUpdates.RestartApplication)
-
                 is ImportSqliteDatabaseResult.Error ->
                     _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar(result.message))
             }
             _uiState.update { it.copy(importDataInProgress = false) }
         }
+    }
+
+    // ---- Cloud sync ----
+
+    fun onCloudSyncRowTapped() {
+        val current = _uiState.value.cloudSyncProvider
+        if (current == CloudSyncProvider.NONE) {
+            viewModelScope.launch { _uiUpdates.emit(SettingsUiUpdates.RequestGoogleSignIn) }
+        } else {
+            signOut()
+        }
+    }
+
+    fun onGoogleSignInSuccess(email: String) {
+        settingsRepository.setCloudSyncProvider(CloudSyncProvider.GOOGLE_DRIVE)
+        settingsRepository.setCloudSyncEmail(email)
+        _uiState.update {
+            it.copy(
+                cloudSyncProvider = CloudSyncProvider.GOOGLE_DRIVE,
+                cloudSyncEmail = email,
+            )
+        }
+    }
+
+    fun onGoogleSignInFailed(message: String) {
+        viewModelScope.launch { _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Sign-in failed: $message")) }
+    }
+
+    fun onSignOutTapped() = signOut()
+
+    fun onSyncTapped() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(cloudSyncInProgress = true) }
+            runCatching {
+                val token = getDriveAccessToken() ?: run {
+                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Not signed in. Tap Cloud sync to sign in."))
+                    return@launch
+                }
+                when (val result = syncDatabaseUseCase.execute(token)) {
+                    SyncResult.Uploaded -> {
+                        val newTs = settingsRepository.getLastSyncedEpochMs()
+                        _uiState.update { it.copy(lastSyncedEpochMs = newTs) }
+                        _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Backup uploaded to Google Drive."))
+                    }
+                    is SyncResult.RemoteIsNewer -> {
+                        _uiState.update {
+                            it.copy(
+                                showRestoreConfirmDialog = true,
+                                restoreDialogModifiedAtMs = result.modifiedTimeMs,
+                                restoreDialogFileId = result.fileId,
+                            )
+                        }
+                    }
+                }
+            }.onFailure { t ->
+                Log.e("CloudSync", "Sync failed", t)
+                _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Sync failed: ${t.message}"))
+            }
+            _uiState.update { it.copy(cloudSyncInProgress = false) }
+        }
+    }
+
+    fun onRestoreConfirmed() {
+        val state = _uiState.value
+        _uiState.update { it.copy(showRestoreConfirmDialog = false, cloudSyncInProgress = true) }
+        viewModelScope.launch {
+            runCatching {
+                val token = getDriveAccessToken() ?: run {
+                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Not signed in."))
+                    return@launch
+                }
+                when (restoreFromDriveUseCase.execute(token, state.restoreDialogFileId)) {
+                    ImportSqliteDatabaseResult.RestartPending ->
+                        _uiUpdates.emit(SettingsUiUpdates.RestartApplication)
+                    ImportSqliteDatabaseResult.InvalidFile ->
+                        _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Remote backup file is invalid."))
+                    is ImportSqliteDatabaseResult.Error ->
+                        _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Restore failed."))
+                    ImportSqliteDatabaseResult.Cancelled -> Unit
+                }
+            }.onFailure { t ->
+                Log.e("CloudSync", "Restore failed", t)
+                _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Restore failed: ${t.message}"))
+            }
+            _uiState.update { it.copy(cloudSyncInProgress = false) }
+        }
+    }
+
+    fun onRestoreDialogDismissed() {
+        _uiState.update { it.copy(showRestoreConfirmDialog = false) }
+    }
+
+    private fun signOut() {
+        GoogleSignIn.getClient(getApplication(), GoogleSignInOptions.DEFAULT_SIGN_IN).signOut()
+        settingsRepository.setCloudSyncProvider(CloudSyncProvider.NONE)
+        settingsRepository.setCloudSyncEmail(null)
+        settingsRepository.setLastSyncedEpochMs(null)
+        _uiState.update {
+            it.copy(
+                cloudSyncProvider = CloudSyncProvider.NONE,
+                cloudSyncEmail = null,
+                lastSyncedEpochMs = null,
+            )
+        }
+    }
+
+    private suspend fun getDriveAccessToken(): String? = withContext(Dispatchers.IO) {
+        val app = getApplication<Application>()
+        val account = GoogleSignIn.getLastSignedInAccount(app) ?: return@withContext null
+        try {
+            GoogleAuthUtil.getToken(app, account.account!!, DRIVE_SCOPE)
+        } catch (e: UserRecoverableAuthException) {
+            null // permission revoked; user must sign out and sign in again
+        } catch (e: GoogleAuthException) {
+            null
+        }
+    }
+
+    private companion object {
+        const val DRIVE_SCOPE = "oauth2:https://www.googleapis.com/auth/drive.appdata"
     }
 }

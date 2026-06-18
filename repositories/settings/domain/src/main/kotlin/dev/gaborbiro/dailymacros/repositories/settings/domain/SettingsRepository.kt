@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.repositories.settings.domain
 
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 
@@ -26,4 +27,11 @@ interface SettingsRepository {
 
     /** Deletes the version with the given version number. */
     fun deletePromptVersion(version: Int)
+
+    fun getCloudSyncProvider(): CloudSyncProvider = CloudSyncProvider.NONE
+    fun setCloudSyncProvider(provider: CloudSyncProvider) {}
+    fun getCloudSyncEmail(): String? = null
+    fun setCloudSyncEmail(email: String?) {}
+    fun getLastSyncedEpochMs(): Long? = null
+    fun setLastSyncedEpochMs(epochMs: Long?) {}
 }

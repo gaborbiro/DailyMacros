@@ -43,6 +43,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.features.settings.R
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,6 +62,10 @@ internal fun SettingsView(
     onExportSettingTapped: () -> Unit,
     onExportDbTapped: () -> Unit,
     onImportDbTapped: () -> Unit,
+    onCloudSyncTapped: () -> Unit,
+    onSyncTapped: () -> Unit,
+    onRestoreConfirmed: () -> Unit,
+    onRestoreDialogDismissed: () -> Unit,
 ) {
 
     if (viewState.showDiaryDayStartDialog) {
@@ -86,6 +94,29 @@ internal fun SettingsView(
                 TextButton(onClick = onDiaryDayStartDialogDismissed) {
                     Text(stringResource(R.string.settings_diary_day_start_dialog_close))
                 }
+            },
+        )
+    }
+
+    if (viewState.showRestoreConfirmDialog) {
+        val dateStr = remember(viewState.restoreDialogModifiedAtMs) {
+            SimpleDateFormat("MMM d, yyyy HH:mm", Locale.getDefault())
+                .format(Date(viewState.restoreDialogModifiedAtMs))
+        }
+        AlertDialog(
+            onDismissRequest = onRestoreDialogDismissed,
+            title = { Text("Restore from backup?") },
+            text = {
+                Text(
+                    "A newer backup from $dateStr is available on Google Drive. " +
+                        "Restore it now? This will replace all your current data."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = onRestoreConfirmed) { Text("Restore") }
+            },
+            dismissButton = {
+                TextButton(onClick = onRestoreDialogDismissed) { Text("Cancel") }
             },
         )
     }
@@ -162,6 +193,34 @@ internal fun SettingsView(
                     }
                 },
             )
+
+            val isSignedIn = viewState.cloudSyncProvider != CloudSyncProvider.NONE
+            val cloudSyncIdle = !viewState.cloudSyncInProgress
+            SettingRow(
+                title = "Cloud sync",
+                subtitle = if (isSignedIn) viewState.cloudSyncEmail else "Sign in with Google",
+                enabled = cloudSyncIdle,
+                onTapped = onCloudSyncTapped,
+                trailing = {
+                    if (viewState.cloudSyncInProgress) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                        )
+                    }
+                },
+            )
+            if (isSignedIn) {
+                val lastSyncedText = viewState.lastSyncedEpochMs?.let { ms ->
+                    "Last synced: ${SimpleDateFormat("MMM d, yyyy HH:mm", Locale.getDefault()).format(Date(ms))}"
+                } ?: "Not synced yet"
+                SettingRow(
+                    title = "Sync now",
+                    subtitle = lastSyncedText,
+                    enabled = cloudSyncIdle,
+                    onTapped = onSyncTapped,
+                )
+            }
         }
     }
 }
@@ -235,6 +294,10 @@ private fun SettingsViewPreview() {
             onExportSettingTapped = {},
             onExportDbTapped = {},
             onImportDbTapped = {},
+            onCloudSyncTapped = {},
+            onSyncTapped = {},
+            onRestoreConfirmed = {},
+            onRestoreDialogDismissed = {},
         )
     }
 }

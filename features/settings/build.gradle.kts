@@ -35,5 +35,6 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
 
     implementation(libs.network.gson)
+    implementation(libs.google.play.services.auth)
     testImplementation(libs.test.junit)
 }

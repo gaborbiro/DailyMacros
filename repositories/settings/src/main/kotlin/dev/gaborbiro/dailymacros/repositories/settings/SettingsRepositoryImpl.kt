@@ -6,6 +6,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository as SettingsRepository
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
@@ -124,11 +125,36 @@ class SettingsRepositoryImpl @Inject constructor(
         return if (changed) result else this
     }
 
+    override fun getCloudSyncProvider(): CloudSyncProvider =
+        prefs.getString(KEY_CLOUD_SYNC_PROVIDER, null)
+            ?.let { runCatching { CloudSyncProvider.valueOf(it) }.getOrNull() }
+            ?: CloudSyncProvider.NONE
+
+    override fun setCloudSyncProvider(provider: CloudSyncProvider) {
+        prefs.edit { putString(KEY_CLOUD_SYNC_PROVIDER, provider.name) }
+    }
+
+    override fun getCloudSyncEmail(): String? = prefs.getString(KEY_CLOUD_SYNC_EMAIL, null)
+
+    override fun setCloudSyncEmail(email: String?) {
+        prefs.edit { if (email != null) putString(KEY_CLOUD_SYNC_EMAIL, email) else remove(KEY_CLOUD_SYNC_EMAIL) }
+    }
+
+    override fun getLastSyncedEpochMs(): Long? =
+        prefs.getLong(KEY_LAST_SYNCED_EPOCH_MS, -1L).takeIf { it >= 0 }
+
+    override fun setLastSyncedEpochMs(epochMs: Long?) {
+        prefs.edit { if (epochMs != null) putLong(KEY_LAST_SYNCED_EPOCH_MS, epochMs) else remove(KEY_LAST_SYNCED_EPOCH_MS) }
+    }
+
     companion object {
         private const val KEY_TARGETS = "targets_json"
         private const val KEY_DIARY_DAY_START_HOUR = "diary_day_start_hour"
         private const val DEFAULT_DIARY_DAY_START_HOUR = 0
         private const val KEY_PROMPT_CUSTOMIZATIONS = "prompt_customizations_json"
         private const val KEY_PROMPT_VERSIONS = "prompt_versions_json"
+        private const val KEY_CLOUD_SYNC_PROVIDER = "cloud_sync_provider"
+        private const val KEY_CLOUD_SYNC_EMAIL = "cloud_sync_email"
+        private const val KEY_LAST_SYNCED_EPOCH_MS = "last_synced_epoch_ms"
     }
 }

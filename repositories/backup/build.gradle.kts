@@ -16,6 +16,9 @@ dependencies {
     implementation(libs.commons.compress)
     implementation(libs.kotlinx.coroutines.core)
 
+    implementation(libs.network.okhttp)
+    implementation(libs.network.gson)
+
     implementation(libs.dagger.hilt.android)
     ksp(libs.dagger.hilt.compiler)
 }
