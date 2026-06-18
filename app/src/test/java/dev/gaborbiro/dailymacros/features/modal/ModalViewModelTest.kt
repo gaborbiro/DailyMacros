@@ -173,7 +173,7 @@ class ModalViewModelTest {
             exportImageToGalleryUseCase = ExportImageToGalleryUseCase(app, imageStore),
             getRecordImageUseCase = GetRecordImageUseCase(repo),
             getTemplateImageUseCase = GetTemplateImageUseCase(repo),
-            foodRecognitionUseCase = FoodRecognitionUseCase(app, imageStore, VmFakeChatGpt(), testSettingsRepository),
+            foodRecognitionUseCase = FoodRecognitionUseCase(imageStore, VmFakeChatGpt(), testSettingsRepository),
             applyQuickPickOverrideAndReloadWidgetUseCase = ApplyQuickPickOverrideAndReloadWidgetUseCase(repo),
             applyConfirmedSharedTemplateEditUseCase = ApplyConfirmedSharedTemplateEditUseCase(
                 updateRecordWithNewTemplateUseCase = updateRec,

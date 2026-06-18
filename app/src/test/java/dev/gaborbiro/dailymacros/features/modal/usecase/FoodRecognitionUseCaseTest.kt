@@ -1,8 +1,6 @@
 package dev.gaborbiro.dailymacros.features.modal.usecase
 
-import android.content.Context
 import android.graphics.Bitmap
-import androidx.test.core.app.ApplicationProvider
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
@@ -68,8 +66,7 @@ class FoodRecognitionUseCaseTest {
 
     @Test
     fun `maps api result to recognised food`() = runBlocking {
-        val ctx: Context = ApplicationProvider.getApplicationContext()
-        val result = FoodRecognitionUseCase(ctx, FakeImageStore(), FakeChatGpt(), fakeSettingsRepository).execute(listOf("pic.jpg"))
+        val result = FoodRecognitionUseCase(FakeImageStore(), FakeChatGpt(), fakeSettingsRepository).execute(listOf("pic.jpg"))
         assertEquals("Oats", result.title)
     }
 }
