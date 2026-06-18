@@ -18,11 +18,11 @@ object DataFileModule {
     @Singleton
     @FileStorePublicBucketPersistent
     fun persistentPublicFileStore(@ApplicationContext context: Context): FileStore =
-        FileStoreFactoryImpl(context).getStore("public", keepFiles = true)
+        FileStoreFactoryImpl(context).getStore("thumbnails", keepFiles = true)
 
     @Provides
     @Singleton
     @FileStorePublicBucketEphemeral
     fun ephemeralPublicFileStore(@ApplicationContext context: Context): FileStore =
-        FileStoreFactoryImpl(context).getStore("public", keepFiles = false)
+        FileStoreFactoryImpl(context).getStore("photos", keepFiles = false)
 }

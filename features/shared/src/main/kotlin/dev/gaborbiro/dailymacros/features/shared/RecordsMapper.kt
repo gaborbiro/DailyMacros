@@ -7,6 +7,7 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.Nutrients
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
+import java.util.Locale
 
 import javax.inject.Inject
 
@@ -17,6 +18,7 @@ class RecordsMapper @Inject constructor() {
             base64Images = base64Images,
             title = record.template.name,
             description = record.template.description,
+            phoneLanguage = Locale.getDefault().getDisplayLanguage(Locale.ENGLISH),
         )
     }
 

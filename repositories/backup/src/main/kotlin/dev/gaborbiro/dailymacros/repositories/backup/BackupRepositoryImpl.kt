@@ -69,13 +69,13 @@ class BackupRepositoryImpl @Inject constructor(
                 FileInputStream(dbFile).use { it.copyTo(tout) }
                 tout.closeArchiveEntry()
 
-                val publicRoot = File(appContext.filesDir, "public")
+                val publicRoot = File(appContext.filesDir, "thumbnails")
                 if (publicRoot.exists()) {
                     publicRoot.walkTopDown()
                         .filter { it.isFile }
                         .forEach { file ->
                             val rel = file.relativeTo(publicRoot).invariantSeparatorsPath
-                            val entryName = "$PUBLIC_TAR_PREFIX/$rel"
+                            val entryName = "$THUMBNAILS_TAR_PREFIX/$rel"
                             val entry = TarArchiveEntry(file, entryName)
                             tout.putArchiveEntry(entry)
                             FileInputStream(file).use { it.copyTo(tout) }
@@ -125,13 +125,15 @@ class BackupRepositoryImpl @Inject constructor(
             if (!validateSqliteDatabaseFile(stagedDb)) {
                 return DatabaseBackupImportResult.InvalidFile
             }
-            val stagedPublic = File(extractRoot, PUBLIC_TAR_PREFIX)
-            val publicToRestore = if (stagedPublic.exists()) stagedPublic else null
+            // Accept both new ("files/thumbnails") and legacy ("files/public") TAR layouts.
+            val stagedThumbnails = File(extractRoot, THUMBNAILS_TAR_PREFIX)
+                .takeIf { it.exists() }
+                ?: File(extractRoot, LEGACY_PUBLIC_TAR_PREFIX).takeIf { it.exists() }
             val stagedSharedPrefs = File(extractRoot, SHARED_PREFS_TAR_PREFIX)
             val sharedPrefsToRestore = if (stagedSharedPrefs.exists()) stagedSharedPrefs else null
             return replaceDatabaseAndMaybeFiles(
                 stagedDb = stagedDb,
-                stagedPublicDir = publicToRestore,
+                stagedThumbnailsDir = stagedThumbnails,
                 stagedSharedPrefsDir = sharedPrefsToRestore,
             )
         } finally {
@@ -141,7 +143,7 @@ class BackupRepositoryImpl @Inject constructor(
 
     /**
      * Replaces the live DB from [stagedDb].
-     * If [stagedPublicDir] is non-null, replaces [files/public] entirely.
+     * If [stagedThumbnailsDir] is non-null, replaces [files/thumbnails] entirely.
      * If [stagedSharedPrefsDir] is non-null, replaces [shared_prefs] entirely.
      * Null staged folders are treated as legacy import and left unchanged.
      *
@@ -152,7 +154,7 @@ class BackupRepositoryImpl @Inject constructor(
      */
     private fun replaceDatabaseAndMaybeFiles(
         stagedDb: File,
-        stagedPublicDir: File?,
+        stagedThumbnailsDir: File?,
         stagedSharedPrefsDir: File?,
     ): DatabaseBackupImportResult {
         appDatabase.close()
@@ -178,13 +180,13 @@ class BackupRepositoryImpl @Inject constructor(
             }
         }
 
-        val publicLive = File(appContext.filesDir, "public")
-        val publicBak =
-            if (stagedPublicDir != null && publicLive.exists()) {
-                File(appContext.filesDir, "public.import_bak_$tag").also { aside ->
-                    if (!publicLive.renameTo(aside)) {
+        val thumbnailsLive = File(appContext.filesDir, "thumbnails")
+        val thumbnailsBak =
+            if (stagedThumbnailsDir != null && thumbnailsLive.exists()) {
+                File(appContext.filesDir, "thumbnails.import_bak_$tag").also { aside ->
+                    if (!thumbnailsLive.renameTo(aside)) {
                         restoreLiveDbFromAside(rollout)
-                        return DatabaseBackupImportResult.IoFailure("Could not stage public image folder.")
+                        return DatabaseBackupImportResult.IoFailure("Could not stage thumbnails folder.")
                     }
                 }
             } else {
@@ -195,7 +197,7 @@ class BackupRepositoryImpl @Inject constructor(
             if (stagedSharedPrefsDir != null && sharedPrefsLive.exists()) {
                 File(appContext.filesDir.parentFile, "shared_prefs.import_bak_$tag").also { aside ->
                     if (!sharedPrefsLive.renameTo(aside)) {
-                        publicBak?.takeIf { it.exists() }?.renameTo(publicLive)
+                        thumbnailsBak?.takeIf { it.exists() }?.renameTo(thumbnailsLive)
                         restoreLiveDbFromAside(rollout)
                         return DatabaseBackupImportResult.IoFailure("Could not stage shared preferences folder.")
                     }
@@ -216,12 +218,12 @@ class BackupRepositoryImpl @Inject constructor(
                     .use { it.moveToFirst() }
             }
 
-            if (stagedPublicDir != null) {
-                if (publicLive.exists()) {
-                    publicLive.deleteRecursively()
+            if (stagedThumbnailsDir != null) {
+                if (thumbnailsLive.exists()) {
+                    thumbnailsLive.deleteRecursively()
                 }
-                publicLive.mkdirs()
-                stagedPublicDir.copyRecursively(publicLive, overwrite = true)
+                thumbnailsLive.mkdirs()
+                stagedThumbnailsDir.copyRecursively(thumbnailsLive, overwrite = true)
             }
             if (stagedSharedPrefsDir != null) {
                 if (sharedPrefsLive.exists()) {
@@ -235,9 +237,9 @@ class BackupRepositoryImpl @Inject constructor(
                 sharedPrefsLive.deleteRecursively()
                 sharedPrefsBak?.takeIf { it.exists() }?.renameTo(sharedPrefsLive)
             }
-            if (stagedPublicDir != null) {
-                publicLive.deleteRecursively()
-                publicBak?.takeIf { it.exists() }?.renameTo(publicLive)
+            if (stagedThumbnailsDir != null) {
+                thumbnailsLive.deleteRecursively()
+                thumbnailsBak?.takeIf { it.exists() }?.renameTo(thumbnailsLive)
             }
             discardFailedReplacement(rollout)
             restoreLiveDbFromAside(rollout)
@@ -247,7 +249,7 @@ class BackupRepositoryImpl @Inject constructor(
         rollout.mainBak.takeIf { it.exists() }?.delete()
         rollout.walBak.takeIf { it.exists() }?.delete()
         rollout.shmBak.takeIf { it.exists() }?.delete()
-        publicBak?.takeIf { it.exists() }?.deleteRecursively()
+        thumbnailsBak?.takeIf { it.exists() }?.deleteRecursively()
         sharedPrefsBak?.takeIf { it.exists() }?.deleteRecursively()
 
         return DatabaseBackupImportResult.ReplacementApplied
@@ -401,7 +403,8 @@ class BackupRepositoryImpl @Inject constructor(
 
         const val BACKUP_MANIFEST_ENTRY = "backup_manifest.json"
         const val BACKUP_MANIFEST_JSON = """{"format":1,"kind":"dailymacros-full"}"""
-        const val PUBLIC_TAR_PREFIX = "files/public"
+        const val THUMBNAILS_TAR_PREFIX = "files/thumbnails"
+        const val LEGACY_PUBLIC_TAR_PREFIX = "files/public"
         const val SHARED_PREFS_TAR_PREFIX = "shared_prefs"
     }
 }

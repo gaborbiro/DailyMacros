@@ -14,11 +14,3 @@
 
 ./gradlew versionCatalogUpdate
 
-## Backup and Restore images (not really needed anymore since there's a complete export solution in Settings now)
-
-cmd /c 'adb exec-out run-as dev.gaborbiro.dailymacros tar -cf - files/public > "%USERPROFILE%\Desktop\public-backup.tar"'
-tar -tf "$env:USERPROFILE\Desktop\public-backup.tar" | Select-Object -First 20
-cmd /c 'adb exec-in run-as dev.gaborbiro.dailymacros sh -c "cat > public-backup.tar" < "%USERPROFILE%\Desktop\public-backup.tar"'
-
-Extract it to restore_tmp folder. This will put them in restore_tmp/files/public subfolder
-adb shell "run-as dev.gaborbiro.dailymacros sh -c 'tar -xf public-backup.tar -C .'"
