@@ -14,26 +14,3 @@
 
 ./gradlew versionCatalogUpdate
 
-## Migrate existing images to new folder layout (one-time, after updating to this layout)
-
-Full-size photos moved to cache, thumbnails moved to `files/thumbnails/`:
-
-```powershell
-# Windows – pull thumbnails from device, push back to new location
-cmd /c 'adb exec-out run-as dev.gaborbiro.dailymacros tar -cf - files/public > "%USERPROFILE%\Desktop\public-backup.tar"'
-```
-
-```bash
-# On-device migration via adb shell
-adb shell "run-as dev.gaborbiro.dailymacros sh -c '
-  mkdir -p cache/photos files/thumbnails
-  for f in files/public/*; do
-    name=\$(basename \"\$f\")
-    case \"\$name\" in
-      *-thumb*) mv \"\$f\" files/thumbnails/ ;;
-      *)        mv \"\$f\" cache/photos/ ;;
-    esac
-  done
-  rmdir files/public 2>/dev/null || true
-'"
-```

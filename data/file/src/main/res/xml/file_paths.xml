@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
     <cache-path
-        name="cache"
-        path="public/" />
+        name="photos"
+        path="photos/" />
     <files-path
-        name="files"
-        path="public/" />
+        name="thumbnails"
+        path="thumbnails/" />
 </paths>
