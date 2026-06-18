@@ -5,5 +5,5 @@ data class NutrientAnalysisRequest(
     val title: String,
     val description: String,
     val customizations: Map<String, String> = emptyMap(),
-    val phoneLanguage: String = "English",
+    val phoneLanguage: String,
 )
