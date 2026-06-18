@@ -1,17 +1,22 @@
 package dev.gaborbiro.dailymacros.data.image
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.util.LruCache
 import androidx.core.graphics.scale
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.data.file.di.FileStorePublicBucketEphemeral
 import dev.gaborbiro.dailymacros.data.file.di.FileStorePublicBucketPersistent
 import dev.gaborbiro.dailymacros.data.file.domain.FileStore
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
@@ -25,6 +30,7 @@ import kotlin.concurrent.withLock
 
 @Singleton
 class ImageStoreImpl @Inject constructor(
+    @ApplicationContext private val appContext: Context,
     @FileStorePublicBucketEphemeral private val fullSizeStore: FileStore,
     @FileStorePublicBucketPersistent private val thumbStore: FileStore,
 ) : ImageStore {
@@ -48,6 +54,8 @@ class ImageStoreImpl @Inject constructor(
         memCache = object : LruCache<String, Bitmap>(/* maxSize = */ cacheBytes) {
             override fun sizeOf(key: String, value: Bitmap) = value.byteCount
         }
+        @OptIn(DelicateCoroutinesApi::class)
+        GlobalScope.launch(Dispatchers.IO) { migrateLegacyPublicFolder() }
     }
 
     // ---------- Public API (suspend, main-safe) ----------
@@ -186,6 +194,18 @@ class ImageStoreImpl @Inject constructor(
             val tw = (w.toFloat() / h * th).toInt().coerceAtLeast(1)
             tw to th
         }
+    }
+
+    private fun migrateLegacyPublicFolder() {
+        val legacyDir = File(appContext.filesDir, "public")
+        if (!legacyDir.exists()) return
+        val thumbDir = File(appContext.filesDir, "thumbnails").also { it.mkdirs() }
+        val photosDir = File(appContext.cacheDir, "photos").also { it.mkdirs() }
+        legacyDir.listFiles()?.forEach { file ->
+            val dest = if (THUMBNAIL_SUFFIX in file.name) thumbDir else photosDir
+            file.renameTo(File(dest, file.name))
+        }
+        legacyDir.delete()
     }
 
     /**
