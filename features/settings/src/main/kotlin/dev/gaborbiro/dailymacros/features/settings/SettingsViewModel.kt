@@ -18,9 +18,9 @@ import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteD
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.RestoreFromDriveUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.SyncDatabaseUseCase
-import dev.gaborbiro.dailymacros.features.settings.export.useCases.SyncResult
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
+import dev.gaborbiro.dailymacros.repositories.backup.domain.CloudSyncRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
 import kotlinx.coroutines.Dispatchers
@@ -45,6 +45,7 @@ class SettingsViewModel @Inject constructor(
     private val importSqliteDatabaseUseCase: ImportSqliteDatabaseUseCase,
     private val syncDatabaseUseCase: SyncDatabaseUseCase,
     private val restoreFromDriveUseCase: RestoreFromDriveUseCase,
+    private val cloudSyncRepository: CloudSyncRepository,
 ) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(
@@ -162,25 +163,41 @@ class SettingsViewModel @Inject constructor(
                     _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Not signed in. Tap Cloud sync to sign in."))
                     return@launch
                 }
-                when (val result = syncDatabaseUseCase.execute(token)) {
-                    SyncResult.Uploaded -> {
-                        val newTs = settingsRepository.getLastSyncedEpochMs()
-                        _uiState.update { it.copy(lastSyncedEpochMs = newTs) }
-                        _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Backup uploaded to Google Drive."))
-                    }
-                    is SyncResult.RemoteIsNewer -> {
-                        _uiState.update {
-                            it.copy(
-                                showRestoreConfirmDialog = true,
-                                restoreDialogModifiedAtMs = result.modifiedTimeMs,
-                                restoreDialogFileId = result.fileId,
-                            )
-                        }
+                syncDatabaseUseCase.execute(token)
+                val newTs = settingsRepository.getLastSyncedEpochMs()
+                _uiState.update { it.copy(lastSyncedEpochMs = newTs) }
+                _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Backup uploaded to Google Drive."))
+            }.onFailure { t ->
+                Log.e("CloudSync", "Backup failed", t)
+                _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Backup failed: ${t.message}"))
+            }
+            _uiState.update { it.copy(cloudSyncInProgress = false) }
+        }
+    }
+
+    fun onRestoreFromDriveTapped() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(cloudSyncInProgress = true) }
+            runCatching {
+                val token = getDriveAccessToken() ?: run {
+                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Not signed in. Tap Cloud sync to sign in."))
+                    return@launch
+                }
+                val info = cloudSyncRepository.getBackupInfo(token)
+                if (info == null) {
+                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("No backup found on Google Drive."))
+                } else {
+                    _uiState.update {
+                        it.copy(
+                            showRestoreConfirmDialog = true,
+                            restoreDialogModifiedAtMs = info.modifiedTimeMs,
+                            restoreDialogFileId = info.fileId,
+                        )
                     }
                 }
             }.onFailure { t ->
-                Log.e("CloudSync", "Sync failed", t)
-                _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Sync failed: ${t.message}"))
+                Log.e("CloudSync", "Failed to check backup", t)
+                _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Failed to check backup: ${t.message}"))
             }
             _uiState.update { it.copy(cloudSyncInProgress = false) }
         }
@@ -236,7 +253,7 @@ class SettingsViewModel @Inject constructor(
         try {
             GoogleAuthUtil.getToken(app, account.account!!, DRIVE_SCOPE)
         } catch (e: UserRecoverableAuthException) {
-            null // permission revoked; user must sign out and sign in again
+            null
         } catch (e: GoogleAuthException) {
             null
         }

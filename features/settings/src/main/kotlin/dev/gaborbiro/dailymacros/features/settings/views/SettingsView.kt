@@ -67,6 +67,7 @@ internal fun SettingsView(
     onImportDbTapped: () -> Unit,
     onCloudSyncTapped: () -> Unit,
     onSyncTapped: () -> Unit,
+    onRestoreFromDriveTapped: () -> Unit,
     onRestoreConfirmed: () -> Unit,
     onRestoreDialogDismissed: () -> Unit,
 ) {
@@ -216,13 +217,18 @@ internal fun SettingsView(
             )
             if (isSignedIn) {
                 val lastSyncedText = viewState.lastSyncedEpochMs?.let { ms ->
-                    "Last synced: ${SimpleDateFormat("MMM d, yyyy HH:mm", Locale.getDefault()).format(Date(ms))}"
-                } ?: "Not synced yet"
+                    "Last backed up: ${SimpleDateFormat("MMM d, yyyy HH:mm", Locale.getDefault()).format(Date(ms))}"
+                } ?: "Never backed up"
                 SettingRow(
-                    title = "Sync now",
+                    title = "Back up now",
                     subtitle = lastSyncedText,
                     enabled = cloudSyncIdle,
                     onTapped = onSyncTapped,
+                )
+                SettingRow(
+                    title = "Restore from Drive",
+                    enabled = cloudSyncIdle,
+                    onTapped = onRestoreFromDriveTapped,
                 )
             }
         }
@@ -300,6 +306,7 @@ private fun SettingsViewPreview() {
             onImportDbTapped = {},
             onCloudSyncTapped = {},
             onSyncTapped = {},
+            onRestoreFromDriveTapped = {},
             onRestoreConfirmed = {},
             onRestoreDialogDismissed = {},
         )
