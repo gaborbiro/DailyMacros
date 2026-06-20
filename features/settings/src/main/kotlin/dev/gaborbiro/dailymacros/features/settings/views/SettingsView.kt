@@ -45,6 +45,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.features.settings.R
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
+import dev.gaborbiro.dailymacros.features.settings.util.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -158,7 +159,7 @@ internal fun SettingsView(
                 .fillMaxSize()
                 .padding(padding)
                 .imePadding()
-                .verticalScroll(rememberScrollState()),
+                .verticalScrollWithBar(),
         ) {
             SettingRow(title = "Daily targets", onTapped = onTargetsSettingTapped)
             SettingRow(title = "Customise AI", onTapped = onPromptEditorTapped)
