@@ -12,7 +12,7 @@ class ResolveOverviewCoachMarkUseCase @Inject constructor(
 ) {
 
     fun execute(mappedItemCount: Int): Boolean {
-        if (mappedItemCount == 2 && overviewPrefs.showCoachMark) {
+        if (mappedItemCount > 0 && overviewPrefs.showCoachMark) {
             overviewPrefs.showCoachMark = false
             return true
         }
