@@ -167,20 +167,21 @@ class ModalViewModel @Inject constructor(
 
     fun onImagesSelected(uris: List<Uri>) {
         runSafely {
-            val persistedFilenames = uris.map {
-                saveImageUseCase.execute(it)
+            val existingCount = when (val root = _uiState.value.rootDialog) {
+                is DialogHandle.RecordDetailsDialog.Edit -> root.images.size
+                is DialogHandle.RecordDetailsDialog.View -> if (root.isEditing) root.images.size else 0
+                else -> 0
             }
+            if (existingCount + uris.size > MAX_IMAGES) {
+                _uiUpdates.emit(ModalUiUpdates.ShowToast("Too many images selected. Maximum $MAX_IMAGES total."))
+                return@runSafely
+            }
+            val persistedFilenames = uris.map { saveImageUseCase.execute(it) }
 
             when (val root = _uiState.value.rootDialog) {
                 is DialogHandle.RecordDetailsDialog.Edit -> {
-                    if (persistedFilenames.isEmpty()) return@runSafely
                     val updatedImages = root.images + persistedFilenames
-                    setRoot(
-                        root.copy(
-                            images = updatedImages,
-                            recognisedFood = null,
-                        )
-                    )
+                    setRoot(root.copy(images = updatedImages, recognisedFood = null))
                     runFoodRecognition(updatedImages)
                 }
 
@@ -212,9 +213,11 @@ class ModalViewModel @Inject constructor(
 
     fun onImagesShared(uris: List<Uri>) {
         runSafely {
-            val persistedFilenames = uris.map {
-                saveImageUseCase.execute(it)
+            if (uris.size > MAX_IMAGES) {
+                _uiUpdates.emit(ModalUiUpdates.ShowToast("Too many images selected. Maximum $MAX_IMAGES total."))
+                return@runSafely
             }
+            val persistedFilenames = uris.map { saveImageUseCase.execute(it) }
 
             setRoot(
                 DialogHandle.RecordDetailsDialog.Edit(
@@ -950,6 +953,8 @@ class ModalViewModel @Inject constructor(
         }
     }
 }
+
+private const val MAX_IMAGES = 5
 
 private fun TextFieldValue.truncatedTo(maxLength: Int): TextFieldValue {
     if (text.length <= maxLength) return this
