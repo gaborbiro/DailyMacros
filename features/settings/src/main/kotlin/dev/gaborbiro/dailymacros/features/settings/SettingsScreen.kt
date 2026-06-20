@@ -3,6 +3,8 @@ package dev.gaborbiro.dailymacros.features.settings
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -12,6 +14,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.Scope
 import dev.gaborbiro.dailymacros.features.settings.export.ProcessRestarter
 import dev.gaborbiro.dailymacros.features.settings.export.rememberCreatePublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.rememberOpenPublicDocumentUseCase
@@ -35,6 +41,26 @@ fun SettingsScreen(
     val createPublicDocumentUseCase = rememberCreatePublicDocumentUseCase()
     val openPublicDocumentUseCase = rememberOpenPublicDocumentUseCase()
 
+    val signInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val data = result.data
+        if (data != null) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+            try {
+                val account = task.getResult(ApiException::class.java)
+                val email = account?.email
+                if (email != null) {
+                    settingsViewModel.onGoogleSignInSuccess(email)
+                } else {
+                    settingsViewModel.onGoogleSignInFailed("No email returned")
+                }
+            } catch (e: ApiException) {
+                settingsViewModel.onGoogleSignInFailed(e.message ?: e.statusCode.toString())
+            }
+        }
+    }
+
     LaunchedEffect(settingsViewModel, context) {
         settingsViewModel.uiUpdates.collect { event ->
             when (event) {
@@ -47,6 +73,13 @@ fun SettingsScreen(
                     withDismissAction = true,
                     duration = SnackbarDuration.Indefinite,
                 )
+                SettingsUiUpdates.RequestGoogleSignIn -> {
+                    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestEmail()
+                        .requestScopes(Scope("https://www.googleapis.com/auth/drive.appdata"))
+                        .build()
+                    signInLauncher.launch(GoogleSignIn.getClient(context, gso).signInIntent)
+                }
             }
         }
     }
@@ -63,6 +96,11 @@ fun SettingsScreen(
         onExportSettingTapped = { settingsViewModel.onExportSettingsTapped(createPublicDocumentUseCase) },
         onExportDbTapped = { settingsViewModel.onExportDbTapped(createPublicDocumentUseCase) },
         onImportDbTapped = { settingsViewModel.onImportDbTapped(openPublicDocumentUseCase) },
+        onCloudSyncTapped = settingsViewModel::onCloudSyncRowTapped,
+        onSyncTapped = settingsViewModel::onSyncTapped,
+        onRestoreFromDriveTapped = settingsViewModel::onRestoreFromDriveTapped,
+        onRestoreConfirmed = settingsViewModel::onRestoreConfirmed,
+        onRestoreDialogDismissed = settingsViewModel::onRestoreDialogDismissed,
     )
 
     if (settingsUiState.showTargetsSettings) {
