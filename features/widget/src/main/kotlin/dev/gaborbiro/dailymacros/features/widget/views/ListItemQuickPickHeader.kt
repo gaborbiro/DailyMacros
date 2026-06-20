@@ -46,7 +46,7 @@ fun ListItemQuickPickHeader(
                 modifier = GlanceModifier
                     .padding(PaddingWidgetDefault)
                     .wrapContentWidth(),
-                text = "Tap to Quick Pick",
+                text = "Quick Picks",
                 style = SectionTitleTextStyle,
             )
             Image(

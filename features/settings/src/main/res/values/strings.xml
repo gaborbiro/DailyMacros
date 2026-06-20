@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="settings_diary_day_start_row">Day starts at</string>
+    <string name="settings_diary_day_start_row">Day ends at</string>
     <string name="settings_diary_day_start_dialog_title">When does your food day roll over?</string>
     <string name="settings_diary_day_start_option_midnight">Midnight</string>
     <string name="settings_diary_day_start_option_1am">1:00 a.m.</string>

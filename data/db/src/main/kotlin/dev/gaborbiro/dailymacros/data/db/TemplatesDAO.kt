@@ -96,7 +96,7 @@ Ranked AS (
 SELECT *
 FROM Ranked
 WHERE overrideType = 'INCLUDE'
-   OR (overrideType IS NULL AND regularRank <= :count)
+   OR (overrideType IS NULL AND regularRank <= :count AND usageCount >= 2)
 ORDER BY
     CASE WHEN overrideType = 'INCLUDE' THEN 0 ELSE 1 END,
     usageCount DESC;
@@ -139,7 +139,7 @@ Ranked AS (
 SELECT *
 FROM Ranked
 WHERE overrideType = 'INCLUDE'
-   OR (overrideType IS NULL AND regularRank <= :count)
+   OR (overrideType IS NULL AND regularRank <= :count AND usageCount >= 2)
 ORDER BY
     CASE WHEN overrideType = 'INCLUDE' THEN 0 ELSE 1 END,
     usageCount DESC;

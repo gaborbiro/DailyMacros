@@ -102,7 +102,7 @@ internal fun OverviewListTopActions(
     if (coachMarkVisible) {
         CoachMarkOverlay(
             targetRect = targetBounds,
-            text = "Set your goals here",
+            text = "Set your daily targets here",
             onDismiss = {
                 coachMarkVisible = false
                 onCoachMarkDismissed()
