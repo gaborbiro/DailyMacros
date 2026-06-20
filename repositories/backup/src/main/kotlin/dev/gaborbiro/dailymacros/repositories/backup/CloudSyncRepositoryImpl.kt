@@ -9,7 +9,6 @@ import dev.gaborbiro.dailymacros.repositories.backup.domain.CloudSyncRepository
 import dev.gaborbiro.dailymacros.repositories.backup.domain.model.DriveBackupInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.Headers
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
@@ -75,14 +74,8 @@ class CloudSyncRepositoryImpl @Inject constructor(
         val metadata = """{"name":"$BACKUP_FILE_NAME","parents":["appDataFolder"]}"""
         val body = MultipartBody.Builder()
             .setType("multipart/related".toMediaType())
-            .addPart(
-                Headers.headersOf("Content-Type", "application/json; charset=UTF-8"),
-                metadata.toRequestBody(),
-            )
-            .addPart(
-                Headers.headersOf("Content-Type", "application/octet-stream"),
-                tarFile.asRequestBody(),
-            )
+            .addPart(metadata.toRequestBody("application/json; charset=UTF-8".toMediaType()))
+            .addPart(tarFile.asRequestBody("application/octet-stream".toMediaType()))
             .build()
         val request = Request.Builder()
             .url("$UPLOAD_URL?uploadType=multipart&fields=id,modifiedTime,size")
@@ -99,14 +92,8 @@ class CloudSyncRepositoryImpl @Inject constructor(
     private fun updateFile(accessToken: String, fileId: String, tarFile: File): DriveBackupInfo {
         val body = MultipartBody.Builder()
             .setType("multipart/related".toMediaType())
-            .addPart(
-                Headers.headersOf("Content-Type", "application/json; charset=UTF-8"),
-                "{}".toRequestBody(),
-            )
-            .addPart(
-                Headers.headersOf("Content-Type", "application/octet-stream"),
-                tarFile.asRequestBody(),
-            )
+            .addPart("{}".toRequestBody("application/json; charset=UTF-8".toMediaType()))
+            .addPart(tarFile.asRequestBody("application/octet-stream".toMediaType()))
             .build()
         val request = Request.Builder()
             .url("$UPLOAD_URL/$fileId?uploadType=multipart&fields=id,modifiedTime,size")
