@@ -125,7 +125,6 @@ class BackupRepositoryImpl @Inject constructor(
             if (!validateSqliteDatabaseFile(stagedDb)) {
                 return DatabaseBackupImportResult.InvalidFile
             }
-            patchDbUserVersion(stagedDb, AppDatabase.DATABASE_VERSION)
             // Accept both new ("files/thumbnails") and legacy ("files/public") TAR layouts.
             val stagedThumbnails = File(extractRoot, THUMBNAILS_TAR_PREFIX)
                 .takeIf { it.exists() }
@@ -307,16 +306,6 @@ class BackupRepositoryImpl @Inject constructor(
         } catch (_: Exception) {
             false
         }
-
-    private fun patchDbUserVersion(file: File, version: Int) {
-        SQLiteDatabase.openDatabase(
-            file.absolutePath,
-            null,
-            SQLiteDatabase.OPEN_READWRITE,
-        ).use { db ->
-            db.execSQL("PRAGMA user_version = $version")
-        }
-    }
 
     private fun validateSqliteDatabaseFile(file: File): Boolean {
         if (!file.isFile || !file.isSqliteMagicFile()) return false

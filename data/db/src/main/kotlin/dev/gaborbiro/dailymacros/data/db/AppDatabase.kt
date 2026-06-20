@@ -36,7 +36,6 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
 
         const val DATABASE_FILE_NAME: String = "daily_macros_db"
-        const val DATABASE_VERSION: Int = 1
 
         internal fun build(context: Context): AppDatabase {
             return Room.databaseBuilder(
