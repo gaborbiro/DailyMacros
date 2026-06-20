@@ -120,7 +120,6 @@ class OverviewViewModel @Inject constructor(
                                 isLoadingMore = false,
                                 hasMoreData = hasMore,
                                 showSettingsButton = notSearching,
-                                showTrendsButton = notSearching,
                             )
                         } else {
                             it.copy(
@@ -129,7 +128,6 @@ class OverviewViewModel @Inject constructor(
                                 hasMoreData = hasMore,
                                 showAddWidgetButton = notSearching,
                                 showSettingsButton = notSearching,
-                                showTrendsButton = notSearching,
                             )
                         }
                     }
@@ -140,7 +138,6 @@ class OverviewViewModel @Inject constructor(
                             it.copy(
                                 showCoachMark = true,
                                 showSettingsButton = stillNotSearching,
-                                showTrendsButton = stillNotSearching,
                             )
                         }
                     }

@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.settings.views
 
 import android.content.res.Configuration
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,8 +35,13 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -56,6 +62,7 @@ import java.util.Locale
 internal fun SettingsView(
     viewState: SettingsUiState,
     snackbarHostState: SnackbarHostState,
+    highlightTargets: Boolean = false,
     onBackNavigateRequested: () -> Unit,
     onTargetsSettingTapped: () -> Unit,
     onPromptEditorTapped: () -> Unit,
@@ -141,20 +148,19 @@ internal fun SettingsView(
                 },
             )
         },
-        bottomBar = {
-            SelectionContainer {
-                Text(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp)
-                        .padding(WindowInsets.navigationBars.asPaddingValues()),
-                    text = viewState.bottomLabel,
-                    textAlign = TextAlign.Center,
-                )
-            }
-        },
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
+        val targetsHighlight = remember { Animatable(0f) }
+        LaunchedEffect(highlightTargets) {
+            if (highlightTargets) {
+                delay(400)
+                repeat(2) {
+                    targetsHighlight.animateTo(1f, tween(250))
+                    targetsHighlight.animateTo(0f, tween(350))
+                }
+            }
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -162,56 +168,49 @@ internal fun SettingsView(
                 .imePadding()
                 .verticalScrollWithBar(),
         ) {
-            SettingRow(title = "Daily targets", onTapped = onTargetsSettingTapped)
+            SettingRow(title = "Daily targets", highlight = targetsHighlight.value, onTapped = onTargetsSettingTapped)
             SettingRow(title = "Customise AI", onTapped = onPromptEditorTapped)
             SettingRow(
                 title = stringResource(R.string.settings_diary_day_start_row),
                 subtitle = diaryDayStartSummary(viewState.diaryDayStartHour),
                 onTapped = onDiaryDayStartTapped,
             )
-            SettingRow(title = "Export summary JSON", onTapped = onExportSettingTapped)
-            val backupIdle =
-                !viewState.exportDataInProgress && !viewState.importDataInProgress
+            SettingRow(title = "Export food diary", onTapped = onExportSettingTapped)
+
+            SettingSectionHeader(title = "Local sync")
+            val localSyncIdle = !viewState.exportDataInProgress && !viewState.importDataInProgress
             SettingRow(
-                title = "Export data",
+                title = "Back up now",
                 onTapped = onExportDbTapped,
-                enabled = backupIdle,
+                enabled = localSyncIdle,
                 trailing = {
                     if (viewState.exportDataInProgress) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp,
-                        )
+                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                     }
                 },
             )
             SettingRow(
-                title = "Import data (irreversible)",
+                title = "Restore from backup",
                 onTapped = onImportDbTapped,
-                enabled = backupIdle,
+                enabled = localSyncIdle,
                 trailing = {
                     if (viewState.importDataInProgress) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp,
-                        )
+                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                     }
                 },
             )
 
             val isSignedIn = viewState.cloudSyncProvider != CloudSyncProvider.NONE
             val cloudSyncIdle = !viewState.cloudSyncInProgress
+            SettingSectionHeader(title = "Cloud sync")
             SettingRow(
-                title = "Cloud sync",
+                title = "Account",
                 subtitle = if (isSignedIn) viewState.cloudSyncEmail else "Sign in with Google",
                 enabled = cloudSyncIdle,
                 onTapped = onCloudSyncTapped,
                 trailing = {
                     if (viewState.cloudSyncInProgress) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp,
-                        )
+                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                     }
                 },
             )
@@ -226,9 +225,22 @@ internal fun SettingsView(
                     onTapped = onSyncTapped,
                 )
                 SettingRow(
-                    title = "Restore from Drive",
+                    title = "Restore from backup",
                     enabled = cloudSyncIdle,
                     onTapped = onRestoreFromDriveTapped,
+                )
+            }
+
+            SelectionContainer {
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 24.dp)
+                        .padding(WindowInsets.navigationBars.asPaddingValues()),
+                    text = viewState.bottomLabel,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -246,16 +258,30 @@ private fun diaryDayStartSummary(hour: Int): String {
 }
 
 @Composable
+private fun SettingSectionHeader(title: String) {
+    Text(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 4.dp),
+        text = title,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.primary,
+    )
+}
+
+@Composable
 private fun SettingRow(
     title: String,
     subtitle: String? = null,
     enabled: Boolean = true,
+    highlight: Float = 0f,
     trailing: @Composable (() -> Unit)? = null,
     onTapped: () -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = highlight))
             .clickable(
                 enabled = enabled,
                 onClick = onTapped,

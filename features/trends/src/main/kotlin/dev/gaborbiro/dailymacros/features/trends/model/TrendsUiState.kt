@@ -10,7 +10,10 @@ data class TrendsUiState(
 
 enum class Timescale { DAYS, WEEKS, MONTHS }
 
-data class TrendsChartUiModel(val datasets: List<ChartDataset>)
+data class TrendsChartUiModel(
+    val datasets: List<ChartDataset>,
+    val pinnedMaxY: Double? = null,
+)
 data class ChartDataset(
     val name: String,
     val color: Color,

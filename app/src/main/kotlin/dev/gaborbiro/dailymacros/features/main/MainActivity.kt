@@ -9,8 +9,15 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -95,26 +102,35 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     composable(
-                        route = SETTINGS_ROUTE,
-                        // Slide the Settings screen in from the right (and out to the right on back).
+                        route = "$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_TARGETS_ARG={$SETTINGS_HIGHLIGHT_TARGETS_ARG}",
+                        arguments = listOf(
+                            navArgument(SETTINGS_HIGHLIGHT_TARGETS_ARG) {
+                                type = NavType.BoolType
+                                defaultValue = false
+                            }
+                        ),
                         enterTransition = {
-                            slideInHorizontally(
-                                initialOffsetX = { fullWidth -> fullWidth },
-                                animationSpec = tween(600, easing = FastOutSlowInEasing)
-                            )
+                            scaleIn(
+                                initialScale = 0.85f,
+                                transformOrigin = TransformOrigin(1f, 0f),
+                                animationSpec = tween(350, easing = FastOutSlowInEasing),
+                            ) + fadeIn(animationSpec = tween(350))
                         },
                         exitTransition = {
-                            slideOutHorizontally(
-                                targetOffsetX = { fullWidth -> fullWidth },
-                                animationSpec = tween(600, easing = FastOutSlowInEasing)
-                            )
+                            scaleOut(
+                                targetScale = 0.85f,
+                                transformOrigin = TransformOrigin(1f, 0f),
+                                animationSpec = tween(300, easing = FastOutSlowInEasing),
+                            ) + fadeOut(animationSpec = tween(200))
                         },
-                    ) {
+                    ) { backStackEntry ->
+                        val highlightTargets = backStackEntry.arguments?.getBoolean(SETTINGS_HIGHLIGHT_TARGETS_ARG) ?: false
                         SettingsScreen(
                             settingsViewModel = settingsViewModel,
                             targetsSettingsViewModel = targetsSettingsViewModel,
                             promptEditorViewModel = promptEditorViewModel,
                             navController = navController,
+                            highlightTargets = highlightTargets,
                         )
                     }
                     composable(

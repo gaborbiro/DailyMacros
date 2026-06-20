@@ -6,12 +6,10 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,12 +30,10 @@ import dev.gaborbiro.dailymacros.design.PaddingHalf
 @Composable
 internal fun OverviewListTopActions(
     showSettingsButton: Boolean,
-    showTrendsButton: Boolean,
     showCoachMark: Boolean,
     listAtTop: Boolean,
     topContentPadding: Dp,
     onSettingsButtonTapped: () -> Unit,
-    onTrendsButtonTapped: () -> Unit,
     onCoachMarkDismissed: () -> Unit,
 ) {
     var targetBounds by remember { mutableStateOf<Rect?>(null) }
@@ -78,21 +74,6 @@ internal fun OverviewListTopActions(
                     Icon(
                         imageVector = Icons.Default.Settings,
                         contentDescription = "Settings Button",
-                    )
-                }
-            }
-            if (showTrendsButton) {
-                Spacer(modifier = Modifier.padding(PaddingHalf))
-                IconButton(
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    ),
-                    onClick = onTrendsButtonTapped,
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.BarChart,
-                        contentDescription = "Trends Button",
                     )
                 }
             }

@@ -286,7 +286,7 @@ private fun NoteInputDialogContentPreviewView() {
             templateDbId = 1L,
             variabilityAnchorTemplateDbId = 1L,
             title = TextFieldValue("Apple"),
-            titleHint = "Give your meal a title",
+            titleHint = "Title",
             description = TextFieldValue("I ate an apple"),
             images = listOf("1", "2"),
             allowEdit = true,
@@ -328,7 +328,7 @@ private fun NoteInputDialogContentPreviewSuggestion() {
     RecordDetailsDialogPreview(
         dialogHandle = DialogHandle.RecordDetailsDialog.Edit(
             title = TextFieldValue(),
-            titleHint = "Give your meal a title",
+            titleHint = "Title",
             description = TextFieldValue(),
             images = listOf("1", "2"),
             recognisedFood = RecognisedFood(
@@ -371,7 +371,7 @@ private fun NoteInputDialogContentPreviewError() {
     RecordDetailsDialogPreview(
         dialogHandle = DialogHandle.RecordDetailsDialog.Edit(
             title = TextFieldValue(),
-            titleHint = "Give your meal a title",
+            titleHint = "Title",
             titleValidationError = "error",
             description = TextFieldValue(),
             images = listOf("1", "2"),

@@ -1,16 +1,22 @@
 package dev.gaborbiro.dailymacros.features.overview.views
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -34,9 +40,7 @@ internal fun SearchFAB(
     onSearchCleared: () -> Unit,
 ) {
     var fabExpanded by remember { mutableStateOf(false) }
-    var text by remember(fabExpanded) {
-        mutableStateOf("")
-    }
+    var text by remember(fabExpanded) { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
 
     if (fabExpanded) {
@@ -47,55 +51,76 @@ internal fun SearchFAB(
         }
     }
 
-    FloatingActionButton(
-        onClick = {
-            fabExpanded = fabExpanded.not()
-            if (fabExpanded.not()) {
-                onSearch(null)
-                onSearchCleared()
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-        shape = RoundedCornerShape(16.dp),
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            AnimatedVisibility(visible = fabExpanded) {
-                TextField(
-                    modifier = Modifier
-                        .focusRequester(focusRequester)
-                        .onGloballyPositioned {
-                            focusRequester.requestFocus() // IMPORTANT
-                        },
-                    colors = TextFieldDefaults.colors().copy(
-                        unfocusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                    ),
-                    textStyle = MaterialTheme.typography.bodyMedium,
-                    placeholder = {
-                        Text(
-                            text = "Search",
-                            color = MaterialTheme.colorScheme.onTertiaryContainer,
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                    },
-                    value = text,
-                    singleLine = true,
-                    onValueChange = {
-                        text = it
-                        onSearch(it)
-                    },
+    AnimatedContent(
+        targetState = fabExpanded,
+        transitionSpec = { fadeIn() togetherWith fadeOut() },
+        label = "SearchFAB",
+    ) { expanded ->
+        if (!expanded) {
+            FloatingActionButton(
+                onClick = { fabExpanded = true },
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                shape = RoundedCornerShape(16.dp),
+            ) {
+                Icon(
+                    modifier = Modifier.padding(PaddingDefault),
+                    imageVector = Icons.Filled.Search,
+                    contentDescription = "Search",
+                    tint = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
             }
-            Icon(
-                modifier = Modifier
-                    .padding(PaddingDefault),
-                imageVector = if (!fabExpanded) Icons.Filled.Search else Icons.Filled.Close,
-                contentDescription = "search",
-                tint = MaterialTheme.colorScheme.onTertiaryContainer,
-            )
+        } else {
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.tertiaryContainer,
+                tonalElevation = 6.dp,
+                shadowElevation = 6.dp,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.width(280.dp),
+                ) {
+                    TextField(
+                        modifier = Modifier
+                            .weight(1f)
+                            .focusRequester(focusRequester)
+                            .onGloballyPositioned { focusRequester.requestFocus() },
+                        colors = TextFieldDefaults.colors().copy(
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                        ),
+                        textStyle = MaterialTheme.typography.bodyMedium,
+                        placeholder = {
+                            Text(
+                                text = "Search",
+                                color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.6f),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        },
+                        value = text,
+                        singleLine = true,
+                        onValueChange = {
+                            text = it
+                            onSearch(it)
+                        },
+                    )
+                    IconButton(
+                        onClick = {
+                            onSearch(null)
+                            onSearchCleared()
+                            fabExpanded = false
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = "Clear search",
+                            tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                        )
+                    }
+                }
+            }
         }
     }
 }

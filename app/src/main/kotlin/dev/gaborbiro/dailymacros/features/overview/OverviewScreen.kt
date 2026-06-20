@@ -10,6 +10,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import dev.gaborbiro.dailymacros.features.main.SETTINGS_HIGHLIGHT_TARGETS_ARG
 import dev.gaborbiro.dailymacros.features.main.SETTINGS_ROUTE
 import dev.gaborbiro.dailymacros.features.main.TRENDS_ROUTE
 import dev.gaborbiro.dailymacros.features.modal.ModalNavigator
@@ -52,7 +53,8 @@ internal fun OverviewScreen(
         onUndoDeleteSnackbarShown = viewModel::onUndoDeleteSnackbarShown,
         onSearchTermChanged = viewModel::onSearchTermChanged,
         onSettingsButtonTapped = viewModel::onSettingsButtonTapped,
-        onTrendsButtonTapped = viewModel::onTrendsButtonTapped,
+        onSetTargetsTapped = { navController.navigate("$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_TARGETS_ARG=true") },
+        onSummaryTapped = viewModel::onTrendsButtonTapped,
         onCoachMarkDismissed = viewModel::onCoachMarkDismissed,
         onLoadMore = viewModel::onLoadMore,
     )

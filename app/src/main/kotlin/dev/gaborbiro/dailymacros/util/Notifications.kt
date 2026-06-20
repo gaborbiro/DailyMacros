@@ -17,7 +17,7 @@ fun Context.createNotificationChannels() {
     val generalChannel = NotificationChannel(
         CHANNEL_ID_GENERAL,
         "General notifications",
-        NotificationManager.IMPORTANCE_DEFAULT
+        NotificationManager.IMPORTANCE_LOW
     ).also {
         it.setShowBadge(false)
     }
@@ -31,7 +31,7 @@ fun Context.createNotificationChannels() {
     val foregroundChannel = NotificationChannel(
         CHANNEL_ID_FOREGROUND,
         "Background process",
-        NotificationManager.IMPORTANCE_DEFAULT
+        NotificationManager.IMPORTANCE_LOW
     )
         .apply {
             setShowBadge(false)

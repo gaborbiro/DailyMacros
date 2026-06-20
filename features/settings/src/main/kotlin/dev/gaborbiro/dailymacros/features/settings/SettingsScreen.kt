@@ -34,6 +34,7 @@ fun SettingsScreen(
     targetsSettingsViewModel: TargetsSettingsViewModel,
     promptEditorViewModel: PromptEditorViewModel,
     navController: NavHostController,
+    highlightTargets: Boolean = false,
 ) {
     val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -87,6 +88,7 @@ fun SettingsScreen(
     SettingsView(
         viewState = settingsUiState,
         snackbarHostState = snackbarHostState,
+        highlightTargets = highlightTargets,
         onBackNavigateRequested = settingsViewModel::onBackNavigateRequested,
         onTargetsSettingTapped = settingsViewModel::onTargetsSettingsTapped,
         onPromptEditorTapped = settingsViewModel::onPromptEditorTapped,

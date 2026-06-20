@@ -21,11 +21,14 @@ import com.patrykandpatrick.vico.compose.cartesian.VicoScrollState
 import com.patrykandpatrick.vico.compose.cartesian.VicoZoomState
 import com.patrykandpatrick.vico.compose.cartesian.Zoom
 import com.patrykandpatrick.vico.compose.cartesian.axis.Axis
+import com.patrykandpatrick.vico.compose.cartesian.axis.BaseAxis
 import com.patrykandpatrick.vico.compose.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.compose.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.compose.cartesian.data.CartesianChartModelProducer
+import com.patrykandpatrick.vico.compose.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.compose.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.compose.cartesian.data.lineSeries
+import com.patrykandpatrick.vico.compose.common.data.ExtraStore
 import com.patrykandpatrick.vico.compose.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.marker.DefaultCartesianMarker
@@ -47,9 +50,19 @@ internal fun TrendsChart(
     modifier: Modifier = Modifier,
     chartData: TrendsChartUiModel,
     scrollState: VicoScrollState,
-    startAxis: VerticalAxis<Axis.Position.Vertical.Start>,
     showEveryXLabel: Int,
 ) {
+    val verticalItemPlacer = remember(chartData.pinnedMaxY) {
+        if (chartData.pinnedMaxY != null) VerticalAxis.ItemPlacer.count(count = { 4 })
+        else VerticalAxis.ItemPlacer.step()
+    }
+    val startAxis = VerticalAxis.rememberStart(
+        size = BaseAxis.Size.Fixed(50.dp),
+        valueFormatter = CartesianValueFormatter { _, value, _ ->
+            value.roundToInt().toString()
+        },
+        itemPlacer = verticalItemPlacer,
+    )
     val modelProducer = remember { CartesianChartModelProducer() }
 
     val segmentsByDataset = remember(chartData.datasets) {
@@ -176,6 +189,18 @@ internal fun TrendsChart(
         LineCartesianLayer.LineProvider.series(lines)
     }
 
+    val rangeProvider = remember(chartData.pinnedMaxY) {
+        val pinnedMax = chartData.pinnedMaxY
+        if (pinnedMax != null) {
+            object : CartesianLayerRangeProvider {
+                override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore) = minY
+                override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore) = pinnedMax
+            }
+        } else {
+            CartesianLayerRangeProvider.auto()
+        }
+    }
+
     val markerValueFormatter = remember {
         DefaultCartesianMarker.ValueFormatter { _, targets ->
             val values = targets
@@ -263,7 +288,7 @@ internal fun TrendsChart(
                 .height(180.dp)
                 .padding(top = 4.dp),
             chart = rememberCartesianChart(
-                rememberLineCartesianLayer(lineProvider = lineProvider),
+                rememberLineCartesianLayer(lineProvider = lineProvider, rangeProvider = rangeProvider),
                 startAxis = startAxis,
                 bottomAxis = HorizontalAxis.rememberBottom(
                     valueFormatter = bottomAxisValueFormatter,

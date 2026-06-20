@@ -60,7 +60,7 @@ fun RowDropdownMenu(
                 onAnalyseMacrosTapped?.let {
                     DropdownMenuItem(
                         leadingIcon = { Icon(icons.macros, null) },
-                        text = { Text("Analyse Macros") },
+                        text = { Text("Re-run nutrient analysis") },
                         onClick = { onDismiss(); onAnalyseMacrosTapped() }
                     )
                 }

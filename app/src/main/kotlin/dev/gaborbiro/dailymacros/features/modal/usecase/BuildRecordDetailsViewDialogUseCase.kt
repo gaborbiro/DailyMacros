@@ -31,7 +31,7 @@ class BuildRecordDetailsViewDialogUseCase @Inject constructor(
             nutrientBreakdown = uiMapper.mapNutrientBreakdowns(record),
             compactNutrients = uiMapper.mapCompactNutrients(record),
             allowEdit = allowEdit,
-            titleHint = "Give your meal a title",
+            titleHint = "Title",
             titleValidationError = null,
             openedFromTemplateDetailsOnly = templateDetailsMode,
             variantPickerOptions = null,

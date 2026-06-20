@@ -76,7 +76,7 @@ fun ColumnScope.RecordDetailsCreateView(
             .fillMaxWidth()
             .padding(top = 12.dp)
             .padding(bottom = 12.dp),
-        showAddPhotoButtons = true,
+        showAddPhotoButtons = images.size < 5,
         showImageDeleteButton = true,
         showImageReorderButtons = true,
         showInfoButton = true,
@@ -129,7 +129,7 @@ fun ColumnScope.RecordDetailsCreateView(
         },
         placeholder = {
             Text(
-                text = titleHint,
+                text = if (showProgressIndicator) "Running image recognition..." else titleHint,
                 style = MaterialTheme.typography.labelLarge,
                 fontStyle = FontStyle.Italic,
                 color = Color.Gray,
@@ -219,7 +219,7 @@ private fun RecordDetailsCreateViewPreviewRunAi() {
             images = listOf("1", "2"),
             title = TextFieldValue(),
             showRunAIButton = true,
-            titleHint = "Give your meal a title",
+            titleHint = "Title",
             showProgressIndicator = false,
             description = TextFieldValue(),
             titleErrorMessage = null,
@@ -247,7 +247,7 @@ private fun RecordDetailsCreateViewPreviewError() {
             images = listOf("1", "2"),
             title = TextFieldValue(),
             showRunAIButton = true,
-            titleHint = "Give your meal a title",
+            titleHint = "Title",
             showProgressIndicator = false,
             description = TextFieldValue(),
             titleErrorMessage = "error",

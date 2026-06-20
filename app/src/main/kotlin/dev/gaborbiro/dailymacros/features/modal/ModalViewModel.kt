@@ -119,7 +119,7 @@ class ModalViewModel @Inject constructor(
         setRoot(
             DialogHandle.RecordDetailsDialog.Edit(
                 title = TextFieldValue(),
-                titleHint = "Give your meal a title (or let AI figure it out from photo)",
+                titleHint = "Title",
                 description = TextFieldValue(),
                 images = emptyList(),
                 recognisedFood = null,
@@ -193,7 +193,7 @@ class ModalViewModel @Inject constructor(
                     setRoot(
                         DialogHandle.RecordDetailsDialog.Edit(
                             title = TextFieldValue(),
-                            titleHint = "Give your meal a title (or wait a bit for the AI to figure it out)",
+                            titleHint = "Title",
                             description = TextFieldValue(),
                             images = persistedFilenames,
                             recognisedFood = null,
@@ -219,7 +219,7 @@ class ModalViewModel @Inject constructor(
             setRoot(
                 DialogHandle.RecordDetailsDialog.Edit(
                     title = TextFieldValue(),
-                    titleHint = "Give yur meal a title (or wait a bit for the AI to figure it out)",
+                    titleHint = "Title",
                     description = TextFieldValue(),
                     images = persistedFilenames,
                     recognisedFood = null,
@@ -307,6 +307,7 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onTitleChanged(title: TextFieldValue) {
+        val title = title.truncatedTo(256)
         val root = _uiState.value.rootDialog
         if (root is DialogHandle.RecordDetailsDialog.Edit && title.text.isNotBlank() && title.text != root.title.text) {
             if (recogniseFoodJob?.isActive == true) {
@@ -332,6 +333,7 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onDescriptionChanged(description: TextFieldValue) {
+        val description = description.truncatedTo(256)
         updateRoot<DialogHandle.RecordDetailsDialog> {
             when (it) {
                 is DialogHandle.RecordDetailsDialog.View ->
@@ -947,4 +949,13 @@ class ModalViewModel @Inject constructor(
             }
         }
     }
+}
+
+private fun TextFieldValue.truncatedTo(maxLength: Int): TextFieldValue {
+    if (text.length <= maxLength) return this
+    val truncated = text.take(maxLength)
+    return copy(
+        text = truncated,
+        selection = TextRange(selection.start.coerceAtMost(maxLength), selection.end.coerceAtMost(maxLength)),
+    )
 }

@@ -33,6 +33,7 @@ import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.overview.model.DailySummaryEntry
 import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelDailySummary
+import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelSetTargetsCta
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelWeeklySummary
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
@@ -52,6 +53,8 @@ internal fun OverviewList(
     onDeleteMenuItemTapped: (recordId: Long) -> Unit,
     onRecordImageTapped: (recordId: Long) -> Unit,
     onRecordBodyTapped: (recordId: Long) -> Unit,
+    onSetTargetsTapped: () -> Unit,
+    onSummaryTapped: () -> Unit,
     onLoadMore: () -> Unit = {},
 ) {
     // Detect when the user scrolls near the end of the list
@@ -133,12 +136,20 @@ internal fun OverviewList(
                         ListItemDailySummary(
                             model = item,
                             showTopPadding = index > 0,
+                            onTapped = onSummaryTapped,
                         )
                     }
 
                     is ListUiModelWeeklySummary -> {
                         ListItemWeeklySummary(
-                            model = item
+                            model = item,
+                            onTapped = onSummaryTapped,
+                        )
+                    }
+
+                    is ListUiModelSetTargetsCta -> {
+                        ListItemSetTargetsCta(
+                            onTapped = onSetTargetsTapped,
                         )
                     }
                 }
@@ -232,7 +243,6 @@ private fun OverviewListPreview() {
             expandedId = 3L,
             viewState = OverviewUiState(
                 showSettingsButton = true,
-                showTrendsButton = true,
                 items = listOf(
                     ListUiModelDailySummary(
                         listItemId = 1L,
@@ -335,6 +345,8 @@ private fun OverviewListPreview() {
             onRecordImageTapped = {},
             onRecordBodyTapped = {},
             onAnalyseMacrosMenuItemTapped = {},
+            onSetTargetsTapped = {},
+            onSummaryTapped = {},
             onLoadMore = {},
         )
     }

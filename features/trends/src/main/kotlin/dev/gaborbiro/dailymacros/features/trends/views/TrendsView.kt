@@ -18,11 +18,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -38,9 +40,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.patrykandpatrick.vico.compose.cartesian.Scroll
-import com.patrykandpatrick.vico.compose.cartesian.axis.BaseAxis
-import com.patrykandpatrick.vico.compose.cartesian.axis.VerticalAxis
-import com.patrykandpatrick.vico.compose.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
@@ -103,6 +102,30 @@ internal fun TrendsView(
                 .verticalScroll(rememberScrollState())
                 .padding(paddingValues)
         ) {
+            val hasInsufficientData = viewState.charts.isEmpty() ||
+                viewState.charts.all { chart -> chart.datasets.all { it.set.isEmpty() } }
+
+            if (hasInsufficientData) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = "Trends will show up once you've logged meals for a few days",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -141,13 +164,6 @@ internal fun TrendsView(
                 )
             }
 
-            val startAxis = VerticalAxis.rememberStart(
-                size = BaseAxis.Size.Fixed(50.dp),
-                valueFormatter = CartesianValueFormatter { _, value, _ ->
-                    value.roundToInt().toString()
-                },
-            )
-
             val showEveryXLabel = when (timescale) {
                 Timescale.WEEKS -> 2
                 else -> 1
@@ -172,7 +188,6 @@ internal fun TrendsView(
                                 .padding(start = PaddingDefault),
                             chartData = chartData,
                             scrollState = scrollState,
-                            startAxis = startAxis,
                             showEveryXLabel = showEveryXLabel,
                         )
                     }

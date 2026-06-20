@@ -55,7 +55,8 @@ internal fun OverviewView(
     onUndoDeleteSnackbarShown: () -> Unit,
     onSearchTermChanged: (String?) -> Unit,
     onSettingsButtonTapped: () -> Unit,
-    onTrendsButtonTapped: () -> Unit,
+    onSetTargetsTapped: () -> Unit,
+    onSummaryTapped: () -> Unit,
     onCoachMarkDismissed: () -> Unit,
     onLoadMore: () -> Unit = {},
 ) {
@@ -121,6 +122,8 @@ internal fun OverviewView(
                     onDeleteMenuItemTapped = onDeleteMenuItemTapped,
                     onRecordImageTapped = onRecordImageTapped,
                     onRecordBodyTapped = onRecordBodyTapped,
+                    onSetTargetsTapped = onSetTargetsTapped,
+                    onSummaryTapped = onSummaryTapped,
                     onLoadMore = onLoadMore,
                 )
             } else if (viewState.showAddWidgetButton) {
@@ -136,12 +139,10 @@ internal fun OverviewView(
 
             OverviewListTopActions(
                 showSettingsButton = viewState.showSettingsButton,
-                showTrendsButton = viewState.showTrendsButton,
                 showCoachMark = viewState.showCoachMark,
                 listAtTop = listAtTop,
                 topContentPadding = paddingValues.calculateTopPadding(),
                 onSettingsButtonTapped = onSettingsButtonTapped,
-                onTrendsButtonTapped = onTrendsButtonTapped,
                 onCoachMarkDismissed = onCoachMarkDismissed,
             )
         }
@@ -287,7 +288,8 @@ private fun OverviewListPreview() {
             onSearchTermChanged = {},
             onAnalyseMacrosMenuItemTapped = {},
             onSettingsButtonTapped = {},
-            onTrendsButtonTapped = {},
+            onSetTargetsTapped = {},
+            onSummaryTapped = {},
             onCoachMarkDismissed = {},
             onLoadMore = {},
         )
@@ -314,7 +316,8 @@ private fun OverviewListPreviewEmpty() {
             onSearchTermChanged = {},
             onAnalyseMacrosMenuItemTapped = {},
             onSettingsButtonTapped = {},
-            onTrendsButtonTapped = {},
+            onSetTargetsTapped = {},
+            onSummaryTapped = {},
             onCoachMarkDismissed = {},
             onLoadMore = {},
         )

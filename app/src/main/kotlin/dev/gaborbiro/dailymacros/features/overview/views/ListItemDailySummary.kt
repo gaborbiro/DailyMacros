@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.features.overview.views
 import android.content.res.Configuration
 import android.util.Range
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,10 +29,12 @@ internal fun ListItemDailySummary(
     modifier: Modifier = Modifier,
     model: ListUiModelDailySummary,
     showTopPadding: Boolean,
+    onTapped: () -> Unit,
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .clickable(onClick = onTapped)
     ) {
         Text(
             modifier = Modifier
@@ -190,6 +193,7 @@ private fun ListItemDailySummaryPreview() {
                 ),
             ),
             showTopPadding = false,
+            onTapped = {},
         )
     }
 }

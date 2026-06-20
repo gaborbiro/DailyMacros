@@ -9,6 +9,7 @@ import dev.gaborbiro.dailymacros.features.trends.model.ChartDataset
 import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsChartUiModel
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
@@ -116,44 +117,51 @@ class TrendsUiMapper @Inject constructor(
 
         val today = logicalToday()
 
+        val contributingDaysProvider: (LocalDate) -> List<LocalDate> = { weekStart ->
+            val calendarDays: List<LocalDate> = (0L..6L).map { weekStart.plusDays(it) }
+            contributingDays(
+                records = recordsByPeriod[weekStart].orEmpty(),
+                calendarDays = calendarDays,
+                dayQualifier = dayQualifier,
+            )
+        }
+
+        val currentPeriodMode = CurrentPeriodCalculationMode.Projected<LocalDate>(
+            elapsedDaysProvider = { weekStart ->
+                if (today in weekStart..weekStart.plusDays(6)) {
+                    val elapsedCalendarDays: List<LocalDate> =
+                        generateSequence(weekStart) { it.plusDays(1) }
+                            .takeWhile { it <= today }
+                            .toList()
+                    contributingDays(
+                        records = recordsByPeriod[weekStart].orEmpty(),
+                        calendarDays = elapsedCalendarDays,
+                        dayQualifier = dayQualifier,
+                    )
+                } else {
+                    emptyList()
+                }
+            },
+            minElapsedDays = 2,
+            isCurrentPeriod = { start -> today in start..start.plusDays(6) },
+        )
+
         return mapCharts(
             timeRange = weeks,
             records = recordsByPeriod,
-            contributingDaysProvider = { weekStart: LocalDate ->
-                val calendarDays: List<LocalDate> =
-                    (0L..6L)
-                        .map { weekStart.plusDays(it) }
-
-                contributingDays(
-                    records = recordsByPeriod[weekStart].orEmpty(),
-                    calendarDays = calendarDays,
-                    dayQualifier = dayQualifier,
-                )
-            },
-            currentPeriodCalculationMode = CurrentPeriodCalculationMode.Projected(
-                elapsedDaysProvider = { weekStart: LocalDate ->
-                    if (today in weekStart..weekStart.plusDays(6)) {
-                        val elapsedCalendarDays: List<LocalDate> =
-                            generateSequence(weekStart) { it.plusDays(1) }
-                                .takeWhile { it <= today }
-                                .toList()
-
-                        contributingDays(
-                            records = recordsByPeriod[weekStart].orEmpty(),
-                            calendarDays = elapsedCalendarDays,
-                            dayQualifier = dayQualifier,
-                        )
-                    } else {
-                        emptyList()
-                    }
-                },
-                minElapsedDays = 2,
-                isCurrentPeriod = { start ->
-                    today in start..start.plusDays(6)
-                },
-            ),
+            contributingDaysProvider = contributingDaysProvider,
+            currentPeriodCalculationMode = currentPeriodMode,
             labelProvider = ::weekLabel,
             targets = targets,
+        ) + listOf(
+            adherenceChart(
+                timeRange = weeks,
+                records = recordsByPeriod,
+                contributingDaysProvider = contributingDaysProvider,
+                currentPeriodCalculationMode = currentPeriodMode,
+                labelProvider = ::weekLabel,
+                targets = targets,
+            )
         )
     }
 
@@ -176,43 +184,49 @@ class TrendsUiMapper @Inject constructor(
         val todayDate = logicalToday()
         val thisMonth = YearMonth.from(todayDate)
 
+        val contributingDaysProvider: (YearMonth) -> List<LocalDate> = { ym ->
+            val calendarDays: List<LocalDate> = (1..ym.lengthOfMonth()).map { day -> ym.atDay(day) }
+            contributingDays(
+                records = recordsByPeriod[ym].orEmpty(),
+                calendarDays = calendarDays,
+                dayQualifier = aggregationMode,
+            )
+        }
+
+        val currentPeriodMode = CurrentPeriodCalculationMode.Projected<YearMonth>(
+            elapsedDaysProvider = { ym ->
+                if (ym == thisMonth) {
+                    val elapsedCalendarDays: List<LocalDate> =
+                        (1..todayDate.dayOfMonth).map { day -> ym.atDay(day) }
+                    contributingDays(
+                        records = recordsByPeriod[ym].orEmpty(),
+                        calendarDays = elapsedCalendarDays,
+                        dayQualifier = aggregationMode,
+                    )
+                } else {
+                    emptyList()
+                }
+            },
+            minElapsedDays = 7,
+            isCurrentPeriod = { ym -> ym == thisMonth },
+        )
+
         return mapCharts(
             timeRange = months,
             records = recordsByPeriod,
-            contributingDaysProvider = { ym: YearMonth ->
-                val calendarDays: List<LocalDate> =
-                    (1..ym.lengthOfMonth())
-                        .map { day -> ym.atDay(day) }
-
-                contributingDays(
-                    records = recordsByPeriod[ym].orEmpty(),
-                    calendarDays = calendarDays,
-                    dayQualifier = aggregationMode,
-                )
-            },
-            currentPeriodCalculationMode = CurrentPeriodCalculationMode.Projected(
-                elapsedDaysProvider = { ym: YearMonth ->
-                    if (ym == thisMonth) {
-                        val elapsedCalendarDays: List<LocalDate> =
-                            (1..todayDate.dayOfMonth)
-                                .map { day -> ym.atDay(day) }
-
-                        contributingDays(
-                            records = recordsByPeriod[ym].orEmpty(),
-                            calendarDays = elapsedCalendarDays,
-                            dayQualifier = aggregationMode,
-                        )
-                    } else {
-                        emptyList()
-                    }
-                },
-                minElapsedDays = 7,
-                isCurrentPeriod = { ym ->
-                    ym == thisMonth
-                },
-            ),
+            contributingDaysProvider = contributingDaysProvider,
+            currentPeriodCalculationMode = currentPeriodMode,
             labelProvider = ::monthLabel,
             targets = targets,
+        ) + listOf(
+            adherenceChart(
+                timeRange = months,
+                records = recordsByPeriod,
+                contributingDaysProvider = contributingDaysProvider,
+                currentPeriodCalculationMode = currentPeriodMode,
+                labelProvider = ::monthLabel,
+                targets = targets,
+            )
         )
     }
 
@@ -417,6 +431,111 @@ class TrendsUiMapper @Inject constructor(
             override val isCurrentPeriod: (K) -> Boolean,
         ) : CurrentPeriodCalculationMode<K>(isCurrentPeriod)
     }
+
+    private fun <K : Comparable<K>> adherenceChart(
+        timeRange: List<K>,
+        records: Map<K, List<Record>>,
+        contributingDaysProvider: (K) -> List<LocalDate>,
+        currentPeriodCalculationMode: CurrentPeriodCalculationMode<K>,
+        labelProvider: (K) -> String,
+        targets: Targets,
+    ): TrendsChartUiModel {
+        fun adherenceForDays(key: K, days: List<LocalDate>): Double? {
+            if (days.isEmpty()) return null
+            val byDay = records[key].orEmpty().groupBy { it.diaryKeyDate() }
+            return days.map { day ->
+                calculateAdherence(byDay[day].orEmpty().sumNutrients(), targets).toDouble()
+            }.average()
+        }
+
+        val points = timeRange.mapIndexed { index, key ->
+            val contributingDays = when {
+                currentPeriodCalculationMode.isCurrentPeriod(key) && currentPeriodCalculationMode is CurrentPeriodCalculationMode.Projected ->
+                    currentPeriodCalculationMode.elapsedDaysProvider(key)
+                else ->
+                    contributingDaysProvider(key)
+            }
+
+            val avg = when {
+                currentPeriodCalculationMode.isCurrentPeriod(key) && currentPeriodCalculationMode is CurrentPeriodCalculationMode.Hidden ->
+                    null
+                currentPeriodCalculationMode.isCurrentPeriod(key) && currentPeriodCalculationMode is CurrentPeriodCalculationMode.Projected ->
+                    if (contributingDays.size >= currentPeriodCalculationMode.minElapsedDays)
+                        adherenceForDays(key, contributingDays)
+                    else
+                        null
+                else ->
+                    adherenceForDays(key, contributingDays)
+            }
+
+            key to ChartDataPoint(
+                index = index,
+                label = labelProvider(key),
+                value = avg?.times(100.0),
+            )
+        }
+
+        val last = points.lastOrNull()
+        val (historicalPoints, currentPoint) = if (last != null && currentPeriodCalculationMode.isCurrentPeriod(last.first)) {
+            points.dropLast(1).map { it.second } to last.second
+        } else {
+            points.map { it.second } to null
+        }
+
+        return TrendsChartUiModel(
+            datasets = listOf(
+                ChartDataset(
+                    name = "Adherence (%)",
+                    color = Color(0xFF66BB6A),
+                    set = historicalPoints,
+                    current = currentPoint,
+                )
+            ),
+            pinnedMaxY = 100.0,
+        )
+    }
+
+    private fun calculateAdherence(nutrients: TemplateNutrientBreakdown, targets: Targets): Float {
+        val scores = mutableListOf<Float>()
+
+        fun score(value: Float?, target: Target): Float? {
+            if (!target.enabled || value == null) return null
+            val min = target.min?.toFloat()
+            val max = target.max?.toFloat()
+            if (min == null && max == null) return null
+            if ((min == null || value >= min) && (max == null || value <= max)) return 1f
+            if (min != null && value < min) {
+                return (1f - ((min - value) / min.coerceAtLeast(1f))).coerceIn(0f, 1f)
+            }
+            if (max != null && value > max) {
+                return (1f - ((value - max) / max.coerceAtLeast(1f))).coerceIn(0f, 1f)
+            }
+            return null
+        }
+
+        nutrients.calories?.toFloat()?.let { score(it, targets.calories)?.let(scores::add) }
+        nutrients.protein?.let { score(it, targets.protein)?.let(scores::add) }
+        nutrients.fat?.let { score(it, targets.fat)?.let(scores::add) }
+        nutrients.carbs?.let { score(it, targets.carbs)?.let(scores::add) }
+        nutrients.ofWhichSaturated?.let { score(it, targets.ofWhichSaturated)?.let(scores::add) }
+        nutrients.ofWhichSugar?.let { score(it, targets.ofWhichSugar)?.let(scores::add) }
+        nutrients.salt?.let { score(it, targets.salt)?.let(scores::add) }
+        nutrients.fibre?.let { score(it, targets.fibre)?.let(scores::add) }
+
+        return if (scores.isEmpty()) 0f else scores.average().toFloat()
+    }
+
+    private fun List<Record>.sumNutrients(): TemplateNutrientBreakdown = TemplateNutrientBreakdown(
+        calories = mapNotNull { it.template.nutrients.calories }.takeIf { it.isNotEmpty() }?.sum(),
+        protein = mapNotNull { it.template.nutrients.protein }.takeIf { it.isNotEmpty() }?.sum(),
+        fat = mapNotNull { it.template.nutrients.fat }.takeIf { it.isNotEmpty() }?.sum(),
+        ofWhichSaturated = mapNotNull { it.template.nutrients.ofWhichSaturated }.takeIf { it.isNotEmpty() }?.sum(),
+        carbs = mapNotNull { it.template.nutrients.carbs }.takeIf { it.isNotEmpty() }?.sum(),
+        ofWhichSugar = mapNotNull { it.template.nutrients.ofWhichSugar }.takeIf { it.isNotEmpty() }?.sum(),
+        ofWhichAddedSugar = mapNotNull { it.template.nutrients.ofWhichAddedSugar }.takeIf { it.isNotEmpty() }?.sum(),
+        salt = mapNotNull { it.template.nutrients.salt }.takeIf { it.isNotEmpty() }?.sum(),
+        fibre = mapNotNull { it.template.nutrients.fibre }.takeIf { it.isNotEmpty() }?.sum(),
+    )
 
     private fun <T : Comparable<T>> generateSequence(
         from: T?,

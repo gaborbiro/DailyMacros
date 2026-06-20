@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.features.overview.views
 import android.content.res.Configuration
 import android.util.Range
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,12 +32,14 @@ import dev.gaborbiro.dailymacros.features.overview.model.NutrientSummaryStatEntr
 internal fun ListItemWeeklySummary(
     modifier: Modifier = Modifier,
     model: ListUiModelWeeklySummary,
+    onTapped: () -> Unit,
 ) {
     Column(
         modifier = modifier
             .padding(top = PaddingDouble)
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
+            .clickable(onClick = onTapped)
     ) {
         Text(
             modifier = Modifier
@@ -208,6 +211,7 @@ private fun ListItemWeeklySummaryPreview() {
                 averageAdherence100Percentage = 86,
                 adherenceChange = ChangeIndicator(ChangeDirection.UP, "+1.5%"),
             ),
+            onTapped = {},
         )
     }
 }

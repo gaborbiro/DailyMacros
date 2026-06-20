@@ -13,6 +13,7 @@ import dev.gaborbiro.dailymacros.features.overview.model.ChangeDirection
 import dev.gaborbiro.dailymacros.features.overview.model.ChangeIndicator
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelDailySummary
+import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelSetTargetsCta
 import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelWeeklySummary
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.overview.model.NutrientSummaryStatEntry
@@ -335,8 +336,17 @@ class OverviewUiMapper @Inject constructor(
         week: List<TravelDay>,
         previousWeek: List<TravelDay>?,
         targets: Targets,
-    ): ListUiModelWeeklySummary? {
+    ): ListUiModelBase? {
         if (week.isEmpty()) return null
+
+        val hasTargets = targets.run {
+            calories.enabled || protein.enabled || fat.enabled || carbs.enabled ||
+                salt.enabled || fibre.enabled || ofWhichSaturated.enabled || ofWhichSugar.enabled
+        }
+        if (!hasTargets) {
+            val weekStart = week.minOf { it.day }
+            return ListUiModelSetTargetsCta(listItemId = weekStart.toEpochDay())
+        }
 
         // 1. Compute total macros per day for a given week
         data class DayTotal(
