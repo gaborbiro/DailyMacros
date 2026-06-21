@@ -8,28 +8,22 @@ plugins {
 }
 
 // Bump here; GitHub release tag v{versionName} uses :app:printAppReleaseVersionName in CI.
-private val appVersionName = "1.10.0"
-private val appVersionCode = 24
-
-private val gitHash: String = try {
-    providers.exec {
-        commandLine("git", "rev-parse", "--short", "HEAD")
-    }.standardOutput.asText.get().trim()
-} catch (_: Exception) {
-    "unknown"
-}
+private val baseVersion = "1.10.0"
 
 android {
     namespace = "dev.gaborbiro.dailymacros"
     compileSdk = libs.versions.android.sdk.compile.get().toInt()
 
+    val pipelineId = System.getenv("CI_PIPELINE_IID")?.toIntOrNull() ?: Int.MAX_VALUE
+    val branch = System.getenv("CI_COMMIT_REF_NAME") ?: "local"
+    val sha = System.getenv("CI_COMMIT_SHORT_SHA") ?: "manual"
+
     defaultConfig {
         applicationId = "dev.gaborbiro.dailymacros"
         minSdk = libs.versions.android.sdk.min.get().toInt()
         targetSdk = libs.versions.android.sdk.target.get().toInt()
-        versionName = appVersionName
-        versionCode = appVersionCode
-        buildConfigField("String", "GIT_HASH", "\"$gitHash\"")
+        versionCode = pipelineId
+        versionName = "v${baseVersion}-${pipelineId}-${branch}-${sha}"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -42,7 +36,7 @@ android {
         getByName("debug") {
             keyAlias = "debug"
             keyPassword = "keystore"
-            storeFile = file("../signing/keystore.jks")
+            storeFile = file("../signing/dev_keystore.jks")
             storePassword = "keystore"
         }
         create("release") {
@@ -60,14 +54,13 @@ android {
         debug {
             isMinifyEnabled = false
             isShrinkResources = false
-            isDebuggable = true
+            applicationIdSuffix = ".debug"
 
             signingConfig = signingConfigs.getByName("debug")
         }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            isDebuggable = false
 
             val releaseConfig = signingConfigs.getByName("release")
             if (releaseConfig.storeFile != null) {
@@ -80,6 +73,7 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.toVersion(libs.versions.java.get())
         targetCompatibility = JavaVersion.toVersion(libs.versions.java.get())
@@ -183,7 +177,7 @@ tasks.register("writeAppReleaseVersionNameFile") {
     outputs.file(out)
     doLast {
         out.get().asFile.parentFile.mkdirs()
-        out.get().asFile.writeText(appVersionName)
+        out.get().asFile.writeText(baseVersion)
     }
 }
 
