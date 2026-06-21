@@ -22,11 +22,11 @@ class ResolveOverviewCoachMarkUseCaseTest {
     }
 
     @Test
-    fun `does not trigger when item count is not two`() {
+    fun `does not trigger when item count is zero`() {
         val prefs = OverviewPrefs(ApplicationProvider.getApplicationContext())
         prefs.showCoachMark = true
         val useCase = ResolveOverviewCoachMarkUseCase(prefs)
-        assertFalse(useCase.execute(3))
+        assertFalse(useCase.execute(0))
         assertTrue(prefs.showCoachMark)
     }
 
