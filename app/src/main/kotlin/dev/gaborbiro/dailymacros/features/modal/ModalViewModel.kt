@@ -108,29 +108,17 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onCreateRecordWithCameraDeeplinkReceived() {
-        setRoot(DialogHandle.ImageInput(type = ImageInputType.Camera))
+        setRoot(emptyRecordDetailsEdit())
+        pushOverlay(DialogHandle.ImageInput(type = ImageInputType.Camera))
     }
 
     fun onCreateRecordWithBrowseImagesDeeplinkReceived() {
-        setRoot(DialogHandle.ImageInput(type = ImageInputType.BrowseImages))
+        setRoot(emptyRecordDetailsEdit())
+        pushOverlay(DialogHandle.ImageInput(type = ImageInputType.BrowseImages))
     }
 
     fun onCreateRecordWithTextDeeplinkReceived() {
-        setRoot(
-            DialogHandle.RecordDetailsDialog.Edit(
-                title = TextFieldValue(),
-                titleHint = "Title",
-                description = TextFieldValue(),
-                images = emptyList(),
-                recognisedFood = null,
-                showProgressIndicator = false,
-                pristineSnapshot = recordDetailsEditPristineSnapshot(
-                    title = TextFieldValue(),
-                    description = TextFieldValue(),
-                    images = emptyList(),
-                ),
-            )
-        )
+        setRoot(emptyRecordDetailsEdit())
     }
 
     fun onViewRecordImageDeeplinkReceived(recordId: Long) {
@@ -174,6 +162,9 @@ class ModalViewModel @Inject constructor(
             }
             if (existingCount + uris.size > MAX_IMAGES) {
                 _uiUpdates.emit(ModalUiUpdates.ShowToast("Too many images selected. Maximum $MAX_IMAGES total."))
+                if (_uiState.value.overlayDialog is DialogHandle.ImageInput) {
+                    popOverlay()
+                }
                 return@runSafely
             }
             val persistedFilenames = uris.map { saveImageUseCase.execute(it) }
@@ -288,6 +279,11 @@ class ModalViewModel @Inject constructor(
         when {
             dialog === _uiState.value.overlayDialog -> {
                 popOverlay()
+            }
+
+            _uiState.value.overlayDialog is DialogHandle.ImageInput -> {
+                // Compose's Dialog fires onDismissRequest spuriously when the picker/camera
+                // Activity steals focus from ModalActivity. Ignore — the overlay handles cleanup.
             }
 
             dialog is DialogHandle.RecordDetailsDialog.View -> {
@@ -941,6 +937,20 @@ class ModalViewModel @Inject constructor(
             _uiUpdates.emit(ModalUiUpdates.Close)
         }
     }
+
+    private fun emptyRecordDetailsEdit() = DialogHandle.RecordDetailsDialog.Edit(
+        title = TextFieldValue(),
+        titleHint = "Title",
+        description = TextFieldValue(),
+        images = emptyList(),
+        recognisedFood = null,
+        showProgressIndicator = false,
+        pristineSnapshot = recordDetailsEditPristineSnapshot(
+            title = TextFieldValue(),
+            description = TextFieldValue(),
+            images = emptyList(),
+        ),
+    )
 
     private inline fun <reified T : DialogHandle> updateRoot(transform: (T) -> DialogHandle) {
         _uiState.update {
