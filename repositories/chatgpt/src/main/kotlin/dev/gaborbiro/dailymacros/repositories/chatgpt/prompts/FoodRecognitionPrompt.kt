@@ -42,8 +42,8 @@ If food cannot be determined:
 """.trimIndent()
 
 internal fun FoodRecognitionRequest.toApiModel() = ChatGPTRequest(
-    model = foodPhotoRecognitionModel,
-    reasoning = ReasoningLevel(foodPhotoRecognitionReasoningEffort),
+    model = customizations.systemPrompt(SEG_RECOGNITION_MODEL, foodPhotoRecognitionModel),
+    reasoning = ReasoningLevel(customizations.systemPrompt(SEG_RECOGNITION_REASONING_EFFORT, foodPhotoRecognitionReasoningEffort)),
     input = listOf(
         ContentEntry(
             role = Role.system,

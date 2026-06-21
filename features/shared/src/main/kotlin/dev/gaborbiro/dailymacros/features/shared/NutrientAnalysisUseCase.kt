@@ -56,7 +56,7 @@ class NutrientAnalysisUseCase @Inject constructor(
                         record = record,
                         base64Images = base64Images,
                     ).copy(
-                        customizations = settingsRepository.getPromptCustomizations(),
+                        customizations = settingsRepository.getEffectiveCustomizations(),
                         phoneLanguage = Locale.getDefault().getDisplayLanguage(Locale.ENGLISH),
                     )
                 )

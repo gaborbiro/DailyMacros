@@ -20,6 +20,8 @@ interface SettingsRepository {
 
     fun setPromptCustomizations(values: Map<String, String>)
 
+    fun clearPromptCustomizations()
+
     fun getPromptVersions(): List<PromptVersion>
 
     /** Creates a new version with the given customizations, persists it, and returns it. */
@@ -27,6 +29,14 @@ interface SettingsRepository {
 
     /** Deletes the version with the given version number. */
     fun deletePromptVersion(version: Int)
+
+    fun getApiKeyOverride(): String?
+    fun setApiKeyOverride(key: String)
+    fun clearApiKeyOverride()
+
+    /** Returns stored customizations only when an API key override is active; emptyMap() otherwise. */
+    fun getEffectiveCustomizations(): Map<String, String> =
+        if (getApiKeyOverride() != null) getPromptCustomizations() else emptyMap()
 
     fun getCloudSyncProvider(): CloudSyncProvider = CloudSyncProvider.NONE
     fun setCloudSyncProvider(provider: CloudSyncProvider) {}

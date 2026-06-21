@@ -11,8 +11,12 @@ const val nutrientAnalysisReasoningEffort = "high"
 
 
 
+internal const val SEG_RECOGNITION_MODEL = "recognition_model"
+internal const val SEG_RECOGNITION_REASONING_EFFORT = "recognition_reasoning_effort"
 internal const val SEG_RECOGNITION_SYSTEM = "recognition_system"
 internal const val SEG_RECOGNITION_USER = "recognition_user"
+internal const val SEG_ANALYSIS_MODEL = "analysis_model"
+internal const val SEG_ANALYSIS_REASONING_EFFORT = "analysis_reasoning_effort"
 internal const val SEG_ANALYSIS_SYSTEM = "analysis_system"
 internal const val SEG_ANALYSIS_USER = "analysis_user"
 

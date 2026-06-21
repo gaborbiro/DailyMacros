@@ -7,5 +7,6 @@ sealed class PromptSegment {
         val label: String,
         val defaultText: String,
         val hint: String = "",
+        val singleLine: Boolean = false,
     ) : PromptSegment()
 }

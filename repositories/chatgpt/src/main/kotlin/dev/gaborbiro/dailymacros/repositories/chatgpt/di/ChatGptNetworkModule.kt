@@ -9,6 +9,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dev.gaborbiro.dailymacros.repositories.chatgpt.AuthInterceptor
 import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGPTMapper
+import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGPTRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGptOkHttpTimeouts
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
@@ -44,9 +45,9 @@ object ChatGptNetworkModule {
     @Provides
     @Singleton
     @ForImageUploadChatGpt
-    fun imageUploadOkHttp(): OkHttpClient {
+    fun imageUploadOkHttp(settingsRepository: SettingsRepository): OkHttpClient {
         val logger = HttpLoggingInterceptor().also { it.level = HttpLoggingInterceptor.Level.BODY }
-        val authInterceptor = AuthInterceptor()
+        val authInterceptor = AuthInterceptor(settingsRepository)
         return OkHttpClient.Builder()
             .addNetworkInterceptor(logger)
             .addInterceptor(authInterceptor)
@@ -59,9 +60,9 @@ object ChatGptNetworkModule {
     @Provides
     @Singleton
     @ForJsonBodyChatGpt
-    fun jsonBodyOkHttp(): OkHttpClient {
+    fun jsonBodyOkHttp(settingsRepository: SettingsRepository): OkHttpClient {
         val logger = HttpLoggingInterceptor().also { it.level = HttpLoggingInterceptor.Level.BODY }
-        val authInterceptor = AuthInterceptor()
+        val authInterceptor = AuthInterceptor(settingsRepository)
         return OkHttpClient.Builder()
             .addNetworkInterceptor(logger)
             .addInterceptor(authInterceptor)

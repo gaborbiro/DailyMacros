@@ -95,8 +95,8 @@ If estimation is not possible:
 """.trimIndent()
 
 internal fun NutrientAnalysisRequest.toApiModel() = ChatGPTRequest(
-    model = nutrientAnalysisModel,
-    reasoning = ReasoningLevel(nutrientAnalysisReasoningEffort),
+    model = customizations.systemPrompt(SEG_ANALYSIS_MODEL, nutrientAnalysisModel),
+    reasoning = ReasoningLevel(customizations.systemPrompt(SEG_ANALYSIS_REASONING_EFFORT, nutrientAnalysisReasoningEffort)),
     input = listOf(
         ContentEntry(
             role = Role.system,

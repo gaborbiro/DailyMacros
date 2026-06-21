@@ -169,7 +169,7 @@ internal fun SettingsView(
                 .verticalScrollWithBar(),
         ) {
             SettingRow(title = "Daily targets", highlight = targetsHighlight.value, onTapped = onTargetsSettingTapped)
-            SettingRow(title = "Customise AI", onTapped = onPromptEditorTapped)
+            SettingRow(title = "Customise AI", subtitle = "Experimental!", onTapped = onPromptEditorTapped)
             SettingRow(
                 title = stringResource(R.string.settings_diary_day_start_row),
                 subtitle = diaryDayStartSummary(viewState.diaryDayStartHour),

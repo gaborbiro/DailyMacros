@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.model.PromptEditorUiState
+import dev.gaborbiro.dailymacros.repositories.chatgpt.ApiKeyValidator
 import dev.gaborbiro.dailymacros.repositories.chatgpt.di.ForImageUploadChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
@@ -21,12 +22,14 @@ sealed class PromptEditorUiUpdates {
     object Show : PromptEditorUiUpdates()
     object Hide : PromptEditorUiUpdates()
     object Close : PromptEditorUiUpdates()
+    data class ShowToast(val message: String) : PromptEditorUiUpdates()
 }
 
 @HiltViewModel
 class PromptEditorViewModel @Inject constructor(
     @ForImageUploadChatGpt private val chatGPTRepository: ChatGPTRepository,
     private val settingsRepository: SettingsRepository,
+    private val apiKeyValidator: ApiKeyValidator,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PromptEditorUiState())
@@ -36,12 +39,11 @@ class PromptEditorViewModel @Inject constructor(
     val uiUpdates: SharedFlow<PromptEditorUiUpdates> = _uiUpdates.asSharedFlow()
 
     init {
+        // Index 0 is always the synthetic v0 (default). User-saved versions start at index 1.
         val versions = settingsRepository.getPromptVersions().sortedByDescending { it.version }
-        val selectedIndex = if (versions.isNotEmpty()) 0 else -1
-        val customizations = when {
-            selectedIndex >= 0 -> versions[selectedIndex].customizations
-            else -> settingsRepository.getPromptCustomizations()
-        }
+        val selectedIndex = if (versions.isNotEmpty()) 1 else 0
+        val customizations = versions.getOrNull(selectedIndex - 1)?.customizations ?: emptyMap()
+        val storedKey = settingsRepository.getApiKeyOverride()
         _uiState.value = PromptEditorUiState(
             recognitionSegments = chatGPTRepository.getRecognitionPromptSegments(),
             analysisSegments = chatGPTRepository.getAnalysisPromptSegments(),
@@ -49,15 +51,13 @@ class PromptEditorViewModel @Inject constructor(
             originalValues = customizations,
             versions = versions,
             selectedVersionIndex = selectedIndex,
+            storedApiKeyOverride = storedKey,
+            apiKeyDraft = storedKey ?: "",
         )
     }
 
     fun onValueChanged(segmentId: String, text: String) {
         _uiState.update { it.copy(currentValues = it.currentValues + (segmentId to text)) }
-    }
-
-    fun onResetTab(segmentIds: List<String>) {
-        _uiState.update { it.copy(currentValues = it.currentValues - segmentIds.toSet()) }
     }
 
     fun onVersionSelected(index: Int) {
@@ -110,17 +110,19 @@ class PromptEditorViewModel @Inject constructor(
     }
 
     fun onDeleteVersion(index: Int) {
+        // index is 1-based (0 is v0 which is never deletable)
+        val realIndex = index - 1
         val state = _uiState.value
-        val versionToDelete = state.versions.getOrNull(index) ?: return
+        val versionToDelete = state.versions.getOrNull(realIndex) ?: return
         settingsRepository.deletePromptVersion(versionToDelete.version)
-        val updatedVersions = state.versions.toMutableList().also { it.removeAt(index) }
+        val updatedVersions = state.versions.toMutableList().also { it.removeAt(realIndex) }
         val newSelectedIndex = when {
-            updatedVersions.isEmpty() -> -1
-            state.selectedVersionIndex == index -> 0.coerceAtMost(updatedVersions.lastIndex)
+            updatedVersions.isEmpty() -> 0
+            state.selectedVersionIndex == index -> 1.coerceAtMost(updatedVersions.size)
             state.selectedVersionIndex > index -> state.selectedVersionIndex - 1
             else -> state.selectedVersionIndex
         }
-        val newCustomizations = updatedVersions.getOrNull(newSelectedIndex)?.customizations ?: emptyMap()
+        val newCustomizations = updatedVersions.getOrNull(newSelectedIndex - 1)?.customizations ?: emptyMap()
         _uiState.update {
             it.copy(
                 versions = updatedVersions,
@@ -131,11 +133,42 @@ class PromptEditorViewModel @Inject constructor(
         }
     }
 
+    fun onApiKeyDraftChanged(text: String) {
+        _uiState.update { it.copy(apiKeyDraft = text) }
+    }
+
+    fun onUnlockTapped() {
+        val draft = _uiState.value.apiKeyDraft.trim()
+        if (draft.isBlank()) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isUnlocking = true) }
+            val valid = apiKeyValidator.validate(draft)
+            _uiState.update { it.copy(isUnlocking = false) }
+            if (valid) {
+                settingsRepository.setApiKeyOverride(draft)
+                _uiState.update { it.copy(storedApiKeyOverride = draft) }
+                _uiUpdates.emit(PromptEditorUiUpdates.ShowToast("API key verified and saved. Your key will be used for future AI queries."))
+            } else {
+                _uiUpdates.emit(PromptEditorUiUpdates.ShowToast("Invalid API key. Please check it and try again."))
+            }
+        }
+    }
+
+    fun onClearApiKeyTapped() {
+        settingsRepository.clearApiKeyOverride()
+        settingsRepository.clearPromptCustomizations()
+        _uiState.update { it.withApiKeyCleared() }
+        viewModelScope.launch {
+            _uiUpdates.emit(PromptEditorUiUpdates.ShowToast("API key removed. The default key will be used."))
+        }
+    }
+
     private fun persistCurrentVersion() {
         val values = _uiState.value.currentValues.filterValues { it.isNotBlank() }
         val newVersion = settingsRepository.savePromptVersion(values)
         val newVersions = settingsRepository.getPromptVersions().sortedByDescending { it.version }
-        val newIndex = newVersions.indexOfFirst { it.version == newVersion.version }
+        // +1 because index 0 is always v0
+        val newIndex = newVersions.indexOfFirst { it.version == newVersion.version } + 1
         _uiState.update {
             it.copy(
                 originalValues = values,
@@ -147,13 +180,18 @@ class PromptEditorViewModel @Inject constructor(
     }
 
     private fun applyVersion(index: Int) {
-        val customizations = _uiState.value.versions.getOrNull(index)?.customizations ?: emptyMap()
-        _uiState.update {
-            it.copy(
-                currentValues = customizations,
-                originalValues = customizations,
-                selectedVersionIndex = index,
-            )
+        if (index == 0) {
+            settingsRepository.clearPromptCustomizations()
+            _uiState.update { it.withV0Applied() }
+        } else {
+            val customizations = _uiState.value.versions.getOrNull(index - 1)?.customizations ?: emptyMap()
+            _uiState.update {
+                it.copy(
+                    currentValues = customizations,
+                    originalValues = customizations,
+                    selectedVersionIndex = index,
+                )
+            }
         }
     }
 }

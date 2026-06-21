@@ -12,6 +12,7 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.collections.emptyMap
 
 @Singleton
 class SettingsRepositoryImpl @Inject constructor(
@@ -58,10 +59,7 @@ class SettingsRepositoryImpl @Inject constructor(
     override fun getPromptCustomizations(): Map<String, String> {
         val json = prefs.getString(KEY_PROMPT_CUSTOMIZATIONS, null) ?: return emptyMap()
         val type = object : TypeToken<Map<String, String>>() {}.type
-        val raw = runCatching { gson.fromJson<Map<String, String>>(json, type) }.getOrDefault(emptyMap())
-        val migrated = raw.migrateLanguagePlaceholders()
-        if (migrated != raw) setPromptCustomizations(migrated)
-        return migrated
+        return runCatching { gson.fromJson<Map<String, String>>(json, type) }.getOrDefault(emptyMap())
     }
 
     override fun setPromptCustomizations(values: Map<String, String>) {
@@ -70,18 +68,16 @@ class SettingsRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun clearPromptCustomizations() {
+        prefs.edit {
+            putString(KEY_PROMPT_CUSTOMIZATIONS, gson.toJson(emptyMap<String, String>()))
+        }
+    }
+
     override fun getPromptVersions(): List<PromptVersion> {
         val json = prefs.getString(KEY_PROMPT_VERSIONS, null) ?: return emptyList()
         val type = object : TypeToken<List<PromptVersion>>() {}.type
-        val raw = runCatching { gson.fromJson<List<PromptVersion>>(json, type) }.getOrDefault(emptyList())
-        val migrated = raw.map { version ->
-            val migratedCustomizations = version.customizations.migrateLanguagePlaceholders()
-            version.copy(customizations = migratedCustomizations)
-        }
-        if (migrated.zip(raw).any { (m, r) -> m.customizations != r.customizations }) {
-            prefs.edit { putString(KEY_PROMPT_VERSIONS, gson.toJson(migrated)) }
-        }
-        return migrated
+        return runCatching { gson.fromJson<List<PromptVersion>>(json, type) }.getOrDefault(emptyList())
     }
 
     override fun deletePromptVersion(version: Int) {
@@ -106,23 +102,14 @@ class SettingsRepositoryImpl @Inject constructor(
         return newVersion
     }
 
-    private fun Map<String, String>.migrateLanguagePlaceholders(): Map<String, String> {
-        val keysToMigrate = setOf("recognition_system", "analysis_system")
-        var changed = false
-        val result = mapValues { (key, value) ->
-            if (key in keysToMigrate && "{phone_language}" !in value) {
-                val migrated = value
-                    .replace("concise English title", "concise {phone_language} title")
-                    .replace("MUST be in English.", "MUST be in {phone_language}.")
-                    .replace("not in English,", "not in {phone_language},")
-                    .replace("into English before", "into {phone_language} before")
-                if (migrated != value) changed = true
-                migrated
-            } else {
-                value
-            }
-        }
-        return if (changed) result else this
+    override fun getApiKeyOverride(): String? = prefs.getString(KEY_API_KEY_OVERRIDE, null)?.takeIf { it.isNotBlank() }
+
+    override fun setApiKeyOverride(key: String) {
+        prefs.edit { putString(KEY_API_KEY_OVERRIDE, key) }
+    }
+
+    override fun clearApiKeyOverride() {
+        prefs.edit { remove(KEY_API_KEY_OVERRIDE) }
     }
 
     override fun getCloudSyncProvider(): CloudSyncProvider =
@@ -153,6 +140,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private const val DEFAULT_DIARY_DAY_START_HOUR = 0
         private const val KEY_PROMPT_CUSTOMIZATIONS = "prompt_customizations_json"
         private const val KEY_PROMPT_VERSIONS = "prompt_versions_json"
+        private const val KEY_API_KEY_OVERRIDE = "api_key_override"
         private const val KEY_CLOUD_SYNC_PROVIDER = "cloud_sync_provider"
         private const val KEY_CLOUD_SYNC_EMAIL = "cloud_sync_email"
         private const val KEY_LAST_SYNCED_EPOCH_MS = "last_synced_epoch_ms"

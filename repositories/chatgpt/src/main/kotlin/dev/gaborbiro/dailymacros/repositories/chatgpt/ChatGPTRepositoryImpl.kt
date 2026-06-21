@@ -10,10 +10,18 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_ANALYSIS_S
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_ANALYSIS_USER
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_RECOGNITION_SYSTEM
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_RECOGNITION_USER
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ANALYSIS_MODEL
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ANALYSIS_REASONING_EFFORT
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ANALYSIS_SYSTEM
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ANALYSIS_USER
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_RECOGNITION_MODEL
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_RECOGNITION_REASONING_EFFORT
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_RECOGNITION_SYSTEM
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_RECOGNITION_USER
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.foodPhotoRecognitionModel
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.foodPhotoRecognitionReasoningEffort
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.nutrientAnalysisModel
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.nutrientAnalysisReasoningEffort
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toApiModel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toFoodRecognitionResponse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toNutrientAnalysisResponse
@@ -54,6 +62,19 @@ class ChatGPTRepositoryImpl(
 
     override fun getRecognitionPromptSegments(): List<PromptSegment> = listOf(
         PromptSegment.Editable(
+            id = SEG_RECOGNITION_MODEL,
+            label = "Model",
+            defaultText = foodPhotoRecognitionModel,
+            singleLine = true,
+        ),
+        PromptSegment.Editable(
+            id = SEG_RECOGNITION_REASONING_EFFORT,
+            label = "Reasoning effort",
+            defaultText = foodPhotoRecognitionReasoningEffort,
+            hint = "none, minimal, low, medium, high, xhigh",
+            singleLine = true,
+        ),
+        PromptSegment.Editable(
             id = SEG_RECOGNITION_SYSTEM,
             label = "System message",
             defaultText = DEFAULT_RECOGNITION_SYSTEM,
@@ -67,6 +88,19 @@ class ChatGPTRepositoryImpl(
     )
 
     override fun getAnalysisPromptSegments(): List<PromptSegment> = listOf(
+        PromptSegment.Editable(
+            id = SEG_ANALYSIS_MODEL,
+            label = "Model",
+            defaultText = nutrientAnalysisModel,
+            singleLine = true,
+        ),
+        PromptSegment.Editable(
+            id = SEG_ANALYSIS_REASONING_EFFORT,
+            label = "Reasoning effort",
+            defaultText = nutrientAnalysisReasoningEffort,
+            hint = "none, minimal, low, medium, high, xhigh",
+            singleLine = true,
+        ),
         PromptSegment.Editable(
             id = SEG_ANALYSIS_SYSTEM,
             label = "System message",
