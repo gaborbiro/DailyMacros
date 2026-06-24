@@ -172,40 +172,42 @@ internal fun TrendsView(
                 else -> 1
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "Weekly Insights",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                OutlinedButton(
-                    onClick = onGetInsightsTapped,
-                    enabled = !viewState.insightsLoading,
+            if (timescale == Timescale.WEEKS) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    if (viewState.insightsLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp,
-                        )
-                    } else {
-                        Text(if (viewState.insights.isNotEmpty()) "Refresh" else "Get insights")
+                    Text(
+                        text = "Weekly Insights",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    OutlinedButton(
+                        onClick = onGetInsightsTapped,
+                        enabled = !viewState.insightsLoading,
+                    ) {
+                        if (viewState.insightsLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp,
+                            )
+                        } else {
+                            Text(if (viewState.insights.isNotEmpty()) "Refresh" else "Get insights")
+                        }
                     }
                 }
-            }
 
-            viewState.insightsError?.let { error ->
-                Text(
-                    text = error,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                )
+                viewState.insightsError?.let { error ->
+                    Text(
+                        text = error,
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
             }
 
             key(timescale) {
@@ -229,13 +231,15 @@ internal fun TrendsView(
                             scrollState = scrollState,
                             showEveryXLabel = showEveryXLabel,
                         )
-                        viewState.insights[chartData.title]?.let { insight ->
-                            Text(
-                                text = insight,
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                        if (timescale == Timescale.WEEKS) {
+                            viewState.insights[chartData.title]?.let { insight ->
+                                Text(
+                                    text = insight,
+                                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                         }
                     }
                 } else {
