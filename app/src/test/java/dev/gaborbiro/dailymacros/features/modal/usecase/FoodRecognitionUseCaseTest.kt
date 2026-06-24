@@ -5,8 +5,13 @@ import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
+import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -39,28 +44,29 @@ class FoodRecognitionUseCaseTest {
         override suspend fun analyseNutrients(request: NutrientAnalysisRequest): NutrientAnalysis =
             error("unused")
 
-        override fun getRecognitionPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
-        override fun getAnalysisPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
+        override fun getRecognitionPromptSegments() = emptyList<PromptSegment>()
+        override fun getAnalysisPromptSegments() = emptyList<PromptSegment>()
     }
 
-    private val fakeSettingsRepository = object : dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository {
-        override fun getTargets() = dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets(
-            calories = dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target(enabled = false),
-            protein = dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target(enabled = false),
-            salt = dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target(enabled = false),
-            fat = dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target(enabled = false),
-            carbs = dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target(enabled = false),
-            fibre = dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target(enabled = false),
-            ofWhichSaturated = dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target(enabled = false),
-            ofWhichSugar = dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target(enabled = false),
+    private val fakeSettingsRepository = object : SettingsRepository {
+        override fun getTargets() = Targets(
+            calories = Target(enabled = false),
+            protein = Target(enabled = false),
+            salt = Target(enabled = false),
+            fat = Target(enabled = false),
+            carbs = Target(enabled = false),
+            fibre = Target(enabled = false),
+            ofWhichSaturated = Target(enabled = false),
+            ofWhichSugar = Target(enabled = false),
         )
-        override fun setTargets(targets: dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets) = Unit
+
+        override fun setTargets(targets: Targets) = Unit
         override fun getDiaryDayStartHour(): Int = 0
         override fun setDiaryDayStartHour(hourOfDay: Int) = Unit
         override fun getPromptCustomizations(): Map<String, String> = emptyMap()
         override fun setPromptCustomizations(values: Map<String, String>) = Unit
-        override fun getPromptVersions() = emptyList<dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion>()
-        override fun savePromptVersion(customizations: Map<String, String>) = dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion(1, 0L, emptyMap())
+        override fun getPromptVersions() = emptyList<PromptVersion>()
+        override fun savePromptVersion(customizations: Map<String, String>) = PromptVersion(1, 0L, emptyMap())
         override fun deletePromptVersion(version: Int) {}
         override fun clearPromptCustomizations() = Unit
         override fun getApiKeyOverride(): String? = null

@@ -1,5 +1,4 @@
 package dev.gaborbiro.dailymacros.features.modal
-
 import android.app.Application
 import android.graphics.Bitmap
 import androidx.compose.ui.text.input.TextFieldValue
@@ -12,8 +11,6 @@ import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
-import dev.gaborbiro.dailymacros.features.modal.model.hasUnsavedEdits
-import dev.gaborbiro.dailymacros.features.modal.model.imagesRequireMacroReanalysis
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyConfirmedSharedTemplateEditUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.BaseRecordsRepositoryStub
@@ -36,6 +33,7 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecogniti
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
@@ -45,6 +43,7 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutri
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import kotlinx.coroutines.flow.flowOf
@@ -54,8 +53,6 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -111,8 +108,8 @@ class ModalViewModelTest {
         override suspend fun analyseNutrients(request: NutrientAnalysisRequest): NutrientAnalysis =
             error("unused")
 
-        override fun getRecognitionPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
-        override fun getAnalysisPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
+        override fun getRecognitionPromptSegments() = emptyList<PromptSegment>()
+        override fun getAnalysisPromptSegments() = emptyList<PromptSegment>()
     }
 
     private val disabledTarget = Target(enabled = false)
@@ -137,8 +134,8 @@ class ModalViewModelTest {
 
         override fun getPromptCustomizations(): Map<String, String> = emptyMap()
         override fun setPromptCustomizations(values: Map<String, String>) = Unit
-        override fun getPromptVersions() = emptyList<dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion>()
-        override fun savePromptVersion(customizations: Map<String, String>) = dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion(1, 0L, emptyMap())
+        override fun getPromptVersions() = emptyList<PromptVersion>()
+        override fun savePromptVersion(customizations: Map<String, String>) = PromptVersion(1, 0L, emptyMap())
         override fun deletePromptVersion(version: Int) {}
         override fun clearPromptCustomizations() = Unit
         override fun getApiKeyOverride(): String? = null
