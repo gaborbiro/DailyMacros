@@ -62,6 +62,10 @@ class FoodRecognitionUseCaseTest {
         override fun getPromptVersions() = emptyList<dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion>()
         override fun savePromptVersion(customizations: Map<String, String>) = dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion(1, 0L, emptyMap())
         override fun deletePromptVersion(version: Int) {}
+        override fun clearPromptCustomizations() = Unit
+        override fun getApiKeyOverride(): String? = null
+        override fun setApiKeyOverride(key: String) = Unit
+        override fun clearApiKeyOverride() = Unit
     }
 
     @Test
