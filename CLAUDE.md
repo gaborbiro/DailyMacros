@@ -2,17 +2,20 @@
 
 ## Project overview
 
-Native Android app (Daily Macros). No backend, no Docker, no web server. Development tasks are build, test, and lint via Gradle on Windows with PowerShell (`.\gradlew.bat`).
+Native Android app (Daily Macros). No backend, no Docker, no web server. Development tasks are build, test, and lint via Gradle.
+
+- **Windows/PowerShell (local):** use `.\gradlew.bat`
+- **Linux/remote (web sessions):** use `./gradlew`
 
 ## Build commands
 
 | Task | Command |
 |---|---|
-| Build debug APK | `.\gradlew.bat assembleDebug` |
-| Build release AAB | `.\gradlew.bat bundleRelease` |
-| Run unit tests | `.\gradlew.bat testDebugUnitTest` |
-| Lint | `.\gradlew.bat lintDebug` |
-| Update version catalog | `.\gradlew.bat versionCatalogUpdate` |
+| Build debug APK | `./gradlew assembleDebug` |
+| Build release AAB | `./gradlew bundleRelease` |
+| Run unit tests | `./gradlew testDebugUnitTest` |
+| Lint | `./gradlew lintDebug` |
+| Update version catalog | `./gradlew versionCatalogUpdate` |
 
 ## Architecture
 
@@ -92,7 +95,7 @@ Prefer a **wider view of the app** over local patches. If the user's request can
 
 ## Testing
 
-- Run `.\gradlew.bat testDebugUnitTest` for the unit test baseline.
+- Run `./gradlew testDebugUnitTest` for the unit test baseline.
 - For Android behavior changes, run targeted instrumentation tests on the `test35apis_playstore` emulator AVD.
 - For deep-link changes, consider `@DeeplinkTest` coverage.
 
