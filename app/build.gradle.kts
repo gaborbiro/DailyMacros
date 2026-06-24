@@ -14,9 +14,9 @@ android {
     namespace = "dev.gaborbiro.dailymacros"
     compileSdk = libs.versions.android.sdk.compile.get().toInt()
 
-    val pipelineId = System.getenv("CI_PIPELINE_IID")?.toIntOrNull() ?: Int.MAX_VALUE
-    val branch = System.getenv("CI_COMMIT_REF_NAME") ?: "local"
-    val sha = System.getenv("CI_COMMIT_SHORT_SHA") ?: "manual"
+    val pipelineId = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: Int.MAX_VALUE
+    val branch = System.getenv("GITHUB_REF_NAME") ?: "local"
+    val sha = System.getenv("GITHUB_SHA")?.take(7) ?: "manual"
 
     defaultConfig {
         applicationId = "dev.gaborbiro.dailymacros"
