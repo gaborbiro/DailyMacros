@@ -1,15 +1,14 @@
 package dev.gaborbiro.dailymacros.features.overview
 
-import dev.gaborbiro.dailymacros.features.overview.model.ChangeDirection
 import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.shared.RecordsMapper
 import dev.gaborbiro.dailymacros.features.shared.SharedRecordsUiMapper
+import dev.gaborbiro.dailymacros.features.overview.model.ChangeDirection
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
-import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import org.junit.Assert.assertEquals
@@ -49,10 +48,10 @@ class OverviewUiMapperTest {
 
         override fun getPromptCustomizations(): Map<String, String> = emptyMap()
         override fun setPromptCustomizations(values: Map<String, String>) = Unit
-        override fun getPromptVersions() = emptyList<PromptVersion>()
-        override fun savePromptVersion(customizations: Map<String, String>) = PromptVersion(1, 0L, emptyMap())
-        override fun deletePromptVersion(version: Int) {}
         override fun clearPromptCustomizations() = Unit
+        override fun getPromptVersions() = emptyList<dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion>()
+        override fun savePromptVersion(customizations: Map<String, String>) = dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion(1, 0L, emptyMap())
+        override fun deletePromptVersion(version: Int) = Unit
         override fun getApiKeyOverride(): String? = null
         override fun setApiKeyOverride(key: String) = Unit
         override fun clearApiKeyOverride() = Unit

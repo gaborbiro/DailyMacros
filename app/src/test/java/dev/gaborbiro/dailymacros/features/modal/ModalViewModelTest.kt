@@ -1,15 +1,12 @@
 package dev.gaborbiro.dailymacros.features.modal
+
 import android.app.Application
 import android.graphics.Bitmap
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.viewModelScope
 import androidx.test.core.app.ApplicationProvider
-import dev.gaborbiro.dailymacros.test.WorkManagerTestSupport
-import kotlinx.coroutines.cancel
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
-import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
-import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyConfirmedSharedTemplateEditUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
@@ -17,23 +14,24 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.BaseRecordsRepositoryStu
 import dev.gaborbiro.dailymacros.features.modal.usecase.BuildRecordDetailsViewDialogUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateTemplateUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.ExportImageToGalleryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ListMealVariantsForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ModalRecordFixtures
 import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveFirstRecordIdForTemplateUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.ExportImageToGalleryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
+import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
+import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
@@ -43,11 +41,12 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutri
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
-import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
-import kotlinx.coroutines.flow.flowOf
+import dev.gaborbiro.dailymacros.test.WorkManagerTestSupport
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -108,8 +107,9 @@ class ModalViewModelTest {
         override suspend fun analyseNutrients(request: NutrientAnalysisRequest): NutrientAnalysis =
             error("unused")
 
-        override fun getRecognitionPromptSegments() = emptyList<PromptSegment>()
-        override fun getAnalysisPromptSegments() = emptyList<PromptSegment>()
+        override fun getRecognitionPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
+        override fun getAnalysisPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
+        override fun getInsightsPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
     }
 
     private val disabledTarget = Target(enabled = false)
@@ -134,10 +134,10 @@ class ModalViewModelTest {
 
         override fun getPromptCustomizations(): Map<String, String> = emptyMap()
         override fun setPromptCustomizations(values: Map<String, String>) = Unit
-        override fun getPromptVersions() = emptyList<PromptVersion>()
-        override fun savePromptVersion(customizations: Map<String, String>) = PromptVersion(1, 0L, emptyMap())
-        override fun deletePromptVersion(version: Int) {}
         override fun clearPromptCustomizations() = Unit
+        override fun getPromptVersions() = emptyList<dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion>()
+        override fun savePromptVersion(customizations: Map<String, String>) = dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion(1, 0L, emptyMap())
+        override fun deletePromptVersion(version: Int) = Unit
         override fun getApiKeyOverride(): String? = null
         override fun setApiKeyOverride(key: String) = Unit
         override fun clearApiKeyOverride() = Unit
