@@ -1,5 +1,52 @@
 package dev.gaborbiro.dailymacros.repositories.chatgpt.prompts
 
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsRequest
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTRequest
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTResponse
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ContentEntry
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.FormatType
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.InputContent
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.OutputContent
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ReasoningLevel
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.Role
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.TextOptions
+
+internal fun WeeklyInsightsRequest.toApiModel() = ChatGPTRequest(
+    model = customizations.systemPrompt(SEG_INSIGHTS_MODEL, weeklyInsightsModel),
+    reasoning = ReasoningLevel(customizations.systemPrompt(SEG_INSIGHTS_REASONING_EFFORT, weeklyInsightsReasoningEffort)),
+    text = TextOptions(FormatType("text")),
+    input = listOf(
+        ContentEntry(
+            role = Role.system,
+            content = listOf(InputContent.Text(
+                customizations.systemPrompt(SEG_INSIGHTS_SYSTEM, DEFAULT_INSIGHTS_SYSTEM)
+            )),
+        ),
+        ContentEntry(
+            role = Role.user,
+            content = listOf(InputContent.Text(diary)),
+        ),
+        ContentEntry(
+            role = Role.user,
+            content = listOf(InputContent.Text(
+                customizations.systemPrompt(SEG_INSIGHTS_USER, DEFAULT_INSIGHTS_USER)
+            )),
+        ),
+    )
+)
+
+internal fun ChatGPTResponse.toWeeklyInsightsResponse(): String =
+    output
+        .lastOrNull {
+            it.role == Role.assistant &&
+                    it.content?.any { c -> c is OutputContent.Text } == true
+        }
+        ?.content
+        ?.filterIsInstance<OutputContent.Text>()
+        ?.firstOrNull { it.text.isNotBlank() }
+        ?.text
+        ?: ""
+
 internal val DEFAULT_INSIGHTS_SYSTEM = """
 You are a nutrition coach built into a macro tracking app. You are given two weeks of food diary entries — every meal with its ingredients and full macro breakdown — plus the user's daily nutrient targets.
 

@@ -6,6 +6,9 @@ data class TrendsUiState(
     val charts: List<TrendsChartUiModel> = emptyList(),
     val settings: TrendsSettingsUIModel = TrendsSettingsUIModel.Hidden,
     val showTargetsSettings: Boolean = false,
+    val insightsText: String? = null,
+    val insightsLoading: Boolean = false,
+    val insightsError: String? = null,
 )
 
 enum class Timescale { DAYS, WEEKS, MONTHS }

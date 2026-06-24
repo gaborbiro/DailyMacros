@@ -6,6 +6,7 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecogniti
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_ANALYSIS_SYSTEM
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_ANALYSIS_USER
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_INSIGHTS_SYSTEM
@@ -33,6 +34,7 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.weeklyInsightsReas
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toApiModel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toFoodRecognitionResponse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toNutrientAnalysisResponse
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toWeeklyInsightsResponse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.ChatGPTService
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repositories.chatgpt.util.parse
@@ -122,6 +124,15 @@ class ChatGPTRepositoryImpl(
             hint = "Use {title} and {description} as placeholders for the meal title and description.",
         ),
     )
+
+    override suspend fun getWeeklyInsights(request: WeeklyInsightsRequest): String {
+        return mappingApiErrors {
+            runCatching(logTag = "getWeeklyInsights") {
+                val response = service.callResponses(request = request.toApiModel())
+                return@runCatching parse(response).toWeeklyInsightsResponse()
+            }
+        }
+    }
 
     override fun getInsightsPromptSegments(): List<PromptSegment> = listOf(
         PromptSegment.Editable(

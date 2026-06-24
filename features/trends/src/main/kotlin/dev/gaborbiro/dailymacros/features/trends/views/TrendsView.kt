@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.rememberScrollState
@@ -25,6 +26,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -65,6 +67,7 @@ internal fun TrendsView(
     onSettingsAggregationModeChanged: (DayQualifier, Timescale) -> Unit,
     onSettingsThresholdChanged: (Long, Timescale) -> Unit,
     onTargetsSettingTapped: () -> Unit,
+    onGetInsightsTapped: () -> Unit,
 ) {
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
@@ -164,6 +167,50 @@ internal fun TrendsView(
                 )
             }
 
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "Weekly Insights",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                OutlinedButton(
+                    onClick = onGetInsightsTapped,
+                    enabled = !viewState.insightsLoading,
+                ) {
+                    if (viewState.insightsLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp,
+                        )
+                    } else {
+                        Text(if (viewState.insightsText != null) "Refresh" else "Get insights")
+                    }
+                }
+            }
+
+            viewState.insightsError?.let { error ->
+                Text(
+                    text = error,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+
+            viewState.insightsText?.let { text ->
+                Text(
+                    text = text,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+
             val showEveryXLabel = when (timescale) {
                 Timescale.WEEKS -> 2
                 else -> 1
@@ -233,6 +280,7 @@ private fun TrendsViewPreview() {
             onSettingsAggregationModeChanged = { _, _ -> },
             onSettingsThresholdChanged = { _, _ -> },
             onTargetsSettingTapped = {},
+            onGetInsightsTapped = {},
         )
     }
 }

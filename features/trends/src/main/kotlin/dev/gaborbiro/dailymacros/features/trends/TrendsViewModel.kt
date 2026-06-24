@@ -4,13 +4,23 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.gaborbiro.dailymacros.features.shared.diaryDayStartTime
+import dev.gaborbiro.dailymacros.features.shared.diaryDayWindowStart
+import dev.gaborbiro.dailymacros.features.shared.logicalDiaryDate
+import dev.gaborbiro.dailymacros.features.shared.logicalDiaryToday
 import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
 import dev.gaborbiro.dailymacros.features.trends.model.Timescale
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsSettingsUIModel
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiState
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiUpdates
+import dev.gaborbiro.dailymacros.repositories.chatgpt.di.ForJsonBodyChatGpt
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsRequest
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +30,11 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -29,6 +44,7 @@ class TrendsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val preferences: TrendsPreferences,
     private val mapper: TrendsUiMapper,
+    @ForJsonBodyChatGpt private val chatGPTRepository: ChatGPTRepository,
 ) : AndroidViewModel(application) {
 
     private var recordsJob: Job
@@ -98,6 +114,31 @@ class TrendsViewModel @Inject constructor(
         recordsJob = observeRecords(timescale)
     }
 
+    fun onGetInsightsTapped() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(insightsLoading = true, insightsError = null) }
+            try {
+                val zone = ZoneId.systemDefault()
+                val dayStart = diaryDayStartTime(settingsRepository.getDiaryDayStartHour())
+                val twoWeeksAgo = logicalDiaryToday(zone, dayStart).minusDays(13)
+                val since = diaryDayWindowStart(twoWeeksAgo, dayStart, zone)
+                val records = recordsRepository.getRecords(since = since)
+                val targets = settingsRepository.getTargets()
+                val customizations = settingsRepository.getPromptCustomizations()
+                val diary = formatDiary(records, targets, zone, dayStart)
+                val result = chatGPTRepository.getWeeklyInsights(WeeklyInsightsRequest(diary, customizations))
+                _uiState.update { it.copy(insightsText = result, insightsLoading = false) }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        insightsLoading = false,
+                        insightsError = e.message ?: "Failed to get insights",
+                    )
+                }
+            }
+        }
+    }
+
     private fun observeRecords(timescale: Timescale): Job {
         return viewModelScope.launch {
             recordsRepository.observeRecords(null).collect { records ->
@@ -117,6 +158,95 @@ class TrendsViewModel @Inject constructor(
                         it.copy(charts = charts)
                     }
                 }
+            }
+        }
+    }
+
+    private fun formatDiary(
+        records: List<Record>,
+        targets: Targets,
+        zone: ZoneId,
+        dayStart: LocalTime,
+    ): String {
+        val sb = StringBuilder()
+        val today = logicalDiaryToday(zone, dayStart)
+        val thisWeekStart = today.minusDays(6)
+
+        val targetParts = buildList {
+            targets.calories.formatTarget("calories", "kcal")?.let { add(it) }
+            targets.protein.formatTarget("protein", "g")?.let { add(it) }
+            targets.fat.formatTarget("fat", "g")?.let { add(it) }
+            targets.ofWhichSaturated.formatTarget("ofWhichSaturated", "g")?.let { add(it) }
+            targets.carbs.formatTarget("carbs", "g")?.let { add(it) }
+            targets.ofWhichSugar.formatTarget("ofWhichSugar", "g")?.let { add(it) }
+            targets.salt.formatTarget("salt", "g")?.let { add(it) }
+            targets.fibre.formatTarget("fibre", "g")?.let { add(it) }
+        }
+        if (targetParts.isNotEmpty()) {
+            sb.appendLine("DAILY TARGETS: ${targetParts.joinToString(", ")}")
+            sb.appendLine()
+        }
+
+        val byDay = records
+            .sortedBy { it.timestamp }
+            .groupBy { it.timestamp.logicalDiaryDate(dayStart) }
+
+        val lastWeekDays = byDay.filterKeys { it < thisWeekStart }.toSortedMap()
+        val thisWeekDays = byDay.filterKeys { it >= thisWeekStart }.toSortedMap()
+
+        if (lastWeekDays.isNotEmpty()) {
+            sb.appendLine("=== LAST WEEK ===")
+            lastWeekDays.forEach { (day, recs) -> appendDay(sb, day, recs, zone) }
+            sb.appendLine()
+        }
+        if (thisWeekDays.isNotEmpty()) {
+            sb.appendLine("=== THIS WEEK ===")
+            thisWeekDays.forEach { (day, recs) -> appendDay(sb, day, recs, zone) }
+        }
+
+        return sb.toString().trim()
+    }
+
+    private fun Target.formatTarget(name: String, unit: String): String? {
+        if (!enabled) return null
+        return when {
+            min != null && max != null -> "$name: $min–$max$unit"
+            min != null -> "$name: ≥$min$unit"
+            max != null -> "$name: ≤$max$unit"
+            else -> null
+        }
+    }
+
+    private fun appendDay(sb: StringBuilder, day: LocalDate, records: List<Record>, zone: ZoneId) {
+        val dayFmt = DateTimeFormatter.ofPattern("EEE d MMM", Locale.getDefault())
+        val timeFmt = DateTimeFormatter.ofPattern("HH:mm")
+        sb.appendLine(day.format(dayFmt))
+        records.forEach { record ->
+            val time = record.timestamp.withZoneSameInstant(zone).format(timeFmt)
+            sb.appendLine("  • ${record.template.name} ($time)")
+            record.template.mealComponents.takeIf { it.isNotEmpty() }?.let { components ->
+                val ingredientsList = components.joinToString(", ") {
+                    buildString {
+                        append(it.name)
+                        if (it.estimatedAmount.isNotBlank()) append(" ${it.estimatedAmount}")
+                    }
+                }
+                sb.appendLine("    Ingredients: $ingredientsList")
+            }
+            val n = record.template.nutrients
+            val parts = buildList {
+                n.calories?.let { add("calories: ${it}kcal") }
+                n.protein?.let { add("protein: ${it}g") }
+                n.fat?.let { add("fat: ${it}g") }
+                n.ofWhichSaturated?.let { add("ofWhichSaturated: ${it}g") }
+                n.carbs?.let { add("carbs: ${it}g") }
+                n.ofWhichSugar?.let { add("ofWhichSugar: ${it}g") }
+                n.ofWhichAddedSugar?.let { add("ofWhichAddedSugar: ${it}g") }
+                n.salt?.let { add("salt: ${it}g") }
+                n.fibre?.let { add("fibre: ${it}g") }
+            }
+            if (parts.isNotEmpty()) {
+                sb.appendLine("    Nutrients: ${parts.joinToString(", ")}")
             }
         }
     }
