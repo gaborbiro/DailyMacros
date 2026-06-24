@@ -167,6 +167,45 @@ internal fun TrendsView(
                 )
             }
 
+            val showEveryXLabel = when (timescale) {
+                Timescale.WEEKS -> 2
+                else -> 1
+            }
+
+            key(timescale) {
+                var chartsVisible by remember { mutableStateOf(false) }
+
+                LaunchedEffect(Unit) {
+                    delay(300)
+                    chartsVisible = true
+                }
+
+                if (chartsVisible) {
+                    val scrollState = rememberVicoScrollState(
+                        initialScroll = Scroll.Absolute.End,
+                    )
+
+                    viewState.charts.forEach { chartData ->
+                        TrendsChart(
+                            modifier = Modifier
+                                .padding(start = PaddingDefault),
+                            chartData = chartData,
+                            scrollState = scrollState,
+                            showEveryXLabel = showEveryXLabel,
+                        )
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+            }
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -209,45 +248,6 @@ internal fun TrendsView(
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                     style = MaterialTheme.typography.bodyMedium,
                 )
-            }
-
-            val showEveryXLabel = when (timescale) {
-                Timescale.WEEKS -> 2
-                else -> 1
-            }
-
-            key(timescale) {
-                var chartsVisible by remember { mutableStateOf(false) }
-
-                LaunchedEffect(Unit) {
-                    delay(300)
-                    chartsVisible = true
-                }
-
-                if (chartsVisible) {
-                    val scrollState = rememberVicoScrollState(
-                        initialScroll = Scroll.Absolute.End,
-                    )
-
-                    viewState.charts.forEach { chartData ->
-                        TrendsChart(
-                            modifier = Modifier
-                                .padding(start = PaddingDefault),
-                            chartData = chartData,
-                            scrollState = scrollState,
-                            showEveryXLabel = showEveryXLabel,
-                        )
-                    }
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
             }
         }
 
