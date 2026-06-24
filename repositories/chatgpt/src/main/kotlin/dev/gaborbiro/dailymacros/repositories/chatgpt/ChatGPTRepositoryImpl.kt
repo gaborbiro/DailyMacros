@@ -125,7 +125,7 @@ class ChatGPTRepositoryImpl(
         ),
     )
 
-    override suspend fun getWeeklyInsights(request: WeeklyInsightsRequest): String {
+    override suspend fun getWeeklyInsights(request: WeeklyInsightsRequest): Map<String, String> {
         return mappingApiErrors {
             runCatching(logTag = "getWeeklyInsights") {
                 val response = service.callResponses(request = request.toApiModel())

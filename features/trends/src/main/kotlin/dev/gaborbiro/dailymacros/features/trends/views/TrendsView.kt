@@ -172,40 +172,6 @@ internal fun TrendsView(
                 else -> 1
             }
 
-            key(timescale) {
-                var chartsVisible by remember { mutableStateOf(false) }
-
-                LaunchedEffect(Unit) {
-                    delay(300)
-                    chartsVisible = true
-                }
-
-                if (chartsVisible) {
-                    val scrollState = rememberVicoScrollState(
-                        initialScroll = Scroll.Absolute.End,
-                    )
-
-                    viewState.charts.forEach { chartData ->
-                        TrendsChart(
-                            modifier = Modifier
-                                .padding(start = PaddingDefault),
-                            chartData = chartData,
-                            scrollState = scrollState,
-                            showEveryXLabel = showEveryXLabel,
-                        )
-                    }
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-            }
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -228,7 +194,7 @@ internal fun TrendsView(
                             strokeWidth = 2.dp,
                         )
                     } else {
-                        Text(if (viewState.insightsText != null) "Refresh" else "Get insights")
+                        Text(if (viewState.insights.isNotEmpty()) "Refresh" else "Get insights")
                     }
                 }
             }
@@ -242,12 +208,46 @@ internal fun TrendsView(
                 )
             }
 
-            viewState.insightsText?.let { text ->
-                Text(
-                    text = text,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
+            key(timescale) {
+                var chartsVisible by remember { mutableStateOf(false) }
+
+                LaunchedEffect(Unit) {
+                    delay(300)
+                    chartsVisible = true
+                }
+
+                if (chartsVisible) {
+                    val scrollState = rememberVicoScrollState(
+                        initialScroll = Scroll.Absolute.End,
+                    )
+
+                    viewState.charts.forEach { chartData ->
+                        TrendsChart(
+                            modifier = Modifier
+                                .padding(start = PaddingDefault),
+                            chartData = chartData,
+                            scrollState = scrollState,
+                            showEveryXLabel = showEveryXLabel,
+                        )
+                        viewState.insights[chartData.title]?.let { insight ->
+                            Text(
+                                text = insight,
+                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
             }
         }
 
@@ -287,6 +287,7 @@ private fun TrendsViewPreview() {
 
 private val previewData = listOf(
     TrendsChartUiModel(
+        title = "Calories",
         datasets = listOf(
             ChartDataset(
                 name = "Chart",
@@ -300,6 +301,7 @@ private val previewData = listOf(
         )
     ),
     TrendsChartUiModel(
+        title = "Protein",
         datasets = listOf(
             ChartDataset(
                 name = "Chart2",

@@ -6,7 +6,7 @@ data class TrendsUiState(
     val charts: List<TrendsChartUiModel> = emptyList(),
     val settings: TrendsSettingsUIModel = TrendsSettingsUIModel.Hidden,
     val showTargetsSettings: Boolean = false,
-    val insightsText: String? = null,
+    val insights: Map<String, String> = emptyMap(),
     val insightsLoading: Boolean = false,
     val insightsError: String? = null,
 )
@@ -14,6 +14,7 @@ data class TrendsUiState(
 enum class Timescale { DAYS, WEEKS, MONTHS }
 
 data class TrendsChartUiModel(
+    val title: String,
     val datasets: List<ChartDataset>,
     val pinnedMaxY: Double? = null,
 )

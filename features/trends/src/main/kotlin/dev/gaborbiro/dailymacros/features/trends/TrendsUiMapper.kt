@@ -252,25 +252,25 @@ class TrendsUiMapper @Inject constructor(
         val noTarget = Target(enabled = false)
 
         return datasetsOf(
-            listOf(
+            "Calories" to listOf(
                 series("Calories (kcal)", Color(0xFF8AB4F8), agg { it.template.nutrients.calories?.toFloat() }, targets.calories),
             ),
-            listOf(
+            "Protein" to listOf(
                 series("Protein (g)", Color(0xFF81C995), agg { it.template.nutrients.protein }, targets.protein),
             ),
-            listOf(
+            "Carbs" to listOf(
                 series("Carbs (g)", Color(0xFFFFC278), agg { it.template.nutrients.carbs }, targets.carbs),
                 series("  └>of which sugar (g)", Color(0xFFFFB74D), agg { it.template.nutrients.ofWhichSugar }, targets.ofWhichSugar),
                 series("      └>of which added sugar (g)", Color(0xFFFF802C), agg { it.template.nutrients.ofWhichAddedSugar }, noTarget),
             ),
-            listOf(
+            "Fat" to listOf(
                 series("Fat (g)", Color(0xFFFFA6A6), agg { it.template.nutrients.fat }, targets.fat),
                 series(" └>of which saturated fat (g)", Color(0xFFE57373), agg { it.template.nutrients.ofWhichSaturated }, targets.ofWhichSaturated),
             ),
-            listOf(
+            "Salt" to listOf(
                 series("Salt (g)", Color(0xFFB39DDB), agg { it.template.nutrients.salt }, targets.salt),
             ),
-            listOf(
+            "Fibre" to listOf(
                 series("Fibre (g)", Color(0xFF4DB6AC), agg { it.template.nutrients.fibre }, targets.fibre),
             ),
         )
@@ -394,11 +394,12 @@ class TrendsUiMapper @Inject constructor(
     }
 
     private fun datasetsOf(
-        vararg rows: List<SeriesWithTarget>,
+        vararg rows: Pair<String, List<SeriesWithTarget>>,
     ): List<TrendsChartUiModel> {
-        return rows.map { chartConfig ->
+        return rows.map { (title, chartConfig) ->
             TrendsChartUiModel(
-                chartConfig.map { spec ->
+                title = title,
+                datasets = chartConfig.map { spec ->
                     val (set: List<ChartDataPoint>, current) = spec.data
                     val (minY, maxY) = targetHorizontalValues(spec.target)
                     ChartDataset(
@@ -483,6 +484,7 @@ class TrendsUiMapper @Inject constructor(
         }
 
         return TrendsChartUiModel(
+            title = "Adherence",
             datasets = listOf(
                 ChartDataset(
                     name = "Adherence (%)",

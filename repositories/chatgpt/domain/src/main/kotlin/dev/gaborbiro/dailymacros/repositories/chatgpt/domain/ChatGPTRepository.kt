@@ -26,5 +26,5 @@ interface ChatGPTRepository {
     fun getInsightsPromptSegments(): List<PromptSegment>
 
     /** @throws dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError on any API/transport failure. */
-    suspend fun getWeeklyInsights(request: WeeklyInsightsRequest): String
+    suspend fun getWeeklyInsights(request: WeeklyInsightsRequest): Map<String, String>
 }
