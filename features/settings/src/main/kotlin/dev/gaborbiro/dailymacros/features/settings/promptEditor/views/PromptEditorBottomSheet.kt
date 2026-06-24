@@ -27,7 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
@@ -79,12 +79,21 @@ internal fun PromptEditorView(
     onClearApiKeyTapped: () -> Unit,
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Recognition", "Analysis")
-    val currentSegments = if (selectedTab == 0) viewState.recognitionSegments else viewState.analysisSegments
+    val tabs = listOf("Recognition", "Analysis", "Weekly Insights")
+    val currentSegments = when (selectedTab) {
+        0 -> viewState.recognitionSegments
+        1 -> viewState.analysisSegments
+        else -> viewState.insightsSegments
+    }
 
     val recognitionScrollState = rememberScrollState()
     val analysisScrollState = rememberScrollState()
-    val activeScrollState: ScrollState = if (selectedTab == 0) recognitionScrollState else analysisScrollState
+    val insightsScrollState = rememberScrollState()
+    val activeScrollState: ScrollState = when (selectedTab) {
+        0 -> recognitionScrollState
+        1 -> analysisScrollState
+        else -> insightsScrollState
+    }
 
     var hiddenPx by remember { mutableFloatStateOf(0f) }
     var collapsingMaxPx by remember { mutableFloatStateOf(0f) }
@@ -180,7 +189,7 @@ internal fun PromptEditorView(
                         )
                     }
 
-                    PrimaryTabRow(selectedTabIndex = selectedTab) {
+                    ScrollableTabRow(selectedTabIndex = selectedTab) {
                         tabs.forEachIndexed { index, title ->
                             Tab(
                                 selected = selectedTab == index,

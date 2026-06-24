@@ -21,4 +21,6 @@ interface ChatGPTRepository {
     fun getRecognitionPromptSegments(): List<PromptSegment>
 
     fun getAnalysisPromptSegments(): List<PromptSegment>
+
+    fun getInsightsPromptSegments(): List<PromptSegment>
 }
