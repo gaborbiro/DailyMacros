@@ -23,7 +23,7 @@ android {
         minSdk = libs.versions.android.sdk.min.get().toInt()
         targetSdk = libs.versions.android.sdk.target.get().toInt()
         versionCode = pipelineId
-        versionName = "${baseVersion}-${pipelineId}-${branch}-${sha}"
+        versionName = "${baseVersion}(${pipelineId})-${branch}-${sha}"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
