@@ -47,6 +47,7 @@ class PromptEditorViewModel @Inject constructor(
         _uiState.value = PromptEditorUiState(
             recognitionSegments = chatGPTRepository.getRecognitionPromptSegments(),
             analysisSegments = chatGPTRepository.getAnalysisPromptSegments(),
+            insightsSegments = chatGPTRepository.getInsightsPromptSegments(),
             currentValues = customizations,
             originalValues = customizations,
             versions = versions,

@@ -14,6 +14,7 @@ dependencies {
     implementation(project(":features:common"))
     implementation(project(":features:shared"))
     implementation(project(":features:settings"))
+    implementation(project(":repositories:chatgpt"))
     implementation(project(":repositories:records"))
     implementation(project(":repositories:settings:domain"))
 

@@ -41,6 +41,8 @@ class FoodRecognitionUseCaseTest {
 
         override fun getRecognitionPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
         override fun getAnalysisPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
+        override fun getInsightsPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
+        override suspend fun getWeeklyInsights(request: dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsRequest): Map<String, String> = error("unused")
     }
 
     private val fakeSettingsRepository = object : dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository {
@@ -59,10 +61,10 @@ class FoodRecognitionUseCaseTest {
         override fun setDiaryDayStartHour(hourOfDay: Int) = Unit
         override fun getPromptCustomizations(): Map<String, String> = emptyMap()
         override fun setPromptCustomizations(values: Map<String, String>) = Unit
+        override fun clearPromptCustomizations() = Unit
         override fun getPromptVersions() = emptyList<dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion>()
         override fun savePromptVersion(customizations: Map<String, String>) = dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion(1, 0L, emptyMap())
-        override fun deletePromptVersion(version: Int) {}
-        override fun clearPromptCustomizations() = Unit
+        override fun deletePromptVersion(version: Int) = Unit
         override fun getApiKeyOverride(): String? = null
         override fun setApiKeyOverride(key: String) = Unit
         override fun clearApiKeyOverride() = Unit
