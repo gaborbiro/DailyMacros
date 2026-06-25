@@ -15,7 +15,13 @@ android {
     compileSdk = libs.versions.android.sdk.compile.get().toInt()
 
     val pipelineId = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: Int.MAX_VALUE
-    val branch = System.getenv("GITHUB_REF_NAME") ?: "local"
+    // GITHUB_HEAD_REF is the PR source branch (e.g. "feature/foo"); only set on pull_request events.
+    // GITHUB_REF_NAME is "master" on push events but "60/merge" on pull_request events — the slash
+    // makes it an invalid filename component, so the APK rename silently fails.
+    val branch = (System.getenv("GITHUB_HEAD_REF")
+        ?.takeIf { it.isNotEmpty() }
+        ?: System.getenv("GITHUB_REF_NAME")
+        ?: "local").replace("/", "-")
     val sha = System.getenv("GITHUB_SHA")?.take(7) ?: "manual"
 
     defaultConfig {
