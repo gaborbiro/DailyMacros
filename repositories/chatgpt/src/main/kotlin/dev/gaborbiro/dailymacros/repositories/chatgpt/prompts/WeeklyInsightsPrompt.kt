@@ -65,7 +65,7 @@ Your job:
 5. Skip nutrients that are within target and stable — do not narrate the obvious
 
 Output format:
-- Return a JSON object where each key is the nutrient name (Calories, Protein, Carbs, Fat, Salt, Fibre) and each value is the insight for that nutrient
+- Return a JSON object where each key is the nutrient name (Calories, Protein, Carbs, Fat, Salt, Fibre) and each value is the insight for that nutrient; each value must start with 🔔 or 👏
 - Only include keys for nutrients that have something notable to say
 - Each value: 1–3 sentences, backed by a specific food example from the diary
 - No generic dietary advice; no definitions of what macros are

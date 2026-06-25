@@ -34,6 +34,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.temporal.WeekFields
 import java.util.Locale
 import javax.inject.Inject
 
@@ -120,8 +121,11 @@ class TrendsViewModel @Inject constructor(
             try {
                 val zone = ZoneId.systemDefault()
                 val dayStart = diaryDayStartTime(settingsRepository.getDiaryDayStartHour())
-                val twoWeeksAgo = logicalDiaryToday(zone, dayStart).minusDays(13)
-                val since = diaryDayWindowStart(twoWeeksAgo, dayStart, zone)
+                val today = logicalDiaryToday(zone, dayStart)
+                val weekFields = WeekFields.of(Locale.getDefault())
+                val thisWeekStart = today.with(weekFields.dayOfWeek(), 1)
+                val lastWeekStart = thisWeekStart.minusWeeks(1)
+                val since = diaryDayWindowStart(lastWeekStart, dayStart, zone)
                 val records = recordsRepository.getRecords(since = since)
                 val targets = settingsRepository.getTargets()
                 val customizations = settingsRepository.getPromptCustomizations()
@@ -170,7 +174,8 @@ class TrendsViewModel @Inject constructor(
     ): String {
         val sb = StringBuilder()
         val today = logicalDiaryToday(zone, dayStart)
-        val thisWeekStart = today.minusDays(6)
+        val weekFields = WeekFields.of(Locale.getDefault())
+        val thisWeekStart = today.with(weekFields.dayOfWeek(), 1)
 
         val targetParts = buildList {
             targets.calories.formatTarget("calories", "kcal")?.let { add(it) }
