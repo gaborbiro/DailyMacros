@@ -7,6 +7,7 @@ data class TrendsUiState(
     val settings: TrendsSettingsUIModel = TrendsSettingsUIModel.Hidden,
     val showTargetsSettings: Boolean = false,
     val insights: Map<String, String> = emptyMap(),
+    val insightsDateRange: String? = null,
     val insightsLoading: Boolean = false,
     val insightsError: String? = null,
 )

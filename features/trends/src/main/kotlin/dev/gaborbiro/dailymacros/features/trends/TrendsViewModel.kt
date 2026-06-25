@@ -132,7 +132,8 @@ class TrendsViewModel @Inject constructor(
                 val customizations = settingsRepository.getPromptCustomizations()
                 val diary = formatDiary(records, targets, zone, dayStart)
                 val result = chatGPTRepository.getWeeklyInsights(WeeklyInsightsRequest(diary, customizations))
-                _uiState.update { it.copy(insights = result, insightsLoading = false) }
+                val rangeLabel = "${formatWeekRange(lastCompleteWeekStart)} vs ${formatWeekRange(prevWeekStart)}"
+                _uiState.update { it.copy(insights = result, insightsDateRange = rangeLabel, insightsLoading = false) }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
