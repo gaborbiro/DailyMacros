@@ -23,7 +23,7 @@ android {
         minSdk = libs.versions.android.sdk.min.get().toInt()
         targetSdk = libs.versions.android.sdk.target.get().toInt()
         versionCode = pipelineId
-        versionName = "v${baseVersion}-${pipelineId}-${branch}-${sha}"
+        versionName = "${baseVersion}-${pipelineId}-${branch}-${sha}"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -187,15 +187,9 @@ afterEvaluate {
     }
 }
 
-fun gitShortHash(): String = providers.exec {
-    commandLine("git", "rev-parse", "--short", "HEAD")
-}.standardOutput.asText.get().trim()
-
 fun artifactBaseName(buildType: String): String {
     val versionName = android.defaultConfig.versionName ?: "unknown"
-    val versionCode = android.defaultConfig.versionCode
-    val commitHash = gitShortHash()
-    return "DailyMacros-v${versionName}(${versionCode})-${commitHash}-$buildType"
+    return "DailyMacros-v${versionName}-$buildType"
 }
 
 tasks.matching { it.name.startsWith("bundle") }.configureEach {
