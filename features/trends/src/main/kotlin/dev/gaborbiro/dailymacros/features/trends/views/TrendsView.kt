@@ -68,6 +68,7 @@ internal fun TrendsView(
     onSettingsThresholdChanged: (Long, Timescale) -> Unit,
     onTargetsSettingTapped: () -> Unit,
     onGetInsightsTapped: () -> Unit,
+    onGetOngoingInsightsTapped: () -> Unit,
 ) {
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
@@ -122,7 +123,7 @@ internal fun TrendsView(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Text(
-                        text = "Trends will show up once you've logged meals for a few days",
+                        text = "Trends will show up once you’ve logged meals for a few days",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -170,6 +171,53 @@ internal fun TrendsView(
             val showEveryXLabel = when (timescale) {
                 Timescale.WEEKS -> 2
                 else -> 1
+            }
+
+            if (timescale == Timescale.DAYS) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column {
+                        Text(
+                            text = "Ongoing Week Insights",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        viewState.ongoingInsightsDateRange?.let {
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    OutlinedButton(
+                        onClick = onGetOngoingInsightsTapped,
+                        enabled = !viewState.ongoingInsightsLoading,
+                    ) {
+                        if (viewState.ongoingInsightsLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp,
+                            )
+                        } else {
+                            Text(if (viewState.ongoingInsights.isNotEmpty()) "Refresh" else "Get insights")
+                        }
+                    }
+                }
+
+                viewState.ongoingInsightsError?.let { error ->
+                    Text(
+                        text = error,
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
             }
 
             if (timescale == Timescale.WEEKS) {
@@ -240,6 +288,16 @@ internal fun TrendsView(
                             scrollState = scrollState,
                             showEveryXLabel = showEveryXLabel,
                         )
+                        if (timescale == Timescale.DAYS) {
+                            viewState.ongoingInsights[chartData.title]?.let { insight ->
+                                Text(
+                                    text = insight,
+                                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
                         if (timescale == Timescale.WEEKS) {
                             viewState.insights[chartData.title]?.let { insight ->
                                 Text(
@@ -294,6 +352,7 @@ private fun TrendsViewPreview() {
             onSettingsThresholdChanged = { _, _ -> },
             onTargetsSettingTapped = {},
             onGetInsightsTapped = {},
+            onGetOngoingInsightsTapped = {},
         )
     }
 }
