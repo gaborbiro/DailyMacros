@@ -34,6 +34,8 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.time.temporal.WeekFields
 import java.util.Locale
 import javax.inject.Inject
 
@@ -57,6 +59,10 @@ class TrendsViewModel @Inject constructor(
 
     init {
         recordsJob = observeRecords(Timescale.DAYS)
+        val savedInsights = preferences.insights
+        if (savedInsights.isNotEmpty()) {
+            _uiState.update { it.copy(insights = savedInsights, insightsDateRange = preferences.insightsDateRange) }
+        }
     }
 
     fun onTimescaleSelected(timescale: Timescale) {
@@ -120,14 +126,20 @@ class TrendsViewModel @Inject constructor(
             try {
                 val zone = ZoneId.systemDefault()
                 val dayStart = diaryDayStartTime(settingsRepository.getDiaryDayStartHour())
-                val twoWeeksAgo = logicalDiaryToday(zone, dayStart).minusDays(13)
-                val since = diaryDayWindowStart(twoWeeksAgo, dayStart, zone)
+                val today = logicalDiaryToday(zone, dayStart)
+                val weekFields = WeekFields.of(Locale.getDefault())
+                val lastCompleteWeekStart = today.with(weekFields.dayOfWeek(), 1).minusWeeks(1)
+                val prevWeekStart = lastCompleteWeekStart.minusWeeks(1)
+                val since = diaryDayWindowStart(prevWeekStart, dayStart, zone)
                 val records = recordsRepository.getRecords(since = since)
                 val targets = settingsRepository.getTargets()
                 val customizations = settingsRepository.getPromptCustomizations()
                 val diary = formatDiary(records, targets, zone, dayStart)
                 val result = chatGPTRepository.getWeeklyInsights(WeeklyInsightsRequest(diary, customizations))
-                _uiState.update { it.copy(insights = result, insightsLoading = false) }
+                val rangeLabel = "${formatWeekRange(lastCompleteWeekStart)} vs ${formatWeekRange(prevWeekStart)}"
+                preferences.insights = result
+                preferences.insightsDateRange = rangeLabel
+                _uiState.update { it.copy(insights = result, insightsDateRange = rangeLabel, insightsLoading = false) }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
@@ -170,7 +182,9 @@ class TrendsViewModel @Inject constructor(
     ): String {
         val sb = StringBuilder()
         val today = logicalDiaryToday(zone, dayStart)
-        val thisWeekStart = today.minusDays(6)
+        val weekFields = WeekFields.of(Locale.getDefault())
+        val lastCompleteWeekStart = today.with(weekFields.dayOfWeek(), 1).minusWeeks(1)
+        val prevWeekStart = lastCompleteWeekStart.minusWeeks(1)
 
         val targetParts = buildList {
             targets.calories.formatTarget("calories", "kcal")?.let { add(it) }
@@ -191,20 +205,31 @@ class TrendsViewModel @Inject constructor(
             .sortedBy { it.timestamp }
             .groupBy { it.timestamp.logicalDiaryDate(dayStart) }
 
-        val lastWeekDays = byDay.filterKeys { it < thisWeekStart }.toSortedMap()
-        val thisWeekDays = byDay.filterKeys { it >= thisWeekStart }.toSortedMap()
+        val prevWeekDays = byDay.filterKeys { it >= prevWeekStart && it < lastCompleteWeekStart }.toSortedMap()
+        val lastWeekDays = byDay.filterKeys { it >= lastCompleteWeekStart }.toSortedMap()
 
-        if (lastWeekDays.isNotEmpty()) {
-            sb.appendLine("=== LAST WEEK ===")
-            lastWeekDays.forEach { (day, recs) -> appendDay(sb, day, recs, zone) }
+        if (prevWeekDays.isNotEmpty()) {
+            sb.appendLine("=== ${formatWeekRange(prevWeekStart)} ===")
+            prevWeekDays.forEach { (day, recs) -> appendDay(sb, day, recs, zone) }
             sb.appendLine()
         }
-        if (thisWeekDays.isNotEmpty()) {
-            sb.appendLine("=== THIS WEEK ===")
-            thisWeekDays.forEach { (day, recs) -> appendDay(sb, day, recs, zone) }
+        if (lastWeekDays.isNotEmpty()) {
+            sb.appendLine("=== ${formatWeekRange(lastCompleteWeekStart)} ===")
+            lastWeekDays.forEach { (day, recs) -> appendDay(sb, day, recs, zone) }
         }
 
         return sb.toString().trim()
+    }
+
+    private fun formatWeekRange(weekStart: LocalDate): String {
+        val weekEnd = weekStart.plusDays(6)
+        val startMonth = weekStart.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+        val endMonth = weekEnd.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+        return if (weekStart.month == weekEnd.month) {
+            "${weekStart.dayOfMonth}–${weekEnd.dayOfMonth} $endMonth"
+        } else {
+            "${weekStart.dayOfMonth} $startMonth – ${weekEnd.dayOfMonth} $endMonth"
+        }
     }
 
     private fun Target.formatTarget(name: String, unit: String): String? {

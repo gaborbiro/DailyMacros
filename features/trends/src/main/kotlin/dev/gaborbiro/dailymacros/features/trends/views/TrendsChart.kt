@@ -201,13 +201,23 @@ internal fun TrendsChart(
         }
     }
 
-    val markerValueFormatter = remember {
+    val targetYValues = remember(chartData.datasets) {
+        buildSet {
+            chartData.datasets.forEach { d ->
+                d.targetMaxY?.let { add(it) }
+                d.targetMinY?.takeIf { it != d.targetMaxY }?.let { add(it) }
+            }
+        }
+    }
+
+    val markerValueFormatter = remember(targetYValues) {
         DefaultCartesianMarker.ValueFormatter { _, targets ->
             val values = targets
                 .filterIsInstance<LineCartesianLayerMarkerTarget>()
                 .flatMap { it.points }
-                .distinctBy { it.entry.x * 1_000_000 + it.entry.y }
                 .map { it.entry.y }
+                .filter { y -> y !in targetYValues }
+                .distinctBy { "%.2f".format(it) }
 
             values.joinToString(separator = "; ") { value ->
                 "%.2f".format(value)
