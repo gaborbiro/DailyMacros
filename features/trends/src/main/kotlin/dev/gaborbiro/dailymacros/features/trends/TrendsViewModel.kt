@@ -59,6 +59,10 @@ class TrendsViewModel @Inject constructor(
 
     init {
         recordsJob = observeRecords(Timescale.DAYS)
+        val savedInsights = preferences.insights
+        if (savedInsights.isNotEmpty()) {
+            _uiState.update { it.copy(insights = savedInsights, insightsDateRange = preferences.insightsDateRange) }
+        }
     }
 
     fun onTimescaleSelected(timescale: Timescale) {
@@ -133,6 +137,8 @@ class TrendsViewModel @Inject constructor(
                 val diary = formatDiary(records, targets, zone, dayStart)
                 val result = chatGPTRepository.getWeeklyInsights(WeeklyInsightsRequest(diary, customizations))
                 val rangeLabel = "${formatWeekRange(lastCompleteWeekStart)} vs ${formatWeekRange(prevWeekStart)}"
+                preferences.insights = result
+                preferences.insightsDateRange = rangeLabel
                 _uiState.update { it.copy(insights = result, insightsDateRange = rangeLabel, insightsLoading = false) }
             } catch (e: Exception) {
                 _uiState.update {
