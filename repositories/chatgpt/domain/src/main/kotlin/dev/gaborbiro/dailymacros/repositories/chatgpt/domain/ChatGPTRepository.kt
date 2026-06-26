@@ -4,6 +4,7 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecogniti
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingInsightsRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsRequest
 
@@ -25,6 +26,11 @@ interface ChatGPTRepository {
 
     fun getInsightsPromptSegments(): List<PromptSegment>
 
+    fun getOngoingInsightsPromptSegments(): List<PromptSegment>
+
     /** @throws dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError on any API/transport failure. */
     suspend fun getWeeklyInsights(request: WeeklyInsightsRequest): Map<String, String>
+
+    /** @throws dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError on any API/transport failure. */
+    suspend fun getOngoingInsights(request: OngoingInsightsRequest): Map<String, String>
 }

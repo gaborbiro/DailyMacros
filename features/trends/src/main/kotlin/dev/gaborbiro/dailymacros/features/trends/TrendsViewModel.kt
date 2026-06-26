@@ -15,6 +15,7 @@ import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiState
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiUpdates
 import dev.gaborbiro.dailymacros.repositories.chatgpt.di.ForJsonBodyChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingInsightsRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsRequest
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
@@ -62,6 +63,10 @@ class TrendsViewModel @Inject constructor(
         val savedInsights = preferences.insights
         if (savedInsights.isNotEmpty()) {
             _uiState.update { it.copy(insights = savedInsights, insightsDateRange = preferences.insightsDateRange) }
+        }
+        val savedOngoingInsights = preferences.ongoingInsights
+        if (savedOngoingInsights.isNotEmpty()) {
+            _uiState.update { it.copy(ongoingInsights = savedOngoingInsights, ongoingInsightsDateRange = preferences.ongoingInsightsDateRange) }
         }
     }
 
@@ -151,6 +156,36 @@ class TrendsViewModel @Inject constructor(
         }
     }
 
+    fun onGetOngoingInsightsTapped() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(ongoingInsightsLoading = true, ongoingInsightsError = null) }
+            try {
+                val zone = ZoneId.systemDefault()
+                val dayStart = diaryDayStartTime(settingsRepository.getDiaryDayStartHour())
+                val today = logicalDiaryToday(zone, dayStart)
+                val weekFields = WeekFields.of(Locale.getDefault())
+                val thisWeekStart = today.with(weekFields.dayOfWeek(), 1)
+                val since = diaryDayWindowStart(thisWeekStart, dayStart, zone)
+                val records = recordsRepository.getRecords(since = since)
+                val targets = settingsRepository.getTargets()
+                val customizations = settingsRepository.getPromptCustomizations()
+                val diary = formatOngoingDiary(records, targets, zone, dayStart)
+                val result = chatGPTRepository.getOngoingInsights(OngoingInsightsRequest(diary, customizations))
+                val rangeLabel = formatPartialWeekRange(thisWeekStart, today)
+                preferences.ongoingInsights = result
+                preferences.ongoingInsightsDateRange = rangeLabel
+                _uiState.update { it.copy(ongoingInsights = result, ongoingInsightsDateRange = rangeLabel, ongoingInsightsLoading = false) }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        ongoingInsightsLoading = false,
+                        ongoingInsightsError = e.message ?: "Failed to get insights",
+                    )
+                }
+            }
+        }
+    }
+
     private fun observeRecords(timescale: Timescale): Job {
         return viewModelScope.launch {
             recordsRepository.observeRecords(null).collect { records ->
@@ -186,20 +221,7 @@ class TrendsViewModel @Inject constructor(
         val lastCompleteWeekStart = today.with(weekFields.dayOfWeek(), 1).minusWeeks(1)
         val prevWeekStart = lastCompleteWeekStart.minusWeeks(1)
 
-        val targetParts = buildList {
-            targets.calories.formatTarget("calories", "kcal")?.let { add(it) }
-            targets.protein.formatTarget("protein", "g")?.let { add(it) }
-            targets.fat.formatTarget("fat", "g")?.let { add(it) }
-            targets.ofWhichSaturated.formatTarget("ofWhichSaturated", "g")?.let { add(it) }
-            targets.carbs.formatTarget("carbs", "g")?.let { add(it) }
-            targets.ofWhichSugar.formatTarget("ofWhichSugar", "g")?.let { add(it) }
-            targets.salt.formatTarget("salt", "g")?.let { add(it) }
-            targets.fibre.formatTarget("fibre", "g")?.let { add(it) }
-        }
-        if (targetParts.isNotEmpty()) {
-            sb.appendLine("DAILY TARGETS: ${targetParts.joinToString(", ")}")
-            sb.appendLine()
-        }
+        appendTargetParts(sb, targets)
 
         val byDay = records
             .sortedBy { it.timestamp }
@@ -221,6 +243,48 @@ class TrendsViewModel @Inject constructor(
         return sb.toString().trim()
     }
 
+    private fun formatOngoingDiary(
+        records: List<Record>,
+        targets: Targets,
+        zone: ZoneId,
+        dayStart: LocalTime,
+    ): String {
+        val sb = StringBuilder()
+        val today = logicalDiaryToday(zone, dayStart)
+        val weekFields = WeekFields.of(Locale.getDefault())
+        val thisWeekStart = today.with(weekFields.dayOfWeek(), 1)
+
+        appendTargetParts(sb, targets)
+
+        val byDay = records
+            .sortedBy { it.timestamp }
+            .groupBy { it.timestamp.logicalDiaryDate(dayStart) }
+
+        val weekDays = byDay.filterKeys { it >= thisWeekStart }.toSortedMap()
+
+        sb.appendLine("=== ${formatPartialWeekRange(thisWeekStart, today)} ===")
+        weekDays.forEach { (day, recs) -> appendDay(sb, day, recs, zone) }
+
+        return sb.toString().trim()
+    }
+
+    private fun appendTargetParts(sb: StringBuilder, targets: Targets) {
+        val targetParts = buildList {
+            targets.calories.formatTarget("calories", "kcal")?.let { add(it) }
+            targets.protein.formatTarget("protein", "g")?.let { add(it) }
+            targets.fat.formatTarget("fat", "g")?.let { add(it) }
+            targets.ofWhichSaturated.formatTarget("ofWhichSaturated", "g")?.let { add(it) }
+            targets.carbs.formatTarget("carbs", "g")?.let { add(it) }
+            targets.ofWhichSugar.formatTarget("ofWhichSugar", "g")?.let { add(it) }
+            targets.salt.formatTarget("salt", "g")?.let { add(it) }
+            targets.fibre.formatTarget("fibre", "g")?.let { add(it) }
+        }
+        if (targetParts.isNotEmpty()) {
+            sb.appendLine("DAILY TARGETS: ${targetParts.joinToString(", ")}")
+            sb.appendLine()
+        }
+    }
+
     private fun formatWeekRange(weekStart: LocalDate): String {
         val weekEnd = weekStart.plusDays(6)
         val startMonth = weekStart.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
@@ -229,6 +293,16 @@ class TrendsViewModel @Inject constructor(
             "${weekStart.dayOfMonth}–${weekEnd.dayOfMonth} $endMonth"
         } else {
             "${weekStart.dayOfMonth} $startMonth – ${weekEnd.dayOfMonth} $endMonth"
+        }
+    }
+
+    private fun formatPartialWeekRange(weekStart: LocalDate, today: LocalDate): String {
+        val startMonth = weekStart.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+        val endMonth = today.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+        return if (weekStart.month == today.month) {
+            "${weekStart.dayOfMonth}–${today.dayOfMonth} $endMonth"
+        } else {
+            "${weekStart.dayOfMonth} $startMonth – ${today.dayOfMonth} $endMonth"
         }
     }
 

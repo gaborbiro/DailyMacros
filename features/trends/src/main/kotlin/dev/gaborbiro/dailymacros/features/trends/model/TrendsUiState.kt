@@ -10,6 +10,10 @@ data class TrendsUiState(
     val insightsDateRange: String? = null,
     val insightsLoading: Boolean = false,
     val insightsError: String? = null,
+    val ongoingInsights: Map<String, String> = emptyMap(),
+    val ongoingInsightsDateRange: String? = null,
+    val ongoingInsightsLoading: Boolean = false,
+    val ongoingInsightsError: String? = null,
 )
 
 enum class Timescale { DAYS, WEEKS, MONTHS }
