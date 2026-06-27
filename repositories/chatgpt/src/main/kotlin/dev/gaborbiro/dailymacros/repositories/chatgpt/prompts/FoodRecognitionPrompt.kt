@@ -3,7 +3,7 @@ package dev.gaborbiro.dailymacros.repositories.chatgpt.prompts
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodTitle
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTResponse
@@ -67,7 +67,7 @@ internal fun FoodRecognitionRequest.toApiModel() = ChatGPTRequest(
     )
 )
 
-internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionResult {
+internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodTitle {
     val gson = GsonBuilder().create()
 
     val resultJson: String? = this.output
@@ -82,27 +82,23 @@ internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionResult 
         }
         ?.text
 
-    val cachedTokens = this.usage.inputTokensDetails.cachedTokens
-
-    class FoodDescription(
+    class FoodDescriptionResponse(
         @SerializedName("title") val title: String?,
         @SerializedName("error") val error: String?,
     )
 
     return resultJson
         ?.let {
-            val foodDescription = gson.fromJson(resultJson, FoodDescription::class.java)
-            if (foodDescription.error != null) {
-                throw ChatGPTApiError.GenericApiError(foodDescription.error)
+            val response = gson.fromJson(resultJson, FoodDescriptionResponse::class.java)
+            if (response.error != null) {
+                throw ChatGPTApiError.GenericApiError(response.error)
             }
-            FoodRecognitionResult(
-                title = foodDescription.title.takeIf { it.isNullOrBlank().not() },
-                cachedTokens = cachedTokens,
+            FoodTitle(
+                title = response.title.takeIf { it.isNullOrBlank().not() },
             )
         }
-        ?: FoodRecognitionResult(
+        ?: FoodTitle(
             title = null,
-            cachedTokens = cachedTokens,
         )
 }
 

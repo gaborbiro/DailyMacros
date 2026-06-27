@@ -15,7 +15,7 @@ import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiState
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiUpdates
 import dev.gaborbiro.dailymacros.repositories.chatgpt.di.ForJsonBodyChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingInsightsRequest
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsRequest
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
@@ -60,13 +60,13 @@ class TrendsViewModel @Inject constructor(
 
     init {
         recordsJob = observeRecords(Timescale.DAYS)
-        val savedInsights = preferences.insights
+        val savedInsights = preferences.weeklyInsights
         if (savedInsights.isNotEmpty()) {
-            _uiState.update { it.copy(insights = savedInsights, insightsDateRange = preferences.insightsDateRange) }
+            _uiState.update { it.copy(weeklyInsights = savedInsights, weeklyInsightsDateRange = preferences.weeklyInsightsDateRange) }
         }
-        val savedOngoingInsights = preferences.ongoingInsights
-        if (savedOngoingInsights.isNotEmpty()) {
-            _uiState.update { it.copy(ongoingInsights = savedOngoingInsights, ongoingInsightsDateRange = preferences.ongoingInsightsDateRange) }
+        val savedOngoingInsights = preferences.ongoingWeekInsights
+        if (savedOngoingInsights.isNullOrEmpty().not()) {
+            _uiState.update { it.copy(ongoingWeekInsights = savedOngoingInsights, ongoingWeekInsightsDateRange = preferences.ongoingInsightsDateRange) }
         }
     }
 
@@ -127,7 +127,7 @@ class TrendsViewModel @Inject constructor(
 
     fun onGetInsightsTapped() {
         viewModelScope.launch {
-            _uiState.update { it.copy(insightsLoading = true, insightsError = null) }
+            _uiState.update { it.copy(weeklyInsightsLoading = true, weeklyInsightsError = null) }
             try {
                 val zone = ZoneId.systemDefault()
                 val dayStart = diaryDayStartTime(settingsRepository.getDiaryDayStartHour())
@@ -140,16 +140,22 @@ class TrendsViewModel @Inject constructor(
                 val targets = settingsRepository.getTargets()
                 val customizations = settingsRepository.getPromptCustomizations()
                 val diary = formatDiary(records, targets, zone, dayStart)
-                val result = chatGPTRepository.getWeeklyInsights(WeeklyInsightsRequest(diary, customizations))
+                val result = chatGPTRepository.getWeeklyInsights(
+                    WeeklyInsightsRequest(
+                        diary,
+                        customizations,
+                        Locale.getDefault().getDisplayLanguage(Locale.ENGLISH),
+                    )
+                )
                 val rangeLabel = "${formatWeekRange(lastCompleteWeekStart)} vs ${formatWeekRange(prevWeekStart)}"
-                preferences.insights = result
-                preferences.insightsDateRange = rangeLabel
-                _uiState.update { it.copy(insights = result, insightsDateRange = rangeLabel, insightsLoading = false) }
+                preferences.weeklyInsights = result
+                preferences.weeklyInsightsDateRange = rangeLabel
+                _uiState.update { it.copy(weeklyInsights = result, weeklyInsightsDateRange = rangeLabel, weeklyInsightsLoading = false) }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
-                        insightsLoading = false,
-                        insightsError = e.message ?: "Failed to get insights",
+                        weeklyInsightsLoading = false,
+                        weeklyInsightsError = e.message ?: "Failed to get insights",
                     )
                 }
             }
@@ -158,7 +164,7 @@ class TrendsViewModel @Inject constructor(
 
     fun onGetOngoingInsightsTapped() {
         viewModelScope.launch {
-            _uiState.update { it.copy(ongoingInsightsLoading = true, ongoingInsightsError = null) }
+            _uiState.update { it.copy(ongoingWeekInsightsLoading = true, ongoingWeekInsightsError = null) }
             try {
                 val zone = ZoneId.systemDefault()
                 val dayStart = diaryDayStartTime(settingsRepository.getDiaryDayStartHour())
@@ -170,16 +176,22 @@ class TrendsViewModel @Inject constructor(
                 val targets = settingsRepository.getTargets()
                 val customizations = settingsRepository.getPromptCustomizations()
                 val diary = formatOngoingDiary(records, targets, zone, dayStart)
-                val result = chatGPTRepository.getOngoingInsights(OngoingInsightsRequest(diary, customizations))
+                val result = chatGPTRepository.getOngoingInsights(
+                    OngoingWeekInsightsRequest(
+                        diary,
+                        customizations,
+                        Locale.getDefault().getDisplayLanguage(Locale.ENGLISH),
+                    )
+                )
                 val rangeLabel = formatPartialWeekRange(thisWeekStart, today)
-                preferences.ongoingInsights = result
+                preferences.ongoingWeekInsights = result.message
                 preferences.ongoingInsightsDateRange = rangeLabel
-                _uiState.update { it.copy(ongoingInsights = result, ongoingInsightsDateRange = rangeLabel, ongoingInsightsLoading = false) }
+                _uiState.update { it.copy(ongoingWeekInsights = result.message, ongoingWeekInsightsDateRange = rangeLabel, ongoingWeekInsightsLoading = false) }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
-                        ongoingInsightsLoading = false,
-                        ongoingInsightsError = e.message ?: "Failed to get insights",
+                        ongoingWeekInsightsLoading = false,
+                        ongoingWeekInsightsError = e.message ?: "Failed to get insights",
                     )
                 }
             }

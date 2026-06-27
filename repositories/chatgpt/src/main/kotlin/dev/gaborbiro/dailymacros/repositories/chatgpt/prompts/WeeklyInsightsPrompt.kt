@@ -12,14 +12,15 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.Role
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.TextOptions
 
 internal fun WeeklyInsightsRequest.toApiModel() = ChatGPTRequest(
-    model = customizations.systemPrompt(SEG_INSIGHTS_MODEL, weeklyInsightsModel),
-    reasoning = ReasoningLevel(customizations.systemPrompt(SEG_INSIGHTS_REASONING_EFFORT, weeklyInsightsReasoningEffort)),
+    model = customizations.systemPrompt(SEG_WEEKLY_INSIGHTS_MODEL, weeklyInsightsModel),
+    reasoning = ReasoningLevel(customizations.systemPrompt(SEG_WEEKLY_INSIGHTS_REASONING_EFFORT, weeklyInsightsReasoningEffort)),
     text = TextOptions(FormatType("json_object")),
     input = listOf(
         ContentEntry(
             role = Role.system,
             content = listOf(InputContent.Text(
-                customizations.systemPrompt(SEG_INSIGHTS_SYSTEM, DEFAULT_INSIGHTS_SYSTEM)
+                customizations.systemPrompt(SEG_WEEKLY_INSIGHTS_SYSTEM, DEFAULT_WEEKLY_INSIGHTS_SYSTEM)
+                    .replace("{phone_language}", this.phoneLanguage)
             )),
         ),
         ContentEntry(
@@ -29,7 +30,7 @@ internal fun WeeklyInsightsRequest.toApiModel() = ChatGPTRequest(
         ContentEntry(
             role = Role.user,
             content = listOf(InputContent.Text(
-                customizations.systemPrompt(SEG_INSIGHTS_USER, DEFAULT_INSIGHTS_USER)
+                customizations.systemPrompt(SEG_WEEKLY_INSIGHTS_USER, DEFAULT_WEEKLY_INSIGHTS_USER)
             )),
         ),
     )
@@ -54,7 +55,7 @@ internal fun ChatGPTResponse.toWeeklyInsightsResponse(): Map<String, String> {
     }
 }
 
-internal val DEFAULT_INSIGHTS_SYSTEM = """
+internal val DEFAULT_WEEKLY_INSIGHTS_SYSTEM = """
 You are a nutrition coach built into a macro tracking app. You are given two weeks of food diary entries — every meal with its ingredients and full macro breakdown — plus the user's daily nutrient targets.
 
 Your job:
@@ -71,6 +72,6 @@ Output format:
 - No generic dietary advice; no definitions of what macros are
 """.trimIndent()
 
-internal val DEFAULT_INSIGHTS_USER = """
-What changed week-over-week, what drove it, and what needs my attention? Return as JSON.
+internal val DEFAULT_WEEKLY_INSIGHTS_USER = """
+What changed week-over-week, what drove it, and what needs my attention?
 """.trimIndent()

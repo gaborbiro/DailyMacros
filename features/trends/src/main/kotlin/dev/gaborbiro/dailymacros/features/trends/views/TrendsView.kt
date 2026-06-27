@@ -53,7 +53,6 @@ import dev.gaborbiro.dailymacros.features.trends.model.TrendsChartUiModel
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsSettingsUIModel
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiState
 import kotlinx.coroutines.delay
-import kotlin.math.roundToInt
 
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
@@ -187,7 +186,7 @@ internal fun TrendsView(
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        viewState.ongoingInsightsDateRange?.let {
+                        viewState.ongoingWeekInsightsDateRange?.let {
                             Text(
                                 text = it,
                                 style = MaterialTheme.typography.labelSmall,
@@ -197,20 +196,20 @@ internal fun TrendsView(
                     }
                     OutlinedButton(
                         onClick = onGetOngoingInsightsTapped,
-                        enabled = !viewState.ongoingInsightsLoading,
+                        enabled = !viewState.ongoingWeekInsightsLoading,
                     ) {
-                        if (viewState.ongoingInsightsLoading) {
+                        if (viewState.ongoingWeekInsightsLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(16.dp),
                                 strokeWidth = 2.dp,
                             )
                         } else {
-                            Text(if (viewState.ongoingInsights.isNotEmpty()) "Refresh" else "Get insights")
+                            Text(if (viewState.ongoingWeekInsights.isNullOrEmpty().not()) "Refresh" else "Get insights")
                         }
                     }
                 }
 
-                viewState.ongoingInsightsError?.let { error ->
+                viewState.ongoingWeekInsightsError?.let { error ->
                     Text(
                         text = error,
                         modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
@@ -218,9 +217,9 @@ internal fun TrendsView(
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
-                if (viewState.ongoingInsights.isNotEmpty()) {
+                if (viewState.ongoingWeekInsights.isNullOrEmpty().not()) {
                     Text(
-                        text = viewState.ongoingInsights,
+                        text = viewState.ongoingWeekInsights,
                         modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -242,7 +241,7 @@ internal fun TrendsView(
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        viewState.insightsDateRange?.let {
+                        viewState.weeklyInsightsDateRange?.let {
                             Text(
                                 text = it,
                                 style = MaterialTheme.typography.labelSmall,
@@ -252,20 +251,20 @@ internal fun TrendsView(
                     }
                     OutlinedButton(
                         onClick = onGetInsightsTapped,
-                        enabled = !viewState.insightsLoading,
+                        enabled = !viewState.weeklyInsightsLoading,
                     ) {
-                        if (viewState.insightsLoading) {
+                        if (viewState.weeklyInsightsLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(16.dp),
                                 strokeWidth = 2.dp,
                             )
                         } else {
-                            Text(if (viewState.insights.isNotEmpty()) "Refresh" else "Get insights")
+                            Text(if (viewState.weeklyInsights.isNotEmpty()) "Refresh" else "Get insights")
                         }
                     }
                 }
 
-                viewState.insightsError?.let { error ->
+                viewState.weeklyInsightsError?.let { error ->
                     Text(
                         text = error,
                         modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
@@ -297,7 +296,7 @@ internal fun TrendsView(
                             showEveryXLabel = showEveryXLabel,
                         )
                         if (timescale == Timescale.WEEKS) {
-                            viewState.insights[chartData.title]?.let { insight ->
+                            viewState.weeklyInsights[chartData.title]?.let { insight ->
                                 Text(
                                     text = insight,
                                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),

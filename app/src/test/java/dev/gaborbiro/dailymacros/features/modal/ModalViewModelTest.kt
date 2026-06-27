@@ -29,7 +29,7 @@ import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodTitle
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
@@ -99,7 +99,7 @@ class ModalViewModelTest {
     }
 
     private class VmFakeChatGpt : ChatGPTRepository {
-        override suspend fun recogniseFood(request: FoodRecognitionRequest) = FoodRecognitionResult(
+        override suspend fun recogniseFood(request: FoodRecognitionRequest) = FoodTitle(
             title = "X",
             cachedTokens = 0,
         )
@@ -112,7 +112,7 @@ class ModalViewModelTest {
         override fun getInsightsPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
         override fun getOngoingInsightsPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
         override suspend fun getWeeklyInsights(request: dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsRequest): Map<String, String> = error("unused")
-        override suspend fun getOngoingInsights(request: dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingInsightsRequest): String = error("unused")
+        override suspend fun getOngoingInsights(request: dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsRequest): String = error("unused")
     }
 
     private val disabledTarget = Target(enabled = false)
