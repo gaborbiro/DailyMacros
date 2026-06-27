@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.features.settings.promptEditor
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.gaborbiro.dailymacros.core.featureflags.FeatureFlagStore
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.model.PromptEditorUiState
 import dev.gaborbiro.dailymacros.repositories.chatgpt.ApiKeyValidator
 import dev.gaborbiro.dailymacros.repositories.chatgpt.di.ForImageUploadChatGpt
@@ -31,6 +32,7 @@ class PromptEditorViewModel @Inject constructor(
     @ForImageUploadChatGpt private val chatGPTRepository: ChatGPTRepository,
     private val settingsRepository: SettingsRepository,
     private val apiKeyValidator: ApiKeyValidator,
+    private val featureFlagStore: FeatureFlagStore,
 ) : ViewModel() {
 
     companion object {
@@ -67,6 +69,7 @@ class PromptEditorViewModel @Inject constructor(
             tabSelectedVersionIndex = tabSelectedVersionIndex,
             storedApiKeyOverride = storedKey,
             apiKeyDraft = storedKey ?: "",
+            aiInsightsEnabled = featureFlagStore.isEnabled(FeatureFlagStore.Key.AI_INSIGHTS_ENABLED),
         )
     }
 

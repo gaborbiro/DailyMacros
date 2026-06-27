@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.features.settings
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import dev.gaborbiro.dailymacros.core.featureflags.FeatureFlagStore
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.GoogleAuthException
 import com.google.android.gms.auth.GoogleAuthUtil
@@ -46,6 +47,7 @@ class SettingsViewModel @Inject constructor(
     private val syncDatabaseUseCase: SyncDatabaseUseCase,
     private val restoreFromDriveUseCase: RestoreFromDriveUseCase,
     private val cloudSyncRepository: CloudSyncRepository,
+    private val featureFlagStore: FeatureFlagStore,
 ) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(
@@ -56,6 +58,8 @@ class SettingsViewModel @Inject constructor(
             cloudSyncProvider = settingsRepository.getCloudSyncProvider(),
             cloudSyncEmail = settingsRepository.getCloudSyncEmail(),
             lastSyncedEpochMs = settingsRepository.getLastSyncedEpochMs(),
+            customiseAiEnabled = featureFlagStore.isEnabled(FeatureFlagStore.Key.CUSTOMISE_AI_ENABLED),
+            aiInsightsEnabled = featureFlagStore.isEnabled(FeatureFlagStore.Key.AI_INSIGHTS_ENABLED),
         ),
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()

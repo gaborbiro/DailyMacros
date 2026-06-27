@@ -66,8 +66,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private val TAB_LABELS = listOf("Recognition", "Analysis", "Week on Week", "Ongoing Week")
-private val TAB_TYPES = listOf(TAB_RECOGNITION, TAB_ANALYSIS, TAB_INSIGHTS, TAB_ONGOING_INSIGHTS)
+private val ALL_TABS = listOf(
+    TAB_RECOGNITION to "Recognition",
+    TAB_ANALYSIS to "Analysis",
+    TAB_INSIGHTS to "Week on Week",
+    TAB_ONGOING_INSIGHTS to "Ongoing Week",
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,12 +89,17 @@ internal fun PromptEditorView(
     onUnlockTapped: () -> Unit,
     onClearApiKeyTapped: () -> Unit,
 ) {
+    val visibleTabs = remember(viewState.aiInsightsEnabled) {
+        if (viewState.aiInsightsEnabled) ALL_TABS
+        else ALL_TABS.filter { (type, _) -> type != TAB_INSIGHTS && type != TAB_ONGOING_INSIGHTS }
+    }
+
     var selectedTab by remember { mutableIntStateOf(0) }
-    val currentTabType = TAB_TYPES[selectedTab]
-    val currentSegments = when (selectedTab) {
-        0 -> viewState.recognitionSegments
-        1 -> viewState.analysisSegments
-        2 -> viewState.insightsSegments
+    val currentTabType = visibleTabs[selectedTab].first
+    val currentSegments = when (currentTabType) {
+        TAB_RECOGNITION -> viewState.recognitionSegments
+        TAB_ANALYSIS -> viewState.analysisSegments
+        TAB_INSIGHTS -> viewState.insightsSegments
         else -> viewState.ongoingInsightsSegments
     }
 
@@ -98,10 +107,10 @@ internal fun PromptEditorView(
     val analysisScrollState = rememberScrollState()
     val insightsScrollState = rememberScrollState()
     val ongoingInsightsScrollState = rememberScrollState()
-    val activeScrollState: ScrollState = when (selectedTab) {
-        0 -> recognitionScrollState
-        1 -> analysisScrollState
-        2 -> insightsScrollState
+    val activeScrollState: ScrollState = when (currentTabType) {
+        TAB_RECOGNITION -> recognitionScrollState
+        TAB_ANALYSIS -> analysisScrollState
+        TAB_INSIGHTS -> insightsScrollState
         else -> ongoingInsightsScrollState
     }
 
@@ -192,11 +201,11 @@ internal fun PromptEditorView(
                     }
 
                     ScrollableTabRow(selectedTabIndex = selectedTab) {
-                        TAB_LABELS.forEachIndexed { index, title ->
+                        visibleTabs.forEachIndexed { index, (_, label) ->
                             Tab(
                                 selected = selectedTab == index,
                                 onClick = { selectedTab = index },
-                                text = { Text(title) },
+                                text = { Text(label) },
                             )
                         }
                     }

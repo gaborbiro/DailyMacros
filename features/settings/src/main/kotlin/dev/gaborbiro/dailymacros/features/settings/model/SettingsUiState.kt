@@ -17,4 +17,6 @@ data class SettingsUiState(
     val showRestoreConfirmDialog: Boolean = false,
     val restoreDialogModifiedAtMs: Long = 0L,
     val restoreDialogFileId: String = "",
+    val customiseAiEnabled: Boolean = false,
+    val aiInsightsEnabled: Boolean = false,
 )

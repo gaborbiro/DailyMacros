@@ -13,6 +13,7 @@ import dev.gaborbiro.dailymacros.features.trends.model.Timescale
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsSettingsUIModel
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiState
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiUpdates
+import dev.gaborbiro.dailymacros.core.featureflags.FeatureFlagStore
 import dev.gaborbiro.dailymacros.repositories.chatgpt.di.ForJsonBodyChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsRequest
@@ -49,11 +50,14 @@ class TrendsViewModel @Inject constructor(
     private val preferences: TrendsPreferences,
     private val mapper: TrendsUiMapper,
     @ForJsonBodyChatGpt private val chatGPTRepository: ChatGPTRepository,
+    private val featureFlagStore: FeatureFlagStore,
 ) : AndroidViewModel(application) {
 
     private var recordsJob: Job
 
-    private val _uiState = MutableStateFlow(TrendsUiState())
+    private val _uiState = MutableStateFlow(
+        TrendsUiState(aiInsightsEnabled = featureFlagStore.isEnabled(FeatureFlagStore.Key.AI_INSIGHTS_ENABLED))
+    )
     val uiState: StateFlow<TrendsUiState> = _uiState.asStateFlow()
 
     private val _uiUpdates = MutableSharedFlow<TrendsUiUpdates>()

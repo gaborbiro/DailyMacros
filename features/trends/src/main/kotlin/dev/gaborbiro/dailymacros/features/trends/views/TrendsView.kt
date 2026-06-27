@@ -172,7 +172,7 @@ internal fun TrendsView(
                 else -> 1
             }
 
-            if (timescale == Timescale.DAYS) {
+            if (timescale == Timescale.DAYS && viewState.aiInsightsEnabled) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -227,7 +227,7 @@ internal fun TrendsView(
                 }
             }
 
-            if (timescale == Timescale.WEEKS) {
+            if (timescale == Timescale.WEEKS && viewState.aiInsightsEnabled) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()

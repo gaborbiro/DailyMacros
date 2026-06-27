@@ -147,6 +147,7 @@ androidx-datastore-preferences = { module = "androidx.datastore:datastore-prefer
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
+firebase-config = { module = "com.google.firebase:firebase-config" }
 # =============================== THIRD-PARTY ===================================
 # -------------------------------------------------------------------------------
 # --- Networking ----------------------------------------------------------------

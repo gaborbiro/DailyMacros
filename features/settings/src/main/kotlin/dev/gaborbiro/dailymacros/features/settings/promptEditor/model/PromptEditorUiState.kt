@@ -20,6 +20,7 @@ data class PromptEditorUiState(
     val storedApiKeyOverride: String? = null,
     val apiKeyDraft: String = "",
     val isUnlocking: Boolean = false,
+    val aiInsightsEnabled: Boolean = false,
 ) {
     val hasAnyUnsavedChanges: Boolean get() = currentValues != originalValues
     val isApiKeyOverridden: Boolean get() = storedApiKeyOverride != null

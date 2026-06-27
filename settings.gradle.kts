@@ -23,6 +23,7 @@ rootProject.name = "DailyMacros"
 include(":app")
 include(":core:analytics")
 include(":core:design")
+include(":core:featureFlags")
 include(":repositories:chatgpt:domain")
 include(":repositories:chatgpt")
 include(":repositories:records:domain")
