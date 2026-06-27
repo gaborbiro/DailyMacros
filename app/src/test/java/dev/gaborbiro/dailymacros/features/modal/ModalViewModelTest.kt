@@ -99,10 +99,7 @@ class ModalViewModelTest {
     }
 
     private class VmFakeChatGpt : ChatGPTRepository {
-        override suspend fun recogniseFood(request: FoodRecognitionRequest) = FoodTitle(
-            title = "X",
-            cachedTokens = 0,
-        )
+        override suspend fun recogniseFood(request: FoodRecognitionRequest) = FoodTitle(title = "X")
 
         override suspend fun analyseNutrients(request: NutrientAnalysisRequest): NutrientAnalysis =
             error("unused")
@@ -112,7 +109,7 @@ class ModalViewModelTest {
         override fun getInsightsPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
         override fun getOngoingInsightsPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
         override suspend fun getWeeklyInsights(request: dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsRequest): Map<String, String> = error("unused")
-        override suspend fun getOngoingInsights(request: dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsRequest): String = error("unused")
+        override suspend fun getOngoingInsights(request: dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsRequest): dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsights = error("unused")
     }
 
     private val disabledTarget = Target(enabled = false)

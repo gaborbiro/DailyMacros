@@ -18,7 +18,6 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.Role
 
 internal val DEFAULT_ANALYSIS_SYSTEM = """
 You are a nutritional analyst for a macronutrient tracker app.
-
 The user may provide:
 • photos of a meal, possibly food label 
 • title
@@ -30,7 +29,6 @@ STRUCTURAL RULES:
 - If carbohydrate is estimated, also estimate ofWhichSugar and ofWhichAddedSugar.
 - ofWhichAddedSugar must never exceed ofWhichSugar.
 - If vegetables, grains, legumes or seeds are present, estimate fibre.
-- Only return valid JSON.
 
 ACCURACY RULES:
 1. For any nutritional values that are clearly visible on packaging in the image, you MUST extract and use those exact values.
@@ -45,24 +43,8 @@ ACCURACY RULES:
    - Missing values must NEVER default to 0 unless the packaging explicitly states 0
    - Clearly indicate in "notes" which values were taken from packaging and which were estimated.
 
-LANGUAGE RULES:
-- All output (including title, description, notes and error message) MUST be in {phone_language}.
-- Never switch output language based on packaging language.
-- If packaging text is not in {phone_language}, translate into {phone_language} before returning output.
-""".trimIndent()
-
-internal val DEFAULT_ANALYSIS_USER = """
-TASK: NUTRIENT ESTIMATION
-Use both images and provided texts.
-If texts contradicts images, prefer texts.
-
-Title:
-{title}
-
-Description:
-{description}
-
-Output format:
+OUTPUT RULES:
+Use this JSON format:
 {
   "nutrients": {
     "calories": 0.0,
@@ -127,6 +109,23 @@ If analysis is not possible:
 {
   "error": "<one short, specific sentence explaining what is missing or unclear>"
 }
+
+LANGUAGE RULES:
+- All output (including title, description, notes and error message) MUST be in {phone_language}.
+- Never switch output language based on packaging language.
+- If packaging text is not in {phone_language}, translate into {phone_language} before returning output.
+""".trimIndent()
+
+internal val DEFAULT_ANALYSIS_USER = """
+TASK: NUTRIENT ESTIMATION
+Use both images and provided texts.
+If texts contradicts images, prefer texts.
+
+Title:
+{title}
+
+Description:
+{description}
 """.trimIndent()
 
 internal fun NutrientAnalysisRequest.toApiModel() = ChatGPTRequest(

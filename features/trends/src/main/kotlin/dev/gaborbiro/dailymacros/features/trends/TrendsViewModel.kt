@@ -16,6 +16,7 @@ import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiUpdates
 import dev.gaborbiro.dailymacros.repositories.chatgpt.di.ForJsonBodyChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsRequest
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsRequest
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
@@ -147,7 +148,8 @@ class TrendsViewModel @Inject constructor(
                         Locale.getDefault().getDisplayLanguage(Locale.ENGLISH),
                     )
                 )
-                val rangeLabel = "${formatWeekRange(lastCompleteWeekStart)} vs ${formatWeekRange(prevWeekStart)}"
+                val versionLabel = resolvePromptVersionLabel(TAB_INSIGHTS, chatGPTRepository.getInsightsPromptSegments(), customizations)
+                val rangeLabel = "${formatWeekRange(lastCompleteWeekStart)} vs ${formatWeekRange(prevWeekStart)} · prompt version: $versionLabel"
                 preferences.weeklyInsights = result
                 preferences.weeklyInsightsDateRange = rangeLabel
                 _uiState.update { it.copy(weeklyInsights = result, weeklyInsightsDateRange = rangeLabel, weeklyInsightsLoading = false) }
@@ -183,7 +185,8 @@ class TrendsViewModel @Inject constructor(
                         Locale.getDefault().getDisplayLanguage(Locale.ENGLISH),
                     )
                 )
-                val rangeLabel = formatPartialWeekRange(thisWeekStart, today)
+                val versionLabel = resolvePromptVersionLabel(TAB_ONGOING_INSIGHTS, chatGPTRepository.getOngoingInsightsPromptSegments(), customizations)
+                val rangeLabel = "${formatPartialWeekRange(thisWeekStart, today)} · prompt version: $versionLabel"
                 preferences.ongoingWeekInsights = result.message
                 preferences.ongoingInsightsDateRange = rangeLabel
                 _uiState.update { it.copy(ongoingWeekInsights = result.message, ongoingWeekInsightsDateRange = rangeLabel, ongoingWeekInsightsLoading = false) }
@@ -196,6 +199,19 @@ class TrendsViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    private fun resolvePromptVersionLabel(
+        tabType: String,
+        segments: List<PromptSegment>,
+        customizations: Map<String, String>,
+    ): String {
+        val ids = segments.filterIsInstance<PromptSegment.Editable>().map { it.id }.toSet()
+        val tabCustomizations = customizations.filterKeys { it in ids }
+        if (tabCustomizations.isEmpty()) return "default"
+        val match = settingsRepository.getPromptVersions(tabType)
+            .firstOrNull { version -> ids.all { id -> version.customizations[id] == tabCustomizations[id] } }
+        return if (match != null) "v${match.version}" else "default"
     }
 
     private fun observeRecords(timescale: Timescale): Job {
@@ -360,5 +376,10 @@ class TrendsViewModel @Inject constructor(
                 sb.appendLine("    Nutrients: ${parts.joinToString(", ")}")
             }
         }
+    }
+
+    private companion object {
+        const val TAB_INSIGHTS = "insights"
+        const val TAB_ONGOING_INSIGHTS = "ongoing_insights"
     }
 }

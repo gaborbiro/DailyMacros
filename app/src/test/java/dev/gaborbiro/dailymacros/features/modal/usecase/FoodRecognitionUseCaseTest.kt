@@ -31,10 +31,7 @@ class FoodRecognitionUseCaseTest {
     }
 
     private class FakeChatGpt : ChatGPTRepository {
-        override suspend fun recogniseFood(request: FoodRecognitionRequest) = FoodTitle(
-            title = "Oats",
-            cachedTokens = 12,
-        )
+        override suspend fun recogniseFood(request: FoodRecognitionRequest) = FoodTitle(title = "Oats")
 
         override suspend fun analyseNutrients(request: NutrientAnalysisRequest): NutrientAnalysis =
             error("unused")
@@ -44,7 +41,7 @@ class FoodRecognitionUseCaseTest {
         override fun getInsightsPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
         override fun getOngoingInsightsPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
         override suspend fun getWeeklyInsights(request: dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsRequest): Map<String, String> = error("unused")
-        override suspend fun getOngoingInsights(request: dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsRequest): String = error("unused")
+        override suspend fun getOngoingInsights(request: dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsRequest): dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsights = error("unused")
     }
 
     private val fakeSettingsRepository = object : dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository {
