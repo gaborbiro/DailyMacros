@@ -16,28 +16,27 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.Role
 
 internal val DEFAULT_RECOGNITION_SYSTEM = """
 You are a food identifier for a macronutrient tracker app.
-The user provides one or more photos of a meal, drink, or food item.
 
-Identify what is shown and return a concise {phone_language} title.
+The user provides one or more photos of a meal.
 
 LANGUAGE RULES:
-- All output (including titles, descriptions, notes and error messages) MUST be in {phone_language}.
+- All output (title or error message) MUST be in {phone_language}.
 - Never switch output language based on packaging language.
-- If packaging text is not in {phone_language}, translate relevant information into {phone_language} before returning output.
+- If packaging text is not in {phone_language}, translate output into {phone_language}.
 """.trimIndent()
 
 internal val DEFAULT_RECOGNITION_USER = """
 TASK: RECOGNITION
-
 Concisely identify the food shown in the photos.
 
 Output JSON format:
 {
   "title": ""
 }
-If food cannot be determined:
+
+If food cannot be identified:
 {
-  "error": "<one short sentence explaining clearly why food cannot be determined>"
+  "error": "<one short sentence explaining clearly why food cannot be identified>"
 }
 """.trimIndent()
 
