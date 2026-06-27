@@ -74,31 +74,30 @@ class SettingsRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getPromptVersions(): List<PromptVersion> {
+    private fun getAllPromptVersions(): List<PromptVersion> {
         val json = prefs.getString(KEY_PROMPT_VERSIONS, null) ?: return emptyList()
         val type = object : TypeToken<List<PromptVersion>>() {}.type
         return runCatching { gson.fromJson<List<PromptVersion>>(json, type) }.getOrDefault(emptyList())
     }
 
+    override fun getPromptVersions(type: String): List<PromptVersion> =
+        getAllPromptVersions().filter { it.type == type }
+
     override fun deletePromptVersion(version: Int) {
-        val existing = getPromptVersions()
-        val updated = existing.filter { it.version != version }
+        val updated = getAllPromptVersions().filter { it.version != version }
         prefs.edit { putString(KEY_PROMPT_VERSIONS, gson.toJson(updated)) }
     }
 
-    override fun savePromptVersion(customizations: Map<String, String>): PromptVersion {
-        val existing = getPromptVersions()
+    override fun savePromptVersion(type: String, customizations: Map<String, String>): PromptVersion {
+        val existing = getAllPromptVersions()
         val nextVersion = (existing.maxOfOrNull { it.version } ?: 0) + 1
         val newVersion = PromptVersion(
             version = nextVersion,
             createdAt = System.currentTimeMillis(),
             customizations = customizations,
+            type = type,
         )
-        val updated = existing + newVersion
-        prefs.edit {
-            putString(KEY_PROMPT_VERSIONS, gson.toJson(updated))
-            putString(KEY_PROMPT_CUSTOMIZATIONS, gson.toJson(customizations))
-        }
+        prefs.edit { putString(KEY_PROMPT_VERSIONS, gson.toJson(existing + newVersion)) }
         return newVersion
     }
 

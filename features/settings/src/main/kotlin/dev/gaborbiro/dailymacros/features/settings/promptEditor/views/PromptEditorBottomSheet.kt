@@ -54,6 +54,10 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel.Companion.TAB_ANALYSIS
+import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel.Companion.TAB_INSIGHTS
+import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel.Companion.TAB_ONGOING_INSIGHTS
+import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel.Companion.TAB_RECOGNITION
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.model.PromptEditorUiState
 import dev.gaborbiro.dailymacros.features.settings.util.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
@@ -62,15 +66,18 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+private val TAB_LABELS = listOf("Recognition", "Analysis", "Week on Week", "Ongoing Week")
+private val TAB_TYPES = listOf(TAB_RECOGNITION, TAB_ANALYSIS, TAB_INSIGHTS, TAB_ONGOING_INSIGHTS)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun PromptEditorView(
     viewState: PromptEditorUiState,
     onDismissRequested: () -> Unit,
     onValueChanged: (String, String) -> Unit,
-    onSaveTapped: () -> Unit,
-    onVersionSelected: (Int) -> Unit,
-    onDeleteVersion: (Int) -> Unit,
+    onSaveTapped: (tabType: String) -> Unit,
+    onVersionSelected: (tabType: String, index: Int) -> Unit,
+    onDeleteVersion: (tabType: String, index: Int) -> Unit,
     onExitDialogSaveTapped: () -> Unit,
     onExitDialogDiscardTapped: () -> Unit,
     onExitDialogDismissed: () -> Unit,
@@ -79,7 +86,7 @@ internal fun PromptEditorView(
     onClearApiKeyTapped: () -> Unit,
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Recognition", "Analysis", "Week on Week", "Ongoing Week")
+    val currentTabType = TAB_TYPES[selectedTab]
     val currentSegments = when (selectedTab) {
         0 -> viewState.recognitionSegments
         1 -> viewState.analysisSegments
@@ -130,7 +137,7 @@ internal fun PromptEditorView(
             Scaffold(
                 topBar = {
                     TopAppBar(
-                        title = { Text("AI Customisation") },
+                        title = { Text("AI Customization") },
                         navigationIcon = {
                             IconButton(onClick = onDismissRequested) {
                                 Icon(
@@ -148,6 +155,7 @@ internal fun PromptEditorView(
                         .fillMaxSize()
                         .nestedScroll(nestedScrollConnection),
                 ) {
+                    // Collapsing section: API key only
                     Column(
                         modifier = Modifier
                             .clipToBounds()
@@ -180,20 +188,11 @@ internal fun PromptEditorView(
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                             )
                         }
-                        VersionPicker(
-                            versions = viewState.versions,
-                            selectedIndex = viewState.selectedVersionIndex,
-                            enabled = viewState.promptsEnabled,
-                            onVersionSelected = onVersionSelected,
-                            onDeleteVersion = onDeleteVersion,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                        )
+                        Spacer(Modifier.height(4.dp))
                     }
 
                     ScrollableTabRow(selectedTabIndex = selectedTab) {
-                        tabs.forEachIndexed { index, title ->
+                        TAB_LABELS.forEachIndexed { index, title ->
                             Tab(
                                 selected = selectedTab == index,
                                 onClick = { selectedTab = index },
@@ -201,6 +200,18 @@ internal fun PromptEditorView(
                             )
                         }
                     }
+
+                    // Per-tab version picker
+                    VersionPicker(
+                        versions = viewState.tabVersions[currentTabType] ?: emptyList(),
+                        selectedIndex = viewState.tabSelectedVersionIndex[currentTabType] ?: 0,
+                        enabled = viewState.promptsEnabled,
+                        onVersionSelected = { onVersionSelected(currentTabType, it) },
+                        onDeleteVersion = { onDeleteVersion(currentTabType, it) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
 
                     Column(
                         modifier = Modifier
@@ -244,13 +255,13 @@ internal fun PromptEditorView(
                         }
                     }
 
-                    androidx.compose.material3.Surface(
+                    Surface(
                         shadowElevation = 8.dp,
                         color = MaterialTheme.colorScheme.background,
                     ) {
                         Button(
-                            onClick = onSaveTapped,
-                            enabled = viewState.canSave,
+                            onClick = { onSaveTapped(currentTabType) },
+                            enabled = viewState.promptsEnabled && viewState.currentValues != viewState.originalValues,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp, vertical = 12.dp),
@@ -269,7 +280,7 @@ internal fun PromptEditorView(
             title = { Text("Unsaved changes") },
             text = { Text("You have unsaved prompt changes. Save or discard them?") },
             confirmButton = {
-                if (viewState.canSave) {
+                if (viewState.hasAnyUnsavedChanges) {
                     TextButton(onClick = onExitDialogSaveTapped) { Text("Save") }
                 }
             },
@@ -344,7 +355,6 @@ private fun VersionPicker(
 
     fun PromptVersion.label() = "v${version} · ${dateFormatter.format(Date(createdAt))}"
 
-    // Index 0 is always "v0 (default)"; user versions occupy indices 1+
     val displayText = if (selectedIndex == 0) "v0 (default)" else versions.getOrNull(selectedIndex - 1)?.label() ?: "v0 (default)"
 
     ExposedDropdownMenuBox(
