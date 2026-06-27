@@ -193,7 +193,7 @@ private fun MacroRow(
             Spacer(modifier = Modifier.width(8.dp))
             Icon(
                 imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                contentDescription = if (expanded) "Collapse" else "Expand"
+                contentDescription = if (expanded) "Collapse" else "More details"
             )
         }
 

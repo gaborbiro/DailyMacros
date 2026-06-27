@@ -68,15 +68,19 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
 
-            val releaseConfig = signingConfigs.getByName("release")
-            if (releaseConfig.storeFile != null) {
-                signingConfig = releaseConfig
-            }
+            signingConfig = signingConfigs.getByName("release")
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+        create("qa") {
+            isMinifyEnabled = false
+            isDebuggable = true
+            applicationIdSuffix = ".qa"
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += "debug"
         }
     }
 

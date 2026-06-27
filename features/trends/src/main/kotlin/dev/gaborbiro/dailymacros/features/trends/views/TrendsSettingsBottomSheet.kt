@@ -97,7 +97,7 @@ internal fun TrendsSettingsBottomSheet(
                     )
                     Text(
                         modifier = Modifier.padding(top = 4.dp),
-                        text = "Edit targets used as reference lines on the charts",
+                        text = "Set your daily nutrient goals here",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

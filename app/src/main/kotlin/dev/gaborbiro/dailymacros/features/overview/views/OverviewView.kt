@@ -127,14 +127,11 @@ internal fun OverviewView(
                     onLoadMore = onLoadMore,
                 )
             } else if (viewState.showAddWidgetButton) {
-                Box(
+                WelcomeView(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    AddWidgetButton()
-                }
+                )
             }
 
             OverviewListTopActions(
