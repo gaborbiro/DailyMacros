@@ -715,7 +715,7 @@ class ModalViewModel @Inject constructor(
                     recordId = recordId,
                     force = true,
                 )
-                closeAll()
+                closeAllRequestingNotificationPermission()
             }
         }
     }
@@ -743,6 +743,8 @@ class ModalViewModel @Inject constructor(
                     pristine.images,
                     dialogHandle.images,
                 )
+                val contentChanged = title != pristine.title.trim() ||
+                    description != pristine.description.trim()
                 val templateImages = dialogHandle.images.map { TemplateImageUpdate(filename = it) }
                 if (isVariedTemplateFamily(dialogHandle)) {
                     recordsRepository.updateTemplate(
@@ -751,16 +753,13 @@ class ModalViewModel @Inject constructor(
                         description = description,
                         templateImages = templateImages,
                     )
-                    if (imagesNeedReanalysis) {
+                    if (imagesNeedReanalysis || contentChanged) {
                         scheduleMacroAnalysisForAllRecordsUsingTemplate(dialogHandle.templateDbId)
                     }
                 } else {
                     val imagesReorderedOnly =
                         dialogHandle.images != pristine.images && !imagesNeedReanalysis
-                    if (imagesReorderedOnly &&
-                        title == pristine.title.trim() &&
-                        description == pristine.description.trim()
-                    ) {
+                    if (imagesReorderedOnly && !contentChanged) {
                         recordsRepository.updateTemplate(
                             templateId = dialogHandle.templateDbId,
                             name = title,
@@ -774,7 +773,7 @@ class ModalViewModel @Inject constructor(
                             title = title,
                             description = description,
                         )
-                        if (imagesNeedReanalysis) {
+                        if (imagesNeedReanalysis || contentChanged) {
                             NutrientAnalysisWorker.setWorkRequest(
                                 appContext = application,
                                 recordId = dialogHandle.recordId,
@@ -923,6 +922,14 @@ class ModalViewModel @Inject constructor(
     }
 
     private fun closeAll() {
+        closeAllEmitting(ModalUiUpdates.Close)
+    }
+
+    private fun closeAllRequestingNotificationPermission() {
+        closeAllEmitting(ModalUiUpdates.CloseAndRequestNotificationPermission)
+    }
+
+    private fun closeAllEmitting(update: ModalUiUpdates) {
         recogniseFoodJob?.cancel()
         recordDetailsJob?.cancel()
         photoExportJob?.cancel()
@@ -934,7 +941,7 @@ class ModalViewModel @Inject constructor(
             )
         }
         viewModelScope.launch {
-            _uiUpdates.emit(ModalUiUpdates.Close)
+            _uiUpdates.emit(update)
         }
     }
 

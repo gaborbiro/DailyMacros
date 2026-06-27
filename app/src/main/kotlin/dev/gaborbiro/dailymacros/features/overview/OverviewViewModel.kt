@@ -6,8 +6,6 @@ import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.features.common.utils.combine
-import dev.gaborbiro.dailymacros.features.shared.NutrientAnalysisWorker
-import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ListMealVariantsForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiState
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiUpdates
@@ -17,11 +15,11 @@ import dev.gaborbiro.dailymacros.features.overview.usecase.DeleteUnusedTemplateI
 import dev.gaborbiro.dailymacros.features.overview.usecase.ResolveOverviewCoachMarkUseCase
 import dev.gaborbiro.dailymacros.features.overview.usecase.ResolveOverviewObserveSinceEpochMillisUseCase
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
+import dev.gaborbiro.dailymacros.features.shared.NutrientAnalysisWorker
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -127,18 +125,20 @@ class OverviewViewModel @Inject constructor(
                                 isLoadingMore = false,
                                 hasMoreData = hasMore,
                                 showAddWidgetButton = notSearching,
-                                showSettingsButton = notSearching,
+                                showSettingsButton = false,
                             )
                         }
                     }
-                    if (resolveCoachMark.execute(records.size)) {
-                        delay(2.seconds)
-                        _viewState.update {
-                            val stillNotSearching = search.isNullOrBlank()
-                            it.copy(
-                                showCoachMark = true,
-                                showSettingsButton = stillNotSearching,
-                            )
+                    if (resolveCoachMark.execute(records.filterIsInstance<ListUiModelRecord>().size)) {
+                        viewModelScope.launch {
+                            delay(1.seconds)
+                            _viewState.update {
+                                val stillNotSearching = search.isNullOrBlank()
+                                it.copy(
+                                    showCoachMark = true,
+                                    showSettingsButton = stillNotSearching,
+                                )
+                            }
                         }
                     }
                 }

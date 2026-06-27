@@ -34,6 +34,7 @@ internal fun OverviewListTopActions(
     listAtTop: Boolean,
     topContentPadding: Dp,
     onSettingsButtonTapped: () -> Unit,
+    onSetTargetsTapped: () -> Unit,
     onCoachMarkDismissed: () -> Unit,
 ) {
     var targetBounds by remember { mutableStateOf<Rect?>(null) }
@@ -69,7 +70,7 @@ internal fun OverviewListTopActions(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
                         contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                     ),
-                    onClick = onSettingsButtonTapped,
+                    onClick = if (coachMarkVisible) onSetTargetsTapped else onSettingsButtonTapped,
                 ) {
                     Icon(
                         imageVector = Icons.Default.Settings,

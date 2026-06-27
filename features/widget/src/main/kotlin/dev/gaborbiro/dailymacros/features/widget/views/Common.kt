@@ -6,6 +6,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceTheme
 import androidx.glance.color.ColorProvider
+import androidx.glance.text.FontStyle
 import androidx.glance.text.FontWeight
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
@@ -55,7 +56,8 @@ val DateTextStyle: TextStyle
 val LoadingTextStyle: TextStyle
     @Composable get() = TextStyle(
         fontWeight = FontWeight.Normal,
+        fontStyle = FontStyle.Italic,
         fontSize = 14.sp,
         textAlign = TextAlign.Start,
-        color = ColorProvider(day = Color(0xFFFF5722), night = Color(0xFFCDE9FF)),
+        color = ColorProvider(day = Color(0xFFFB8C00), night = Color(0xFFFFB74D)),
     )

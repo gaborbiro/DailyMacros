@@ -53,7 +53,10 @@ internal fun OverviewScreen(
         onUndoDeleteSnackbarShown = viewModel::onUndoDeleteSnackbarShown,
         onSearchTermChanged = viewModel::onSearchTermChanged,
         onSettingsButtonTapped = viewModel::onSettingsButtonTapped,
-        onSetTargetsTapped = { navController.navigate("$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_TARGETS_ARG=true") },
+        onSetTargetsTapped = {
+            viewModel.onCoachMarkDismissed()
+            navController.navigate("$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_TARGETS_ARG=true")
+        },
         onSummaryTapped = viewModel::onTrendsButtonTapped,
         onCoachMarkDismissed = viewModel::onCoachMarkDismissed,
         onLoadMore = viewModel::onLoadMore,

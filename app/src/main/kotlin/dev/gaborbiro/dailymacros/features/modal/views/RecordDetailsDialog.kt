@@ -115,7 +115,7 @@ internal fun RecordDetailsDialog(
                         showCloseOnly = false,
                         showSaveAndAdd = false,
                         primaryEnabled = true,
-                        primaryLabel = stringResource(R.string.meal_details_action_save),
+                        primaryLabel = stringResource(R.string.meal_details_action_save_and_analyse),
                         saveAndAddLabel = null,
                         onDismissRequested = { requestDismissRecordDetails() },
                         onSaveTapped = onSubmitButtonTapped,

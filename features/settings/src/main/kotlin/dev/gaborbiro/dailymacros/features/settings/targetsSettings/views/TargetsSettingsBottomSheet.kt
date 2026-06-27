@@ -42,7 +42,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -174,115 +173,105 @@ private fun MacroRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { expanded = !expanded },
-            verticalAlignment = Alignment.CenterVertically
+                .then(
+                    if (target.enabled) Modifier.clickable { expanded = !expanded }
+                    else Modifier
+                ),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            val style = if (target.enabled) {
-                MaterialTheme.typography.bodyLarge
-            } else {
-                MaterialTheme.typography.bodyLarge.copy(
-                    textDecoration = TextDecoration.LineThrough
+            if (target.enabled) {
+                Icon(
+                    imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = if (expanded) "Collapse" else "More details",
                 )
             }
             Text(
-                modifier = Modifier.padding(vertical = PaddingDefault),
-                text = label,
-                style = style
+                modifier = Modifier
+                    .padding(vertical = PaddingDefault)
+                    .weight(1f),
+                text = if (target.enabled) "$label${target.min ?: "?"}–${target.max ?: "?"}$unit" else label,
+                style = MaterialTheme.typography.bodyLarge,
             )
-            Text("${target.min ?: "?"}–${target.max ?: "?"}$unit")
-            Spacer(modifier = Modifier.width(8.dp))
-            Icon(
-                imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                contentDescription = if (expanded) "Collapse" else "More details"
+            Switch(
+                checked = target.enabled,
+                onCheckedChange = { enabled ->
+                    onChange(target.copy(enabled = enabled))
+                    expanded = enabled
+                },
             )
         }
 
-        if (expanded) {
+        if (expanded && target.enabled) {
             Spacer(Modifier.height(8.dp))
+            val minValue = target.min ?: 0
+            val maxValue = target.max ?: target.theoreticalMax
+            val layoutDirection = LocalLayoutDirection.current
+            val fieldErrors = error ?: FieldErrors()
+
+            RangeSlider(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = WindowInsets.systemGestures
+                            .asPaddingValues()
+                            .calculateStartPadding(layoutDirection),
+                    )
+                    .padding(vertical = PaddingHalf),
+                value = minValue.toFloat()..maxValue.toFloat(),
+                onValueChange = { range ->
+                    onChange(
+                        target.copy(
+                            min = range.start.toInt(),
+                            max = range.endInclusive.toInt()
+                        )
+                    )
+                },
+                valueRange = 0f..target.theoreticalMax.toFloat(),
+                steps = 0,
+            )
 
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Switch(
-                    checked = target.enabled,
-                    onCheckedChange = { onChange(target.copy(enabled = it)) }
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(if (target.enabled) "Enabled" else "Disabled")
-            }
-
-            if (target.enabled) {
-                val minValue = target.min ?: 0
-                val maxValue = target.max ?: target.theoreticalMax
-                val layoutDirection = LocalLayoutDirection.current
-                val fieldErrors = error ?: FieldErrors()
-
-                RangeSlider(
+                OutlinedTextField(
+                    value = target.min?.toString() ?: "",
+                    onValueChange = { onChange(target.copy(min = it.toIntOrNull())) },
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            horizontal = WindowInsets.systemGestures
-                                .asPaddingValues()
-                                .calculateStartPadding(layoutDirection),
-                        )
-                        .padding(vertical = PaddingHalf),
-                    value = minValue.toFloat()..maxValue.toFloat(),
-                    onValueChange = { range ->
-                        onChange(
-                            target.copy(
-                                min = range.start.toInt(),
-                                max = range.endInclusive.toInt()
-                            )
-                        )
-                    },
-                    valueRange = 0f..target.theoreticalMax.toFloat(),
-                    steps = 0,
+                        .fillMaxWidth(0.48f)
+                        .padding(end = 8.dp),
+                    singleLine = true,
+                    isError = fieldErrors.minError != null,
+                    label = { Text("Min") },
+                    supportingText = {
+                        when (fieldErrors.minError) {
+                            ValidationError.Empty -> Text("Value required", color = MaterialTheme.colorScheme.error)
+                            ValidationError.MinGreaterThanMax -> Text("min cannot be higher than max", color = MaterialTheme.colorScheme.error)
+                            null -> {}
+                        }
+                    }
                 )
-
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedTextField(
-                        value = target.min?.toString() ?: "",
-                        onValueChange = { onChange(target.copy(min = it.toIntOrNull())) },
-                        modifier = Modifier
-                            .fillMaxWidth(0.48f)
-                            .padding(end = 8.dp),
-                        singleLine = true,
-                        isError = fieldErrors.minError != null,
-                        label = { Text("Min") },
-                        supportingText = {
-                            when (fieldErrors.minError) {
-                                ValidationError.Empty -> Text("Value required", color = MaterialTheme.colorScheme.error)
-                                ValidationError.MinGreaterThanMax -> Text("min cannot be higher than max", color = MaterialTheme.colorScheme.error)
-                                null -> {}
-                            }
+                OutlinedTextField(
+                    value = target.max?.toString() ?: "",
+                    onValueChange = { onChange(target.copy(max = it.toIntOrNull())) },
+                    modifier = Modifier
+                        .fillMaxWidth(0.48f)
+                        .padding(start = 8.dp),
+                    singleLine = true,
+                    isError = fieldErrors.maxError != null,
+                    label = { Text("Max") },
+                    supportingText = {
+                        when (fieldErrors.maxError) {
+                            ValidationError.Empty -> Text("Value required", color = MaterialTheme.colorScheme.error)
+                            ValidationError.MinGreaterThanMax -> Text("min cannot be higher than max", color = MaterialTheme.colorScheme.error)
+                            null -> {}
                         }
-                    )
-                    OutlinedTextField(
-                        value = target.max?.toString() ?: "",
-                        onValueChange = { onChange(target.copy(max = it.toIntOrNull())) },
-                        modifier = Modifier
-                            .fillMaxWidth(0.48f)
-                            .padding(start = 8.dp),
-                        singleLine = true,
-                        isError = fieldErrors.maxError != null,
-                        label = { Text("Max") },
-                        supportingText = {
-                            when (fieldErrors.maxError) {
-                                ValidationError.Empty -> Text("Value required", color = MaterialTheme.colorScheme.error)
-                                ValidationError.MinGreaterThanMax -> Text("min cannot be higher than max", color = MaterialTheme.colorScheme.error)
-                                null -> {}
-                            }
-                        }
-                    )
-                    Text(unit, Modifier.padding(start = 8.dp))
-                }
+                    }
+                )
+                Text(unit, Modifier.padding(start = 8.dp))
             }
         }
     }

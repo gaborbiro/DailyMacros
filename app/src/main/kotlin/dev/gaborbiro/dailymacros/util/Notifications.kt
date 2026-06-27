@@ -17,9 +17,10 @@ fun Context.createNotificationChannels() {
     val generalChannel = NotificationChannel(
         CHANNEL_ID_GENERAL,
         "General notifications",
-        NotificationManager.IMPORTANCE_LOW
+        NotificationManager.IMPORTANCE_DEFAULT
     ).also {
         it.setShowBadge(false)
+        it.setSound(null, null)
     }
     val errorChannel = NotificationChannel(
         CHANNEL_ID_ERROR,

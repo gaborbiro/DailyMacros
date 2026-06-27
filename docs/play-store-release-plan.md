@@ -2,6 +2,7 @@
 
 ## Already done
 - Prompt cleanup: split recognition/analysis prompts, Customise AI editor UI, "underestimate" instruction
+- Google Drive backup (export/import via `appDataFolder`)
 
 ---
 
@@ -30,20 +31,6 @@
 - `BillingClient` wrapper: connect, query purchases, `acknowledgePurchase`
 - Gate AI queries behind active subscription check; show paywall when unsubscribed
 - Hilt-inject the wrapper; tie into `FoodRecognitionUseCase` and `NutrientAnalysisUseCase`
-
-### 5. Google Drive backup *(retention, ~3 days)*
-- Add Google Drive dependency (REST API via `com.google.api-client` or `play-services-drive`)
-- Reuse existing export/import logic already in Settings
-- "Back up to Drive" → serialize existing export format → upload to user's Drive `appDataFolder`
-- "Restore from Drive" → list backup files → download → import
-- No new login (uses existing Google account on device)
-
-### 6. Smart gap-detection notifications *(retention/differentiator, ~3–4 days)*
-- `WorkManager` periodic task (every 30 min during waking hours)
-- Gap detection: compute user's median meal times from their own log history; if current time is >45 min past their typical meal window and no log in that slot → nudge
-- End-of-day: at ~9pm, if today's calories are <60% of personal daily average (not targets) → quiet "looks like a light day" notification
-- Notification channels: gap alerts + end-of-day (separate so user can control each)
-- Off by default, opt-in in Settings
 
 ---
 

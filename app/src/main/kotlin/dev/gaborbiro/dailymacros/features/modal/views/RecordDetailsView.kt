@@ -272,7 +272,20 @@ fun ColumnScope.RecordDetailsView(
             )
         }
 
-        if (nutrientBreakdown?.hasDisplayableContent() == true) {
+        if (view.showLoadingIndicator) {
+            Text(
+                modifier = Modifier
+                    .padding(horizontal = PaddingDefault)
+                    .padding(top = 16.dp)
+                    .fillMaxWidth(),
+                text = stringResource(R.string.record_details_analyzing),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontStyle = FontStyle.Italic,
+            )
+        }
+
+        if (!view.showLoadingIndicator && nutrientBreakdown?.hasDisplayableContent() == true) {
             Spacer(
                 modifier = Modifier
                     .height(20.dp)
@@ -362,7 +375,7 @@ fun ColumnScope.RecordDetailsView(
                     }
                 }
             }
-        } else if (view.compactNutrients.hasAnyVisibleMacro()) {
+        } else if (!view.showLoadingIndicator && view.compactNutrients.hasAnyVisibleMacro()) {
             Spacer(modifier = Modifier.height(20.dp))
             CompactMacroNutrientsGrid(
                 modifier = Modifier

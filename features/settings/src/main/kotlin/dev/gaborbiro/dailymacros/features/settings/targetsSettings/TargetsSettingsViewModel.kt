@@ -63,12 +63,6 @@ class TargetsSettingsViewModel @Inject constructor(
             var minErr: ValidationError? = null
             var maxErr: ValidationError? = null
 
-            if (t.min == null) {
-                minErr = ValidationError.Empty
-            }
-            if (t.max == null) {
-                maxErr = ValidationError.Empty
-            }
             if (t.min != null && t.max != null && t.min > t.max) {
                 minErr = ValidationError.MinGreaterThanMax
                 maxErr = ValidationError.MinGreaterThanMax

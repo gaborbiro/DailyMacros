@@ -30,6 +30,7 @@ class BuildRecordDetailsViewDialogUseCase @Inject constructor(
             images = tmpl.images,
             nutrientBreakdown = uiMapper.mapNutrientBreakdowns(record),
             compactNutrients = uiMapper.mapCompactNutrients(record),
+            showLoadingIndicator = tmpl.isPending,
             allowEdit = allowEdit,
             titleHint = "Title",
             titleValidationError = null,

@@ -159,14 +159,5 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                /* activity = */ this,
-                /* permissions = */ arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                /* requestCode = */ 123
-            )
-        }
     }
 }

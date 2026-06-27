@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.overview.views
 
 import android.content.res.Configuration
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -139,6 +140,7 @@ private fun RecordTextContent(modifier: Modifier, record: ListUiModelRecord) {
                 maxLines = 1,
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.bodyMedium,
+                fontStyle = FontStyle.Italic,
             )
         } else {
             record.nutrients?.let { nutrients ->

@@ -10,7 +10,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextDecoration
+import dev.gaborbiro.dailymacros.R
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.LocalExtraColorScheme
@@ -188,6 +191,15 @@ internal fun NutrientsIndentedList(
                 )
             }
         }
+
+        Spacer(modifier = Modifier.height(PaddingDefault))
+        Text(
+            text = stringResource(R.string.record_details_ai_disclaimer),
+            style = MaterialTheme.typography.bodySmall.copy(
+                fontStyle = FontStyle.Italic,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            ),
+        )
     }
 }
 

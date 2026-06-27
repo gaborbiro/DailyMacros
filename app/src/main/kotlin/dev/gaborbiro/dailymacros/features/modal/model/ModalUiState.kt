@@ -64,6 +64,7 @@ sealed class DialogHandle {
             val variabilityAnchorTemplateDbId: Long,
             val nutrientBreakdown: NutrientBreakdownUiModel?,
             val compactNutrients: NutrientsUiModel,
+            val showLoadingIndicator: Boolean = false,
             val allowEdit: Boolean,
             val isEditing: Boolean = false,
             override val titleHint: String,

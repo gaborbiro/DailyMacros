@@ -1,10 +1,12 @@
 package dev.gaborbiro.dailymacros.features.modal
 
+import android.Manifest
 import android.app.ComponentCaller
 import android.app.KeyguardManager
 import android.content.Intent
 import android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -21,6 +23,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.core.content.ContextCompat
+import androidx.core.content.PermissionChecker
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -84,6 +88,11 @@ class ModalActivity : AppCompatActivity() {
         setContent {
             val viewState by viewModel.uiState.collectAsStateWithLifecycle()
 
+            val notificationPermissionLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.RequestPermission(),
+                onResult = { finish() },
+            )
+
             AppTheme {
                 CompositionLocalProvider(LocalImageStore provides imageStore) {
                     val errorMessages = remember {
@@ -105,6 +114,18 @@ class ModalActivity : AppCompatActivity() {
                 viewModel.uiUpdates.collect { update ->
                     when (update) {
                         ModalUiUpdates.Close -> finish()
+                        ModalUiUpdates.CloseAndRequestNotificationPermission -> {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                                ContextCompat.checkSelfPermission(
+                                    this@ModalActivity,
+                                    Manifest.permission.POST_NOTIFICATIONS,
+                                ) != PermissionChecker.PERMISSION_GRANTED
+                            ) {
+                                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            } else {
+                                finish()
+                            }
+                        }
                         is ModalUiUpdates.ShowToast -> {
                             Toast.makeText(
                                 this@ModalActivity,

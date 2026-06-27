@@ -140,6 +140,7 @@ internal fun OverviewView(
                 listAtTop = listAtTop,
                 topContentPadding = paddingValues.calculateTopPadding(),
                 onSettingsButtonTapped = onSettingsButtonTapped,
+                onSetTargetsTapped = onSetTargetsTapped,
                 onCoachMarkDismissed = onCoachMarkDismissed,
             )
         }
