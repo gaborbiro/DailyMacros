@@ -7,6 +7,7 @@ data class PromptEditorUiState(
     val recognitionSegments: List<PromptSegment> = emptyList(),
     val analysisSegments: List<PromptSegment> = emptyList(),
     val insightsSegments: List<PromptSegment> = emptyList(),
+    val ongoingInsightsSegments: List<PromptSegment> = emptyList(),
     val currentValues: Map<String, String> = emptyMap(),
     val originalValues: Map<String, String> = emptyMap(),
     val showExitDialog: Boolean = false,

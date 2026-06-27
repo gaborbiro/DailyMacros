@@ -16,7 +16,7 @@ interface TrendsPreferences {
 
     var insightsDateRange: String?
 
-    var ongoingInsights: Map<String, String>
+    var ongoingInsights: String
 
     var ongoingInsightsDateRange: String?
 
@@ -58,15 +58,9 @@ class TrendsPreferencesImpl @Inject constructor(
             if (value != null) putString(KEY_INSIGHTS_DATE_RANGE, value) else remove(KEY_INSIGHTS_DATE_RANGE)
         }
 
-    override var ongoingInsights: Map<String, String>
-        get() {
-            val json = prefs.getString(KEY_ONGOING_INSIGHTS, null) ?: return emptyMap()
-            return try {
-                val obj = JSONObject(json)
-                obj.keys().asSequence().associateWith { obj.getString(it) }
-            } catch (_: Exception) { emptyMap() }
-        }
-        set(value) = prefs.edit { putString(KEY_ONGOING_INSIGHTS, JSONObject(value as Map<*, *>).toString()) }
+    override var ongoingInsights: String
+        get() = prefs.getString(KEY_ONGOING_INSIGHTS, null) ?: ""
+        set(value) = prefs.edit { putString(KEY_ONGOING_INSIGHTS, value) }
 
     override var ongoingInsightsDateRange: String?
         get() = prefs.getString(KEY_ONGOING_INSIGHTS_DATE_RANGE, null)

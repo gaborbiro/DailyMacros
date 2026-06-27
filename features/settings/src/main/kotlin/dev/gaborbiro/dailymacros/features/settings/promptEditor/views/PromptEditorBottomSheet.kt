@@ -79,20 +79,23 @@ internal fun PromptEditorView(
     onClearApiKeyTapped: () -> Unit,
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Recognition", "Analysis", "Weekly Insights")
+    val tabs = listOf("Recognition", "Analysis", "Week on Week", "Ongoing Week")
     val currentSegments = when (selectedTab) {
         0 -> viewState.recognitionSegments
         1 -> viewState.analysisSegments
-        else -> viewState.insightsSegments
+        2 -> viewState.insightsSegments
+        else -> viewState.ongoingInsightsSegments
     }
 
     val recognitionScrollState = rememberScrollState()
     val analysisScrollState = rememberScrollState()
     val insightsScrollState = rememberScrollState()
+    val ongoingInsightsScrollState = rememberScrollState()
     val activeScrollState: ScrollState = when (selectedTab) {
         0 -> recognitionScrollState
         1 -> analysisScrollState
-        else -> insightsScrollState
+        2 -> insightsScrollState
+        else -> ongoingInsightsScrollState
     }
 
     var hiddenPx by remember { mutableFloatStateOf(0f) }

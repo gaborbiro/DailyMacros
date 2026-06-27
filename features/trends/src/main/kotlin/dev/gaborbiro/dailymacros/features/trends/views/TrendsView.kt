@@ -218,6 +218,14 @@ internal fun TrendsView(
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
+                if (viewState.ongoingInsights.isNotEmpty()) {
+                    Text(
+                        text = viewState.ongoingInsights,
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
 
             if (timescale == Timescale.WEEKS) {
@@ -288,16 +296,6 @@ internal fun TrendsView(
                             scrollState = scrollState,
                             showEveryXLabel = showEveryXLabel,
                         )
-                        if (timescale == Timescale.DAYS) {
-                            viewState.ongoingInsights[chartData.title]?.let { insight ->
-                                Text(
-                                    text = insight,
-                                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        }
                         if (timescale == Timescale.WEEKS) {
                             viewState.insights[chartData.title]?.let { insight ->
                                 Text(

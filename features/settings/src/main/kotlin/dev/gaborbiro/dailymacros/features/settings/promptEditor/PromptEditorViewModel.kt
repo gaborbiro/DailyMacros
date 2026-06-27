@@ -48,6 +48,7 @@ class PromptEditorViewModel @Inject constructor(
             recognitionSegments = chatGPTRepository.getRecognitionPromptSegments(),
             analysisSegments = chatGPTRepository.getAnalysisPromptSegments(),
             insightsSegments = chatGPTRepository.getInsightsPromptSegments(),
+            ongoingInsightsSegments = chatGPTRepository.getOngoingInsightsPromptSegments(),
             currentValues = customizations,
             originalValues = customizations,
             versions = versions,

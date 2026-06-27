@@ -32,5 +32,5 @@ interface ChatGPTRepository {
     suspend fun getWeeklyInsights(request: WeeklyInsightsRequest): Map<String, String>
 
     /** @throws dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError on any API/transport failure. */
-    suspend fun getOngoingInsights(request: OngoingInsightsRequest): Map<String, String>
+    suspend fun getOngoingInsights(request: OngoingInsightsRequest): String
 }

@@ -171,7 +171,7 @@ class ChatGPTRepositoryImpl(
         ),
     )
 
-    override suspend fun getOngoingInsights(request: OngoingInsightsRequest): Map<String, String> {
+    override suspend fun getOngoingInsights(request: OngoingInsightsRequest): String {
         return mappingApiErrors {
             runCatching(logTag = "getOngoingInsights") {
                 val response = service.callResponses(request = request.toApiModel())
