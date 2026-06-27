@@ -253,18 +253,12 @@ internal fun PromptEditorView(
                                 }
                             }
                         }
-                    }
-
-                    Surface(
-                        shadowElevation = 8.dp,
-                        color = MaterialTheme.colorScheme.background,
-                    ) {
                         Button(
                             onClick = { onSaveTapped(currentTabType) },
                             enabled = viewState.promptsEnabled && viewState.currentValues != viewState.originalValues,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                                .padding(top = 8.dp),
                         ) {
                             Text("Save")
                         }
