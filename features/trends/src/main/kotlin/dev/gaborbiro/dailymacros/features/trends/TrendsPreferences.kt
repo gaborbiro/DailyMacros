@@ -12,9 +12,13 @@ interface TrendsPreferences {
 
     var qualifyingCalorieThreshold: Long
 
-    var insights: Map<String, String>
+    var weeklyInsights: Map<String, String>
 
-    var insightsDateRange: String?
+    var weeklyInsightsDateRange: String?
+
+    var ongoingWeekInsights: String?
+
+    var ongoingInsightsDateRange: String?
 
     companion object {
         const val MODE_ALL_CALENDAR_DAYS = "aggregation_mode_calendar_days"
@@ -38,27 +42,39 @@ class TrendsPreferencesImpl @Inject constructor(
         get() = prefs.getLong(KEY_QUALIFYING_CALORIE_THRESHOLD, DEFAULT_QUALIFYING_THRESHOLD)
         set(value) = prefs.edit { putLong(KEY_QUALIFYING_CALORIE_THRESHOLD, value) }
 
-    override var insights: Map<String, String>
+    override var weeklyInsights: Map<String, String>
         get() {
-            val json = prefs.getString(KEY_INSIGHTS, null) ?: return emptyMap()
+            val json = prefs.getString(KEY_WEEKLY_INSIGHTS, null) ?: return emptyMap()
             return try {
                 val obj = JSONObject(json)
                 obj.keys().asSequence().associateWith { obj.getString(it) }
             } catch (_: Exception) { emptyMap() }
         }
-        set(value) = prefs.edit { putString(KEY_INSIGHTS, JSONObject(value as Map<*, *>).toString()) }
+        set(value) = prefs.edit { putString(KEY_WEEKLY_INSIGHTS, JSONObject(value as Map<*, *>).toString()) }
 
-    override var insightsDateRange: String?
-        get() = prefs.getString(KEY_INSIGHTS_DATE_RANGE, null)
+    override var weeklyInsightsDateRange: String?
+        get() = prefs.getString(KEY_WEEKLY_INSIGHTS_DATE_RANGE, null)
         set(value) = prefs.edit {
-            if (value != null) putString(KEY_INSIGHTS_DATE_RANGE, value) else remove(KEY_INSIGHTS_DATE_RANGE)
+            if (value != null) putString(KEY_WEEKLY_INSIGHTS_DATE_RANGE, value) else remove(KEY_WEEKLY_INSIGHTS_DATE_RANGE)
+        }
+
+    override var ongoingWeekInsights: String?
+        get() = prefs.getString(KEY_ONGOING_WEEK_INSIGHTS, null)
+        set(value) = prefs.edit { putString(KEY_ONGOING_WEEK_INSIGHTS, value) }
+
+    override var ongoingInsightsDateRange: String?
+        get() = prefs.getString(KEY_ONGOING_WEEK_INSIGHTS_DATE_RANGE, null)
+        set(value) = prefs.edit {
+            if (value != null) putString(KEY_ONGOING_WEEK_INSIGHTS_DATE_RANGE, value) else remove(KEY_ONGOING_WEEK_INSIGHTS_DATE_RANGE)
         }
 
     private companion object {
         const val KEY_DAY_QUALIFICATION_MODE = "aggregation_mode"
         const val KEY_QUALIFYING_CALORIE_THRESHOLD = "qualified_aggregation_threshold"
-        const val KEY_INSIGHTS = "weekly_insights"
-        const val KEY_INSIGHTS_DATE_RANGE = "weekly_insights_date_range"
+        const val KEY_WEEKLY_INSIGHTS = "weekly_insights"
+        const val KEY_WEEKLY_INSIGHTS_DATE_RANGE = "weekly_insights_date_range"
+        const val KEY_ONGOING_WEEK_INSIGHTS = "ongoing_week_insights"
+        const val KEY_ONGOING_WEEK_INSIGHTS_DATE_RANGE = "ongoing_week_insights_date_range"
         const val DEFAULT_QUALIFYING_THRESHOLD = 800L
     }
 }

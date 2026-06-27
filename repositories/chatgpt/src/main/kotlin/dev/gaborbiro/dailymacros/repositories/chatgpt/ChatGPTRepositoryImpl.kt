@@ -2,25 +2,33 @@ package dev.gaborbiro.dailymacros.repositories.chatgpt
 
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodTitle
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsRequest
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsights
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_ANALYSIS_SYSTEM
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_ANALYSIS_USER
-import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_INSIGHTS_SYSTEM
-import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_INSIGHTS_USER
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_WEEKLY_INSIGHTS_SYSTEM
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_WEEKLY_INSIGHTS_USER
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_ONGOING_WEEK_INSIGHTS_SYSTEM
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_ONGOING_WEEK_INSIGHTS_USER
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_RECOGNITION_SYSTEM
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_RECOGNITION_USER
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ANALYSIS_MODEL
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ANALYSIS_REASONING_EFFORT
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ANALYSIS_SYSTEM
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ANALYSIS_USER
-import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_INSIGHTS_MODEL
-import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_INSIGHTS_REASONING_EFFORT
-import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_INSIGHTS_SYSTEM
-import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_INSIGHTS_USER
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_WEEKLY_INSIGHTS_MODEL
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_WEEKLY_INSIGHTS_REASONING_EFFORT
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_WEEKLY_INSIGHTS_SYSTEM
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_WEEKLY_INSIGHTS_USER
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ONGOING_WEEK_INSIGHTS_MODEL
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ONGOING_WEEK_INSIGHTS_REASONING_EFFORT
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ONGOING_WEEK_INSIGHTS_SYSTEM
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_ONGOING_WEEK_INSIGHTS_USER
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_RECOGNITION_MODEL
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_RECOGNITION_REASONING_EFFORT
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.SEG_RECOGNITION_SYSTEM
@@ -29,11 +37,14 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.foodPhotoRecogniti
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.foodPhotoRecognitionReasoningEffort
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.nutrientAnalysisModel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.nutrientAnalysisReasoningEffort
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.ongoingWeekInsightsModel
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.ongoingWeekInsightsReasoningEffort
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.weeklyInsightsModel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.weeklyInsightsReasoningEffort
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toApiModel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toFoodRecognitionResponse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toNutrientAnalysisResponse
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toOngoingInsightsResponse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toWeeklyInsightsResponse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.ChatGPTService
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
@@ -46,7 +57,7 @@ class ChatGPTRepositoryImpl(
     private val mapper: ChatGPTMapper,
 ) : ChatGPTRepository {
 
-    override suspend fun recogniseFood(request: FoodRecognitionRequest): FoodRecognitionResult {
+    override suspend fun recogniseFood(request: FoodRecognitionRequest): FoodTitle {
         return mappingApiErrors {
             runCatching(logTag = "recogniseFood") {
                 val response = service.callResponses(
@@ -136,28 +147,64 @@ class ChatGPTRepositoryImpl(
 
     override fun getInsightsPromptSegments(): List<PromptSegment> = listOf(
         PromptSegment.Editable(
-            id = SEG_INSIGHTS_MODEL,
+            id = SEG_WEEKLY_INSIGHTS_MODEL,
             label = "Model",
             defaultText = weeklyInsightsModel,
             singleLine = true,
         ),
         PromptSegment.Editable(
-            id = SEG_INSIGHTS_REASONING_EFFORT,
+            id = SEG_WEEKLY_INSIGHTS_REASONING_EFFORT,
             label = "Reasoning effort",
             defaultText = weeklyInsightsReasoningEffort,
             hint = "none, minimal, low, medium, high, xhigh",
             singleLine = true,
         ),
         PromptSegment.Editable(
-            id = SEG_INSIGHTS_SYSTEM,
+            id = SEG_WEEKLY_INSIGHTS_SYSTEM,
             label = "System message",
-            defaultText = DEFAULT_INSIGHTS_SYSTEM,
+            defaultText = DEFAULT_WEEKLY_INSIGHTS_SYSTEM,
         ),
         PromptSegment.Locked("{diary}"),
         PromptSegment.Editable(
-            id = SEG_INSIGHTS_USER,
+            id = SEG_WEEKLY_INSIGHTS_USER,
             label = "User message",
-            defaultText = DEFAULT_INSIGHTS_USER,
+            defaultText = DEFAULT_WEEKLY_INSIGHTS_USER,
+        ),
+    )
+
+    override suspend fun getOngoingInsights(request: OngoingWeekInsightsRequest): OngoingWeekInsights {
+        return mappingApiErrors {
+            runCatching(logTag = "getOngoingWeekInsights") {
+                val response = service.callResponses(request = request.toApiModel())
+                return@runCatching parse(response).toOngoingInsightsResponse()
+            }
+        }
+    }
+
+    override fun getOngoingInsightsPromptSegments(): List<PromptSegment> = listOf(
+        PromptSegment.Editable(
+            id = SEG_ONGOING_WEEK_INSIGHTS_MODEL,
+            label = "Model",
+            defaultText = ongoingWeekInsightsModel,
+            singleLine = true,
+        ),
+        PromptSegment.Editable(
+            id = SEG_ONGOING_WEEK_INSIGHTS_REASONING_EFFORT,
+            label = "Reasoning effort",
+            defaultText = ongoingWeekInsightsReasoningEffort,
+            hint = "none, minimal, low, medium, high, xhigh",
+            singleLine = true,
+        ),
+        PromptSegment.Editable(
+            id = SEG_ONGOING_WEEK_INSIGHTS_SYSTEM,
+            label = "System message",
+            defaultText = DEFAULT_ONGOING_WEEK_INSIGHTS_SYSTEM,
+        ),
+        PromptSegment.Locked("{diary}"),
+        PromptSegment.Editable(
+            id = SEG_ONGOING_WEEK_INSIGHTS_USER,
+            label = "User message",
+            defaultText = DEFAULT_ONGOING_WEEK_INSIGHTS_USER,
         ),
     )
 

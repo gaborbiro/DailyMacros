@@ -53,7 +53,6 @@ import dev.gaborbiro.dailymacros.features.trends.model.TrendsChartUiModel
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsSettingsUIModel
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiState
 import kotlinx.coroutines.delay
-import kotlin.math.roundToInt
 
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
@@ -68,6 +67,7 @@ internal fun TrendsView(
     onSettingsThresholdChanged: (Long, Timescale) -> Unit,
     onTargetsSettingTapped: () -> Unit,
     onGetInsightsTapped: () -> Unit,
+    onGetOngoingInsightsTapped: () -> Unit,
 ) {
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
@@ -122,7 +122,7 @@ internal fun TrendsView(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Text(
-                        text = "Trends will show up once you've logged meals for a few days",
+                        text = "Trends will show up once you’ve logged meals for a few days",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -172,7 +172,62 @@ internal fun TrendsView(
                 else -> 1
             }
 
-            if (timescale == Timescale.WEEKS) {
+            if (timescale == Timescale.DAYS && viewState.aiInsightsEnabled) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column {
+                        Text(
+                            text = "Ongoing Week Insights",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        viewState.ongoingWeekInsightsDateRange?.let {
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    OutlinedButton(
+                        onClick = onGetOngoingInsightsTapped,
+                        enabled = !viewState.ongoingWeekInsightsLoading,
+                    ) {
+                        if (viewState.ongoingWeekInsightsLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp,
+                            )
+                        } else {
+                            Text(if (viewState.ongoingWeekInsights.isNullOrEmpty().not()) "Refresh" else "Get insights")
+                        }
+                    }
+                }
+
+                viewState.ongoingWeekInsightsError?.let { error ->
+                    Text(
+                        text = error,
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                if (viewState.ongoingWeekInsights.isNullOrEmpty().not()) {
+                    Text(
+                        text = viewState.ongoingWeekInsights,
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
+            if (timescale == Timescale.WEEKS && viewState.aiInsightsEnabled) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -186,7 +241,7 @@ internal fun TrendsView(
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        viewState.insightsDateRange?.let {
+                        viewState.weeklyInsightsDateRange?.let {
                             Text(
                                 text = it,
                                 style = MaterialTheme.typography.labelSmall,
@@ -196,20 +251,20 @@ internal fun TrendsView(
                     }
                     OutlinedButton(
                         onClick = onGetInsightsTapped,
-                        enabled = !viewState.insightsLoading,
+                        enabled = !viewState.weeklyInsightsLoading,
                     ) {
-                        if (viewState.insightsLoading) {
+                        if (viewState.weeklyInsightsLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(16.dp),
                                 strokeWidth = 2.dp,
                             )
                         } else {
-                            Text(if (viewState.insights.isNotEmpty()) "Refresh" else "Get insights")
+                            Text(if (viewState.weeklyInsights.isNotEmpty()) "Refresh" else "Get insights")
                         }
                     }
                 }
 
-                viewState.insightsError?.let { error ->
+                viewState.weeklyInsightsError?.let { error ->
                     Text(
                         text = error,
                         modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
@@ -241,7 +296,7 @@ internal fun TrendsView(
                             showEveryXLabel = showEveryXLabel,
                         )
                         if (timescale == Timescale.WEEKS) {
-                            viewState.insights[chartData.title]?.let { insight ->
+                            viewState.weeklyInsights[chartData.title]?.let { insight ->
                                 Text(
                                     text = insight,
                                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
@@ -294,6 +349,7 @@ private fun TrendsViewPreview() {
             onSettingsThresholdChanged = { _, _ -> },
             onTargetsSettingTapped = {},
             onGetInsightsTapped = {},
+            onGetOngoingInsightsTapped = {},
         )
     }
 }

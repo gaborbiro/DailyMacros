@@ -54,6 +54,10 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel.Companion.TAB_ANALYSIS
+import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel.Companion.TAB_INSIGHTS
+import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel.Companion.TAB_ONGOING_INSIGHTS
+import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel.Companion.TAB_RECOGNITION
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.model.PromptEditorUiState
 import dev.gaborbiro.dailymacros.features.settings.util.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
@@ -62,15 +66,22 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+private val ALL_TABS = listOf(
+    TAB_RECOGNITION to "Recognition",
+    TAB_ANALYSIS to "Analysis",
+    TAB_INSIGHTS to "Week on Week",
+    TAB_ONGOING_INSIGHTS to "Ongoing Week",
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun PromptEditorView(
     viewState: PromptEditorUiState,
     onDismissRequested: () -> Unit,
     onValueChanged: (String, String) -> Unit,
-    onSaveTapped: () -> Unit,
-    onVersionSelected: (Int) -> Unit,
-    onDeleteVersion: (Int) -> Unit,
+    onSaveTapped: (tabType: String) -> Unit,
+    onVersionSelected: (tabType: String, index: Int) -> Unit,
+    onDeleteVersion: (tabType: String, index: Int) -> Unit,
     onExitDialogSaveTapped: () -> Unit,
     onExitDialogDiscardTapped: () -> Unit,
     onExitDialogDismissed: () -> Unit,
@@ -78,21 +89,29 @@ internal fun PromptEditorView(
     onUnlockTapped: () -> Unit,
     onClearApiKeyTapped: () -> Unit,
 ) {
+    val visibleTabs = remember(viewState.aiInsightsEnabled) {
+        if (viewState.aiInsightsEnabled) ALL_TABS
+        else ALL_TABS.filter { (type, _) -> type != TAB_INSIGHTS && type != TAB_ONGOING_INSIGHTS }
+    }
+
     var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Recognition", "Analysis", "Weekly Insights")
-    val currentSegments = when (selectedTab) {
-        0 -> viewState.recognitionSegments
-        1 -> viewState.analysisSegments
-        else -> viewState.insightsSegments
+    val currentTabType = visibleTabs[selectedTab].first
+    val currentSegments = when (currentTabType) {
+        TAB_RECOGNITION -> viewState.recognitionSegments
+        TAB_ANALYSIS -> viewState.analysisSegments
+        TAB_INSIGHTS -> viewState.insightsSegments
+        else -> viewState.ongoingInsightsSegments
     }
 
     val recognitionScrollState = rememberScrollState()
     val analysisScrollState = rememberScrollState()
     val insightsScrollState = rememberScrollState()
-    val activeScrollState: ScrollState = when (selectedTab) {
-        0 -> recognitionScrollState
-        1 -> analysisScrollState
-        else -> insightsScrollState
+    val ongoingInsightsScrollState = rememberScrollState()
+    val activeScrollState: ScrollState = when (currentTabType) {
+        TAB_RECOGNITION -> recognitionScrollState
+        TAB_ANALYSIS -> analysisScrollState
+        TAB_INSIGHTS -> insightsScrollState
+        else -> ongoingInsightsScrollState
     }
 
     var hiddenPx by remember { mutableFloatStateOf(0f) }
@@ -127,7 +146,7 @@ internal fun PromptEditorView(
             Scaffold(
                 topBar = {
                     TopAppBar(
-                        title = { Text("AI Customisation") },
+                        title = { Text("AI Customization") },
                         navigationIcon = {
                             IconButton(onClick = onDismissRequested) {
                                 Icon(
@@ -145,6 +164,7 @@ internal fun PromptEditorView(
                         .fillMaxSize()
                         .nestedScroll(nestedScrollConnection),
                 ) {
+                    // Collapsing section: API key only
                     Column(
                         modifier = Modifier
                             .clipToBounds()
@@ -177,27 +197,30 @@ internal fun PromptEditorView(
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                             )
                         }
-                        VersionPicker(
-                            versions = viewState.versions,
-                            selectedIndex = viewState.selectedVersionIndex,
-                            enabled = viewState.promptsEnabled,
-                            onVersionSelected = onVersionSelected,
-                            onDeleteVersion = onDeleteVersion,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                        )
+                        Spacer(Modifier.height(4.dp))
                     }
 
                     ScrollableTabRow(selectedTabIndex = selectedTab) {
-                        tabs.forEachIndexed { index, title ->
+                        visibleTabs.forEachIndexed { index, (_, label) ->
                             Tab(
                                 selected = selectedTab == index,
                                 onClick = { selectedTab = index },
-                                text = { Text(title) },
+                                text = { Text(label) },
                             )
                         }
                     }
+
+                    // Per-tab version picker
+                    VersionPicker(
+                        versions = viewState.tabVersions[currentTabType] ?: emptyList(),
+                        selectedIndex = viewState.tabSelectedVersionIndex[currentTabType] ?: 0,
+                        enabled = viewState.promptsEnabled,
+                        onVersionSelected = { onVersionSelected(currentTabType, it) },
+                        onDeleteVersion = { onDeleteVersion(currentTabType, it) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
 
                     Column(
                         modifier = Modifier
@@ -239,18 +262,12 @@ internal fun PromptEditorView(
                                 }
                             }
                         }
-                    }
-
-                    androidx.compose.material3.Surface(
-                        shadowElevation = 8.dp,
-                        color = MaterialTheme.colorScheme.background,
-                    ) {
                         Button(
-                            onClick = onSaveTapped,
-                            enabled = viewState.canSave,
+                            onClick = { onSaveTapped(currentTabType) },
+                            enabled = viewState.promptsEnabled && viewState.currentValues != viewState.originalValues,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                                .padding(top = 8.dp),
                         ) {
                             Text("Save")
                         }
@@ -266,7 +283,7 @@ internal fun PromptEditorView(
             title = { Text("Unsaved changes") },
             text = { Text("You have unsaved prompt changes. Save or discard them?") },
             confirmButton = {
-                if (viewState.canSave) {
+                if (viewState.hasAnyUnsavedChanges) {
                     TextButton(onClick = onExitDialogSaveTapped) { Text("Save") }
                 }
             },
@@ -341,7 +358,6 @@ private fun VersionPicker(
 
     fun PromptVersion.label() = "v${version} · ${dateFormatter.format(Date(createdAt))}"
 
-    // Index 0 is always "v0 (default)"; user versions occupy indices 1+
     val displayText = if (selectedIndex == 0) "v0 (default)" else versions.getOrNull(selectedIndex - 1)?.label() ?: "v0 (default)"
 
     ExposedDropdownMenuBox(

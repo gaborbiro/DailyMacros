@@ -1,6 +1,6 @@
 package dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model
 
-data class WeeklyInsightsRequest(
+data class OngoingWeekInsightsRequest(
     val diary: String,
     val customizations: Map<String, String> = emptyMap(),
     val phoneLanguage: String,

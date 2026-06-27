@@ -22,10 +22,10 @@ interface SettingsRepository {
 
     fun clearPromptCustomizations()
 
-    fun getPromptVersions(): List<PromptVersion>
+    fun getPromptVersions(type: String): List<PromptVersion>
 
-    /** Creates a new version with the given customizations, persists it, and returns it. */
-    fun savePromptVersion(customizations: Map<String, String>): PromptVersion
+    /** Creates a new version record for the given prompt type, persists it, and returns it. Does NOT update the active customizations. */
+    fun savePromptVersion(type: String, customizations: Map<String, String>): PromptVersion
 
     /** Deletes the version with the given version number. */
     fun deletePromptVersion(version: Int)

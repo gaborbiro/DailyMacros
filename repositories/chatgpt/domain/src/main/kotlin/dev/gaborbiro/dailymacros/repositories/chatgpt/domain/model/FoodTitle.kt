@@ -1,6 +1,5 @@
 package dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model
 
-data class FoodRecognitionResult(
+data class FoodTitle(
     val title: String?,
-    val cachedTokens: Int,
 )

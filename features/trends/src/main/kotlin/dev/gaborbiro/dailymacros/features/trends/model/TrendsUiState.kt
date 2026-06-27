@@ -6,10 +6,15 @@ data class TrendsUiState(
     val charts: List<TrendsChartUiModel> = emptyList(),
     val settings: TrendsSettingsUIModel = TrendsSettingsUIModel.Hidden,
     val showTargetsSettings: Boolean = false,
-    val insights: Map<String, String> = emptyMap(),
-    val insightsDateRange: String? = null,
-    val insightsLoading: Boolean = false,
-    val insightsError: String? = null,
+    val weeklyInsights: Map<String, String> = emptyMap(),
+    val weeklyInsightsDateRange: String? = null,
+    val weeklyInsightsLoading: Boolean = false,
+    val weeklyInsightsError: String? = null,
+    val ongoingWeekInsights: String? = null,
+    val ongoingWeekInsightsDateRange: String? = null,
+    val ongoingWeekInsightsLoading: Boolean = false,
+    val ongoingWeekInsightsError: String? = null,
+    val aiInsightsEnabled: Boolean = false,
 )
 
 enum class Timescale { DAYS, WEEKS, MONTHS }
