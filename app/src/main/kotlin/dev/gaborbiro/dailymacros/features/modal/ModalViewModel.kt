@@ -286,6 +286,10 @@ class ModalViewModel @Inject constructor(
                 // Activity steals focus from ModalActivity. Ignore — the overlay handles cleanup.
             }
 
+            dialog is DialogHandle.RecordDetailsDialog.View && dialog.isEditing -> {
+                onRecordDetailsEditCancelled()
+            }
+
             dialog is DialogHandle.RecordDetailsDialog.View -> {
                 closeAll()
             }
@@ -438,7 +442,6 @@ class ModalViewModel @Inject constructor(
     fun onSaveDetailsTapped() {
         val details = (_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View) ?: return
         if (!details.isEditing) return
-        if (details.openedFromTemplateDetailsOnly) return
         runSafely {
             handleEditRecordDialogSubmitted(details)
         }
