@@ -6,8 +6,8 @@ import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.work.WorkManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.features.widgets.diary.DiaryWidgetScreen
-import dev.gaborbiro.dailymacros.features.widgets.quickpick.QuickPickReloadWorker
-import dev.gaborbiro.dailymacros.features.widgets.quickpick.QuickPickWidgetScreen
+import dev.gaborbiro.dailymacros.features.widgets.quickpickwidget.QuickPickReloadWorker
+import dev.gaborbiro.dailymacros.features.widgets.quickpickwidget.QuickPickWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

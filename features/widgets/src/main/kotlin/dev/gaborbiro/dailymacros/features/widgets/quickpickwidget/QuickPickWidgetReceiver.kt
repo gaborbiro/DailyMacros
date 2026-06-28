@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widgets.quickpick
+package dev.gaborbiro.dailymacros.features.widgets.quickpickwidget
 
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver

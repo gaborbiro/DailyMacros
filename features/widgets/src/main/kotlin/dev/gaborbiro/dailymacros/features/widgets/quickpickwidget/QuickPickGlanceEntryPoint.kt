@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widgets.quickpick
+package dev.gaborbiro.dailymacros.features.widgets.quickpickwidget
 
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn

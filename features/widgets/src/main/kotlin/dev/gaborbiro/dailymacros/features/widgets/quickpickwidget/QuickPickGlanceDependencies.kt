@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widgets.quickpick
+package dev.gaborbiro.dailymacros.features.widgets.quickpickwidget
 
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore

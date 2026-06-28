@@ -19,11 +19,11 @@ import androidx.glance.preview.Preview
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDouble
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
+import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
+import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.widgets.model.ListUiModelQuickPick
 import dev.gaborbiro.dailymacros.features.widgets.model.ListUiModelQuickPickFooter
 import dev.gaborbiro.dailymacros.features.widgets.model.ListUiModelQuickPickHeader
-import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
-import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.widgets.util.WidgetPreviewContext
 
 @Composable
@@ -46,8 +46,10 @@ internal fun DiaryWidgetList(
             when (item) {
                 is ListUiModelRecord -> ListItemRecord(
                     modifier = GlanceModifier
-                        .padding(start = PaddingWidgetDouble)
-                        .padding(vertical = PaddingWidgetDefault),
+                        .padding(
+                            horizontal = PaddingWidgetDouble,
+                            vertical = PaddingWidgetDefault
+                        ),
                     record = item,
                     imageTappedActionProvider = recordImageTapActionProvider(item.listItemId),
                     bodyTappedActionProvider = recordBodyTapActionProvider(item.listItemId),

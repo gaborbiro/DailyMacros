@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widgets.quickpick
+package dev.gaborbiro.dailymacros.features.widgets.quickpickwidget
 
 import android.appwidget.AppWidgetManager
 import android.content.Context
