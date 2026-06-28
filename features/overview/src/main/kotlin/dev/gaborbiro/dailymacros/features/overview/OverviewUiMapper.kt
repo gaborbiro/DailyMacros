@@ -4,10 +4,10 @@ import android.icu.text.DecimalFormat
 import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.features.shared.RecordsMapper
 import dev.gaborbiro.dailymacros.features.shared.SharedRecordsUiMapper
-import dev.gaborbiro.dailymacros.features.shared.diaryDayStartTime
-import dev.gaborbiro.dailymacros.features.shared.diaryDayWindowStart
-import dev.gaborbiro.dailymacros.features.shared.logicalDiaryDate
-import dev.gaborbiro.dailymacros.features.shared.logicalDiaryToday
+import dev.gaborbiro.dailymacros.features.common.utils.diaryDayStartTime
+import dev.gaborbiro.dailymacros.features.common.utils.diaryDayWindowStart
+import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryDate
+import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryToday
 import dev.gaborbiro.dailymacros.features.overview.model.DailySummaryEntry
 import dev.gaborbiro.dailymacros.features.overview.model.ChangeDirection
 import dev.gaborbiro.dailymacros.features.overview.model.ChangeIndicator
@@ -32,8 +32,6 @@ import java.util.Locale
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 import javax.inject.Inject
-import kotlin.math.absoluteValue
-import kotlin.math.roundToInt
 
 class OverviewUiMapper @Inject constructor(
     private val recordsUiMapper: SharedRecordsUiMapper,

@@ -1,5 +1,7 @@
 package dev.gaborbiro.dailymacros.features.shared
 
+import dev.gaborbiro.dailymacros.features.common.utils.diaryDayWindowStart
+import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryDate
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.LocalDate

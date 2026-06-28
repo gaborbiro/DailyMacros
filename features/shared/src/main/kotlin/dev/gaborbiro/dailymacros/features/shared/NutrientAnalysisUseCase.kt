@@ -4,7 +4,6 @@ import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.utils.inputStreamToBase64
-import dev.gaborbiro.dailymacros.features.shared.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.shared.notifications.MacroResultsNotificationSender
 import dev.gaborbiro.dailymacros.repositories.chatgpt.di.ForImageUploadChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
@@ -75,7 +74,7 @@ class NutrientAnalysisUseCase @Inject constructor(
                 }
 
             nutrientsAnalysisResponse.getOrNull()?.let { nutrientsAnalysisResult ->
-                val (nutrients: Pair<NutrientBreakdown, TopContributors>?, error: String?) = recordsMapper.mapNutrientAnalysisResponse(nutrientsAnalysisResult)
+                val (nutrients, error) = recordsMapper.mapNutrientAnalysisResponse(nutrientsAnalysisResult)
                 val templateNutrients: Pair<TemplateNutrientBreakdown, TopContributors>? = nutrients?.let {
                     recordsMapper.map(nutrients.first) to nutrients.second
                 }
@@ -99,17 +98,13 @@ class NutrientAnalysisUseCase @Inject constructor(
                 )
                 nutrients
                     ?.let {
-                        val macrosStr = macrosNotificationTextMapper.mapMacrosPrintout(nutrients.first)
-                        val message = listOfNotNull(name.ellipsize(50), macrosStr, error).joinToString("\n").trim()
-                        message.takeIf { it.isNotBlank() }?.let {
-                            macroResultsNotificationSender.showMacroResultsNotification(
-                                id = 123000L + recordId,
-                                recordId = recordId,
-                                title = null,
-                                message = message,
-                                isError = false,
-                            )
-                        }
+                        macroResultsNotificationSender.showMacroResultsNotification(
+                            id = 123000L + recordId,
+                            recordId = recordId,
+                            title = null,
+                            message = name?.ellipsize(50),
+                            isError = false,
+                        )
                     }
                     ?: run {
                         error

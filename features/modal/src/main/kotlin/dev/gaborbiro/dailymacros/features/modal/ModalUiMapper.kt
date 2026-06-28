@@ -5,21 +5,17 @@ import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.shared.MacrosNotificationTextMapper
 import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
-import dev.gaborbiro.dailymacros.features.shared.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.ComponentConfidence
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
 import javax.inject.Inject
 
 class ModalUiMapper @Inject constructor(
     private val nutrientsUiMapper: NutrientsUiMapper,
 ) {
 
-    private val macrosNotificationTextMapper = MacrosNotificationTextMapper(nutrientsUiMapper)
+    private val macrosNotificationTextMapper = MacrosNotificationTextMapper()
 
     fun mapDomainErrorToUserMessage(error: ChatGPTDomainError): String =
         macrosNotificationTextMapper.mapDomainErrorToUserMessage(error)
@@ -140,7 +136,4 @@ class ModalUiMapper @Inject constructor(
 
     fun imagesRequireMacroReanalysis(pristine: List<String>, current: List<String>): Boolean =
         pristine.toSet() != current.toSet()
-
-    fun mapMacrosPrintout(nutrientBreakdown: NutrientBreakdown?): String? =
-        macrosNotificationTextMapper.mapMacrosPrintout(nutrientBreakdown)
 }

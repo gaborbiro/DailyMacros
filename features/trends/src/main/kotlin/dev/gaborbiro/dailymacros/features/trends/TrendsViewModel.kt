@@ -4,10 +4,10 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.gaborbiro.dailymacros.features.shared.diaryDayStartTime
-import dev.gaborbiro.dailymacros.features.shared.diaryDayWindowStart
-import dev.gaborbiro.dailymacros.features.shared.logicalDiaryDate
-import dev.gaborbiro.dailymacros.features.shared.logicalDiaryToday
+import dev.gaborbiro.dailymacros.features.common.utils.diaryDayStartTime
+import dev.gaborbiro.dailymacros.features.common.utils.diaryDayWindowStart
+import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryDate
+import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryToday
 import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
 import dev.gaborbiro.dailymacros.features.trends.model.Timescale
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsSettingsUIModel

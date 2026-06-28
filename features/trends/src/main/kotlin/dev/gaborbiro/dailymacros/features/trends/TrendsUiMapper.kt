@@ -1,14 +1,13 @@
 package dev.gaborbiro.dailymacros.features.trends
 
 import androidx.compose.ui.graphics.Color
-import dev.gaborbiro.dailymacros.features.shared.diaryDayStartTime
-import dev.gaborbiro.dailymacros.features.shared.logicalDiaryDate
-import dev.gaborbiro.dailymacros.features.shared.logicalDiaryToday
+import dev.gaborbiro.dailymacros.features.common.utils.diaryDayStartTime
+import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryDate
+import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryToday
 import dev.gaborbiro.dailymacros.features.trends.model.ChartDataPoint
 import dev.gaborbiro.dailymacros.features.trends.model.ChartDataset
 import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsChartUiModel
-import dev.gaborbiro.dailymacros.features.shared.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
@@ -568,4 +567,16 @@ class TrendsUiMapper @Inject constructor(
             else -> error("Unexpected day qualification mode: $mode")
         }
     }
+
+    private data class NutrientBreakdown(
+        val calories: Int? = null,
+        val protein: Float? = null,
+        val fat: Float? = null,
+        val ofWhichSaturated: Float? = null,
+        val carbs: Float? = null,
+        val ofWhichSugar: Float? = null,
+        val ofWhichAddedSugar: Float? = null,
+        val salt: Float? = null,
+        val fibre: Float? = null,
+    )
 }

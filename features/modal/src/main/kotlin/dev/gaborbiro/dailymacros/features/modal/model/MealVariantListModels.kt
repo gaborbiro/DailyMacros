@@ -2,8 +2,8 @@ package dev.gaborbiro.dailymacros.features.modal.model
 
 import dev.gaborbiro.dailymacros.features.shared.MealVariantListResult
 import dev.gaborbiro.dailymacros.features.shared.MealVariantListRow
-import dev.gaborbiro.dailymacros.features.shared.diaryDayStartTime
-import dev.gaborbiro.dailymacros.features.shared.logicalDiaryDate
+import dev.gaborbiro.dailymacros.features.common.utils.diaryDayStartTime
+import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryDate
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 

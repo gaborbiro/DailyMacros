@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.shared
+package dev.gaborbiro.dailymacros.features.common.utils
 
 import java.time.LocalDate
 import java.time.LocalTime
@@ -8,7 +8,7 @@ import java.time.ZonedDateTime
 /**
  * Wall-clock time when a new food diary day begins (inclusive). Values before this on the local
  * timeline belong to the previous diary day. Interpreted in each record’s own zone (same as
- * [java.time.ZonedDateTime.toLocalDate] at midnight).
+ * [ZonedDateTime.toLocalDate] at midnight).
  */
 fun diaryDayStartTime(hourOfDay: Int): LocalTime =
     LocalTime.of(hourOfDay.coerceIn(0, 23), 0)

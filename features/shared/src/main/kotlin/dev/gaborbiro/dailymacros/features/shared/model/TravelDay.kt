@@ -1,6 +1,6 @@
 package dev.gaborbiro.dailymacros.features.shared.model
 
-import dev.gaborbiro.dailymacros.features.shared.diaryDayWindowStart
+import dev.gaborbiro.dailymacros.features.common.utils.diaryDayWindowStart
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import java.time.Duration
 import java.time.LocalDate
