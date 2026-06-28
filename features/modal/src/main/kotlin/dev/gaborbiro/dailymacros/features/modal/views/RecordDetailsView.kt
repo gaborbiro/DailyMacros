@@ -74,7 +74,7 @@ import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.RecordDetailsPristineSnapshot
 import dev.gaborbiro.dailymacros.features.modal.model.hasDisplayableContent
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
-import dev.gaborbiro.dailymacros.features.shared.components.CompactMacroNutrientsGrid
+import dev.gaborbiro.dailymacros.features.shared.views.CompactMacroNutrientsGrid
 
 @Composable
 fun ColumnScope.RecordDetailsView(

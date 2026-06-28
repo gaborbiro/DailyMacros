@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.shared.components
+package dev.gaborbiro.dailymacros.features.shared.views
 
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
