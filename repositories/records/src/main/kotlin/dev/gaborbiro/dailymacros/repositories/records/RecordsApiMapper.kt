@@ -8,16 +8,14 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatusEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TopContributorsEntity
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
 import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
 import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
-
 import javax.inject.Inject
 
 class RecordsApiMapper @Inject constructor() {

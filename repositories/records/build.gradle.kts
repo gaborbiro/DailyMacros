@@ -9,8 +9,9 @@ android {
 }
 
 dependencies {
-    implementation(project(":repositories:records:domain"))
     implementation(project(":core:analytics"))
+    implementation(project(":repositories:common"))
+    implementation(project(":repositories:records:domain"))
     implementation(project(":data:db"))
     implementation(project(":data:image"))
 

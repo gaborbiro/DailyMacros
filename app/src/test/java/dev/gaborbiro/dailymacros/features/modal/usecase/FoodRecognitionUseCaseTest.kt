@@ -42,6 +42,7 @@ class FoodRecognitionUseCaseTest {
         override fun getDefaultOngoingWeekInsightsPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
         override suspend fun getWeeklyInsights(request: dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsRequest): dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsResult = error("unused")
         override suspend fun getOngoingInsights(request: dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsRequest): dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsResult = error("unused")
+        override suspend fun validateApiKey(apiKey: String): Boolean = error("unused")
     }
 
     private val fakeSettingsRepository = object : dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository {

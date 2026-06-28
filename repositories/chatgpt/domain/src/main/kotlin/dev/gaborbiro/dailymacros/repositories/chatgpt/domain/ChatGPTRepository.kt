@@ -35,4 +35,7 @@ interface ChatGPTRepository {
     fun getDefaultWeeklyInsightsPromptSegments(): List<PromptSegment>
 
     fun getDefaultOngoingWeekInsightsPromptSegments(): List<PromptSegment>
+
+    /** Returns true if the given API key is accepted by the OpenAI API. Never throws. */
+    suspend fun validateApiKey(apiKey: String): Boolean
 }

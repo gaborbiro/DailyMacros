@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.core.featureflags.FeatureFlagStore
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.model.PromptEditorUiState
-import dev.gaborbiro.dailymacros.repositories.chatgpt.ApiKeyValidator
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ForImageUploadChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
@@ -31,7 +30,6 @@ sealed class PromptEditorUiUpdates {
 class PromptEditorViewModel @Inject constructor(
     @ForImageUploadChatGpt private val chatGPTRepository: ChatGPTRepository,
     private val settingsRepository: SettingsRepository,
-    private val apiKeyValidator: ApiKeyValidator,
     featureFlagStore: FeatureFlagStore,
 ) : ViewModel() {
 
@@ -171,7 +169,7 @@ class PromptEditorViewModel @Inject constructor(
         if (draft.isBlank()) return
         viewModelScope.launch {
             _uiState.update { it.copy(isUnlocking = true) }
-            val valid = apiKeyValidator.validate(draft)
+            val valid = chatGPTRepository.validateApiKey(draft)
             _uiState.update { it.copy(isUnlocking = false) }
             if (valid) {
                 settingsRepository.setApiKeyOverride(draft)

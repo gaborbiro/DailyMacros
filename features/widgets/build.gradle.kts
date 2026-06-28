@@ -13,14 +13,15 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:analytics"))
-    implementation(project(":core:design"))
     implementation(project(":features:common"))
     implementation(project(":features:shared"))
+    implementation(project(":core:analytics"))
+    implementation(project(":core:design"))
+    implementation(project(":repositories:common"))
+    implementation(project(":repositories:records:domain"))
     implementation(project(":data:db"))
     implementation(project(":data:file"))
     implementation(project(":data:image"))
-    implementation(project(":repositories:records:domain"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.work.runtime.ktx)

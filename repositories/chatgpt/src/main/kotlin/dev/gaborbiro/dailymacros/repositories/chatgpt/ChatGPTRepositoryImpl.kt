@@ -51,12 +51,18 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.service.ChatGPTService
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repositories.chatgpt.util.parse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.util.runCatching
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 
 
 internal class ChatGPTRepositoryImpl(
     private val service: ChatGPTService,
     private val mapper: ChatGPTMapper,
 ) : ChatGPTRepository {
+
+    private val validationClient by lazy { OkHttpClient() }
 
     override suspend fun recogniseFood(request: FoodRecognitionRequest): FoodRecognitionResult {
         return mappingApiErrors {
@@ -208,6 +214,14 @@ internal class ChatGPTRepositoryImpl(
             defaultText = DEFAULT_ONGOING_WEEK_INSIGHTS_USER,
         ),
     )
+
+    override suspend fun validateApiKey(apiKey: String): Boolean = withContext(Dispatchers.IO) {
+        val request = Request.Builder()
+            .url("https://api.openai.com/v1/models")
+            .header("Authorization", "Bearer $apiKey")
+            .build()
+        runCatching { validationClient.newCall(request).execute().use { it.code == 200 } }.getOrDefault(false)
+    }
 
     private inline fun <T> mappingApiErrors(block: () -> T): T {
         return try {

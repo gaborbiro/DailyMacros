@@ -22,10 +22,11 @@ dependencies {
     implementation(project(":features:common"))
     implementation(project(":core:design"))
     implementation(project(":core:analytics"))
-    implementation(project(":data:image"))
+    implementation(project(":repositories:common"))
     implementation(project(":repositories:records:domain"))
     implementation(project(":repositories:chatgpt:domain"))
     implementation(project(":repositories:settings:domain"))
+    implementation(project(":data:image"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.work.runtime.ktx)

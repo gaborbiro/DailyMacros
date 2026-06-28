@@ -9,7 +9,7 @@ android {
 }
 
 dependencies {
-    api(project(":repositories:backup:domain"))
+    implementation(project(":repositories:backup:domain"))
     implementation(project(":data:db"))
 
     implementation(libs.androidx.core.ktx)

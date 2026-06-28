@@ -3,6 +3,6 @@ plugins {
 }
 
 dependencies {
-    api(project(":repositories:common"))
+    implementation(project(":repositories:common"))
     implementation(libs.kotlinx.coroutines.core)
 }

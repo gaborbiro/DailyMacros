@@ -10,11 +10,12 @@ android {
 }
 
 dependencies {
+    implementation(project(":features:common"))
+    implementation(project(":features:shared"))
     implementation(project(":core:analytics"))
     implementation(project(":core:design"))
     implementation(project(":core:featureFlags"))
-    implementation(project(":features:common"))
-    implementation(project(":features:shared"))
+    implementation(project(":repositories:common"))
     implementation(project(":repositories:chatgpt:domain"))
     implementation(project(":repositories:records:domain"))
     implementation(project(":repositories:settings:domain"))

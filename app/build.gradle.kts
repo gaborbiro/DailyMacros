@@ -173,6 +173,7 @@ dependencies {
     implementation(libs.vico.compose)
     implementation(libs.vico.compose.m3)
 
+    testImplementation(project(":repositories:chatgpt:domain"))
     testImplementation(libs.test.junit)
     testImplementation(libs.test.robolectric)
     testImplementation(libs.androidx.test.core)

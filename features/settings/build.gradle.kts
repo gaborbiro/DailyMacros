@@ -10,13 +10,13 @@ android {
 }
 
 dependencies {
-    implementation(project(":repositories:backup"))
     implementation(project(":core:design"))
     implementation(project(":core:featureFlags"))
     implementation(project(":features:common"))
     implementation(project(":features:shared"))
     implementation(project(":repositories:common"))
-    implementation(project(":repositories:settings"))
+    implementation(project(":repositories:backup:domain"))
+    implementation(project(":repositories:settings:domain"))
     implementation(project(":repositories:records:domain"))
     implementation(project(":repositories:chatgpt:domain"))
 
