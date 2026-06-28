@@ -5,7 +5,7 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dev.gaborbiro.dailymacros.WidgetNavigatorImpl
-import dev.gaborbiro.dailymacros.features.widget.WidgetNavigator
+import dev.gaborbiro.dailymacros.features.widgets.WidgetNavigator
 import javax.inject.Singleton
 
 @Module

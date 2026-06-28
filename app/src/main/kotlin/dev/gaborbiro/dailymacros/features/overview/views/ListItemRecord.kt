@@ -35,7 +35,7 @@ import dev.gaborbiro.dailymacros.features.common.views.LocalImage
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
-import dev.gaborbiro.dailymacros.features.widget.views.ListItemImageCornerRadius
+import dev.gaborbiro.dailymacros.features.widgets.views.ListItemImageCornerRadius
 import dev.gaborbiro.dailymacros.ui.components.CompactMacroNutrientsGrid
 
 @Composable

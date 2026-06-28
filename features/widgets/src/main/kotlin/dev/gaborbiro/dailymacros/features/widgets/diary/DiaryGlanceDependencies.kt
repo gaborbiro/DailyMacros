@@ -1,0 +1,16 @@
+package dev.gaborbiro.dailymacros.features.widgets.diary
+
+import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
+import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
+import dev.gaborbiro.dailymacros.features.shared.SharedRecordsUiMapper
+import dev.gaborbiro.dailymacros.features.widgets.WidgetNavigator
+import dev.gaborbiro.dailymacros.features.widgets.WidgetUiMapper
+import javax.inject.Inject
+
+class DiaryGlanceDependencies @Inject constructor(
+    val imageStore: ImageStore,
+    val sharedRecordsUiMapper: SharedRecordsUiMapper,
+    val widgetUiMapper: WidgetUiMapper,
+    val widgetNavigator: WidgetNavigator,
+    val analyticsLogger: AnalyticsLogger,
+)

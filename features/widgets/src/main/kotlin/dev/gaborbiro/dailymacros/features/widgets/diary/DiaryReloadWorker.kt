@@ -1,0 +1,107 @@
+package dev.gaborbiro.dailymacros.features.widgets.diary
+
+import android.content.Context
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.state.updateAppWidgetState
+import androidx.glance.appwidget.updateAll
+import androidx.hilt.work.HiltWorker
+import androidx.work.CoroutineWorker
+import androidx.work.Data
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkRequest
+import androidx.work.WorkerParameters
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
+import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
+import dev.gaborbiro.dailymacros.features.widgets.PersistenceMapper
+import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusRepository
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
+import java.time.ZonedDateTime
+
+@HiltWorker
+class DiaryReloadWorker @AssistedInject constructor(
+    @Assisted appContext: Context,
+    @Assisted private val workerParameters: WorkerParameters,
+    private val recordsRepository: RecordsRepository,
+    private val requestStatusRepository: RequestStatusRepository,
+    private val analyticsLogger: AnalyticsLogger,
+) : CoroutineWorker(appContext, workerParameters) {
+
+    companion object {
+        private const val RECORD_DAYS_TO_DISPLAY_DEFAULT = 7
+        private const val QUICK_PICK_COUNT_DEFAULT = 30
+
+        private const val PREFS_RECENT_RECORDS_KEY = "recent_records_key"
+        private const val PREFS_QUICK_PICKS_KEY = "quick_picks_key"
+        private const val PREFS_RECORD_DAYS_TO_DISPLAY = "record_days_to_display"
+        private const val PREFS_QUICK_PICK_COUNT = "quick_picks_count"
+
+        fun getReloadWorkRequest(
+            recentRecordsPrefsKey: String,
+            quickPicksPrefsKey: String,
+            recordDaysToDisplay: Int = RECORD_DAYS_TO_DISPLAY_DEFAULT,
+            quickPickCount: Int = QUICK_PICK_COUNT_DEFAULT,
+        ): WorkRequest {
+            return OneTimeWorkRequestBuilder<DiaryReloadWorker>()
+                .setInputData(
+                    Data.Builder()
+                        .putString(PREFS_RECENT_RECORDS_KEY, recentRecordsPrefsKey)
+                        .putString(PREFS_QUICK_PICKS_KEY, quickPicksPrefsKey)
+                        .putInt(PREFS_RECORD_DAYS_TO_DISPLAY, recordDaysToDisplay)
+                        .putInt(PREFS_QUICK_PICK_COUNT, quickPickCount)
+                        .build()
+                )
+                .build()
+        }
+    }
+
+    override suspend fun doWork(): Result {
+        return try {
+            requestStatusRepository.deleteStale()
+
+            val recordDaysToDisplay =
+                workerParameters.inputData.getInt(
+                    PREFS_RECORD_DAYS_TO_DISPLAY,
+                    RECORD_DAYS_TO_DISPLAY_DEFAULT
+                )
+            val quickPickCount =
+                workerParameters.inputData.getInt(PREFS_QUICK_PICK_COUNT, QUICK_PICK_COUNT_DEFAULT)
+            val since = ZonedDateTime.now().minusDays(recordDaysToDisplay.toLong())
+            val recentRecords = recordsRepository.getRecords(since)
+            val quickPicks = recordsRepository.getQuickPicks(quickPickCount)
+
+            sendToWidgets(applicationContext, recentRecords, quickPicks)
+            Result.success()
+        } catch (t: Throwable) {
+            analyticsLogger.logError(t)
+            Result.failure()
+        }
+    }
+
+    private suspend fun sendToWidgets(
+        context: Context,
+        records: List<Record>,
+        quickPicks: List<Template>,
+    ) {
+        val recentRecordsPrefsKey =
+            stringPreferencesKey(workerParameters.inputData.getString(PREFS_RECENT_RECORDS_KEY)!!)
+        val quickPicksPrefsKey =
+            stringPreferencesKey(workerParameters.inputData.getString(PREFS_QUICK_PICKS_KEY)!!)
+
+        val glanceIds = GlanceAppWidgetManager(context)
+            .getGlanceIds(DiaryWidgetScreen::class.java)
+
+        val recordsJson = PersistenceMapper.serializeRecords(records)
+        val templatesJson = PersistenceMapper.serializeTemplates(quickPicks)
+        glanceIds.forEach { glanceId ->
+            updateAppWidgetState(context, glanceId) { widgetPrefs ->
+                widgetPrefs[recentRecordsPrefsKey] = recordsJson
+                widgetPrefs[quickPicksPrefsKey] = templatesJson
+            }
+        }
+        DiaryWidgetScreen().updateAll(context)
+    }
+}

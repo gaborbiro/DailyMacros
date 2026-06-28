@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_diary_name">Food Diary</string>
+    <string name="widget_quick_pick_name">Quick Picks</string>
+</resources>

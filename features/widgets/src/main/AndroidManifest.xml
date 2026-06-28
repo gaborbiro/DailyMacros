@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <activity
+            android:name=".quickpick.QuickPickWidgetConfigActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Notes" />
+
+        <receiver
+            android:name=".diary.DiaryWidgetReceiver"
+            android:label="@string/widget_diary_name"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_diary" />
+        </receiver>
+
+        <receiver
+            android:name=".quickpick.QuickPickWidgetReceiver"
+            android:label="@string/widget_quick_pick_name"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_quick_pick" />
+        </receiver>
+    </application>
+</manifest>

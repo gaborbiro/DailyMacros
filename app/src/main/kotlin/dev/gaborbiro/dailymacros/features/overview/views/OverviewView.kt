@@ -27,7 +27,6 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,7 +37,7 @@ import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiState
-import dev.gaborbiro.dailymacros.features.widget.DiaryWidgetReceiver
+import dev.gaborbiro.dailymacros.features.widgets.diary.DiaryWidgetReceiver
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 

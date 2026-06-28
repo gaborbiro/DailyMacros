@@ -113,7 +113,7 @@ dependencies {
     implementation(project(":features:shared"))
     implementation(project(":features:settings"))
     implementation(project(":features:trends"))
-    implementation(project(":features:widget"))
+    implementation(project(":features:widgets"))
     implementation(project(":repositories:backup"))
     implementation(project(":repositories:chatgpt"))
     implementation(project(":repositories:records"))

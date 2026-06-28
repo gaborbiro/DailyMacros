@@ -10,7 +10,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.HiltAndroidApp
 import dagger.hilt.components.SingletonComponent
-import dev.gaborbiro.dailymacros.features.widget.WidgetAutoReloader
+import dev.gaborbiro.dailymacros.features.widgets.WidgetAutoReloader
 import dev.gaborbiro.dailymacros.util.createNotificationChannels
 
 @EntryPoint
