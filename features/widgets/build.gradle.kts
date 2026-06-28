@@ -20,7 +20,7 @@ dependencies {
     implementation(project(":data:db"))
     implementation(project(":data:file"))
     implementation(project(":data:image"))
-    implementation(project(":repositories:records"))
+    implementation(project(":repositories:records:domain"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.work.runtime.ktx)

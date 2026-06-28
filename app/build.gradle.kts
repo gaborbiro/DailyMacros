@@ -118,6 +118,7 @@ dependencies {
     implementation(project(":features:widgets"))
     implementation(project(":repositories:backup"))
     implementation(project(":repositories:chatgpt"))
+    implementation(project(":repositories:records:domain"))
     implementation(project(":repositories:records"))
     implementation(project(":repositories:settings"))
     implementation(project(":data:db"))

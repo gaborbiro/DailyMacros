@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.gaborbiro.dailymacros.core.featureflags.FeatureFlagStore
 import dev.gaborbiro.dailymacros.features.common.utils.diaryDayStartTime
 import dev.gaborbiro.dailymacros.features.common.utils.diaryDayWindowStart
 import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryDate
@@ -13,9 +14,8 @@ import dev.gaborbiro.dailymacros.features.trends.model.Timescale
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsSettingsUIModel
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiState
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiUpdates
-import dev.gaborbiro.dailymacros.core.featureflags.FeatureFlagStore
-import dev.gaborbiro.dailymacros.repositories.chatgpt.di.ForJsonBodyChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ForJsonBodyChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsRequest
@@ -50,7 +50,7 @@ class TrendsViewModel @Inject constructor(
     private val preferences: TrendsPreferences,
     private val mapper: TrendsUiMapper,
     @ForJsonBodyChatGpt private val chatGPTRepository: ChatGPTRepository,
-    private val featureFlagStore: FeatureFlagStore,
+    featureFlagStore: FeatureFlagStore,
 ) : AndroidViewModel(application) {
 
     private var recordsJob: Job

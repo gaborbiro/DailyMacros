@@ -32,7 +32,7 @@ class PromptEditorViewModel @Inject constructor(
     @ForImageUploadChatGpt private val chatGPTRepository: ChatGPTRepository,
     private val settingsRepository: SettingsRepository,
     private val apiKeyValidator: ApiKeyValidator,
-    private val featureFlagStore: FeatureFlagStore,
+    featureFlagStore: FeatureFlagStore,
 ) : ViewModel() {
 
     companion object {

@@ -15,9 +15,10 @@ dependencies {
     implementation(project(":core:featureFlags"))
     implementation(project(":features:common"))
     implementation(project(":features:shared"))
+    implementation(project(":repositories:common"))
     implementation(project(":repositories:settings"))
-    implementation(project(":repositories:records"))
-    implementation(project(":repositories:chatgpt"))
+    implementation(project(":repositories:records:domain"))
+    implementation(project(":repositories:chatgpt:domain"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
