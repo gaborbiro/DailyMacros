@@ -16,10 +16,10 @@ import java.time.ZonedDateTime
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33], manifest = Config.NONE)
-class SharedRecordsUiMapperTest {
+class RecordsUiMapperTest {
 
     private val zone = ZoneId.of("Europe/Paris")
-    private val mapper = SharedRecordsUiMapper(NutrientsUiMapper())
+    private val mapper = RecordsUiMapper(NutrientsUiMapper())
 
     private fun stubTemplate(
         dbId: Long,

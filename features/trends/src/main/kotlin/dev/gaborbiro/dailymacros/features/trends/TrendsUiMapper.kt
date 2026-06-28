@@ -442,9 +442,9 @@ class TrendsUiMapper @Inject constructor(
     ): TrendsChartUiModel {
         fun adherenceForDays(key: K, days: List<LocalDate>): Double? {
             if (days.isEmpty()) return null
-            val byDay = records[key].orEmpty().groupBy { it.diaryKeyDate() }
+            val byDay: Map<LocalDate, List<Record>> = records[key].orEmpty().groupBy { it.diaryKeyDate() }
             return days.map { day ->
-                calculateAdherence(byDay[day].orEmpty().sumNutrients(), targets).toDouble()
+                calculateAdherence(byDay[day], targets).toDouble()
             }.average()
         }
 
@@ -452,6 +452,7 @@ class TrendsUiMapper @Inject constructor(
             val contributingDays = when {
                 currentPeriodCalculationMode.isCurrentPeriod(key) && currentPeriodCalculationMode is CurrentPeriodCalculationMode.Projected ->
                     currentPeriodCalculationMode.elapsedDaysProvider(key)
+
                 else ->
                     contributingDaysProvider(key)
             }
@@ -459,11 +460,13 @@ class TrendsUiMapper @Inject constructor(
             val avg = when {
                 currentPeriodCalculationMode.isCurrentPeriod(key) && currentPeriodCalculationMode is CurrentPeriodCalculationMode.Hidden ->
                     null
+
                 currentPeriodCalculationMode.isCurrentPeriod(key) && currentPeriodCalculationMode is CurrentPeriodCalculationMode.Projected ->
                     if (contributingDays.size >= currentPeriodCalculationMode.minElapsedDays)
                         adherenceForDays(key, contributingDays)
                     else
                         null
+
                 else ->
                     adherenceForDays(key, contributingDays)
             }
@@ -496,7 +499,7 @@ class TrendsUiMapper @Inject constructor(
         )
     }
 
-    private fun calculateAdherence(nutrients: Nutrients, targets: Targets): Float {
+    private fun calculateAdherence(records: List<Record>?, targets: Targets): Float {
         val scores = mutableListOf<Float>()
 
         fun score(value: Float?, target: Target): Float? {
@@ -514,29 +517,27 @@ class TrendsUiMapper @Inject constructor(
             return null
         }
 
-        nutrients.calories?.toFloat()?.let { score(it, targets.calories)?.let(scores::add) }
-        nutrients.protein?.let { score(it, targets.protein)?.let(scores::add) }
-        nutrients.fat?.let { score(it, targets.fat)?.let(scores::add) }
-        nutrients.carbs?.let { score(it, targets.carbs)?.let(scores::add) }
-        nutrients.ofWhichSaturated?.let { score(it, targets.ofWhichSaturated)?.let(scores::add) }
-        nutrients.ofWhichSugar?.let { score(it, targets.ofWhichSugar)?.let(scores::add) }
-        nutrients.salt?.let { score(it, targets.salt)?.let(scores::add) }
-        nutrients.fibre?.let { score(it, targets.fibre)?.let(scores::add) }
+        val r = records.orEmpty()
+        val calories = r.mapNotNull { it.template.nutrients.calories }.takeIf { it.isNotEmpty() }?.sum()
+        val protein = r.mapNotNull { it.template.nutrients.protein }.takeIf { it.isNotEmpty() }?.sum()
+        val fat = r.mapNotNull { it.template.nutrients.fat }.takeIf { it.isNotEmpty() }?.sum()
+        val ofWhichSaturated = r.mapNotNull { it.template.nutrients.ofWhichSaturated }.takeIf { it.isNotEmpty() }?.sum()
+        val carbs = r.mapNotNull { it.template.nutrients.carbs }.takeIf { it.isNotEmpty() }?.sum()
+        val ofWhichSugar = r.mapNotNull { it.template.nutrients.ofWhichSugar }.takeIf { it.isNotEmpty() }?.sum()
+        val salt = r.mapNotNull { it.template.nutrients.salt }.takeIf { it.isNotEmpty() }?.sum()
+        val fibre = r.mapNotNull { it.template.nutrients.fibre }.takeIf { it.isNotEmpty() }?.sum()
+
+        calories?.toFloat()?.let { score(it, targets.calories)?.let(scores::add) }
+        protein?.let { score(it, targets.protein)?.let(scores::add) }
+        fat?.let { score(it, targets.fat)?.let(scores::add) }
+        carbs?.let { score(it, targets.carbs)?.let(scores::add) }
+        ofWhichSaturated?.let { score(it, targets.ofWhichSaturated)?.let(scores::add) }
+        ofWhichSugar?.let { score(it, targets.ofWhichSugar)?.let(scores::add) }
+        salt?.let { score(it, targets.salt)?.let(scores::add) }
+        fibre?.let { score(it, targets.fibre)?.let(scores::add) }
 
         return if (scores.isEmpty()) 0f else scores.average().toFloat()
     }
-
-    private fun List<Record>.sumNutrients(): Nutrients = Nutrients(
-        calories = mapNotNull { it.template.nutrients.calories }.takeIf { it.isNotEmpty() }?.sum(),
-        protein = mapNotNull { it.template.nutrients.protein }.takeIf { it.isNotEmpty() }?.sum(),
-        fat = mapNotNull { it.template.nutrients.fat }.takeIf { it.isNotEmpty() }?.sum(),
-        ofWhichSaturated = mapNotNull { it.template.nutrients.ofWhichSaturated }.takeIf { it.isNotEmpty() }?.sum(),
-        carbs = mapNotNull { it.template.nutrients.carbs }.takeIf { it.isNotEmpty() }?.sum(),
-        ofWhichSugar = mapNotNull { it.template.nutrients.ofWhichSugar }.takeIf { it.isNotEmpty() }?.sum(),
-        ofWhichAddedSugar = mapNotNull { it.template.nutrients.ofWhichAddedSugar }.takeIf { it.isNotEmpty() }?.sum(),
-        salt = mapNotNull { it.template.nutrients.salt }.takeIf { it.isNotEmpty() }?.sum(),
-        fibre = mapNotNull { it.template.nutrients.fibre }.takeIf { it.isNotEmpty() }?.sum(),
-    )
 
     private fun <T : Comparable<T>> generateSequence(
         from: T?,
@@ -567,16 +568,4 @@ class TrendsUiMapper @Inject constructor(
             else -> error("Unexpected day qualification mode: $mode")
         }
     }
-
-    private data class Nutrients(
-        val calories: Int? = null,
-        val protein: Float? = null,
-        val fat: Float? = null,
-        val ofWhichSaturated: Float? = null,
-        val carbs: Float? = null,
-        val ofWhichSugar: Float? = null,
-        val ofWhichAddedSugar: Float? = null,
-        val salt: Float? = null,
-        val fibre: Float? = null,
-    )
 }

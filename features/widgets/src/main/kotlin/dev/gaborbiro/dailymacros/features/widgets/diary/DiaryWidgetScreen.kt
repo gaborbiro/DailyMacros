@@ -86,7 +86,7 @@ class DiaryWidgetScreen : GlanceAppWidget() {
                         val recentRecords = runCatching {
                             val recordsJSON = widgetPrefs[stringPreferencesKey(PREFS_RECENT_RECORDS)]
                             PersistenceMapper.deserializeRecords(recordsJSON)
-                                .map(deps.sharedRecordsUiMapper::map)
+                                .map(deps.recordsUiMapper::map)
                         }.getOrNull() ?: emptyList()
 
                         val items = buildList {

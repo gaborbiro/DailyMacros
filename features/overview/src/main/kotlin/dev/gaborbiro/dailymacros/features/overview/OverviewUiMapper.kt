@@ -2,7 +2,7 @@ package dev.gaborbiro.dailymacros.features.overview
 
 import android.icu.text.DecimalFormat
 import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
-import dev.gaborbiro.dailymacros.features.shared.SharedRecordsUiMapper
+import dev.gaborbiro.dailymacros.features.shared.RecordsUiMapper
 import dev.gaborbiro.dailymacros.features.common.utils.diaryDayStartTime
 import dev.gaborbiro.dailymacros.features.common.utils.diaryDayWindowStart
 import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryDate
@@ -14,7 +14,6 @@ import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelDailySummary
 import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelSetTargetsCta
 import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelWeeklySummary
-import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
 import dev.gaborbiro.dailymacros.features.overview.model.NutrientSummaryStatEntry
 import dev.gaborbiro.dailymacros.features.shared.model.TravelDay
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
@@ -33,7 +32,7 @@ import kotlin.math.roundToInt
 import javax.inject.Inject
 
 class OverviewUiMapper @Inject constructor(
-    private val recordsUiMapper: SharedRecordsUiMapper,
+    private val recordsUiMapper: RecordsUiMapper,
     private val nutrientsUiMapper: NutrientsUiMapper,
     private val settingsRepository: SettingsRepository,
 ) {
@@ -106,18 +105,6 @@ class OverviewUiMapper @Inject constructor(
         val totalSalt = records.sumOf { it.template.nutrients.salt?.toDouble() ?: 0.0 }.toFloat()
         val totalFibre = records.sumOf { it.template.nutrients.fibre?.toDouble() ?: 0.0 }.toFloat()
 
-        val totalNutrients = Nutrients(
-            calories = totalCalories,
-            protein = totalProtein,
-            fat = totalFat,
-            ofWhichSaturated = totalSaturated,
-            carbs = totalCarbs,
-            ofWhichSugar = totalSugar,
-            // added sugar is not displayed in daily summary
-            salt = totalSalt,
-            fibre = totalFibre,
-        )
-
         val travelDelta = effectiveTravelDelta(day, previousDay)
         val effectiveTargets = if (travelDelta != null) {
             targets.scale((24.0 + travelDelta) / 24.0)
@@ -125,7 +112,17 @@ class OverviewUiMapper @Inject constructor(
             targets
         }
 
-        val progressItems = buildDailyNutrientProgressItems(totalNutrients, effectiveTargets)
+        val progressItems = buildDailyNutrientProgressItems(
+            calories = totalCalories,
+            protein = totalProtein,
+            fat = totalFat,
+            ofWhichSaturated = totalSaturated,
+            carbs = totalCarbs,
+            ofWhichSugar = totalSugar,
+            salt = totalSalt,
+            fibre = totalFibre,
+            targets = effectiveTargets,
+        )
 
         val infoMessage = buildTimezoneInfo(travelDelta)
 
@@ -144,7 +141,14 @@ class OverviewUiMapper @Inject constructor(
     }
 
     private fun buildDailyNutrientProgressItems(
-        nutrients: Nutrients,
+        calories: Int?,
+        protein: Float?,
+        fat: Float?,
+        ofWhichSaturated: Float?,
+        carbs: Float?,
+        ofWhichSugar: Float?,
+        salt: Float?,
+        fibre: Float?,
         targets: Targets,
     ): List<DailySummaryEntry> {
         fun gramRangeLabel(target: Target): String =
@@ -168,8 +172,8 @@ class OverviewUiMapper @Inject constructor(
                 add(
                     DailySummaryEntry(
                         title = "Calories",
-                        progress0to1 = nutrientsUiMapper.targetProgress(it, nutrients.calories?.toFloat() ?: 0f) ?: 0f,
-                        progressLabel = nutrientsUiMapper.formatCalories(nutrients.calories, withLabel = false),
+                        progress0to1 = nutrientsUiMapper.targetProgress(it, calories?.toFloat() ?: 0f) ?: 0f,
+                        progressLabel = nutrientsUiMapper.formatCalories(calories, withLabel = false),
                         targetRange0to1 = nutrientsUiMapper.targetRange(it),
                         targetRangeLabel = rangeLabel,
                         color = { it.caloriesColor },
@@ -180,8 +184,8 @@ class OverviewUiMapper @Inject constructor(
                 add(
                     DailySummaryEntry(
                         title = "Protein",
-                        progress0to1 = nutrientsUiMapper.targetProgress(it, nutrients.protein ?: 0f) ?: 0f,
-                        progressLabel = nutrientsUiMapper.formatProtein(nutrients.protein, withLabel = false),
+                        progress0to1 = nutrientsUiMapper.targetProgress(it, protein ?: 0f) ?: 0f,
+                        progressLabel = nutrientsUiMapper.formatProtein(protein, withLabel = false),
                         targetRange0to1 = nutrientsUiMapper.targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.proteinColor },
@@ -192,8 +196,8 @@ class OverviewUiMapper @Inject constructor(
                 add(
                     DailySummaryEntry(
                         title = "Fat",
-                        progress0to1 = nutrientsUiMapper.targetProgress(it, nutrients.fat ?: 0f) ?: 0f,
-                        progressLabel = nutrientsUiMapper.formatFat(nutrients.fat, saturated = null, withLabel = false),
+                        progress0to1 = nutrientsUiMapper.targetProgress(it, fat ?: 0f) ?: 0f,
+                        progressLabel = nutrientsUiMapper.formatFat(fat, saturated = null, withLabel = false),
                         targetRange0to1 = nutrientsUiMapper.targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.fatColor },
@@ -204,8 +208,8 @@ class OverviewUiMapper @Inject constructor(
                 add(
                     DailySummaryEntry(
                         title = "saturated",
-                        progress0to1 = nutrientsUiMapper.targetProgress(it, nutrients.ofWhichSaturated ?: 0f) ?: 0f,
-                        progressLabel = nutrientsUiMapper.formatSaturatedFat(nutrients.ofWhichSaturated, withLabel = false),
+                        progress0to1 = nutrientsUiMapper.targetProgress(it, ofWhichSaturated ?: 0f) ?: 0f,
+                        progressLabel = nutrientsUiMapper.formatSaturatedFat(ofWhichSaturated, withLabel = false),
                         targetRange0to1 = nutrientsUiMapper.targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.fatColor },
@@ -216,8 +220,8 @@ class OverviewUiMapper @Inject constructor(
                 add(
                     DailySummaryEntry(
                         title = "Carbs",
-                        progress0to1 = nutrientsUiMapper.targetProgress(it, nutrients.carbs ?: 0f) ?: 0f,
-                        progressLabel = nutrientsUiMapper.formatCarbs(nutrients.carbs, sugar = null, addedSugar = null, withLabel = false),
+                        progress0to1 = nutrientsUiMapper.targetProgress(it, carbs ?: 0f) ?: 0f,
+                        progressLabel = nutrientsUiMapper.formatCarbs(carbs, sugar = null, addedSugar = null, withLabel = false),
                         targetRange0to1 = nutrientsUiMapper.targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.carbsColor },
@@ -228,8 +232,8 @@ class OverviewUiMapper @Inject constructor(
                 add(
                     DailySummaryEntry(
                         title = "sugar",
-                        progress0to1 = nutrientsUiMapper.targetProgress(it, nutrients.ofWhichSugar ?: 0f) ?: 0f,
-                        progressLabel = nutrientsUiMapper.formatSugar(nutrients.ofWhichSugar, withLabel = false),
+                        progress0to1 = nutrientsUiMapper.targetProgress(it, ofWhichSugar ?: 0f) ?: 0f,
+                        progressLabel = nutrientsUiMapper.formatSugar(ofWhichSugar, withLabel = false),
                         targetRange0to1 = nutrientsUiMapper.targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.carbsColor },
@@ -240,8 +244,8 @@ class OverviewUiMapper @Inject constructor(
                 add(
                     DailySummaryEntry(
                         title = "Salt",
-                        progress0to1 = nutrientsUiMapper.targetProgress(it, nutrients.salt ?: 0f) ?: 0f,
-                        progressLabel = nutrientsUiMapper.formatSalt(nutrients.salt, withLabel = false),
+                        progress0to1 = nutrientsUiMapper.targetProgress(it, salt ?: 0f) ?: 0f,
+                        progressLabel = nutrientsUiMapper.formatSalt(salt, withLabel = false),
                         targetRange0to1 = nutrientsUiMapper.targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.saltColor },
@@ -252,8 +256,8 @@ class OverviewUiMapper @Inject constructor(
                 add(
                     DailySummaryEntry(
                         title = "Fibre",
-                        progress0to1 = nutrientsUiMapper.targetProgress(it, nutrients.fibre ?: 0f) ?: 0f,
-                        progressLabel = nutrientsUiMapper.formatFibre(nutrients.fibre, withLabel = false),
+                        progress0to1 = nutrientsUiMapper.targetProgress(it, fibre ?: 0f) ?: 0f,
+                        progressLabel = nutrientsUiMapper.formatFibre(fibre, withLabel = false),
                         targetRange0to1 = nutrientsUiMapper.targetRange(it),
                         targetRangeLabel = gramRangeLabel(it),
                         color = { it.fibreColor },
@@ -345,31 +349,22 @@ class OverviewUiMapper @Inject constructor(
         }
 
         // 1. Compute total macros per day for a given week
-        data class DayTotal(
-            val nutrients: Nutrients,
-            val duration: Duration,
-        )
-
         fun computeDailyTotals(days: List<TravelDay>): List<DayTotal> {
             return days.mapNotNull { day ->
-                val dayNutrients = day.records.map { it.template.nutrients }
-                if (dayNutrients.isEmpty()) return@mapNotNull null
-
-                val sum = dayNutrients.reduce { acc, nutrients ->
-                    Nutrients(
-                        calories = (acc.calories ?: 0) + (nutrients.calories ?: 0),
-                        protein = (acc.protein ?: 0f) + (nutrients.protein ?: 0f),
-                        fat = (acc.fat ?: 0f) + (nutrients.fat ?: 0f),
-                        ofWhichSaturated = (acc.ofWhichSaturated ?: 0f) + (nutrients.ofWhichSaturated ?: 0f),
-                        carbs = (acc.carbs ?: 0f) + (nutrients.carbs ?: 0f),
-                        ofWhichSugar = (acc.ofWhichSugar ?: 0f) + (nutrients.ofWhichSugar ?: 0f),
-                        ofWhichAddedSugar = (acc.ofWhichAddedSugar ?: 0f) + (nutrients.ofWhichAddedSugar ?: 0f),
-                        salt = (acc.salt ?: 0f) + (nutrients.salt ?: 0f),
-                        fibre = (acc.fibre ?: 0f) + (nutrients.fibre ?: 0f),
-                    )
-                }
-
-                DayTotal(sum, day.duration)
+                val r = day.records
+                if (r.isEmpty()) return@mapNotNull null
+                DayTotal(
+                    calories = r.mapNotNull { it.template.nutrients.calories }.takeIf { it.isNotEmpty() }?.sum(),
+                    protein = r.mapNotNull { it.template.nutrients.protein }.takeIf { it.isNotEmpty() }?.sum(),
+                    fat = r.mapNotNull { it.template.nutrients.fat }.takeIf { it.isNotEmpty() }?.sum(),
+                    ofWhichSaturated = r.mapNotNull { it.template.nutrients.ofWhichSaturated }.takeIf { it.isNotEmpty() }?.sum(),
+                    carbs = r.mapNotNull { it.template.nutrients.carbs }.takeIf { it.isNotEmpty() }?.sum(),
+                    ofWhichSugar = r.mapNotNull { it.template.nutrients.ofWhichSugar }.takeIf { it.isNotEmpty() }?.sum(),
+                    ofWhichAddedSugar = r.mapNotNull { it.template.nutrients.ofWhichAddedSugar }.takeIf { it.isNotEmpty() }?.sum(),
+                    salt = r.mapNotNull { it.template.nutrients.salt }.takeIf { it.isNotEmpty() }?.sum(),
+                    fibre = r.mapNotNull { it.template.nutrients.fibre }.takeIf { it.isNotEmpty() }?.sum(),
+                    duration = day.duration,
+                )
             }
         }
 
@@ -378,11 +373,11 @@ class OverviewUiMapper @Inject constructor(
         if (dailyTotals.isEmpty()) return null
 
         // 2. Weighted average helper (by TravelDay duration — long travel days contribute more)
-        fun weightedAvg(dailyTotals: List<DayTotal>, selector: (Nutrients) -> Number?): Number? {
+        fun weightedAvg(dailyTotals: List<DayTotal>, selector: (DayTotal) -> Number?): Number? {
             var weightedSum = 0.0
             var totalHours = 0.0
             for (day in dailyTotals) {
-                val value = selector(day.nutrients)?.toDouble() ?: continue
+                val value = selector(day)?.toDouble() ?: continue
                 val hours = day.duration.toHours().coerceAtLeast(1).toDouble()
                 weightedSum += value * hours
                 totalHours += hours
@@ -390,8 +385,8 @@ class OverviewUiMapper @Inject constructor(
             return if (totalHours > 0) weightedSum / totalHours else null
         }
 
-        fun computeWeeklyAverages(dailyTotals: List<DayTotal>): Nutrients {
-            return Nutrients(
+        fun computeWeeklyAverages(dailyTotals: List<DayTotal>): DayTotal {
+            return DayTotal(
                 calories = weightedAvg(dailyTotals) { it.calories }?.toInt(),
                 protein = weightedAvg(dailyTotals) { it.protein }?.toFloat(),
                 fat = weightedAvg(dailyTotals) { it.fat }?.toFloat(),
@@ -401,11 +396,12 @@ class OverviewUiMapper @Inject constructor(
                 ofWhichAddedSugar = weightedAvg(dailyTotals) { it.ofWhichAddedSugar }?.toFloat(),
                 salt = weightedAvg(dailyTotals) { it.salt }?.toFloat(),
                 fibre = weightedAvg(dailyTotals) { it.fibre }?.toFloat(),
+                duration = Duration.ofHours(24),
             )
         }
 
         // 3. Compute weekly weighted averages for current week
-        val avgNutrients = computeWeeklyAverages(dailyTotals)
+        val avgDayTotal = computeWeeklyAverages(dailyTotals)
 
         // 4. Compute previous week's weighted averages if available
         val previousWeekMacros = previousWeek
@@ -414,25 +410,15 @@ class OverviewUiMapper @Inject constructor(
             ?.let { computeWeeklyAverages(it) }
 
         // 5. Compare weekly averages against daily targets (no scaling) for adherence
-        val avgAdherence = calculateAdherence(
-            nutrients = avgNutrients,
-            targets = targets,
-            duration = Duration.ofHours(24) // baseline: daily target
-        )
+        val avgAdherence = calculateAdherence(avgDayTotal, targets)
 
-        val prevWeekAvgAdherence = previousWeekMacros?.let {
-            calculateAdherence(
-                nutrients = previousWeekMacros,
-                targets = targets,
-                duration = Duration.ofHours(24) // baseline: daily target
-            )
-        }
+        val prevWeekAvgAdherence = previousWeekMacros?.let { calculateAdherence(it, targets) }
 
         val weekStart = week.minOf { it.day }
 
         return ListUiModelWeeklySummary(
             listItemId = weekStart.toEpochDay(),
-            entries = buildWeeklySummaryEntries(avgNutrients, targets, previousWeekMacros),
+            entries = buildWeeklySummaryEntries(avgDayTotal, targets, previousWeekMacros),
             averageAdherence100Percentage = (avgAdherence * 100).roundToInt(),
             adherenceChange = calculateChangeIndicator(avgAdherence, prevWeekAvgAdherence),
         )
@@ -443,21 +429,21 @@ class OverviewUiMapper @Inject constructor(
      * Change is calculated relative to previous week (showing week-over-week change).
      */
     private fun buildWeeklySummaryEntries(
-        nutrients: Nutrients,
+        dayTotal: DayTotal,
         targets: Targets,
-        previousWeekNutrients: Nutrients? = null,
+        previousDayTotal: DayTotal? = null,
     ): List<NutrientSummaryStatEntry> {
         return buildList {
             targets.calories.takeIf { it.enabled }?.let {
                 add(
                     NutrientSummaryStatEntry(
                         title = "Calories",
-                        progress0to1 = nutrientsUiMapper.targetProgress(it, nutrients.calories?.toFloat() ?: 0f) ?: 0f,
-                        progressLabel = nutrientsUiMapper.formatCalories(nutrients.calories, withLabel = false),
+                        progress0to1 = nutrientsUiMapper.targetProgress(it, dayTotal.calories?.toFloat() ?: 0f) ?: 0f,
+                        progressLabel = nutrientsUiMapper.formatCalories(dayTotal.calories, withLabel = false),
                         targetRange0to1 = nutrientsUiMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
-                            current = nutrients.calories?.toFloat(),
-                            previous = previousWeekNutrients?.calories?.toFloat(),
+                            current = dayTotal.calories?.toFloat(),
+                            previous = previousDayTotal?.calories?.toFloat(),
                         ),
                         color = { it.caloriesColor },
                     )
@@ -467,12 +453,12 @@ class OverviewUiMapper @Inject constructor(
                 add(
                     NutrientSummaryStatEntry(
                         title = "Protein",
-                        progress0to1 = nutrientsUiMapper.targetProgress(it, nutrients.protein ?: 0f) ?: 0f,
-                        progressLabel = nutrientsUiMapper.formatProtein(nutrients.protein, withLabel = false),
+                        progress0to1 = nutrientsUiMapper.targetProgress(it, dayTotal.protein ?: 0f) ?: 0f,
+                        progressLabel = nutrientsUiMapper.formatProtein(dayTotal.protein, withLabel = false),
                         targetRange0to1 = nutrientsUiMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
-                            current = nutrients.protein,
-                            previous = previousWeekNutrients?.protein,
+                            current = dayTotal.protein,
+                            previous = previousDayTotal?.protein,
                         ),
                         color = { it.proteinColor },
                     )
@@ -482,12 +468,12 @@ class OverviewUiMapper @Inject constructor(
                 add(
                     NutrientSummaryStatEntry(
                         title = "Salt",
-                        progress0to1 = nutrientsUiMapper.targetProgress(it, nutrients.salt ?: 0f) ?: 0f,
-                        progressLabel = nutrientsUiMapper.formatSalt(nutrients.salt, withLabel = false),
+                        progress0to1 = nutrientsUiMapper.targetProgress(it, dayTotal.salt ?: 0f) ?: 0f,
+                        progressLabel = nutrientsUiMapper.formatSalt(dayTotal.salt, withLabel = false),
                         targetRange0to1 = nutrientsUiMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
-                            current = nutrients.salt,
-                            previous = previousWeekNutrients?.salt,
+                            current = dayTotal.salt,
+                            previous = previousDayTotal?.salt,
                         ),
                         color = { it.saltColor },
                     )
@@ -497,12 +483,12 @@ class OverviewUiMapper @Inject constructor(
                 add(
                     NutrientSummaryStatEntry(
                         title = "Fibre",
-                        progress0to1 = nutrientsUiMapper.targetProgress(it, nutrients.fibre ?: 0f) ?: 0f,
-                        progressLabel = nutrientsUiMapper.formatFibre(nutrients.fibre, withLabel = false),
+                        progress0to1 = nutrientsUiMapper.targetProgress(it, dayTotal.fibre ?: 0f) ?: 0f,
+                        progressLabel = nutrientsUiMapper.formatFibre(dayTotal.fibre, withLabel = false),
                         targetRange0to1 = nutrientsUiMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
-                            current = nutrients.fibre,
-                            previous = previousWeekNutrients?.fibre,
+                            current = dayTotal.fibre,
+                            previous = previousDayTotal?.fibre,
                         ),
                         color = { it.fibreColor },
                     )
@@ -512,12 +498,12 @@ class OverviewUiMapper @Inject constructor(
                 add(
                     NutrientSummaryStatEntry(
                         title = "Carbs",
-                        progress0to1 = nutrientsUiMapper.targetProgress(it, nutrients.carbs ?: 0f) ?: 0f,
-                        progressLabel = nutrientsUiMapper.formatCarbs(nutrients.carbs, sugar = null, addedSugar = null, withLabel = false),
+                        progress0to1 = nutrientsUiMapper.targetProgress(it, dayTotal.carbs ?: 0f) ?: 0f,
+                        progressLabel = nutrientsUiMapper.formatCarbs(dayTotal.carbs, sugar = null, addedSugar = null, withLabel = false),
                         targetRange0to1 = nutrientsUiMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
-                            current = nutrients.carbs,
-                            previous = previousWeekNutrients?.carbs,
+                            current = dayTotal.carbs,
+                            previous = previousDayTotal?.carbs,
                         ),
                         color = { it.carbsColor },
                     )
@@ -527,12 +513,12 @@ class OverviewUiMapper @Inject constructor(
                 add(
                     NutrientSummaryStatEntry(
                         title = "sugar",
-                        progress0to1 = nutrientsUiMapper.targetProgress(it, nutrients.ofWhichSugar ?: 0f) ?: 0f,
-                        progressLabel = nutrientsUiMapper.formatSugar(nutrients.ofWhichSugar, withLabel = false),
+                        progress0to1 = nutrientsUiMapper.targetProgress(it, dayTotal.ofWhichSugar ?: 0f) ?: 0f,
+                        progressLabel = nutrientsUiMapper.formatSugar(dayTotal.ofWhichSugar, withLabel = false),
                         targetRange0to1 = nutrientsUiMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
-                            current = nutrients.ofWhichSugar,
-                            previous = previousWeekNutrients?.ofWhichSugar,
+                            current = dayTotal.ofWhichSugar,
+                            previous = previousDayTotal?.ofWhichSugar,
                         ),
                         color = { it.carbsColor },
                     )
@@ -542,12 +528,12 @@ class OverviewUiMapper @Inject constructor(
                 add(
                     NutrientSummaryStatEntry(
                         title = "Fat",
-                        progress0to1 = nutrientsUiMapper.targetProgress(it, nutrients.fat ?: 0f) ?: 0f,
-                        progressLabel = nutrientsUiMapper.formatFat(nutrients.fat, saturated = null, withLabel = false),
+                        progress0to1 = nutrientsUiMapper.targetProgress(it, dayTotal.fat ?: 0f) ?: 0f,
+                        progressLabel = nutrientsUiMapper.formatFat(dayTotal.fat, saturated = null, withLabel = false),
                         targetRange0to1 = nutrientsUiMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
-                            current = nutrients.fat,
-                            previous = previousWeekNutrients?.fat,
+                            current = dayTotal.fat,
+                            previous = previousDayTotal?.fat,
                         ),
                         color = { it.fatColor },
                     )
@@ -557,12 +543,12 @@ class OverviewUiMapper @Inject constructor(
                 add(
                     NutrientSummaryStatEntry(
                         title = "saturated",
-                        progress0to1 = nutrientsUiMapper.targetProgress(it, nutrients.ofWhichSaturated ?: 0f) ?: 0f,
-                        progressLabel = nutrientsUiMapper.formatSaturatedFat(nutrients.ofWhichSaturated, withLabel = false),
+                        progress0to1 = nutrientsUiMapper.targetProgress(it, dayTotal.ofWhichSaturated ?: 0f) ?: 0f,
+                        progressLabel = nutrientsUiMapper.formatSaturatedFat(dayTotal.ofWhichSaturated, withLabel = false),
                         targetRange0to1 = nutrientsUiMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
-                            current = nutrients.ofWhichSaturated,
-                            previous = previousWeekNutrients?.ofWhichSaturated,
+                            current = dayTotal.ofWhichSaturated,
+                            previous = previousDayTotal?.ofWhichSaturated,
                         ),
                         color = { it.fatColor },
                     )
@@ -601,13 +587,12 @@ class OverviewUiMapper @Inject constructor(
     }
 
     private fun calculateAdherence(
-        nutrients: Nutrients,
+        dayTotal: DayTotal,
         targets: Targets,
-        duration: Duration,
     ): Float {
         val scores = mutableListOf<Float>()
 
-        val factor = (duration.toHours().toFloat() / 24f).coerceAtLeast(0.01f) // avoid div-by-zero
+        val factor = (dayTotal.duration.toHours().toFloat() / 24f).coerceAtLeast(0.01f) // avoid div-by-zero
 
         fun score(value: Float?, target: Target): Float? {
             if (!target.enabled || value == null) return null
@@ -639,17 +624,30 @@ class OverviewUiMapper @Inject constructor(
         }
 
         // Evaluate each nutrient against its scaled targets
-        nutrients.calories?.toFloat()?.let { score(it, targets.calories)?.let(scores::add) }
-        nutrients.protein?.let { score(it, targets.protein)?.let(scores::add) }
-        nutrients.fat?.let { score(it, targets.fat)?.let(scores::add) }
-        nutrients.carbs?.let { score(it, targets.carbs)?.let(scores::add) }
-        nutrients.ofWhichSaturated?.let { score(it, targets.ofWhichSaturated)?.let(scores::add) }
-        nutrients.ofWhichSugar?.let { score(it, targets.ofWhichSugar)?.let(scores::add) }
-        nutrients.salt?.let { score(it, targets.salt)?.let(scores::add) }
-        nutrients.fibre?.let { score(it, targets.fibre)?.let(scores::add) }
+        dayTotal.calories?.toFloat()?.let { score(it, targets.calories)?.let(scores::add) }
+        dayTotal.protein?.let { score(it, targets.protein)?.let(scores::add) }
+        dayTotal.fat?.let { score(it, targets.fat)?.let(scores::add) }
+        dayTotal.carbs?.let { score(it, targets.carbs)?.let(scores::add) }
+        dayTotal.ofWhichSaturated?.let { score(it, targets.ofWhichSaturated)?.let(scores::add) }
+        dayTotal.ofWhichSugar?.let { score(it, targets.ofWhichSugar)?.let(scores::add) }
+        dayTotal.salt?.let { score(it, targets.salt)?.let(scores::add) }
+        dayTotal.fibre?.let { score(it, targets.fibre)?.let(scores::add) }
 
         return if (scores.isEmpty()) 0f else scores.average().toFloat()
     }
+
+    private data class DayTotal(
+        val calories: Int? = null,
+        val protein: Float? = null,
+        val fat: Float? = null,
+        val ofWhichSaturated: Float? = null,
+        val carbs: Float? = null,
+        val ofWhichSugar: Float? = null,
+        val ofWhichAddedSugar: Float? = null,
+        val salt: Float? = null,
+        val fibre: Float? = null,
+        val duration: Duration,
+    )
 
     private fun List<Record>.groupByWallClockDay(dayStart: LocalTime): List<TravelDay> {
         return this
