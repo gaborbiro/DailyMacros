@@ -3,8 +3,8 @@ package dev.gaborbiro.dailymacros.features.modal
 import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
+import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -37,7 +37,7 @@ class ModalUiMapperTest {
                 createdAtEpochMs = 0L,
                 updatedAtEpochMs = 0L,
                 isPending = false,
-                nutrients = TemplateNutrientBreakdown(calories = 300, protein = 20f),
+                nutrients = Nutrients(calories = 300, protein = 20f),
                 notes = "Leftovers",
                 mealComponents = emptyList(),
                 topContributors = TopContributors(),

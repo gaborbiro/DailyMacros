@@ -2,13 +2,14 @@ package dev.gaborbiro.dailymacros.repositories.chatgpt
 
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodTitle
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsRequest
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsights
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsRequest
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_ANALYSIS_SYSTEM
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_ANALYSIS_USER
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.DEFAULT_WEEKLY_INSIGHTS_SYSTEM
@@ -42,9 +43,9 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.ongoingWeekInsight
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.weeklyInsightsModel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.weeklyInsightsReasoningEffort
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toApiModel
-import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toFoodRecognitionResponse
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toFoodRecognitionResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toNutrientAnalysisResponse
-import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toOngoingInsightsResponse
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toOngoingInsightsResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toWeeklyInsightsResponse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.ChatGPTService
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
@@ -52,36 +53,36 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.util.parse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.util.runCatching
 
 
-class ChatGPTRepositoryImpl(
+internal class ChatGPTRepositoryImpl(
     private val service: ChatGPTService,
     private val mapper: ChatGPTMapper,
 ) : ChatGPTRepository {
 
-    override suspend fun recogniseFood(request: FoodRecognitionRequest): FoodTitle {
+    override suspend fun recogniseFood(request: FoodRecognitionRequest): FoodRecognitionResult {
         return mappingApiErrors {
             runCatching(logTag = "recogniseFood") {
                 val response = service.callResponses(
                     request = request.toApiModel(),
                 )
                 return@runCatching parse(response)
-                    .toFoodRecognitionResponse()
+                    .toFoodRecognitionResult()
             }
         }
     }
 
-    override suspend fun analyseNutrients(request: NutrientAnalysisRequest): NutrientAnalysis {
+    override suspend fun analyseNutrients(request: NutrientAnalysisRequest): NutrientAnalysisResult {
         return mappingApiErrors {
             runCatching(logTag = "analyseNutrients") {
                 val response = service.callResponses(
                     request = request.toApiModel(),
                 )
-                return@runCatching parse(response)
-                    .toNutrientAnalysisResponse(imageCount = request.base64Images.size)
+                val imageCount = request.base64Images.size
+                return@runCatching mapper.map(parse(response).toNutrientAnalysisResponse(), imageCount)
             }
         }
     }
 
-    override fun getRecognitionPromptSegments(): List<PromptSegment> = listOf(
+    override fun getDefaultFoodRecognitionPromptSegments(): List<PromptSegment> = listOf(
         PromptSegment.Editable(
             id = SEG_RECOGNITION_MODEL,
             label = "Model",
@@ -108,7 +109,7 @@ class ChatGPTRepositoryImpl(
         ),
     )
 
-    override fun getAnalysisPromptSegments(): List<PromptSegment> = listOf(
+    override fun getDefaultNutrientAnalysisPromptSegments(): List<PromptSegment> = listOf(
         PromptSegment.Editable(
             id = SEG_ANALYSIS_MODEL,
             label = "Model",
@@ -136,16 +137,16 @@ class ChatGPTRepositoryImpl(
         ),
     )
 
-    override suspend fun getWeeklyInsights(request: WeeklyInsightsRequest): Map<String, String> {
+    override suspend fun getWeeklyInsights(request: WeeklyInsightsRequest): WeeklyInsightsResult {
         return mappingApiErrors {
             runCatching(logTag = "getWeeklyInsights") {
                 val response = service.callResponses(request = request.toApiModel())
-                return@runCatching parse(response).toWeeklyInsightsResponse()
+                return@runCatching WeeklyInsightsResult(parse(response).toWeeklyInsightsResponse())
             }
         }
     }
 
-    override fun getInsightsPromptSegments(): List<PromptSegment> = listOf(
+    override fun getDefaultWeeklyInsightsPromptSegments(): List<PromptSegment> = listOf(
         PromptSegment.Editable(
             id = SEG_WEEKLY_INSIGHTS_MODEL,
             label = "Model",
@@ -172,16 +173,16 @@ class ChatGPTRepositoryImpl(
         ),
     )
 
-    override suspend fun getOngoingInsights(request: OngoingWeekInsightsRequest): OngoingWeekInsights {
+    override suspend fun getOngoingInsights(request: OngoingWeekInsightsRequest): OngoingWeekInsightsResult {
         return mappingApiErrors {
             runCatching(logTag = "getOngoingWeekInsights") {
                 val response = service.callResponses(request = request.toApiModel())
-                return@runCatching parse(response).toOngoingInsightsResponse()
+                return@runCatching parse(response).toOngoingInsightsResult()
             }
         }
     }
 
-    override fun getOngoingInsightsPromptSegments(): List<PromptSegment> = listOf(
+    override fun getDefaultOngoingWeekInsightsPromptSegments(): List<PromptSegment> = listOf(
         PromptSegment.Editable(
             id = SEG_ONGOING_WEEK_INSIGHTS_MODEL,
             label = "Model",

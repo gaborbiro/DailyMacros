@@ -2,9 +2,9 @@ package dev.gaborbiro.dailymacros.features.shared
 
 import android.icu.text.DecimalFormat
 import android.util.Range
+import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.common.views.NutrientDisplayLine
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import kotlin.math.pow
 
@@ -12,25 +12,25 @@ import javax.inject.Inject
 
 class NutrientsUiMapper @Inject constructor() {
 
-    fun mapRecordNutrients(nutrientBreakdown: TemplateNutrientBreakdown): NutrientsUiModel {
+    fun mapRecordNutrients(nutrients: Nutrients): NutrientsUiModel {
         return NutrientsUiModel(
-            calories = nutrientBreakdown.calories?.let {
-                formatCalories(nutrientBreakdown.calories, withLabel = false)
+            calories = nutrients.calories?.let {
+                formatCalories(nutrients.calories, withLabel = false)
             },
-            protein = nutrientBreakdown.protein?.let {
-                formatProtein(nutrientBreakdown.protein, withLabel = true)
+            protein = nutrients.protein?.let {
+                formatProtein(nutrients.protein, withLabel = true)
             },
-            fat = nutrientBreakdown.fat?.let {
-                formatFat(nutrientBreakdown.fat, nutrientBreakdown.ofWhichSaturated, withLabel = true)
+            fat = nutrients.fat?.let {
+                formatFat(nutrients.fat, nutrients.ofWhichSaturated, withLabel = true)
             },
-            carbs = nutrientBreakdown.carbs?.let {
-                formatCarbs(nutrientBreakdown.carbs, nutrientBreakdown.ofWhichSugar, nutrientBreakdown.ofWhichAddedSugar, withLabel = true)
+            carbs = nutrients.carbs?.let {
+                formatCarbs(nutrients.carbs, nutrients.ofWhichSugar, nutrients.ofWhichAddedSugar, withLabel = true)
             },
-            salt = nutrientBreakdown.salt?.let {
-                formatSalt(nutrientBreakdown.salt, withLabel = true)
+            salt = nutrients.salt?.let {
+                formatSalt(nutrients.salt, withLabel = true)
             },
-            fibre = nutrientBreakdown.fibre?.let {
-                formatFibre(nutrientBreakdown.fibre, withLabel = true)
+            fibre = nutrients.fibre?.let {
+                formatFibre(nutrients.fibre, withLabel = true)
             },
         )
     }

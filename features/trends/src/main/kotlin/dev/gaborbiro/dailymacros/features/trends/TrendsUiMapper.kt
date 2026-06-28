@@ -496,7 +496,7 @@ class TrendsUiMapper @Inject constructor(
         )
     }
 
-    private fun calculateAdherence(nutrients: NutrientBreakdown, targets: Targets): Float {
+    private fun calculateAdherence(nutrients: Nutrients, targets: Targets): Float {
         val scores = mutableListOf<Float>()
 
         fun score(value: Float?, target: Target): Float? {
@@ -526,7 +526,7 @@ class TrendsUiMapper @Inject constructor(
         return if (scores.isEmpty()) 0f else scores.average().toFloat()
     }
 
-    private fun List<Record>.sumNutrients(): NutrientBreakdown = NutrientBreakdown(
+    private fun List<Record>.sumNutrients(): Nutrients = Nutrients(
         calories = mapNotNull { it.template.nutrients.calories }.takeIf { it.isNotEmpty() }?.sum(),
         protein = mapNotNull { it.template.nutrients.protein }.takeIf { it.isNotEmpty() }?.sum(),
         fat = mapNotNull { it.template.nutrients.fat }.takeIf { it.isNotEmpty() }?.sum(),
@@ -568,7 +568,7 @@ class TrendsUiMapper @Inject constructor(
         }
     }
 
-    private data class NutrientBreakdown(
+    private data class Nutrients(
         val calories: Int? = null,
         val protein: Float? = null,
         val fat: Float? = null,

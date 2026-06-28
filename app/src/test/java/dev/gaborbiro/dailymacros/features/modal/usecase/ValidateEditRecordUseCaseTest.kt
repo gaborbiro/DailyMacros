@@ -3,8 +3,8 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
+import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.runBlocking
@@ -32,7 +32,7 @@ class ValidateEditRecordUseCaseTest {
         createdAtEpochMs = 0L,
         updatedAtEpochMs = 0L,
         isPending = false,
-        nutrients = TemplateNutrientBreakdown(),
+        nutrients = Nutrients(),
         notes = "",
         mealComponents = emptyList(),
         topContributors = TopContributors(),
@@ -127,7 +127,7 @@ class ValidateEditRecordUseCaseTest {
             name: String?,
             description: String?,
             templateImages: List<dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate>?,
-            nutrients: Pair<TemplateNutrientBreakdown, TopContributors>?,
+            nutrients: Pair<Nutrients, TopContributors>?,
             notes: String?,
             mealComponents: List<dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent>?,
         ) = Unit

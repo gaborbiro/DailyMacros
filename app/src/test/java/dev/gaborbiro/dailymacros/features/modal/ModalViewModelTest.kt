@@ -26,20 +26,21 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTempl
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
+import dev.gaborbiro.dailymacros.features.shared.ErrorMapper
 import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodTitle
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
+import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
@@ -99,17 +100,17 @@ class ModalViewModelTest {
     }
 
     private class VmFakeChatGpt : ChatGPTRepository {
-        override suspend fun recogniseFood(request: FoodRecognitionRequest) = FoodTitle(title = "X")
+        override suspend fun recogniseFood(request: FoodRecognitionRequest) = FoodRecognitionResult(title = "X")
 
-        override suspend fun analyseNutrients(request: NutrientAnalysisRequest): NutrientAnalysis =
+        override suspend fun analyseNutrients(request: NutrientAnalysisRequest): NutrientAnalysisResult =
             error("unused")
 
-        override fun getRecognitionPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
-        override fun getAnalysisPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
-        override fun getInsightsPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
-        override fun getOngoingInsightsPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
-        override suspend fun getWeeklyInsights(request: dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsRequest): Map<String, String> = error("unused")
-        override suspend fun getOngoingInsights(request: dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsRequest): dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsights = error("unused")
+        override fun getDefaultFoodRecognitionPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
+        override fun getDefaultNutrientAnalysisPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
+        override fun getDefaultWeeklyInsightsPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
+        override fun getDefaultOngoingWeekInsightsPromptSegments() = emptyList<dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment>()
+        override suspend fun getWeeklyInsights(request: dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsRequest): dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsResult = error("unused")
+        override suspend fun getOngoingInsights(request: dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsRequest): dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsResult = error("unused")
     }
 
     private val disabledTarget = Target(enabled = false)
@@ -182,6 +183,7 @@ class ModalViewModelTest {
                 appContext = app,
             ),
             analyticsLogger = AnalyticsLogger(),
+            errorMapper = ErrorMapper(),
         ).also { activeViewModels.add(it) }
     }
 
@@ -310,7 +312,7 @@ class ModalViewModelTest {
                 name: String?,
                 description: String?,
                 templateImages: List<TemplateImageUpdate>?,
-                nutrients: Pair<TemplateNutrientBreakdown, TopContributors>?,
+                nutrients: Pair<Nutrients, TopContributors>?,
                 notes: String?,
                 mealComponents: List<MealComponent>?,
             ) {
@@ -332,7 +334,7 @@ class ModalViewModelTest {
     fun `log meal again from template details creates single record`() = runTest(testDispatcher) {
         var saveRecordCalls = 0
         val tpl = ModalRecordFixtures.template(dbId = 99L, name = "Snack").copy(
-            nutrients = TemplateNutrientBreakdown(calories = 200),
+            nutrients = Nutrients(calories = 200),
         )
         val rec = ModalRecordFixtures.record(3L, tpl)
         val repo = object : BaseRecordsRepositoryStub() {
@@ -362,7 +364,7 @@ class ModalViewModelTest {
         var saveTemplateCalls = 0
         var saveRecordCalls = 0
         val tpl = ModalRecordFixtures.template(dbId = 7L, name = "Soup").copy(
-            nutrients = TemplateNutrientBreakdown(calories = 100),
+            nutrients = Nutrients(calories = 100),
         )
         val rec = ModalRecordFixtures.record(5L, tpl)
         val repo = object : BaseRecordsRepositoryStub() {
@@ -421,7 +423,7 @@ class ModalViewModelTest {
                 name: String?,
                 description: String?,
                 templateImages: List<TemplateImageUpdate>?,
-                nutrients: Pair<TemplateNutrientBreakdown, TopContributors>?,
+                nutrients: Pair<Nutrients, TopContributors>?,
                 notes: String?,
                 mealComponents: List<MealComponent>?,
             ) {

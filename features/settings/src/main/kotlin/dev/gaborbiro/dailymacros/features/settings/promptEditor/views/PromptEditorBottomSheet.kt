@@ -99,8 +99,8 @@ internal fun PromptEditorView(
     val currentSegments = when (currentTabType) {
         TAB_RECOGNITION -> viewState.recognitionSegments
         TAB_ANALYSIS -> viewState.analysisSegments
-        TAB_INSIGHTS -> viewState.insightsSegments
-        else -> viewState.ongoingInsightsSegments
+        TAB_INSIGHTS -> viewState.weeklyInsightsSegments
+        else -> viewState.ongoingWeekInsightsSegments
     }
 
     val recognitionScrollState = rememberScrollState()

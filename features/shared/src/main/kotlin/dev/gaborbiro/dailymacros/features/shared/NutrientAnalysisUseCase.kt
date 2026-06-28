@@ -5,16 +5,15 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.utils.inputStreamToBase64
 import dev.gaborbiro.dailymacros.features.shared.notifications.MacroResultsNotificationSender
-import dev.gaborbiro.dailymacros.repositories.chatgpt.di.ForImageUploadChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ForImageUploadChatGpt
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
+import dev.gaborbiro.dailymacros.repositories.common.model.DomainError
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.ComponentConfidence
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import ellipsize
 import java.util.Locale
@@ -28,8 +27,7 @@ class NutrientAnalysisUseCase @Inject constructor(
     @ForImageUploadChatGpt private val chatGPTRepository: ChatGPTRepository,
     private val recordsRepository: RecordsRepository,
     private val requestStatusRepository: RequestStatusRepository,
-    private val recordsMapper: RecordsMapper,
-    private val macrosNotificationTextMapper: MacrosNotificationTextMapper,
+    private val errorMapper: ErrorMapper,
     private val macroResultsNotificationSender: MacroResultsNotificationSender,
     private val settingsRepository: SettingsRepository,
 ) {
@@ -50,10 +48,10 @@ class NutrientAnalysisUseCase @Inject constructor(
 
             val nutrientsAnalysisResponse = runCatching {
                 chatGPTRepository.analyseNutrients(
-                    request = recordsMapper.mapToNutrientAnalysisRequest(
-                        record = record,
+                    request = NutrientAnalysisRequest(
                         base64Images = base64Images,
-                    ).copy(
+                        title = record.template.name,
+                        description = record.template.description,
                         customizations = settingsRepository.getEffectiveCustomizations(),
                         phoneLanguage = Locale.getDefault().getDisplayLanguage(Locale.ENGLISH),
                     )
@@ -63,7 +61,7 @@ class NutrientAnalysisUseCase @Inject constructor(
             nutrientsAnalysisResponse
                 .exceptionOrNull()
                 ?.let {
-                    if (it is ChatGPTDomainError.DisplayMessageToUser.CheckInternetConnection) {
+                    if (it is DomainError.DisplayMessageToUser.CheckInternetConnection) {
                         NutrientAnalysisWorker.setWorkRequest(
                             appContext = appContext,
                             recordId = recordId,
@@ -74,9 +72,10 @@ class NutrientAnalysisUseCase @Inject constructor(
                 }
 
             nutrientsAnalysisResponse.getOrNull()?.let { nutrientsAnalysisResult ->
-                val (nutrients, error) = recordsMapper.mapNutrientAnalysisResponse(nutrientsAnalysisResult)
-                val templateNutrients: Pair<TemplateNutrientBreakdown, TopContributors>? = nutrients?.let {
-                    recordsMapper.map(nutrients.first) to nutrients.second
+                val nutrients = nutrientsAnalysisResult.nutrients
+                val error = nutrientsAnalysisResult.error
+                val templateNutrients = nutrients?.let {
+                    it to nutrientsAnalysisResult.topContributors!!
                 }
                 val name = record.template.name.takeIf { it.isNotBlank() } ?: nutrientsAnalysisResult.title
                 val templateImagesWhenSavingMacros = templateNutrients?.let {
@@ -131,13 +130,13 @@ class NutrientAnalysisUseCase @Inject constructor(
                             }
                     }
             }
-        } catch (domainError: ChatGPTDomainError) {
+        } catch (domainError: DomainError) {
             if (notifyOnFailure) {
                 macroResultsNotificationSender.showMacroResultsNotification(
                     id = 123000L + recordId,
                     recordId = recordId,
                     title = "Couldn't fetch macros",
-                    message = macrosNotificationTextMapper.mapDomainErrorToUserMessage(domainError),
+                    message = errorMapper.mapErrorMessage(domainError),
                     isError = true,
                 )
             }

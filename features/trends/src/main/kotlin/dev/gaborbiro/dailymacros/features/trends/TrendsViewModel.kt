@@ -152,11 +152,11 @@ class TrendsViewModel @Inject constructor(
                         Locale.getDefault().getDisplayLanguage(Locale.ENGLISH),
                     )
                 )
-                val versionLabel = resolvePromptVersionLabel(TAB_INSIGHTS, chatGPTRepository.getInsightsPromptSegments(), customizations)
+                val versionLabel = resolvePromptVersionLabel(TAB_INSIGHTS, chatGPTRepository.getDefaultWeeklyInsightsPromptSegments(), customizations)
                 val rangeLabel = "${formatWeekRange(lastCompleteWeekStart)} vs ${formatWeekRange(prevWeekStart)} · prompt version: $versionLabel"
-                preferences.weeklyInsights = result
+                preferences.weeklyInsights = result.insights
                 preferences.weeklyInsightsDateRange = rangeLabel
-                _uiState.update { it.copy(weeklyInsights = result, weeklyInsightsDateRange = rangeLabel, weeklyInsightsLoading = false) }
+                _uiState.update { it.copy(weeklyInsights = result.insights, weeklyInsightsDateRange = rangeLabel, weeklyInsightsLoading = false) }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
@@ -189,7 +189,7 @@ class TrendsViewModel @Inject constructor(
                         Locale.getDefault().getDisplayLanguage(Locale.ENGLISH),
                     )
                 )
-                val versionLabel = resolvePromptVersionLabel(TAB_ONGOING_INSIGHTS, chatGPTRepository.getOngoingInsightsPromptSegments(), customizations)
+                val versionLabel = resolvePromptVersionLabel(TAB_ONGOING_INSIGHTS, chatGPTRepository.getDefaultOngoingWeekInsightsPromptSegments(), customizations)
                 val rangeLabel = "${formatPartialWeekRange(thisWeekStart, today)} · prompt version: $versionLabel"
                 preferences.ongoingWeekInsights = result.message
                 preferences.ongoingInsightsDateRange = rangeLabel

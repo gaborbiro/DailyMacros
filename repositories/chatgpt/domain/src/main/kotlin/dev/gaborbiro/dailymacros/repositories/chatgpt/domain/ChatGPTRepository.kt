@@ -1,37 +1,38 @@
 package dev.gaborbiro.dailymacros.repositories.chatgpt.domain
 
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodTitle
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsRequest
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsights
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsRequest
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsResult
 
 /**
- * All operations translate API/transport failures into [dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError]
+ * All operations translate API/transport failures into [dev.gaborbiro.dailymacros.repositories.common.model.DomainError]
  * before throwing. No service-layer exception (e.g. `ChatGPTApiError`) leaks out of the repository.
  */
 interface ChatGPTRepository {
 
-    /** @throws dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError on any API/transport failure. */
-    suspend fun recogniseFood(request: FoodRecognitionRequest): FoodTitle
+    /** @throws dev.gaborbiro.dailymacros.repositories.common.model.DomainError on any API/transport failure. */
+    suspend fun recogniseFood(request: FoodRecognitionRequest): FoodRecognitionResult
 
-    /** @throws dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError on any API/transport failure. */
-    suspend fun analyseNutrients(request: NutrientAnalysisRequest): NutrientAnalysis
+    /** @throws dev.gaborbiro.dailymacros.repositories.common.model.DomainError on any API/transport failure. */
+    suspend fun analyseNutrients(request: NutrientAnalysisRequest): NutrientAnalysisResult
 
-    fun getRecognitionPromptSegments(): List<PromptSegment>
+    /** @throws dev.gaborbiro.dailymacros.repositories.common.model.DomainError on any API/transport failure. */
+    suspend fun getWeeklyInsights(request: WeeklyInsightsRequest): WeeklyInsightsResult
 
-    fun getAnalysisPromptSegments(): List<PromptSegment>
+    /** @throws dev.gaborbiro.dailymacros.repositories.common.model.DomainError on any API/transport failure. */
+    suspend fun getOngoingInsights(request: OngoingWeekInsightsRequest): OngoingWeekInsightsResult
 
-    fun getInsightsPromptSegments(): List<PromptSegment>
+    fun getDefaultFoodRecognitionPromptSegments(): List<PromptSegment>
 
-    fun getOngoingInsightsPromptSegments(): List<PromptSegment>
+    fun getDefaultNutrientAnalysisPromptSegments(): List<PromptSegment>
 
-    /** @throws dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError on any API/transport failure. */
-    suspend fun getWeeklyInsights(request: WeeklyInsightsRequest): Map<String, String>
+    fun getDefaultWeeklyInsightsPromptSegments(): List<PromptSegment>
 
-    /** @throws dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError on any API/transport failure. */
-    suspend fun getOngoingInsights(request: OngoingWeekInsightsRequest): OngoingWeekInsights
+    fun getDefaultOngoingWeekInsightsPromptSegments(): List<PromptSegment>
 }

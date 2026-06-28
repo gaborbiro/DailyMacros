@@ -1,9 +1,10 @@
-package dev.gaborbiro.dailymacros.features.shared.model
+package dev.gaborbiro.dailymacros.repositories.records.domain.model
 
 /**
  * null doesn't mean 0 for that nutrient. It means it's unknown.
  */
-data class NutrientBreakdown(
+
+data class TemplateNutrientBreakdown(
     val calories: Int? = null,
     val protein: Float? = null,
     val fat: Float? = null,

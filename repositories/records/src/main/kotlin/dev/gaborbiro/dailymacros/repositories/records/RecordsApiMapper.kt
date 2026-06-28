@@ -12,7 +12,8 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
+import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -36,7 +37,7 @@ class RecordsApiMapper @Inject constructor() {
             parentTemplateId = template.entity.parentTemplateId,
             createdAtEpochMs = template.entity.createdAtEpochMs,
             updatedAtEpochMs = template.entity.updatedAtEpochMs,
-            nutrients = template.macros?.let(::map) ?: TemplateNutrientBreakdown(),
+            nutrients = template.macros?.let(::mapToNutrients) ?: Nutrients(),
             notes = (template.macros?.notes ?: "").substringBefore("\nComponents:\n").trimEnd().takeIf { it.isNotBlank() } ?: "",
             mealComponents = decodeMealComponentsJson(template.macros?.analysisComponentsJson),
             topContributors = template.topContributors?.let(::map) ?: TopContributors(),
@@ -55,21 +56,17 @@ class RecordsApiMapper @Inject constructor() {
 
     // -------- Domain <— DB: Macros --------
 
-    fun mapToTemplateNutrients(macros: MacrosEntity): TemplateNutrientBreakdown = map(macros)
-
-    private fun map(template: MacrosEntity): TemplateNutrientBreakdown {
-        return TemplateNutrientBreakdown(
-            calories = template.calories,
-            protein = template.protein,
-            fat = template.fat,
-            ofWhichSaturated = template.ofWhichSaturated,
-            carbs = template.carbohydrates,
-            ofWhichSugar = template.ofWhichSugar,
-            ofWhichAddedSugar = template.ofWhichAddedSugar,
-            salt = template.salt,
-            fibre = template.fibre,
-        )
-    }
+    private fun mapToNutrients(macros: MacrosEntity): Nutrients = Nutrients(
+        calories = macros.calories,
+        protein = macros.protein,
+        fat = macros.fat,
+        ofWhichSaturated = macros.ofWhichSaturated,
+        carbs = macros.carbohydrates,
+        ofWhichSugar = macros.ofWhichSugar,
+        ofWhichAddedSugar = macros.ofWhichAddedSugar,
+        salt = macros.salt,
+        fibre = macros.fibre,
+    )
 
     private fun map(template: TopContributorsEntity): TopContributors {
         return TopContributors(
@@ -124,7 +121,7 @@ class RecordsApiMapper @Inject constructor() {
 
     // Domain Macros -> MacrosEntity (templateId set by caller via .copy)
     fun map(
-        nutrientBreakdown: TemplateNutrientBreakdown,
+        nutrients: Nutrients,
         notes: String?,
         analysisComponentsJson: String?,
         id: Long?,
@@ -132,15 +129,15 @@ class RecordsApiMapper @Inject constructor() {
     ): MacrosEntity {
         return MacrosEntity(
             templateId = templateId,
-            calories = nutrientBreakdown.calories,
-            protein = nutrientBreakdown.protein,
-            carbohydrates = nutrientBreakdown.carbs,
-            ofWhichSugar = nutrientBreakdown.ofWhichSugar,
-            ofWhichAddedSugar = nutrientBreakdown.ofWhichAddedSugar,
-            fat = nutrientBreakdown.fat,
-            ofWhichSaturated = nutrientBreakdown.ofWhichSaturated,
-            salt = nutrientBreakdown.salt,
-            fibre = nutrientBreakdown.fibre,
+            calories = nutrients.calories,
+            protein = nutrients.protein,
+            carbohydrates = nutrients.carbs,
+            ofWhichSugar = nutrients.ofWhichSugar,
+            ofWhichAddedSugar = nutrients.ofWhichAddedSugar,
+            fat = nutrients.fat,
+            ofWhichSaturated = nutrients.ofWhichSaturated,
+            salt = nutrients.salt,
+            fibre = nutrients.fibre,
             notes = notes,
             analysisComponentsJson = analysisComponentsJson,
         ).also {

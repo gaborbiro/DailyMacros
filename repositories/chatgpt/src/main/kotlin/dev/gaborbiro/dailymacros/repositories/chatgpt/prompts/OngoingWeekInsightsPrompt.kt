@@ -2,7 +2,7 @@ package dev.gaborbiro.dailymacros.repositories.chatgpt.prompts
 
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsights
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTRequest
@@ -76,7 +76,7 @@ internal fun OngoingWeekInsightsRequest.toApiModel() = ChatGPTRequest(
     )
 )
 
-internal fun ChatGPTResponse.toOngoingInsightsResponse(): OngoingWeekInsights {
+internal fun ChatGPTResponse.toOngoingInsightsResult(): OngoingWeekInsightsResult {
     val gson = GsonBuilder().create()
 
     class InsightsResponse(
@@ -100,11 +100,11 @@ internal fun ChatGPTResponse.toOngoingInsightsResponse(): OngoingWeekInsights {
             if (response.error != null) {
                 throw ChatGPTApiError.GenericApiError(response.error)
             }
-            OngoingWeekInsights(
+            OngoingWeekInsightsResult(
                 message = response.message.takeIf { it.isNullOrBlank().not() },
             )
         }
-        ?: OngoingWeekInsights(
+        ?: OngoingWeekInsightsResult(
             message = null,
         )
 }

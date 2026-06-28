@@ -16,9 +16,9 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
+import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
@@ -151,7 +151,7 @@ class RecordsRepositoryImpl @Inject constructor(
         name: String?, /* = null */
         description: String?, /* = null */
         templateImages: List<TemplateImageUpdate>?, /* = null */
-        nutrients: Pair<TemplateNutrientBreakdown, TopContributors>?, /* = null */
+        nutrients: Pair<Nutrients, TopContributors>?, /* = null */
         notes: String?, /* = null */
         mealComponents: List<MealComponent>?,
     ) {
@@ -193,7 +193,7 @@ class RecordsRepositoryImpl @Inject constructor(
                 else -> oldTemplate.macros?.analysisComponentsJson
             }
             val macrosEntity: MacrosEntity = mapper.map(
-                nutrientBreakdown = nutrients,
+                nutrients = nutrients,
                 notes = notes ?: oldTemplate.macros?.notes,
                 analysisComponentsJson = componentsJson,
                 id = oldTemplate.macros?.id,

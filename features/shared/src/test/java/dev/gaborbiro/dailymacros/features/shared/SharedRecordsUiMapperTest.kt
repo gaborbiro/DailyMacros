@@ -2,8 +2,8 @@ package dev.gaborbiro.dailymacros.features.shared
 
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
+import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -35,7 +35,7 @@ class SharedRecordsUiMapperTest {
         createdAtEpochMs = 0L,
         updatedAtEpochMs = 0L,
         isPending = pending,
-        nutrients = TemplateNutrientBreakdown(calories = 90),
+        nutrients = Nutrients(calories = 90),
         notes = "",
         mealComponents = emptyList(),
         topContributors = TopContributors(),

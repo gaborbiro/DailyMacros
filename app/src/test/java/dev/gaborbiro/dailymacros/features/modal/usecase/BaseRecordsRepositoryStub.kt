@@ -5,9 +5,9 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
+import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import java.time.ZonedDateTime
@@ -36,7 +36,7 @@ open class BaseRecordsRepositoryStub : RecordsRepository {
         name: String?,
         description: String?,
         templateImages: List<TemplateImageUpdate>?,
-        nutrients: Pair<TemplateNutrientBreakdown, TopContributors>?,
+        nutrients: Pair<Nutrients, TopContributors>?,
         notes: String?,
         mealComponents: List<MealComponent>?,
     ) = Unit

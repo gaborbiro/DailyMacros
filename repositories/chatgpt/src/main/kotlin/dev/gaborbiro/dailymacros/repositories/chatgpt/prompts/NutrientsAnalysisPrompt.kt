@@ -2,11 +2,7 @@ package dev.gaborbiro.dailymacros.repositories.chatgpt.prompts
 
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.MealComponent
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.Nutrient
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysis
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.Nutrients
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTResponse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ContentEntry
@@ -159,97 +155,46 @@ internal fun NutrientAnalysisRequest.toApiModel() = ChatGPTRequest(
     )
 )
 
-internal fun ChatGPTResponse.toNutrientAnalysisResponse(imageCount: Int): NutrientAnalysis {
-    val gson = GsonBuilder().create()
+private val gson = GsonBuilder().create()
 
-    val resultJson: String? = this.output
-        .lastOrNull {
-            it.role == Role.assistant &&
-                    it.content?.any { it is OutputContent.Text } == true
-        }
+internal fun ChatGPTResponse.toNutrientAnalysisResponse(): NutrientAnalysisResponse {
+    val resultJson = output
+        .lastOrNull { it.role == Role.assistant && it.content?.any { it is OutputContent.Text } == true }
         ?.content
         ?.filterIsInstance<OutputContent.Text>()
-        ?.firstOrNull {
-            it.text.isNotBlank()
-        }
+        ?.firstOrNull { it.text.isNotBlank() }
         ?.text
-
-    // temporary helper classes
-
-    val response = gson.fromJson(resultJson, NutrientAnalysisResponse::class.java)
-
-    fun map(nutrient: NutrientApiModel?): Nutrient {
-        return Nutrient(
-            grams = nutrient?.grams?.toFloat(),
-            topContributors = nutrient?.topContributorIngredients,
-        )
-    }
-
-    val nutrients = response.nutrients?.let {
-        // null value doesn't mean 0 for that macronutrient, the AI just has no information on it.
-        Nutrients(
-            calories = response.nutrients.calories?.toInt(),
-            protein = map(response.nutrients.protein),
-            fat = map(response.nutrients.fat),
-            ofWhichSaturated = map(response.nutrients.ofWhichSaturated),
-            carb = map(response.nutrients.carbs),
-            ofWhichSugar = map(response.nutrients.ofWhichSugar),
-            ofWhichAddedSugar = map(response.nutrients.ofWhichAddedSugar),
-            salt = map(response.nutrients.salt),
-            fibre = map(response.nutrients.fibre),
-        )
-    }
-
-    val structuredComponents = response.components.orEmpty().mapNotNull { component ->
-        val name = component.name?.trim().orEmpty()
-        if (name.isEmpty()) return@mapNotNull null
-        MealComponent(
-            name = name,
-            estimatedAmount = component.estimatedAmount?.trim().orEmpty(),
-            confidence = component.confidence?.trim().orEmpty().ifEmpty { "high" },
-        )
-    }
-    val representativeFlags =
-        normalizeRepresentativeOfMealFlags(imageCount, response.representativeOfMeal)
-
-    return NutrientAnalysis(
-        nutrients = nutrients,
-        title = response.title,
-        notes = response.notes.takeIf { it.isNullOrBlank().not() },
-        components = structuredComponents,
-        isRepresentativeOfMealByImageIndex = representativeFlags,
-        error = response.error,
-    )
+    return gson.fromJson(resultJson, NutrientAnalysisResponse::class.java)
 }
 
-private fun normalizeRepresentativeOfMealFlags(imageCount: Int, fromModel: List<Boolean>?): List<Boolean?> {
-    if (imageCount <= 0) return emptyList()
-    if (fromModel == null) return List(imageCount) { null }
-    return List(imageCount) { index -> fromModel.getOrNull(index) }
-}
-
-private data class NutrientAnalysisResponse(
+internal data class NutrientAnalysisResponse(
     @SerializedName("nutrients") val nutrients: NutrientsApiModel?,
     @SerializedName("title") val title: String?,
     @SerializedName("notes") val notes: String?,
-    @SerializedName("components") val components: List<Component>?,
+    @SerializedName("components") val components: List<ComponentApiModel>?,
     @SerializedName("representative_of_meal") val representativeOfMeal: List<Boolean>?,
     @SerializedName("error") val error: String?,
 )
 
-private data class NutrientsApiModel(
+internal data class NutrientsApiModel(
     @SerializedName("calories") val calories: Number?,
-    @SerializedName("protein") val protein: NutrientApiModel?,
-    @SerializedName("fat") val fat: NutrientApiModel?,
-    @SerializedName("ofWhichSaturated") val ofWhichSaturated: NutrientApiModel?,
-    @SerializedName("carbohydrate") val carbs: NutrientApiModel?,
-    @SerializedName("ofWhichSugar") val ofWhichSugar: NutrientApiModel?,
-    @SerializedName("ofWhichAddedSugar") val ofWhichAddedSugar: NutrientApiModel?,
-    @SerializedName("salt") val salt: NutrientApiModel?,
-    @SerializedName("fibre") val fibre: NutrientApiModel?,
+    @SerializedName("protein") val protein: NutrientItemApiModel?,
+    @SerializedName("fat") val fat: NutrientItemApiModel?,
+    @SerializedName("ofWhichSaturated") val ofWhichSaturated: NutrientItemApiModel?,
+    @SerializedName("carbohydrate") val carbs: NutrientItemApiModel?,
+    @SerializedName("ofWhichSugar") val ofWhichSugar: NutrientItemApiModel?,
+    @SerializedName("ofWhichAddedSugar") val ofWhichAddedSugar: NutrientItemApiModel?,
+    @SerializedName("salt") val salt: NutrientItemApiModel?,
+    @SerializedName("fibre") val fibre: NutrientItemApiModel?,
 )
 
-private data class NutrientApiModel(
+internal data class NutrientItemApiModel(
     @SerializedName("grams") val grams: Number?,
     @SerializedName("topContributorIngredients") val topContributorIngredients: String?,
+)
+
+internal data class ComponentApiModel(
+    @SerializedName("name") val name: String?,
+    @SerializedName("estimatedAmount") val estimatedAmount: String?,
+    @SerializedName("confidence") val confidence: String?,
 )

@@ -24,7 +24,6 @@ dependencies {
     implementation(project(":core:analytics"))
     implementation(project(":data:image"))
     implementation(project(":repositories:records:domain"))
-    implementation(project(":repositories:chatgpt"))
     implementation(project(":repositories:chatgpt:domain"))
     implementation(project(":repositories:settings:domain"))
 

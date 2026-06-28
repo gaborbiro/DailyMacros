@@ -2,7 +2,7 @@ package dev.gaborbiro.dailymacros.features.shared
 
 import android.util.Range
 import dev.gaborbiro.dailymacros.features.common.views.NutrientDisplayLine
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
+import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -76,7 +76,7 @@ class NutrientsUiMapperTest {
 
     @Test
     fun `mapRecordNutrients formats calories and protein`() {
-        val n = TemplateNutrientBreakdown(
+        val n = Nutrients(
             calories = 250,
             protein = 12f,
             fat = null,

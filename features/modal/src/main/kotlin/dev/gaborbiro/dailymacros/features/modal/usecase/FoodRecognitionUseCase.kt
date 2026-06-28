@@ -3,7 +3,7 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.utils.inputStreamToBase64
 import dev.gaborbiro.dailymacros.features.modal.model.RecognisedFood
-import dev.gaborbiro.dailymacros.repositories.chatgpt.di.ForImageUploadChatGpt
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ForImageUploadChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository

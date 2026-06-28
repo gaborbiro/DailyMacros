@@ -1,21 +1,80 @@
 package dev.gaborbiro.dailymacros.repositories.chatgpt
 
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.MealComponent
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisResult
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.NutrientAnalysisResponse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
+import dev.gaborbiro.dailymacros.repositories.common.model.DomainError
+import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
+import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class ChatGPTMapper @Inject constructor() {
+internal class ChatGPTMapper @Inject constructor() {
 
-    fun map(error: ChatGPTApiError): ChatGPTDomainError {
-        return when (error) {
-            is ChatGPTApiError.AuthApiError -> ChatGPTDomainError.DisplayMessageToUser.Message("Error talking to AI")
-            is ChatGPTApiError.InternetApiError -> ChatGPTDomainError.DisplayMessageToUser.CheckInternetConnection(error)
-            is ChatGPTApiError.MappingApiError, is ChatGPTApiError.ContentNotFoundError -> ChatGPTDomainError.DisplayMessageToUser.ContactSupport(error)
-            is ChatGPTApiError.GenericApiError -> error.message
-                ?.let { ChatGPTDomainError.DisplayMessageToUser.Message(it, error) }
-                ?: ChatGPTDomainError.DisplayMessageToUser.TryAgain(error)
+    fun map(parsed: NutrientAnalysisResponse, imageCount: Int): NutrientAnalysisResult {
+        val nutrients = parsed.nutrients?.let {
+            Nutrients(
+                calories = it.calories?.toInt(),
+                protein = it.protein?.grams?.toFloat(),
+                fat = it.fat?.grams?.toFloat(),
+                ofWhichSaturated = it.ofWhichSaturated?.grams?.toFloat(),
+                carbs = it.carbs?.grams?.toFloat(),
+                ofWhichSugar = it.ofWhichSugar?.grams?.toFloat(),
+                ofWhichAddedSugar = it.ofWhichAddedSugar?.grams?.toFloat(),
+                salt = it.salt?.grams?.toFloat(),
+                fibre = it.fibre?.grams?.toFloat(),
+            )
         }
+        val topContributors = parsed.nutrients?.let {
+            TopContributors(
+                topProteinContributors = it.protein?.topContributorIngredients,
+                topFatContributors = it.fat?.topContributorIngredients,
+                topSaturatedFatContributors = it.ofWhichSaturated?.topContributorIngredients,
+                topCarbsContributors = it.carbs?.topContributorIngredients,
+                topSugarContributors = it.ofWhichSugar?.topContributorIngredients,
+                topAddedSugarContributors = it.ofWhichAddedSugar?.topContributorIngredients,
+                topSaltContributors = it.salt?.topContributorIngredients,
+                topFibreContributors = it.fibre?.topContributorIngredients,
+            )
+        }
+        val components = parsed.components.orEmpty().mapNotNull { component ->
+            val name = component.name?.trim().orEmpty()
+            if (name.isEmpty()) return@mapNotNull null
+            MealComponent(
+                name = name,
+                estimatedAmount = component.estimatedAmount?.trim().orEmpty(),
+                confidence = component.confidence?.trim().orEmpty().ifEmpty { "unknown" },
+            )
+        }
+        val representativeFlags = normalizeRepresentativeOfMealFlags(imageCount, parsed.representativeOfMeal)
+
+        return NutrientAnalysisResult(
+            nutrients = nutrients,
+            topContributors = topContributors,
+            title = parsed.title,
+            notes = parsed.notes.takeIf { it.isNullOrBlank().not() },
+            components = components,
+            isRepresentativeOfMealByImageIndex = representativeFlags,
+            error = parsed.error,
+        )
+    }
+
+    fun map(error: ChatGPTApiError): DomainError {
+        return when (error) {
+            is ChatGPTApiError.AuthApiError -> DomainError.DisplayMessageToUser.Message("Error talking to AI")
+            is ChatGPTApiError.InternetApiError -> DomainError.DisplayMessageToUser.CheckInternetConnection(error)
+            is ChatGPTApiError.MappingApiError, is ChatGPTApiError.ContentNotFoundError -> DomainError.DisplayMessageToUser.ContactSupport(error)
+            is ChatGPTApiError.GenericApiError -> error.message
+                ?.let { DomainError.DisplayMessageToUser.Message(it, error) }
+                ?: DomainError.DisplayMessageToUser.TryAgain(error)
+        }
+    }
+
+    private fun normalizeRepresentativeOfMealFlags(imageCount: Int, fromModel: List<Boolean>?): List<Boolean?> {
+        if (imageCount <= 0) return emptyList()
+        if (fromModel == null) return List(imageCount) { null }
+        return List(imageCount) { index -> fromModel.getOrNull(index) }
     }
 }

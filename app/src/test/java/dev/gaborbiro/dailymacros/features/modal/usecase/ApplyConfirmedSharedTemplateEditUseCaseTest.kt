@@ -8,6 +8,7 @@ import dev.gaborbiro.dailymacros.features.modal.model.ChangeImagesTarget
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
+import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -76,7 +77,7 @@ class ApplyConfirmedSharedTemplateEditUseCaseTest {
                 name: String?,
                 description: String?,
                 templateImages: List<TemplateImageUpdate>?,
-                nutrients: Pair<dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown, dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors>?,
+                nutrients: Pair<Nutrients, dev.gaborbiro.dailymacros.repositories.common.model.TopContributors>?,
                 notes: String?,
                 mealComponents: List<dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent>?,
             ) {

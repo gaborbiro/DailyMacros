@@ -3,7 +3,7 @@ package dev.gaborbiro.dailymacros.repositories.chatgpt.prompts
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodTitle
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTResponse
@@ -67,7 +67,7 @@ internal fun FoodRecognitionRequest.toApiModel() = ChatGPTRequest(
     )
 )
 
-internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodTitle {
+internal fun ChatGPTResponse.toFoodRecognitionResult(): FoodRecognitionResult {
     val gson = GsonBuilder().create()
 
     val resultJson: String? = this.output
@@ -93,11 +93,11 @@ internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodTitle {
             if (response.error != null) {
                 throw ChatGPTApiError.GenericApiError(response.error)
             }
-            FoodTitle(
+            FoodRecognitionResult(
                 title = response.title.takeIf { it.isNullOrBlank().not() },
             )
         }
-        ?: FoodTitle(
+        ?: FoodRecognitionResult(
             title = null,
         )
 }

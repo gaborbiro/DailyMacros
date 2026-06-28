@@ -1,13 +1,12 @@
 package dev.gaborbiro.dailymacros.features.overview
 
 import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
-import dev.gaborbiro.dailymacros.features.shared.RecordsMapper
 import dev.gaborbiro.dailymacros.features.shared.SharedRecordsUiMapper
 import dev.gaborbiro.dailymacros.features.overview.model.ChangeDirection
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
+import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
@@ -60,7 +59,6 @@ class OverviewUiMapperTest {
     private val mapper = OverviewUiMapper(
         recordsUiMapper = SharedRecordsUiMapper(NutrientsUiMapper()),
         nutrientsUiMapper = NutrientsUiMapper(),
-        recordsMapper = RecordsMapper(),
         settingsRepository = testSettingsRepository,
     )
 
@@ -74,7 +72,7 @@ class OverviewUiMapperTest {
         createdAtEpochMs = 0L,
         updatedAtEpochMs = 0L,
         isPending = false,
-        nutrients = TemplateNutrientBreakdown(calories = 100),
+        nutrients = Nutrients(calories = 100),
         notes = "",
         mealComponents = emptyList(),
         topContributors = TopContributors(),

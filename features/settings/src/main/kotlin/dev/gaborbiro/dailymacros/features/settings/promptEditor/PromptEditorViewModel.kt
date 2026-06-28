@@ -6,7 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.core.featureflags.FeatureFlagStore
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.model.PromptEditorUiState
 import dev.gaborbiro.dailymacros.repositories.chatgpt.ApiKeyValidator
-import dev.gaborbiro.dailymacros.repositories.chatgpt.di.ForImageUploadChatGpt
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ForImageUploadChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
@@ -59,10 +59,10 @@ class PromptEditorViewModel @Inject constructor(
             if (tabVersions[type]!!.isNotEmpty()) 1 else 0
         }
         _uiState.value = PromptEditorUiState(
-            recognitionSegments = chatGPTRepository.getRecognitionPromptSegments(),
-            analysisSegments = chatGPTRepository.getAnalysisPromptSegments(),
-            insightsSegments = chatGPTRepository.getInsightsPromptSegments(),
-            ongoingInsightsSegments = chatGPTRepository.getOngoingInsightsPromptSegments(),
+            recognitionSegments = chatGPTRepository.getDefaultFoodRecognitionPromptSegments(),
+            analysisSegments = chatGPTRepository.getDefaultNutrientAnalysisPromptSegments(),
+            weeklyInsightsSegments = chatGPTRepository.getDefaultWeeklyInsightsPromptSegments(),
+            ongoingWeekInsightsSegments = chatGPTRepository.getDefaultOngoingWeekInsightsPromptSegments(),
             currentValues = customizations,
             originalValues = customizations,
             tabVersions = tabVersions,
@@ -203,8 +203,8 @@ class PromptEditorViewModel @Inject constructor(
         val segments = when (tabType) {
             TAB_RECOGNITION -> state.recognitionSegments
             TAB_ANALYSIS -> state.analysisSegments
-            TAB_INSIGHTS -> state.insightsSegments
-            TAB_ONGOING_INSIGHTS -> state.ongoingInsightsSegments
+            TAB_INSIGHTS -> state.weeklyInsightsSegments
+            TAB_ONGOING_INSIGHTS -> state.ongoingWeekInsightsSegments
             else -> emptyList()
         }
         return segments.filterIsInstance<PromptSegment.Editable>().map { it.id }.toSet()

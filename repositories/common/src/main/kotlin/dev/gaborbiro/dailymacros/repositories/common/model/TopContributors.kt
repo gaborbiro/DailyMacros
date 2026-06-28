@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.repositories.records.domain.model
+package dev.gaborbiro.dailymacros.repositories.common.model
 
 data class TopContributors(
     val topProteinContributors: String? = null,

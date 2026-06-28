@@ -4,9 +4,9 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
+import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
 import kotlinx.coroutines.flow.Flow
 import java.time.ZonedDateTime
 
@@ -65,7 +65,7 @@ interface RecordsRepository {
         description: String? = null,
         /** When non-null, replaces all image rows for the template (order = list order). */
         templateImages: List<TemplateImageUpdate>? = null,
-        nutrients: Pair<TemplateNutrientBreakdown, TopContributors>? = null,
+        nutrients: Pair<Nutrients, TopContributors>? = null,
         notes: String? = null,
         /** When non-null and [nutrients] is non-null, replaces stored analysis components. When null, preserves existing JSON. */
         mealComponents: List<MealComponent>? = null,

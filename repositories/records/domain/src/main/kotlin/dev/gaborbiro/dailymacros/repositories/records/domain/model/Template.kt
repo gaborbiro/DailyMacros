@@ -1,5 +1,8 @@
 package dev.gaborbiro.dailymacros.repositories.records.domain.model
 
+import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
+import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
+
 data class Template(
     val dbId: Long,
     val images: List<String>,
@@ -14,7 +17,7 @@ data class Template(
     /** Epoch ms when the template row was last updated. */
     val updatedAtEpochMs: Long = 0L,
     val isPending: Boolean,
-    val nutrients: TemplateNutrientBreakdown,
+    val nutrients: Nutrients,
     val notes: String,
     /** Parsed from persisted AI analysis; empty if none or legacy data. */
     val mealComponents: List<MealComponent>,
@@ -26,18 +29,3 @@ data class Template(
     }
 }
 
-/**
- * null doesn't mean 0 for that nutrient. It means it's unknown.
- */
-
-data class TemplateNutrientBreakdown(
-    val calories: Int? = null,
-    val protein: Float? = null,
-    val fat: Float? = null,
-    val ofWhichSaturated: Float? = null,
-    val carbs: Float? = null,
-    val ofWhichSugar: Float? = null,
-    val ofWhichAddedSugar: Float? = null,
-    val salt: Float? = null,
-    val fibre: Float? = null,
-)

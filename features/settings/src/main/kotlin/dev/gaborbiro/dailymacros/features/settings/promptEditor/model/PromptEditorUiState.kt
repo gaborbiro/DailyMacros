@@ -6,8 +6,8 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersio
 data class PromptEditorUiState(
     val recognitionSegments: List<PromptSegment> = emptyList(),
     val analysisSegments: List<PromptSegment> = emptyList(),
-    val insightsSegments: List<PromptSegment> = emptyList(),
-    val ongoingInsightsSegments: List<PromptSegment> = emptyList(),
+    val weeklyInsightsSegments: List<PromptSegment> = emptyList(),
+    val ongoingWeekInsightsSegments: List<PromptSegment> = emptyList(),
     val currentValues: Map<String, String> = emptyMap(),
     val originalValues: Map<String, String> = emptyMap(),
     /** Versions per prompt type key (see PromptEditorViewModel.TAB_* constants). */
