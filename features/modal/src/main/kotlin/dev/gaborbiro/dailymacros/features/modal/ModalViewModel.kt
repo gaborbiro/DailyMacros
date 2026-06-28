@@ -16,8 +16,6 @@ import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiState
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
-import dev.gaborbiro.dailymacros.features.modal.model.hasUnsavedEdits
-import dev.gaborbiro.dailymacros.features.modal.model.imagesRequireMacroReanalysis
 import dev.gaborbiro.dailymacros.features.modal.model.recordDetailsEditPristineSnapshot
 import dev.gaborbiro.dailymacros.features.modal.model.toPickerOptions
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyConfirmedSharedTemplateEditUseCase
@@ -173,12 +171,14 @@ class ModalViewModel @Inject constructor(
                 is DialogHandle.RecordDetailsDialog.Edit -> {
                     val updatedImages = root.images + persistedFilenames
                     setRoot(root.copy(images = updatedImages, recognisedFood = null))
+                    recomputeHasUnsavedEdits()
                     runFoodRecognition(updatedImages)
                 }
 
                 is DialogHandle.RecordDetailsDialog.View -> {
                     if (!root.isEditing) return@runSafely
                     setRoot(root.copy(images = root.images + persistedFilenames))
+                    recomputeHasUnsavedEdits()
                 }
 
                 else -> {
@@ -333,6 +333,7 @@ class ModalViewModel @Inject constructor(
                     it.withTitle(title).withTitleValidationError(null)
             }
         }
+        recomputeHasUnsavedEdits()
     }
 
     fun onDescriptionChanged(description: TextFieldValue) {
@@ -346,6 +347,7 @@ class ModalViewModel @Inject constructor(
                     it.withDescription(description)
             }
         }
+        recomputeHasUnsavedEdits()
     }
 
     fun onImageTapped(image: String) {
@@ -385,6 +387,7 @@ class ModalViewModel @Inject constructor(
                 is DialogHandle.RecordDetailsDialog.Edit -> it.copy(images = it.images - image)
             }
         }
+        recomputeHasUnsavedEdits()
     }
 
     fun onImageMoveLeftTapped(image: String) {
@@ -401,6 +404,7 @@ class ModalViewModel @Inject constructor(
                 is DialogHandle.RecordDetailsDialog.Edit -> it.copy(images = newImages)
             }
         }
+        recomputeHasUnsavedEdits()
     }
 
     fun onImageMoveRightTapped(image: String) {
@@ -417,6 +421,7 @@ class ModalViewModel @Inject constructor(
                 is DialogHandle.RecordDetailsDialog.Edit -> it.copy(images = newImages)
             }
         }
+        recomputeHasUnsavedEdits()
     }
 
     fun onAddImageViaCameraTapped() {
@@ -464,7 +469,7 @@ class ModalViewModel @Inject constructor(
             val root = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return@runSafely
             if (root.isEditing) return@runSafely
             if (templateId == root.templateDbId) return@runSafely
-            if (root.hasUnsavedEdits()) {
+            if (root.hasUnsavedEdits) {
                 pushOverlay(
                     DialogHandle.ConfirmSwitchTemplateDialog(pendingTemplateId = templateId),
                 )
@@ -727,7 +732,7 @@ class ModalViewModel @Inject constructor(
         dialogHandle: DialogHandle.RecordDetailsDialog.View,
     ) {
         recordDetailsJob?.cancel()
-        if (!dialogHandle.hasUnsavedEdits()) {
+        if (!dialogHandle.hasUnsavedEdits) {
             closeAll()
             return
         }
@@ -742,7 +747,7 @@ class ModalViewModel @Inject constructor(
         when (result) {
             is EditValidationResult.Valid -> {
                 val pristine = dialogHandle.pristineSnapshot
-                val imagesNeedReanalysis = imagesRequireMacroReanalysis(
+                val imagesNeedReanalysis = modalUiMapper.imagesRequireMacroReanalysis(
                     pristine.images,
                     dialogHandle.images,
                 )
@@ -808,7 +813,7 @@ class ModalViewModel @Inject constructor(
         )
         when (result) {
             is EditValidationResult.Valid -> {
-                if (!dialogHandle.hasUnsavedEdits()) {
+                if (!dialogHandle.hasUnsavedEdits) {
                     val templateId = dialogHandle.templateDbId
                     val secondRecordId = createRecordFromTemplateUseCase.execute(templateId)
                     scheduleMacroAnalysisForRecordIfTemplateIncomplete(secondRecordId, templateId)
@@ -843,7 +848,7 @@ class ModalViewModel @Inject constructor(
         val images = dialogHandle.images
         val anchor = dialogHandle.variabilityAnchorTemplateDbId
 
-        if (!dialogHandle.hasUnsavedEdits()) {
+        if (!dialogHandle.hasUnsavedEdits) {
             val recordId = createRecordFromTemplateUseCase.execute(anchor)
             scheduleMacroAnalysisForRecordIfTemplateIncomplete(recordId, anchor)
             closeAll()
@@ -961,6 +966,15 @@ class ModalViewModel @Inject constructor(
             images = emptyList(),
         ),
     )
+
+    private fun recomputeHasUnsavedEdits() {
+        updateRoot<DialogHandle.RecordDetailsDialog> {
+            when (it) {
+                is DialogHandle.RecordDetailsDialog.View -> it.copy(hasUnsavedEdits = modalUiMapper.hasUnsavedEdits(it))
+                is DialogHandle.RecordDetailsDialog.Edit -> it.copy(hasUnsavedEdits = modalUiMapper.hasUnsavedEdits(it))
+            }
+        }
+    }
 
     private inline fun <reified T : DialogHandle> updateRoot(transform: (T) -> DialogHandle) {
         _uiState.update {

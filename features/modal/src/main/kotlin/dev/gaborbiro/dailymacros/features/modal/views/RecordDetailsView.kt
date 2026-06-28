@@ -72,7 +72,6 @@ import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.MealVariantPickerOption
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.RecordDetailsPristineSnapshot
-import dev.gaborbiro.dailymacros.features.modal.model.hasDisplayableContent
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.shared.views.CompactMacroNutrientsGrid
 
@@ -285,7 +284,7 @@ fun ColumnScope.RecordDetailsView(
             )
         }
 
-        if (!view.showLoadingIndicator && nutrientBreakdown?.hasDisplayableContent() == true) {
+        if (!view.showLoadingIndicator && nutrientBreakdown?.hasDisplayableContent == true) {
             Spacer(
                 modifier = Modifier
                     .height(20.dp)

@@ -17,7 +17,6 @@ import dev.gaborbiro.dailymacros.features.modal.model.MealVariantPickerOption
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.RecognisedFood
 import dev.gaborbiro.dailymacros.features.modal.model.RecordDetailsPristineSnapshot
-import dev.gaborbiro.dailymacros.features.modal.model.hasUnsavedEdits
 import dev.gaborbiro.dailymacros.features.modal.model.recordDetailsEditPristineSnapshot
 import dev.gaborbiro.dailymacros.features.modal.usecase.RecordDetailsDialogPreview
 import dev.gaborbiro.dailymacros.features.modal.usecase.deconstructDialogHandle
@@ -65,7 +64,7 @@ internal fun RecordDetailsDialog(
     var pendingDiscard by remember { mutableStateOf<PendingRecordDetailsDiscard?>(null) }
 
     fun requestDismissRecordDetails() {
-        if (dialogHandle.hasUnsavedEdits()) {
+        if (dialogHandle.hasUnsavedEdits) {
             pendingDiscard = PendingRecordDetailsDiscard.CloseDialog
         } else {
             onDismissRequested()
@@ -124,7 +123,7 @@ internal fun RecordDetailsDialog(
                 }
 
                 is DialogHandle.RecordDetailsDialog.View -> {
-                    val dirty = dialogHandle.hasUnsavedEdits()
+                    val dirty = dialogHandle.hasUnsavedEdits
                     when {
                         showCloseOnly -> {
                             RecordDetailsDialogButtons(
@@ -154,7 +153,7 @@ internal fun RecordDetailsDialog(
                                 onUpdate = onSaveDetailsTapped,
                                 onSaveAndAdd = onSaveAndAddDetailsTapped,
                                 onCancel = {
-                                    if (dialogHandle.hasUnsavedEdits()) {
+                                    if (dialogHandle.hasUnsavedEdits) {
                                         pendingDiscard = PendingRecordDetailsDiscard.ExitEditMode
                                     } else {
                                         onRecordDetailsEditCancelled()

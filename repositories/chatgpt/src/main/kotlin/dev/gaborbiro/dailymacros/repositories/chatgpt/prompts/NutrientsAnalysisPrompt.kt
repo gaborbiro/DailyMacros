@@ -174,8 +174,6 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(imageCount: Int): Nutrie
         }
         ?.text
 
-    val cachedTokens = this.usage.inputTokensDetails.cachedTokens
-
     // temporary helper classes
 
     val response = gson.fromJson(resultJson, NutrientAnalysisResponse::class.java)
@@ -220,7 +218,6 @@ internal fun ChatGPTResponse.toNutrientAnalysisResponse(imageCount: Int): Nutrie
         notes = response.notes.takeIf { it.isNullOrBlank().not() },
         components = structuredComponents,
         isRepresentativeOfMealByImageIndex = representativeFlags,
-        cachedTokens = cachedTokens,
         error = response.error,
     )
 }
@@ -256,4 +253,3 @@ private data class NutrientApiModel(
     @SerializedName("grams") val grams: Number?,
     @SerializedName("topContributorIngredients") val topContributorIngredients: String?,
 )
-

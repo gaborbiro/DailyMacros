@@ -8,8 +8,8 @@ import dev.gaborbiro.dailymacros.features.trends.model.ChartDataPoint
 import dev.gaborbiro.dailymacros.features.trends.model.ChartDataset
 import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsChartUiModel
+import dev.gaborbiro.dailymacros.features.shared.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
@@ -497,7 +497,7 @@ class TrendsUiMapper @Inject constructor(
         )
     }
 
-    private fun calculateAdherence(nutrients: TemplateNutrientBreakdown, targets: Targets): Float {
+    private fun calculateAdherence(nutrients: NutrientBreakdown, targets: Targets): Float {
         val scores = mutableListOf<Float>()
 
         fun score(value: Float?, target: Target): Float? {
@@ -527,7 +527,7 @@ class TrendsUiMapper @Inject constructor(
         return if (scores.isEmpty()) 0f else scores.average().toFloat()
     }
 
-    private fun List<Record>.sumNutrients(): TemplateNutrientBreakdown = TemplateNutrientBreakdown(
+    private fun List<Record>.sumNutrients(): NutrientBreakdown = NutrientBreakdown(
         calories = mapNotNull { it.template.nutrients.calories }.takeIf { it.isNotEmpty() }?.sum(),
         protein = mapNotNull { it.template.nutrients.protein }.takeIf { it.isNotEmpty() }?.sum(),
         fat = mapNotNull { it.template.nutrients.fat }.takeIf { it.isNotEmpty() }?.sum(),

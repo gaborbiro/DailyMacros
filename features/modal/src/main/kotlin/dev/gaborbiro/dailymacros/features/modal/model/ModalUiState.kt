@@ -30,6 +30,7 @@ sealed class DialogHandle {
         open val title: TextFieldValue,
         open val description: TextFieldValue,
         open val images: List<String>,
+        open val hasUnsavedEdits: Boolean = false,
     ) : DialogHandle() {
 
         data class Edit(
@@ -42,6 +43,7 @@ sealed class DialogHandle {
             val showRunAIButton: Boolean = false,
             val recognisedFood: RecognisedFood?,
             val pristineSnapshot: RecordDetailsPristineSnapshot,
+            override val hasUnsavedEdits: Boolean = false,
         ) : RecordDetailsDialog(
             titleHint = titleHint,
             titleValidationError = titleValidationError,
@@ -80,6 +82,7 @@ sealed class DialogHandle {
             val quickPickStarred: Boolean = false,
             val linkedRecordCountForTemplate: Int = 0,
             val pristineSnapshot: RecordDetailsPristineSnapshot,
+            override val hasUnsavedEdits: Boolean = false,
         ) : RecordDetailsDialog(
             titleHint = titleHint,
             titleValidationError = titleValidationError,
@@ -121,20 +124,6 @@ fun recordDetailsEditPristineSnapshot(
     images = images,
 )
 
-/** True when title, description, or images differ from when the dialog was opened. */
-fun DialogHandle.RecordDetailsDialog.hasUnsavedEdits(): Boolean {
-    val p = when (this) {
-        is DialogHandle.RecordDetailsDialog.View -> pristineSnapshot
-        is DialogHandle.RecordDetailsDialog.Edit -> pristineSnapshot
-    }
-    return title.text != p.title ||
-            description.text != p.description ||
-            images != p.images
-}
-
-/** True when photos were added or removed (not merely reordered). */
-fun imagesRequireMacroReanalysis(pristine: List<String>, current: List<String>): Boolean =
-    pristine.toSet() != current.toSet()
 
 data class RecognisedFood(
     val title: String?,
@@ -157,18 +146,5 @@ data class NutrientBreakdownUiModel(
     val fibre: String?,
     val notes: String?,
     val components: List<String> = emptyList(),
+    val hasDisplayableContent: Boolean = false,
 )
-
-/** True when the breakdown has at least one macro line, non-blank AI notes, or components to show. */
-fun NutrientBreakdownUiModel.hasDisplayableContent(): Boolean =
-    sequenceOf(
-        calories,
-        protein,
-        fat,
-        ofWhichSaturated,
-        carbs,
-        ofWhichSugar,
-        ofWhichAddedSugar,
-        salt,
-        fibre,
-    ).any { !it.isNullOrBlank() } || !notes.isNullOrBlank() || components.isNotEmpty()

@@ -1,28 +1,27 @@
 package dev.gaborbiro.dailymacros.features.shared
 
 import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.common.utils.inputStreamToBase64
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientBreakdown
 import dev.gaborbiro.dailymacros.features.shared.notifications.MacroResultsNotificationSender
-import dev.gaborbiro.dailymacros.repositories.chatgpt.BuildConfig
 import dev.gaborbiro.dailymacros.repositories.chatgpt.di.ForImageUploadChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.ChatGPTDomainError
-import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.MealComponent as ChatGPTMealComponent
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.ComponentConfidence
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent as TemplateMealComponent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
-import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import ellipsize
 import java.util.Locale
 import javax.inject.Inject
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.MealComponent as ChatGPTMealComponent
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent as TemplateMealComponent
 
 class NutrientAnalysisUseCase @Inject constructor(
     @ApplicationContext private val appContext: Context,
@@ -98,11 +97,10 @@ class NutrientAnalysisUseCase @Inject constructor(
                     notes = nutrientsAnalysisResult.notes,
                     mealComponents = templateNutrients?.let { nutrientsAnalysisResult.components.toMealComponents() },
                 )
-                val cachedTokensMessage = if (BuildConfig.DEBUG) "Cached tokens: ${nutrientsAnalysisResult.cachedTokens}" else null
                 nutrients
                     ?.let {
                         val macrosStr = macrosNotificationTextMapper.mapMacrosPrintout(nutrients.first)
-                        val message = listOfNotNull(name.ellipsize(50), macrosStr, error, cachedTokensMessage).joinToString("\n").trim()
+                        val message = listOfNotNull(name.ellipsize(50), macrosStr, error).joinToString("\n").trim()
                         message.takeIf { it.isNotBlank() }?.let {
                             macroResultsNotificationSender.showMacroResultsNotification(
                                 id = 123000L + recordId,
@@ -116,7 +114,7 @@ class NutrientAnalysisUseCase @Inject constructor(
                     ?: run {
                         error
                             ?.let {
-                                val message = listOfNotNull(name.ellipsize(50), error, cachedTokensMessage).joinToString("\n").trim()
+                                val message = listOfNotNull(name.ellipsize(50), error).joinToString("\n").trim()
                                 message.takeIf { it.isNotBlank() }?.let {
                                     macroResultsNotificationSender.showMacroResultsNotification(
                                         id = 123000L + recordId,
@@ -132,7 +130,7 @@ class NutrientAnalysisUseCase @Inject constructor(
                                     id = 123000L + recordId,
                                     recordId = recordId,
                                     title = null,
-                                    message = listOfNotNull(name.ellipsize(50), "Something went wrong while fetching macros. Please try again later.", cachedTokensMessage).joinToString("\n"),
+                                    message = listOfNotNull(name.ellipsize(50), "Something went wrong while fetching macros. Please try again later.").joinToString("\n"),
                                     isError = true,
                                 )
                             }

@@ -12,7 +12,6 @@ import androidx.compose.ui.res.stringResource
 import dev.gaborbiro.dailymacros.features.modal.R
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
-import dev.gaborbiro.dailymacros.features.modal.model.hasUnsavedEdits
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.RecognisedFood
 import dev.gaborbiro.dailymacros.features.modal.views.RecordDetailsDialogButtons
@@ -138,7 +137,7 @@ internal fun RecordDetailsDialogPreview(
 
                 is DialogHandle.RecordDetailsDialog.View -> {
                     val showCloseOnlyRow = showCloseOnly
-                    val dirty = dialogHandle.hasUnsavedEdits()
+                    val dirty = dialogHandle.hasUnsavedEdits
                     when {
                         showCloseOnlyRow -> {
                             RecordDetailsDialogButtons(

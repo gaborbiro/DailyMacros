@@ -1,10 +1,14 @@
 package dev.gaborbiro.dailymacros.features.modal.model
 
+import dev.gaborbiro.dailymacros.features.modal.ModalUiMapper
+import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class NutrientBreakdownUiModelTest {
+
+    private val mapper = ModalUiMapper(NutrientsUiMapper())
 
     @Test
     fun `hasDisplayableContent is false when all fields are empty`() {
@@ -20,9 +24,9 @@ class NutrientBreakdownUiModelTest {
             fibre = null,
             notes = null,
         )
-        assertFalse(empty.hasDisplayableContent())
-        assertFalse(empty.copy(notes = "").hasDisplayableContent())
-        assertFalse(empty.copy(calories = "   ").hasDisplayableContent())
+        assertFalse(mapper.hasDisplayableContent(empty))
+        assertFalse(mapper.hasDisplayableContent(empty.copy(notes = "")))
+        assertFalse(mapper.hasDisplayableContent(empty.copy(calories = "   ")))
     }
 
     @Test
@@ -39,7 +43,7 @@ class NutrientBreakdownUiModelTest {
             fibre = null,
             notes = null,
         )
-        assertTrue(empty.copy(notes = "Leftovers").hasDisplayableContent())
-        assertTrue(empty.copy(calories = "Calories: 100 cal").hasDisplayableContent())
+        assertTrue(mapper.hasDisplayableContent(empty.copy(notes = "Leftovers")))
+        assertTrue(mapper.hasDisplayableContent(empty.copy(calories = "Calories: 100 cal")))
     }
 }

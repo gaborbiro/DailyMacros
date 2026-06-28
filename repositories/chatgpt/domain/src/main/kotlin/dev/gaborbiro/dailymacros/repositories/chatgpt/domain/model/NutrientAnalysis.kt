@@ -7,7 +7,6 @@ data class NutrientAnalysis(
     val components: List<MealComponent>,
     /** Per submitted photo index; null if model omitted `representative_of_meal` or that index. */
     val isRepresentativeOfMealByImageIndex: List<Boolean?>,
-    val cachedTokens: Int?,
     val error: String?,
 )
 
