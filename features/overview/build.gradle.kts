@@ -1,15 +1,12 @@
 plugins {
     id("AndroidLibraryConvention")
-    alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt.android)
+    alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
 }
 
 android {
-    namespace = "dev.gaborbiro.dailymacros.features.shared"
-    buildFeatures {
-        compose = true
-    }
+    namespace = "dev.gaborbiro.dailymacros.features.overview"
     testOptions {
         unitTests {
             isReturnDefaultValues = true
@@ -19,32 +16,38 @@ android {
 }
 
 dependencies {
-    implementation(project(":features:common"))
     implementation(project(":core:design"))
-    implementation(project(":core:analytics"))
+    implementation(project(":core:featureFlags"))
+    implementation(project(":features:common"))
+    implementation(project(":features:shared"))
     implementation(project(":data:image"))
-    implementation(project(":repositories:records:domain"))
-    implementation(project(":repositories:chatgpt"))
-    implementation(project(":repositories:chatgpt:domain"))
+    implementation(project(":repositories:records"))
     implementation(project(":repositories:settings:domain"))
 
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.navigation.compose)
+
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.extended)
 
     implementation(libs.dagger.hilt.android)
-    implementation(libs.androidx.hilt.work)
+    implementation(libs.androidx.hilt.navigation.compose)
     ksp(libs.dagger.hilt.compiler)
-    ksp(libs.androidx.hilt.compiler)
 
     implementation(libs.javax.inject)
-    implementation(libs.kotlinx.coroutines.guava)
 
     testImplementation(libs.androidx.appcompat)
     testImplementation(libs.test.junit)
     testImplementation(libs.test.robolectric)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.kotlinx.coroutines.test)
+
+    debugImplementation(libs.androidx.compose.ui.tooling)
 }

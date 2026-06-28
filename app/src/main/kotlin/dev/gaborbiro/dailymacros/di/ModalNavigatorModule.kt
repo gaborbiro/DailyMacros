@@ -4,7 +4,7 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import dev.gaborbiro.dailymacros.features.modal.ModalNavigator
+import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
 import dev.gaborbiro.dailymacros.features.modal.ModalNavigatorImpl
 import javax.inject.Singleton
 

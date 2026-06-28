@@ -1,0 +1,425 @@
+package dev.gaborbiro.dailymacros.features.modal.views
+
+import android.content.res.Configuration
+import android.graphics.Bitmap
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculateCentroidSize
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.zIndex
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChanged
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import dev.gaborbiro.dailymacros.features.modal.R
+import dev.gaborbiro.dailymacros.design.PaddingDefault
+import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
+import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
+import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
+import kotlin.math.abs
+import kotlin.math.roundToInt
+
+@Composable
+fun ImageDialog(
+    dialogHandle: DialogHandle.ViewImageDialog,
+    onDismissRequested: () -> Unit,
+    onImageDownloadTapped: (String) -> Unit,
+    photoExportInProgress: Boolean,
+) {
+    Dialog(
+        onDismissRequest = onDismissRequested,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false
+        )
+    ) {
+        val images = dialogHandle.images
+        if (images.size == 1) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.6f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                LazyZoomableImage(
+                    imageName = images[0],
+                    contentDescription = "Image: ${dialogHandle.title}",
+                )
+
+                CloseButton(onTapped = onDismissRequested)
+                DownloadButton(
+                    onTapped = { onImageDownloadTapped(images[0]) },
+                    enabled = !photoExportInProgress,
+                    isLoading = photoExportInProgress,
+                )
+            }
+        } else {
+            val pagerState = rememberPagerState(
+                initialPage = dialogHandle.initialPage,
+                pageCount = { images.size },
+            )
+            var currentPageZoomed by remember { mutableStateOf(false) }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.6f)),
+            ) {
+                HorizontalPager(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    state = pagerState,
+                    beyondViewportPageCount = 1,
+                    userScrollEnabled = !currentPageZoomed,
+                ) { page ->
+                    LazyZoomableImage(
+                        imageName = images[page],
+                        contentDescription = "Image ${page + 1} of ${images.size}: ${dialogHandle.title}",
+                        onZoomChanged = { scale ->
+                            if (page == pagerState.currentPage) {
+                                currentPageZoomed = scale > 1f
+                            }
+                        },
+                    )
+                }
+
+                CloseButton(onTapped = onDismissRequested)
+                DownloadButton(
+                    onTapped = { onImageDownloadTapped(images[pagerState.currentPage]) },
+                    enabled = !photoExportInProgress,
+                    isLoading = photoExportInProgress,
+                )
+
+                PagerIndicator(
+                    pagerState = pagerState,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 24.dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PagerIndicator(
+    pagerState: PagerState,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        repeat(pagerState.pageCount) { index ->
+            val isSelected = pagerState.currentPage == index
+            Box(
+                modifier = Modifier
+                    .size(if (isSelected) 10.dp else 8.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (isSelected) Color.White
+                        else Color.White.copy(alpha = 0.4f)
+                    )
+            )
+        }
+    }
+}
+
+@Composable
+private fun BoxScope.CloseButton(onTapped: () -> Unit) {
+    IconButton(
+        modifier = Modifier
+            .align(Alignment.TopEnd)
+            .zIndex(1f)
+            .padding(horizontal = PaddingDefault),
+        onClick = onTapped,
+    ) {
+        Icon(
+            modifier = Modifier
+                .size(64.dp),
+            imageVector = Icons.Default.Close,
+            tint = Color.White,
+            contentDescription = "Close",
+        )
+    }
+}
+
+@Composable
+private fun BoxScope.DownloadButton(
+    onTapped: () -> Unit,
+    enabled: Boolean,
+    isLoading: Boolean,
+) {
+    FilledIconButton(
+        onClick = onTapped,
+        enabled = enabled && !isLoading,
+        modifier = Modifier
+            .align(Alignment.BottomStart)
+            .zIndex(1f)
+            .padding(horizontal = PaddingDefault, vertical = PaddingDefault)
+            .size(56.dp),
+        colors = IconButtonDefaults.filledIconButtonColors(
+            containerColor = Color.White.copy(alpha = 0.24f),
+            contentColor = Color.White,
+            disabledContainerColor = Color.White.copy(alpha = 0.14f),
+            disabledContentColor = Color.White.copy(alpha = 0.5f),
+        ),
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(28.dp),
+                color = Color.White,
+                strokeWidth = 2.dp,
+            )
+        } else {
+            Icon(
+                modifier = Modifier.size(28.dp),
+                imageVector = Icons.Outlined.Download,
+                contentDescription = stringResource(R.string.meal_details_photo_download_cd),
+            )
+        }
+    }
+}
+
+@Composable
+private fun LazyZoomableImage(
+    imageName: String,
+    contentDescription: String,
+    onZoomChanged: (Float) -> Unit = {},
+) {
+    val store = LocalImageStore.current
+    val bitmap by produceState<Bitmap?>(initialValue = null, key1 = imageName) {
+        value = try {
+            store.read(imageName, thumbnail = false)
+        } catch (_: Throwable) {
+            null
+        }
+    }
+    val imageBitmap = remember(bitmap) { bitmap?.asImageBitmap() }
+
+    if (imageBitmap != null) {
+        ZoomableImage(
+            bitmap = imageBitmap,
+            contentDescription = contentDescription,
+            onZoomChanged = onZoomChanged,
+        )
+    } else {
+        Surface(
+            modifier = Modifier
+                .padding(PaddingDefault),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(200.dp)
+                    .background(Color.Black.copy(alpha = 0.05f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ZoomableImage(
+    bitmap: ImageBitmap,
+    contentDescription: String,
+    onZoomChanged: (Float) -> Unit = {},
+) {
+    var scale by remember { mutableFloatStateOf(1f) }
+    var offset by remember { mutableStateOf(Offset.Zero) }
+    var containerSize by remember { mutableStateOf(IntSize.Zero) }
+
+    val imageSize = remember(bitmap) {
+        IntSize(bitmap.width, bitmap.height)
+    }
+
+    fun applyGesture(zoomChange: Float, panChange: Offset) {
+        val newScale = (scale * zoomChange).coerceIn(1f, 5f)
+
+        val fitted = fittedImageSize(imageSize, containerSize)
+        val scaledWidth = fitted.width * newScale
+        val scaledHeight = fitted.height * newScale
+        val maxX = ((scaledWidth - containerSize.width) / 2f).coerceAtLeast(0f)
+        val maxY = ((scaledHeight - containerSize.height) / 2f).coerceAtLeast(0f)
+        val adjustedPan = panChange * newScale
+
+        val newOffset =
+            if (maxX == 0f && maxY == 0f) {
+                Offset.Zero
+            } else {
+                Offset(
+                    x = (offset.x + adjustedPan.x).coerceIn(-maxX, maxX),
+                    y = (offset.y + adjustedPan.y).coerceIn(-maxY, maxY),
+                )
+            }
+
+        scale = newScale
+        offset = if (newScale <= 1f) Offset.Zero else newOffset
+        onZoomChanged(newScale)
+    }
+
+    Surface(
+        modifier = Modifier
+            .padding(PaddingDefault)
+            .clip(RoundedCornerShape(4.dp))
+            .onSizeChanged { containerSize = it },
+    ) {
+        Image(
+            bitmap = bitmap,
+            contentDescription = contentDescription,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                    translationX = offset.x
+                    translationY = offset.y
+                }
+                .pointerInput(Unit) {
+                    awaitEachGesture {
+                        var zoom = 1f
+                        var pan = Offset.Zero
+                        var pastTouchSlop = false
+                        val touchSlop = viewConfiguration.touchSlop
+
+                        awaitFirstDown(requireUnconsumed = false)
+                        do {
+                            val event = awaitPointerEvent()
+                            val canceled = event.changes.any { it.isConsumed }
+                            if (!canceled) {
+                                val zoomChange = event.calculateZoom()
+                                val panChange = event.calculatePan()
+
+                                if (!pastTouchSlop) {
+                                    zoom *= zoomChange
+                                    pan += panChange
+                                    val centroidSize =
+                                        event.calculateCentroidSize(useCurrent = false)
+                                    val zoomMotion = abs(1 - zoom) * centroidSize
+                                    val panMotion = pan.getDistance()
+
+                                    if (zoomMotion > touchSlop || (scale > 1f && panMotion > touchSlop)) {
+                                        pastTouchSlop = true
+                                    }
+                                }
+
+                                if (pastTouchSlop) {
+                                    val effectivePan =
+                                        if (scale > 1f) panChange else Offset.Zero
+                                    if (zoomChange != 1f || effectivePan != Offset.Zero) {
+                                        applyGesture(zoomChange, effectivePan)
+                                        event.changes.forEach {
+                                            if (it.positionChanged()) {
+                                                it.consume()
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        } while (!canceled && event.changes.any { it.pressed })
+                    }
+                }
+        )
+    }
+}
+
+private fun fittedImageSize(
+    image: IntSize,
+    container: IntSize,
+): IntSize {
+    val imageRatio = image.width.toFloat() / image.height
+    val containerRatio = container.width.toFloat() / container.height
+
+    return if (imageRatio > containerRatio) {
+        IntSize(
+            width = container.width,
+            height = (container.width / imageRatio).roundToInt()
+        )
+    } else {
+        IntSize(
+            width = (container.height * imageRatio).roundToInt(),
+            height = container.height
+        )
+    }
+}
+
+@Preview
+@Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+private fun ViewImageDialogPreview() {
+    PreviewContext {
+        ImageDialog(
+            dialogHandle = DialogHandle.ViewImageDialog(
+                title = "",
+                images = listOf("1"),
+            ),
+            onDismissRequested = {},
+            onImageDownloadTapped = {},
+            photoExportInProgress = false,
+        )
+    }
+}
+
+@Preview
+@Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+private fun ViewImageDialogPreviewMulti() {
+    PreviewContext {
+        ImageDialog(
+            dialogHandle = DialogHandle.ViewImageDialog(
+                title = "",
+                images = listOf("1", "2", "3", "4"),
+            ),
+            onDismissRequested = {},
+            onImageDownloadTapped = {},
+            photoExportInProgress = false,
+        )
+    }
+}

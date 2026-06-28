@@ -109,6 +109,8 @@ dependencies {
     implementation(project(":core:analytics"))
     implementation(project(":core:design"))
     implementation(project(":core:featureFlags"))
+    implementation(project(":features:modal"))
+    implementation(project(":features:overview"))
     implementation(project(":features:common"))
     implementation(project(":features:shared"))
     implementation(project(":features:settings"))

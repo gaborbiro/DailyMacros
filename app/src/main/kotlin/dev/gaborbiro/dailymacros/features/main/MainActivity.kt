@@ -35,7 +35,7 @@ import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
-import dev.gaborbiro.dailymacros.features.modal.ModalNavigator
+import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
@@ -44,6 +44,10 @@ import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorView
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsViewModel
 import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
 import dev.gaborbiro.dailymacros.features.trends.TrendsViewModel
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
+import android.widget.Toast
+import dev.gaborbiro.dailymacros.features.widgets.diary.DiaryWidgetReceiver
 import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusRepository
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -98,6 +102,15 @@ class MainActivity : ComponentActivity() {
                                 viewModel = overviewViewModel,
                                 modalNavigator = modalNavigator,
                                 navController = navController,
+                                onAddWidget = {
+                                    val mgr = AppWidgetManager.getInstance(this@MainActivity)
+                                    val provider = ComponentName(this@MainActivity, DiaryWidgetReceiver::class.java)
+                                    if (mgr.isRequestPinAppWidgetSupported) {
+                                        mgr.requestPinAppWidget(provider, null, null)
+                                    } else {
+                                        Toast.makeText(this@MainActivity, "Pinning widgets is not supported on this launcher", Toast.LENGTH_SHORT).show()
+                                    }
+                                },
                             )
                         }
                     }

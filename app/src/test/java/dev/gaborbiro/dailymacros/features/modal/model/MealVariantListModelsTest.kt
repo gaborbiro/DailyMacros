@@ -1,5 +1,7 @@
 package dev.gaborbiro.dailymacros.features.modal.model
 
+import dev.gaborbiro.dailymacros.features.shared.MealVariantListResult
+import dev.gaborbiro.dailymacros.features.shared.MealVariantListRow
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.ZoneId

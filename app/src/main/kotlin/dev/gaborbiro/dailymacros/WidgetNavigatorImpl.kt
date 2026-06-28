@@ -13,7 +13,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import dev.gaborbiro.dailymacros.features.main.MainActivity
-import dev.gaborbiro.dailymacros.features.modal.ModalNavigator
+import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
 import dev.gaborbiro.dailymacros.features.widgets.diary.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.features.widgets.WidgetNavigator
 import javax.inject.Inject

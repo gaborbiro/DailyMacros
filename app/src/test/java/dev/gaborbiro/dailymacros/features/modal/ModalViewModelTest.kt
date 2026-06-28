@@ -18,7 +18,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.ExportImageToGalleryUseC
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.ListMealVariantsForTemplateUseCase
+import dev.gaborbiro.dailymacros.features.shared.ListMealVariantsForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ModalRecordFixtures
 import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveFirstRecordIdForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase

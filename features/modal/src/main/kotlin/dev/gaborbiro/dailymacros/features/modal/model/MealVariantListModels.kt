@@ -1,0 +1,52 @@
+package dev.gaborbiro.dailymacros.features.modal.model
+
+import dev.gaborbiro.dailymacros.features.shared.MealVariantListResult
+import dev.gaborbiro.dailymacros.features.shared.MealVariantListRow
+import dev.gaborbiro.dailymacros.features.shared.diaryDayStartTime
+import dev.gaborbiro.dailymacros.features.shared.logicalDiaryDate
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+
+/** Date only (no time of day), aligned with food diary day headings. */
+fun formatMealVariantPickerDateOnly(time: ZonedDateTime, diaryDayStartHour: Int): String {
+    val dayStart = diaryDayStartTime(diaryDayStartHour)
+    return time.logicalDiaryDate(dayStart).format(DateTimeFormatter.ofPattern("E, dd MMM"))
+}
+
+data class MealVariantPickerOption(
+    val templateId: Long,
+    val title: String,
+    val lastUsedDateLabel: String,
+    val isCurrentVariant: Boolean,
+    val componentsSubtitle: String = "",
+)
+
+/** Baseline for detecting unsaved edits in record details (title, description, images). */
+data class RecordDetailsPristineSnapshot(
+    val templateDbId: Long,
+    val title: String,
+    val description: String,
+    val images: List<String>,
+)
+
+fun MealVariantListResult.toPickerOptions(diaryDayStartHour: Int): List<MealVariantPickerOption> {
+    val zone = current.lastUsed?.zone
+        ?: others.firstOrNull()?.lastUsed?.zone
+        ?: ZonedDateTime.now().zone
+    val epochStart = ZonedDateTime.of(1970, 1, 1, 0, 0, 0, 0, zone)
+    fun opt(row: MealVariantListRow): MealVariantPickerOption {
+        val dateLabel = row.lastUsed?.let { formatMealVariantPickerDateOnly(it, diaryDayStartHour) } ?: ""
+        return MealVariantPickerOption(
+            templateId = row.templateId,
+            title = row.title,
+            lastUsedDateLabel = dateLabel,
+            isCurrentVariant = row.isCurrent,
+            componentsSubtitle = row.componentNames.joinToString(", "),
+        )
+    }
+    val merged = (listOf(current) + others).sortedWith(
+        compareByDescending<MealVariantListRow> { it.lastUsed ?: epochStart }
+            .thenBy { it.title },
+    )
+    return merged.map { opt(it) }
+}
