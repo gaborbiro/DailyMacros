@@ -21,7 +21,7 @@ dependencies {
     implementation(project(":features:common"))
     implementation(project(":features:shared"))
     implementation(project(":data:image"))
-    implementation(project(":repositories:records"))
+    implementation(project(":repositories:records:domain"))
     implementation(project(":repositories:settings:domain"))
 
     implementation(libs.androidx.core.ktx)
