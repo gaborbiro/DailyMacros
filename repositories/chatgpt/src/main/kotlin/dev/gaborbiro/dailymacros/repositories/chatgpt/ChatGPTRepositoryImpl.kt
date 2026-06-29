@@ -92,7 +92,7 @@ internal class ChatGPTRepositoryImpl(
         return mappingApiErrors {
             runCatching(logTag = "getWeeklyInsights") {
                 val response = service.callResponses(request = request.toApiModel())
-                return@runCatching WeeklyInsightsResult(parse(response).toWeeklyInsightsResponse())
+                return@runCatching parse(response).toWeeklyInsightsResponse()
             }
         }
     }

@@ -33,12 +33,14 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.text.DateFormat
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.time.temporal.WeekFields
+import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 
@@ -67,11 +69,24 @@ class TrendsViewModel @Inject constructor(
         recordsJob = observeRecords(Timescale.DAYS)
         val savedInsights = preferences.weeklyInsights
         if (savedInsights.isNotEmpty()) {
-            _uiState.update { it.copy(weeklyInsights = savedInsights, weeklyInsightsDateRange = preferences.weeklyInsightsDateRange) }
+            _uiState.update {
+                it.copy(
+                    weeklyInsights = savedInsights,
+                    weeklyInsightsDateRange = preferences.weeklyInsightsDateRange,
+                    weeklyInsightsFetchedAtLabel = preferences.weeklyInsightsFetchedAt?.let(::formatFetchedAt),
+                    weeklyInsightsWeekAssessment = preferences.weeklyInsightsWeekAssessment,
+                )
+            }
         }
         val savedOngoingInsights = preferences.ongoingWeekInsights
         if (savedOngoingInsights.isNullOrEmpty().not()) {
-            _uiState.update { it.copy(ongoingWeekInsights = savedOngoingInsights, ongoingWeekInsightsDateRange = preferences.ongoingInsightsDateRange) }
+            _uiState.update {
+                it.copy(
+                    ongoingWeekInsights = savedOngoingInsights,
+                    ongoingWeekInsightsDateRange = preferences.ongoingInsightsDateRange,
+                    ongoingInsightsFetchedAtLabel = preferences.ongoingInsightsFetchedAt?.let(::formatFetchedAt),
+                )
+            }
         }
     }
 
@@ -154,9 +169,20 @@ class TrendsViewModel @Inject constructor(
                 )
                 val versionLabel = resolvePromptVersionLabel(TAB_INSIGHTS, chatGPTRepository.getDefaultWeeklyInsightsPromptSegments(), customizations)
                 val rangeLabel = "${formatWeekRange(lastCompleteWeekStart)} vs ${formatWeekRange(prevWeekStart)} · prompt version: $versionLabel"
+                val fetchedAt = System.currentTimeMillis()
                 preferences.weeklyInsights = result.insights
                 preferences.weeklyInsightsDateRange = rangeLabel
-                _uiState.update { it.copy(weeklyInsights = result.insights, weeklyInsightsDateRange = rangeLabel, weeklyInsightsLoading = false) }
+                preferences.weeklyInsightsFetchedAt = fetchedAt
+                preferences.weeklyInsightsWeekAssessment = result.weekAssessment
+                _uiState.update {
+                    it.copy(
+                        weeklyInsights = result.insights,
+                        weeklyInsightsDateRange = rangeLabel,
+                        weeklyInsightsFetchedAtLabel = formatFetchedAt(fetchedAt),
+                        weeklyInsightsWeekAssessment = result.weekAssessment,
+                        weeklyInsightsLoading = false,
+                    )
+                }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
@@ -191,9 +217,18 @@ class TrendsViewModel @Inject constructor(
                 )
                 val versionLabel = resolvePromptVersionLabel(TAB_ONGOING_INSIGHTS, chatGPTRepository.getDefaultOngoingWeekInsightsPromptSegments(), customizations)
                 val rangeLabel = "${formatPartialWeekRange(thisWeekStart, today)} · prompt version: $versionLabel"
+                val fetchedAt = System.currentTimeMillis()
                 preferences.ongoingWeekInsights = result.message
                 preferences.ongoingInsightsDateRange = rangeLabel
-                _uiState.update { it.copy(ongoingWeekInsights = result.message, ongoingWeekInsightsDateRange = rangeLabel, ongoingWeekInsightsLoading = false) }
+                preferences.ongoingInsightsFetchedAt = fetchedAt
+                _uiState.update {
+                    it.copy(
+                        ongoingWeekInsights = result.message,
+                        ongoingWeekInsightsDateRange = rangeLabel,
+                        ongoingInsightsFetchedAtLabel = formatFetchedAt(fetchedAt),
+                        ongoingWeekInsightsLoading = false,
+                    )
+                }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
@@ -315,6 +350,13 @@ class TrendsViewModel @Inject constructor(
             sb.appendLine("DAILY TARGETS: ${targetParts.joinToString(", ")}")
             sb.appendLine()
         }
+    }
+
+    private fun formatFetchedAt(epochMs: Long): String {
+        val date = Date(epochMs)
+        val datePart = DateFormat.getDateInstance(DateFormat.SHORT).format(date)
+        val timePart = DateFormat.getTimeInstance(DateFormat.SHORT).format(date)
+        return "$datePart $timePart"
     }
 
     private fun formatWeekRange(weekStart: LocalDate): String {

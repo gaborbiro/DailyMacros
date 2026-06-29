@@ -193,6 +193,13 @@ internal fun TrendsView(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
+                        viewState.ongoingInsightsFetchedAtLabel?.let {
+                            Text(
+                                text = "fetched $it",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
                     OutlinedButton(
                         onClick = onGetOngoingInsightsTapped,
@@ -248,6 +255,13 @@ internal fun TrendsView(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
+                        viewState.weeklyInsightsFetchedAtLabel?.let {
+                            Text(
+                                text = "fetched $it",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
                     OutlinedButton(
                         onClick = onGetInsightsTapped,
@@ -270,6 +284,15 @@ internal fun TrendsView(
                         modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+
+                viewState.weeklyInsightsWeekAssessment?.let {
+                    Text(
+                        text = it,
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -295,7 +318,7 @@ internal fun TrendsView(
                             scrollState = scrollState,
                             showEveryXLabel = showEveryXLabel,
                         )
-                        if (timescale == Timescale.WEEKS) {
+                        if (timescale == Timescale.WEEKS && viewState.aiInsightsEnabled) {
                             viewState.weeklyInsights[chartData.title]?.let { insight ->
                                 Text(
                                     text = insight,

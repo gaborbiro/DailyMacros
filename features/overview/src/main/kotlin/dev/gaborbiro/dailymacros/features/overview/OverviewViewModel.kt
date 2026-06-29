@@ -172,17 +172,11 @@ class OverviewViewModel @Inject constructor(
     }
 
     fun onAnalyseMacrosMenuItemTapped(recordId: Long) {
-        viewModelScope.launch {
-            NutrientAnalysisWorker.cancelWorkRequest(
-                appContext = application,
-                recordId = recordId,
-            )
-            NutrientAnalysisWorker.setWorkRequest(
-                appContext = application,
-                recordId = recordId,
-                force = true,
-            )
-        }
+        NutrientAnalysisWorker.setWorkRequest(
+            appContext = application,
+            recordId = recordId,
+            force = true,
+        )
     }
 
     fun onDeleteMenuItemTapped(recordId: Long) {

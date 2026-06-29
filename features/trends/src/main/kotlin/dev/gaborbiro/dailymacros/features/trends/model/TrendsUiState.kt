@@ -15,6 +15,9 @@ data class TrendsUiState(
     val ongoingWeekInsightsLoading: Boolean = false,
     val ongoingWeekInsightsError: String? = null,
     val aiInsightsEnabled: Boolean = false,
+    val weeklyInsightsFetchedAtLabel: String? = null,
+    val ongoingInsightsFetchedAtLabel: String? = null,
+    val weeklyInsightsWeekAssessment: String? = null,
 )
 
 enum class Timescale { DAYS, WEEKS, MONTHS }

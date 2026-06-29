@@ -20,6 +20,12 @@ interface TrendsPreferences {
 
     var ongoingInsightsDateRange: String?
 
+    var weeklyInsightsWeekAssessment: String?
+
+    var weeklyInsightsFetchedAt: Long?
+
+    var ongoingInsightsFetchedAt: Long?
+
     companion object {
         const val MODE_ALL_CALENDAR_DAYS = "aggregation_mode_calendar_days"
         const val MODE_ONLY_LOGGED_DAYS = "aggregation_mode_logged_days"
@@ -68,6 +74,24 @@ class TrendsPreferencesImpl @Inject constructor(
             if (value != null) putString(KEY_ONGOING_WEEK_INSIGHTS_DATE_RANGE, value) else remove(KEY_ONGOING_WEEK_INSIGHTS_DATE_RANGE)
         }
 
+    override var weeklyInsightsWeekAssessment: String?
+        get() = prefs.getString(KEY_WEEKLY_INSIGHTS_WEEK_ASSESSMENT, null)
+        set(value) = prefs.edit {
+            if (value != null) putString(KEY_WEEKLY_INSIGHTS_WEEK_ASSESSMENT, value) else remove(KEY_WEEKLY_INSIGHTS_WEEK_ASSESSMENT)
+        }
+
+    override var weeklyInsightsFetchedAt: Long?
+        get() = prefs.getLong(KEY_WEEKLY_INSIGHTS_FETCHED_AT, -1L).takeIf { it >= 0 }
+        set(value) = prefs.edit {
+            if (value != null) putLong(KEY_WEEKLY_INSIGHTS_FETCHED_AT, value) else remove(KEY_WEEKLY_INSIGHTS_FETCHED_AT)
+        }
+
+    override var ongoingInsightsFetchedAt: Long?
+        get() = prefs.getLong(KEY_ONGOING_INSIGHTS_FETCHED_AT, -1L).takeIf { it >= 0 }
+        set(value) = prefs.edit {
+            if (value != null) putLong(KEY_ONGOING_INSIGHTS_FETCHED_AT, value) else remove(KEY_ONGOING_INSIGHTS_FETCHED_AT)
+        }
+
     private companion object {
         const val KEY_DAY_QUALIFICATION_MODE = "aggregation_mode"
         const val KEY_QUALIFYING_CALORIE_THRESHOLD = "qualified_aggregation_threshold"
@@ -75,6 +99,9 @@ class TrendsPreferencesImpl @Inject constructor(
         const val KEY_WEEKLY_INSIGHTS_DATE_RANGE = "weekly_insights_date_range"
         const val KEY_ONGOING_WEEK_INSIGHTS = "ongoing_week_insights"
         const val KEY_ONGOING_WEEK_INSIGHTS_DATE_RANGE = "ongoing_week_insights_date_range"
+        const val KEY_WEEKLY_INSIGHTS_WEEK_ASSESSMENT = "weekly_insights_week_assessment"
+        const val KEY_WEEKLY_INSIGHTS_FETCHED_AT = "weekly_insights_fetched_at"
+        const val KEY_ONGOING_INSIGHTS_FETCHED_AT = "ongoing_insights_fetched_at"
         const val DEFAULT_QUALIFYING_THRESHOLD = 800L
     }
 }

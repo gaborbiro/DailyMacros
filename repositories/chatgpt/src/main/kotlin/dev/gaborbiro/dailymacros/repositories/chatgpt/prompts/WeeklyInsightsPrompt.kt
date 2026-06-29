@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.repositories.chatgpt.prompts
 
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsRequest
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTResponse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ContentEntry
@@ -25,8 +26,9 @@ GUIDELINES:
 
 OUTPUT RULES:
 - Return a JSON object where each key is the nutrient name (Calories, Protein, Carbs, Fat, Salt, Fibre) and each value is the insight for that nutrient; each value must start with 👀 or 👏
-- Only include keys for nutrients that have something notable to say
-- Each value: 1–3 sentences, backed by a specific food example from the diary
+- Only include nutrient keys for nutrients that have something notable to say
+- Each nutrient value: 1–3 sentences, backed by a specific food example from the diary
+- Always include a "week_assessment" key: a focused assessment of the most recent week only (the first week in the diary), from the perspective of the user's personal health goal stated in the user message; evaluate the nutrients most relevant to that goal, call out specific foods that helped or hurt, and state whether the week was broadly positive or concerning; 2–4 sentences; no emoji
 
 LANGUAGE RULES:
 - All output (title or error message) MUST be in {phone_language}.
@@ -35,8 +37,9 @@ LANGUAGE RULES:
 """.trimIndent()
 
 internal val DEFAULT_WEEKLY_INSIGHTS_USER = """
-TASK: WEEK-ON-WEEK INSIGHTS 
+TASK: WEEK-ON-WEEK INSIGHTS
 What changed week-over-week, what drove it, and what needs my attention?
+My personal health goal: cholesterol control.
 """.trimIndent()
 
 internal fun WeeklyInsightsRequest.toApiModel() = ChatGPTRequest(
@@ -68,11 +71,17 @@ internal fun WeeklyInsightsRequest.toApiModel() = ChatGPTRequest(
     )
 )
 
-internal fun ChatGPTResponse.toWeeklyInsightsResponse(): Map<String, String> {
+private const val KEY_WEEK_ASSESSMENT = "week_assessment"
+
+internal fun ChatGPTResponse.toWeeklyInsightsResponse(): WeeklyInsightsResult {
     return try {
         val obj = org.json.JSONObject(this.resultJson())
-        obj.keys().asSequence().associateWith { obj.getString(it) }
+        val weekAssessment = if (obj.has(KEY_WEEK_ASSESSMENT)) obj.getString(KEY_WEEK_ASSESSMENT) else null
+        val insights = obj.keys().asSequence()
+            .filter { it != KEY_WEEK_ASSESSMENT }
+            .associateWith { obj.getString(it) }
+        WeeklyInsightsResult(insights = insights, weekAssessment = weekAssessment)
     } catch (_: Exception) {
-        emptyMap()
+        WeeklyInsightsResult(insights = emptyMap())
     }
 }

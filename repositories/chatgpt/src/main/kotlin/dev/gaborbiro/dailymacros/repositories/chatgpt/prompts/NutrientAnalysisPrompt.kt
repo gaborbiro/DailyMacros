@@ -37,6 +37,7 @@ ACCURACY RULES:
    - You MUST estimate the missing values using typical nutritional knowledge
    - Missing values must NEVER default to 0 unless the packaging explicitly states 0
    - Clearly indicate in "notes" which values were taken from packaging and which were estimated.
+5. If the photo shows a partially eaten meal (few slices of pizza, two slices of PB&J but one is half eaten, half empty beer glass, etc...), estimate the full meal instead and make a mention it in the notes. 
 
 OUTPUT RULES:
 Use this JSON format:
