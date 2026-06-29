@@ -100,7 +100,7 @@ class ModalViewModelTest {
     }
 
     private class VmFakeChatGpt : ChatGPTRepository {
-        override suspend fun recogniseFood(request: FoodRecognitionRequest) = FoodRecognitionResult(title = "X")
+        override suspend fun recogniseFood(request: FoodRecognitionRequest) = FoodRecognitionResult(title = "X", error = null)
 
         override suspend fun analyseNutrients(request: NutrientAnalysisRequest): NutrientAnalysisResult =
             error("unused")
@@ -184,7 +184,7 @@ class ModalViewModelTest {
                 appContext = app,
             ),
             analyticsLogger = AnalyticsLogger(),
-            errorUiMapper = ErrorUiMapper(),
+            errorUiMapper = ErrorUiMapper(testSettingsRepository),
         ).also { activeViewModels.add(it) }
     }
 

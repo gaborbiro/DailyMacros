@@ -64,7 +64,9 @@ internal class ChatGPTMapper @Inject constructor() {
     fun map(error: ChatGPTApiError): DomainError {
         return when (error) {
             is ChatGPTApiError.InternetError -> DomainError.DisplayMessageToUser.CheckInternetConnection(error)
+            is ChatGPTApiError.ServerErrorResponse -> DomainError.DisplayMessageToUser.TechnicalMessage(errorMessage = error.errorMessage, error) // for power users
             is ChatGPTApiError.GenericError, is ChatGPTApiError.MappingError -> DomainError.DisplayMessageToUser.OperationFailed(analyticsMessage = error.analyticsMessage, error)
+            // we do not at the moment have any critical ForcedErrorMessage (which would be shown even to non-power-users)
         }
     }
 

@@ -332,6 +332,7 @@ private fun NoteInputDialogContentPreviewSuggestion() {
             images = listOf("1", "2"),
             recognisedFood = RecognisedFood(
                 title = "This is a title suggestion",
+                warning = null,
             ),
             pristineSnapshot = recordDetailsEditPristineSnapshot(
                 title = TextFieldValue(),
@@ -376,6 +377,7 @@ private fun NoteInputDialogContentPreviewError() {
             images = listOf("1", "2"),
             recognisedFood = RecognisedFood(
                 title = "This is a title suggestion",
+                warning = null,
             ),
             pristineSnapshot = recordDetailsEditPristineSnapshot(
                 title = TextFieldValue(),

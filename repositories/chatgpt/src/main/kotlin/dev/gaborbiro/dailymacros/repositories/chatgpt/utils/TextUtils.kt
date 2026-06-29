@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.repositories.chatgpt
+package dev.gaborbiro.dailymacros.repositories.chatgpt.utils
 
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
 

@@ -10,6 +10,11 @@ sealed class ChatGPTApiError(
         override val cause: Throwable? = null,
     ) : ChatGPTApiError(analyticsMessage, cause)
 
+    data class ServerErrorResponse(
+        val errorMessage: String,
+        override val cause: Throwable? = null,
+    ) : ChatGPTApiError(analyticsMessage = errorMessage, cause)
+
     data class InternetError(override val cause: Throwable? = null) :
         ChatGPTApiError(analyticsMessage = null, cause = cause)
 

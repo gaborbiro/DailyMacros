@@ -49,8 +49,8 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toOngoingInsightsR
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toWeeklyInsightsResponse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.ChatGPTService
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
-import dev.gaborbiro.dailymacros.repositories.chatgpt.util.parse
-import dev.gaborbiro.dailymacros.repositories.chatgpt.util.runCatching
+import dev.gaborbiro.dailymacros.repositories.chatgpt.utils.parse
+import dev.gaborbiro.dailymacros.repositories.chatgpt.utils.runCatching
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient

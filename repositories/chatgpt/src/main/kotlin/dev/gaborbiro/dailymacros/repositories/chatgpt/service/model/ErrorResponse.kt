@@ -11,3 +11,7 @@ internal data class ChatGPTError(
     @SerializedName("type") val type: String,
     @SerializedName("code") val code: String,
 )
+
+internal data class ErrorResponseBody2(
+    val message: String?,
+)

@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.repositories.chatgpt.util
+package dev.gaborbiro.dailymacros.repositories.chatgpt.utils
 
 import com.google.gson.Gson
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
@@ -107,7 +107,7 @@ private fun <T> ErrorHandlingContext.handleUnsuccessful(
             body.message to null
         }.getOrDefault(null to null)
     }.getOrDefault(null to null)
-    val finalType = type ?: "unknown type"
+    val finalType = type ?: "unknown error type"
     val finalMessage = analyticsMessage ?: "no error message"
-    throw ChatGPTApiError.GenericError(analyticsMessage = "$finalType - $finalMessage")
+    throw ChatGPTApiError.ServerErrorResponse(errorMessage = "$finalType - $finalMessage")
 }

@@ -1,43 +1,97 @@
 package dev.gaborbiro.dailymacros.features.shared
 
 import dev.gaborbiro.dailymacros.repositories.common.model.DomainError
+import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ErrorUiMapperTest {
 
-    private val mapper = ErrorUiMapper()
+    private val mapperWithApiKey = ErrorUiMapper(fakeSettings(apiKey = "sk-test"))
+    private val mapperWithoutApiKey = ErrorUiMapper(fakeSettings(apiKey = null))
 
     @Test
-    fun `mapErrorMessage check internet`() {
+    fun `mapErrorMessage check internet connection`() {
+        val result = mapperWithoutApiKey.mapErrorMessage(
+            DomainError.DisplayMessageToUser.CheckInternetConnection(cause = RuntimeException()),
+            defaultMessage = "default",
+        )
+        assertTrue(result.contains("internet", ignoreCase = true))
+    }
+
+    @Test
+    fun `mapErrorMessage operation failed uses default`() {
         assertEquals(
-            "Internet connectivity error",
-            mapper.mapErrorMessage(DomainError.DisplayMessageToUser.CheckInternetConnection()),
+            "Couldn't save your entry",
+            mapperWithoutApiKey.mapErrorMessage(
+                DomainError.DisplayMessageToUser.OperationFailed(),
+                defaultMessage = "Couldn't save your entry",
+            ),
         )
     }
 
     @Test
-    fun `mapErrorMessage contact support`() {
-        assertTrue(
-            mapper.mapErrorMessage(DomainError.DisplayMessageToUser.ContactSupport())
-                .contains("engineers"),
-        )
-    }
-
-    @Test
-    fun `mapErrorMessage custom message`() {
+    fun `mapErrorMessage force technical message always shows`() {
         assertEquals(
-            "Hello",
-            mapper.mapErrorMessage(DomainError.DisplayMessageToUser.ForceTechnicalMessage("Hello")),
+            "API quota exceeded",
+            mapperWithoutApiKey.mapErrorMessage(
+                DomainError.DisplayMessageToUser.ForceTechnicalMessage("API quota exceeded"),
+                defaultMessage = "default",
+            ),
         )
     }
 
     @Test
-    fun `mapErrorMessage try again`() {
-        assertTrue(
-            mapper.mapErrorMessage(DomainError.DisplayMessageToUser.TryAgain())
-                .contains("try again"),
+    fun `mapErrorMessage technical message shown when api key is unlocked`() {
+        assertEquals(
+            "API error detail",
+            mapperWithApiKey.mapErrorMessage(
+                DomainError.DisplayMessageToUser.TechnicalMessage("API error detail"),
+                defaultMessage = "default",
+            ),
         )
     }
+
+    @Test
+    fun `mapErrorMessage technical message falls back to default when no api key`() {
+        assertEquals(
+            "Couldn't get macros",
+            mapperWithoutApiKey.mapErrorMessage(
+                DomainError.DisplayMessageToUser.TechnicalMessage("API error detail"),
+                defaultMessage = "Couldn't get macros",
+            ),
+        )
+    }
+}
+
+private fun fakeSettings(apiKey: String?): SettingsRepository = object : SettingsRepository {
+    override fun getTargets(): Targets = Targets(
+        calories = Target(enabled = false),
+        protein = Target(enabled = false),
+        salt = Target(enabled = false),
+        fat = Target(enabled = false),
+        carbs = Target(enabled = false),
+        fibre = Target(enabled = false),
+        ofWhichSaturated = Target(enabled = false),
+        ofWhichSugar = Target(enabled = false),
+    )
+    override fun setTargets(targets: Targets) {}
+    override fun getDiaryDayStartHour(): Int = 0
+    override fun setDiaryDayStartHour(hourOfDay: Int) {}
+    override fun getPromptCustomizations(): Map<String, String> = emptyMap()
+    override fun setPromptCustomizations(values: Map<String, String>) {}
+    override fun clearPromptCustomizations() {}
+    override fun getPromptVersions(type: String): List<PromptVersion> = emptyList()
+    override fun savePromptVersion(type: String, customizations: Map<String, String>): PromptVersion =
+        throw UnsupportedOperationException()
+    override fun deletePromptVersion(version: Int) {}
+    override fun getApiKeyOverride(): String? = apiKey
+    override fun setApiKeyOverride(key: String) {}
+    override fun clearApiKeyOverride()  {}
+    override fun getCloudSyncProvider(): CloudSyncProvider = CloudSyncProvider.NONE
 }

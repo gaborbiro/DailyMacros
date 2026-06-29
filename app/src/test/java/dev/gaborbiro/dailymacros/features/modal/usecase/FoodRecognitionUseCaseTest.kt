@@ -31,7 +31,7 @@ class FoodRecognitionUseCaseTest {
     }
 
     private class FakeChatGpt : ChatGPTRepository {
-        override suspend fun recogniseFood(request: FoodRecognitionRequest) = FoodRecognitionResult(title = "Oats")
+        override suspend fun recogniseFood(request: FoodRecognitionRequest) = FoodRecognitionResult(title = "Oats", error = null)
 
         override suspend fun analyseNutrients(request: NutrientAnalysisRequest): NutrientAnalysisResult =
             error("unused")

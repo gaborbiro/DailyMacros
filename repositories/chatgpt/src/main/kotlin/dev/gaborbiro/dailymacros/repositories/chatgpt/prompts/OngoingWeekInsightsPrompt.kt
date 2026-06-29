@@ -2,14 +2,12 @@ package dev.gaborbiro.dailymacros.repositories.chatgpt.prompts
 
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsRequest
-import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTResponse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ContentEntry
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.InputContent
-import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.OutputContent
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ReasoningLevel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.Role
 
@@ -77,34 +75,15 @@ internal fun OngoingWeekInsightsRequest.toApiModel() = ChatGPTRequest(
 )
 
 internal fun ChatGPTResponse.toOngoingInsightsResult(): OngoingWeekInsightsResult {
-    val gson = GsonBuilder().create()
-
     class InsightsResponse(
         @SerializedName("message") val message: String?,
         @SerializedName("error") val error: String?,
     )
 
-    val resultJson = output
-        .lastOrNull {
-            it.role == Role.assistant &&
-                    it.content?.any { c -> c is OutputContent.Text } == true
-        }
-        ?.content
-        ?.filterIsInstance<OutputContent.Text>()
-        ?.firstOrNull { it.text.isNotBlank() }
-        ?.text
-
-    return resultJson
-        ?.let {
-            val response = gson.fromJson(resultJson, InsightsResponse::class.java)
-            if (response.error != null) {
-                throw ChatGPTApiError.GenericError(response.error)
-            }
-            OngoingWeekInsightsResult(
-                message = response.message.takeIf { it.isNullOrBlank().not() },
-            )
-        }
-        ?: OngoingWeekInsightsResult(
-            message = null,
-        )
+    val gson = GsonBuilder().create()
+    val response = gson.fromJson(this.resultJson(), InsightsResponse::class.java)
+    return OngoingWeekInsightsResult(
+        message = response.message.takeIf { it.isNullOrBlank().not() },
+        error = response.error.takeIf { it.isNullOrBlank().not() },
+    )
 }

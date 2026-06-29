@@ -132,25 +132,24 @@ class NutrientAnalysisUseCase @Inject constructor(
             }
         } catch (domainError: DomainError) {
             if (notifyOnFailure) {
+                val foodName = record.template.name.takeIf { it.isNotBlank() }
                 macroResultsNotificationSender.showMacroResultsNotification(
                     id = 123000L + recordId,
                     recordId = recordId,
-                    title = "Error",
-                    message = errorUiMapper.mapErrorMessage(domainError, "Couldn't fetch macros"),
+                    title = "Couldn't get macros${foodName?.ellipsize(50)?.let { " for '$it'" } ?: ""}",
+                    message = errorUiMapper.mapErrorMessage(domainError, "Please try again later."),
                     isError = true,
                 )
             }
             throw domainError
         } catch (t: Throwable) {
             if (notifyOnFailure) {
-                val message = t.message
-                    ?: t.cause?.message
-                    ?: "Something went wrong while fetching macros. Please try again later."
+                val foodName = record.template.name.takeIf { it.isNotBlank() }
                 macroResultsNotificationSender.showMacroResultsNotification(
                     id = 123000L + recordId,
                     recordId = recordId,
-                    title = "Couldn't fetch macros",
-                    message = message,
+                    title = "Couldn't get macros${foodName?.ellipsize(50)?.let { " for '$it'" } ?: ""}",
+                    message = "Please try again later.",
                     isError = true,
                 )
             }

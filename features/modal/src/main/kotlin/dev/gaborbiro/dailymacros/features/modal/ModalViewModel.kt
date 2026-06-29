@@ -121,7 +121,7 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onViewRecordImageDeeplinkReceived(recordId: Long) {
-        runSafely {
+        runSafely("Couldn't open the image") {
             getRecordImageUseCase.execute(recordId)
                 ?.let { imageDialog ->
                     setRoot(imageDialog)
@@ -133,7 +133,7 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onViewTemplateImageDeeplinkReceived(templateId: Long) {
-        runSafely {
+        runSafely("Couldn't open the image") {
             getTemplateImageUseCase.execute(templateId)
                 ?.let { imageDialog ->
                     setRoot(imageDialog)
@@ -153,7 +153,7 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onImagesSelected(uris: List<Uri>) {
-        runSafely {
+        runSafely("Couldn't add the selected images") {
             val existingCount = when (val root = _uiState.value.rootDialog) {
                 is DialogHandle.RecordDetailsDialog.Edit -> root.images.size
                 is DialogHandle.RecordDetailsDialog.View -> if (root.isEditing) root.images.size else 0
@@ -204,7 +204,7 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onImagesShared(uris: List<Uri>) {
-        runSafely {
+        runSafely("Couldn't process the shared images") {
             if (uris.size > MAX_IMAGES) {
                 _uiUpdates.emit(ModalUiUpdates.ShowToast("Too many images selected. Maximum $MAX_IMAGES total."))
                 return@runSafely
@@ -242,7 +242,7 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onTemplateDetailsButtonTapped(templateId: Long) {
-        runSafely {
+        runSafely("Couldn't open the entry") {
             recordDetailsJob?.cancel()
             recordDetailsJob = null
             val recordId = resolveFirstRecordIdForTemplateUseCase.execute(templateId) ?: return@runSafely
@@ -296,7 +296,7 @@ class ModalViewModel @Inject constructor(
             }
 
             dialog is DialogHandle.RecordDetailsDialog.Edit -> {
-                runSafely {
+                runSafely("Couldn't discard the entry") {
                     dialog.images.forEach { img ->
                         imageStore.delete(img)
                     }
@@ -360,7 +360,7 @@ class ModalViewModel @Inject constructor(
 
     fun onImageDownloadTapped(image: String) {
         if (photoExportJob?.isActive == true) return
-        photoExportJob = runSafely {
+        photoExportJob = runSafely("Couldn't save the image to your gallery") {
             _uiState.update { it.copy(photoExportInProgress = true) }
             try {
                 val exportedUri = exportImageToGalleryUseCase.execute(image)
@@ -440,7 +440,7 @@ class ModalViewModel @Inject constructor(
             ?: (_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog)
             ?: return
         if (details !is DialogHandle.RecordDetailsDialog.Edit) return
-        runSafely {
+        runSafely("Couldn't save your entry") {
             handleCreateRecordDetailsSubmitted(details)
         }
     }
@@ -448,14 +448,14 @@ class ModalViewModel @Inject constructor(
     fun onSaveDetailsTapped() {
         val details = (_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View) ?: return
         if (!details.isEditing) return
-        runSafely {
+        runSafely("Couldn't save your changes") {
             handleEditRecordDialogSubmitted(details)
         }
     }
 
     fun onSaveAndAddDetailsTapped() {
         val details = (_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View) ?: return
-        runSafely {
+        runSafely("Couldn't save your changes") {
             when {
                 details.openedFromTemplateDetailsOnly ->
                     handleTemplateDetailsSaveAndAdd(details)
@@ -466,7 +466,7 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onVariantTemplateSelected(templateId: Long) {
-        runSafely {
+        runSafely("Couldn't switch to the selected variant") {
             val root = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return@runSafely
             if (root.isEditing) return@runSafely
             if (templateId == root.templateDbId) return@runSafely
@@ -484,13 +484,13 @@ class ModalViewModel @Inject constructor(
         val overlay = _uiState.value.overlayDialog as? DialogHandle.ConfirmSwitchTemplateDialog ?: return
         val root = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return
         popOverlay()
-        runSafely {
+        runSafely("Couldn't switch to the selected variant") {
             applyVariantTemplateSwitch(root, overlay.pendingTemplateId)
         }
     }
 
     fun onQuickPickStarToggled() {
-        runSafely {
+        runSafely("Couldn't update your Quick Picks") {
             val root = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return@runSafely
             if (root.isEditing) return@runSafely
             val templateId = root.templateDbId
@@ -539,7 +539,7 @@ class ModalViewModel @Inject constructor(
                 val images = it.images
                 val title = it.title
                 val description = it.description
-                runSafely {
+                runSafely("Couldn't apply your changes") {
                     applyConfirmedSharedTemplateEditUseCase.execute(
                         target = target,
                         recordId = recordId,
@@ -554,7 +554,7 @@ class ModalViewModel @Inject constructor(
 
     private fun runFoodRecognition(images: List<String>, withDelay: Boolean = true) {
         recogniseFoodJob?.cancel()
-        recogniseFoodJob = runSafely {
+        recogniseFoodJob = runSafely("Image recognition failed. Please try again later.") {
             if (withDelay) delay(1.3.seconds)
             updateRoot<DialogHandle.RecordDetailsDialog.Edit> {
                 it.copy(showProgressIndicator = true)
@@ -599,7 +599,7 @@ class ModalViewModel @Inject constructor(
 
     private fun openRecordDetails(recordId: Long, edit: Boolean) {
         recordDetailsJob?.cancel()
-        recordDetailsJob = runSafely {
+        recordDetailsJob = runSafely("Couldn't open the entry") {
             recordsRepository.get(recordId)?.let { record ->
                 setRoot(buildEnrichedView(record, edit, templateDetailsMode = false))
             }
@@ -892,28 +892,21 @@ class ModalViewModel @Inject constructor(
         }
     }
 
-    private fun runSafely(task: suspend () -> Unit): Job {
-        return viewModelScope.launch(errorHandler) {
+    private fun runSafely(defaultMessage: String, task: suspend () -> Unit): Job {
+        return viewModelScope.launch(makeErrorHandler(defaultMessage)) {
             task()
         }
     }
 
-    private val errorHandler = CoroutineExceptionHandler { _, exception ->
+    private fun makeErrorHandler(defaultMessage: String) = CoroutineExceptionHandler { _, exception ->
         if (exception is CancellationException) return@CoroutineExceptionHandler
         analyticsLogger.logError(exception)
         val message = when {
-            exception is DomainError -> errorUiMapper.mapErrorMessage(exception)
-            else -> null
+            exception is DomainError -> errorUiMapper.mapErrorMessage(exception, defaultMessage)
+            else -> defaultMessage
         }
         viewModelScope.launch {
-            _uiUpdates.emit(
-                ModalUiUpdates.Error(
-                    message?.ellipsize(
-                        300
-                    )
-                        ?: "Oops. Something went wrong. The issue has been logged and our engineers are looking into it."
-                )
-            )
+            _uiUpdates.emit(ModalUiUpdates.Error(message.ellipsize(300) ?: message))
         }
     }
 

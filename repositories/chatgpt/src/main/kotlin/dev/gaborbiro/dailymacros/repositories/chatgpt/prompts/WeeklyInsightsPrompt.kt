@@ -6,7 +6,6 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTRespo
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ContentEntry
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.FormatType
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.InputContent
-import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.OutputContent
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ReasoningLevel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.Role
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.TextOptions
@@ -47,10 +46,12 @@ internal fun WeeklyInsightsRequest.toApiModel() = ChatGPTRequest(
     input = listOf(
         ContentEntry(
             role = Role.system,
-            content = listOf(InputContent.Text(
-                customizations.systemPrompt(SEG_WEEKLY_INSIGHTS_SYSTEM, DEFAULT_WEEKLY_INSIGHTS_SYSTEM)
-                    .replace("{phone_language}", this.phoneLanguage)
-            )),
+            content = listOf(
+                InputContent.Text(
+                    customizations.systemPrompt(SEG_WEEKLY_INSIGHTS_SYSTEM, DEFAULT_WEEKLY_INSIGHTS_SYSTEM)
+                        .replace("{phone_language}", this.phoneLanguage)
+                )
+            ),
         ),
         ContentEntry(
             role = Role.user,
@@ -58,26 +59,18 @@ internal fun WeeklyInsightsRequest.toApiModel() = ChatGPTRequest(
         ),
         ContentEntry(
             role = Role.user,
-            content = listOf(InputContent.Text(
-                customizations.systemPrompt(SEG_WEEKLY_INSIGHTS_USER, DEFAULT_WEEKLY_INSIGHTS_USER)
-            )),
+            content = listOf(
+                InputContent.Text(
+                    customizations.systemPrompt(SEG_WEEKLY_INSIGHTS_USER, DEFAULT_WEEKLY_INSIGHTS_USER)
+                )
+            ),
         ),
     )
 )
 
 internal fun ChatGPTResponse.toWeeklyInsightsResponse(): Map<String, String> {
-    val json = output
-        .lastOrNull {
-            it.role == Role.assistant &&
-                    it.content?.any { c -> c is OutputContent.Text } == true
-        }
-        ?.content
-        ?.filterIsInstance<OutputContent.Text>()
-        ?.firstOrNull { it.text.isNotBlank() }
-        ?.text
-        ?: return emptyMap()
     return try {
-        val obj = org.json.JSONObject(json)
+        val obj = org.json.JSONObject(this.resultJson())
         obj.keys().asSequence().associateWith { obj.getString(it) }
     } catch (_: Exception) {
         emptyMap()

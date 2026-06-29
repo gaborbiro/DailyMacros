@@ -11,11 +11,15 @@ sealed class DomainError(
         cause: Throwable?,
     ) : DomainError(analyticsMessage, cause) {
 
-        data class ForceTechnicalMessage(
-            private val analyticsMessage: String?,
+        data class TechnicalMessage(
             override val errorMessage: String,
             override val cause: Throwable? = null,
-        ) : DisplayMessageToUser(analyticsMessage, errorMessage, cause)
+        ) : DisplayMessageToUser(errorMessage, errorMessage, cause)
+
+        data class ForceTechnicalMessage(
+            override val errorMessage: String,
+            override val cause: Throwable? = null,
+        ) : DisplayMessageToUser(errorMessage, errorMessage, cause)
 
         data class OperationFailed(
             private val analyticsMessage: String? = null,
