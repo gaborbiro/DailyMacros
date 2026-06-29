@@ -1,24 +1,20 @@
 package dev.gaborbiro.dailymacros.repositories.chatgpt.service.model
 
 sealed class ChatGPTApiError(
-    override val message: String?,
+    open val analyticsMessage: String?,
     override val cause: Throwable? = null,
-) : Exception(message) {
+) : Exception(analyticsMessage) {
 
-    data object ContentNotFoundError : ChatGPTApiError(null, null)
-
-    data class GenericApiError(
-        override val message: String?,
+    data class GenericError(
+        override val analyticsMessage: String?,
         override val cause: Throwable? = null,
-    ) : ChatGPTApiError(message, cause)
+    ) : ChatGPTApiError(analyticsMessage, cause)
 
-    data class InternetApiError(override val cause: Throwable? = null) :
-        ChatGPTApiError(message = null, cause = cause)
+    data class InternetError(override val cause: Throwable? = null) :
+        ChatGPTApiError(analyticsMessage = null, cause = cause)
 
-    data class AuthApiError(override val message: String?) : ChatGPTApiError(message)
-
-    data class MappingApiError(
-        override val message: String,
+    data class MappingError(
+        override val analyticsMessage: String,
         override val cause: Throwable? = null,
-    ) : ChatGPTApiError(message, cause)
+    ) : ChatGPTApiError(analyticsMessage, cause)
 }

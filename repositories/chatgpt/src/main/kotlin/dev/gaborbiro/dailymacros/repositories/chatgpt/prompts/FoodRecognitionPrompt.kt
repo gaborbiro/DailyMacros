@@ -4,7 +4,7 @@ import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
-import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
+import dev.gaborbiro.dailymacros.repositories.chatgpt.guardNotNull
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTResponse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ContentEntry
@@ -46,10 +46,12 @@ internal fun FoodRecognitionRequest.toApiModel() = ChatGPTRequest(
     input = listOf(
         ContentEntry(
             role = Role.system,
-            content = listOf(InputContent.Text(
-                this.customizations.systemPrompt(SEG_RECOGNITION_SYSTEM, DEFAULT_RECOGNITION_SYSTEM)
-                    .replace("{phone_language}", this.phoneLanguage)
-            )),
+            content = listOf(
+                InputContent.Text(
+                    this.customizations.systemPrompt(SEG_RECOGNITION_SYSTEM, DEFAULT_RECOGNITION_SYSTEM)
+                        .replace("{phone_language}", this.phoneLanguage)
+                )
+            ),
         ),
         ContentEntry(
             role = Role.user,
@@ -59,10 +61,12 @@ internal fun FoodRecognitionRequest.toApiModel() = ChatGPTRequest(
         ),
         ContentEntry(
             role = Role.user,
-            content = listOf(InputContent.Text(
-                this.customizations.systemPrompt(SEG_RECOGNITION_USER, DEFAULT_RECOGNITION_USER)
-                    .replace("{phone_language}", this.phoneLanguage)
-            )),
+            content = listOf(
+                InputContent.Text(
+                    this.customizations.systemPrompt(SEG_RECOGNITION_USER, DEFAULT_RECOGNITION_USER)
+                        .replace("{phone_language}", this.phoneLanguage)
+                )
+            ),
         )
     )
 )
@@ -70,35 +74,22 @@ internal fun FoodRecognitionRequest.toApiModel() = ChatGPTRequest(
 internal fun ChatGPTResponse.toFoodRecognitionResult(): FoodRecognitionResult {
     val gson = GsonBuilder().create()
 
-    val resultJson: String? = this.output
-        .lastOrNull {
-            it.role == Role.assistant &&
-                    it.content?.any { it is OutputContent.Text } == true
-        }
-        ?.content
-        ?.filterIsInstance<OutputContent.Text>()
-        ?.firstOrNull {
-            it.text.isNotBlank()
-        }
-        ?.text
+    val resultJson: String = this.output
+        .lastOrNull { it.role == Role.assistant && it.content?.any { it is OutputContent.Text } == true }.guardNotNull("Missing assistant content in ChatGPTResponse")
+        .content.guardNotNull("Missing content in ChatGPTResponse")
+        .filterIsInstance<OutputContent.Text>()
+        .firstOrNull { it.text.isNotBlank() }.guardNotNull("Missing text entry in ChatGPTResponse")
+        .text
 
     class FoodDescriptionResponse(
         @SerializedName("title") val title: String?,
         @SerializedName("error") val error: String?,
     )
 
-    return resultJson
-        ?.let {
-            val response = gson.fromJson(resultJson, FoodDescriptionResponse::class.java)
-            if (response.error != null) {
-                throw ChatGPTApiError.GenericApiError(response.error)
-            }
-            FoodRecognitionResult(
-                title = response.title.takeIf { it.isNullOrBlank().not() },
-            )
-        }
-        ?: FoodRecognitionResult(
-            title = null,
-        )
+    val response = gson.fromJson(resultJson, FoodDescriptionResponse::class.java)
+    return FoodRecognitionResult(
+        title = response.title.takeIf { it.isNullOrBlank().not() },
+        error = response.error.takeIf { it.isNullOrBlank().not() },
+    )
 }
 

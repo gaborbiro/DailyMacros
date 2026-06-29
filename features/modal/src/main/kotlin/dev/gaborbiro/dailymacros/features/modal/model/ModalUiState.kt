@@ -127,6 +127,7 @@ fun recordDetailsEditPristineSnapshot(
 
 data class RecognisedFood(
     val title: String?,
+    val warning: String?,
 )
 
 sealed class ImageInputType {

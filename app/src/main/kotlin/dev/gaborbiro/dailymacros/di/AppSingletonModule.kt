@@ -38,7 +38,7 @@ object AppSingletonModule {
                 id: Long,
                 recordId: Long,
                 title: String?,
-                message: String?,
+                message: String,
                 isError: Boolean,
             ) {
                 context.showMacroResultsNotification(id, recordId, title, message, isError)

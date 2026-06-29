@@ -63,12 +63,8 @@ internal class ChatGPTMapper @Inject constructor() {
 
     fun map(error: ChatGPTApiError): DomainError {
         return when (error) {
-            is ChatGPTApiError.AuthApiError -> DomainError.DisplayMessageToUser.Message("Error talking to AI")
-            is ChatGPTApiError.InternetApiError -> DomainError.DisplayMessageToUser.CheckInternetConnection(error)
-            is ChatGPTApiError.MappingApiError, is ChatGPTApiError.ContentNotFoundError -> DomainError.DisplayMessageToUser.ContactSupport(error)
-            is ChatGPTApiError.GenericApiError -> error.message
-                ?.let { DomainError.DisplayMessageToUser.Message(it, error) }
-                ?: DomainError.DisplayMessageToUser.TryAgain(error)
+            is ChatGPTApiError.InternetError -> DomainError.DisplayMessageToUser.CheckInternetConnection(error)
+            is ChatGPTApiError.GenericError, is ChatGPTApiError.MappingError -> DomainError.DisplayMessageToUser.OperationFailed(analyticsMessage = error.analyticsMessage, error)
         }
     }
 

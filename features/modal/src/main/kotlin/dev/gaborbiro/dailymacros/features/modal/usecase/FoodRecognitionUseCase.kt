@@ -28,8 +28,10 @@ class FoodRecognitionUseCase @Inject constructor(
                 phoneLanguage = Locale.getDefault().getDisplayLanguage(Locale.ENGLISH),
             )
         )
+
         return RecognisedFood(
             title = response.title,
+            warning = response.error,
         )
     }
 }

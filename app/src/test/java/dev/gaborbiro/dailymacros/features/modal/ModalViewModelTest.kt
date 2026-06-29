@@ -26,7 +26,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTempl
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
-import dev.gaborbiro.dailymacros.features.shared.ErrorMapper
+import dev.gaborbiro.dailymacros.features.shared.ErrorUiMapper
 import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
@@ -184,7 +184,7 @@ class ModalViewModelTest {
                 appContext = app,
             ),
             analyticsLogger = AnalyticsLogger(),
-            errorMapper = ErrorMapper(),
+            errorUiMapper = ErrorUiMapper(),
         ).also { activeViewModels.add(it) }
     }
 

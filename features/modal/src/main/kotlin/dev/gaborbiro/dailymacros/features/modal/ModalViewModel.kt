@@ -10,7 +10,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
-import dev.gaborbiro.dailymacros.features.shared.NutrientAnalysisWorker
 import dev.gaborbiro.dailymacros.features.modal.model.ChangeImagesTarget
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
@@ -25,18 +24,19 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTempl
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditValidationResult
+import dev.gaborbiro.dailymacros.features.modal.usecase.ExportImageToGalleryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
-import dev.gaborbiro.dailymacros.features.shared.ListMealVariantsForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveFirstRecordIdForTemplateUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.ExportImageToGalleryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
-import dev.gaborbiro.dailymacros.features.shared.ErrorMapper
+import dev.gaborbiro.dailymacros.features.shared.ErrorUiMapper
+import dev.gaborbiro.dailymacros.features.shared.ListMealVariantsForTemplateUseCase
+import dev.gaborbiro.dailymacros.features.shared.NutrientAnalysisWorker
 import dev.gaborbiro.dailymacros.repositories.common.model.DomainError
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
@@ -47,20 +47,21 @@ import ellipsize
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.seconds
 
 @HiltViewModel
 class ModalViewModel @Inject constructor(
@@ -86,7 +87,7 @@ class ModalViewModel @Inject constructor(
     private val applyQuickPickOverrideAndReloadWidgetUseCase: ApplyQuickPickOverrideAndReloadWidgetUseCase,
     private val applyConfirmedSharedTemplateEditUseCase: ApplyConfirmedSharedTemplateEditUseCase,
     private val analyticsLogger: AnalyticsLogger,
-    private val errorMapper: ErrorMapper,
+    private val errorUiMapper: ErrorUiMapper,
 ) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(ModalUiState())
@@ -554,7 +555,7 @@ class ModalViewModel @Inject constructor(
     private fun runFoodRecognition(images: List<String>, withDelay: Boolean = true) {
         recogniseFoodJob?.cancel()
         recogniseFoodJob = runSafely {
-            if (withDelay) delay(1500L)
+            if (withDelay) delay(1.3.seconds)
             updateRoot<DialogHandle.RecordDetailsDialog.Edit> {
                 it.copy(showProgressIndicator = true)
             }
@@ -568,6 +569,11 @@ class ModalViewModel @Inject constructor(
                                 TextFieldValue(it, selection = TextRange(it.length))
                             }
                         ?: TextFieldValue()
+                    recognisedFood.warning?.let {
+                        _uiUpdates.emit(
+                            ModalUiUpdates.Error(it)
+                        )
+                    }
                     currentUiState.copy(
                         recognisedFood = recognisedFood,
                         title = title,
@@ -752,7 +758,7 @@ class ModalViewModel @Inject constructor(
                     dialogHandle.images,
                 )
                 val contentChanged = title != pristine.title.trim() ||
-                    description != pristine.description.trim()
+                        description != pristine.description.trim()
                 val templateImages = dialogHandle.images.map { TemplateImageUpdate(filename = it) }
                 if (isVariedTemplateFamily(dialogHandle)) {
                     recordsRepository.updateTemplate(
@@ -896,8 +902,8 @@ class ModalViewModel @Inject constructor(
         if (exception is CancellationException) return@CoroutineExceptionHandler
         analyticsLogger.logError(exception)
         val message = when {
-            exception is DomainError -> errorMapper.mapErrorMessage(exception)
-            else -> exception.message ?: exception.cause?.message
+            exception is DomainError -> errorUiMapper.mapErrorMessage(exception)
+            else -> null
         }
         viewModelScope.launch {
             _uiUpdates.emit(

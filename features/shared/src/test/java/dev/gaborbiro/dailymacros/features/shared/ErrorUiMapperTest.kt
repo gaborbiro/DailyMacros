@@ -5,9 +5,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class ErrorMapperTest {
+class ErrorUiMapperTest {
 
-    private val mapper = ErrorMapper()
+    private val mapper = ErrorUiMapper()
 
     @Test
     fun `mapErrorMessage check internet`() {
@@ -29,7 +29,7 @@ class ErrorMapperTest {
     fun `mapErrorMessage custom message`() {
         assertEquals(
             "Hello",
-            mapper.mapErrorMessage(DomainError.DisplayMessageToUser.Message("Hello")),
+            mapper.mapErrorMessage(DomainError.DisplayMessageToUser.ForceTechnicalMessage("Hello")),
         )
     }
 

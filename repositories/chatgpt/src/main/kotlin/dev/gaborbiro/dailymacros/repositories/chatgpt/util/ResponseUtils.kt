@@ -26,9 +26,9 @@ internal suspend fun <T> runCatching(
         // not mapping this into ChatGPTApiError means upstreams won't pick up on it, allowing quiet task cancellations
         throw e
     } catch (e: IOException) {
-        throw ChatGPTApiError.InternetApiError(cause = e)
+        throw ChatGPTApiError.InternetError(cause = e)
     } catch (t: Throwable) {
-        throw ChatGPTApiError.GenericApiError(message = "$logTag Error: ${t.message}", cause = t)
+        throw ChatGPTApiError.GenericError(analyticsMessage = "$logTag Error: ${t.message}", cause = t)
     }
 }
 
@@ -48,13 +48,13 @@ fun <T> ErrorHandlingContext.parse(
         doOnSuccess = { response ->
             val body =
                 response.body()
-                    ?: throw ChatGPTApiError.GenericApiError("$tag Error: missing response payload")
+                    ?: throw ChatGPTApiError.GenericError("$tag Error: missing response payload")
             doOnSuccess?.invoke(body, response)
         },
         doOnError
     )
     return response.body()
-        ?: throw ChatGPTApiError.GenericApiError("$tag Error: missing response payload")
+        ?: throw ChatGPTApiError.GenericError("$tag Error: missing response payload")
 }
 
 /**
@@ -85,31 +85,29 @@ private fun <T> ErrorHandlingContext.handleUnsuccessful(
     val errorBody = response.errorBody()?.string()
     val gson = Gson()
 
-    val message: Result<String?> = runCatching {
+    val (analyticsMessage, type) = runCatching {
         gson.fromJson(
             errorBody,
             ErrorResponseBody1::class.java
-        )
-            .error?.message
+        ).error
+            ?.let { it.message to it.type }
             ?: run {
-                gson.fromJson(
+                val body = gson.fromJson(
                     errorBody,
                     ErrorResponseBody2::class.java
-                ).message
+                )
+                body.message to (null as String)
             }
     }.recover {
         runCatching {
-            gson.fromJson(
+            val body = gson.fromJson(
                 errorBody,
                 ErrorResponseBody2::class.java
-            ).message
-        }.getOrNull()
-    }
-    if (response.code() == 401 || response.code() == 403) {
-        throw ChatGPTApiError.AuthApiError(message.getOrNull())
-    } else if (response.code() == 404) {
-        throw ChatGPTApiError.ContentNotFoundError
-    } else {
-        throw ChatGPTApiError.GenericApiError(message.getOrNull())
-    }
+            )
+            body.message to null
+        }.getOrDefault(null to null)
+    }.getOrDefault(null to null)
+    val finalType = type ?: "unknown type"
+    val finalMessage = analyticsMessage ?: "no error message"
+    throw ChatGPTApiError.GenericError(analyticsMessage = "$finalType - $finalMessage")
 }

@@ -54,7 +54,7 @@ fun Context.showMacroResultsNotification(
     id: Long,
     recordId: Long,
     title: String?,
-    message: String?,
+    message: String,
     isError: Boolean,
 ) {
     val channelId = if (isError) CHANNEL_ID_ERROR else CHANNEL_ID_GENERAL
@@ -64,14 +64,12 @@ fun Context.showMacroResultsNotification(
     title?.takeIf { it.isNotBlank() }?.let {
         builder = builder.setContentTitle(it)
     }
-    message?.let {
-        builder = builder.setContentText(message)
-            .setStyle(
-                NotificationCompat.BigTextStyle()
-                    .bigText(message)
-                    .setSummaryText(title ?: "")
-            )
-    }
+    builder = builder.setContentText(message)
+        .setStyle(
+            NotificationCompat.BigTextStyle()
+                .bigText(message)
+                .setSummaryText(title ?: "")
+        )
     getSystemService(NotificationManager::class.java).notify(
         id.toInt(),
         builder.build()

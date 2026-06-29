@@ -98,7 +98,7 @@ internal fun ChatGPTResponse.toOngoingInsightsResult(): OngoingWeekInsightsResul
         ?.let {
             val response = gson.fromJson(resultJson, InsightsResponse::class.java)
             if (response.error != null) {
-                throw ChatGPTApiError.GenericApiError(response.error)
+                throw ChatGPTApiError.GenericError(response.error)
             }
             OngoingWeekInsightsResult(
                 message = response.message.takeIf { it.isNullOrBlank().not() },

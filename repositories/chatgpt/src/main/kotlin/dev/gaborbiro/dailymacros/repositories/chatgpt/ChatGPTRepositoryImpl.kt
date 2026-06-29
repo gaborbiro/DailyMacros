@@ -88,6 +88,24 @@ internal class ChatGPTRepositoryImpl(
         }
     }
 
+    override suspend fun getWeeklyInsights(request: WeeklyInsightsRequest): WeeklyInsightsResult {
+        return mappingApiErrors {
+            runCatching(logTag = "getWeeklyInsights") {
+                val response = service.callResponses(request = request.toApiModel())
+                return@runCatching WeeklyInsightsResult(parse(response).toWeeklyInsightsResponse())
+            }
+        }
+    }
+
+    override suspend fun getOngoingInsights(request: OngoingWeekInsightsRequest): OngoingWeekInsightsResult {
+        return mappingApiErrors {
+            runCatching(logTag = "getOngoingWeekInsights") {
+                val response = service.callResponses(request = request.toApiModel())
+                return@runCatching parse(response).toOngoingInsightsResult()
+            }
+        }
+    }
+
     override fun getDefaultFoodRecognitionPromptSegments(): List<PromptSegment> = listOf(
         PromptSegment.Editable(
             id = SEG_RECOGNITION_MODEL,
@@ -143,15 +161,6 @@ internal class ChatGPTRepositoryImpl(
         ),
     )
 
-    override suspend fun getWeeklyInsights(request: WeeklyInsightsRequest): WeeklyInsightsResult {
-        return mappingApiErrors {
-            runCatching(logTag = "getWeeklyInsights") {
-                val response = service.callResponses(request = request.toApiModel())
-                return@runCatching WeeklyInsightsResult(parse(response).toWeeklyInsightsResponse())
-            }
-        }
-    }
-
     override fun getDefaultWeeklyInsightsPromptSegments(): List<PromptSegment> = listOf(
         PromptSegment.Editable(
             id = SEG_WEEKLY_INSIGHTS_MODEL,
@@ -178,15 +187,6 @@ internal class ChatGPTRepositoryImpl(
             defaultText = DEFAULT_WEEKLY_INSIGHTS_USER,
         ),
     )
-
-    override suspend fun getOngoingInsights(request: OngoingWeekInsightsRequest): OngoingWeekInsightsResult {
-        return mappingApiErrors {
-            runCatching(logTag = "getOngoingWeekInsights") {
-                val response = service.callResponses(request = request.toApiModel())
-                return@runCatching parse(response).toOngoingInsightsResult()
-            }
-        }
-    }
 
     override fun getDefaultOngoingWeekInsightsPromptSegments(): List<PromptSegment> = listOf(
         PromptSegment.Editable(

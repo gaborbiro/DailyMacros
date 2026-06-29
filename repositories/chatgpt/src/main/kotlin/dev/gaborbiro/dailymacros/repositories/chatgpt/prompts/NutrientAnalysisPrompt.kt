@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.repositories.chatgpt.prompts
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
+import dev.gaborbiro.dailymacros.repositories.chatgpt.guardNotNull
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTResponse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ContentEntry
@@ -130,10 +131,12 @@ internal fun NutrientAnalysisRequest.toApiModel() = ChatGPTRequest(
     input = listOf(
         ContentEntry(
             role = Role.system,
-            content = listOf(InputContent.Text(
-                this.customizations.systemPrompt(SEG_ANALYSIS_SYSTEM, DEFAULT_ANALYSIS_SYSTEM)
-                    .replace("{phone_language}", this.phoneLanguage)
-            )),
+            content = listOf(
+                InputContent.Text(
+                    this.customizations.systemPrompt(SEG_ANALYSIS_SYSTEM, DEFAULT_ANALYSIS_SYSTEM)
+                        .replace("{phone_language}", this.phoneLanguage)
+                )
+            ),
         ),
         ContentEntry(
             role = Role.user,
@@ -159,11 +162,11 @@ private val gson = GsonBuilder().create()
 
 internal fun ChatGPTResponse.toNutrientAnalysisResponse(): NutrientAnalysisResponse {
     val resultJson = output
-        .lastOrNull { it.role == Role.assistant && it.content?.any { it is OutputContent.Text } == true }
-        ?.content
-        ?.filterIsInstance<OutputContent.Text>()
-        ?.firstOrNull { it.text.isNotBlank() }
-        ?.text
+        .lastOrNull { it.role == Role.assistant && it.content?.any { it is OutputContent.Text } == true }.guardNotNull("Missing assistant content in ChatGPTResponse")
+        .content.guardNotNull("Missing content in ChatGPTResponse")
+        .filterIsInstance<OutputContent.Text>()
+        .firstOrNull { it.text.isNotBlank() }.guardNotNull("Missing text entry in ChatGPTResponse")
+        .text
     return gson.fromJson(resultJson, NutrientAnalysisResponse::class.java)
 }
 

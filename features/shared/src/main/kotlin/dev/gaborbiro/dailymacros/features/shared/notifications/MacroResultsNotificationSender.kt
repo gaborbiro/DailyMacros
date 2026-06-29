@@ -5,7 +5,7 @@ interface MacroResultsNotificationSender {
         id: Long,
         recordId: Long,
         title: String?,
-        message: String?,
+        message: String,
         isError: Boolean,
     )
 }

@@ -27,7 +27,7 @@ class NutrientAnalysisUseCase @Inject constructor(
     @ForImageUploadChatGpt private val chatGPTRepository: ChatGPTRepository,
     private val recordsRepository: RecordsRepository,
     private val requestStatusRepository: RequestStatusRepository,
-    private val errorMapper: ErrorMapper,
+    private val errorUiMapper: ErrorUiMapper,
     private val macroResultsNotificationSender: MacroResultsNotificationSender,
     private val settingsRepository: SettingsRepository,
 ) {
@@ -77,7 +77,7 @@ class NutrientAnalysisUseCase @Inject constructor(
                 val templateNutrients = nutrients?.let {
                     it to nutrientsAnalysisResult.topContributors!!
                 }
-                val name = record.template.name.takeIf { it.isNotBlank() } ?: nutrientsAnalysisResult.title
+                val name = record.template.name.takeIf { it.isNotBlank() } ?: nutrientsAnalysisResult.title?.takeIf { it.isNotBlank() }
                 val templateImagesWhenSavingMacros = templateNutrients?.let {
                     record.template.images.mapIndexed { index, filename ->
                         TemplateImageUpdate(
@@ -100,34 +100,34 @@ class NutrientAnalysisUseCase @Inject constructor(
                         macroResultsNotificationSender.showMacroResultsNotification(
                             id = 123000L + recordId,
                             recordId = recordId,
-                            title = null,
-                            message = name?.ellipsize(50),
+                            title = name.ellipsize(50) ?: "Success",
+                            message = "Macros received",
                             isError = false,
                         )
                     }
                     ?: run {
-                        error
-                            ?.let {
-                                val message = listOfNotNull(name.ellipsize(50), error).joinToString("\n").trim()
-                                message.takeIf { it.isNotBlank() }?.let {
-                                    macroResultsNotificationSender.showMacroResultsNotification(
-                                        id = 123000L + recordId,
-                                        recordId = recordId,
-                                        title = null,
-                                        message = message,
-                                        isError = true,
-                                    )
-                                }
-                            }
-                            ?: run {
-                                macroResultsNotificationSender.showMacroResultsNotification(
-                                    id = 123000L + recordId,
-                                    recordId = recordId,
-                                    title = null,
-                                    message = listOfNotNull(name.ellipsize(50), "Something went wrong while fetching macros. Please try again later.").joinToString("\n"),
-                                    isError = true,
-                                )
-                            }
+                        if (error == null) {
+                            macroResultsNotificationSender.showMacroResultsNotification(
+                                id = 123000L + recordId,
+                                recordId = recordId,
+                                title = "There was a problem with analysing ${name.ellipsize(50)?.let { "\'$it\'" } ?: "macros"}",
+                                message = "Please try again later",
+                                isError = true,
+                            )
+                        }
+                    }
+                error
+                    ?.let {
+                        val message = listOfNotNull(name.ellipsize(50), error).joinToString("\n").trim()
+                        message.takeIf { it.isNotBlank() }?.let {
+                            macroResultsNotificationSender.showMacroResultsNotification(
+                                id = 123001L + recordId,
+                                recordId = recordId,
+                                title = "There was a problem with analysing ${name.ellipsize(50)?.let { "\'$it\'" } ?: "macros"}",
+                                message = message,
+                                isError = true,
+                            )
+                        }
                     }
             }
         } catch (domainError: DomainError) {
@@ -135,8 +135,8 @@ class NutrientAnalysisUseCase @Inject constructor(
                 macroResultsNotificationSender.showMacroResultsNotification(
                     id = 123000L + recordId,
                     recordId = recordId,
-                    title = "Couldn't fetch macros",
-                    message = errorMapper.mapErrorMessage(domainError),
+                    title = "Error",
+                    message = errorUiMapper.mapErrorMessage(domainError, "Couldn't fetch macros"),
                     isError = true,
                 )
             }
