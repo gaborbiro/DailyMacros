@@ -39,14 +39,14 @@ Concisely identify the food shown in the photos.
 """.trimIndent()
 
 internal fun FoodRecognitionRequest.toApiModel() = ChatGPTRequest(
-    model = customizations.systemPrompt(SEG_RECOGNITION_MODEL, foodPhotoRecognitionModel),
-    reasoning = ReasoningLevel(customizations.systemPrompt(SEG_RECOGNITION_REASONING_EFFORT, foodPhotoRecognitionReasoningEffort)),
+    model = customisations.systemPrompt(SEG_RECOGNITION_MODEL, foodPhotoRecognitionModel),
+    reasoning = ReasoningLevel(customisations.systemPrompt(SEG_RECOGNITION_REASONING_EFFORT, foodPhotoRecognitionReasoningEffort)),
     input = listOf(
         ContentEntry(
             role = Role.system,
             content = listOf(
                 InputContent.Text(
-                    this.customizations.systemPrompt(SEG_RECOGNITION_SYSTEM, DEFAULT_RECOGNITION_SYSTEM)
+                    this.customisations.systemPrompt(SEG_RECOGNITION_SYSTEM, DEFAULT_RECOGNITION_SYSTEM)
                         .replace("{phone_language}", this.phoneLanguage)
                 )
             ),
@@ -61,7 +61,7 @@ internal fun FoodRecognitionRequest.toApiModel() = ChatGPTRequest(
             role = Role.user,
             content = listOf(
                 InputContent.Text(
-                    this.customizations.systemPrompt(SEG_RECOGNITION_USER, DEFAULT_RECOGNITION_USER)
+                    this.customisations.systemPrompt(SEG_RECOGNITION_USER, DEFAULT_RECOGNITION_USER)
                         .replace("{phone_language}", this.phoneLanguage)
                 )
             ),

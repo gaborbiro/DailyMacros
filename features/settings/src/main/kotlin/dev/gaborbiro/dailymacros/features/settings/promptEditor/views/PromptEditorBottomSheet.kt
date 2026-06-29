@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.settings.promptEditor.views
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,7 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
@@ -49,15 +50,20 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel.Companion.TAB_ANALYSIS
-import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel.Companion.TAB_INSIGHTS
-import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel.Companion.TAB_ONGOING_INSIGHTS
+import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel.Companion.TAB_ONGOING_WEEK_INSIGHTS
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel.Companion.TAB_RECOGNITION
+import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel.Companion.TAB_WEEKLY_INSIGHTS
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.model.PromptEditorUiState
 import dev.gaborbiro.dailymacros.features.settings.util.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
@@ -69,8 +75,8 @@ import java.util.Locale
 private val ALL_TABS = listOf(
     TAB_RECOGNITION to "Recognition",
     TAB_ANALYSIS to "Analysis",
-    TAB_INSIGHTS to "Week on Week",
-    TAB_ONGOING_INSIGHTS to "Ongoing Week",
+    TAB_WEEKLY_INSIGHTS to "Week on Week",
+    TAB_ONGOING_WEEK_INSIGHTS to "Ongoing Week",
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,7 +97,7 @@ internal fun PromptEditorView(
 ) {
     val visibleTabs = remember(viewState.aiInsightsEnabled) {
         if (viewState.aiInsightsEnabled) ALL_TABS
-        else ALL_TABS.filter { (type, _) -> type != TAB_INSIGHTS && type != TAB_ONGOING_INSIGHTS }
+        else ALL_TABS.filter { (type, _) -> type != TAB_WEEKLY_INSIGHTS && type != TAB_ONGOING_WEEK_INSIGHTS }
     }
 
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -99,7 +105,7 @@ internal fun PromptEditorView(
     val currentSegments = when (currentTabType) {
         TAB_RECOGNITION -> viewState.recognitionSegments
         TAB_ANALYSIS -> viewState.analysisSegments
-        TAB_INSIGHTS -> viewState.weeklyInsightsSegments
+        TAB_WEEKLY_INSIGHTS -> viewState.weeklyInsightsSegments
         else -> viewState.ongoingWeekInsightsSegments
     }
 
@@ -110,7 +116,7 @@ internal fun PromptEditorView(
     val activeScrollState: ScrollState = when (currentTabType) {
         TAB_RECOGNITION -> recognitionScrollState
         TAB_ANALYSIS -> analysisScrollState
-        TAB_INSIGHTS -> insightsScrollState
+        TAB_WEEKLY_INSIGHTS -> insightsScrollState
         else -> ongoingInsightsScrollState
     }
 
@@ -146,7 +152,7 @@ internal fun PromptEditorView(
             Scaffold(
                 topBar = {
                     TopAppBar(
-                        title = { Text("AI Customization") },
+                        title = { Text("Customise AI") },
                         navigationIcon = {
                             IconButton(onClick = onDismissRequested) {
                                 Icon(
@@ -189,18 +195,57 @@ internal fun PromptEditorView(
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp, vertical = 4.dp),
                         )
+                        val email = "nomadworkz@gmail.com"
+                        val uriHandler = LocalUriHandler.current
                         if (viewState.promptsEnabled) {
+                            val annotated = buildAnnotatedString {
+                                append("Changes take effect on the next AI query.\nCustomising the prompts may cause the app to behave in unpredictable ways or even crash. Revert the query to its default version if needed.\nDrop a message to ")
+                                withStyle(SpanStyle(
+                                    color = MaterialTheme.colorScheme.primary,
+                                    textDecoration = TextDecoration.Underline,
+                                )) {
+                                    append(email)
+                                }
+                                append(" for any suggestions or questions.")
+                            }
                             Text(
-                                text = "Changes take effect on the next AI query.",
+                                text = annotated,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                                    .clickable { uriHandler.openUri("mailto:$email") },
+                            )
+                        } else {
+                            val prefix =
+                                "ℹ\uFE0F Using your own API key means you no longer need to subscribe to this app. Once unlocked, feel free to cancel your subscription in Play Store, or keep it if you'd like to support the developer of this app.\nDrop a message to "
+                            val suffix =
+                                " for any suggestions or questions.\nYou can also customise the AI prompts. This may cause the app to behave in unpredictable ways or even crash. Revert the query to its default version if needed.\nA heads-up on future plans: I intend to collect anonymised custom prompts to improve the app's AI features. I'll ask for your explicit consent before doing so."
+                            val annotated = buildAnnotatedString {
+                                append(prefix)
+                                withStyle(
+                                    SpanStyle(
+                                        color = MaterialTheme.colorScheme.primary,
+                                        textDecoration = TextDecoration.Underline,
+                                    )
+                                ) {
+                                    append(email)
+                                }
+                                append(suffix)
+                            }
+                            Text(
+                                text = annotated,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                                    .clickable { uriHandler.openUri("mailto:$email") },
                             )
                         }
                         Spacer(Modifier.height(4.dp))
                     }
 
-                    ScrollableTabRow(selectedTabIndex = selectedTab) {
+                    PrimaryScrollableTabRow(selectedTabIndex = selectedTab) {
                         visibleTabs.forEachIndexed { index, (_, label) ->
                             Tab(
                                 selected = selectedTab == index,
@@ -243,6 +288,7 @@ internal fun PromptEditorView(
                                             .padding(vertical = 12.dp),
                                     )
                                 }
+
                                 is PromptSegment.Editable -> {
                                     val currentText = viewState.currentValues[segment.id] ?: segment.defaultText
                                     OutlinedTextField(

@@ -46,14 +46,14 @@ Write a weekly progress check-in based on the diary above.
 """.trimIndent()
 
 internal fun OngoingWeekInsightsRequest.toApiModel() = ChatGPTRequest(
-    model = customizations.systemPrompt(SEG_ONGOING_WEEK_INSIGHTS_MODEL, ongoingWeekInsightsModel),
-    reasoning = ReasoningLevel(customizations.systemPrompt(SEG_ONGOING_WEEK_INSIGHTS_REASONING_EFFORT, ongoingWeekInsightsReasoningEffort)),
+    model = customisations.systemPrompt(SEG_ONGOING_WEEK_INSIGHTS_MODEL, ongoingWeekInsightsModel),
+    reasoning = ReasoningLevel(customisations.systemPrompt(SEG_ONGOING_WEEK_INSIGHTS_REASONING_EFFORT, ongoingWeekInsightsReasoningEffort)),
     input = listOf(
         ContentEntry(
             role = Role.system,
             content = listOf(
                 InputContent.Text(
-                    customizations
+                    customisations
                         .systemPrompt(SEG_ONGOING_WEEK_INSIGHTS_SYSTEM, DEFAULT_ONGOING_WEEK_INSIGHTS_SYSTEM)
                         .replace("{phone_language}", this.phoneLanguage)
                 )
@@ -67,7 +67,7 @@ internal fun OngoingWeekInsightsRequest.toApiModel() = ChatGPTRequest(
             role = Role.user,
             content = listOf(
                 InputContent.Text(
-                    customizations.systemPrompt(SEG_ONGOING_WEEK_INSIGHTS_USER, DEFAULT_ONGOING_WEEK_INSIGHTS_USER)
+                    customisations.systemPrompt(SEG_ONGOING_WEEK_INSIGHTS_USER, DEFAULT_ONGOING_WEEK_INSIGHTS_USER)
                 )
             ),
         ),

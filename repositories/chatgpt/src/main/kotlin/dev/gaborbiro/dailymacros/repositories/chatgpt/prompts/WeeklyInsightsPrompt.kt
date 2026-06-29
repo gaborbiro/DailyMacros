@@ -43,15 +43,15 @@ My personal health goal: cholesterol control.
 """.trimIndent()
 
 internal fun WeeklyInsightsRequest.toApiModel() = ChatGPTRequest(
-    model = customizations.systemPrompt(SEG_WEEKLY_INSIGHTS_MODEL, weeklyInsightsModel),
-    reasoning = ReasoningLevel(customizations.systemPrompt(SEG_WEEKLY_INSIGHTS_REASONING_EFFORT, weeklyInsightsReasoningEffort)),
+    model = customisations.systemPrompt(SEG_WEEKLY_INSIGHTS_MODEL, weeklyInsightsModel),
+    reasoning = ReasoningLevel(customisations.systemPrompt(SEG_WEEKLY_INSIGHTS_REASONING_EFFORT, weeklyInsightsReasoningEffort)),
     text = TextOptions(FormatType("json_object")),
     input = listOf(
         ContentEntry(
             role = Role.system,
             content = listOf(
                 InputContent.Text(
-                    customizations.systemPrompt(SEG_WEEKLY_INSIGHTS_SYSTEM, DEFAULT_WEEKLY_INSIGHTS_SYSTEM)
+                    customisations.systemPrompt(SEG_WEEKLY_INSIGHTS_SYSTEM, DEFAULT_WEEKLY_INSIGHTS_SYSTEM)
                         .replace("{phone_language}", this.phoneLanguage)
                 )
             ),
@@ -64,7 +64,7 @@ internal fun WeeklyInsightsRequest.toApiModel() = ChatGPTRequest(
             role = Role.user,
             content = listOf(
                 InputContent.Text(
-                    customizations.systemPrompt(SEG_WEEKLY_INSIGHTS_USER, DEFAULT_WEEKLY_INSIGHTS_USER)
+                    customisations.systemPrompt(SEG_WEEKLY_INSIGHTS_USER, DEFAULT_WEEKLY_INSIGHTS_USER)
                 )
             ),
         ),

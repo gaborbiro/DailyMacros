@@ -24,7 +24,7 @@ class FoodRecognitionUseCase @Inject constructor(
         val response = chatGPTRepository.recogniseFood(
             request = FoodRecognitionRequest(
                 base64Images = base64Images,
-                customizations = settingsRepository.getEffectiveCustomizations(),
+                customisations = settingsRepository.getEffectiveCustomisations(),
                 phoneLanguage = Locale.getDefault().getDisplayLanguage(Locale.ENGLISH),
             )
         )

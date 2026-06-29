@@ -16,16 +16,16 @@ interface SettingsRepository {
     fun setDiaryDayStartHour(hourOfDay: Int)
 
     /** Returns user overrides for AI prompt editable segments, keyed by segment ID. */
-    fun getPromptCustomizations(): Map<String, String>
+    fun getPromptCustomisations(): Map<String, String>
 
-    fun setPromptCustomizations(values: Map<String, String>)
+    fun setPromptCustomisations(values: Map<String, String>)
 
-    fun clearPromptCustomizations()
+    fun clearPromptCustomisations()
 
     fun getPromptVersions(type: String): List<PromptVersion>
 
-    /** Creates a new version record for the given prompt type, persists it, and returns it. Does NOT update the active customizations. */
-    fun savePromptVersion(type: String, customizations: Map<String, String>): PromptVersion
+    /** Creates a new version record for the given prompt type, persists it, and returns it. Does NOT update the active customisations. */
+    fun savePromptVersion(type: String, customisations: Map<String, String>): PromptVersion
 
     /** Deletes the version with the given version number. */
     fun deletePromptVersion(version: Int)
@@ -34,9 +34,9 @@ interface SettingsRepository {
     fun setApiKeyOverride(key: String)
     fun clearApiKeyOverride()
 
-    /** Returns stored customizations only when an API key override is active; emptyMap() otherwise. */
-    fun getEffectiveCustomizations(): Map<String, String> =
-        if (getApiKeyOverride() != null) getPromptCustomizations() else emptyMap()
+    /** Returns stored customisations only when an API key override is active; emptyMap() otherwise. */
+    fun getEffectiveCustomisations(): Map<String, String> =
+        if (getApiKeyOverride() != null) getPromptCustomisations() else emptyMap()
 
     fun getCloudSyncProvider(): CloudSyncProvider = CloudSyncProvider.NONE
     fun setCloudSyncProvider(provider: CloudSyncProvider) {}

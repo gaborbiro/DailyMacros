@@ -125,7 +125,7 @@ internal class ChatGPTRepositoryImpl(
             label = "System message",
             defaultText = DEFAULT_RECOGNITION_SYSTEM,
         ),
-        PromptSegment.Locked("{photos}"),
+        PromptSegment.Locked("{photos will go here}"),
         PromptSegment.Editable(
             id = SEG_RECOGNITION_USER,
             label = "User message",
@@ -152,7 +152,7 @@ internal class ChatGPTRepositoryImpl(
             label = "System message",
             defaultText = DEFAULT_ANALYSIS_SYSTEM,
         ),
-        PromptSegment.Locked("{photos}"),
+        PromptSegment.Locked("{photos will go here}"),
         PromptSegment.Editable(
             id = SEG_ANALYSIS_USER,
             label = "User message",
@@ -180,7 +180,7 @@ internal class ChatGPTRepositoryImpl(
             label = "System message",
             defaultText = DEFAULT_WEEKLY_INSIGHTS_SYSTEM,
         ),
-        PromptSegment.Locked("{diary}"),
+        PromptSegment.Locked("{food diary (last two calendar weeks) will go here}"),
         PromptSegment.Editable(
             id = SEG_WEEKLY_INSIGHTS_USER,
             label = "User message",
@@ -207,12 +207,12 @@ internal class ChatGPTRepositoryImpl(
             label = "System message",
             defaultText = DEFAULT_ONGOING_WEEK_INSIGHTS_SYSTEM,
         ),
-        PromptSegment.Locked("{diary}"),
         PromptSegment.Editable(
             id = SEG_ONGOING_WEEK_INSIGHTS_USER,
             label = "User message",
             defaultText = DEFAULT_ONGOING_WEEK_INSIGHTS_USER,
         ),
+        PromptSegment.Locked("{food diary (current week) will go here}"),
     )
 
     override suspend fun validateApiKey(apiKey: String): Boolean = withContext(Dispatchers.IO) {

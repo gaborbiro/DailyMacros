@@ -52,7 +52,7 @@ class NutrientAnalysisUseCase @Inject constructor(
                         base64Images = base64Images,
                         title = record.template.name,
                         description = record.template.description,
-                        customizations = settingsRepository.getEffectiveCustomizations(),
+                        customisations = settingsRepository.getEffectiveCustomisations(),
                         phoneLanguage = Locale.getDefault().getDisplayLanguage(Locale.ENGLISH),
                     )
                 )

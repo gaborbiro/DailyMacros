@@ -83,11 +83,11 @@ private fun fakeSettings(apiKey: String?): SettingsRepository = object : Setting
     override fun setTargets(targets: Targets) {}
     override fun getDiaryDayStartHour(): Int = 0
     override fun setDiaryDayStartHour(hourOfDay: Int) {}
-    override fun getPromptCustomizations(): Map<String, String> = emptyMap()
-    override fun setPromptCustomizations(values: Map<String, String>) {}
-    override fun clearPromptCustomizations() {}
+    override fun getPromptCustomisations(): Map<String, String> = emptyMap()
+    override fun setPromptCustomisations(values: Map<String, String>) {}
+    override fun clearPromptCustomisations() {}
     override fun getPromptVersions(type: String): List<PromptVersion> = emptyList()
-    override fun savePromptVersion(type: String, customizations: Map<String, String>): PromptVersion =
+    override fun savePromptVersion(type: String, customisations: Map<String, String>): PromptVersion =
         throw UnsupportedOperationException()
     override fun deletePromptVersion(version: Int) {}
     override fun getApiKeyOverride(): String? = apiKey

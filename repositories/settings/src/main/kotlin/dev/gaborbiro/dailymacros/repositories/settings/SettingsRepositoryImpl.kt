@@ -56,21 +56,21 @@ class SettingsRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getPromptCustomizations(): Map<String, String> {
-        val json = prefs.getString(KEY_PROMPT_CUSTOMIZATIONS, null) ?: return emptyMap()
+    override fun getPromptCustomisations(): Map<String, String> {
+        val json = prefs.getString(KEY_PROMPT_CUSTOMISATIONS, null) ?: return emptyMap()
         val type = object : TypeToken<Map<String, String>>() {}.type
         return runCatching { gson.fromJson<Map<String, String>>(json, type) }.getOrDefault(emptyMap())
     }
 
-    override fun setPromptCustomizations(values: Map<String, String>) {
+    override fun setPromptCustomisations(values: Map<String, String>) {
         prefs.edit {
-            putString(KEY_PROMPT_CUSTOMIZATIONS, gson.toJson(values))
+            putString(KEY_PROMPT_CUSTOMISATIONS, gson.toJson(values))
         }
     }
 
-    override fun clearPromptCustomizations() {
+    override fun clearPromptCustomisations() {
         prefs.edit {
-            putString(KEY_PROMPT_CUSTOMIZATIONS, gson.toJson(emptyMap<String, String>()))
+            putString(KEY_PROMPT_CUSTOMISATIONS, gson.toJson(emptyMap<String, String>()))
         }
     }
 
@@ -88,13 +88,13 @@ class SettingsRepositoryImpl @Inject constructor(
         prefs.edit { putString(KEY_PROMPT_VERSIONS, gson.toJson(updated)) }
     }
 
-    override fun savePromptVersion(type: String, customizations: Map<String, String>): PromptVersion {
+    override fun savePromptVersion(type: String, customisations: Map<String, String>): PromptVersion {
         val existing = getAllPromptVersions()
         val nextVersion = (existing.maxOfOrNull { it.version } ?: 0) + 1
         val newVersion = PromptVersion(
             version = nextVersion,
             createdAt = System.currentTimeMillis(),
-            customizations = customizations,
+            customisations = customisations,
             type = type,
         )
         prefs.edit { putString(KEY_PROMPT_VERSIONS, gson.toJson(existing + newVersion)) }
@@ -137,7 +137,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private const val KEY_TARGETS = "targets_json"
         private const val KEY_DIARY_DAY_START_HOUR = "diary_day_start_hour"
         private const val DEFAULT_DIARY_DAY_START_HOUR = 0
-        private const val KEY_PROMPT_CUSTOMIZATIONS = "prompt_customizations_json"
+        private const val KEY_PROMPT_CUSTOMISATIONS = "prompt_customisations_json"
         private const val KEY_PROMPT_VERSIONS = "prompt_versions_json"
         private const val KEY_API_KEY_OVERRIDE = "api_key_override"
         private const val KEY_CLOUD_SYNC_PROVIDER = "cloud_sync_provider"

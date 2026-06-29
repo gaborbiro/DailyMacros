@@ -158,16 +158,16 @@ class TrendsViewModel @Inject constructor(
                 val since = diaryDayWindowStart(prevWeekStart, dayStart, zone)
                 val records = recordsRepository.getRecords(since = since)
                 val targets = settingsRepository.getTargets()
-                val customizations = settingsRepository.getPromptCustomizations()
+                val customisations = settingsRepository.getPromptCustomisations()
                 val diary = formatDiary(records, targets, zone, dayStart)
                 val result = chatGPTRepository.getWeeklyInsights(
                     WeeklyInsightsRequest(
                         diary,
-                        customizations,
+                        customisations,
                         Locale.getDefault().getDisplayLanguage(Locale.ENGLISH),
                     )
                 )
-                val versionLabel = resolvePromptVersionLabel(TAB_INSIGHTS, chatGPTRepository.getDefaultWeeklyInsightsPromptSegments(), customizations)
+                val versionLabel = resolvePromptVersionLabel(TAB_INSIGHTS, chatGPTRepository.getDefaultWeeklyInsightsPromptSegments(), customisations)
                 val rangeLabel = "${formatWeekRange(lastCompleteWeekStart)} vs ${formatWeekRange(prevWeekStart)} · prompt version: $versionLabel"
                 val fetchedAt = System.currentTimeMillis()
                 preferences.weeklyInsights = result.insights
@@ -206,16 +206,16 @@ class TrendsViewModel @Inject constructor(
                 val since = diaryDayWindowStart(thisWeekStart, dayStart, zone)
                 val records = recordsRepository.getRecords(since = since)
                 val targets = settingsRepository.getTargets()
-                val customizations = settingsRepository.getPromptCustomizations()
+                val customisations = settingsRepository.getPromptCustomisations()
                 val diary = formatOngoingDiary(records, targets, zone, dayStart)
                 val result = chatGPTRepository.getOngoingInsights(
                     OngoingWeekInsightsRequest(
                         diary,
-                        customizations,
+                        customisations,
                         Locale.getDefault().getDisplayLanguage(Locale.ENGLISH),
                     )
                 )
-                val versionLabel = resolvePromptVersionLabel(TAB_ONGOING_INSIGHTS, chatGPTRepository.getDefaultOngoingWeekInsightsPromptSegments(), customizations)
+                val versionLabel = resolvePromptVersionLabel(TAB_ONGOING_INSIGHTS, chatGPTRepository.getDefaultOngoingWeekInsightsPromptSegments(), customisations)
                 val rangeLabel = "${formatPartialWeekRange(thisWeekStart, today)} · prompt version: $versionLabel"
                 val fetchedAt = System.currentTimeMillis()
                 preferences.ongoingWeekInsights = result.message
@@ -243,13 +243,13 @@ class TrendsViewModel @Inject constructor(
     private fun resolvePromptVersionLabel(
         tabType: String,
         segments: List<PromptSegment>,
-        customizations: Map<String, String>,
+        customisations: Map<String, String>,
     ): String {
         val ids = segments.filterIsInstance<PromptSegment.Editable>().map { it.id }.toSet()
-        val tabCustomizations = customizations.filterKeys { it in ids }
-        if (tabCustomizations.isEmpty()) return "default"
+        val tabCustomisations = customisations.filterKeys { it in ids }
+        if (tabCustomisations.isEmpty()) return "default"
         val match = settingsRepository.getPromptVersions(tabType)
-            .firstOrNull { version -> ids.all { id -> version.customizations[id] == tabCustomizations[id] } }
+            .firstOrNull { version -> ids.all { id -> version.customisations[id] == tabCustomisations[id] } }
         return if (match != null) "v${match.version}" else "default"
     }
 
