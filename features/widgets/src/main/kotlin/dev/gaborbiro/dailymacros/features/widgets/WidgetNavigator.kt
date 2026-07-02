@@ -22,6 +22,8 @@ interface WidgetNavigator {
 
     fun quickPickBodyTapped(templateId: Long): Action
 
+    fun quickPickWidgetTapped(templateId: Long): Action
+
     fun reload(): Action
 
     fun openApp(): Action

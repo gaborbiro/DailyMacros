@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros
 
 import android.content.Context
+import android.widget.Toast
 import androidx.glance.GlanceId
 import androidx.glance.action.Action
 import androidx.glance.action.ActionParameters
@@ -12,10 +13,14 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.features.main.MainActivity
+import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
 import dev.gaborbiro.dailymacros.features.widgets.diary.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.features.widgets.WidgetNavigator
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 private const val PREFS_KEY_RECORD = "recordId"
@@ -67,6 +72,14 @@ class WidgetNavigatorImpl @Inject constructor() : WidgetNavigator {
         )
     }
 
+    override fun quickPickWidgetTapped(templateId: Long): Action {
+        return actionRunCallback<QuickPickWidgetTappedAction>(
+            actionParametersOf(
+                ActionParameters.Key<Long>(PREFS_KEY_TEMPLATE) to templateId
+            )
+        )
+    }
+
     override fun reload(): Action {
         return actionRunCallback<RefreshAction>()
     }
@@ -80,6 +93,8 @@ class WidgetNavigatorImpl @Inject constructor() : WidgetNavigator {
 @InstallIn(SingletonComponent::class)
 private interface WidgetActionsEntryPoint {
     fun modalNavigator(): ModalNavigator
+    fun createRecordFromTemplateUseCase(): CreateRecordFromTemplateUseCase
+    fun analyticsLogger(): AnalyticsLogger
 }
 
 private fun Context.modalNavigator(): ModalNavigator =
@@ -87,6 +102,18 @@ private fun Context.modalNavigator(): ModalNavigator =
         applicationContext,
         WidgetActionsEntryPoint::class.java,
     ).modalNavigator()
+
+private fun Context.createRecordFromTemplateUseCase(): CreateRecordFromTemplateUseCase =
+    EntryPointAccessors.fromApplication(
+        applicationContext,
+        WidgetActionsEntryPoint::class.java,
+    ).createRecordFromTemplateUseCase()
+
+private fun Context.analyticsLogger(): AnalyticsLogger =
+    EntryPointAccessors.fromApplication(
+        applicationContext,
+        WidgetActionsEntryPoint::class.java,
+    ).analyticsLogger()
 
 class CreateRecordWithCameraAction : ActionCallback {
     override suspend fun onAction(
@@ -159,6 +186,30 @@ class QuickPickBodyTappedAction : ActionCallback {
     ) {
         val templateId = parameters[ActionParameters.Key<Long>(PREFS_KEY_TEMPLATE)]!!
         context.modalNavigator().launchViewTemplateDetailsFromWidget(context, templateId)
+    }
+}
+
+class QuickPickWidgetTappedAction : ActionCallback {
+    override suspend fun onAction(
+        context: Context,
+        glanceId: GlanceId,
+        parameters: ActionParameters,
+    ) {
+        val templateId = parameters[ActionParameters.Key<Long>(PREFS_KEY_TEMPLATE)]!!
+        val appContext = context.applicationContext
+        try {
+            appContext.createRecordFromTemplateUseCase().execute(templateId)
+            appContext.showToast(R.string.quick_pick_widget_logged_toast)
+        } catch (t: Throwable) {
+            appContext.analyticsLogger().logError(t)
+            appContext.showToast(R.string.quick_pick_widget_log_failed_toast)
+        }
+    }
+}
+
+private suspend fun Context.showToast(messageRes: Int) {
+    withContext(Dispatchers.Main) {
+        Toast.makeText(this@showToast, messageRes, Toast.LENGTH_SHORT).show()
     }
 }
 

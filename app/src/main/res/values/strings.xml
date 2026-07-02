@@ -3,4 +3,6 @@
     <string name="shortcut_camera_name">Snap food</string>
     <string name="shortcut_image_name">Pick photo</string>
     <string name="shortcut_text_name">Text only</string>
+    <string name="quick_pick_widget_logged_toast">Meal logged</string>
+    <string name="quick_pick_widget_log_failed_toast">Couldn’t log meal</string>
 </resources>
