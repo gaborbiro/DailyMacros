@@ -33,6 +33,8 @@
     <plurals name="meal_details_update_linked_records">
         <item quantity="other">Update %d meals</item>
     </plurals>
+    <string name="quick_pick_confirm_title">%1$s</string>
+    <string name="quick_pick_confirm_message">Log this meal again, or open its details first?</string>
     <string name="quick_pick_confirm_log_again">Log meal again</string>
     <string name="quick_pick_confirm_open_details">Open details</string>
     <string name="quick_pick_confirm_logged_toast">Meal logged</string>
