@@ -14,14 +14,15 @@ class ExportSqliteDatabaseUseCase @Inject constructor(
 //    private val sharePublicUriLauncher: SharePublicUriLauncher,
 ) {
 
-    suspend fun execute(createPublicDocumentUseCase: CreatePublicDocumentUseCase) {
+    /** @return true if the backup file was written, false if the user cancelled the document picker. */
+    suspend fun execute(createPublicDocumentUseCase: CreatePublicDocumentUseCase): Boolean {
         val archiveFile = backupRepository.prepareBackupArchiveForExport()
         try {
             val stamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"))
             val fileName = "daily_macros_backup_$stamp.tar"
 
             val uri = createPublicDocumentUseCase.execute(fileName)
-                ?: return
+                ?: return false
 
             streamWriter.execute(uri) { output ->
                 FileInputStream(archiveFile).use { input ->
@@ -35,6 +36,7 @@ class ExportSqliteDatabaseUseCase @Inject constructor(
 //                mimeType = "application/x-tar",
 //                chooserTitle = "Share backup",
 //            )
+            return true
         } finally {
             archiveFile.delete()
         }

@@ -101,7 +101,7 @@ class NutrientAnalysisUseCase @Inject constructor(
                             id = 123000L + recordId,
                             recordId = recordId,
                             title = name.ellipsize(50) ?: "Success",
-                            message = "Macros received",
+                            message = "Macronutrient analysis completed",
                             isError = false,
                         )
                     }

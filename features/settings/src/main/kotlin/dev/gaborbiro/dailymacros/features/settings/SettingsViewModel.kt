@@ -110,6 +110,11 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(exportDataInProgress = true) }
             runCatching { exportSqliteDatabaseUseCase.execute(createPublicDocumentUseCase) }
+                .onSuccess { saved ->
+                    if (saved) {
+                        _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Backup saved."))
+                    }
+                }
                 .onFailure { t -> _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar(t.message ?: t.toString())) }
             _uiState.update { it.copy(exportDataInProgress = false) }
         }

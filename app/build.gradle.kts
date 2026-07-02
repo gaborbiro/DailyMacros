@@ -14,22 +14,11 @@ android {
     namespace = "dev.gaborbiro.dailymacros"
     compileSdk = libs.versions.android.sdk.compile.get().toInt()
 
-    val pipelineId = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: Int.MAX_VALUE
-    // GITHUB_HEAD_REF is the PR source branch (e.g. "feature/foo"); only set on pull_request events.
-    // GITHUB_REF_NAME is "master" on push events but "60/merge" on pull_request events — the slash
-    // makes it an invalid filename component, so the APK rename silently fails.
-    val branch = (System.getenv("GITHUB_HEAD_REF")
-        ?.takeIf { it.isNotEmpty() }
-        ?: System.getenv("GITHUB_REF_NAME")
-        ?: "local").replace("/", "-")
-    val sha = System.getenv("GITHUB_SHA")?.take(7) ?: "manual"
-
     defaultConfig {
         applicationId = "dev.gaborbiro.dailymacros"
         minSdk = libs.versions.android.sdk.min.get().toInt()
         targetSdk = libs.versions.android.sdk.target.get().toInt()
-        versionCode = pipelineId
-        versionName = "${baseVersion}(${pipelineId})-${branch}-${sha}"
+        // versionCode and versionName are decided centrally in the androidComponents block below.
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -101,6 +90,33 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+}
+
+private val pipelineId = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: Int.MAX_VALUE
+
+// GITHUB_HEAD_REF is the PR source branch (e.g. "feature/foo"); only set on pull_request events.
+// GITHUB_REF_NAME is "master" on push events but "60/merge" on pull_request events — the slash
+// makes it an invalid filename component, so the APK rename silently fails.
+private val branch = (System.getenv("GITHUB_HEAD_REF")
+    ?.takeIf { it.isNotEmpty() }
+    ?: System.getenv("GITHUB_REF_NAME")
+    ?: "local").replace("/", "-")
+private val sha = System.getenv("GITHUB_SHA")?.take(7) ?: "manual"
+
+
+// Single source of truth for versionCode: release gets the CI run number so Play Store
+// uploads always increase; every other build type gets Int.MAX_VALUE so debug/qa installs
+// from CI and laptop never collide and always win over whatever is already installed.
+// versionName is derived from the same resolved versionCode, so it never shows a
+// pipeline id that doesn't match what was actually shipped.
+androidComponents {
+    onVariants { variant ->
+        val versionCode = if (variant.buildType == "release") pipelineId else Int.MAX_VALUE
+        variant.outputs.forEach { output ->
+            output.versionCode.set(versionCode)
+            output.versionName.set("${baseVersion}(${versionCode})-${branch}-${sha}")
         }
     }
 }
