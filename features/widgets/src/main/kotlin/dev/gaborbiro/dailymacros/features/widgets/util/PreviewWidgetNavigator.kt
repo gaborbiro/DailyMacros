@@ -25,6 +25,8 @@ internal object PreviewWidgetNavigator : WidgetNavigator {
 
     override fun quickPickBodyTapped(templateId: Long): Action = noopAction()
 
+    override fun quickPickWidgetTapped(templateId: Long): Action = noopAction()
+
     override fun reload(): Action = noopAction()
 
     override fun openApp(): Action = noopAction()

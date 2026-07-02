@@ -162,7 +162,7 @@ private fun QuickPickWidgetViewImageOnlyPreview() {
                 templateId = 0L,
                 nutrients = null,
             ),
-            onTapped = PreviewWidgetNavigator.quickPickBodyTapped(0L),
+            onTapped = PreviewWidgetNavigator.quickPickWidgetTapped(0L),
         )
     }
 }
