@@ -20,7 +20,7 @@ class ListMealVariantsForTemplateUseCaseTest {
 
     private fun stubTemplate(dbId: Long, name: String, parentId: Long? = null) = Template(
         dbId = dbId,
-        images = emptyList(),
+        imageFilenames = emptyList(),
         isRepresentativeOfMealByImageIndex = emptyList(),
         name = name,
         description = "",

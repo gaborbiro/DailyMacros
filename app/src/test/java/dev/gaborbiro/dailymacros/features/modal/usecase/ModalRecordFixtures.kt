@@ -14,10 +14,10 @@ object ModalRecordFixtures {
         dbId: Long = 1L,
         name: String = "Meal",
         description: String = "D",
-        images: List<String> = emptyList(),
+        imageFilenames: List<String> = emptyList(),
     ) = Template(
         dbId = dbId,
-        images = images,
+        imageFilenames = imageFilenames,
         isRepresentativeOfMealByImageIndex = emptyList(),
         name = name,
         description = description,

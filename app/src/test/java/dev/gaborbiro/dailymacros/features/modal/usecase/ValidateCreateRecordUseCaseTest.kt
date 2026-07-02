@@ -9,7 +9,7 @@ class ValidateCreateRecordUseCaseTest {
     @Test
     fun `returns valid for any input`() = runBlocking {
         val result = ValidateCreateRecordUseCase().execute(
-            images = emptyList(),
+            imageFilenames = emptyList(),
             title = "",
             description = "",
         )

@@ -14,6 +14,7 @@ data class SettingsUiState(
     val cloudSyncEmail: String? = null,
     val lastSyncedEpochMs: Long? = null,
     val cloudSyncInProgress: Boolean = false,
+    val showSignOutConfirmDialog: Boolean = false,
     val showRestoreConfirmDialog: Boolean = false,
     val restoreDialogModifiedAtMs: Long = 0L,
     val restoreDialogFileId: String = "",

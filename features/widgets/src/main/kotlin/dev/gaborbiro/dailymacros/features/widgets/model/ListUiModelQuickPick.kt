@@ -5,7 +5,7 @@ import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 
 class ListUiModelQuickPick(
     val templateId: Long,
-    val images: List<String>,
+    val imageFilenames: List<String>,
     val title: String,
     val nutrients: NutrientsUiModel?,
 ) : ListUiModelBase(listItemId = templateId, contentType = "quick pick")

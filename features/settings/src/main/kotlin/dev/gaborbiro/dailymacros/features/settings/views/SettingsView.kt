@@ -73,6 +73,8 @@ internal fun SettingsView(
     onExportDbTapped: () -> Unit,
     onImportDbTapped: () -> Unit,
     onCloudSyncTapped: () -> Unit,
+    onSignOutConfirmed: () -> Unit,
+    onSignOutDialogDismissed: () -> Unit,
     onSyncTapped: () -> Unit,
     onRestoreFromDriveTapped: () -> Unit,
     onRestoreConfirmed: () -> Unit,
@@ -105,6 +107,20 @@ internal fun SettingsView(
                 TextButton(onClick = onDiaryDayStartDialogDismissed) {
                     Text(stringResource(R.string.settings_diary_day_start_dialog_close))
                 }
+            },
+        )
+    }
+
+    if (viewState.showSignOutConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = onSignOutDialogDismissed,
+            title = { Text("Sign out?") },
+            text = { Text("You'll be signed out of ${viewState.cloudSyncEmail ?: "your Google account"} and cloud backup will be turned off.") },
+            confirmButton = {
+                TextButton(onClick = onSignOutConfirmed) { Text("Sign out") }
+            },
+            dismissButton = {
+                TextButton(onClick = onSignOutDialogDismissed) { Text("Cancel") }
             },
         )
     }
@@ -333,6 +349,8 @@ private fun SettingsViewPreview() {
             onExportDbTapped = {},
             onImportDbTapped = {},
             onCloudSyncTapped = {},
+            onSignOutConfirmed = {},
+            onSignOutDialogDismissed = {},
             onSyncTapped = {},
             onRestoreFromDriveTapped = {},
             onRestoreConfirmed = {},

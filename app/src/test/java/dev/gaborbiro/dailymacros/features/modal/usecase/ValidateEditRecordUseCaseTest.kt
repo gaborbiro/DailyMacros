@@ -24,7 +24,7 @@ class ValidateEditRecordUseCaseTest {
         description: String = "Desc",
     ) = Template(
         dbId = dbId,
-        images = emptyList(),
+        imageFilenames = emptyList(),
         isRepresentativeOfMealByImageIndex = emptyList(),
         name = name,
         description = description,

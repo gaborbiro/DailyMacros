@@ -211,7 +211,7 @@ private fun QuickPickConfigItem(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        val imageName = item.images.firstOrNull()
+        val imageName = item.imageFilenames.firstOrNull()
         if (imageName != null) {
             LocalImage(
                 name = imageName,

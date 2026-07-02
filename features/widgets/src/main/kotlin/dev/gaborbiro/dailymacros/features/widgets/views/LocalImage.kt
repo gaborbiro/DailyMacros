@@ -23,21 +23,21 @@ val LocalImageStoreWidget = staticCompositionLocalOf<ImageStore> {
 
 @Composable
 fun LocalImage(
-    name: String,
+    imageFilename: String,
     modifier: GlanceModifier = GlanceModifier,
     contentScale: ContentScale = ContentScale.Crop,
     placeholder: @Composable () -> Unit = { Box(modifier.background(Color.LightGray.copy(alpha = 0.15f))) {} },
     error: @Composable () -> Unit = { Box(modifier.background(Color.Red.copy(alpha = 0.08f))) {} },
 ) {
     val store = LocalImageStoreWidget.current
-    var bmp by remember(name, store) { mutableStateOf<Bitmap?>(null) }
-    var failed by remember(name, store) { mutableStateOf(false) }
+    var bmp by remember(imageFilename, store) { mutableStateOf<Bitmap?>(null) }
+    var failed by remember(imageFilename, store) { mutableStateOf(false) }
 
-    LaunchedEffect(name, store) {
+    LaunchedEffect(imageFilename, store) {
         failed = false
         bmp = null
         try {
-            bmp = store.read(name, thumbnail = true)
+            bmp = store.read(filename = imageFilename, thumbnail = true)
             if (bmp == null) failed = true
         } catch (_: Throwable) {
             failed = true

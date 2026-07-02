@@ -19,7 +19,7 @@ class WidgetUiMapper @Inject constructor(
         val nutrients = nutrientsUiMapper.mapRecordNutrients(template.nutrients)
         return ListUiModelQuickPick(
             templateId = template.dbId,
-            images = template.images,
+            imageFilenames = template.imageFilenames,
             title = template.name,
             nutrients = nutrients,
         )

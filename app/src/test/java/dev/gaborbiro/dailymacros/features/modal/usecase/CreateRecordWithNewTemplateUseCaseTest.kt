@@ -18,7 +18,7 @@ class CreateRecordWithNewTemplateUseCaseTest {
         val createTemplate = CreateTemplateUseCase(repo)
         val createFromTpl = CreateRecordFromTemplateUseCase(repo)
         val id = CreateRecordWithNewTemplateUseCase(createTemplate, createFromTpl).execute(
-            images = emptyList(),
+            imageFilenames = emptyList(),
             title = "Meal",
             description = "Note",
         )

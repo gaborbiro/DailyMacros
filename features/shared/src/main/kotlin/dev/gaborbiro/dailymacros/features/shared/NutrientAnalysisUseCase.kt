@@ -39,7 +39,7 @@ class NutrientAnalysisUseCase @Inject constructor(
     ) {
         val record: Record = recordsRepository.get(recordId)!!
         try {
-            val base64Images = record.template.images
+            val base64Images = record.template.imageFilenames
                 .map { imageFilename: String ->
                     val inputStream = imageStore.open(imageFilename, thumbnail = false)
                     inputStreamToBase64(inputStream)
@@ -79,7 +79,7 @@ class NutrientAnalysisUseCase @Inject constructor(
                 }
                 val name = record.template.name.takeIf { it.isNotBlank() } ?: nutrientsAnalysisResult.title?.takeIf { it.isNotBlank() }
                 val templateImagesWhenSavingMacros = templateNutrients?.let {
-                    record.template.images.mapIndexed { index, filename ->
+                    record.template.imageFilenames.mapIndexed { index, filename ->
                         TemplateImageUpdate(
                             filename = filename,
                             isRepresentativeOfMeal = nutrientsAnalysisResult.isRepresentativeOfMealByImageIndex.getOrNull(index),

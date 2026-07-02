@@ -26,7 +26,7 @@ class UpdateRecordWithNewTemplateUseCaseTest {
         }
         UpdateRecordWithNewTemplateUseCase(repo, CreateTemplateUseCase(repo)).execute(
             recordId = 1L,
-            images = listOf("z.jpg"),
+            imageFilenames = listOf("z.jpg"),
             title = "New",
             description = "D",
         )

@@ -27,7 +27,7 @@ class RecordsUiMapperTest {
         quickPickOverride: Template.QuickPickOverride?,
     ) = Template(
         dbId = dbId,
-        images = listOf("a.jpg"),
+        imageFilenames = listOf("a.jpg"),
         isRepresentativeOfMealByImageIndex = emptyList(),
         name = "Toast",
         description = "D",
@@ -67,7 +67,7 @@ class RecordsUiMapperTest {
         assertEquals(5L, ui.recordId)
         assertEquals(9L, ui.templateId)
         assertEquals("Toast", ui.title)
-        assertEquals(listOf("a.jpg"), ui.images)
+        assertEquals(listOf("a.jpg"), ui.imageFilenames)
         assertTrue(ui.showLoadingIndicator)
     }
 

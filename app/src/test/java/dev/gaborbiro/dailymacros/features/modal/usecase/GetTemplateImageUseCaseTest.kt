@@ -11,7 +11,7 @@ class GetTemplateImageUseCaseTest {
     fun `null when template has no images`() = runBlocking {
         val repo = object : BaseRecordsRepositoryStub() {
             override suspend fun getTemplate(templateId: Long) =
-                ModalRecordFixtures.template(dbId = templateId, images = emptyList())
+                ModalRecordFixtures.template(dbId = templateId, imageFilenames = emptyList())
         }
         assertNull(GetTemplateImageUseCase(repo).execute(9L))
     }
@@ -22,11 +22,11 @@ class GetTemplateImageUseCaseTest {
             override suspend fun getTemplate(templateId: Long) = ModalRecordFixtures.template(
                 dbId = templateId,
                 name = "Salad",
-                images = listOf("x.png"),
+                imageFilenames = listOf("x.png"),
             )
         }
         val dlg = requireNotNull(GetTemplateImageUseCase(repo).execute(9L))
         assertEquals("Salad", dlg.title)
-        assertEquals(listOf("x.png"), dlg.images)
+        assertEquals(listOf("x.png"), dlg.imageFilenames)
     }
 }

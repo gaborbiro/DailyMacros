@@ -194,7 +194,7 @@ class ModalViewModelTest {
         vm.onCreateRecordWithTextDeeplinkReceived()
         val root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.Edit
         assertEquals("", root.title.text)
-        assertTrue(root.images.isEmpty())
+        assertTrue(root.imageFilenames.isEmpty())
     }
 
     @Test
@@ -236,7 +236,7 @@ class ModalViewModelTest {
         val tpl = ModalRecordFixtures.template(
             dbId = 7L,
             name = "Soup",
-            images = listOf("a.jpg", "b.jpg", "c.jpg"),
+            imageFilenames = listOf("a.jpg", "b.jpg", "c.jpg"),
         )
         val rec = ModalRecordFixtures.record(5L, tpl)
         val repo = object : BaseRecordsRepositoryStub() {
@@ -254,15 +254,15 @@ class ModalViewModelTest {
         vm.onImageMoveRightTapped("a.jpg")
         advanceUntilIdle()
         var root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
-        assertEquals(listOf("b.jpg", "a.jpg", "c.jpg"), root.images)
+        assertEquals(listOf("b.jpg", "a.jpg", "c.jpg"), root.imageFilenames)
         vm.onImageMoveLeftTapped("c.jpg")
         advanceUntilIdle()
         root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
-        assertEquals(listOf("b.jpg", "c.jpg", "a.jpg"), root.images)
+        assertEquals(listOf("b.jpg", "c.jpg", "a.jpg"), root.imageFilenames)
         vm.onImageMoveLeftTapped("b.jpg")
         advanceUntilIdle()
         root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
-        assertEquals(listOf("b.jpg", "c.jpg", "a.jpg"), root.images)
+        assertEquals(listOf("b.jpg", "c.jpg", "a.jpg"), root.imageFilenames)
     }
 
     @Test

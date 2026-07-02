@@ -56,7 +56,7 @@ class ApplyConfirmedSharedTemplateEditUseCaseTest {
         uc.execute(
             target = ChangeImagesTarget.RECORD,
             recordId = 1L,
-            images = listOf("a.jpg"),
+            imageFilenames = listOf("a.jpg"),
             title = "T",
             description = "D",
         )
@@ -92,7 +92,7 @@ class ApplyConfirmedSharedTemplateEditUseCaseTest {
         uc.execute(
             target = ChangeImagesTarget.TEMPLATE,
             recordId = 1L,
-            images = listOf("b.jpg"),
+            imageFilenames = listOf("b.jpg"),
             title = "Shared",
             description = "X",
         )

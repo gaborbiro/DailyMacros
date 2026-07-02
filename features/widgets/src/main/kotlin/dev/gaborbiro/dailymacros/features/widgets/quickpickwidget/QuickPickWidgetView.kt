@@ -85,7 +85,7 @@ private fun QuickPickWidgetWithTitle(
             .clickable(onTapped),
         verticalAlignment = Alignment.Vertical.CenterVertically,
     ) {
-        uiModel.images.firstOrNull()
+        uiModel.imageFilenames.firstOrNull()
             ?.let {
                 LocalImage(
                     it,
@@ -122,11 +122,11 @@ private fun QuickPickWidgetImageOnly(
             .fillMaxSize()
             .clickable(onTapped),
     ) {
-        uiModel.images.firstOrNull()
+        uiModel.imageFilenames.firstOrNull()
             ?.let {
                 LocalImage(
-                    it,
                     modifier = GlanceModifier.fillMaxSize(),
+                    imageFilename = it,
                     contentScale = ContentScale.Crop,
                 )
             }
@@ -141,7 +141,7 @@ private fun QuickPickWidgetViewWithTitlePreview() {
         QuickPickWidgetView(
             uiModel = ListUiModelQuickPick(
                 title = "Breakfast",
-                images = listOf("", ""),
+                imageFilenames = listOf("", ""),
                 templateId = 0L,
                 nutrients = null,
             ),
@@ -158,7 +158,7 @@ private fun QuickPickWidgetViewImageOnlyPreview() {
         QuickPickWidgetView(
             uiModel = ListUiModelQuickPick(
                 title = "Breakfast",
-                images = listOf("", ""),
+                imageFilenames = listOf("", ""),
                 templateId = 0L,
                 nutrients = null,
             ),

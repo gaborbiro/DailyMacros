@@ -29,7 +29,7 @@ class ModalUiMapperTest {
             timestamp = ZonedDateTime.of(2024, 1, 1, 12, 0, 0, 0, zone),
             template = Template(
                 dbId = 1L,
-                images = emptyList(),
+                imageFilenames = emptyList(),
                 isRepresentativeOfMealByImageIndex = emptyList(),
                 name = "Meal",
                 description = "D",

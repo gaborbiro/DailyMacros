@@ -42,7 +42,7 @@ import dev.gaborbiro.dailymacros.features.common.views.LocalImage
 
 @Composable
 fun ImageStrip(
-    images: List<String>,
+    imageFilenames: List<String>,
     showAddPhotoButtons: Boolean,
     showImageDeleteButton: Boolean = true,
     showImageReorderButtons: Boolean = false,
@@ -79,7 +79,7 @@ fun ImageStrip(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        images.forEachIndexed { index, name ->
+        imageFilenames.forEachIndexed { index, name ->
             Box(
                 modifier = Modifier
                     .size(tileSize)
@@ -108,7 +108,7 @@ fun ImageStrip(
                         )
                     }
                 }
-                if (showImageReorderButtons && images.size > 1) {
+                if (showImageReorderButtons && imageFilenames.size > 1) {
                     Row(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
@@ -131,7 +131,7 @@ fun ImageStrip(
                         }
                         IconButton(
                             modifier = Modifier.size(24.dp),
-                            enabled = index < images.lastIndex,
+                            enabled = index < imageFilenames.lastIndex,
                             onClick = { onImageMoveRightTapped(name) },
                             colors = imageControlColors,
                         ) {
@@ -195,7 +195,7 @@ fun ImageStrip(
 private fun ImageStripPreview() {
     ViewPreviewContext {
         ImageStrip(
-            images = listOf("1", "2"),
+            imageFilenames = listOf("1", "2"),
             showAddPhotoButtons = true,
             showImageReorderButtons = true,
             showInfoButton = true,
@@ -216,7 +216,7 @@ private fun ImageStripPreview() {
 private fun ImageStripPreviewViewOnly() {
     ViewPreviewContext {
         ImageStrip(
-            images = listOf("1", "2"),
+            imageFilenames = listOf("1", "2"),
             showAddPhotoButtons = false,
             showImageDeleteButton = false,
             onImageTapped = {},

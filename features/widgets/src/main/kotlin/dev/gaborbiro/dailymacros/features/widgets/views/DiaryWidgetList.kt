@@ -106,7 +106,7 @@ private fun WidgetListPreview() {
                     templateId = 1L,
                     title = "Breakfast",
                     timestamp = "Yesterday",
-                    images = listOf("", ""),
+                    imageFilenames = listOf("", ""),
                     nutrients = NutrientsUiModel(
                         calories = "8cal",
                         protein = "prot 8",
@@ -121,7 +121,7 @@ private fun WidgetListPreview() {
                 ListUiModelQuickPick(
                     templateId = 1,
                     title = "Breakfast",
-                    images = listOf("", ""),
+                    imageFilenames = listOf("", ""),
                     nutrients = NutrientsUiModel(
                         calories = "1008cal",
                         protein = "protein 8",
@@ -134,7 +134,7 @@ private fun WidgetListPreview() {
                 ListUiModelQuickPick(
                     templateId = 2,
                     title = "Lunch",
-                    images = listOf("", ""),
+                    imageFilenames = listOf("", ""),
                     nutrients = NutrientsUiModel(
                         calories = "1008cal",
                         protein = "protein 8",
@@ -147,7 +147,7 @@ private fun WidgetListPreview() {
                 ListUiModelQuickPick(
                     templateId = 3,
                     title = "Dinner",
-                    images = listOf("", ""),
+                    imageFilenames = listOf("", ""),
                     nutrients = NutrientsUiModel(
                         calories = "1008cal",
                         protein = "protein 8",
@@ -163,7 +163,7 @@ private fun WidgetListPreview() {
                     templateId = 1L,
                     timestamp = "Yesterday",
                     title = "Lunch",
-                    images = listOf("", ""),
+                    imageFilenames = listOf("", ""),
                     nutrients = NutrientsUiModel(
                         calories = "8cal",
                         protein = "prot 8",
@@ -179,7 +179,7 @@ private fun WidgetListPreview() {
                     templateId = 1L,
                     timestamp = "Yesterday",
                     title = "Dinner",
-                    images = listOf("", ""),
+                    imageFilenames = listOf("", ""),
                     nutrients = NutrientsUiModel(
                         calories = "8cal",
                         protein = "prot 8",

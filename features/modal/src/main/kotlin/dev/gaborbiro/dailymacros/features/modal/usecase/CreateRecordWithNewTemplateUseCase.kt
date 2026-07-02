@@ -11,13 +11,13 @@ class CreateRecordWithNewTemplateUseCase @Inject constructor(
 
     @UiThread
     suspend fun execute(
-        images: List<String>,
+        imageFilenames: List<String>,
         title: String,
         description: String,
         parentTemplateId: Long? = null,
     ): Long {
         val templateId = createTemplateUseCase.execute(
-            images = images,
+            imageFilenames = imageFilenames,
             title = title,
             description = description,
             parentTemplateId = parentTemplateId,

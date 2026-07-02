@@ -22,7 +22,7 @@ class RepeatRecordUseCaseTest {
 
     private fun stubTemplate(dbId: Long) = Template(
         dbId = dbId,
-        images = emptyList(),
+        imageFilenames = emptyList(),
         isRepresentativeOfMealByImageIndex = emptyList(),
         name = "Meal",
         description = "D",

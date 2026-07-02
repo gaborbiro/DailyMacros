@@ -13,14 +13,14 @@ sealed class DialogHandle {
     data class EditTargetConfirmationDialog(
         val recordId: Long,
         val count: Int,
-        val images: List<String>,
+        val imageFilenames: List<String>,
         val title: String,
         val description: String,
     ) : DialogHandle()
 
     data class ViewImageDialog(
         val title: String,
-        val images: List<String>,
+        val imageFilenames: List<String>,
         val initialPage: Int = 0,
     ) : DialogHandle()
 
@@ -29,7 +29,7 @@ sealed class DialogHandle {
         open val titleValidationError: String? = null,
         open val title: TextFieldValue,
         open val description: TextFieldValue,
-        open val images: List<String>,
+        open val imageFilenames: List<String>,
         open val hasUnsavedEdits: Boolean = false,
     ) : DialogHandle() {
 
@@ -38,7 +38,7 @@ sealed class DialogHandle {
             override val titleHint: String,
             override val titleValidationError: String? = null,
             override val description: TextFieldValue,
-            override val images: List<String>,
+            override val imageFilenames: List<String>,
             val showProgressIndicator: Boolean = false,
             val showRunAIButton: Boolean = false,
             val recognisedFood: RecognisedFood?,
@@ -49,7 +49,7 @@ sealed class DialogHandle {
             titleValidationError = titleValidationError,
             title = title,
             description = description,
-            images = images,
+            imageFilenames = imageFilenames,
         ) {
             override fun withTitleValidationError(titleValidationError: String?) =
                 copy(titleValidationError = titleValidationError)
@@ -73,7 +73,7 @@ sealed class DialogHandle {
             override val titleValidationError: String? = null,
             override val title: TextFieldValue,
             override val description: TextFieldValue,
-            override val images: List<String>,
+            override val imageFilenames: List<String>,
             /** Opened from quick-pick template “Details”; submit creates a new template + new record. */
             val openedFromTemplateDetailsOnly: Boolean = false,
             /** When non-null, template has other logged variants; combo is shown above the title field. */
@@ -88,7 +88,7 @@ sealed class DialogHandle {
             titleValidationError = titleValidationError,
             title = title,
             description = description,
-            images = images,
+            imageFilenames = imageFilenames,
         ) {
             override fun withTitleValidationError(titleValidationError: String?) =
                 copy(titleValidationError = titleValidationError)
@@ -110,18 +110,23 @@ sealed class DialogHandle {
     ) : DialogHandle()
 
     data class InfoDialog(val message: String) : DialogHandle()
+
+    data class QuickPickWidgetConfirmDialog(
+        val templateId: Long,
+        val templateName: String,
+    ) : DialogHandle()
 }
 
 /** Baseline for unsaved detection on create-record [DialogHandle.RecordDetailsDialog.Edit]. */
 fun recordDetailsEditPristineSnapshot(
     title: TextFieldValue,
     description: TextFieldValue,
-    images: List<String>,
+    imageFilenames: List<String>,
 ) = RecordDetailsPristineSnapshot(
     templateDbId = 0L,
     title = title.text,
     description = description.text,
-    images = images,
+    imageFilenames = imageFilenames,
 )
 
 

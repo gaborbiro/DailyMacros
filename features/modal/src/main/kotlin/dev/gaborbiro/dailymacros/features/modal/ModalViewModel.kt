@@ -152,11 +152,50 @@ class ModalViewModel @Inject constructor(
         onTemplateDetailsButtonTapped(templateId)
     }
 
+    fun onQuickPickWidgetConfirmDeeplinkReceived(templateId: Long) {
+        runSafely("Couldn't open the entry") {
+            val template = recordsRepository.getTemplate(templateId)
+            setRoot(
+                DialogHandle.QuickPickWidgetConfirmDialog(
+                    templateId = templateId,
+                    templateName = template.name,
+                )
+            )
+        }
+    }
+
+    fun onQuickPickWidgetLogAgainTapped() {
+        val dialog = _uiState.value.rootDialog as? DialogHandle.QuickPickWidgetConfirmDialog ?: return
+        viewModelScope.launch {
+            try {
+                val recordId = createRecordFromTemplateUseCase.execute(dialog.templateId)
+                scheduleMacroAnalysisForRecordIfTemplateIncomplete(recordId, dialog.templateId)
+                _uiUpdates.emit(
+                    ModalUiUpdates.ShowToast(application.getString(R.string.quick_pick_confirm_logged_toast))
+                )
+            } catch (e: CancellationException) {
+                throw e
+            } catch (t: Throwable) {
+                analyticsLogger.logError(t)
+                _uiUpdates.emit(
+                    ModalUiUpdates.ShowToast(application.getString(R.string.quick_pick_confirm_log_failed_toast))
+                )
+            } finally {
+                closeAll()
+            }
+        }
+    }
+
+    fun onQuickPickWidgetOpenDetailsTapped() {
+        val dialog = _uiState.value.rootDialog as? DialogHandle.QuickPickWidgetConfirmDialog ?: return
+        onTemplateDetailsButtonTapped(dialog.templateId)
+    }
+
     fun onImagesSelected(uris: List<Uri>) {
         runSafely("Couldn't add the selected images") {
             val existingCount = when (val root = _uiState.value.rootDialog) {
-                is DialogHandle.RecordDetailsDialog.Edit -> root.images.size
-                is DialogHandle.RecordDetailsDialog.View -> if (root.isEditing) root.images.size else 0
+                is DialogHandle.RecordDetailsDialog.Edit -> root.imageFilenames.size
+                is DialogHandle.RecordDetailsDialog.View -> if (root.isEditing) root.imageFilenames.size else 0
                 else -> 0
             }
             if (existingCount + uris.size > MAX_IMAGES) {
@@ -170,15 +209,15 @@ class ModalViewModel @Inject constructor(
 
             when (val root = _uiState.value.rootDialog) {
                 is DialogHandle.RecordDetailsDialog.Edit -> {
-                    val updatedImages = root.images + persistedFilenames
-                    setRoot(root.copy(images = updatedImages, recognisedFood = null))
+                    val updatedImages = root.imageFilenames + persistedFilenames
+                    setRoot(root.copy(imageFilenames = updatedImages, recognisedFood = null))
                     recomputeHasUnsavedEdits()
                     runFoodRecognition(updatedImages)
                 }
 
                 is DialogHandle.RecordDetailsDialog.View -> {
                     if (!root.isEditing) return@runSafely
-                    setRoot(root.copy(images = root.images + persistedFilenames))
+                    setRoot(root.copy(imageFilenames = root.imageFilenames + persistedFilenames))
                     recomputeHasUnsavedEdits()
                 }
 
@@ -188,12 +227,12 @@ class ModalViewModel @Inject constructor(
                             title = TextFieldValue(),
                             titleHint = "Title",
                             description = TextFieldValue(),
-                            images = persistedFilenames,
+                            imageFilenames = persistedFilenames,
                             recognisedFood = null,
                             pristineSnapshot = recordDetailsEditPristineSnapshot(
                                 title = TextFieldValue(),
                                 description = TextFieldValue(),
-                                images = persistedFilenames,
+                                imageFilenames = persistedFilenames,
                             ),
                         )
                     )
@@ -216,12 +255,12 @@ class ModalViewModel @Inject constructor(
                     title = TextFieldValue(),
                     titleHint = "Title",
                     description = TextFieldValue(),
-                    images = persistedFilenames,
+                    imageFilenames = persistedFilenames,
                     recognisedFood = null,
                     pristineSnapshot = recordDetailsEditPristineSnapshot(
                         title = TextFieldValue(),
                         description = TextFieldValue(),
-                        images = persistedFilenames,
+                        imageFilenames = persistedFilenames,
                     ),
                 )
             )
@@ -269,7 +308,7 @@ class ModalViewModel @Inject constructor(
                     isEditing = false,
                     title = TextFieldValue(title, selection = TextRange(title.length)),
                     description = TextFieldValue(desc, selection = TextRange(desc.length)),
-                    images = p.images,
+                    imageFilenames = p.imageFilenames,
                     titleValidationError = null,
                 )
             }
@@ -297,7 +336,7 @@ class ModalViewModel @Inject constructor(
 
             dialog is DialogHandle.RecordDetailsDialog.Edit -> {
                 runSafely("Couldn't discard the entry") {
-                    dialog.images.forEach { img ->
+                    dialog.imageFilenames.forEach { img ->
                         imageStore.delete(img)
                     }
                     closeAll()
@@ -351,19 +390,19 @@ class ModalViewModel @Inject constructor(
         recomputeHasUnsavedEdits()
     }
 
-    fun onImageTapped(image: String) {
+    fun onImageTapped(imageFilename: String) {
         val root = _uiState.value.rootDialog
-        val allImages = (root as? DialogHandle.RecordDetailsDialog)?.images ?: listOf(image)
-        val index = allImages.indexOf(image).coerceAtLeast(0)
-        pushOverlay(DialogHandle.ViewImageDialog("", allImages, index))
+        val allImageFilenames = (root as? DialogHandle.RecordDetailsDialog)?.imageFilenames ?: listOf(imageFilename)
+        val index = allImageFilenames.indexOf(imageFilename).coerceAtLeast(0)
+        pushOverlay(DialogHandle.ViewImageDialog("", allImageFilenames, index))
     }
 
-    fun onImageDownloadTapped(image: String) {
+    fun onImageDownloadTapped(imageFilename: String) {
         if (photoExportJob?.isActive == true) return
         photoExportJob = runSafely("Couldn't save the image to your gallery") {
             _uiState.update { it.copy(photoExportInProgress = true) }
             try {
-                val exportedUri = exportImageToGalleryUseCase.execute(image)
+                val exportedUri = exportImageToGalleryUseCase.execute(imageFilename)
                 _uiUpdates.emit(
                     ModalUiUpdates.ShowToast(
                         application.getString(
@@ -383,9 +422,9 @@ class ModalViewModel @Inject constructor(
         updateRoot<DialogHandle.RecordDetailsDialog> {
             when (it) {
                 is DialogHandle.RecordDetailsDialog.View ->
-                    if (!it.isEditing) it else it.copy(images = it.images - image)
+                    if (!it.isEditing) it else it.copy(imageFilenames = it.imageFilenames - image)
 
-                is DialogHandle.RecordDetailsDialog.Edit -> it.copy(images = it.images - image)
+                is DialogHandle.RecordDetailsDialog.Edit -> it.copy(imageFilenames = it.imageFilenames - image)
             }
         }
         recomputeHasUnsavedEdits()
@@ -393,16 +432,16 @@ class ModalViewModel @Inject constructor(
 
     fun onImageMoveLeftTapped(image: String) {
         updateRoot<DialogHandle.RecordDetailsDialog> {
-            val index = it.images.indexOf(image)
+            val index = it.imageFilenames.indexOf(image)
             if (index <= 0) return@updateRoot it
-            val newImages = it.images.toMutableList().apply {
+            val newImages = it.imageFilenames.toMutableList().apply {
                 add(index - 1, removeAt(index))
             }
             when (it) {
                 is DialogHandle.RecordDetailsDialog.View ->
-                    if (!it.isEditing) it else it.copy(images = newImages)
+                    if (!it.isEditing) it else it.copy(imageFilenames = newImages)
 
-                is DialogHandle.RecordDetailsDialog.Edit -> it.copy(images = newImages)
+                is DialogHandle.RecordDetailsDialog.Edit -> it.copy(imageFilenames = newImages)
             }
         }
         recomputeHasUnsavedEdits()
@@ -410,16 +449,16 @@ class ModalViewModel @Inject constructor(
 
     fun onImageMoveRightTapped(image: String) {
         updateRoot<DialogHandle.RecordDetailsDialog> {
-            val index = it.images.indexOf(image)
-            if (index < 0 || index >= it.images.lastIndex) return@updateRoot it
-            val newImages = it.images.toMutableList().apply {
+            val index = it.imageFilenames.indexOf(image)
+            if (index < 0 || index >= it.imageFilenames.lastIndex) return@updateRoot it
+            val newImages = it.imageFilenames.toMutableList().apply {
                 add(index + 1, removeAt(index))
             }
             when (it) {
                 is DialogHandle.RecordDetailsDialog.View ->
-                    if (!it.isEditing) it else it.copy(images = newImages)
+                    if (!it.isEditing) it else it.copy(imageFilenames = newImages)
 
-                is DialogHandle.RecordDetailsDialog.Edit -> it.copy(images = newImages)
+                is DialogHandle.RecordDetailsDialog.Edit -> it.copy(imageFilenames = newImages)
             }
         }
         recomputeHasUnsavedEdits()
@@ -525,7 +564,7 @@ class ModalViewModel @Inject constructor(
 
     fun onRunAIButtonTapped() {
         updateRoot<DialogHandle.RecordDetailsDialog.Edit> {
-            runFoodRecognition(it.images, withDelay = false)
+            runFoodRecognition(it.imageFilenames, withDelay = false)
             it.copy(
                 title = TextFieldValue()
             )
@@ -536,14 +575,14 @@ class ModalViewModel @Inject constructor(
         (_uiState.value.overlayDialog as? DialogHandle.EditTargetConfirmationDialog)
             ?.let {
                 val recordId = it.recordId
-                val images = it.images
+                val imageFilenames = it.imageFilenames
                 val title = it.title
                 val description = it.description
                 runSafely("Couldn't apply your changes") {
                     applyConfirmedSharedTemplateEditUseCase.execute(
                         target = target,
                         recordId = recordId,
-                        images = images,
+                        imageFilenames = imageFilenames,
                         title = title,
                         description = description,
                     )
@@ -552,7 +591,7 @@ class ModalViewModel @Inject constructor(
             }
     }
 
-    private fun runFoodRecognition(images: List<String>, withDelay: Boolean = true) {
+    private fun runFoodRecognition(imageFilenames: List<String>, withDelay: Boolean = true) {
         recogniseFoodJob?.cancel()
         recogniseFoodJob = runSafely("Image recognition failed. Please try again later.") {
             if (withDelay) delay(1.3.seconds)
@@ -560,7 +599,7 @@ class ModalViewModel @Inject constructor(
                 it.copy(showProgressIndicator = true)
             }
             try {
-                val recognisedFood = foodRecognitionUseCase.execute(images)
+                val recognisedFood = foodRecognitionUseCase.execute(imageFilenames)
                 updateRoot<DialogHandle.RecordDetailsDialog.Edit> { currentUiState ->
                     val title = currentUiState.title.takeIf { it.text.isNotBlank() }
                         ?: recognisedFood.title
@@ -631,7 +670,7 @@ class ModalViewModel @Inject constructor(
                 isEditing = true,
                 title = existing.title,
                 description = existing.description,
-                images = existing.images,
+                imageFilenames = existing.imageFilenames,
                 titleValidationError = existing.titleValidationError,
                 pristineSnapshot = existing.pristineSnapshot,
             )
@@ -705,10 +744,10 @@ class ModalViewModel @Inject constructor(
     ) {
         val title = dialogHandle.title.text.trim()
         val description = dialogHandle.description.text.trim()
-        val images = dialogHandle.images
+        val imageFilenames = dialogHandle.imageFilenames
 
         val result = validateCreateRecordUseCase.execute(
-            images = images,
+            imageFilenames = imageFilenames,
             title = title,
             description = description
         )
@@ -720,7 +759,7 @@ class ModalViewModel @Inject constructor(
 
             is CreateValidationResult.Valid -> {
                 val recordId = createRecordWithNewTemplateUseCase.execute(
-                    images = images,
+                    imageFilenames = imageFilenames,
                     title = title,
                     description = description,
                 )
@@ -754,12 +793,12 @@ class ModalViewModel @Inject constructor(
             is EditValidationResult.Valid -> {
                 val pristine = dialogHandle.pristineSnapshot
                 val imagesNeedReanalysis = modalUiMapper.imagesRequireMacroReanalysis(
-                    pristine.images,
-                    dialogHandle.images,
+                    pristine.imageFilenames,
+                    dialogHandle.imageFilenames,
                 )
                 val contentChanged = title != pristine.title.trim() ||
                         description != pristine.description.trim()
-                val templateImages = dialogHandle.images.map { TemplateImageUpdate(filename = it) }
+                val templateImages = dialogHandle.imageFilenames.map { TemplateImageUpdate(filename = it) }
                 if (isVariedTemplateFamily(dialogHandle)) {
                     recordsRepository.updateTemplate(
                         templateId = dialogHandle.templateDbId,
@@ -772,7 +811,7 @@ class ModalViewModel @Inject constructor(
                     }
                 } else {
                     val imagesReorderedOnly =
-                        dialogHandle.images != pristine.images && !imagesNeedReanalysis
+                        dialogHandle.imageFilenames != pristine.imageFilenames && !imagesNeedReanalysis
                     if (imagesReorderedOnly && !contentChanged) {
                         recordsRepository.updateTemplate(
                             templateId = dialogHandle.templateDbId,
@@ -783,7 +822,7 @@ class ModalViewModel @Inject constructor(
                     } else {
                         updateRecordWithNewTemplateUseCase.execute(
                             recordId = dialogHandle.recordId,
-                            images = dialogHandle.images,
+                            imageFilenames = dialogHandle.imageFilenames,
                             title = title,
                             description = description,
                         )
@@ -825,7 +864,7 @@ class ModalViewModel @Inject constructor(
                     scheduleMacroAnalysisForRecordIfTemplateIncomplete(secondRecordId, templateId)
                 } else {
                     val newTemplateId = createTemplateUseCase.execute(
-                        images = dialogHandle.images,
+                        imageFilenames = dialogHandle.imageFilenames,
                         title = title,
                         description = description,
                         parentTemplateId = dialogHandle.templateDbId,
@@ -851,7 +890,7 @@ class ModalViewModel @Inject constructor(
     ) {
         val title = dialogHandle.title.text.trim()
         val description = dialogHandle.description.text.trim()
-        val images = dialogHandle.images
+        val imageFilenames = dialogHandle.imageFilenames
         val anchor = dialogHandle.variabilityAnchorTemplateDbId
 
         if (!dialogHandle.hasUnsavedEdits) {
@@ -862,7 +901,7 @@ class ModalViewModel @Inject constructor(
         }
 
         val result = validateCreateRecordUseCase.execute(
-            images = images,
+            imageFilenames = imageFilenames,
             title = title,
             description = description,
         )
@@ -874,7 +913,7 @@ class ModalViewModel @Inject constructor(
 
             is CreateValidationResult.Valid -> {
                 val recordId = createRecordWithNewTemplateUseCase.execute(
-                    images = images,
+                    imageFilenames = imageFilenames,
                     title = title,
                     description = description,
                     parentTemplateId = anchor,
@@ -956,13 +995,13 @@ class ModalViewModel @Inject constructor(
         title = TextFieldValue(),
         titleHint = "Title",
         description = TextFieldValue(),
-        images = emptyList(),
+        imageFilenames = emptyList(),
         recognisedFood = null,
         showProgressIndicator = false,
         pristineSnapshot = recordDetailsEditPristineSnapshot(
             title = TextFieldValue(),
             description = TextFieldValue(),
-            images = emptyList(),
+            imageFilenames = emptyList(),
         ),
     )
 

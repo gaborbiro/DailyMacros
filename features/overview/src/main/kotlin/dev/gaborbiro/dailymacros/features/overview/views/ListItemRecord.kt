@@ -60,7 +60,7 @@ fun ListItemRecord(
                 .size(73.dp)
                 .padding(top = 4.dp)
                 .clickable(onClick = onImageTapped),
-            image = record.images.firstOrNull(),
+            imageFilename = record.imageFilenames.firstOrNull(),
             title = record.title,
         )
         Spacer(
@@ -81,9 +81,9 @@ fun ListItemRecord(
 private fun RecordImage(
     modifier: Modifier,
     title: String,
-    image: String?,
+    imageFilename: String?,
 ) {
-    image?.let {
+    imageFilename?.let {
         LocalImage(
             name = it,
             modifier = modifier
@@ -163,7 +163,7 @@ private fun OverviewListItemPreview() {
                 recordId = 1L,
                 title = "Title",
                 templateId = 1L,
-                images = listOf("", ""),
+                imageFilenames = listOf("", ""),
                 timestamp = "Tue 19 Aug, 20:49",
                 nutrients = NutrientsUiModel(
                     calories = "1008kcal",
@@ -191,7 +191,7 @@ private fun OverviewListItemPreviewMissing() {
                 recordId = 1L,
                 title = "Title",
                 templateId = 1L,
-                images = listOf("", ""),
+                imageFilenames = listOf("", ""),
                 timestamp = "Tue 19 Aug, 20:49",
                 nutrients = NutrientsUiModel(
                     calories = "1008kcal",
@@ -220,7 +220,7 @@ private fun OverviewListItemPreviewLoading() {
                 recordId = 1L,
                 title = "Title",
                 templateId = 1L,
-                images = listOf("", ""),
+                imageFilenames = listOf("", ""),
                 timestamp = "Tue 19 Aug, 20:49",
                 nutrients = NutrientsUiModel(
                     calories = "1008kcal",

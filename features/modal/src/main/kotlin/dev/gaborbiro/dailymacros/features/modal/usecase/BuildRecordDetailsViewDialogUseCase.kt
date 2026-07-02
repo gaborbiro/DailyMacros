@@ -27,7 +27,7 @@ class BuildRecordDetailsViewDialogUseCase @Inject constructor(
             variabilityAnchorTemplateDbId = tmpl.dbId,
             title = TextFieldValue(tmpl.name),
             description = TextFieldValue(tmpl.description),
-            images = tmpl.images,
+            imageFilenames = tmpl.imageFilenames,
             nutrientBreakdown = uiMapper.mapNutrientBreakdowns(record),
             compactNutrients = uiMapper.mapCompactNutrients(record),
             showLoadingIndicator = tmpl.isPending,
@@ -42,7 +42,7 @@ class BuildRecordDetailsViewDialogUseCase @Inject constructor(
                 templateDbId = tmpl.dbId,
                 title = tmpl.name,
                 description = tmpl.description,
-                images = tmpl.images,
+                imageFilenames = tmpl.imageFilenames,
             ),
             isEditing = false,
         )

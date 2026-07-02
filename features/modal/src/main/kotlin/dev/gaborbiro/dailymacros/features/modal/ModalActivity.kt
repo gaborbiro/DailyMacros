@@ -43,6 +43,7 @@ import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates.ShareImage
 import dev.gaborbiro.dailymacros.features.modal.views.EditTargetConfirmationDialog
 import dev.gaborbiro.dailymacros.features.modal.views.ImageDialog
 import dev.gaborbiro.dailymacros.features.modal.views.ConfirmSwitchTemplateDialog
+import dev.gaborbiro.dailymacros.features.modal.views.QuickPickWidgetConfirmDialog
 import dev.gaborbiro.dailymacros.features.modal.views.RecordDetailsDialog
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
@@ -213,6 +214,11 @@ class ModalActivity : AppCompatActivity() {
                 val templateId = intent.getLongExtra(EXTRA_TEMPLATE_ID, -1L)
                 viewModel.onViewTemplateDetailsDeeplinkReceived(templateId)
             }
+
+            Action.QUICK_PICK_WIDGET_CONFIRM -> {
+                val templateId = intent.getLongExtra(EXTRA_TEMPLATE_ID, -1L)
+                viewModel.onQuickPickWidgetConfirmDeeplinkReceived(templateId)
+            }
         }
     }
 
@@ -285,6 +291,13 @@ class ModalActivity : AppCompatActivity() {
                     onDismissRequested = onDismissRequested,
                 )
             }
+
+            is DialogHandle.QuickPickWidgetConfirmDialog -> QuickPickWidgetConfirmDialog(
+                dialogHandle = dialogHandle,
+                onLogAgainTapped = viewModel::onQuickPickWidgetLogAgainTapped,
+                onOpenDetailsTapped = viewModel::onQuickPickWidgetOpenDetailsTapped,
+                onDismissRequested = onDismissRequested,
+            )
 
             null -> {
                 // nothing to do

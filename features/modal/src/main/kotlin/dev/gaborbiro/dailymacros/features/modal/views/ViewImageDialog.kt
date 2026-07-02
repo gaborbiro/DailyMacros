@@ -25,8 +25,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -41,7 +41,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.zIndex
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -57,10 +56,11 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import dev.gaborbiro.dailymacros.features.modal.R
+import androidx.compose.ui.zIndex
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
+import dev.gaborbiro.dailymacros.features.modal.R
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -78,8 +78,8 @@ fun ImageDialog(
             usePlatformDefaultWidth = false
         )
     ) {
-        val images = dialogHandle.images
-        if (images.size == 1) {
+        val imageFilenames = dialogHandle.imageFilenames
+        if (imageFilenames.size == 1) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -87,13 +87,13 @@ fun ImageDialog(
                 contentAlignment = Alignment.Center,
             ) {
                 LazyZoomableImage(
-                    imageName = images[0],
+                    imageFilename = imageFilenames[0],
                     contentDescription = "Image: ${dialogHandle.title}",
                 )
 
                 CloseButton(onTapped = onDismissRequested)
                 DownloadButton(
-                    onTapped = { onImageDownloadTapped(images[0]) },
+                    onTapped = { onImageDownloadTapped(imageFilenames[0]) },
                     enabled = !photoExportInProgress,
                     isLoading = photoExportInProgress,
                 )
@@ -101,7 +101,7 @@ fun ImageDialog(
         } else {
             val pagerState = rememberPagerState(
                 initialPage = dialogHandle.initialPage,
-                pageCount = { images.size },
+                pageCount = { imageFilenames.size },
             )
             var currentPageZoomed by remember { mutableStateOf(false) }
             Box(
@@ -117,8 +117,8 @@ fun ImageDialog(
                     userScrollEnabled = !currentPageZoomed,
                 ) { page ->
                     LazyZoomableImage(
-                        imageName = images[page],
-                        contentDescription = "Image ${page + 1} of ${images.size}: ${dialogHandle.title}",
+                        imageFilename = imageFilenames[page],
+                        contentDescription = "Image ${page + 1} of ${imageFilenames.size}: ${dialogHandle.title}",
                         onZoomChanged = { scale ->
                             if (page == pagerState.currentPage) {
                                 currentPageZoomed = scale > 1f
@@ -129,7 +129,7 @@ fun ImageDialog(
 
                 CloseButton(onTapped = onDismissRequested)
                 DownloadButton(
-                    onTapped = { onImageDownloadTapped(images[pagerState.currentPage]) },
+                    onTapped = { onImageDownloadTapped(imageFilenames[pagerState.currentPage]) },
                     enabled = !photoExportInProgress,
                     isLoading = photoExportInProgress,
                 )
@@ -227,14 +227,14 @@ private fun BoxScope.DownloadButton(
 
 @Composable
 private fun LazyZoomableImage(
-    imageName: String,
+    imageFilename: String,
     contentDescription: String,
     onZoomChanged: (Float) -> Unit = {},
 ) {
     val store = LocalImageStore.current
-    val bitmap by produceState<Bitmap?>(initialValue = null, key1 = imageName) {
+    val bitmap by produceState<Bitmap?>(initialValue = null, key1 = imageFilename) {
         value = try {
-            store.read(imageName, thumbnail = false)
+            store.read(filename = imageFilename, thumbnail = false)
         } catch (_: Throwable) {
             null
         }
@@ -398,7 +398,7 @@ private fun ViewImageDialogPreview() {
         ImageDialog(
             dialogHandle = DialogHandle.ViewImageDialog(
                 title = "",
-                images = listOf("1"),
+                imageFilenames = listOf("1"),
             ),
             onDismissRequested = {},
             onImageDownloadTapped = {},
@@ -415,7 +415,7 @@ private fun ViewImageDialogPreviewMulti() {
         ImageDialog(
             dialogHandle = DialogHandle.ViewImageDialog(
                 title = "",
-                images = listOf("1", "2", "3", "4"),
+                imageFilenames = listOf("1", "2", "3", "4"),
             ),
             onDismissRequested = {},
             onImageDownloadTapped = {},

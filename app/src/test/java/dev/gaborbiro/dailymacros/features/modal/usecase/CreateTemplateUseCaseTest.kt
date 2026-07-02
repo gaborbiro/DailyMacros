@@ -17,7 +17,7 @@ class CreateTemplateUseCaseTest {
             }
         }
         val id = CreateTemplateUseCase(repo).execute(
-            images = listOf("a.jpg"),
+            imageFilenames = listOf("a.jpg"),
             title = "T",
             description = "D",
             parentTemplateId = 3L,
@@ -26,7 +26,7 @@ class CreateTemplateUseCaseTest {
         val captured = requireNotNull(saved)
         assertEquals("T", captured.name)
         assertEquals("D", captured.description)
-        assertEquals(listOf("a.jpg"), captured.images)
+        assertEquals(listOf("a.jpg"), captured.imageFilenames)
         assertEquals(3L, captured.parentTemplateId)
     }
 }

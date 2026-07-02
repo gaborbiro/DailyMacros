@@ -13,7 +13,6 @@ import dev.gaborbiro.dailymacros.features.modal.R
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
-import dev.gaborbiro.dailymacros.features.modal.model.RecognisedFood
 import dev.gaborbiro.dailymacros.features.modal.views.RecordDetailsDialogButtons
 import dev.gaborbiro.dailymacros.features.modal.views.RecordDetailsDialogContent
 import dev.gaborbiro.dailymacros.features.modal.views.RecordDetailsViewBrowseButtons
@@ -23,7 +22,7 @@ internal data class DeconstructedDialogHandle(
     val title: TextFieldValue,
     val titleHint: String,
     val showRunAIButton: Boolean,
-    val images: List<String>,
+    val imageFilenames: List<String>,
     val showProgressIndicator: Boolean,
     val description: TextFieldValue,
     val nutrientBreakdown: NutrientBreakdownUiModel?,
@@ -53,7 +52,7 @@ internal fun deconstructDialogHandle(
         title = dialogHandle.title,
         titleHint = dialogHandle.titleHint,
         showRunAIButton = showRunAIButton,
-        images = dialogHandle.images,
+        imageFilenames = dialogHandle.imageFilenames,
         showProgressIndicator = showProgressIndicator ?: false,
         description = dialogHandle.description,
         nutrientBreakdown = nutrientBreakdown,
@@ -97,7 +96,7 @@ internal fun RecordDetailsDialogPreview(
                 showKeyboardOnOpen = showKeyboardOnOpen,
                 showCloseOnly = showCloseOnly,
                 showPhotoManagement = showPhotoManagement,
-                images = ui.images,
+                imageFilenames = ui.imageFilenames,
                 title = ui.title,
                 showRunAIButton = ui.showRunAIButton,
                 titleHint = ui.titleHint,

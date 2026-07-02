@@ -5,8 +5,8 @@ import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
 
 data class Template(
     val dbId: Long,
-    val images: List<String>,
-    /** Same order as [images]; null = never classified (legacy row or no analysis). */
+    val imageFilenames: List<String>,
+    /** Same order as [imageFilenames]; null = never classified (legacy row or no analysis). */
     val isRepresentativeOfMealByImageIndex: List<Boolean?>,
     val name: String,
     val description: String,

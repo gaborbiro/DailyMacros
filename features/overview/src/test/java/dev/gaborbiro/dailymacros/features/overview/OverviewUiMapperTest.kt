@@ -64,7 +64,7 @@ class OverviewUiMapperTest {
 
     private fun stubTemplate(dbId: Long, name: String) = Template(
         dbId = dbId,
-        images = emptyList(),
+        imageFilenames = emptyList(),
         isRepresentativeOfMealByImageIndex = emptyList(),
         name = name,
         description = "d",

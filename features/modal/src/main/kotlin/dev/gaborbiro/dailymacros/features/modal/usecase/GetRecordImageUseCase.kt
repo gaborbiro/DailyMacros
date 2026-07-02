@@ -10,12 +10,12 @@ class GetRecordImageUseCase @Inject constructor(
 
     suspend fun execute(recordId: Long): DialogHandle.ViewImageDialog? {
         val template = repository.get(recordId)!!.template
-        return template.images
+        return template.imageFilenames
             .takeIf { it.isNotEmpty() }
             ?.let {
                 DialogHandle.ViewImageDialog(
                     title = template.name,
-                    images = it,
+                    imageFilenames = it,
                 )
             }
     }

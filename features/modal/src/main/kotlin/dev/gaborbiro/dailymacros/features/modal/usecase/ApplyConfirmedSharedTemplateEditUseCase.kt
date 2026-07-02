@@ -21,7 +21,7 @@ class ApplyConfirmedSharedTemplateEditUseCase @Inject constructor(
     suspend fun execute(
         target: ChangeImagesTarget,
         recordId: Long,
-        images: List<String>,
+        imageFilenames: List<String>,
         title: String,
         description: String,
     ) {
@@ -29,7 +29,7 @@ class ApplyConfirmedSharedTemplateEditUseCase @Inject constructor(
             ChangeImagesTarget.RECORD -> {
                 updateRecordWithNewTemplateUseCase.execute(
                     recordId = recordId,
-                    images = images,
+                    imageFilenames = imageFilenames,
                     title = title,
                     description = description,
                 )
@@ -41,7 +41,7 @@ class ApplyConfirmedSharedTemplateEditUseCase @Inject constructor(
                     templateId = templateId,
                     name = title,
                     description = description,
-                    templateImages = images.map { TemplateImageUpdate(filename = it) },
+                    templateImages = imageFilenames.map { TemplateImageUpdate(filename = it) },
                 )
             }
         }

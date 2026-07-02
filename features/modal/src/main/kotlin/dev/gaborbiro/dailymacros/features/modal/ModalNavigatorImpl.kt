@@ -37,6 +37,10 @@ class ModalNavigatorImpl @Inject constructor() : ModalNavigator {
     override fun launchViewTemplateDetailsFromWidget(context: Context, templateId: Long) {
         context.launchActivityInNewStack { it.getViewTemplateDetailsIntent(templateId) }
     }
+
+    override fun launchQuickPickWidgetConfirmDialog(context: Context, templateId: Long) {
+        context.launchActivityInNewStack { it.getQuickPickWidgetConfirmIntent(templateId) }
+    }
 }
 
 fun Context.getShowRecordImageIntent(recordId: Long) =
@@ -50,6 +54,9 @@ fun Context.getViewRecordDetailsIntent(recordId: Long) =
 
 fun Context.getViewTemplateDetailsIntent(templateId: Long) =
     getModalIntent(Action.VIEW_TEMPLATE_DETAILS, EXTRA_TEMPLATE_ID to templateId)
+
+fun Context.getQuickPickWidgetConfirmIntent(templateId: Long) =
+    getModalIntent(Action.QUICK_PICK_WIDGET_CONFIRM, EXTRA_TEMPLATE_ID to templateId)
 
 private fun Context.getViewImageIntent(vararg extras: Pair<String, Any>) =
     getModalIntent(Action.VIEW_IMAGE, *extras)
@@ -95,6 +102,7 @@ enum class Action {
     VIEW_RECORD_DETAILS,
     VIEW_TEMPLATE_DETAILS,
     VIEW_IMAGE,
+    QUICK_PICK_WIDGET_CONFIRM,
 }
 
 const val EXTRA_RECORD_ID = "record_id"

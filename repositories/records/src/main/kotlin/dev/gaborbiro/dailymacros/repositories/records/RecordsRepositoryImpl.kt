@@ -111,7 +111,7 @@ class RecordsRepositoryImpl @Inject constructor(
         val template = mapper.map(templateToSave)
         val templateId = templatesDAO.insertOrUpdate(template)
         templatesDAO.deleteAllImagesForTemplate(templateId)
-        templateToSave.images.forEachIndexed { index, image ->
+        templateToSave.imageFilenames.forEachIndexed { index, image ->
             templatesDAO.upsertImage(
                 ImageEntity(
                     templateId = templateId,
@@ -238,10 +238,10 @@ class RecordsRepositoryImpl @Inject constructor(
         templatesDAO.deleteQuickPickOverride(templateId)
     }
 
-    private suspend fun deleteImageIfUnused(image: String): Boolean {
-        val refs = templatesDAO.countTemplatesByImage(image)
+    private suspend fun deleteImageIfUnused(imageFilename: String): Boolean {
+        val refs = templatesDAO.countTemplatesByImage(imageFilename)
         if (refs == 0) {
-            imageStore.delete(image)
+            imageStore.delete(imageFilename)
             return true
         }
         return false

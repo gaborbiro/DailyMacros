@@ -18,7 +18,7 @@ class RecordsUiMapper @Inject constructor(
         return ListUiModelRecord(
             recordId = record.recordId,
             templateId = record.template.dbId,
-            images = record.template.images,
+            imageFilenames = record.template.imageFilenames,
             timestamp = timestampStr,
             title = record.template.name,
             nutrients = nutrients,

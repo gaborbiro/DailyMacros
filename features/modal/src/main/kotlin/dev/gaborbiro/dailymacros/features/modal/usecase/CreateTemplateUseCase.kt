@@ -11,13 +11,13 @@ class CreateTemplateUseCase @Inject constructor(
 
     @UiThread
     suspend fun execute(
-        images: List<String>,
+        imageFilenames: List<String>,
         title: String,
         description: String,
         parentTemplateId: Long? = null,
     ): Long {
         val template = TemplateToSave(
-            images = images,
+            imageFilenames = imageFilenames,
             name = title,
             description = description,
             parentTemplateId = parentTemplateId,

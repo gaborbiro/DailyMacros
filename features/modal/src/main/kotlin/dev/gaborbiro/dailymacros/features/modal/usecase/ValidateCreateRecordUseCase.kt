@@ -5,7 +5,7 @@ import javax.inject.Inject
 class ValidateCreateRecordUseCase @Inject constructor() {
 
     suspend fun execute(
-        images: List<String>,
+        imageFilenames: List<String>,
         title: String,
         description: String,
     ): CreateValidationResult {

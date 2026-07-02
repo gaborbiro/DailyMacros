@@ -123,7 +123,7 @@ class ModalUiMapper @Inject constructor(
         }
         return dialog.title.text != p.title ||
                 dialog.description.text != p.description ||
-                dialog.images != p.images
+                dialog.imageFilenames != p.imageFilenames
     }
 
     fun imagesRequireMacroReanalysis(pristine: List<String>, current: List<String>): Boolean =

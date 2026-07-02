@@ -138,8 +138,17 @@ class SettingsViewModel @Inject constructor(
         if (current == CloudSyncProvider.NONE) {
             viewModelScope.launch { _uiUpdates.emit(SettingsUiUpdates.RequestGoogleSignIn) }
         } else {
-            signOut()
+            _uiState.update { it.copy(showSignOutConfirmDialog = true) }
         }
+    }
+
+    fun onSignOutConfirmed() {
+        _uiState.update { it.copy(showSignOutConfirmDialog = false) }
+        signOut()
+    }
+
+    fun onSignOutDialogDismissed() {
+        _uiState.update { it.copy(showSignOutConfirmDialog = false) }
     }
 
     fun onGoogleSignInSuccess(email: String) {
@@ -151,13 +160,23 @@ class SettingsViewModel @Inject constructor(
                 cloudSyncEmail = email,
             )
         }
+        viewModelScope.launch {
+            runCatching {
+                val token = getDriveAccessToken() ?: return@launch
+                val info = cloudSyncRepository.getBackupInfo(token)
+                if (info != null) {
+                    settingsRepository.setLastSyncedEpochMs(info.modifiedTimeMs)
+                    _uiState.update { it.copy(lastSyncedEpochMs = info.modifiedTimeMs) }
+                }
+            }.onFailure { t ->
+                Log.e("CloudSync", "Failed to check existing backup", t)
+            }
+        }
     }
 
     fun onGoogleSignInFailed(message: String) {
         viewModelScope.launch { _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Sign-in failed: $message")) }
     }
-
-    fun onSignOutTapped() = signOut()
 
     fun onSyncTapped() {
         viewModelScope.launch {

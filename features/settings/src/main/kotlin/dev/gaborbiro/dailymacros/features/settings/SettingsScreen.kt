@@ -99,6 +99,8 @@ fun SettingsScreen(
         onExportDbTapped = { settingsViewModel.onExportDbTapped(createPublicDocumentUseCase) },
         onImportDbTapped = { settingsViewModel.onImportDbTapped(openPublicDocumentUseCase) },
         onCloudSyncTapped = settingsViewModel::onCloudSyncRowTapped,
+        onSignOutConfirmed = settingsViewModel::onSignOutConfirmed,
+        onSignOutDialogDismissed = settingsViewModel::onSignOutDialogDismissed,
         onSyncTapped = settingsViewModel::onSyncTapped,
         onRestoreFromDriveTapped = settingsViewModel::onRestoreFromDriveTapped,
         onRestoreConfirmed = settingsViewModel::onRestoreConfirmed,

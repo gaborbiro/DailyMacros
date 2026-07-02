@@ -26,7 +26,7 @@ data class RecordDetailsPristineSnapshot(
     val templateDbId: Long,
     val title: String,
     val description: String,
-    val images: List<String>,
+    val imageFilenames: List<String>,
 )
 
 fun MealVariantListResult.toPickerOptions(diaryDayStartHour: Int): List<MealVariantPickerOption> {
