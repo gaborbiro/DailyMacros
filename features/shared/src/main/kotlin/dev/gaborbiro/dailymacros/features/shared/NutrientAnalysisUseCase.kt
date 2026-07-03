@@ -18,6 +18,7 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import ellipsize
 import java.util.Locale
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.MealComponent as ChatGPTMealComponent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent as TemplateMealComponent
 
@@ -143,6 +144,7 @@ class NutrientAnalysisUseCase @Inject constructor(
             }
             throw domainError
         } catch (t: Throwable) {
+            if (t is CancellationException) throw t
             if (notifyOnFailure) {
                 val foodName = record.template.name.takeIf { it.isNotBlank() }
                 macroResultsNotificationSender.showMacroResultsNotification(
