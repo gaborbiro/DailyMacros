@@ -220,7 +220,8 @@ afterEvaluate {
 }
 
 fun artifactBaseName(buildType: String): String {
-    val versionName = android.defaultConfig.versionName ?: "unknown"
+    val versionCode = if (buildType == "release") pipelineId else Int.MAX_VALUE
+    val versionName = "${baseVersion}(${versionCode})-${branch}-${sha}"
     return "DailyMacros-v${versionName}-$buildType"
 }
 
