@@ -18,6 +18,7 @@ internal fun QuickPickWidgetConfirmDialog(
     AlertDialog(
         onDismissRequest = onDismissRequested,
         title = { Text(dialogHandle.templateName) },
+        text = { Text(stringResource(R.string.quick_pick_confirm_message)) },
         confirmButton = {
             TextButton(onClick = onLogAgainTapped) {
                 Text(stringResource(R.string.quick_pick_confirm_log_again))
