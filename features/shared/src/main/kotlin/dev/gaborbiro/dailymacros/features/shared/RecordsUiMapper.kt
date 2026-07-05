@@ -8,12 +8,12 @@ import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 class RecordsUiMapper @Inject constructor(
-    private val nutrientsUiMapper: NutrientsUiMapper,
+    private val templateUiMapper: TemplateUiMapper,
 ) {
     fun map(record: Record, timeOnly: Boolean = false): ListUiModelRecord {
         val timestampStr = mapRecordTimestamp(record.timestamp, timeOnly)
 
-        val nutrients = nutrientsUiMapper.mapRecordNutrients(record.template.nutrients)
+        val nutrients = templateUiMapper.mapRecordNutrients(record.template.nutrients)
 
         return ListUiModelRecord(
             recordId = record.recordId,

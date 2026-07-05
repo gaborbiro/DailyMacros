@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.features.widgets.views
 import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -16,10 +17,13 @@ import androidx.glance.background
 import androidx.glance.layout.Box
 import androidx.glance.layout.ContentScale
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
+import kotlinx.coroutines.runBlocking
 
 val LocalImageStoreWidget = staticCompositionLocalOf<ImageStore> {
     error("LocalImageStoreWidget not provided")
 }
+
+val LocalWidgetIsPreview = compositionLocalOf { false }
 
 @Composable
 fun LocalImage(
@@ -31,12 +35,18 @@ fun LocalImage(
     error: @Composable () -> Unit = { Box(modifier.background(Color.Red.copy(alpha = 0.08f))) {} },
 ) {
     val store = LocalImageStoreWidget.current
-    var bmp by remember(imageFilename, store, thumbnail) { mutableStateOf<Bitmap?>(null) }
+    val isPreview = LocalWidgetIsPreview.current
+    var bmp by remember(imageFilename, store, thumbnail) {
+        mutableStateOf(
+            if (isPreview) runCatching { runBlocking { store.read(imageFilename, thumbnail) } }.getOrNull()
+            else null
+        )
+    }
     var failed by remember(imageFilename, store, thumbnail) { mutableStateOf(false) }
 
     LaunchedEffect(imageFilename, store, thumbnail) {
+        if (bmp != null) return@LaunchedEffect
         failed = false
-        bmp = null
         try {
             bmp = store.read(filename = imageFilename, thumbnail = thumbnail)
             if (bmp == null) failed = true

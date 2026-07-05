@@ -19,7 +19,7 @@ import java.time.ZonedDateTime
 class RecordsUiMapperTest {
 
     private val zone = ZoneId.of("Europe/Paris")
-    private val mapper = RecordsUiMapper(NutrientsUiMapper())
+    private val mapper = RecordsUiMapper(TemplateUiMapper())
 
     private fun stubTemplate(
         dbId: Long,

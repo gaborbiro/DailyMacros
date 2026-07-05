@@ -38,7 +38,7 @@ internal fun ListItemQuickPick(
             .background(QuickPickBackground),
         verticalAlignment = Alignment.Vertical.CenterVertically,
     ) {
-        quickPickEntry.imageFilenames.firstOrNull()
+        quickPickEntry.imageFilename
             ?.let {
                 LocalImage(
                     it,
@@ -84,7 +84,7 @@ private fun ListItemQuickPickPreview() {
         ListItemQuickPick(
             quickPickEntry = ListUiModelQuickPick(
                 title = "Breakfast",
-                imageFilenames = listOf("", ""),
+                imageFilename = "",
                 templateId = 0L,
                 nutrients = NutrientsUiModel(
                     calories = "1008cal",

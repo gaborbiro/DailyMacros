@@ -1,14 +1,14 @@
 package dev.gaborbiro.dailymacros.features.modal.model
 
 import dev.gaborbiro.dailymacros.features.modal.ModalUiMapper
-import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
+import dev.gaborbiro.dailymacros.features.shared.TemplateUiMapper
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class NutrientBreakdownUiModelTest {
 
-    private val mapper = ModalUiMapper(NutrientsUiMapper())
+    private val mapper = ModalUiMapper(TemplateUiMapper())
 
     @Test
     fun `hasDisplayableContent is false when all fields are empty`() {

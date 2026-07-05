@@ -127,7 +127,7 @@ private fun WidgetViewPreview() {
                 ListUiModelQuickPick(
                     templateId = 1,
                     title = "Breakfast",
-                    imageFilenames = listOf("", ""),
+                    imageFilename = "",
                     nutrients = NutrientsUiModel(
                         calories = "1008cal",
                         protein = "protein 8",
@@ -140,7 +140,7 @@ private fun WidgetViewPreview() {
                 ListUiModelQuickPick(
                     templateId = 2,
                     title = "Lunch",
-                    imageFilenames = listOf("", ""),
+                    imageFilename = "",
                     nutrients = NutrientsUiModel(
                         calories = "1008cal",
                         protein = "protein 8",
@@ -153,7 +153,7 @@ private fun WidgetViewPreview() {
                 ListUiModelQuickPick(
                     templateId = 3,
                     title = "Dinner",
-                    imageFilenames = listOf("", ""),
+                    imageFilename = "",
                     nutrients = NutrientsUiModel(
                         calories = "1008cal",
                         protein = "protein 8",

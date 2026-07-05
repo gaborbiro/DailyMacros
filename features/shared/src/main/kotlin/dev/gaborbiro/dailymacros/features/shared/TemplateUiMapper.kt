@@ -5,12 +5,13 @@ import android.util.Range
 import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.common.views.NutrientDisplayLine
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import kotlin.math.pow
 
 import javax.inject.Inject
 
-class NutrientsUiMapper @Inject constructor() {
+class TemplateUiMapper @Inject constructor() {
 
     fun mapRecordNutrients(nutrients: Nutrients): NutrientsUiModel {
         return NutrientsUiModel(
@@ -267,5 +268,12 @@ class NutrientsUiMapper @Inject constructor() {
         fun format(value: Number?): String = value?.let { format.format(it) } ?: nullFormat()
 
         abstract fun nullFormat(): String
+    }
+
+    fun getBestPhoto(template: Template): String? {
+        val array = template.imageFilenames.mapIndexed { index, imageFilename ->
+            imageFilename to template.isRepresentativeOfMealByImageIndex[index]
+        }
+        return array.firstOrNull { (_, isRepresentative) -> isRepresentative == true }?.first ?: template.imageFilenames.firstOrNull()
     }
 }

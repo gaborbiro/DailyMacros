@@ -1,6 +1,6 @@
 package dev.gaborbiro.dailymacros.features.modal.usecase
 
-import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
+import dev.gaborbiro.dailymacros.features.shared.TemplateUiMapper
 import dev.gaborbiro.dailymacros.features.modal.ModalUiMapper
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -11,7 +11,7 @@ class BuildRecordDetailsViewDialogUseCaseTest {
 
     @Test
     fun `view mode is read only without template details`() {
-        val build = BuildRecordDetailsViewDialogUseCase(ModalUiMapper(NutrientsUiMapper()))
+        val build = BuildRecordDetailsViewDialogUseCase(ModalUiMapper(TemplateUiMapper()))
         val record = ModalRecordFixtures.record(1L, ModalRecordFixtures.template(name = "Rice"))
         val dlg = build.execute(record, edit = false)
         assertFalse(dlg.allowEdit)
@@ -24,7 +24,7 @@ class BuildRecordDetailsViewDialogUseCaseTest {
 
     @Test
     fun `edit mode allows editing`() {
-        val build = BuildRecordDetailsViewDialogUseCase(ModalUiMapper(NutrientsUiMapper()))
+        val build = BuildRecordDetailsViewDialogUseCase(ModalUiMapper(TemplateUiMapper()))
         val record = ModalRecordFixtures.record(1L, ModalRecordFixtures.template())
         val dlg = build.execute(record, edit = true)
         assertTrue(dlg.allowEdit)
@@ -33,7 +33,7 @@ class BuildRecordDetailsViewDialogUseCaseTest {
 
     @Test
     fun `template details mode enables add-new-template flow`() {
-        val build = BuildRecordDetailsViewDialogUseCase(ModalUiMapper(NutrientsUiMapper()))
+        val build = BuildRecordDetailsViewDialogUseCase(ModalUiMapper(TemplateUiMapper()))
         val record = ModalRecordFixtures.record(1L, ModalRecordFixtures.template())
         val dlg = build.execute(record, edit = false, templateDetailsMode = true)
         assertTrue(dlg.allowEdit)

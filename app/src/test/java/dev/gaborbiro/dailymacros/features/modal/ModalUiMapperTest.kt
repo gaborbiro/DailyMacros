@@ -1,6 +1,6 @@
 package dev.gaborbiro.dailymacros.features.modal
 
-import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
+import dev.gaborbiro.dailymacros.features.shared.TemplateUiMapper
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
@@ -20,7 +20,7 @@ import java.time.ZonedDateTime
 class ModalUiMapperTest {
 
     private val zone = ZoneId.of("UTC")
-    private val mapper = ModalUiMapper(NutrientsUiMapper())
+    private val mapper = ModalUiMapper(TemplateUiMapper())
 
     @Test
     fun `mapNutrientBreakdowns formats calories and notes`() {

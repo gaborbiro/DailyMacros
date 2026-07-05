@@ -1,6 +1,6 @@
 package dev.gaborbiro.dailymacros.features.overview
 
-import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
+import dev.gaborbiro.dailymacros.features.shared.TemplateUiMapper
 import dev.gaborbiro.dailymacros.features.shared.RecordsUiMapper
 import dev.gaborbiro.dailymacros.features.overview.model.ChangeDirection
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
@@ -57,8 +57,8 @@ class OverviewUiMapperTest {
     }
 
     private val mapper = OverviewUiMapper(
-        recordsUiMapper = RecordsUiMapper(NutrientsUiMapper()),
-        nutrientsUiMapper = NutrientsUiMapper(),
+        recordsUiMapper = RecordsUiMapper(TemplateUiMapper()),
+        templateUiMapper = TemplateUiMapper(),
         settingsRepository = testSettingsRepository,
     )
 

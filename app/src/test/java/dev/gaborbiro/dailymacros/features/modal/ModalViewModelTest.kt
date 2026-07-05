@@ -27,7 +27,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseC
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.ErrorUiMapper
-import dev.gaborbiro.dailymacros.features.shared.NutrientsUiMapper
+import dev.gaborbiro.dailymacros.features.shared.TemplateUiMapper
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
@@ -147,7 +147,7 @@ class ModalViewModelTest {
 
     private fun viewModel(repo: RecordsRepository = BaseRecordsRepositoryStub()): ModalViewModel {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val nutrients = NutrientsUiMapper()
+        val nutrients = TemplateUiMapper()
         val modalUiMapper = ModalUiMapper(nutrients)
         val buildDetails = BuildRecordDetailsViewDialogUseCase(modalUiMapper)
         val listMealVariants = ListMealVariantsForTemplateUseCase(

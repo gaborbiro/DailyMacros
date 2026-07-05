@@ -15,9 +15,9 @@ import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33], manifest = Config.NONE)
-class NutrientsUiMapperTest {
+class TemplateUiMapperTest {
 
-    private val mapper = NutrientsUiMapper()
+    private val mapper = TemplateUiMapper()
 
     @Test
     fun `targetProgress divides total by max when max present`() {
