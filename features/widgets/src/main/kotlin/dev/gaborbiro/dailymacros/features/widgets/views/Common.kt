@@ -61,3 +61,11 @@ val LoadingTextStyle: TextStyle
         textAlign = TextAlign.Start,
         color = ColorProvider(day = Color(0xFFFB8C00), night = Color(0xFFFFB74D)),
     )
+
+val OverlayTitleTextStyle: TextStyle
+    get() = TextStyle(
+        fontWeight = FontWeight.Normal,
+        fontSize = 13.sp,
+        textAlign = TextAlign.Start,
+        color = ColorProvider(day = Color.White, night = Color.White),
+    )
