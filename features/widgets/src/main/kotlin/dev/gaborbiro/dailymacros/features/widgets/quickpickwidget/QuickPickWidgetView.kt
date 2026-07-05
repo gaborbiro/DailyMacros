@@ -13,12 +13,14 @@ import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.ContentScale
+import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import androidx.glance.layout.wrapContentHeight
+import androidx.glance.layout.wrapContentSize
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
@@ -34,41 +36,54 @@ private val MinimumUsefulImageSize = 56.dp
 private val MinimumReadableTitleWidth = 64.dp
 private val MinimumReadableTitleHeight = 24.dp
 
+private enum class WidgetLayout { IMAGE_ONLY, LANDSCAPE, PORTRAIT }
+
 @Composable
 internal fun QuickPickWidgetView(
     uiModel: ListUiModelQuickPick,
     onTapped: Action,
 ) {
     val widgetSize = LocalSize.current
-    val showTitle = canShowTitle(
-        widgetWidth = widgetSize.width,
-        widgetHeight = widgetSize.height,
-    )
-
-    if (showTitle) {
-        QuickPickWidgetWithTitle(
+    when (determineLayout(widgetSize.width, widgetSize.height)) {
+        WidgetLayout.LANDSCAPE -> QuickPickWidgetWithTitle(
             uiModel = uiModel,
             onTapped = onTapped,
             imageSize = widgetSize.height,
         )
-    } else {
-        QuickPickWidgetImageOnly(
+        WidgetLayout.PORTRAIT -> QuickPickWidgetWithTitlePortrait(
+            uiModel = uiModel,
+            onTapped = onTapped,
+            imageSize = widgetSize.width,
+        )
+        WidgetLayout.IMAGE_ONLY -> QuickPickWidgetImageOnly(
             uiModel = uiModel,
             onTapped = onTapped,
         )
     }
 }
 
-private fun canShowTitle(
-    widgetWidth: Dp,
-    widgetHeight: Dp,
-): Boolean {
-    val titleWidth = widgetWidth - widgetHeight - PaddingWidgetDefault * 2
-    val titleHeight = widgetHeight - PaddingWidgetDouble * 2
-
-    return widgetHeight >= MinimumUsefulImageSize &&
-        titleWidth >= MinimumReadableTitleWidth &&
-        titleHeight >= MinimumReadableTitleHeight
+private fun determineLayout(widgetWidth: Dp, widgetHeight: Dp): WidgetLayout {
+    return if (widgetHeight > widgetWidth) {
+        // Portrait: image fills width (square crop), text below
+        val titleHeight = widgetHeight - widgetWidth - PaddingWidgetDouble * 2
+        if (widgetWidth >= MinimumUsefulImageSize && titleHeight >= MinimumReadableTitleHeight) {
+            WidgetLayout.PORTRAIT
+        } else {
+            WidgetLayout.IMAGE_ONLY
+        }
+    } else {
+        // Landscape: image fills height (square crop), text to the right
+        val titleWidth = widgetWidth - widgetHeight - PaddingWidgetDefault * 2
+        val titleHeight = widgetHeight - PaddingWidgetDouble * 2
+        if (widgetHeight >= MinimumUsefulImageSize &&
+            titleWidth >= MinimumReadableTitleWidth &&
+            titleHeight >= MinimumReadableTitleHeight
+        ) {
+            WidgetLayout.LANDSCAPE
+        } else {
+            WidgetLayout.IMAGE_ONLY
+        }
+    }
 }
 
 @Composable
@@ -91,6 +106,7 @@ private fun QuickPickWidgetWithTitle(
                     it,
                     modifier = GlanceModifier.size(imageSize),
                     contentScale = ContentScale.Crop,
+                    thumbnail = false,
                 )
             }
             ?: run {
@@ -105,6 +121,46 @@ private fun QuickPickWidgetWithTitle(
                 ),
             text = uiModel.title,
             maxLines = 3,
+            style = TitleTextStyle,
+        )
+    }
+}
+
+@Composable
+private fun QuickPickWidgetWithTitlePortrait(
+    uiModel: ListUiModelQuickPick,
+    onTapped: Action,
+    imageSize: Dp,
+) {
+    Column(
+        modifier = GlanceModifier
+            .background(GlanceTheme.colors.widgetBackground)
+            .cornerRadius(6.dp)
+            .fillMaxSize()
+            .clickable(onTapped),
+        horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
+    ) {
+        uiModel.imageFilenames.firstOrNull()
+            ?.let {
+                LocalImage(
+                    it,
+                    modifier = GlanceModifier.size(imageSize),
+                    contentScale = ContentScale.Crop,
+                    thumbnail = false,
+                )
+            }
+            ?: run {
+                Spacer(modifier = GlanceModifier.size(imageSize))
+            }
+        Text(
+            modifier = GlanceModifier
+                .wrapContentSize()
+                .padding(
+                    horizontal = PaddingWidgetDefault,
+                    vertical = PaddingWidgetDefault,
+                ),
+            text = uiModel.title,
+            maxLines = 2,
             style = TitleTextStyle,
         )
     }
@@ -128,6 +184,7 @@ private fun QuickPickWidgetImageOnly(
                     modifier = GlanceModifier.fillMaxSize(),
                     imageFilename = it,
                     contentScale = ContentScale.Crop,
+                    thumbnail = false,
                 )
             }
     }
