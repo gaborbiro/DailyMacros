@@ -36,7 +36,7 @@ fun ListItemRecord(
             .fillMaxSize()
             .background(RecordBackground),
     ) {
-        record.imageFilenames.firstOrNull()
+        record.imageFilename
             ?.let {
                 LocalImage(
                     it,
@@ -92,7 +92,7 @@ private fun RecordListItemPreview() {
                 templateId = 1L,
                 title = "Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast ",
                 timestamp = "Yesterday",
-                imageFilenames = listOf("1", "2"),
+                imageFilename = "",
                 nutrients = NutrientsUiModel(
                     calories = "8cal",
                     protein = "prot 8",
@@ -120,7 +120,7 @@ private fun RecordListItemPreviewLoading() {
                 templateId = 1L,
                 title = "Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast Breakfast ",
                 timestamp = "Yesterday",
-                imageFilenames = listOf("1", "2"),
+                imageFilename = "",
                 nutrients = NutrientsUiModel(
                     calories = "8cal",
                     protein = "prot 8",

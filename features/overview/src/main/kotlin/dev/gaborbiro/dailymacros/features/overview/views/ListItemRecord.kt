@@ -60,7 +60,7 @@ fun ListItemRecord(
                 .size(73.dp)
                 .padding(top = 4.dp)
                 .clickable(onClick = onImageTapped),
-            imageFilename = record.imageFilenames.firstOrNull(),
+            imageFilename = record.imageFilename,
             title = record.title,
         )
         Spacer(
@@ -163,7 +163,7 @@ private fun OverviewListItemPreview() {
                 recordId = 1L,
                 title = "Title",
                 templateId = 1L,
-                imageFilenames = listOf("", ""),
+                imageFilename = "",
                 timestamp = "Tue 19 Aug, 20:49",
                 nutrients = NutrientsUiModel(
                     calories = "1008kcal",
@@ -191,7 +191,7 @@ private fun OverviewListItemPreviewMissing() {
                 recordId = 1L,
                 title = "Title",
                 templateId = 1L,
-                imageFilenames = listOf("", ""),
+                imageFilename = "",
                 timestamp = "Tue 19 Aug, 20:49",
                 nutrients = NutrientsUiModel(
                     calories = "1008kcal",
@@ -220,7 +220,7 @@ private fun OverviewListItemPreviewLoading() {
                 recordId = 1L,
                 title = "Title",
                 templateId = 1L,
-                imageFilenames = listOf("", ""),
+                imageFilename = "",
                 timestamp = "Tue 19 Aug, 20:49",
                 nutrients = NutrientsUiModel(
                     calories = "1008kcal",

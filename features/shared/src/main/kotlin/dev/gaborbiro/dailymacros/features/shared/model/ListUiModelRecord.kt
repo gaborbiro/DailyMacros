@@ -6,7 +6,7 @@ import androidx.compose.runtime.Stable
 data class ListUiModelRecord(
     val recordId: Long,
     val templateId: Long,
-    val imageFilenames: List<String>,
+    val imageFilename: String?,
     val timestamp: String,
     val title: String,
     val nutrients: NutrientsUiModel?,

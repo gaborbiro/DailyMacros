@@ -113,7 +113,7 @@ private fun WidgetViewPreview() {
                     templateId = 1L,
                     title = "Breakfast",
                     timestamp = "Yesterday",
-                    imageFilenames = listOf("", ""),
+                    imageFilename = "",
                     nutrients = NutrientsUiModel(
                         calories = "8cal",
                         protein = "prot 8",
@@ -168,7 +168,7 @@ private fun WidgetViewPreview() {
                     templateId = 1L,
                     timestamp = "Yesterday",
                     title = "Lunch",
-                    imageFilenames = listOf("", ""),
+                    imageFilename = "",
                     nutrients = NutrientsUiModel(
                         calories = "8cal",
                         protein = "prot 8",
@@ -184,7 +184,7 @@ private fun WidgetViewPreview() {
                     templateId = 1L,
                     timestamp = "Yesterday",
                     title = "Dinner",
-                    imageFilenames = listOf("", ""),
+                    imageFilename = "",
                     nutrients = NutrientsUiModel(
                         calories = "8cal",
                         protein = "prot 8",

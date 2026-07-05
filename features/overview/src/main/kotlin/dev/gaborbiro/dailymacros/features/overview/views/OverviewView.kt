@@ -230,7 +230,7 @@ private fun OverviewListPreview() {
                         recordId = 2L,
                         title = "Title",
                         templateId = 2L,
-                        imageFilenames = listOf("", ""),
+                        imageFilename = "",
                         timestamp = "17:00",
                         nutrients = NutrientsUiModel(
                             calories = "8cal",
@@ -246,7 +246,7 @@ private fun OverviewListPreview() {
                         recordId = 3L,
                         title = "Title 2",
                         templateId = 4L,
-                        imageFilenames = listOf("", ""),
+                        imageFilename = "",
                         timestamp = "15:38",
                         nutrients = NutrientsUiModel(
                             calories = "8cal",

@@ -217,7 +217,7 @@ private fun PrefetchRecordThumbnails(
                 val aheadStart = (last + 1).coerceAtLeast(0)
                 val aheadEnd = (last + ahead).coerceAtMost(items.lastIndex)
                 for (i in aheadStart..aheadEnd) {
-                    val name = (items[i] as? ListUiModelRecord)?.imageFilenames?.firstOrNull() ?: continue
+                    val name = (items[i] as? ListUiModelRecord)?.imageFilename ?: continue
                     if (seen.addIfNew(name)) launch { store.read(name, thumbnail = true) }
                 }
 
@@ -225,7 +225,7 @@ private fun PrefetchRecordThumbnails(
                 val behindStart = (first - behind).coerceAtLeast(0)
                 val behindEnd = (first - 1).coerceAtLeast(-1)
                 for (i in behindStart..behindEnd) {
-                    val name = (items[i] as? ListUiModelRecord)?.imageFilenames?.firstOrNull() ?: continue
+                    val name = (items[i] as? ListUiModelRecord)?.imageFilename ?: continue
                     if (seen.addIfNew(name)) launch { store.read(name, thumbnail = true) }
                 }
             }
@@ -310,7 +310,7 @@ private fun OverviewListPreview() {
                         recordId = 2L,
                         title = "Title",
                         templateId = 2L,
-                        imageFilenames = listOf("", ""),
+                        imageFilename = "",
                         timestamp = "17:00",
                         nutrients = NutrientsUiModel(
                             calories = "8cal",
@@ -326,7 +326,7 @@ private fun OverviewListPreview() {
                         recordId = 3L,
                         title = "Title 2",
                         templateId = 4L,
-                        imageFilenames = listOf("", ""),
+                        imageFilename = "",
                         timestamp = "15:38",
                         nutrients = NutrientsUiModel(
                             calories = "8cal",
