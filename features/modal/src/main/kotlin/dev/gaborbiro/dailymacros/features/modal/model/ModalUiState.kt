@@ -74,6 +74,8 @@ sealed class DialogHandle {
             override val title: TextFieldValue,
             override val description: TextFieldValue,
             override val imageFilenames: List<String>,
+            /** Keyed by filename; survives reorder so flags follow their photo on save. */
+            val imageRepresentativeFlags: Map<String, Boolean?> = emptyMap(),
             /** Opened from quick-pick template “Details”; submit creates a new template + new record. */
             val openedFromTemplateDetailsOnly: Boolean = false,
             /** When non-null, template has other logged variants; combo is shown above the title field. */

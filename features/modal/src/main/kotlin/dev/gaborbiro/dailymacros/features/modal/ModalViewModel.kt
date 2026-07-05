@@ -671,6 +671,7 @@ class ModalViewModel @Inject constructor(
                 title = existing.title,
                 description = existing.description,
                 imageFilenames = existing.imageFilenames,
+                imageRepresentativeFlags = existing.imageRepresentativeFlags,
                 titleValidationError = existing.titleValidationError,
                 pristineSnapshot = existing.pristineSnapshot,
             )
@@ -798,7 +799,12 @@ class ModalViewModel @Inject constructor(
                 )
                 val contentChanged = title != pristine.title.trim() ||
                         description != pristine.description.trim()
-                val templateImages = dialogHandle.imageFilenames.map { TemplateImageUpdate(filename = it) }
+                val templateImages = dialogHandle.imageFilenames.map { filename ->
+                    TemplateImageUpdate(
+                        filename = filename,
+                        isRepresentativeOfMeal = dialogHandle.imageRepresentativeFlags[filename],
+                    )
+                }
                 if (isVariedTemplateFamily(dialogHandle)) {
                     recordsRepository.updateTemplate(
                         templateId = dialogHandle.templateDbId,

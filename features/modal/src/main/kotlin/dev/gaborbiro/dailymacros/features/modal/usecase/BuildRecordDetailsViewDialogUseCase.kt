@@ -21,6 +21,9 @@ class BuildRecordDetailsViewDialogUseCase @Inject constructor(
     ): DialogHandle.RecordDetailsDialog.View {
         val allowEdit = edit || templateDetailsMode
         val tmpl = record.template
+        val repFlags = tmpl.imageFilenames.mapIndexed { i, name ->
+            name to tmpl.isRepresentativeOfMealByImageIndex.getOrNull(i)
+        }.toMap()
         return DialogHandle.RecordDetailsDialog.View(
             recordId = record.recordId,
             templateDbId = tmpl.dbId,
@@ -28,6 +31,7 @@ class BuildRecordDetailsViewDialogUseCase @Inject constructor(
             title = TextFieldValue(tmpl.name),
             description = TextFieldValue(tmpl.description),
             imageFilenames = tmpl.imageFilenames,
+            imageRepresentativeFlags = repFlags,
             nutrientBreakdown = uiMapper.mapNutrientBreakdowns(record),
             compactNutrients = uiMapper.mapCompactNutrients(record),
             showLoadingIndicator = tmpl.isPending,
