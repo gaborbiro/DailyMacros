@@ -25,6 +25,15 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
+    # On PRs, GITHUB_SHA is the merge-commit SHA (not in git log). Use the actual head SHA instead.
+    - name: Resolve build SHA
+      run: |
+        if [ "${{ github.event_name }}" = "pull_request" ]; then
+          echo "BUILD_SHA=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
+        else
+          echo "BUILD_SHA=${GITHUB_SHA}" >> "$GITHUB_ENV"
+        fi
+
     # Actions only sees Settings → Secrets and variables → Actions (not Codespaces-only secrets).
     # Fork PRs do not receive repository secrets; skip the strict check there (tests may still fail if they need the key).
     - name: Ensure CHATGPT_API_KEY is available to Actions
@@ -49,7 +58,7 @@ jobs:
 
     - name: Set short SHA for release tag
       if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
-      run: echo "GIT_SHORT_SHA=${GITHUB_SHA:0:7}" >> "$GITHUB_ENV"
+      run: echo "GIT_SHORT_SHA=${BUILD_SHA:0:7}" >> "$GITHUB_ENV"
 
     - name: Create GitHub Release (master)
       if: github.event_name == 'push'
