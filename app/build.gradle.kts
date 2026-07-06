@@ -96,7 +96,7 @@ android {
 
 private val pipelineId = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: Int.MAX_VALUE
 
-private val sha = System.getenv("GITHUB_SHA")?.take(7) ?: "manual"
+private val sha = System.getenv("GIT_SHORT_SHA") ?: "manual"
 
 
 // Single source of truth for versionCode: release gets the CI run number so Play Store
