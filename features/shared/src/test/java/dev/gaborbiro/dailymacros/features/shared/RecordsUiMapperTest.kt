@@ -67,7 +67,7 @@ class RecordsUiMapperTest {
         assertEquals(5L, ui.recordId)
         assertEquals(9L, ui.templateId)
         assertEquals("Toast", ui.title)
-        assertEquals(listOf("a.jpg"), ui.imageFilenames)
+        assertEquals("a.jpg", ui.imageFilename)
         assertTrue(ui.showLoadingIndicator)
     }
 
