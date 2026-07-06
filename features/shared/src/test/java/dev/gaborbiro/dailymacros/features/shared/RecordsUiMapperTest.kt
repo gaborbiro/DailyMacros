@@ -28,7 +28,7 @@ class RecordsUiMapperTest {
     ) = Template(
         dbId = dbId,
         imageFilenames = listOf("a.jpg"),
-        isRepresentativeOfMealByImageIndex = emptyList(),
+        isRepresentativeOfMealByImageIndex = listOf(null),
         name = "Toast",
         description = "D",
         parentTemplateId = null,
