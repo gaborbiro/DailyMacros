@@ -21,5 +21,5 @@ interface ModalNavigator {
 
     fun launchViewTemplateDetailsFromWidget(context: Context, templateId: Long)
 
-    fun launchQuickPickWidgetConfirmDialog(context: Context, templateId: Long)
+    fun launchQuickPickWidgetConfirmDialog(context: Context, templateId: Long, templateName: String)
 }

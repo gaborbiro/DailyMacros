@@ -22,7 +22,7 @@ interface WidgetNavigator {
 
     fun quickPickBodyTapped(templateId: Long): Action
 
-    fun quickPickWidgetTapped(templateId: Long): Action
+    fun quickPickWidgetTapped(templateId: Long, templateName: String): Action
 
     fun reload(): Action
 

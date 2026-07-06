@@ -61,7 +61,7 @@ class QuickPickWidgetScreen : GlanceAppWidget() {
                     CompositionLocalProvider(LocalImageStoreWidget provides deps.imageStore) {
                         QuickPickWidgetView(
                             uiModel = uiModel,
-                            onTapped = deps.widgetNavigator.quickPickWidgetTapped(uiModel.templateId),
+                            onTapped = deps.widgetNavigator.quickPickWidgetTapped(uiModel.templateId, uiModel.title),
                         )
                     }
                 } else {

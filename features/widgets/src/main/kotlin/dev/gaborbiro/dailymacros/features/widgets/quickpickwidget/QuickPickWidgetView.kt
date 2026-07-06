@@ -88,7 +88,7 @@ private fun QuickPickWidgetViewImageOnlyPreview() {
                 templateId = 0L,
                 nutrients = null,
             ),
-            onTapped = PreviewWidgetNavigator.quickPickWidgetTapped(0L),
+            onTapped = PreviewWidgetNavigator.quickPickWidgetTapped(0L, "Breakfast"),
         )
     }
 }
@@ -105,7 +105,7 @@ private fun QuickPickWidgetViewTallPreview() {
                 templateId = 0L,
                 nutrients = null,
             ),
-            onTapped = PreviewWidgetNavigator.quickPickWidgetTapped(0L),
+            onTapped = PreviewWidgetNavigator.quickPickWidgetTapped(0L, "Breakfast"),
         )
     }
 }
@@ -122,7 +122,7 @@ private fun QuickPickWidgetViewBigPreview() {
                 templateId = 0L,
                 nutrients = null,
             ),
-            onTapped = PreviewWidgetNavigator.quickPickWidgetTapped(0L),
+            onTapped = PreviewWidgetNavigator.quickPickWidgetTapped(0L, "Breakfast"),
         )
     }
 }
