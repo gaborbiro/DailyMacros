@@ -152,16 +152,13 @@ class ModalViewModel @Inject constructor(
         onTemplateDetailsButtonTapped(templateId)
     }
 
-    fun onQuickPickWidgetConfirmDeeplinkReceived(templateId: Long) {
-        runSafely("Couldn't open the entry") {
-            val template = recordsRepository.getTemplate(templateId)
-            setRoot(
-                DialogHandle.QuickPickWidgetConfirmDialog(
-                    templateId = templateId,
-                    templateName = template.name,
-                )
+    fun onQuickPickWidgetConfirmDeeplinkReceived(templateId: Long, templateName: String) {
+        setRoot(
+            DialogHandle.QuickPickWidgetConfirmDialog(
+                templateId = templateId,
+                templateName = templateName,
             )
-        }
+        )
     }
 
     fun onQuickPickWidgetLogAgainTapped() {

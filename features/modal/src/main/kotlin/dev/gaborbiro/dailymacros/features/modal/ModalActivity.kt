@@ -217,7 +217,8 @@ class ModalActivity : AppCompatActivity() {
 
             Action.QUICK_PICK_WIDGET_CONFIRM -> {
                 val templateId = intent.getLongExtra(EXTRA_TEMPLATE_ID, -1L)
-                viewModel.onQuickPickWidgetConfirmDeeplinkReceived(templateId)
+                val templateName = intent.getStringExtra(EXTRA_TEMPLATE_NAME) ?: ""
+                viewModel.onQuickPickWidgetConfirmDeeplinkReceived(templateId, templateName)
             }
         }
     }

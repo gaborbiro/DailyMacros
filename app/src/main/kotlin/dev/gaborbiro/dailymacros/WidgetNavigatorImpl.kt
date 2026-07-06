@@ -20,6 +20,7 @@ import javax.inject.Inject
 
 private const val PREFS_KEY_RECORD = "recordId"
 private const val PREFS_KEY_TEMPLATE = "templateId"
+private const val PREFS_KEY_TEMPLATE_NAME = "templateName"
 
 class WidgetNavigatorImpl @Inject constructor() : WidgetNavigator {
 
@@ -67,10 +68,11 @@ class WidgetNavigatorImpl @Inject constructor() : WidgetNavigator {
         )
     }
 
-    override fun quickPickWidgetTapped(templateId: Long): Action {
+    override fun quickPickWidgetTapped(templateId: Long, templateName: String): Action {
         return actionRunCallback<QuickPickWidgetTappedAction>(
             actionParametersOf(
-                ActionParameters.Key<Long>(PREFS_KEY_TEMPLATE) to templateId
+                ActionParameters.Key<Long>(PREFS_KEY_TEMPLATE) to templateId,
+                ActionParameters.Key<String>(PREFS_KEY_TEMPLATE_NAME) to templateName,
             )
         )
     }
@@ -177,8 +179,9 @@ class QuickPickWidgetTappedAction : ActionCallback {
         parameters: ActionParameters,
     ) {
         val templateId = parameters[ActionParameters.Key<Long>(PREFS_KEY_TEMPLATE)]!!
+        val templateName = parameters[ActionParameters.Key<String>(PREFS_KEY_TEMPLATE_NAME)]!!
         val appContext = context.applicationContext
-        appContext.modalNavigator().launchQuickPickWidgetConfirmDialog(appContext, templateId)
+        appContext.modalNavigator().launchQuickPickWidgetConfirmDialog(appContext, templateId, templateName)
     }
 }
 
