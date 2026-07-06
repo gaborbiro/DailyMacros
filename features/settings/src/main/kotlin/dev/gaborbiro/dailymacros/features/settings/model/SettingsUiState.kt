@@ -20,4 +20,5 @@ data class SettingsUiState(
     val restoreDialogFileId: String = "",
     val customiseAiEnabled: Boolean = false,
     val aiInsightsEnabled: Boolean = false,
+    val autoPhotoRecognitionEnabled: Boolean = false,
 )

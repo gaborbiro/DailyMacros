@@ -5,4 +5,5 @@ sealed class SettingsUiUpdates {
     data object RestartApplication : SettingsUiUpdates()
     data class ShowSnackbar(val message: String) : SettingsUiUpdates()
     data object RequestGoogleSignIn : SettingsUiUpdates()
+    data object RequestPhotoPermissions : SettingsUiUpdates()
 }

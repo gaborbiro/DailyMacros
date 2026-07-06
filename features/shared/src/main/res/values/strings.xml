@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="photo_monitor_notification_title">Watching for meal photos…</string>
+    <string name="photo_recognition_add_to_diary_prompt">Add to diary?</string>
+    <string name="photo_recognition_action_add">Add</string>
+    <string name="photo_recognition_action_skip">Skip</string>
+</resources>

@@ -44,4 +44,10 @@ interface SettingsRepository {
     fun setCloudSyncEmail(email: String?) {}
     fun getLastSyncedEpochMs(): Long? = null
     fun setLastSyncedEpochMs(epochMs: Long?) {}
+
+    fun getAutoPhotoRecognitionEnabled(): Boolean = false
+    fun setAutoPhotoRecognitionEnabled(enabled: Boolean) {}
+
+    fun getLastProcessedMediaStoreId(): Long = -1L
+    fun setLastProcessedMediaStoreId(id: Long) {}
 }

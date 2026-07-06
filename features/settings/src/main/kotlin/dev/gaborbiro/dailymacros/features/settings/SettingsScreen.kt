@@ -1,8 +1,10 @@
 package dev.gaborbiro.dailymacros.features.settings
 
+import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.SnackbarDuration
@@ -42,6 +44,13 @@ fun SettingsScreen(
     val createPublicDocumentUseCase = rememberCreatePublicDocumentUseCase()
     val openPublicDocumentUseCase = rememberOpenPublicDocumentUseCase()
 
+    val photoPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) settingsViewModel.onAutoPhotoPermissionsGranted()
+        else settingsViewModel.onAutoPhotoPermissionsDenied()
+    }
+
     val signInLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -74,6 +83,14 @@ fun SettingsScreen(
                     withDismissAction = true,
                     duration = SnackbarDuration.Indefinite,
                 )
+                SettingsUiUpdates.RequestPhotoPermissions -> {
+                    val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        Manifest.permission.READ_MEDIA_IMAGES
+                    } else {
+                        Manifest.permission.READ_EXTERNAL_STORAGE
+                    }
+                    photoPermissionLauncher.launch(permission)
+                }
                 SettingsUiUpdates.RequestGoogleSignIn -> {
                     val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                         .requestEmail()
@@ -95,6 +112,7 @@ fun SettingsScreen(
         onDiaryDayStartTapped = settingsViewModel::onDiaryDayStartRowTapped,
         onDiaryDayStartDialogDismissed = settingsViewModel::onDiaryDayStartDialogDismissed,
         onDiaryDayStartHourSelected = settingsViewModel::onDiaryDayStartHourSelected,
+        onAutoPhotoRecognitionToggled = settingsViewModel::onAutoPhotoRecognitionToggled,
         onExportSettingTapped = { settingsViewModel.onExportSettingsTapped(createPublicDocumentUseCase) },
         onExportDbTapped = { settingsViewModel.onExportDbTapped(createPublicDocumentUseCase) },
         onImportDbTapped = { settingsViewModel.onImportDbTapped(openPublicDocumentUseCase) },
