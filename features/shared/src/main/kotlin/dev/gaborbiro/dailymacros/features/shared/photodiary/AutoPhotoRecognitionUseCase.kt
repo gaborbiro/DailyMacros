@@ -58,10 +58,11 @@ class AutoPhotoRecognitionUseCase @Inject constructor(
             )
         )
 
-        if (response.title != null) {
+        val title = response.title
+        if (title != null) {
             showConfirmationNotification(
                 notificationId = filename.hashCode(),
-                recognisedTitle = response.title,
+                recognisedTitle = title,
                 imageFilename = filename,
             )
         } else {
