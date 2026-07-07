@@ -188,10 +188,10 @@ class TemplateUiMapper @Inject constructor() {
         val min = target.min
         val max = target.max
         return Range(
-            /* lower = */ if (min != null && min > 0 && max != null) {
-                0.75f
-            } else {
-                0f
+            /* lower = */ when {
+                min == null || max == null -> -1f  // no marker
+                min == 0 -> 0f                     // marker at leftmost position
+                else -> 0.75f                      // marker at fixed 75%
             },
             /* upper = */ 1f
         )

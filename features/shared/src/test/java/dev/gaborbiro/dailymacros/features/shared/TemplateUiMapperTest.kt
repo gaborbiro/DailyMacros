@@ -66,11 +66,11 @@ class TemplateUiMapperTest {
     }
 
     @Test
-    fun `targetRange lower zero when min or max missing`() {
+    fun `targetRange lower is -1 when min or max missing`() {
         val onlyMax = Target(enabled = true, min = null, max = 50)
-        assertEquals(0f, mapper.targetRange(onlyMax).lower, 0f)
+        assertEquals(-1f, mapper.targetRange(onlyMax).lower, 0f)
         val onlyMin = Target(enabled = true, min = 10, max = null)
-        assertEquals(0f, mapper.targetRange(onlyMin).lower, 0f)
+        assertEquals(-1f, mapper.targetRange(onlyMin).lower, 0f)
     }
 
     @Test

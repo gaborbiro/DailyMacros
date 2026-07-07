@@ -42,8 +42,8 @@ fun ProgressView(
             cornerRadius = cornerRadius
         )
 
-        // Min target marker — green line, always on top, hidden only when min is unset (min0to1 == 0)
-        if (min0to1 > 0f) {
+        // Min target marker — green line, always on top, hidden only when min is unset (min0to1 == -1)
+        if (min0to1 >= 0f) {
             val markerX = min0to1 * size.width
             drawLine(
                 color = Color(0xFF4CAF50),
