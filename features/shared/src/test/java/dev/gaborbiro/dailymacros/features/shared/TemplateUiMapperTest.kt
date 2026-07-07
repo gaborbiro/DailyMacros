@@ -20,7 +20,7 @@ class TemplateUiMapperTest {
     private val mapper = TemplateUiMapper()
 
     @Test
-    fun `targetProgress divides total by max when max present`() {
+    fun `targetProgress divides total by max when no min`() {
         val target = Target(enabled = true, min = null, max = 80)
         assertEquals(0.25f, mapper.targetProgress(target, 20f)!!, 0f)
     }
@@ -32,10 +32,36 @@ class TemplateUiMapperTest {
     }
 
     @Test
-    fun `targetRange lower is min over max when both set`() {
+    fun `targetProgress normalises below min over 0-75 segment`() {
+        // total=50, min=100, max=200 → (50/100)*0.75 = 0.375
+        val target = Target(enabled = true, min = 100, max = 200)
+        assertEquals(0.375f, mapper.targetProgress(target, 50f)!!, 0.0001f)
+    }
+
+    @Test
+    fun `targetProgress normalises above min over 75-100 segment`() {
+        // total=150, min=100, max=200 → 0.75 + (50/100)*0.25 = 0.875
+        val target = Target(enabled = true, min = 100, max = 200)
+        assertEquals(0.875f, mapper.targetProgress(target, 150f)!!, 0.0001f)
+    }
+
+    @Test
+    fun `targetProgress at min equals 0_75`() {
+        val target = Target(enabled = true, min = 100, max = 200)
+        assertEquals(0.75f, mapper.targetProgress(target, 100f)!!, 0.0001f)
+    }
+
+    @Test
+    fun `targetProgress at max equals 1_0`() {
+        val target = Target(enabled = true, min = 100, max = 200)
+        assertEquals(1.0f, mapper.targetProgress(target, 200f)!!, 0.0001f)
+    }
+
+    @Test
+    fun `targetRange lower is 0_75 when both min and max set and min positive`() {
         val target = Target(enabled = true, min = 25, max = 100)
         val range: Range<Float> = mapper.targetRange(target)
-        assertEquals(0.25f, range.lower, 0f)
+        assertEquals(0.75f, range.lower, 0f)
         assertEquals(1f, range.upper, 0f)
     }
 
@@ -45,6 +71,12 @@ class TemplateUiMapperTest {
         assertEquals(0f, mapper.targetRange(onlyMax).lower, 0f)
         val onlyMin = Target(enabled = true, min = 10, max = null)
         assertEquals(0f, mapper.targetRange(onlyMin).lower, 0f)
+    }
+
+    @Test
+    fun `targetRange lower zero when min is zero`() {
+        val target = Target(enabled = true, min = 0, max = 100)
+        assertEquals(0f, mapper.targetRange(target).lower, 0f)
     }
 
     @Test
