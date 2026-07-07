@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <service
+            android:name=".photodiary.PhotoMonitorService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <receiver
+            android:name=".photodiary.PhotoRecognitionActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="dev.gaborbiro.dailymacros.ACTION_CONFIRM_PHOTO_ENTRY" />
+                <action android:name="dev.gaborbiro.dailymacros.ACTION_DENY_PHOTO_ENTRY" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".photodiary.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+    </application>
+
+</manifest>

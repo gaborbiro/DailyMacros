@@ -1,7 +1,12 @@
 package dev.gaborbiro.dailymacros.features.settings
 
+import android.Manifest
 import android.app.Application
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.util.Log
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import dev.gaborbiro.dailymacros.core.featureflags.FeatureFlagStore
 import androidx.lifecycle.viewModelScope
@@ -12,6 +17,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCase
+import dev.gaborbiro.dailymacros.features.shared.photodiary.PhotoMonitorService
 import dev.gaborbiro.dailymacros.features.settings.export.OpenPublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportSqliteDatabaseUseCase
@@ -60,6 +66,7 @@ class SettingsViewModel @Inject constructor(
             lastSyncedEpochMs = settingsRepository.getLastSyncedEpochMs(),
             customiseAiEnabled = featureFlagStore.isEnabled(FeatureFlagStore.Key.CUSTOMISE_AI_ENABLED),
             aiInsightsEnabled = featureFlagStore.isEnabled(FeatureFlagStore.Key.AI_INSIGHTS_ENABLED),
+            autoPhotoRecognitionEnabled = settingsRepository.getAutoPhotoRecognitionEnabled(),
         ),
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
@@ -259,6 +266,50 @@ class SettingsViewModel @Inject constructor(
 
     fun onRestoreDialogDismissed() {
         _uiState.update { it.copy(showRestoreConfirmDialog = false) }
+    }
+
+    fun onAutoPhotoRecognitionToggled(enabled: Boolean) {
+        if (enabled) {
+            val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                Manifest.permission.READ_MEDIA_IMAGES
+            } else {
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            }
+            val granted = ContextCompat.checkSelfPermission(
+                getApplication(),
+                permission,
+            ) == PackageManager.PERMISSION_GRANTED
+            if (granted) {
+                enableAutoPhotoRecognition()
+            } else {
+                viewModelScope.launch { _uiUpdates.emit(SettingsUiUpdates.RequestPhotoPermissions) }
+            }
+        } else {
+            settingsRepository.setAutoPhotoRecognitionEnabled(false)
+            getApplication<Application>().stopService(
+                Intent(getApplication(), PhotoMonitorService::class.java)
+            )
+            _uiState.update { it.copy(autoPhotoRecognitionEnabled = false) }
+        }
+    }
+
+    fun onAutoPhotoPermissionsGranted() {
+        enableAutoPhotoRecognition()
+    }
+
+    fun onAutoPhotoPermissionsDenied() {
+        _uiState.update { it.copy(autoPhotoRecognitionEnabled = false) }
+        viewModelScope.launch {
+            _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Permission required to monitor camera photos."))
+        }
+    }
+
+    private fun enableAutoPhotoRecognition() {
+        settingsRepository.setAutoPhotoRecognitionEnabled(true)
+        getApplication<Application>().startForegroundService(
+            Intent(getApplication(), PhotoMonitorService::class.java)
+        )
+        _uiState.update { it.copy(autoPhotoRecognitionEnabled = true) }
     }
 
     private fun signOut() {

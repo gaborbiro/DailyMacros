@@ -133,6 +133,20 @@ class SettingsRepositoryImpl @Inject constructor(
         prefs.edit { if (epochMs != null) putLong(KEY_LAST_SYNCED_EPOCH_MS, epochMs) else remove(KEY_LAST_SYNCED_EPOCH_MS) }
     }
 
+    override fun getAutoPhotoRecognitionEnabled(): Boolean =
+        prefs.getBoolean(KEY_AUTO_PHOTO_RECOGNITION, false)
+
+    override fun setAutoPhotoRecognitionEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean(KEY_AUTO_PHOTO_RECOGNITION, enabled) }
+    }
+
+    override fun getLastProcessedMediaStoreId(): Long =
+        prefs.getLong(KEY_LAST_PROCESSED_MEDIA_STORE_ID, -1L)
+
+    override fun setLastProcessedMediaStoreId(id: Long) {
+        prefs.edit { putLong(KEY_LAST_PROCESSED_MEDIA_STORE_ID, id) }
+    }
+
     companion object {
         private const val KEY_TARGETS = "targets_json"
         private const val KEY_DIARY_DAY_START_HOUR = "diary_day_start_hour"
@@ -143,5 +157,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private const val KEY_CLOUD_SYNC_PROVIDER = "cloud_sync_provider"
         private const val KEY_CLOUD_SYNC_EMAIL = "cloud_sync_email"
         private const val KEY_LAST_SYNCED_EPOCH_MS = "last_synced_epoch_ms"
+        private const val KEY_AUTO_PHOTO_RECOGNITION = "auto_photo_recognition"
+        private const val KEY_LAST_PROCESSED_MEDIA_STORE_ID = "last_processed_media_store_id"
     }
 }

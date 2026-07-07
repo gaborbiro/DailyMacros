@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.Switch
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -69,6 +70,7 @@ internal fun SettingsView(
     onDiaryDayStartTapped: () -> Unit,
     onDiaryDayStartDialogDismissed: () -> Unit,
     onDiaryDayStartHourSelected: (Int) -> Unit,
+    onAutoPhotoRecognitionToggled: (Boolean) -> Unit,
     onExportSettingTapped: () -> Unit,
     onExportDbTapped: () -> Unit,
     onImportDbTapped: () -> Unit,
@@ -194,6 +196,19 @@ internal fun SettingsView(
                 onTapped = onDiaryDayStartTapped,
             )
             SettingRow(title = "Export food diary", onTapped = onExportSettingTapped)
+
+            SettingSectionHeader(title = "Camera")
+            SettingRow(
+                title = stringResource(R.string.settings_auto_photo_recognition_row),
+                subtitle = stringResource(R.string.settings_auto_photo_recognition_subtitle),
+                onTapped = { onAutoPhotoRecognitionToggled(!viewState.autoPhotoRecognitionEnabled) },
+                trailing = {
+                    Switch(
+                        checked = viewState.autoPhotoRecognitionEnabled,
+                        onCheckedChange = onAutoPhotoRecognitionToggled,
+                    )
+                },
+            )
 
             SettingSectionHeader(title = "Local sync")
             val localSyncIdle = !viewState.exportDataInProgress && !viewState.importDataInProgress
@@ -345,6 +360,7 @@ private fun SettingsViewPreview() {
             onDiaryDayStartTapped = {},
             onDiaryDayStartDialogDismissed = {},
             onDiaryDayStartHourSelected = {},
+            onAutoPhotoRecognitionToggled = {},
             onExportSettingTapped = {},
             onExportDbTapped = {},
             onImportDbTapped = {},

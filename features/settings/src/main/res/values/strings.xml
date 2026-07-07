@@ -6,4 +6,6 @@
     <string name="settings_diary_day_start_option_1am">1:00 a.m.</string>
     <string name="settings_diary_day_start_option_2am">2:00 a.m.</string>
     <string name="settings_diary_day_start_dialog_close">Close</string>
+    <string name="settings_auto_photo_recognition_row">Auto-detect meal photos</string>
+    <string name="settings_auto_photo_recognition_subtitle">Analyses new camera photos and asks to add them to your diary</string>
 </resources>
