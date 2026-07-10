@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -47,75 +48,73 @@ internal fun WelcomeView(modifier: Modifier = Modifier, onAddWidget: () -> Unit 
     val onBackground = MaterialTheme.colorScheme.onBackground
     val extraColors = LocalExtraColorScheme.current
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 28.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Box(
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val compact = maxWidth < 360.dp
+        val hPadding = if (compact) 16.dp else 28.dp
+
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(240.dp),
-            contentAlignment = Alignment.Center,
+                .fillMaxSize()
+                .padding(horizontal = hPadding),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
         ) {
-            PhoneIllustration(primaryColor = primary)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                PhoneIllustration(primaryColor = primary)
 
-            Column(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(end = 4.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                MacroChip(
-                    label = stringResource(R.string.welcome_chip_protein),
-                    color = extraColors.proteinColor,
-                )
-                MacroChip(
-                    label = stringResource(R.string.welcome_chip_carbs),
-                    color = extraColors.carbsColor,
-                )
-                MacroChip(
-                    label = stringResource(R.string.welcome_chip_fat),
-                    color = extraColors.fatColor,
-                )
-                MacroChip(
-                    label = stringResource(R.string.welcome_chip_calories),
-                    color = extraColors.caloriesColor,
-                )
+                Column(
+                    modifier = Modifier.padding(start = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    MacroChip(
+                        label = stringResource(R.string.welcome_chip_protein),
+                        color = extraColors.proteinColor,
+                    )
+                    MacroChip(
+                        label = stringResource(R.string.welcome_chip_carbs),
+                        color = extraColors.carbsColor,
+                    )
+                    MacroChip(
+                        label = stringResource(R.string.welcome_chip_fat),
+                        color = extraColors.fatColor,
+                    )
+                    MacroChip(
+                        label = stringResource(R.string.welcome_chip_calories),
+                        color = extraColors.caloriesColor,
+                    )
+                }
             }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+                text = stringResource(R.string.welcome_heading),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            WelcomeBullet(text = stringResource(R.string.welcome_bullet_snap))
+            Spacer(modifier = Modifier.height(8.dp))
+            WelcomeBullet(text = stringResource(R.string.welcome_bullet_ai))
+            Spacer(modifier = Modifier.height(8.dp))
+            WelcomeBullet(text = stringResource(R.string.welcome_bullet_track))
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            AddWidgetButton(onClick = onAddWidget)
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = stringResource(R.string.welcome_widget_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = onBackground.copy(alpha = 0.5f),
+                textAlign = TextAlign.Center,
+            )
         }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Text(
-            text = stringResource(R.string.welcome_heading),
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        WelcomeBullet(text = stringResource(R.string.welcome_bullet_snap))
-        Spacer(modifier = Modifier.height(8.dp))
-        WelcomeBullet(text = stringResource(R.string.welcome_bullet_ai))
-        Spacer(modifier = Modifier.height(8.dp))
-        WelcomeBullet(text = stringResource(R.string.welcome_bullet_track))
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        AddWidgetButton(onClick = onAddWidget)
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = stringResource(R.string.welcome_widget_hint),
-            style = MaterialTheme.typography.bodySmall,
-            color = onBackground.copy(alpha = 0.5f),
-            textAlign = TextAlign.Center,
-        )
     }
 }
 
