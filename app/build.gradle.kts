@@ -173,6 +173,8 @@ dependencies {
 
     implementation(libs.accompanist.navigation.animation)
 
+    implementation(libs.google.play.services.auth)
+
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.google.mlkit.image.labeling)
 
