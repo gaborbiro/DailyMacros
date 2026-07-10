@@ -15,6 +15,7 @@ import com.google.android.gms.auth.GoogleAuthUtil
 import com.google.android.gms.auth.UserRecoverableAuthException
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import dev.gaborbiro.dailymacros.features.settings.DRIVE_SCOPE_TOKEN
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.shared.photodiary.PhotoMonitorService
@@ -383,7 +384,7 @@ class SettingsViewModel @Inject constructor(
         val app = getApplication<Application>()
         val account = GoogleSignIn.getLastSignedInAccount(app) ?: return@withContext null
         try {
-            GoogleAuthUtil.getToken(app, account.account!!, DRIVE_SCOPE)
+            GoogleAuthUtil.getToken(app, account.account!!, DRIVE_SCOPE_TOKEN)
         } catch (e: UserRecoverableAuthException) {
             null
         } catch (e: GoogleAuthException) {
@@ -391,7 +392,4 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private companion object {
-        const val DRIVE_SCOPE = "oauth2:https://www.googleapis.com/auth/drive.appdata"
-    }
 }

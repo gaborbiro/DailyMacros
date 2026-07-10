@@ -6,6 +6,7 @@ import com.google.android.gms.auth.GoogleAuthUtil
 import com.google.android.gms.auth.UserRecoverableAuthException
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.gaborbiro.dailymacros.features.settings.DRIVE_SCOPE_TOKEN
 import dev.gaborbiro.dailymacros.repositories.backup.domain.CloudSyncRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.BackupInterval
@@ -53,16 +54,12 @@ class AutoSyncUseCase @Inject constructor(
     private suspend fun getDriveAccessToken(): String? = withContext(Dispatchers.IO) {
         val account = GoogleSignIn.getLastSignedInAccount(context) ?: return@withContext null
         try {
-            GoogleAuthUtil.getToken(context, account.account!!, DRIVE_SCOPE)
+            GoogleAuthUtil.getToken(context, account.account!!, DRIVE_SCOPE_TOKEN)
         } catch (e: UserRecoverableAuthException) {
             null
         } catch (e: GoogleAuthException) {
             null
         }
-    }
-
-    private companion object {
-        const val DRIVE_SCOPE = "oauth2:https://www.googleapis.com/auth/drive.appdata"
     }
 }
 

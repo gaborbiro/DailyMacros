@@ -25,17 +25,13 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.lifecycleScope
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.common.api.Scope
+import dev.gaborbiro.dailymacros.features.settings.launchGoogleSignIn
+import dev.gaborbiro.dailymacros.features.settings.rememberGoogleSignInLauncher
 import dagger.hilt.android.AndroidEntryPoint
 import dev.gaborbiro.dailymacros.AppPrefs
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
@@ -115,34 +111,15 @@ class MainActivity : ComponentActivity() {
                 val promptEditorViewModel: PromptEditorViewModel = hiltViewModel()
                 val trendsViewModel: TrendsViewModel = hiltViewModel()
 
-                val signInLauncher = rememberLauncherForActivityResult(
-                    contract = ActivityResultContracts.StartActivityForResult()
-                ) { result ->
-                    val data = result.data
-                    if (data != null) {
-                        val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-                        try {
-                            val account = task.getResult(ApiException::class.java)
-                            val email = account?.email
-                            if (email != null) {
-                                settingsViewModel.onGoogleSignInSuccess(email)
-                            } else {
-                                settingsViewModel.onGoogleSignInFailed("No email returned")
-                            }
-                        } catch (e: ApiException) {
-                            settingsViewModel.onGoogleSignInFailed(e.message ?: e.statusCode.toString())
-                        }
-                    }
-                }
+                val signInLauncher = rememberGoogleSignInLauncher(
+                    onSuccess = settingsViewModel::onGoogleSignInSuccess,
+                    onFailure = settingsViewModel::onGoogleSignInFailed,
+                )
 
                 LaunchedEffect(settingsViewModel) {
                     settingsViewModel.uiUpdates.collect { event ->
                         if (event == SettingsUiUpdates.RequestGoogleSignIn) {
-                            val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                                .requestEmail()
-                                .requestScopes(Scope("https://www.googleapis.com/auth/drive.appdata"))
-                                .build()
-                            signInLauncher.launch(GoogleSignIn.getClient(this@MainActivity, gso).signInIntent)
+                            launchGoogleSignIn(this@MainActivity, signInLauncher)
                         }
                     }
                 }
