@@ -171,16 +171,27 @@ class TemplateUiMapper @Inject constructor() {
         return formatMacroAmount(amount, format)
     }
 
-    fun targetProgress(target: Target, total: Float): Float? = target.max?.let { total / it }
+    fun targetProgress(target: Target, total: Float): Float? = target.max?.let { max ->
+        val min = target.min ?: 0
+        if (min > 0 && max > min) {
+            if (total <= min) {
+                (total / min) * 0.75f
+            } else {
+                0.75f + ((total - min) / (max - min)) * 0.25f
+            }
+        } else {
+            total / max
+        }
+    }
 
     fun targetRange(target: Target): Range<Float> {
         val min = target.min
         val max = target.max
         return Range(
-            /* lower = */ if (min != null && max != null) {
-                min.toFloat() / max.toFloat()
-            } else {
-                0f
+            /* lower = */ when {
+                min == null || max == null -> -1f  // no marker
+                min == 0 -> 0f                     // marker at leftmost position
+                else -> 0.75f                      // marker at fixed 75%
             },
             /* upper = */ 1f
         )

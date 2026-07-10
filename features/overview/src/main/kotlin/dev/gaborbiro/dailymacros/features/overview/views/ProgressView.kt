@@ -32,32 +32,6 @@ fun ProgressView(
             size = size
         )
 
-        // Target range start highlight (only on first coat)
-        if (progress0to1 < min0to1) {
-            val start = min0to1 * size.width
-            drawArc(
-                color = progressColor,
-                startAngle = 90f,
-                sweepAngle = 180f,
-                useCenter = true,
-                topLeft = Offset(start - radius, (size.height / 2) - radius),
-                size = Size(radius * 2, radius * 2)
-            )
-        }
-
-        // Target range end highlight (only on first coat)
-//        if (progress0to1 < 1f) {
-//            val end = max0to1 * size.width
-//            drawArc(
-//                color = progressColor,
-//                startAngle = 270f,
-//                sweepAngle = 180f,
-//                useCenter = true,
-//                topLeft = Offset(end - radius, (size.height / 2) - radius),
-//                size = Size(radius * 2, radius * 2)
-//            )
-//        }
-
         // Progress fill
         val fraction = progress0to1 % 1f
         val progressWidth = fraction * size.width
@@ -67,5 +41,16 @@ fun ProgressView(
             size = Size(progressWidth, size.height),
             cornerRadius = cornerRadius
         )
+
+        // Min target marker — green line, always on top, hidden only when min is unset (min0to1 == -1)
+        if (min0to1 >= 0f) {
+            val markerX = min0to1 * size.width
+            drawLine(
+                color = Color(0xFF4CAF50),
+                start = Offset(markerX, 0f),
+                end = Offset(markerX, size.height),
+                strokeWidth = 2.dp.toPx(),
+            )
+        }
     }
 }
