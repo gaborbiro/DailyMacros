@@ -37,6 +37,7 @@ fun SettingsScreen(
     promptEditorViewModel: PromptEditorViewModel,
     navController: NavHostController,
     highlightTargets: Boolean = false,
+    triggerCloudSync: Boolean = false,
 ) {
     val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -69,6 +70,10 @@ fun SettingsScreen(
                 settingsViewModel.onGoogleSignInFailed(e.message ?: e.statusCode.toString())
             }
         }
+    }
+
+    LaunchedEffect(triggerCloudSync) {
+        if (triggerCloudSync) settingsViewModel.onCloudSyncRowTapped()
     }
 
     LaunchedEffect(settingsViewModel, context) {

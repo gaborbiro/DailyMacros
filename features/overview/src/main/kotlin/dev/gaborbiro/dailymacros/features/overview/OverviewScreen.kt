@@ -12,6 +12,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import dev.gaborbiro.dailymacros.features.common.SETTINGS_HIGHLIGHT_TARGETS_ARG
 import dev.gaborbiro.dailymacros.features.common.SETTINGS_ROUTE
+import dev.gaborbiro.dailymacros.features.common.SETTINGS_TRIGGER_CLOUD_SYNC_ARG
 import dev.gaborbiro.dailymacros.features.common.TRENDS_ROUTE
 import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiUpdates
@@ -55,6 +56,7 @@ fun OverviewScreen(
         onSearchTermChanged = viewModel::onSearchTermChanged,
         onSettingsButtonTapped = viewModel::onSettingsButtonTapped,
         onAddWidget = onAddWidget,
+        onRestoreFromCloud = { navController.navigate("$SETTINGS_ROUTE?$SETTINGS_TRIGGER_CLOUD_SYNC_ARG=true") },
         onSetTargetsTapped = {
             viewModel.onCoachMarkDismissed()
             navController.navigate("$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_TARGETS_ARG=true")

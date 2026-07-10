@@ -4,6 +4,7 @@
     <string name="welcome_bullet_ai">AI reads the macros for you</string>
     <string name="welcome_bullet_track">Track protein, carbs, fat and more</string>
     <string name="welcome_widget_hint">Add the widget to your home screen to log meals</string>
+    <string name="welcome_restore_from_cloud">Restore from cloud backup</string>
     <string name="welcome_chip_protein">Protein</string>
     <string name="welcome_chip_carbs">Carbs</string>
     <string name="welcome_chip_fat">Fat</string>

@@ -34,6 +34,7 @@ import dev.gaborbiro.dailymacros.AppPrefs
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.design.AppTheme
+import dev.gaborbiro.dailymacros.features.common.SETTINGS_TRIGGER_CLOUD_SYNC_ARG
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
@@ -132,12 +133,16 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     composable(
-                        route = "$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_TARGETS_ARG={$SETTINGS_HIGHLIGHT_TARGETS_ARG}",
+                        route = "$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_TARGETS_ARG={$SETTINGS_HIGHLIGHT_TARGETS_ARG}&$SETTINGS_TRIGGER_CLOUD_SYNC_ARG={$SETTINGS_TRIGGER_CLOUD_SYNC_ARG}",
                         arguments = listOf(
                             navArgument(SETTINGS_HIGHLIGHT_TARGETS_ARG) {
                                 type = NavType.BoolType
                                 defaultValue = false
-                            }
+                            },
+                            navArgument(SETTINGS_TRIGGER_CLOUD_SYNC_ARG) {
+                                type = NavType.BoolType
+                                defaultValue = false
+                            },
                         ),
                         enterTransition = {
                             scaleIn(
@@ -155,12 +160,14 @@ class MainActivity : ComponentActivity() {
                         },
                     ) { backStackEntry ->
                         val highlightTargets = backStackEntry.arguments?.getBoolean(SETTINGS_HIGHLIGHT_TARGETS_ARG) ?: false
+                        val triggerCloudSync = backStackEntry.arguments?.getBoolean(SETTINGS_TRIGGER_CLOUD_SYNC_ARG) ?: false
                         SettingsScreen(
                             settingsViewModel = settingsViewModel,
                             targetsSettingsViewModel = targetsSettingsViewModel,
                             promptEditorViewModel = promptEditorViewModel,
                             navController = navController,
                             highlightTargets = highlightTargets,
+                            triggerCloudSync = triggerCloudSync,
                         )
                     }
                     composable(

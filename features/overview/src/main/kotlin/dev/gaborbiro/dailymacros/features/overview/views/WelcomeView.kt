@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -44,7 +45,11 @@ import dev.gaborbiro.dailymacros.features.common.utils.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
 
 @Composable
-internal fun WelcomeView(modifier: Modifier = Modifier, onAddWidget: () -> Unit = {}) {
+internal fun WelcomeView(
+    modifier: Modifier = Modifier,
+    onAddWidget: () -> Unit = {},
+    onRestoreFromCloud: () -> Unit = {},
+) {
     val primary = MaterialTheme.colorScheme.primary
     val onBackground = MaterialTheme.colorScheme.onBackground
     val extraColors = LocalExtraColorScheme.current
@@ -117,6 +122,17 @@ internal fun WelcomeView(modifier: Modifier = Modifier, onAddWidget: () -> Unit 
                 textAlign = TextAlign.Center,
             )
 
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Text(
+                modifier = Modifier.clickable(onClick = onRestoreFromCloud),
+                text = stringResource(R.string.welcome_restore_from_cloud),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
