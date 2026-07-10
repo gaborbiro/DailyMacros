@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import dev.gaborbiro.dailymacros.features.overview.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
@@ -146,19 +147,6 @@ internal fun OverviewView(
                 onCoachMarkDismissed = onCoachMarkDismissed,
             )
         }
-    }
-}
-
-@Composable
-fun AddWidgetButton(onClick: () -> Unit) {
-    Button(
-        modifier = Modifier
-            .padding(PaddingDefault),
-        onClick = onClick,
-    ) {
-        Text(
-            text = stringResource(R.string.overview_content_add_widget_button)
-        )
     }
 }
 

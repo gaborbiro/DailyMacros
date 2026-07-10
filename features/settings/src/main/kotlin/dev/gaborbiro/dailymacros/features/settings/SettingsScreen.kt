@@ -16,10 +16,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.common.api.Scope
 import dev.gaborbiro.dailymacros.features.settings.export.ProcessRestarter
 import dev.gaborbiro.dailymacros.features.settings.export.rememberCreatePublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.rememberOpenPublicDocumentUseCase
@@ -37,7 +33,6 @@ fun SettingsScreen(
     promptEditorViewModel: PromptEditorViewModel,
     navController: NavHostController,
     highlightTargets: Boolean = false,
-    triggerCloudSync: Boolean = false,
 ) {
     val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -50,30 +45,6 @@ fun SettingsScreen(
     ) { granted ->
         if (granted) settingsViewModel.onAutoPhotoPermissionsGranted()
         else settingsViewModel.onAutoPhotoPermissionsDenied()
-    }
-
-    val signInLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        val data = result.data
-        if (data != null) {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-            try {
-                val account = task.getResult(ApiException::class.java)
-                val email = account?.email
-                if (email != null) {
-                    settingsViewModel.onGoogleSignInSuccess(email)
-                } else {
-                    settingsViewModel.onGoogleSignInFailed("No email returned")
-                }
-            } catch (e: ApiException) {
-                settingsViewModel.onGoogleSignInFailed(e.message ?: e.statusCode.toString())
-            }
-        }
-    }
-
-    LaunchedEffect(triggerCloudSync) {
-        if (triggerCloudSync) settingsViewModel.onCloudSyncRowTapped()
     }
 
     LaunchedEffect(settingsViewModel, context) {
@@ -96,13 +67,7 @@ fun SettingsScreen(
                     }
                     photoPermissionLauncher.launch(permission)
                 }
-                SettingsUiUpdates.RequestGoogleSignIn -> {
-                    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                        .requestEmail()
-                        .requestScopes(Scope("https://www.googleapis.com/auth/drive.appdata"))
-                        .build()
-                    signInLauncher.launch(GoogleSignIn.getClient(context, gso).signInIntent)
-                }
+                SettingsUiUpdates.RequestGoogleSignIn -> Unit
             }
         }
     }

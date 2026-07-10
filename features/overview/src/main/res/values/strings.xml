@@ -13,7 +13,7 @@
     <!-- OverviewView -->
     <string name="overview_content_record_deleted">Record deleted</string>
     <string name="overview_content_undo">Undo</string>
-    <string name="overview_content_add_widget_button">Tap here to add a widget to your desktop</string>
+    <string name="overview_content_add_widget_button">Tap here to\nadd a widget to your desktop</string>
     <!-- OverviewListTopActions -->
     <string name="overview_content_settings_cd">Settings Button</string>
     <string name="overview_content_coach_mark">Set your daily targets here</string>

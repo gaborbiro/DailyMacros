@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -39,10 +40,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.features.overview.R
 import dev.gaborbiro.dailymacros.design.LocalExtraColorScheme
+import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.common.utils.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
+import dev.gaborbiro.dailymacros.features.overview.R
 
 @Composable
 internal fun WelcomeView(
@@ -295,6 +297,22 @@ private fun DrawScope.drawScanBrackets(color: Color) {
     drawLine(color, Offset(w - inset, h - inset), Offset(w - inset - bracketLen, h - inset), strokeW)
     drawLine(color, Offset(w - inset, h - inset), Offset(w - inset, h - inset - bracketLen), strokeW)
 }
+
+@Composable
+fun AddWidgetButton(onClick: () -> Unit) {
+    Button(
+        modifier = Modifier
+            .padding(horizontal = PaddingDefault)
+            .padding(top = PaddingDefault),
+        onClick = onClick,
+    ) {
+        Text(
+            text = stringResource(R.string.overview_content_add_widget_button),
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
 
 @Preview
 @Composable

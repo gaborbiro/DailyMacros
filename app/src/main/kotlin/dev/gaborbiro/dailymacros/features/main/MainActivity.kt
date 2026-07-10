@@ -25,22 +25,29 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.lifecycleScope
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.Scope
 import dagger.hilt.android.AndroidEntryPoint
 import dev.gaborbiro.dailymacros.AppPrefs
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.design.AppTheme
-import dev.gaborbiro.dailymacros.features.common.SETTINGS_TRIGGER_CLOUD_SYNC_ARG
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
+import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsViewModel
 import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
@@ -108,6 +115,38 @@ class MainActivity : ComponentActivity() {
                 val promptEditorViewModel: PromptEditorViewModel = hiltViewModel()
                 val trendsViewModel: TrendsViewModel = hiltViewModel()
 
+                val signInLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.StartActivityForResult()
+                ) { result ->
+                    val data = result.data
+                    if (data != null) {
+                        val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+                        try {
+                            val account = task.getResult(ApiException::class.java)
+                            val email = account?.email
+                            if (email != null) {
+                                settingsViewModel.onGoogleSignInSuccess(email)
+                            } else {
+                                settingsViewModel.onGoogleSignInFailed("No email returned")
+                            }
+                        } catch (e: ApiException) {
+                            settingsViewModel.onGoogleSignInFailed(e.message ?: e.statusCode.toString())
+                        }
+                    }
+                }
+
+                LaunchedEffect(settingsViewModel) {
+                    settingsViewModel.uiUpdates.collect { event ->
+                        if (event == SettingsUiUpdates.RequestGoogleSignIn) {
+                            val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                                .requestEmail()
+                                .requestScopes(Scope("https://www.googleapis.com/auth/drive.appdata"))
+                                .build()
+                            signInLauncher.launch(GoogleSignIn.getClient(this@MainActivity, gso).signInIntent)
+                        }
+                    }
+                }
+
                 NavHost(
                     navController = navController,
                     startDestination = OVERVIEW_ROUTE,
@@ -120,6 +159,7 @@ class MainActivity : ComponentActivity() {
                                 viewModel = overviewViewModel,
                                 modalNavigator = modalNavigator,
                                 navController = navController,
+                                onRestoreFromCloud = settingsViewModel::onCloudSyncRowTapped,
                                 onAddWidget = {
                                     val mgr = AppWidgetManager.getInstance(this@MainActivity)
                                     val provider = ComponentName(this@MainActivity, DiaryWidgetReceiver::class.java)
@@ -133,13 +173,9 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     composable(
-                        route = "$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_TARGETS_ARG={$SETTINGS_HIGHLIGHT_TARGETS_ARG}&$SETTINGS_TRIGGER_CLOUD_SYNC_ARG={$SETTINGS_TRIGGER_CLOUD_SYNC_ARG}",
+                        route = "$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_TARGETS_ARG={$SETTINGS_HIGHLIGHT_TARGETS_ARG}",
                         arguments = listOf(
                             navArgument(SETTINGS_HIGHLIGHT_TARGETS_ARG) {
-                                type = NavType.BoolType
-                                defaultValue = false
-                            },
-                            navArgument(SETTINGS_TRIGGER_CLOUD_SYNC_ARG) {
                                 type = NavType.BoolType
                                 defaultValue = false
                             },
@@ -160,14 +196,12 @@ class MainActivity : ComponentActivity() {
                         },
                     ) { backStackEntry ->
                         val highlightTargets = backStackEntry.arguments?.getBoolean(SETTINGS_HIGHLIGHT_TARGETS_ARG) ?: false
-                        val triggerCloudSync = backStackEntry.arguments?.getBoolean(SETTINGS_TRIGGER_CLOUD_SYNC_ARG) ?: false
                         SettingsScreen(
                             settingsViewModel = settingsViewModel,
                             targetsSettingsViewModel = targetsSettingsViewModel,
                             promptEditorViewModel = promptEditorViewModel,
                             navController = navController,
                             highlightTargets = highlightTargets,
-                            triggerCloudSync = triggerCloudSync,
                         )
                     }
                     composable(
