@@ -68,6 +68,8 @@ internal fun WelcomeView(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
+            Spacer(modifier = Modifier.height(24.dp))
+
             Row(verticalAlignment = Alignment.CenterVertically) {
                 PhoneIllustration(primaryColor = primary)
 
