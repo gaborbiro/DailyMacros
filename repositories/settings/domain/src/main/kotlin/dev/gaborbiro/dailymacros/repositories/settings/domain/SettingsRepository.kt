@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.repositories.settings.domain
 
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.BackupInterval
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
@@ -50,4 +51,7 @@ interface SettingsRepository {
 
     fun getLastProcessedMediaStoreId(): Long = -1L
     fun setLastProcessedMediaStoreId(id: Long) {}
+
+    fun getAutoBackupInterval(): BackupInterval = BackupInterval.NEVER
+    fun setAutoBackupInterval(interval: BackupInterval) {}
 }

@@ -6,6 +6,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository as SettingsRepository
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.BackupInterval
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
@@ -147,6 +148,15 @@ class SettingsRepositoryImpl @Inject constructor(
         prefs.edit { putLong(KEY_LAST_PROCESSED_MEDIA_STORE_ID, id) }
     }
 
+    override fun getAutoBackupInterval(): BackupInterval =
+        prefs.getString(KEY_AUTO_BACKUP_INTERVAL, null)
+            ?.let { runCatching { BackupInterval.valueOf(it) }.getOrNull() }
+            ?: BackupInterval.NEVER
+
+    override fun setAutoBackupInterval(interval: BackupInterval) {
+        prefs.edit { putString(KEY_AUTO_BACKUP_INTERVAL, interval.name) }
+    }
+
     companion object {
         private const val KEY_TARGETS = "targets_json"
         private const val KEY_DIARY_DAY_START_HOUR = "diary_day_start_hour"
@@ -159,5 +169,6 @@ class SettingsRepositoryImpl @Inject constructor(
         private const val KEY_LAST_SYNCED_EPOCH_MS = "last_synced_epoch_ms"
         private const val KEY_AUTO_PHOTO_RECOGNITION = "auto_photo_recognition"
         private const val KEY_LAST_PROCESSED_MEDIA_STORE_ID = "last_processed_media_store_id"
+        private const val KEY_AUTO_BACKUP_INTERVAL = "auto_backup_interval"
     }
 }

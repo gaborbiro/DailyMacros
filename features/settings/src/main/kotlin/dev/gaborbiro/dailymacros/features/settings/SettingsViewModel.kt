@@ -29,6 +29,7 @@ import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
 import dev.gaborbiro.dailymacros.repositories.backup.domain.CloudSyncRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.BackupInterval
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -67,6 +68,7 @@ class SettingsViewModel @Inject constructor(
             customiseAiEnabled = featureFlagStore.isEnabled(FeatureFlagStore.Key.CUSTOMISE_AI_ENABLED),
             aiInsightsEnabled = featureFlagStore.isEnabled(FeatureFlagStore.Key.AI_INSIGHTS_ENABLED),
             autoPhotoRecognitionEnabled = settingsRepository.getAutoPhotoRecognitionEnabled(),
+            autoBackupInterval = settingsRepository.getAutoBackupInterval(),
         ),
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
@@ -266,6 +268,19 @@ class SettingsViewModel @Inject constructor(
 
     fun onRestoreDialogDismissed() {
         _uiState.update { it.copy(showRestoreConfirmDialog = false) }
+    }
+
+    fun onAutoBackupIntervalRowTapped() {
+        _uiState.update { it.copy(showAutoBackupIntervalDialog = true) }
+    }
+
+    fun onAutoBackupIntervalDialogDismissed() {
+        _uiState.update { it.copy(showAutoBackupIntervalDialog = false) }
+    }
+
+    fun onAutoBackupIntervalSelected(interval: BackupInterval) {
+        settingsRepository.setAutoBackupInterval(interval)
+        _uiState.update { it.copy(autoBackupInterval = interval, showAutoBackupIntervalDialog = false) }
     }
 
     fun onAutoPhotoRecognitionToggled(enabled: Boolean) {

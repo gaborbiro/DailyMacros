@@ -8,4 +8,10 @@
     <string name="settings_diary_day_start_dialog_close">Close</string>
     <string name="settings_auto_photo_recognition_row">Auto-detect meal photos</string>
     <string name="settings_auto_photo_recognition_subtitle">Analyses new camera photos and asks to add them to your diary</string>
+    <string name="settings_cloud_sync_auto_backup_row">Auto backup</string>
+    <string name="settings_cloud_sync_auto_backup_dialog_title">How often should we back up automatically?</string>
+    <string name="settings_cloud_sync_auto_backup_never">Never</string>
+    <string name="settings_cloud_sync_auto_backup_daily">Daily</string>
+    <string name="settings_cloud_sync_auto_backup_weekly">Weekly</string>
+    <string name="settings_cloud_sync_auto_backup_monthly">Monthly</string>
 </resources>

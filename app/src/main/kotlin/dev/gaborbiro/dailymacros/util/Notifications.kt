@@ -115,6 +115,18 @@ fun Context.showTextNotification(
     )
 }
 
+private const val NOTIFICATION_ID_AUTO_SYNC_FAILURE = 2001
+
+fun Context.showAutoSyncFailureNotification() {
+    val builder = NotificationCompat.Builder(this, CHANNEL_ID_ERROR)
+        .setSmallIcon(R.drawable.ic_nutrition)
+        .setContentTitle("Backup failed")
+        .setContentText("Cloud backup failed. Open Settings to fix.")
+        .setAutoCancel(true)
+        .setContentIntent(openOverviewIntent())
+    getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID_AUTO_SYNC_FAILURE, builder.build())
+}
+
 private fun Context.openOverviewIntent(): PendingIntent? {
     val intent = Intent(this, MainActivity::class.java).apply {
         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP

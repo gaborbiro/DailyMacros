@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.features.settings.R
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
 import dev.gaborbiro.dailymacros.features.settings.util.verticalScrollWithBar
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.BackupInterval
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -81,6 +82,9 @@ internal fun SettingsView(
     onRestoreFromDriveTapped: () -> Unit,
     onRestoreConfirmed: () -> Unit,
     onRestoreDialogDismissed: () -> Unit,
+    onAutoBackupIntervalTapped: () -> Unit,
+    onAutoBackupIntervalSelected: (BackupInterval) -> Unit,
+    onAutoBackupIntervalDialogDismissed: () -> Unit,
 ) {
 
     if (viewState.showDiaryDayStartDialog) {
@@ -146,6 +150,37 @@ internal fun SettingsView(
             },
             dismissButton = {
                 TextButton(onClick = onRestoreDialogDismissed) { Text("Cancel") }
+            },
+        )
+    }
+
+    if (viewState.showAutoBackupIntervalDialog) {
+        AlertDialog(
+            onDismissRequest = onAutoBackupIntervalDialogDismissed,
+            title = {
+                Text(text = stringResource(R.string.settings_cloud_sync_auto_backup_dialog_title))
+            },
+            text = {
+                Column {
+                    listOf(
+                        BackupInterval.NEVER to R.string.settings_cloud_sync_auto_backup_never,
+                        BackupInterval.DAILY to R.string.settings_cloud_sync_auto_backup_daily,
+                        BackupInterval.WEEKLY to R.string.settings_cloud_sync_auto_backup_weekly,
+                        BackupInterval.MONTHLY to R.string.settings_cloud_sync_auto_backup_monthly,
+                    ).forEach { (interval, labelRes) ->
+                        TextButton(
+                            onClick = { onAutoBackupIntervalSelected(interval) },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(labelRes))
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = onAutoBackupIntervalDialogDismissed) {
+                    Text(stringResource(R.string.settings_diary_day_start_dialog_close))
+                }
             },
         )
     }
@@ -258,6 +293,12 @@ internal fun SettingsView(
                     onTapped = onSyncTapped,
                 )
                 SettingRow(
+                    title = stringResource(R.string.settings_cloud_sync_auto_backup_row),
+                    subtitle = stringResource(viewState.autoBackupInterval.toLabelRes()),
+                    enabled = cloudSyncIdle,
+                    onTapped = onAutoBackupIntervalTapped,
+                )
+                SettingRow(
                     title = "Restore from backup",
                     enabled = cloudSyncIdle,
                     onTapped = onRestoreFromDriveTapped,
@@ -342,6 +383,13 @@ private fun SettingRow(
     }
 }
 
+private fun BackupInterval.toLabelRes(): Int = when (this) {
+    BackupInterval.NEVER -> R.string.settings_cloud_sync_auto_backup_never
+    BackupInterval.DAILY -> R.string.settings_cloud_sync_auto_backup_daily
+    BackupInterval.WEEKLY -> R.string.settings_cloud_sync_auto_backup_weekly
+    BackupInterval.MONTHLY -> R.string.settings_cloud_sync_auto_backup_monthly
+}
+
 @Preview
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
@@ -371,6 +419,9 @@ private fun SettingsViewPreview() {
             onRestoreFromDriveTapped = {},
             onRestoreConfirmed = {},
             onRestoreDialogDismissed = {},
+            onAutoBackupIntervalTapped = {},
+            onAutoBackupIntervalSelected = {},
+            onAutoBackupIntervalDialogDismissed = {},
         )
     }
 }

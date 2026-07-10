@@ -48,7 +48,9 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.widget.Toast
 import dev.gaborbiro.dailymacros.features.widgets.diary.DiaryWidgetReceiver
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.AutoSyncUseCase
 import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusRepository
+import dev.gaborbiro.dailymacros.util.showAutoSyncFailureNotification
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -69,6 +71,18 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var modalNavigator: ModalNavigator
+
+    @Inject
+    lateinit var autoSyncUseCase: AutoSyncUseCase
+
+    override fun onResume() {
+        super.onResume()
+        lifecycleScope.launch {
+            if (autoSyncUseCase.execute() is AutoSyncUseCase.Result.Failure) {
+                showAutoSyncFailureNotification()
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(

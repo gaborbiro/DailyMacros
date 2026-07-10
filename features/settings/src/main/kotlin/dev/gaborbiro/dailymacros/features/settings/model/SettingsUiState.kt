@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.features.settings.model
 
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.BackupInterval
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
 
 data class SettingsUiState(
@@ -21,4 +22,6 @@ data class SettingsUiState(
     val customiseAiEnabled: Boolean = false,
     val aiInsightsEnabled: Boolean = false,
     val autoPhotoRecognitionEnabled: Boolean = false,
+    val autoBackupInterval: BackupInterval = BackupInterval.NEVER,
+    val showAutoBackupIntervalDialog: Boolean = false,
 )

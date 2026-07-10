@@ -123,6 +123,9 @@ fun SettingsScreen(
         onRestoreFromDriveTapped = settingsViewModel::onRestoreFromDriveTapped,
         onRestoreConfirmed = settingsViewModel::onRestoreConfirmed,
         onRestoreDialogDismissed = settingsViewModel::onRestoreDialogDismissed,
+        onAutoBackupIntervalTapped = settingsViewModel::onAutoBackupIntervalRowTapped,
+        onAutoBackupIntervalSelected = settingsViewModel::onAutoBackupIntervalSelected,
+        onAutoBackupIntervalDialogDismissed = settingsViewModel::onAutoBackupIntervalDialogDismissed,
     )
 
     if (settingsUiState.showTargetsSettings) {
