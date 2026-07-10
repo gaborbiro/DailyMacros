@@ -85,6 +85,8 @@ internal fun SettingsView(
     onAutoBackupIntervalTapped: () -> Unit,
     onAutoBackupIntervalSelected: (BackupInterval) -> Unit,
     onAutoBackupIntervalDialogDismissed: () -> Unit,
+    onOverwriteConfirmed: () -> Unit,
+    onOverwriteDialogDismissed: () -> Unit,
 ) {
 
     if (viewState.showDiaryDayStartDialog) {
@@ -181,6 +183,29 @@ internal fun SettingsView(
                 TextButton(onClick = onAutoBackupIntervalDialogDismissed) {
                     Text(stringResource(R.string.settings_diary_day_start_dialog_close))
                 }
+            },
+        )
+    }
+
+    if (viewState.showOverwriteConfirmDialog) {
+        val dateStr = remember(viewState.overwriteDialogDriveModifiedAtMs) {
+            SimpleDateFormat("MMM d, yyyy HH:mm", Locale.getDefault())
+                .format(Date(viewState.overwriteDialogDriveModifiedAtMs))
+        }
+        AlertDialog(
+            onDismissRequest = onOverwriteDialogDismissed,
+            title = { Text("Overwrite backup?") },
+            text = {
+                Text(
+                    "A backup from another device ($dateStr) is already on Google Drive. " +
+                        "Overwrite it with this device's data?"
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = onOverwriteConfirmed) { Text("Overwrite") }
+            },
+            dismissButton = {
+                TextButton(onClick = onOverwriteDialogDismissed) { Text("Cancel") }
             },
         )
     }
@@ -422,6 +447,8 @@ private fun SettingsViewPreview() {
             onAutoBackupIntervalTapped = {},
             onAutoBackupIntervalSelected = {},
             onAutoBackupIntervalDialogDismissed = {},
+            onOverwriteConfirmed = {},
+            onOverwriteDialogDismissed = {},
         )
     }
 }

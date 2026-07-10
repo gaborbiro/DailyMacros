@@ -6,6 +6,7 @@ import com.google.android.gms.auth.GoogleAuthUtil
 import com.google.android.gms.auth.UserRecoverableAuthException
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.gaborbiro.dailymacros.repositories.backup.domain.CloudSyncRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.BackupInterval
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
@@ -16,11 +17,13 @@ import javax.inject.Inject
 class AutoSyncUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
     private val settingsRepository: SettingsRepository,
+    private val cloudSyncRepository: CloudSyncRepository,
     private val syncDatabaseUseCase: SyncDatabaseUseCase,
 ) {
     sealed interface Result {
         data object Skipped : Result
         data object Success : Result
+        data object ConflictDetected : Result
         data class Failure(val message: String) : Result
     }
 
@@ -36,6 +39,10 @@ class AutoSyncUseCase @Inject constructor(
 
         return try {
             val token = getDriveAccessToken() ?: return Result.Failure("Not signed in to Google")
+            val driveInfo = cloudSyncRepository.getBackupInfo(token)
+            if (driveInfo != null && driveInfo.modifiedTimeMs > (lastSynced ?: 0L)) {
+                return Result.ConflictDetected
+            }
             syncDatabaseUseCase.execute(token)
             Result.Success
         } catch (e: Exception) {

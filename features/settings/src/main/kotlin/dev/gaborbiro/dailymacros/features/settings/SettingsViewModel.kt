@@ -200,16 +200,54 @@ class SettingsViewModel @Inject constructor(
                     _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Not signed in. Tap Cloud sync to sign in."))
                     return@launch
                 }
-                syncDatabaseUseCase.execute(token)
-                val newTs = settingsRepository.getLastSyncedEpochMs()
-                _uiState.update { it.copy(lastSyncedEpochMs = newTs) }
-                _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Backup uploaded to Google Drive."))
+                val driveInfo = cloudSyncRepository.getBackupInfo(token)
+                val lastSynced = settingsRepository.getLastSyncedEpochMs()
+                if (driveInfo != null && driveInfo.modifiedTimeMs > (lastSynced ?: 0L)) {
+                    _uiState.update {
+                        it.copy(
+                            cloudSyncInProgress = false,
+                            showOverwriteConfirmDialog = true,
+                            overwriteDialogDriveModifiedAtMs = driveInfo.modifiedTimeMs,
+                        )
+                    }
+                    return@launch
+                }
+                uploadBackup(token)
             }.onFailure { t ->
                 Log.e("CloudSync", "Backup failed", t)
                 _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Backup failed: ${t.message}"))
             }
             _uiState.update { it.copy(cloudSyncInProgress = false) }
         }
+    }
+
+    fun onOverwriteConfirmed() {
+        _uiState.update { it.copy(showOverwriteConfirmDialog = false) }
+        viewModelScope.launch {
+            _uiState.update { it.copy(cloudSyncInProgress = true) }
+            runCatching {
+                val token = getDriveAccessToken() ?: run {
+                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Not signed in. Tap Cloud sync to sign in."))
+                    return@launch
+                }
+                uploadBackup(token)
+            }.onFailure { t ->
+                Log.e("CloudSync", "Backup failed", t)
+                _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Backup failed: ${t.message}"))
+            }
+            _uiState.update { it.copy(cloudSyncInProgress = false) }
+        }
+    }
+
+    fun onOverwriteDialogDismissed() {
+        _uiState.update { it.copy(showOverwriteConfirmDialog = false) }
+    }
+
+    private suspend fun uploadBackup(token: String) {
+        syncDatabaseUseCase.execute(token)
+        val newTs = settingsRepository.getLastSyncedEpochMs()
+        _uiState.update { it.copy(lastSyncedEpochMs = newTs) }
+        _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Backup uploaded to Google Drive."))
     }
 
     fun onRestoreFromDriveTapped() {

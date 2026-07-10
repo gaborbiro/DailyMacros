@@ -24,4 +24,6 @@ data class SettingsUiState(
     val autoPhotoRecognitionEnabled: Boolean = false,
     val autoBackupInterval: BackupInterval = BackupInterval.NEVER,
     val showAutoBackupIntervalDialog: Boolean = false,
+    val showOverwriteConfirmDialog: Boolean = false,
+    val overwriteDialogDriveModifiedAtMs: Long = 0L,
 )

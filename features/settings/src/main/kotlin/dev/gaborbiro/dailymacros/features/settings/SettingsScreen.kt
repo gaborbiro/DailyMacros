@@ -126,6 +126,8 @@ fun SettingsScreen(
         onAutoBackupIntervalTapped = settingsViewModel::onAutoBackupIntervalRowTapped,
         onAutoBackupIntervalSelected = settingsViewModel::onAutoBackupIntervalSelected,
         onAutoBackupIntervalDialogDismissed = settingsViewModel::onAutoBackupIntervalDialogDismissed,
+        onOverwriteConfirmed = settingsViewModel::onOverwriteConfirmed,
+        onOverwriteDialogDismissed = settingsViewModel::onOverwriteDialogDismissed,
     )
 
     if (settingsUiState.showTargetsSettings) {

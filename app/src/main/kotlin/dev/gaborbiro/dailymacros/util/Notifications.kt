@@ -116,6 +116,17 @@ fun Context.showTextNotification(
 }
 
 private const val NOTIFICATION_ID_AUTO_SYNC_FAILURE = 2001
+private const val NOTIFICATION_ID_AUTO_SYNC_CONFLICT = 2002
+
+fun Context.showAutoSyncConflictNotification() {
+    val builder = NotificationCompat.Builder(this, CHANNEL_ID_ERROR)
+        .setSmallIcon(R.drawable.ic_nutrition)
+        .setContentTitle("Backup paused")
+        .setContentText("Another device has newer backup data. Open Settings to decide what to do.")
+        .setAutoCancel(true)
+        .setContentIntent(openOverviewIntent())
+    getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID_AUTO_SYNC_CONFLICT, builder.build())
+}
 
 fun Context.showAutoSyncFailureNotification() {
     val builder = NotificationCompat.Builder(this, CHANNEL_ID_ERROR)

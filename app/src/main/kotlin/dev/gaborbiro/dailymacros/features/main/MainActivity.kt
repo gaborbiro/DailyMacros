@@ -50,6 +50,7 @@ import android.widget.Toast
 import dev.gaborbiro.dailymacros.features.widgets.diary.DiaryWidgetReceiver
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.AutoSyncUseCase
 import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusRepository
+import dev.gaborbiro.dailymacros.util.showAutoSyncConflictNotification
 import dev.gaborbiro.dailymacros.util.showAutoSyncFailureNotification
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -78,8 +79,10 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         lifecycleScope.launch {
-            if (autoSyncUseCase.execute() is AutoSyncUseCase.Result.Failure) {
-                showAutoSyncFailureNotification()
+            when (autoSyncUseCase.execute()) {
+                AutoSyncUseCase.Result.ConflictDetected -> showAutoSyncConflictNotification()
+                is AutoSyncUseCase.Result.Failure -> showAutoSyncFailureNotification()
+                else -> Unit
             }
         }
     }

@@ -14,4 +14,44 @@
     <string name="settings_cloud_sync_auto_backup_daily">Daily</string>
     <string name="settings_cloud_sync_auto_backup_weekly">Weekly</string>
     <string name="settings_cloud_sync_auto_backup_monthly">Monthly</string>
+    <!-- SettingsView content -->
+    <string name="settings_content_title">Settings</string>
+    <string name="settings_content_back_cd">Back Button</string>
+    <string name="settings_content_daily_targets_row">Daily targets</string>
+    <string name="settings_content_customise_ai_row">Customise AI</string>
+    <string name="settings_content_customise_ai_subtitle">Experimental!</string>
+    <string name="settings_content_export_diary_row">Export food diary</string>
+    <string name="settings_content_camera_section">Camera</string>
+    <string name="settings_content_local_sync_section">Local sync</string>
+    <string name="settings_content_backup_now_row">Back up now</string>
+    <string name="settings_content_restore_backup_row">Restore from backup</string>
+    <string name="settings_content_cloud_sync_section">Cloud sync</string>
+    <string name="settings_content_account_row">Account</string>
+    <string name="settings_content_sign_in_subtitle">Sign in with Google</string>
+    <string name="settings_content_last_backed_up">Last backed up: %1$s</string>
+    <string name="settings_content_never_backed_up">Never backed up</string>
+    <!-- SettingsView dialogs -->
+    <string name="settings_dialog_sign_out_title">Sign out?</string>
+    <string name="settings_dialog_sign_out_message">You\'ll be signed out of %1$s and cloud backup will be turned off.</string>
+    <string name="settings_dialog_sign_out_confirm">Sign out</string>
+    <string name="settings_dialog_cancel">Cancel</string>
+    <string name="settings_dialog_restore_title">Restore from backup?</string>
+    <string name="settings_dialog_restore_message">A newer backup from %1$s is available on Google Drive. Restore it now? This will replace all your current data.</string>
+    <string name="settings_dialog_restore_confirm">Restore</string>
+    <!-- TargetsHeader / TargetsSettingsBottomSheet -->
+    <string name="settings_content_targets_title">Daily targets</string>
+    <string name="settings_content_targets_back_cd">Back</string>
+    <string name="settings_content_targets_reset">Reset</string>
+    <string name="settings_content_targets_save">Save</string>
+    <string name="settings_content_targets_hint">Feel free to disable the ones you don\'t care about</string>
+    <string name="settings_content_targets_expand_cd">More details</string>
+    <string name="settings_content_targets_collapse_cd">Collapse</string>
+    <string name="settings_content_targets_min_label">Min</string>
+    <string name="settings_content_targets_max_label">Max</string>
+    <string name="settings_content_targets_error_required">Value required</string>
+    <string name="settings_content_targets_error_min_max">min cannot be higher than max</string>
+    <!-- ExitConfirmationDialog -->
+    <string name="settings_dialog_targets_unsaved_title">Unsaved changes</string>
+    <string name="settings_dialog_targets_unsaved_message">You have unsaved changes. Do you want to save them?</string>
+    <string name="settings_dialog_targets_discard">Discard</string>
 </resources>
