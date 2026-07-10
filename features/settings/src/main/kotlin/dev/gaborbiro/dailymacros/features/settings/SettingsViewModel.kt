@@ -218,17 +218,19 @@ class SettingsViewModel @Inject constructor(
                 if (info == null) {
                     _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("No backup found on Google Drive."))
                 } else {
-                    _uiState.update {
-                        it.copy(
-                            restoreDialogModifiedAtMs = info.modifiedTimeMs,
-                            restoreDialogFileId = info.fileId,
-                        )
+                    when (restoreFromDriveUseCase.execute(token, info.fileId)) {
+                        ImportSqliteDatabaseResult.RestartPending ->
+                            _uiUpdates.emit(SettingsUiUpdates.RestartApplication)
+                        ImportSqliteDatabaseResult.InvalidFile ->
+                            _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Remote backup file is invalid."))
+                        is ImportSqliteDatabaseResult.Error ->
+                            _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Restore failed."))
+                        ImportSqliteDatabaseResult.Cancelled -> Unit
                     }
-                    _uiUpdates.emit(SettingsUiUpdates.RestoreConfirmNeeded(info.modifiedTimeMs, info.fileId))
                 }
             }.onFailure { t ->
-                Log.e("CloudSync", "Failed to check backup", t)
-                _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Failed to check backup: ${t.message}"))
+                Log.e("CloudSync", "Restore failed", t)
+                _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Restore failed: ${t.message}"))
             }
             _uiState.update { it.copy(cloudSyncInProgress = false) }
         }
