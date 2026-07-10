@@ -5,6 +5,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -13,18 +14,18 @@ import androidx.navigation.NavHostController
 import dev.gaborbiro.dailymacros.features.common.SETTINGS_HIGHLIGHT_TARGETS_ARG
 import dev.gaborbiro.dailymacros.features.common.SETTINGS_ROUTE
 import dev.gaborbiro.dailymacros.features.common.TRENDS_ROUTE
-import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiUpdates
 import dev.gaborbiro.dailymacros.features.overview.views.OverviewView
+import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
 
 @Composable
 fun OverviewScreen(
-    viewModel: OverviewViewModel,
     modalNavigator: ModalNavigator,
     navController: NavHostController,
     onAddWidget: () -> Unit = {},
     onRestoreFromCloud: () -> Unit = {},
 ) {
+    val viewModel: OverviewViewModel = hiltViewModel()
     val context = LocalContext.current
     LaunchedEffect(viewModel) {
         viewModel.uiUpdates.collect { event ->

@@ -1,7 +1,5 @@
 package dev.gaborbiro.dailymacros.features.main
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -21,25 +19,13 @@ import androidx.navigation.navArgument
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.lifecycleScope
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.ui.res.stringResource
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import dev.gaborbiro.dailymacros.features.settings.launchGoogleSignIn
-import dev.gaborbiro.dailymacros.features.settings.rememberGoogleSignInLauncher
+import dev.gaborbiro.dailymacros.features.settings.SettingsEffectHandler
 import dagger.hilt.android.AndroidEntryPoint
 import dev.gaborbiro.dailymacros.AppPrefs
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
@@ -48,11 +34,8 @@ import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
-import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
-import dev.gaborbiro.dailymacros.features.settings.export.ProcessRestarter
-import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsViewModel
 import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
@@ -114,55 +97,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme {
                 val navController: NavHostController = rememberNavController()
-                val overviewViewModel: OverviewViewModel = hiltViewModel()
                 val settingsViewModel: SettingsViewModel = hiltViewModel()
                 val targetsSettingsViewModel: TargetsSettingsViewModel = hiltViewModel()
                 val promptEditorViewModel: PromptEditorViewModel = hiltViewModel()
                 val trendsViewModel: TrendsViewModel = hiltViewModel()
 
-                val signInLauncher = rememberGoogleSignInLauncher(
-                    onSuccess = settingsViewModel::onGoogleSignInSuccess,
-                    onFailure = settingsViewModel::onGoogleSignInFailed,
-                )
-
-                var restoreConfirmEvent by remember {
-                    mutableStateOf<SettingsUiUpdates.RestoreConfirmNeeded?>(null)
-                }
-
-                LaunchedEffect(settingsViewModel) {
-                    settingsViewModel.uiUpdates.collect { event ->
-                        when (event) {
-                            SettingsUiUpdates.RequestGoogleSignIn ->
-                                launchGoogleSignIn(this@MainActivity, signInLauncher)
-                            SettingsUiUpdates.RestartApplication ->
-                                ProcessRestarter.restartApplication(this@MainActivity)
-                            is SettingsUiUpdates.RestoreConfirmNeeded ->
-                                restoreConfirmEvent = event
-                            else -> Unit
-                        }
-                    }
-                }
-
-                restoreConfirmEvent?.let { event ->
-                    val dateStr = remember(event.modifiedAtMs) {
-                        java.text.SimpleDateFormat("MMM d, yyyy HH:mm", java.util.Locale.getDefault())
-                            .format(java.util.Date(event.modifiedAtMs))
-                    }
-                    AlertDialog(
-                        onDismissRequest = { restoreConfirmEvent = null },
-                        title = { Text(stringResource(dev.gaborbiro.dailymacros.features.settings.R.string.settings_dialog_restore_title)) },
-                        text = { Text(stringResource(dev.gaborbiro.dailymacros.features.settings.R.string.settings_dialog_restore_message, dateStr)) },
-                        confirmButton = {
-                            TextButton(onClick = {
-                                restoreConfirmEvent = null
-                                settingsViewModel.onRestoreConfirmed()
-                            }) { Text(stringResource(dev.gaborbiro.dailymacros.features.settings.R.string.settings_dialog_restore_confirm)) }
-                        },
-                        dismissButton = {
-                            TextButton(onClick = { restoreConfirmEvent = null }) { Text(stringResource(dev.gaborbiro.dailymacros.features.settings.R.string.settings_dialog_cancel)) }
-                        },
-                    )
-                }
+                SettingsEffectHandler(settingsViewModel)
 
                 NavHost(
                     navController = navController,
@@ -173,7 +113,6 @@ class MainActivity : ComponentActivity() {
                     ) {
                         CompositionLocalProvider(LocalImageStore provides imageStore) {
                             OverviewScreen(
-                                viewModel = overviewViewModel,
                                 modalNavigator = modalNavigator,
                                 navController = navController,
                                 onRestoreFromCloud = settingsViewModel::onCloudSyncForRestoreTapped,

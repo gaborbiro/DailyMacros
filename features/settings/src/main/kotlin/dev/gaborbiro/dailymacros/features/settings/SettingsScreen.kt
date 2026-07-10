@@ -13,10 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import dev.gaborbiro.dailymacros.features.settings.export.ProcessRestarter
 import dev.gaborbiro.dailymacros.features.settings.export.rememberCreatePublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.rememberOpenPublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
@@ -36,7 +34,6 @@ fun SettingsScreen(
 ) {
     val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
-    val context = LocalContext.current
     val createPublicDocumentUseCase = rememberCreatePublicDocumentUseCase()
     val openPublicDocumentUseCase = rememberOpenPublicDocumentUseCase()
 
@@ -47,13 +44,10 @@ fun SettingsScreen(
         else settingsViewModel.onAutoPhotoPermissionsDenied()
     }
 
-    LaunchedEffect(settingsViewModel, context) {
+    LaunchedEffect(settingsViewModel) {
         settingsViewModel.uiUpdates.collect { event ->
             when (event) {
                 SettingsUiUpdates.NavigateBack -> navController.popBackStack()
-                SettingsUiUpdates.RestartApplication -> context.findActivity()?.let {
-                    ProcessRestarter.restartApplication(it)
-                }
                 is SettingsUiUpdates.ShowSnackbar -> snackbarHostState.showSnackbar(
                     event.message,
                     withDismissAction = true,
@@ -67,7 +61,7 @@ fun SettingsScreen(
                     }
                     photoPermissionLauncher.launch(permission)
                 }
-                SettingsUiUpdates.RequestGoogleSignIn -> Unit
+                else -> Unit
             }
         }
     }
@@ -115,7 +109,7 @@ fun SettingsScreen(
     }
 }
 
-private tailrec fun Context.findActivity(): Activity? = when (this) {
+internal tailrec fun Context.findActivity(): Activity? = when (this) {
     is Activity -> this
     is ContextWrapper -> baseContext.findActivity()
     else -> null
