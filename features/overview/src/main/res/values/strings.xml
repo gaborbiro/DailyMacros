@@ -9,4 +9,30 @@
     <string name="welcome_chip_fat">Fat</string>
     <string name="welcome_chip_calories">Calories</string>
     <string name="record_title_has_other_versions_a11y">Other logged versions of this meal exist</string>
+    <!-- OverviewView -->
+    <string name="overview_content_record_deleted">Record deleted</string>
+    <string name="overview_content_undo">Undo</string>
+    <string name="overview_content_add_widget_button">Tap here to add a widget to your desktop</string>
+    <!-- OverviewListTopActions -->
+    <string name="overview_content_settings_cd">Settings Button</string>
+    <string name="overview_content_coach_mark">Set your daily targets here</string>
+    <!-- ListItemSetTargetsCta -->
+    <string name="overview_content_set_targets_title">Set your Daily Targets</string>
+    <string name="overview_content_set_targets_subtitle">Track calories, protein and more against your personal goals</string>
+    <!-- ScrollToTopView -->
+    <string name="overview_content_scroll_to_top">Scroll to top</string>
+    <!-- RowDropdownMenu -->
+    <string name="overview_content_menu_more_cd">More Menu</string>
+    <string name="overview_content_menu_log_again">Log meal again</string>
+    <string name="overview_content_menu_reanalyse">Re-run nutrient analysis</string>
+    <string name="overview_content_menu_delete">Delete</string>
+    <!-- ListItemWeeklySummary -->
+    <string name="overview_content_weekly_summary_heading">Summary for your week below</string>
+    <string name="overview_content_adherence_score">Adherence score: %1$d%%</string>
+    <string name="overview_content_averages">Averages:</string>
+    <!-- ListItemRecord -->
+    <string name="overview_content_analyzing">Analyzing…</string>
+    <!-- SearchFAB -->
+    <string name="overview_content_search">Search</string>
+    <string name="overview_content_search_clear_cd">Clear search</string>
 </resources>
