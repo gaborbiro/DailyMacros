@@ -25,7 +25,15 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.lifecycleScope
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -43,6 +51,7 @@ import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
+import dev.gaborbiro.dailymacros.features.settings.export.ProcessRestarter
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsViewModel
@@ -116,12 +125,43 @@ class MainActivity : ComponentActivity() {
                     onFailure = settingsViewModel::onGoogleSignInFailed,
                 )
 
+                var restoreConfirmEvent by remember {
+                    mutableStateOf<SettingsUiUpdates.RestoreConfirmNeeded?>(null)
+                }
+
                 LaunchedEffect(settingsViewModel) {
                     settingsViewModel.uiUpdates.collect { event ->
-                        if (event == SettingsUiUpdates.RequestGoogleSignIn) {
-                            launchGoogleSignIn(this@MainActivity, signInLauncher)
+                        when (event) {
+                            SettingsUiUpdates.RequestGoogleSignIn ->
+                                launchGoogleSignIn(this@MainActivity, signInLauncher)
+                            SettingsUiUpdates.RestartApplication ->
+                                ProcessRestarter.restartApplication(this@MainActivity)
+                            is SettingsUiUpdates.RestoreConfirmNeeded ->
+                                restoreConfirmEvent = event
+                            else -> Unit
                         }
                     }
+                }
+
+                restoreConfirmEvent?.let { event ->
+                    val dateStr = remember(event.modifiedAtMs) {
+                        java.text.SimpleDateFormat("MMM d, yyyy HH:mm", java.util.Locale.getDefault())
+                            .format(java.util.Date(event.modifiedAtMs))
+                    }
+                    AlertDialog(
+                        onDismissRequest = { restoreConfirmEvent = null },
+                        title = { Text(stringResource(dev.gaborbiro.dailymacros.features.settings.R.string.settings_dialog_restore_title)) },
+                        text = { Text(stringResource(dev.gaborbiro.dailymacros.features.settings.R.string.settings_dialog_restore_message, dateStr)) },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                restoreConfirmEvent = null
+                                settingsViewModel.onRestoreConfirmed()
+                            }) { Text(stringResource(dev.gaborbiro.dailymacros.features.settings.R.string.settings_dialog_restore_confirm)) }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { restoreConfirmEvent = null }) { Text(stringResource(dev.gaborbiro.dailymacros.features.settings.R.string.settings_dialog_cancel)) }
+                        },
+                    )
                 }
 
                 NavHost(
@@ -136,7 +176,7 @@ class MainActivity : ComponentActivity() {
                                 viewModel = overviewViewModel,
                                 modalNavigator = modalNavigator,
                                 navController = navController,
-                                onRestoreFromCloud = settingsViewModel::onCloudSyncRowTapped,
+                                onRestoreFromCloud = settingsViewModel::onCloudSyncForRestoreTapped,
                                 onAddWidget = {
                                     val mgr = AppWidgetManager.getInstance(this@MainActivity)
                                     val provider = ComponentName(this@MainActivity, DiaryWidgetReceiver::class.java)

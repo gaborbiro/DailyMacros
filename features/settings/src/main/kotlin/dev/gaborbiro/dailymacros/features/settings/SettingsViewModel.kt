@@ -148,12 +148,24 @@ class SettingsViewModel @Inject constructor(
 
     // ---- Cloud sync ----
 
+    private var restoreAfterSignIn = false
+
     fun onCloudSyncRowTapped() {
         val current = _uiState.value.cloudSyncProvider
         if (current == CloudSyncProvider.NONE) {
             viewModelScope.launch { _uiUpdates.emit(SettingsUiUpdates.RequestGoogleSignIn) }
         } else {
             _uiState.update { it.copy(showSignOutConfirmDialog = true) }
+        }
+    }
+
+    fun onCloudSyncForRestoreTapped() {
+        val current = _uiState.value.cloudSyncProvider
+        if (current == CloudSyncProvider.NONE) {
+            restoreAfterSignIn = true
+            viewModelScope.launch { _uiUpdates.emit(SettingsUiUpdates.RequestGoogleSignIn) }
+        } else {
+            onRestoreFromDriveTappedFromOverview()
         }
     }
 
@@ -175,17 +187,50 @@ class SettingsViewModel @Inject constructor(
                 cloudSyncEmail = email,
             )
         }
+        if (restoreAfterSignIn) {
+            restoreAfterSignIn = false
+            onRestoreFromDriveTappedFromOverview()
+        } else {
+            viewModelScope.launch {
+                runCatching {
+                    val token = getDriveAccessToken() ?: return@launch
+                    val info = cloudSyncRepository.getBackupInfo(token)
+                    if (info != null) {
+                        settingsRepository.setLastSyncedEpochMs(info.modifiedTimeMs)
+                        _uiState.update { it.copy(lastSyncedEpochMs = info.modifiedTimeMs) }
+                    }
+                }.onFailure { t ->
+                    Log.e("CloudSync", "Failed to check existing backup", t)
+                }
+            }
+        }
+    }
+
+    fun onRestoreFromDriveTappedFromOverview() {
         viewModelScope.launch {
+            _uiState.update { it.copy(cloudSyncInProgress = true) }
             runCatching {
-                val token = getDriveAccessToken() ?: return@launch
+                val token = getDriveAccessToken() ?: run {
+                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Not signed in. Tap Cloud sync to sign in."))
+                    return@launch
+                }
                 val info = cloudSyncRepository.getBackupInfo(token)
-                if (info != null) {
-                    settingsRepository.setLastSyncedEpochMs(info.modifiedTimeMs)
-                    _uiState.update { it.copy(lastSyncedEpochMs = info.modifiedTimeMs) }
+                if (info == null) {
+                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("No backup found on Google Drive."))
+                } else {
+                    _uiState.update {
+                        it.copy(
+                            restoreDialogModifiedAtMs = info.modifiedTimeMs,
+                            restoreDialogFileId = info.fileId,
+                        )
+                    }
+                    _uiUpdates.emit(SettingsUiUpdates.RestoreConfirmNeeded(info.modifiedTimeMs, info.fileId))
                 }
             }.onFailure { t ->
-                Log.e("CloudSync", "Failed to check existing backup", t)
+                Log.e("CloudSync", "Failed to check backup", t)
+                _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Failed to check backup: ${t.message}"))
             }
+            _uiState.update { it.copy(cloudSyncInProgress = false) }
         }
     }
 
