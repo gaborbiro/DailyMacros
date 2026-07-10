@@ -25,7 +25,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import dev.gaborbiro.dailymacros.features.overview.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.overview.model.DailySummaryEntry
 import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelDailySummary
@@ -56,12 +58,14 @@ internal fun OverviewView(
     onLoadMore: () -> Unit = {},
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+    val recordDeletedMessage = stringResource(R.string.overview_content_record_deleted)
+    val undoLabel = stringResource(R.string.overview_content_undo)
 
     LaunchedEffect(key1 = viewState.showUndoDeleteSnackbar) {
         if (viewState.showUndoDeleteSnackbar) {
             val result = snackbarHostState.showSnackbar(
-                message = "Record deleted",
-                actionLabel = "Undo",
+                message = recordDeletedMessage,
+                actionLabel = undoLabel,
                 withDismissAction = true,
                 duration = SnackbarDuration.Short,
             )
@@ -151,7 +155,7 @@ fun AddWidgetButton(onClick: () -> Unit) {
         onClick = onClick,
     ) {
         Text(
-            text = "Tap here to add a widget to your desktop"
+            text = stringResource(R.string.overview_content_add_widget_button)
         )
     }
 }

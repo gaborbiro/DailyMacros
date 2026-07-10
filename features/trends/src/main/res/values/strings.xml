@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- TrendsView -->
+    <string name="trends_content_title">Trends</string>
+    <string name="trends_content_back_cd">Back Button</string>
+    <string name="trends_content_settings_cd">Settings</string>
+    <string name="trends_content_empty_state">Trends will show up once you\'ve logged meals for a few days</string>
+    <string name="trends_content_scale_days">Days</string>
+    <string name="trends_content_scale_weeks">Weeks</string>
+    <string name="trends_content_scale_months">Months</string>
+    <string name="trends_content_ongoing_week_insights_title">Ongoing Week Insights</string>
+    <string name="trends_content_fetched_at">fetched %1$s</string>
+    <string name="trends_content_refresh">Refresh</string>
+    <string name="trends_content_get_insights">Get insights</string>
+    <string name="trends_content_weekly_insights_title">Weekly Insights</string>
+    <!-- TrendsSettingsBottomSheet -->
+    <string name="trends_sheet_title">Trends Settings</string>
+    <string name="trends_sheet_daily_targets_title">Daily targets</string>
+    <string name="trends_sheet_daily_targets_subtitle">Set your daily nutrient goals here</string>
+    <string name="trends_sheet_days_filter_prompt">Which days to consider for Trends calculations?</string>
+    <string name="trends_sheet_qualifier_all_days">All days</string>
+    <string name="trends_sheet_qualifier_anything_logged">Days with anything logged</string>
+    <string name="trends_sheet_qualifier_enough_calories">Days that have enough calories logged</string>
+    <string name="trends_sheet_calorie_threshold_label">Calorie threshold (for ex: 800)</string>
+    <string name="trends_sheet_error_invalid_value">Invalid value</string>
+</resources>

@@ -136,7 +136,7 @@ private fun RecordTextContent(modifier: Modifier, record: ListUiModelRecord) {
         }
         if (record.showLoadingIndicator) {
             Text(
-                text = "Analyzing…",
+                text = stringResource(R.string.overview_content_analyzing),
                 maxLines = 1,
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.bodyMedium,

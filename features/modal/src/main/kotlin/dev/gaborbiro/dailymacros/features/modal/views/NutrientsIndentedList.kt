@@ -163,7 +163,7 @@ internal fun NutrientsIndentedList(
         nutrientBreakdown.notes?.takeIf { it.isNotBlank() }?.let {
             Spacer(modifier = Modifier.height(PaddingDefault))
             Text(
-                text = "AI notes:",
+                text = stringResource(R.string.modal_content_ai_notes),
                 style = MaterialTheme.typography.bodyLarge.copy(
                     textDecoration = TextDecoration.Underline,
                 ),
@@ -178,7 +178,7 @@ internal fun NutrientsIndentedList(
         if (nutrientBreakdown.components.isNotEmpty()) {
             Spacer(modifier = Modifier.height(PaddingDefault))
             Text(
-                text = "Components:",
+                text = stringResource(R.string.modal_content_components),
                 style = MaterialTheme.typography.bodyLarge.copy(
                     textDecoration = TextDecoration.Underline,
                 ),

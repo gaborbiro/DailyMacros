@@ -16,9 +16,11 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.features.common.R
+import dev.gaborbiro.dailymacros.features.common.R as CommonR
+import dev.gaborbiro.dailymacros.features.overview.R
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 
 @Composable
@@ -40,8 +42,8 @@ fun RowDropdownMenu(
                 .clickable(
                     onClick = onOpen,
                 ),
-            painter = painterResource(R.drawable.ic_more_vert), // or your 3-dots painter hoisted too
-            contentDescription = "More Menu",
+            painter = painterResource(CommonR.drawable.ic_more_vert),
+            contentDescription = stringResource(R.string.overview_content_menu_more_cd),
         )
 
         if (expanded) {
@@ -53,14 +55,14 @@ fun RowDropdownMenu(
                 onRepeatTapped?.let {
                     DropdownMenuItem(
                         leadingIcon = { Icon(icons.repeat, null) },
-                        text = { Text("Log meal again") },
+                        text = { Text(stringResource(R.string.overview_content_menu_log_again)) },
                         onClick = { onDismiss(); onRepeatTapped() }
                     )
                 }
                 onAnalyseMacrosTapped?.let {
                     DropdownMenuItem(
                         leadingIcon = { Icon(icons.macros, null) },
-                        text = { Text("Re-run nutrient analysis") },
+                        text = { Text(stringResource(R.string.overview_content_menu_reanalyse)) },
                         onClick = { onDismiss(); onAnalyseMacrosTapped() }
                     )
                 }
@@ -69,7 +71,7 @@ fun RowDropdownMenu(
                         modifier = Modifier
                             .background(MaterialTheme.colorScheme.errorContainer),
                         leadingIcon = { Icon(icons.delete, null) },
-                        text = { Text("Delete") },
+                        text = { Text(stringResource(R.string.overview_content_menu_delete)) },
                         onClick = { onDismiss(); onDeleteTapped() },
                         colors = MenuDefaults.itemColors(
                             textColor = MaterialTheme.colorScheme.onErrorContainer,

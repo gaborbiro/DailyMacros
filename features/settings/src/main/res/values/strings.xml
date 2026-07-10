@@ -50,6 +50,10 @@
     <string name="settings_content_targets_max_label">Max</string>
     <string name="settings_content_targets_error_required">Value required</string>
     <string name="settings_content_targets_error_min_max">min cannot be higher than max</string>
+    <!-- SettingsView overwrite backup dialog -->
+    <string name="settings_dialog_overwrite_title">Overwrite backup?</string>
+    <string name="settings_dialog_overwrite_message">A backup from another device (%1$s) is already on Google Drive. Overwrite it with this device\'s data?</string>
+    <string name="settings_dialog_overwrite_confirm">Overwrite</string>
     <!-- ExitConfirmationDialog -->
     <string name="settings_dialog_targets_unsaved_title">Unsaved changes</string>
     <string name="settings_dialog_targets_unsaved_message">You have unsaved changes. Do you want to save them?</string>

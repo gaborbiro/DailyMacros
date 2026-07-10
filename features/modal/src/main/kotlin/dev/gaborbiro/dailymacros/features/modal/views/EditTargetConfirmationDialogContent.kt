@@ -19,8 +19,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.PaddingDefault
+import dev.gaborbiro.dailymacros.features.modal.R
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 
 @Composable
@@ -34,7 +36,7 @@ fun EditTargetConfirmationDialogContent(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
-                text = "Update all $count linked entries (including this one), or only this one?",
+                text = stringResource(R.string.modal_dialog_edit_target_message, count),
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier
@@ -45,7 +47,7 @@ fun EditTargetConfirmationDialogContent(
             Icon(
                 imageVector = Icons.Filled.Cancel,
                 tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                contentDescription = "Cancel",
+                contentDescription = stringResource(R.string.modal_dialog_edit_target_cancel_cd),
                 modifier = Modifier
                     .size(30.dp)
                     .clickable {
@@ -67,7 +69,7 @@ fun EditTargetConfirmationDialogContent(
                 .fillMaxWidth()
                 .height(50.dp)
         ) {
-            Text(text = "Save as new")
+            Text(text = stringResource(R.string.modal_dialog_edit_target_save_new))
         }
 
         Spacer(modifier = Modifier.height(PaddingDefault))
@@ -83,7 +85,7 @@ fun EditTargetConfirmationDialogContent(
                 .fillMaxWidth()
                 .height(50.dp)
         ) {
-            Text(text = "Update all entries")
+            Text(text = stringResource(R.string.modal_dialog_edit_target_update_all))
         }
     }
 }

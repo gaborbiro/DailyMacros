@@ -25,7 +25,9 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import dev.gaborbiro.dailymacros.design.PaddingDefault
+import dev.gaborbiro.dailymacros.features.overview.R
 import kotlinx.coroutines.launch
 
 @Composable
@@ -66,7 +68,7 @@ fun ScrollToTopView(listState: LazyListState) {
                         contentColor = MaterialTheme.colorScheme.onTertiaryContainer
                     )
                 ) {
-                    Text(text = "Scroll to top")
+                    Text(text = stringResource(R.string.overview_content_scroll_to_top))
                 }
             }
         }

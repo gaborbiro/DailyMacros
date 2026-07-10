@@ -15,9 +15,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.gaborbiro.dailymacros.features.overview.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingDouble
 import dev.gaborbiro.dailymacros.design.PaddingHalf
@@ -46,7 +48,7 @@ internal fun ListItemWeeklySummary(
                 .padding(horizontal = PaddingHalf)
                 .padding(top = PaddingHalf)
                 .align(Alignment.CenterHorizontally),
-            text = "Summary for your week below",
+            text = stringResource(R.string.overview_content_weekly_summary_heading),
             style = MaterialTheme.typography.titleLarge.copy(textDecoration = TextDecoration.Underline),
         )
         Row(
@@ -58,7 +60,7 @@ internal fun ListItemWeeklySummary(
             Text(
                 modifier = Modifier
                     .padding(horizontal = PaddingHalf),
-                text = "Adherence score: ${model.averageAdherence100Percentage}%",
+                text = stringResource(R.string.overview_content_adherence_score, model.averageAdherence100Percentage),
                 style = MaterialTheme.typography.titleMedium,
             )
             model.adherenceChange?.let {
@@ -74,7 +76,7 @@ internal fun ListItemWeeklySummary(
                 .padding(horizontal = PaddingHalf)
                 .padding(top = PaddingHalf)
                 .align(Alignment.Start),
-            text = "Averages:",
+            text = stringResource(R.string.overview_content_averages),
             style = MaterialTheme.typography.titleMedium,
         )
         Row(

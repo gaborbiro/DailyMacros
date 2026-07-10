@@ -23,9 +23,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.PaddingHalf
+import dev.gaborbiro.dailymacros.features.overview.R
 
 @Composable
 internal fun OverviewListTopActions(
@@ -74,7 +76,7 @@ internal fun OverviewListTopActions(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Settings,
-                        contentDescription = "Settings Button",
+                        contentDescription = stringResource(R.string.overview_content_settings_cd),
                     )
                 }
             }
@@ -84,7 +86,7 @@ internal fun OverviewListTopActions(
     if (coachMarkVisible) {
         CoachMarkOverlay(
             targetRect = targetBounds,
-            text = "Set your daily targets here",
+            text = stringResource(R.string.overview_content_coach_mark),
             onDismiss = {
                 coachMarkVisible = false
                 onCoachMarkDismissed()

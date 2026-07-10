@@ -39,9 +39,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.patrykandpatrick.vico.compose.cartesian.Scroll
+import dev.gaborbiro.dailymacros.features.trends.R
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
@@ -73,12 +75,12 @@ internal fun TrendsView(
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
         topBar = {
             TopAppBar(
-                title = { Text("Trends") },
+                title = { Text(stringResource(R.string.trends_content_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBackNavigate) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                            contentDescription = "Back Button"
+                            contentDescription = stringResource(R.string.trends_content_back_cd),
                         )
                     }
                 },
@@ -88,7 +90,7 @@ internal fun TrendsView(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Settings,
-                            contentDescription = "Settings",
+                            contentDescription = stringResource(R.string.trends_content_settings_cd),
                         )
                     }
                 }
@@ -122,7 +124,7 @@ internal fun TrendsView(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Text(
-                        text = "Trends will show up once you’ve logged meals for a few days",
+                        text = stringResource(R.string.trends_content_empty_state),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -138,7 +140,7 @@ internal fun TrendsView(
                 ScaleButton(
                     modifier = Modifier
                         .weight(1f),
-                    label = "Days",
+                    label = stringResource(R.string.trends_content_scale_days),
                     selected = timescale == Timescale.DAYS,
                     onClick = {
                         onTimescaleSelected(Timescale.DAYS)
@@ -148,7 +150,7 @@ internal fun TrendsView(
                 ScaleButton(
                     modifier = Modifier
                         .weight(1f),
-                    label = "Weeks",
+                    label = stringResource(R.string.trends_content_scale_weeks),
                     selected = timescale == Timescale.WEEKS,
                     onClick = {
                         onTimescaleSelected(Timescale.WEEKS)
@@ -158,7 +160,7 @@ internal fun TrendsView(
                 ScaleButton(
                     modifier = Modifier
                         .weight(1f),
-                    label = "Months",
+                    label = stringResource(R.string.trends_content_scale_months),
                     selected = timescale == Timescale.MONTHS,
                     onClick = {
                         onTimescaleSelected(Timescale.MONTHS)
@@ -182,7 +184,7 @@ internal fun TrendsView(
                 ) {
                     Column {
                         Text(
-                            text = "Ongoing Week Insights",
+                            text = stringResource(R.string.trends_content_ongoing_week_insights_title),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -195,7 +197,7 @@ internal fun TrendsView(
                         }
                         viewState.ongoingInsightsFetchedAtLabel?.let {
                             Text(
-                                text = "fetched $it",
+                                text = stringResource(R.string.trends_content_fetched_at, it),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -211,7 +213,7 @@ internal fun TrendsView(
                                 strokeWidth = 2.dp,
                             )
                         } else {
-                            Text(if (viewState.ongoingWeekInsights.isNullOrEmpty().not()) "Refresh" else "Get insights")
+                            Text(stringResource(if (viewState.ongoingWeekInsights.isNullOrEmpty().not()) R.string.trends_content_refresh else R.string.trends_content_get_insights))
                         }
                     }
                 }
@@ -244,7 +246,7 @@ internal fun TrendsView(
                 ) {
                     Column {
                         Text(
-                            text = "Weekly Insights",
+                            text = stringResource(R.string.trends_content_weekly_insights_title),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -257,7 +259,7 @@ internal fun TrendsView(
                         }
                         viewState.weeklyInsightsFetchedAtLabel?.let {
                             Text(
-                                text = "fetched $it",
+                                text = stringResource(R.string.trends_content_fetched_at, it),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -273,7 +275,7 @@ internal fun TrendsView(
                                 strokeWidth = 2.dp,
                             )
                         } else {
-                            Text(if (viewState.weeklyInsights.isNotEmpty()) "Refresh" else "Get insights")
+                            Text(stringResource(if (viewState.weeklyInsights.isNotEmpty()) R.string.trends_content_refresh else R.string.trends_content_get_insights))
                         }
                     }
                 }

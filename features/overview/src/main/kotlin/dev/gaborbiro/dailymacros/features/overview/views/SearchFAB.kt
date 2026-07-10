@@ -31,8 +31,10 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.PaddingDefault
+import dev.gaborbiro.dailymacros.features.overview.R
 
 @Composable
 internal fun SearchFAB(
@@ -65,7 +67,7 @@ internal fun SearchFAB(
                 Icon(
                     modifier = Modifier.padding(PaddingDefault),
                     imageVector = Icons.Filled.Search,
-                    contentDescription = "Search",
+                    contentDescription = stringResource(R.string.overview_content_search),
                     tint = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
             }
@@ -94,7 +96,7 @@ internal fun SearchFAB(
                         textStyle = MaterialTheme.typography.bodyMedium,
                         placeholder = {
                             Text(
-                                text = "Search",
+                                text = stringResource(R.string.overview_content_search),
                                 color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.6f),
                                 style = MaterialTheme.typography.bodyMedium,
                             )
@@ -115,7 +117,7 @@ internal fun SearchFAB(
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Close,
-                            contentDescription = "Clear search",
+                            contentDescription = stringResource(R.string.overview_content_search_clear_cd),
                             tint = MaterialTheme.colorScheme.onTertiaryContainer,
                         )
                     }

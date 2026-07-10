@@ -122,13 +122,13 @@ internal fun SettingsView(
     if (viewState.showSignOutConfirmDialog) {
         AlertDialog(
             onDismissRequest = onSignOutDialogDismissed,
-            title = { Text("Sign out?") },
-            text = { Text("You'll be signed out of ${viewState.cloudSyncEmail ?: "your Google account"} and cloud backup will be turned off.") },
+            title = { Text(stringResource(R.string.settings_dialog_sign_out_title)) },
+            text = { Text(stringResource(R.string.settings_dialog_sign_out_message, viewState.cloudSyncEmail ?: "your Google account")) },
             confirmButton = {
-                TextButton(onClick = onSignOutConfirmed) { Text("Sign out") }
+                TextButton(onClick = onSignOutConfirmed) { Text(stringResource(R.string.settings_dialog_sign_out_confirm)) }
             },
             dismissButton = {
-                TextButton(onClick = onSignOutDialogDismissed) { Text("Cancel") }
+                TextButton(onClick = onSignOutDialogDismissed) { Text(stringResource(R.string.settings_dialog_cancel)) }
             },
         )
     }
@@ -140,18 +140,13 @@ internal fun SettingsView(
         }
         AlertDialog(
             onDismissRequest = onRestoreDialogDismissed,
-            title = { Text("Restore from backup?") },
-            text = {
-                Text(
-                    "A newer backup from $dateStr is available on Google Drive. " +
-                        "Restore it now? This will replace all your current data."
-                )
-            },
+            title = { Text(stringResource(R.string.settings_dialog_restore_title)) },
+            text = { Text(stringResource(R.string.settings_dialog_restore_message, dateStr)) },
             confirmButton = {
-                TextButton(onClick = onRestoreConfirmed) { Text("Restore") }
+                TextButton(onClick = onRestoreConfirmed) { Text(stringResource(R.string.settings_dialog_restore_confirm)) }
             },
             dismissButton = {
-                TextButton(onClick = onRestoreDialogDismissed) { Text("Cancel") }
+                TextButton(onClick = onRestoreDialogDismissed) { Text(stringResource(R.string.settings_dialog_cancel)) }
             },
         )
     }
@@ -194,18 +189,13 @@ internal fun SettingsView(
         }
         AlertDialog(
             onDismissRequest = onOverwriteDialogDismissed,
-            title = { Text("Overwrite backup?") },
-            text = {
-                Text(
-                    "A backup from another device ($dateStr) is already on Google Drive. " +
-                        "Overwrite it with this device's data?"
-                )
-            },
+            title = { Text(stringResource(R.string.settings_dialog_overwrite_title)) },
+            text = { Text(stringResource(R.string.settings_dialog_overwrite_message, dateStr)) },
             confirmButton = {
-                TextButton(onClick = onOverwriteConfirmed) { Text("Overwrite") }
+                TextButton(onClick = onOverwriteConfirmed) { Text(stringResource(R.string.settings_dialog_overwrite_confirm)) }
             },
             dismissButton = {
-                TextButton(onClick = onOverwriteDialogDismissed) { Text("Cancel") }
+                TextButton(onClick = onOverwriteDialogDismissed) { Text(stringResource(R.string.settings_dialog_cancel)) }
             },
         )
     }
@@ -215,12 +205,12 @@ internal fun SettingsView(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Settings") },
+                title = { Text(stringResource(R.string.settings_content_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBackNavigateRequested) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                            contentDescription = "Back Button",
+                            contentDescription = stringResource(R.string.settings_content_back_cd),
                         )
                     }
                 },
@@ -246,18 +236,18 @@ internal fun SettingsView(
                 .imePadding()
                 .verticalScrollWithBar(),
         ) {
-            SettingRow(title = "Daily targets", highlight = targetsHighlight.value, onTapped = onTargetsSettingTapped)
+            SettingRow(title = stringResource(R.string.settings_content_daily_targets_row), highlight = targetsHighlight.value, onTapped = onTargetsSettingTapped)
             if (viewState.customiseAiEnabled) {
-                SettingRow(title = "Customise AI", subtitle = "Experimental!", onTapped = onPromptEditorTapped)
+                SettingRow(title = stringResource(R.string.settings_content_customise_ai_row), subtitle = stringResource(R.string.settings_content_customise_ai_subtitle), onTapped = onPromptEditorTapped)
             }
             SettingRow(
                 title = stringResource(R.string.settings_diary_day_start_row),
                 subtitle = diaryDayStartSummary(viewState.diaryDayStartHour),
                 onTapped = onDiaryDayStartTapped,
             )
-            SettingRow(title = "Export food diary", onTapped = onExportSettingTapped)
+            SettingRow(title = stringResource(R.string.settings_content_export_diary_row), onTapped = onExportSettingTapped)
 
-            SettingSectionHeader(title = "Camera")
+            SettingSectionHeader(title = stringResource(R.string.settings_content_camera_section))
             SettingRow(
                 title = stringResource(R.string.settings_auto_photo_recognition_row),
                 subtitle = stringResource(R.string.settings_auto_photo_recognition_subtitle),
@@ -270,10 +260,10 @@ internal fun SettingsView(
                 },
             )
 
-            SettingSectionHeader(title = "Local sync")
+            SettingSectionHeader(title = stringResource(R.string.settings_content_local_sync_section))
             val localSyncIdle = !viewState.exportDataInProgress && !viewState.importDataInProgress
             SettingRow(
-                title = "Back up now",
+                title = stringResource(R.string.settings_content_backup_now_row),
                 onTapped = onExportDbTapped,
                 enabled = localSyncIdle,
                 trailing = {
@@ -283,7 +273,7 @@ internal fun SettingsView(
                 },
             )
             SettingRow(
-                title = "Restore from backup",
+                title = stringResource(R.string.settings_content_restore_backup_row),
                 onTapped = onImportDbTapped,
                 enabled = localSyncIdle,
                 trailing = {
@@ -295,10 +285,10 @@ internal fun SettingsView(
 
             val isSignedIn = viewState.cloudSyncProvider != CloudSyncProvider.NONE
             val cloudSyncIdle = !viewState.cloudSyncInProgress
-            SettingSectionHeader(title = "Cloud sync")
+            SettingSectionHeader(title = stringResource(R.string.settings_content_cloud_sync_section))
             SettingRow(
-                title = "Account",
-                subtitle = if (isSignedIn) viewState.cloudSyncEmail else "Sign in with Google",
+                title = stringResource(R.string.settings_content_account_row),
+                subtitle = if (isSignedIn) viewState.cloudSyncEmail else stringResource(R.string.settings_content_sign_in_subtitle),
                 enabled = cloudSyncIdle,
                 onTapped = onCloudSyncTapped,
                 trailing = {
@@ -308,11 +298,16 @@ internal fun SettingsView(
                 },
             )
             if (isSignedIn) {
-                val lastSyncedText = viewState.lastSyncedEpochMs?.let { ms ->
-                    "Last backed up: ${SimpleDateFormat("MMM d, yyyy HH:mm", Locale.getDefault()).format(Date(ms))}"
-                } ?: "Never backed up"
+                val lastSyncedText = if (viewState.lastSyncedEpochMs != null) {
+                    stringResource(
+                        R.string.settings_content_last_backed_up,
+                        SimpleDateFormat("MMM d, yyyy HH:mm", Locale.getDefault()).format(Date(viewState.lastSyncedEpochMs))
+                    )
+                } else {
+                    stringResource(R.string.settings_content_never_backed_up)
+                }
                 SettingRow(
-                    title = "Back up now",
+                    title = stringResource(R.string.settings_content_backup_now_row),
                     subtitle = lastSyncedText,
                     enabled = cloudSyncIdle,
                     onTapped = onSyncTapped,
@@ -324,7 +319,7 @@ internal fun SettingsView(
                     onTapped = onAutoBackupIntervalTapped,
                 )
                 SettingRow(
-                    title = "Restore from backup",
+                    title = stringResource(R.string.settings_content_restore_backup_row),
                     enabled = cloudSyncIdle,
                     onTapped = onRestoreFromDriveTapped,
                 )

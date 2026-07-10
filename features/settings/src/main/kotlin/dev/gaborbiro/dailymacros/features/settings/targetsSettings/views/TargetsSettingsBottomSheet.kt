@@ -42,8 +42,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.gaborbiro.dailymacros.features.settings.R
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import dev.gaborbiro.dailymacros.design.PaddingDefault
@@ -80,12 +82,12 @@ internal fun TargetsSettingsBottomSheet(
             Scaffold(
                 topBar = {
                     TopAppBar(
-                        title = { Text("Daily targets") },
+                        title = { Text(stringResource(R.string.settings_content_targets_title)) },
                         navigationIcon = {
                             IconButton(onClick = onDismissRequested) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back",
+                                    contentDescription = stringResource(R.string.settings_content_targets_back_cd),
                                 )
                             }
                         },
@@ -94,13 +96,13 @@ internal fun TargetsSettingsBottomSheet(
                                 onClick = onResetTapped,
                                 enabled = viewState.canReset,
                             ) {
-                                Text("Reset")
+                                Text(stringResource(R.string.settings_content_targets_reset))
                             }
                             TextButton(
                                 onClick = onSaveTapped,
                                 enabled = viewState.canSave,
                             ) {
-                                Text("Save")
+                                Text(stringResource(R.string.settings_content_targets_save))
                             }
                         },
                     )
@@ -114,7 +116,7 @@ internal fun TargetsSettingsBottomSheet(
                         .imePadding(),
                 ) {
                     Text(
-                        text = "Feel free to disable the ones you don't care about",
+                        text = stringResource(R.string.settings_content_targets_hint),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(bottom = 16.dp),
                     )
@@ -182,7 +184,7 @@ private fun MacroRow(
             if (target.enabled) {
                 Icon(
                     imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                    contentDescription = if (expanded) "Collapse" else "More details",
+                    contentDescription = if (expanded) stringResource(R.string.settings_content_targets_collapse_cd) else stringResource(R.string.settings_content_targets_expand_cd),
                 )
             }
             Text(
@@ -245,11 +247,11 @@ private fun MacroRow(
                         .padding(end = 8.dp),
                     singleLine = true,
                     isError = fieldErrors.minError != null,
-                    label = { Text("Min") },
+                    label = { Text(stringResource(R.string.settings_content_targets_min_label)) },
                     supportingText = {
                         when (fieldErrors.minError) {
-                            ValidationError.Empty -> Text("Value required", color = MaterialTheme.colorScheme.error)
-                            ValidationError.MinGreaterThanMax -> Text("min cannot be higher than max", color = MaterialTheme.colorScheme.error)
+                            ValidationError.Empty -> Text(stringResource(R.string.settings_content_targets_error_required), color = MaterialTheme.colorScheme.error)
+                            ValidationError.MinGreaterThanMax -> Text(stringResource(R.string.settings_content_targets_error_min_max), color = MaterialTheme.colorScheme.error)
                             null -> {}
                         }
                     }
@@ -262,11 +264,11 @@ private fun MacroRow(
                         .padding(start = 8.dp),
                     singleLine = true,
                     isError = fieldErrors.maxError != null,
-                    label = { Text("Max") },
+                    label = { Text(stringResource(R.string.settings_content_targets_max_label)) },
                     supportingText = {
                         when (fieldErrors.maxError) {
-                            ValidationError.Empty -> Text("Value required", color = MaterialTheme.colorScheme.error)
-                            ValidationError.MinGreaterThanMax -> Text("min cannot be higher than max", color = MaterialTheme.colorScheme.error)
+                            ValidationError.Empty -> Text(stringResource(R.string.settings_content_targets_error_required), color = MaterialTheme.colorScheme.error)
+                            ValidationError.MinGreaterThanMax -> Text(stringResource(R.string.settings_content_targets_error_min_max), color = MaterialTheme.colorScheme.error)
                             null -> {}
                         }
                     }
@@ -286,17 +288,17 @@ private fun ExitConfirmationDialog(
 ) {
     AlertDialog(
         onDismissRequest = onCancelTapped,
-        title = { Text("Unsaved changes") },
-        text = { Text("You have unsaved changes. Do you want to save them?") },
+        title = { Text(stringResource(R.string.settings_dialog_targets_unsaved_title)) },
+        text = { Text(stringResource(R.string.settings_dialog_targets_unsaved_message)) },
         confirmButton = {
             if (canSave) {
-                TextButton(onClick = onSaveTapped) { Text("Save") }
+                TextButton(onClick = onSaveTapped) { Text(stringResource(R.string.settings_content_targets_save)) }
             }
         },
         dismissButton = {
             Row {
-                TextButton(onClick = onDiscardTapped) { Text("Discard") }
-                TextButton(onClick = onCancelTapped) { Text("Cancel") }
+                TextButton(onClick = onDiscardTapped) { Text(stringResource(R.string.settings_dialog_targets_discard)) }
+                TextButton(onClick = onCancelTapped) { Text(stringResource(R.string.settings_dialog_cancel)) }
             }
         },
     )

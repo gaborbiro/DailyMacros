@@ -121,7 +121,7 @@ fun ColumnScope.RecordDetailsCreateView(
                         ) {
                             Icon(
                                 painter = painterResource(CommonR.drawable.ic_chatgpt),
-                                contentDescription = "Run image recognition",
+                                contentDescription = stringResource(R.string.modal_content_run_ai_cd),
                             )
                         }
                     }
@@ -130,7 +130,7 @@ fun ColumnScope.RecordDetailsCreateView(
         },
         placeholder = {
             Text(
-                text = if (showProgressIndicator) "Running image recognition..." else titleHint,
+                text = if (showProgressIndicator) stringResource(R.string.modal_content_running_ai_placeholder) else titleHint,
                 style = MaterialTheme.typography.labelLarge,
                 fontStyle = FontStyle.Italic,
                 color = Color.Gray,

@@ -37,10 +37,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.gaborbiro.dailymacros.features.trends.R
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
 
@@ -75,7 +77,7 @@ internal fun TrendsSettingsBottomSheet(
                 .padding(16.dp)
         ) {
             Text(
-                text = "Trends Settings",
+                text = stringResource(R.string.trends_sheet_title),
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.headlineMedium,
             )
@@ -91,13 +93,13 @@ internal fun TrendsSettingsBottomSheet(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Daily targets",
+                        text = stringResource(R.string.trends_sheet_daily_targets_title),
                         fontWeight = FontWeight.SemiBold,
                         style = MaterialTheme.typography.titleMedium,
                     )
                     Text(
                         modifier = Modifier.padding(top = 4.dp),
-                        text = "Set your daily nutrient goals here",
+                        text = stringResource(R.string.trends_sheet_daily_targets_subtitle),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -117,18 +119,21 @@ internal fun TrendsSettingsBottomSheet(
             Text(
                 modifier = Modifier
                     .padding(top = 16.dp),
-                text = "Which days to consider for Trends calculations?",
+                text = stringResource(R.string.trends_sheet_days_filter_prompt),
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.bodyMedium,
             )
 
+            val allDaysLabel = stringResource(R.string.trends_sheet_qualifier_all_days)
+            val anythingLoggedLabel = stringResource(R.string.trends_sheet_qualifier_anything_logged)
+            val enoughCaloriesLabel = stringResource(R.string.trends_sheet_qualifier_enough_calories)
             var expanded by remember { mutableStateOf(false) }
             var selectedMode by remember { mutableStateOf(dayQualifier) }
-            val selectedModeLabel = remember(selectedMode) {
+            val selectedModeLabel = remember(selectedMode, allDaysLabel, anythingLoggedLabel, enoughCaloriesLabel) {
                 when (selectedMode) {
-                    DayQualifier.ALL_CALENDAR_DAYS -> "All days"
-                    DayQualifier.ONLY_LOGGED_DAYS -> "Days with anything logged"
-                    DayQualifier.ONLY_QUALIFIED_DAYS -> "Days that have enough calories logged"
+                    DayQualifier.ALL_CALENDAR_DAYS -> allDaysLabel
+                    DayQualifier.ONLY_LOGGED_DAYS -> anythingLoggedLabel
+                    DayQualifier.ONLY_QUALIFIED_DAYS -> enoughCaloriesLabel
                 }
             }
             var customThresholdValue by remember { mutableStateOf(qualifiedDaysThreshold.toString()) }
@@ -163,7 +168,7 @@ internal fun TrendsSettingsBottomSheet(
                 ) {
                     DropdownMenuItem(
                         text = {
-                            Text(text = "All days")
+                            Text(text = allDaysLabel)
                         },
                         onClick = {
                             selectedMode = DayQualifier.ALL_CALENDAR_DAYS
@@ -173,7 +178,7 @@ internal fun TrendsSettingsBottomSheet(
                     )
                     DropdownMenuItem(
                         text = {
-                            Text(text = "Days with anything logged")
+                            Text(text = anythingLoggedLabel)
                         },
                         onClick = {
                             selectedMode = DayQualifier.ONLY_LOGGED_DAYS
@@ -183,7 +188,7 @@ internal fun TrendsSettingsBottomSheet(
                     )
                     DropdownMenuItem(
                         text = {
-                            Text(text = "Days that have enough calories logged")
+                            Text(text = enoughCaloriesLabel)
                         },
                         onClick = {
                             selectedMode = DayQualifier.ONLY_QUALIFIED_DAYS
@@ -211,11 +216,11 @@ internal fun TrendsSettingsBottomSheet(
                     isError = isError,
                     supportingText = {
                         if (isError) {
-                            Text(text = "Invalid value")
+                            Text(text = stringResource(R.string.trends_sheet_error_invalid_value))
                         }
                     },
                     label = {
-                        Text(text = "Calorie threshold (for ex: 800)")
+                        Text(text = stringResource(R.string.trends_sheet_calorie_threshold_label))
                     },
                     keyboardOptions =
                         KeyboardOptions(

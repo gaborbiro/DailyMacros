@@ -104,7 +104,7 @@ fun ImageStrip(
                         Icon(
                             modifier = Modifier.size(20.dp),
                             imageVector = Icons.Filled.Clear,
-                            contentDescription = "Delete Button",
+                            contentDescription = stringResource(R.string.modal_content_image_delete_cd),
                         )
                     }
                 }
@@ -157,7 +157,7 @@ fun ImageStrip(
             ) {
                 Icon(
                     painter = painterResource(CommonR.drawable.ic_add_photo),
-                    contentDescription = "Take photo",
+                    contentDescription = stringResource(R.string.modal_content_image_take_photo_cd),
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -173,7 +173,7 @@ fun ImageStrip(
             ) {
                 Icon(
                     painter = painterResource(CommonR.drawable.ic_add_picture),
-                    contentDescription = "Image picker",
+                    contentDescription = stringResource(R.string.modal_content_image_picker_cd),
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -181,7 +181,7 @@ fun ImageStrip(
                 IconButton(onClick = onInfoButtonTapped) {
                     Icon(
                         imageVector = Icons.Outlined.Info,
-                        contentDescription = "Info"
+                        contentDescription = stringResource(R.string.modal_content_image_info_cd)
                     )
                 }
             }

@@ -18,8 +18,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.gaborbiro.dailymacros.features.overview.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingDouble
 import dev.gaborbiro.dailymacros.design.PaddingHalf
@@ -45,13 +47,13 @@ internal fun ListItemSetTargetsCta(
             modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = "Set your Daily Targets",
+                text = stringResource(R.string.overview_content_set_targets_title),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
             )
             Text(
                 modifier = Modifier.padding(top = PaddingHalf / 2),
-                text = "Track calories, protein and more against your personal goals",
+                text = stringResource(R.string.overview_content_set_targets_subtitle),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f),
             )
