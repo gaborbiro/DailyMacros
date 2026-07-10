@@ -40,6 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.features.overview.R
 import dev.gaborbiro.dailymacros.design.LocalExtraColorScheme
+import dev.gaborbiro.dailymacros.features.common.utils.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
 
 @Composable
@@ -55,6 +56,7 @@ internal fun WelcomeView(modifier: Modifier = Modifier, onAddWidget: () -> Unit 
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScrollWithBar()
                 .padding(horizontal = hPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
@@ -114,6 +116,7 @@ internal fun WelcomeView(modifier: Modifier = Modifier, onAddWidget: () -> Unit 
                 color = onBackground.copy(alpha = 0.5f),
                 textAlign = TextAlign.Center,
             )
+
         }
     }
 }
