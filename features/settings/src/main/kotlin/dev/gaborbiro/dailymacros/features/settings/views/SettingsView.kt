@@ -248,18 +248,20 @@ internal fun SettingsView(
             )
             SettingRow(title = stringResource(R.string.settings_content_export_diary_row), onTapped = onExportSettingTapped)
 
-            SettingSectionHeader(title = stringResource(R.string.settings_content_camera_section))
-            SettingRow(
-                title = stringResource(R.string.settings_auto_photo_recognition_row),
-                subtitle = stringResource(R.string.settings_auto_photo_recognition_subtitle),
-                onTapped = { onAutoPhotoRecognitionToggled(!viewState.autoPhotoRecognitionEnabled) },
-                trailing = {
-                    Switch(
-                        checked = viewState.autoPhotoRecognitionEnabled,
-                        onCheckedChange = onAutoPhotoRecognitionToggled,
-                    )
-                },
-            )
+            if (viewState.autoPhotoRecognitionVisible) {
+                SettingSectionHeader(title = stringResource(R.string.settings_content_camera_section))
+                SettingRow(
+                    title = stringResource(R.string.settings_auto_photo_recognition_row),
+                    subtitle = stringResource(R.string.settings_auto_photo_recognition_subtitle),
+                    onTapped = { onAutoPhotoRecognitionToggled(!viewState.autoPhotoRecognitionEnabled) },
+                    trailing = {
+                        Switch(
+                            checked = viewState.autoPhotoRecognitionEnabled,
+                            onCheckedChange = onAutoPhotoRecognitionToggled,
+                        )
+                    },
+                )
+            }
 
             SettingSectionHeader(title = stringResource(R.string.settings_content_local_sync_section))
             val localSyncIdle = !viewState.exportDataInProgress && !viewState.importDataInProgress

@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.features.modal
 import android.Manifest
 import android.app.ComponentCaller
 import android.app.KeyguardManager
+import android.app.NotificationManager
 import android.content.Intent
 import android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
 import android.net.Uri
@@ -72,6 +73,8 @@ class ModalActivity : AppCompatActivity() {
         if (km.isKeyguardLocked) {
             km.requestDismissKeyguard(this, null)
         }
+
+        dismissPendingNotification()
 
         getImagesFromIntent().takeIf { it.isNotEmpty() }
             ?.let {
@@ -168,6 +171,13 @@ class ModalActivity : AppCompatActivity() {
             }
     }
 
+    private fun dismissPendingNotification(intent: Intent = this.intent) {
+        val notificationId = intent.getIntExtra(EXTRA_DISMISS_NOTIFICATION_ID, -1)
+        if (notificationId != -1) {
+            getSystemService(NotificationManager::class.java).cancel(notificationId)
+        }
+    }
+
     private fun getActionFromIntent(intent: Intent = this.intent): Action? {
         val action = intent.getStringExtra(EXTRA_ACTION)
             ?.let { Action.valueOf(it) }
@@ -219,6 +229,12 @@ class ModalActivity : AppCompatActivity() {
                 val templateId = intent.getLongExtra(EXTRA_TEMPLATE_ID, -1L)
                 val templateName = intent.getStringExtra(EXTRA_TEMPLATE_NAME) ?: ""
                 viewModel.onQuickPickWidgetConfirmDeeplinkReceived(templateId, templateName)
+            }
+
+            Action.PHOTO_RECOGNITION_DETAILS -> {
+                val imageFilename = intent.getStringExtra(EXTRA_IMAGE_FILENAME) ?: return
+                val recognisedTitle = intent.getStringExtra(EXTRA_RECOGNISED_TITLE) ?: return
+                viewModel.onPhotoRecognitionDetailsDeeplinkReceived(recognisedTitle, imageFilename)
             }
         }
     }

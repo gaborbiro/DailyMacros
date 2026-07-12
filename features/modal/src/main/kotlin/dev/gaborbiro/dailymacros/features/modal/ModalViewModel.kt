@@ -120,6 +120,25 @@ class ModalViewModel @Inject constructor(
         setRoot(emptyRecordDetailsEdit())
     }
 
+    fun onPhotoRecognitionDetailsDeeplinkReceived(recognisedTitle: String, imageFilename: String) {
+        val titleValue = TextFieldValue(recognisedTitle, TextRange(recognisedTitle.length))
+        setRoot(
+            DialogHandle.RecordDetailsDialog.Edit(
+                title = titleValue,
+                titleHint = "Title",
+                description = TextFieldValue(),
+                imageFilenames = listOf(imageFilename),
+                recognisedFood = null,
+                showProgressIndicator = false,
+                pristineSnapshot = recordDetailsEditPristineSnapshot(
+                    title = titleValue,
+                    description = TextFieldValue(),
+                    imageFilenames = listOf(imageFilename),
+                ),
+            )
+        )
+    }
+
     fun onViewRecordImageDeeplinkReceived(recordId: Long) {
         runSafely("Couldn't open the image") {
             getRecordImageUseCase.execute(recordId)

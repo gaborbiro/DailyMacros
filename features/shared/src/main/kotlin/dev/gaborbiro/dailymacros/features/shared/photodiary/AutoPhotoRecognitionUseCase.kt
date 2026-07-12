@@ -12,6 +12,7 @@ import dev.gaborbiro.dailymacros.data.image.FoodPicMaxSize
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.data.image.generateFoodPicFilename
 import dev.gaborbiro.dailymacros.features.common.utils.inputStreamToBase64
+import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
 import dev.gaborbiro.dailymacros.features.shared.R
 import dev.gaborbiro.dailymacros.features.shared.notifications.CHANNEL_ID_GENERAL
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
@@ -28,6 +29,7 @@ class AutoPhotoRecognitionUseCase @Inject constructor(
     private val imageStore: ImageStore,
     @ForImageUploadChatGpt private val chatGPTRepository: ChatGPTRepository,
     private val settingsRepository: SettingsRepository,
+    private val modalNavigator: ModalNavigator,
 ) {
 
     suspend fun execute(photoUri: Uri) {
@@ -82,8 +84,17 @@ class AutoPhotoRecognitionUseCase @Inject constructor(
             recognisedTitle = recognisedTitle,
             notificationId = notificationId,
         )
-        val denyIntent = pendingBroadcast(
+        // PendingIntent.getActivity so the system collapses the notification shade on tap.
+        val detailsIntent = modalNavigator.photoRecognitionDetailsPendingIntent(
+            context = appContext,
             requestCode = notificationId + 1,
+            imageFilename = imageFilename,
+            recognisedTitle = recognisedTitle,
+            notificationId = notificationId,
+        )
+        // Fires when the user swipes the notification away — cleans up the stored image.
+        val deleteIntent = pendingBroadcast(
+            requestCode = notificationId + 2,
             action = PhotoRecognitionActionReceiver.ACTION_DENY,
             imageFilename = imageFilename,
             recognisedTitle = null,
@@ -94,8 +105,9 @@ class AutoPhotoRecognitionUseCase @Inject constructor(
             .setContentTitle(recognisedTitle)
             .setContentText(appContext.getString(R.string.photo_recognition_add_to_diary_prompt))
             .setAutoCancel(false)
+            .setDeleteIntent(deleteIntent)
             .addAction(0, appContext.getString(R.string.photo_recognition_action_add), confirmIntent)
-            .addAction(0, appContext.getString(R.string.photo_recognition_action_skip), denyIntent)
+            .addAction(0, appContext.getString(R.string.photo_recognition_action_details), detailsIntent)
             .build()
         appContext.getSystemService(NotificationManager::class.java).notify(notificationId, notification)
     }

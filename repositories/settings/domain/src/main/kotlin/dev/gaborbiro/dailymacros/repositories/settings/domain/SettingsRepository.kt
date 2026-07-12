@@ -52,6 +52,9 @@ interface SettingsRepository {
     fun getLastProcessedMediaStoreId(): Long = -1L
     fun setLastProcessedMediaStoreId(id: Long) {}
 
+    fun getLastPhotoRecognitionRequestEpochMs(): Long = 0L
+    fun setLastPhotoRecognitionRequestEpochMs(epochMs: Long) {}
+
     fun getAutoBackupInterval(): BackupInterval = BackupInterval.NEVER
     fun setAutoBackupInterval(interval: BackupInterval) {}
 }

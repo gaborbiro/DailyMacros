@@ -36,7 +36,7 @@
     <string name="settings_dialog_sign_out_confirm">Sign out</string>
     <string name="settings_dialog_cancel">Cancel</string>
     <string name="settings_dialog_restore_title">Restore from backup?</string>
-    <string name="settings_dialog_restore_message">A newer backup from %1$s is available on Google Drive. Restore it now? This will replace all your current data.</string>
+    <string name="settings_dialog_restore_message">A backup from %1$s is available on Google Drive. Restore it now? This will replace all your current data.</string>
     <string name="settings_dialog_restore_confirm">Restore</string>
     <!-- TargetsHeader / TargetsSettingsBottomSheet -->
     <string name="settings_content_targets_title">Daily targets</string>

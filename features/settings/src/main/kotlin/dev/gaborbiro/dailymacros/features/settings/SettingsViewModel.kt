@@ -2,7 +2,6 @@ package dev.gaborbiro.dailymacros.features.settings
 
 import android.Manifest
 import android.app.Application
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
@@ -18,7 +17,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import dev.gaborbiro.dailymacros.features.settings.DRIVE_SCOPE_TOKEN
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCase
-import dev.gaborbiro.dailymacros.features.shared.photodiary.PhotoMonitorService
+import dev.gaborbiro.dailymacros.features.shared.photodiary.PhotoMonitorWorker
 import dev.gaborbiro.dailymacros.features.settings.export.OpenPublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportSqliteDatabaseUseCase
@@ -69,6 +68,7 @@ class SettingsViewModel @Inject constructor(
             customiseAiEnabled = featureFlagStore.isEnabled(FeatureFlagStore.Key.CUSTOMISE_AI_ENABLED),
             aiInsightsEnabled = featureFlagStore.isEnabled(FeatureFlagStore.Key.AI_INSIGHTS_ENABLED),
             autoPhotoRecognitionEnabled = settingsRepository.getAutoPhotoRecognitionEnabled(),
+            autoPhotoRecognitionVisible = featureFlagStore.isEnabled(FeatureFlagStore.Key.AUTO_PHOTO_RECOGNITION_ENABLED),
             autoBackupInterval = settingsRepository.getAutoBackupInterval(),
         ),
     )
@@ -387,9 +387,7 @@ class SettingsViewModel @Inject constructor(
             }
         } else {
             settingsRepository.setAutoPhotoRecognitionEnabled(false)
-            getApplication<Application>().stopService(
-                Intent(getApplication(), PhotoMonitorService::class.java)
-            )
+            PhotoMonitorWorker.cancel(getApplication())
             _uiState.update { it.copy(autoPhotoRecognitionEnabled = false) }
         }
     }
@@ -407,9 +405,7 @@ class SettingsViewModel @Inject constructor(
 
     private fun enableAutoPhotoRecognition() {
         settingsRepository.setAutoPhotoRecognitionEnabled(true)
-        getApplication<Application>().startForegroundService(
-            Intent(getApplication(), PhotoMonitorService::class.java)
-        )
+        PhotoMonitorWorker.enqueue(getApplication())
         _uiState.update { it.copy(autoPhotoRecognitionEnabled = true) }
     }
 

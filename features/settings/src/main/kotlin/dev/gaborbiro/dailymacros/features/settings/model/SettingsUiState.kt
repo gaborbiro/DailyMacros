@@ -22,6 +22,7 @@ data class SettingsUiState(
     val customiseAiEnabled: Boolean = false,
     val aiInsightsEnabled: Boolean = false,
     val autoPhotoRecognitionEnabled: Boolean = false,
+    val autoPhotoRecognitionVisible: Boolean = false,
     val autoBackupInterval: BackupInterval = BackupInterval.NEVER,
     val showAutoBackupIntervalDialog: Boolean = false,
     val showOverwriteConfirmDialog: Boolean = false,

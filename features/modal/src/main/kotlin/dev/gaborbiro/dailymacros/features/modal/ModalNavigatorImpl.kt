@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.features.modal
 
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import androidx.core.os.bundleOf
@@ -41,6 +42,32 @@ class ModalNavigatorImpl @Inject constructor() : ModalNavigator {
     override fun launchQuickPickWidgetConfirmDialog(context: Context, templateId: Long, templateName: String) {
         context.launchActivityInNewStack { it.getQuickPickWidgetConfirmIntent(templateId, templateName) }
     }
+
+    override fun launchToAddRecordFromPhotoRecognition(
+        context: Context,
+        imageFilename: String,
+        recognisedTitle: String,
+    ) {
+        context.launchActivityInNewStack {
+            it.getPhotoRecognitionDetailsIntent(imageFilename, recognisedTitle)
+        }
+    }
+
+    override fun photoRecognitionDetailsPendingIntent(
+        context: Context,
+        requestCode: Int,
+        imageFilename: String,
+        recognisedTitle: String,
+        notificationId: Int,
+    ): PendingIntent = PendingIntent.getActivity(
+        context,
+        requestCode,
+        context.getPhotoRecognitionDetailsIntent(imageFilename, recognisedTitle).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra(EXTRA_DISMISS_NOTIFICATION_ID, notificationId)
+        },
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+    )
 }
 
 fun Context.getShowRecordImageIntent(recordId: Long) =
@@ -57,6 +84,9 @@ fun Context.getViewTemplateDetailsIntent(templateId: Long) =
 
 fun Context.getQuickPickWidgetConfirmIntent(templateId: Long, templateName: String) =
     getModalIntent(Action.QUICK_PICK_WIDGET_CONFIRM, EXTRA_TEMPLATE_ID to templateId, EXTRA_TEMPLATE_NAME to templateName)
+
+fun Context.getPhotoRecognitionDetailsIntent(imageFilename: String, recognisedTitle: String) =
+    getModalIntent(Action.PHOTO_RECOGNITION_DETAILS, EXTRA_IMAGE_FILENAME to imageFilename, EXTRA_RECOGNISED_TITLE to recognisedTitle)
 
 private fun Context.getViewImageIntent(vararg extras: Pair<String, Any>) =
     getModalIntent(Action.VIEW_IMAGE, *extras)
@@ -103,8 +133,12 @@ enum class Action {
     VIEW_TEMPLATE_DETAILS,
     VIEW_IMAGE,
     QUICK_PICK_WIDGET_CONFIRM,
+    PHOTO_RECOGNITION_DETAILS,
 }
 
 const val EXTRA_RECORD_ID = "record_id"
 const val EXTRA_TEMPLATE_ID = "template_id"
 const val EXTRA_TEMPLATE_NAME = "template_name"
+const val EXTRA_IMAGE_FILENAME = "image_filename"
+const val EXTRA_RECOGNISED_TITLE = "recognised_title"
+const val EXTRA_DISMISS_NOTIFICATION_ID = "dismiss_notification_id"

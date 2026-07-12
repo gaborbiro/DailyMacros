@@ -148,6 +148,13 @@ class SettingsRepositoryImpl @Inject constructor(
         prefs.edit { putLong(KEY_LAST_PROCESSED_MEDIA_STORE_ID, id) }
     }
 
+    override fun getLastPhotoRecognitionRequestEpochMs(): Long =
+        prefs.getLong(KEY_LAST_PHOTO_RECOGNITION_REQUEST_EPOCH_MS, 0L)
+
+    override fun setLastPhotoRecognitionRequestEpochMs(epochMs: Long) {
+        prefs.edit { putLong(KEY_LAST_PHOTO_RECOGNITION_REQUEST_EPOCH_MS, epochMs) }
+    }
+
     override fun getAutoBackupInterval(): BackupInterval =
         prefs.getString(KEY_AUTO_BACKUP_INTERVAL, null)
             ?.let { runCatching { BackupInterval.valueOf(it) }.getOrNull() }
@@ -169,6 +176,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private const val KEY_LAST_SYNCED_EPOCH_MS = "last_synced_epoch_ms"
         private const val KEY_AUTO_PHOTO_RECOGNITION = "auto_photo_recognition"
         private const val KEY_LAST_PROCESSED_MEDIA_STORE_ID = "last_processed_media_store_id"
+        private const val KEY_LAST_PHOTO_RECOGNITION_REQUEST_EPOCH_MS = "last_photo_recognition_request_epoch_ms"
         private const val KEY_AUTO_BACKUP_INTERVAL = "auto_backup_interval"
     }
 }
