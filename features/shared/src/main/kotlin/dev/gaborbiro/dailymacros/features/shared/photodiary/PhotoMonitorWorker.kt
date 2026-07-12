@@ -16,7 +16,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.minutes
 
 @HiltWorker
 class PhotoMonitorWorker @AssistedInject constructor(
@@ -42,7 +41,7 @@ class PhotoMonitorWorker @AssistedInject constructor(
 
             val now = System.currentTimeMillis()
             val lastRequestMs = settingsRepository.getLastPhotoRecognitionRequestEpochMs()
-            if (now - lastRequestMs < 1.minutes.inWholeMilliseconds) {
+            if (now - lastRequestMs < 1.hours.inWholeMilliseconds) {
                 Log.d(TAG, "Rate-limited: skipping photo recognition")
             } else {
                 settingsRepository.setLastPhotoRecognitionRequestEpochMs(now)

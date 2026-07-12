@@ -6,6 +6,8 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository as SettingsRepository
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.AutoSyncError
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.AutoSyncErrorStatus
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.BackupInterval
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion
@@ -155,6 +157,13 @@ class SettingsRepositoryImpl @Inject constructor(
         prefs.edit { putLong(KEY_LAST_PHOTO_RECOGNITION_REQUEST_EPOCH_MS, epochMs) }
     }
 
+    override fun getLastBackupAttemptEpochMs(): Long? =
+        prefs.getLong(KEY_LAST_BACKUP_ATTEMPT_EPOCH_MS, -1L).takeIf { it >= 0 }
+
+    override fun setLastBackupAttemptEpochMs(epochMs: Long) {
+        prefs.edit { putLong(KEY_LAST_BACKUP_ATTEMPT_EPOCH_MS, epochMs) }
+    }
+
     override fun getAutoBackupInterval(): BackupInterval =
         prefs.getString(KEY_AUTO_BACKUP_INTERVAL, null)
             ?.let { runCatching { BackupInterval.valueOf(it) }.getOrNull() }
@@ -162,6 +171,27 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override fun setAutoBackupInterval(interval: BackupInterval) {
         prefs.edit { putString(KEY_AUTO_BACKUP_INTERVAL, interval.name) }
+    }
+
+    override fun getAutoSyncErrorStatus(): AutoSyncErrorStatus? {
+        val error = prefs.getString(KEY_AUTO_SYNC_ERROR, null)
+            ?.let { runCatching { AutoSyncError.valueOf(it) }.getOrNull() }
+            ?: return null
+        val notifiedAt = prefs.getLong(KEY_AUTO_SYNC_ERROR_NOTIFIED_EPOCH_MS, -1L).takeIf { it >= 0 }
+            ?: return null
+        return AutoSyncErrorStatus(error = error, notifiedEpochMs = notifiedAt)
+    }
+
+    override fun setAutoSyncErrorStatus(status: AutoSyncErrorStatus?) {
+        prefs.edit {
+            if (status != null) {
+                putString(KEY_AUTO_SYNC_ERROR, status.error.name)
+                putLong(KEY_AUTO_SYNC_ERROR_NOTIFIED_EPOCH_MS, status.notifiedEpochMs)
+            } else {
+                remove(KEY_AUTO_SYNC_ERROR)
+                remove(KEY_AUTO_SYNC_ERROR_NOTIFIED_EPOCH_MS)
+            }
+        }
     }
 
     companion object {
@@ -177,6 +207,9 @@ class SettingsRepositoryImpl @Inject constructor(
         private const val KEY_AUTO_PHOTO_RECOGNITION = "auto_photo_recognition"
         private const val KEY_LAST_PROCESSED_MEDIA_STORE_ID = "last_processed_media_store_id"
         private const val KEY_LAST_PHOTO_RECOGNITION_REQUEST_EPOCH_MS = "last_photo_recognition_request_epoch_ms"
+        private const val KEY_LAST_BACKUP_ATTEMPT_EPOCH_MS = "last_backup_attempt_epoch_ms"
         private const val KEY_AUTO_BACKUP_INTERVAL = "auto_backup_interval"
+        private const val KEY_AUTO_SYNC_ERROR = "auto_sync_error"
+        private const val KEY_AUTO_SYNC_ERROR_NOTIFIED_EPOCH_MS = "auto_sync_error_notified_epoch_ms"
     }
 }

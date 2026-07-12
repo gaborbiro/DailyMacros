@@ -15,6 +15,8 @@ class SyncDatabaseUseCase @Inject constructor(
         try {
             val uploaded = cloudSyncRepository.uploadBackup(accessToken, tarFile)
             settingsRepository.setLastSyncedEpochMs(uploaded.modifiedTimeMs)
+            settingsRepository.setLastBackupAttemptEpochMs(System.currentTimeMillis())
+            settingsRepository.setAutoSyncErrorStatus(null)
         } finally {
             tarFile.delete()
         }

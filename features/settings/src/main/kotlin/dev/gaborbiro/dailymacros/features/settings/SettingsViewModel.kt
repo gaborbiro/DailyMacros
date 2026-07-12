@@ -218,7 +218,7 @@ class SettingsViewModel @Inject constructor(
                 if (info == null) {
                     _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("No backup found on Google Drive."))
                 } else {
-                    when (restoreFromDriveUseCase.execute(token, info.fileId)) {
+                    when (restoreFromDriveUseCase.execute(token, info.fileId, info.modifiedTimeMs)) {
                         ImportSqliteDatabaseResult.RestartPending ->
                             _uiUpdates.emit(SettingsUiUpdates.RestartApplication)
                         ImportSqliteDatabaseResult.InvalidFile ->
@@ -335,7 +335,7 @@ class SettingsViewModel @Inject constructor(
                     _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Not signed in."))
                     return@launch
                 }
-                when (restoreFromDriveUseCase.execute(token, state.restoreDialogFileId)) {
+                when (restoreFromDriveUseCase.execute(token, state.restoreDialogFileId, state.restoreDialogModifiedAtMs)) {
                     ImportSqliteDatabaseResult.RestartPending ->
                         _uiUpdates.emit(SettingsUiUpdates.RestartApplication)
                     ImportSqliteDatabaseResult.InvalidFile ->
@@ -414,6 +414,7 @@ class SettingsViewModel @Inject constructor(
         settingsRepository.setCloudSyncProvider(CloudSyncProvider.NONE)
         settingsRepository.setCloudSyncEmail(null)
         settingsRepository.setLastSyncedEpochMs(null)
+        settingsRepository.setAutoSyncErrorStatus(null)
         _uiState.update {
             it.copy(
                 cloudSyncProvider = CloudSyncProvider.NONE,

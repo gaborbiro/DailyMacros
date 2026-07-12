@@ -9,6 +9,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.features.settings.DRIVE_SCOPE_TOKEN
 import dev.gaborbiro.dailymacros.repositories.backup.domain.CloudSyncRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.AutoSyncError
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.AutoSyncErrorStatus
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.BackupInterval
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
 import kotlinx.coroutines.Dispatchers
@@ -24,8 +26,8 @@ class AutoSyncUseCase @Inject constructor(
     sealed interface Result {
         data object Skipped : Result
         data object Success : Result
-        data object ConflictDetected : Result
-        data class Failure(val message: String) : Result
+        data class ConflictDetected(val shouldNotify: Boolean) : Result
+        data class Failure(val message: String, val shouldNotify: Boolean) : Result
     }
 
     suspend fun execute(): Result {
@@ -34,21 +36,48 @@ class AutoSyncUseCase @Inject constructor(
         val interval = settingsRepository.getAutoBackupInterval()
         if (interval == BackupInterval.NEVER) return Result.Skipped
 
-        val lastSynced = settingsRepository.getLastSyncedEpochMs()
+        val lastAttempt = settingsRepository.getLastBackupAttemptEpochMs()
         val now = System.currentTimeMillis()
-        if (lastSynced != null && (now - lastSynced) < interval.toMillis()) return Result.Skipped
+        if (lastAttempt != null && (now - lastAttempt) < interval.toMillis()) return Result.Skipped
 
         return try {
-            val token = getDriveAccessToken() ?: return Result.Failure("Not signed in to Google")
+            val token = getDriveAccessToken()
+                ?: return Result.Failure(
+                    message = "Not signed in to Google",
+                    shouldNotify = recordErrorAndDecideNotify(AutoSyncError.FAILURE, interval),
+                )
+            val lastSynced = settingsRepository.getLastSyncedEpochMs()
             val driveInfo = cloudSyncRepository.getBackupInfo(token)
             if (driveInfo != null && driveInfo.modifiedTimeMs > (lastSynced ?: 0L)) {
-                return Result.ConflictDetected
+                return Result.ConflictDetected(
+                    shouldNotify = recordErrorAndDecideNotify(AutoSyncError.CONFLICT, interval),
+                )
             }
             syncDatabaseUseCase.execute(token)
             Result.Success
         } catch (e: Exception) {
-            Result.Failure(e.message ?: "Unknown error")
+            Result.Failure(
+                message = e.message ?: "Unknown error",
+                shouldNotify = recordErrorAndDecideNotify(AutoSyncError.FAILURE, interval),
+            )
         }
+    }
+
+    /**
+     * Notifications are edge-triggered: the user is notified when the error type changes
+     * (including from no-error), then again only if the same error is still unresolved after
+     * a full backup interval. Sync attempts themselves keep retrying on every call.
+     */
+    private fun recordErrorAndDecideNotify(error: AutoSyncError, interval: BackupInterval): Boolean {
+        val now = System.currentTimeMillis()
+        val lastNotified = settingsRepository.getAutoSyncErrorStatus()
+        val shouldNotify = lastNotified == null ||
+            lastNotified.error != error ||
+            (now - lastNotified.notifiedEpochMs) >= interval.toMillis()
+        if (shouldNotify) {
+            settingsRepository.setAutoSyncErrorStatus(AutoSyncErrorStatus(error = error, notifiedEpochMs = now))
+        }
+        return shouldNotify
     }
 
     private suspend fun getDriveAccessToken(): String? = withContext(Dispatchers.IO) {

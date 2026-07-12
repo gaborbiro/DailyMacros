@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.repositories.settings.domain
 
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.AutoSyncErrorStatus
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.BackupInterval
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion
@@ -55,6 +56,12 @@ interface SettingsRepository {
     fun getLastPhotoRecognitionRequestEpochMs(): Long = 0L
     fun setLastPhotoRecognitionRequestEpochMs(epochMs: Long) {}
 
+    fun getLastBackupAttemptEpochMs(): Long? = null
+    fun setLastBackupAttemptEpochMs(epochMs: Long) {}
+
     fun getAutoBackupInterval(): BackupInterval = BackupInterval.NEVER
     fun setAutoBackupInterval(interval: BackupInterval) {}
+
+    fun getAutoSyncErrorStatus(): AutoSyncErrorStatus? = null
+    fun setAutoSyncErrorStatus(status: AutoSyncErrorStatus?) {}
 }

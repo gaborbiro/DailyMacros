@@ -11,12 +11,13 @@ class RestoreFromDriveUseCase @Inject constructor(
     private val backupRepository: BackupRepository,
     private val settingsRepository: SettingsRepository,
 ) {
-    suspend fun execute(accessToken: String, fileId: String): ImportSqliteDatabaseResult {
+    suspend fun execute(accessToken: String, fileId: String, driveModifiedAtMs: Long): ImportSqliteDatabaseResult {
         val tempFile = cloudSyncRepository.downloadBackupToTempFile(accessToken, fileId)
         return try {
             val result = backupRepository.importBackup(tempFile.inputStream())
             if (result is DatabaseBackupImportResult.ReplacementApplied) {
-                settingsRepository.setLastSyncedEpochMs(System.currentTimeMillis())
+                settingsRepository.setLastSyncedEpochMs(driveModifiedAtMs)
+                settingsRepository.setAutoSyncErrorStatus(null)
             }
             when (result) {
                 DatabaseBackupImportResult.ReplacementApplied -> ImportSqliteDatabaseResult.RestartPending
