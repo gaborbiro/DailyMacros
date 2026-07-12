@@ -77,6 +77,28 @@ class SettingsViewModel @Inject constructor(
     private val _uiUpdates = MutableSharedFlow<SettingsUiUpdates>()
     val uiUpdates: SharedFlow<SettingsUiUpdates> = _uiUpdates.asSharedFlow()
 
+    /**
+     * Called after each auto-sync attempt. Re-reads the persisted timestamp, then refreshes the
+     * displayed value from the cloud backup itself so overwrites by other devices show up.
+     * The fetched cloud timestamp is display-only: persisting it into lastSyncedEpochMs would
+     * defeat conflict detection, which compares the cloud timestamp against the persisted one.
+     */
+    fun onAutoSyncFinished() {
+        _uiState.update { it.copy(lastSyncedEpochMs = settingsRepository.getLastSyncedEpochMs()) }
+        if (settingsRepository.getCloudSyncProvider() == CloudSyncProvider.NONE) return
+        viewModelScope.launch {
+            runCatching {
+                val token = getDriveAccessToken() ?: return@launch
+                val info = cloudSyncRepository.getBackupInfo(token)
+                if (info != null) {
+                    _uiState.update { it.copy(lastSyncedEpochMs = info.modifiedTimeMs) }
+                }
+            }.onFailure { t ->
+                Log.e("CloudSync", "Failed to refresh cloud backup timestamp", t)
+            }
+        }
+    }
+
     fun onBackNavigateRequested() {
         _uiState.update { it.copy(showTargetsSettings = false) }
         viewModelScope.launch { _uiUpdates.emit(SettingsUiUpdates.NavigateBack) }
@@ -196,7 +218,9 @@ class SettingsViewModel @Inject constructor(
                     val token = getDriveAccessToken() ?: return@launch
                     val info = cloudSyncRepository.getBackupInfo(token)
                     if (info != null) {
-                        settingsRepository.setLastSyncedEpochMs(info.modifiedTimeMs)
+                        // Display-only: persisting the cloud timestamp would mark this device as
+                        // in-sync with a backup it never restored, disabling conflict detection
+                        // and letting the next sync overwrite the backup.
                         _uiState.update { it.copy(lastSyncedEpochMs = info.modifiedTimeMs) }
                     }
                 }.onFailure { t ->
@@ -249,6 +273,11 @@ class SettingsViewModel @Inject constructor(
                     return@launch
                 }
                 val driveInfo = cloudSyncRepository.getBackupInfo(token)
+                if (driveInfo != null) {
+                    // Display-only, like onAutoSyncFinished: must not be persisted, or conflict
+                    // detection would treat this device as in sync with the cloud backup.
+                    _uiState.update { it.copy(lastSyncedEpochMs = driveInfo.modifiedTimeMs) }
+                }
                 val lastSynced = settingsRepository.getLastSyncedEpochMs()
                 if (driveInfo != null && driveInfo.modifiedTimeMs > (lastSynced ?: 0L)) {
                     _uiState.update {
@@ -312,6 +341,8 @@ class SettingsViewModel @Inject constructor(
                 } else {
                     _uiState.update {
                         it.copy(
+                            // Display-only refresh; see onSyncTapped.
+                            lastSyncedEpochMs = info.modifiedTimeMs,
                             showRestoreConfirmDialog = true,
                             restoreDialogModifiedAtMs = info.modifiedTimeMs,
                             restoreDialogFileId = info.fileId,

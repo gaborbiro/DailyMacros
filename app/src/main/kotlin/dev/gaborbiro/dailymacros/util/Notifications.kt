@@ -128,6 +128,13 @@ fun Context.showAutoSyncConflictNotification() {
     getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID_AUTO_SYNC_CONFLICT, builder.build())
 }
 
+fun Context.cancelAutoSyncNotifications() {
+    getSystemService(NotificationManager::class.java).run {
+        cancel(NOTIFICATION_ID_AUTO_SYNC_FAILURE)
+        cancel(NOTIFICATION_ID_AUTO_SYNC_CONFLICT)
+    }
+}
+
 fun Context.showAutoSyncFailureNotification() {
     val builder = NotificationCompat.Builder(this, CHANNEL_ID_ERROR)
         .setSmallIcon(R.drawable.ic_nutrition)

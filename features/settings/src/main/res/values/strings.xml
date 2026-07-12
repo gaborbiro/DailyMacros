@@ -28,8 +28,7 @@
     <string name="settings_content_cloud_sync_section">Cloud sync</string>
     <string name="settings_content_account_row">Account</string>
     <string name="settings_content_sign_in_subtitle">Sign in with Google</string>
-    <string name="settings_content_last_backed_up">Last backed up: %1$s</string>
-    <string name="settings_content_never_backed_up">Never backed up</string>
+    <string name="settings_content_last_backed_up">Last backup: %1$s</string>
     <!-- SettingsView dialogs -->
     <string name="settings_dialog_sign_out_title">Sign out?</string>
     <string name="settings_dialog_sign_out_message">You\'ll be signed out of %1$s and cloud backup will be turned off.</string>
@@ -52,7 +51,7 @@
     <string name="settings_content_targets_error_min_max">min cannot be higher than max</string>
     <!-- SettingsView overwrite backup dialog -->
     <string name="settings_dialog_overwrite_title">Overwrite backup?</string>
-    <string name="settings_dialog_overwrite_message">A backup from another device (%1$s) is already on Google Drive. Overwrite it with this device\'s data?</string>
+    <string name="settings_dialog_overwrite_message">A backup from another device (%1$s) is present in your Google Drive. Overwrite it with this device\'s data?</string>
     <string name="settings_dialog_overwrite_confirm">Overwrite</string>
     <!-- ExitConfirmationDialog -->
     <string name="settings_dialog_targets_unsaved_title">Unsaved changes</string>

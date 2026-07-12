@@ -289,9 +289,21 @@ internal fun SettingsView(
             val isSignedIn = viewState.cloudSyncProvider != CloudSyncProvider.NONE
             val cloudSyncIdle = !viewState.cloudSyncInProgress
             SettingSectionHeader(title = stringResource(R.string.settings_content_cloud_sync_section))
+
+            val lastSyncedText = if (isSignedIn) {
+                if (viewState.lastSyncedEpochMs != null) {
+                    stringResource(
+                        R.string.settings_content_last_backed_up,
+                        SimpleDateFormat("MMM d, yyyy HH:mm", Locale.getDefault()).format(Date(viewState.lastSyncedEpochMs))
+                    )
+                } else {
+                    null
+                }
+            } else null
+
             SettingRow(
                 title = stringResource(R.string.settings_content_account_row),
-                subtitle = if (isSignedIn) viewState.cloudSyncEmail else stringResource(R.string.settings_content_sign_in_subtitle),
+                subtitle = if (isSignedIn) viewState.cloudSyncEmail + "${lastSyncedText?.let { "\n$it" }}" else stringResource(R.string.settings_content_sign_in_subtitle),
                 enabled = cloudSyncIdle,
                 onTapped = onCloudSyncTapped,
                 trailing = {
@@ -301,25 +313,16 @@ internal fun SettingsView(
                 },
             )
             if (isSignedIn) {
-                val lastSyncedText = if (viewState.lastSyncedEpochMs != null) {
-                    stringResource(
-                        R.string.settings_content_last_backed_up,
-                        SimpleDateFormat("MMM d, yyyy HH:mm", Locale.getDefault()).format(Date(viewState.lastSyncedEpochMs))
-                    )
-                } else {
-                    stringResource(R.string.settings_content_never_backed_up)
-                }
-                SettingRow(
-                    title = stringResource(R.string.settings_content_backup_now_row),
-                    subtitle = lastSyncedText,
-                    enabled = cloudSyncIdle,
-                    onTapped = onSyncTapped,
-                )
                 SettingRow(
                     title = stringResource(R.string.settings_cloud_sync_auto_backup_row),
                     subtitle = stringResource(viewState.autoBackupInterval.toLabelRes()),
                     enabled = cloudSyncIdle,
                     onTapped = onAutoBackupIntervalTapped,
+                )
+                SettingRow(
+                    title = stringResource(R.string.settings_content_backup_now_row),
+                    enabled = cloudSyncIdle,
+                    onTapped = onSyncTapped,
                 )
                 SettingRow(
                     title = stringResource(R.string.settings_content_restore_backup_row),

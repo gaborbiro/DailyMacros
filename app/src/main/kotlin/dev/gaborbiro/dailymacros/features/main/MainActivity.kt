@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.features.main
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.viewModels
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -46,6 +47,7 @@ import android.widget.Toast
 import dev.gaborbiro.dailymacros.features.widgets.diary.DiaryWidgetReceiver
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.AutoSyncUseCase
 import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusRepository
+import dev.gaborbiro.dailymacros.util.cancelAutoSyncNotifications
 import dev.gaborbiro.dailymacros.util.showAutoSyncConflictNotification
 import dev.gaborbiro.dailymacros.util.showAutoSyncFailureNotification
 import kotlinx.coroutines.launch
@@ -72,14 +74,22 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var autoSyncUseCase: AutoSyncUseCase
 
+    // Same instance as the hiltViewModel() in setContent: both are scoped to this Activity.
+    private val settingsViewModel: SettingsViewModel by viewModels()
+
     override fun onResume() {
         super.onResume()
         lifecycleScope.launch {
-            when (autoSyncUseCase.execute()) {
-                AutoSyncUseCase.Result.ConflictDetected -> showAutoSyncConflictNotification()
-                is AutoSyncUseCase.Result.Failure -> showAutoSyncFailureNotification()
-                else -> Unit
+            when (val result = autoSyncUseCase.execute()) {
+                is AutoSyncUseCase.Result.ConflictDetected ->
+                    if (result.shouldNotify) showAutoSyncConflictNotification()
+                is AutoSyncUseCase.Result.Failure ->
+                    if (result.shouldNotify) showAutoSyncFailureNotification()
+                AutoSyncUseCase.Result.Success,
+                AutoSyncUseCase.Result.Skipped,
+                -> cancelAutoSyncNotifications()
             }
+            settingsViewModel.onAutoSyncFinished()
         }
     }
 
@@ -97,7 +107,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme {
                 val navController: NavHostController = rememberNavController()
-                val settingsViewModel: SettingsViewModel = hiltViewModel()
                 val targetsSettingsViewModel: TargetsSettingsViewModel = hiltViewModel()
                 val promptEditorViewModel: PromptEditorViewModel = hiltViewModel()
                 val trendsViewModel: TrendsViewModel = hiltViewModel()
