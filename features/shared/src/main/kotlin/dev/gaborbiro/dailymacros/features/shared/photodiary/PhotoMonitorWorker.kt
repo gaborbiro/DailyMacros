@@ -1,10 +1,12 @@
 package dev.gaborbiro.dailymacros.features.shared.photodiary
 
+import android.app.NotificationManager
 import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
 import android.util.Log
+import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -14,7 +16,10 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import dev.gaborbiro.dailymacros.features.shared.R
+import dev.gaborbiro.dailymacros.features.shared.notifications.CHANNEL_ID_GENERAL
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
+import kotlin.math.ceil
 import kotlin.time.Duration.Companion.hours
 
 @HiltWorker
@@ -41,13 +46,18 @@ class PhotoMonitorWorker @AssistedInject constructor(
 
             val now = System.currentTimeMillis()
             val lastRequestMs = settingsRepository.getLastPhotoRecognitionRequestEpochMs()
-            if (now - lastRequestMs < 1.hours.inWholeMilliseconds) {
-                Log.d(TAG, "Rate-limited: skipping photo recognition")
+            val elapsed = now - lastRequestMs
+            if (elapsed < 1.hours.inWholeMilliseconds) {
+                val minutesRemaining = ceil((1.hours.inWholeMilliseconds - elapsed) / 60_000.0).toInt()
+                showStatusNotification(applicationContext, applicationContext.getString(R.string.photo_recognition_rate_limited, minutesRemaining))
+                Log.d(TAG, "Rate-limited: skipping photo recognition ($minutesRemaining min remaining)")
             } else {
                 settingsRepository.setLastPhotoRecognitionRequestEpochMs(now)
                 val latestUri = newPhotos.last().second
+                showStatusNotification(applicationContext, applicationContext.getString(R.string.photo_recognition_scanning))
                 runCatching { autoPhotoRecognitionUseCase.execute(latestUri) }
                     .onFailure { Log.e(TAG, "Recognition failed for $latestUri", it) }
+                cancelStatusNotification(applicationContext)
             }
         }
 
@@ -102,6 +112,22 @@ class PhotoMonitorWorker @AssistedInject constructor(
         private const val TAG = "PhotoMonitorWorker"
         private const val CAMERA_BUCKET_NAME = "Camera"
         internal const val WORK_NAME = "photo_monitor"
+        private val STATUS_NOTIFICATION_ID = "photo_monitor_status".hashCode()
+
+        private fun showStatusNotification(context: Context, message: String) {
+            val notification = NotificationCompat.Builder(context, CHANNEL_ID_GENERAL)
+                .setSmallIcon(R.drawable.ic_nutrition)
+                .setContentText(message)
+                .setAutoCancel(true)
+                .build()
+            context.getSystemService(NotificationManager::class.java)
+                .notify(STATUS_NOTIFICATION_ID, notification)
+        }
+
+        private fun cancelStatusNotification(context: Context) {
+            context.getSystemService(NotificationManager::class.java)
+                .cancel(STATUS_NOTIFICATION_ID)
+        }
 
         fun enqueue(context: Context) {
             val request = OneTimeWorkRequestBuilder<PhotoMonitorWorker>()
