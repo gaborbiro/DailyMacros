@@ -46,7 +46,9 @@ import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.features.common.utils.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.features.common.views.LocalImage
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
+import androidx.compose.ui.res.stringResource
 import dev.gaborbiro.dailymacros.features.widgets.PersistenceMapper
+import dev.gaborbiro.dailymacros.features.widgets.R
 import dev.gaborbiro.dailymacros.features.widgets.WidgetUiMapper
 import dev.gaborbiro.dailymacros.features.widgets.model.ListUiModelQuickPick
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
@@ -165,7 +167,7 @@ private fun QuickPickConfigScreen(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Select Quick Pick") })
+            TopAppBar(title = { Text(stringResource(R.string.widgets_quick_pick_config_title)) })
         }
     ) { padding ->
         if (quickPicks.isEmpty()) {
@@ -176,7 +178,7 @@ private fun QuickPickConfigScreen(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = "No Quick Picks available yet",
+                    text = stringResource(R.string.widgets_quick_pick_config_empty_state),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }

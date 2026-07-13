@@ -17,6 +17,7 @@ import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
+import androidx.glance.LocalContext
 import androidx.glance.layout.padding
 import androidx.glance.layout.width
 import androidx.glance.layout.wrapContentWidth
@@ -32,6 +33,7 @@ import dev.gaborbiro.dailymacros.features.widgets.util.WidgetPreviewContext
 
 @Composable
 internal fun EmptyView() {
+    val context = LocalContext.current
     Box(
         modifier = GlanceModifier
             .fillMaxSize(),
@@ -41,7 +43,7 @@ internal fun EmptyView() {
             Text(
                 modifier = GlanceModifier
                     .fillMaxWidth(),
-                text = "Tap one of these buttons\nto record your first meal",
+                text = context.getString(R.string.widgets_content_empty_state),
                 style = TextStyle(
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
@@ -63,7 +65,7 @@ internal fun EmptyView() {
                         .wrapContentWidth()
                         .padding(vertical = PaddingHalf),
                     provider = ImageProvider(R.drawable.ic_arrow),
-                    contentDescription = "Arrow to bottom-left",
+                    contentDescription = context.getString(R.string.widgets_content_arrow_cd),
                     contentScale = ContentScale.Fit,
                     colorFilter = ColorFilter.tint(GlanceTheme.colors.onBackground),
                 )

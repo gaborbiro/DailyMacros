@@ -7,6 +7,7 @@ import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
+import androidx.glance.LocalContext
 import androidx.glance.action.Action
 import androidx.glance.action.action
 import androidx.glance.action.clickable
@@ -29,6 +30,7 @@ fun ButtonLayout(
     launchNewNoteViaTextOnlyActionProvider: @Composable () -> Action,
     reloadActionProvider: @Composable () -> Action,
 ) {
+    val context = LocalContext.current
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
@@ -38,7 +40,7 @@ fun ButtonLayout(
                 .defaultWeight()
                 .padding(vertical = PaddingWidgetDouble),
             iconResId = R.drawable.ic_add_photo,
-            contentDescription = "New record via camera",
+            contentDescription = context.getString(R.string.widgets_content_new_record_via_camera_cd),
             tapAction = launchNoteViaCameraAction(),
         )
         WidgetButton(
@@ -46,7 +48,7 @@ fun ButtonLayout(
                 .defaultWeight()
                 .padding(vertical = PaddingWidgetDouble),
             iconResId = R.drawable.ic_add_picture,
-            contentDescription = "New record via existing image",
+            contentDescription = context.getString(R.string.widgets_content_new_record_via_image_cd),
             tapAction = launchNewNoteViaImagePickerActionProvider(),
         )
         WidgetButton(
@@ -54,7 +56,7 @@ fun ButtonLayout(
                 .defaultWeight()
                 .padding(vertical = PaddingWidgetDouble),
             iconResId = R.drawable.ic_add_just_text,
-            contentDescription = "New record",
+            contentDescription = context.getString(R.string.widgets_content_new_record_cd),
             tapAction = launchNewNoteViaTextOnlyActionProvider(),
         )
         WidgetButton(
@@ -62,7 +64,7 @@ fun ButtonLayout(
                 .defaultWeight()
                 .padding(vertical = PaddingWidgetDouble),
             iconResId = R.drawable.ic_refresh,
-            contentDescription = "Reload",
+            contentDescription = context.getString(R.string.widgets_content_reload_cd),
             tapAction = reloadActionProvider(),
         )
     }

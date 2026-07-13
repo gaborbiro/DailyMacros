@@ -1,6 +1,8 @@
 package dev.gaborbiro.dailymacros.features.trends
 
+import android.content.Context
 import androidx.compose.ui.graphics.Color
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.features.common.utils.diaryDayStartTime
 import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryDate
 import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryToday
@@ -20,8 +22,10 @@ import java.time.format.TextStyle
 import java.time.temporal.WeekFields
 import java.util.Locale
 import javax.inject.Inject
+import dev.gaborbiro.dailymacros.features.trends.R
 
 class TrendsUiMapper @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val preferences: TrendsPreferences,
     private val settingsRepository: SettingsRepository,
 ) {
@@ -486,7 +490,7 @@ class TrendsUiMapper @Inject constructor(
         }
 
         return TrendsChartUiModel(
-            title = "Adherence",
+            title = context.getString(R.string.trends_content_adherence),
             datasets = listOf(
                 ChartDataset(
                     name = "Adherence (%)",

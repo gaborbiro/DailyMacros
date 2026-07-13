@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.LocalContext
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.SizeMode
@@ -25,6 +26,7 @@ import androidx.glance.unit.ColorProvider
 import dagger.hilt.android.EntryPointAccessors
 import dev.gaborbiro.dailymacros.design.WidgetColorScheme
 import dev.gaborbiro.dailymacros.features.widgets.PersistenceMapper
+import dev.gaborbiro.dailymacros.features.widgets.R
 import dev.gaborbiro.dailymacros.features.widgets.views.LocalImageStoreWidget
 
 class QuickPickWidgetScreen : GlanceAppWidget() {
@@ -73,6 +75,7 @@ class QuickPickWidgetScreen : GlanceAppWidget() {
 
     @Composable
     private fun NotConfiguredView() {
+        val context = LocalContext.current
         Box(
             modifier = GlanceModifier
                 .fillMaxSize()
@@ -80,7 +83,7 @@ class QuickPickWidgetScreen : GlanceAppWidget() {
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = "Remove and re-add to reconfigure",
+                text = context.getString(R.string.widgets_quick_pick_reconfigure_hint),
                 style = TextStyle(color = ColorProvider(Color.Gray)),
             )
         }

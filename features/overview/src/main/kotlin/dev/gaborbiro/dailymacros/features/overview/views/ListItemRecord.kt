@@ -89,7 +89,7 @@ private fun RecordImage(
             modifier = modifier
                 .clip(RoundedCornerShape(ListItemImageCornerRadius)),
             contentScale = ContentScale.Crop,
-            contentDescription = "image of $title"
+            contentDescription = stringResource(R.string.overview_content_record_image_cd, title)
         )
     } ?: run {
         Spacer(modifier)

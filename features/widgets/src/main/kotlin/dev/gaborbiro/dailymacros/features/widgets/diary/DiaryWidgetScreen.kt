@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.LocalContext
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.provideContent
@@ -27,6 +28,7 @@ import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.design.WidgetColorScheme
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.widgets.PersistenceMapper
+import dev.gaborbiro.dailymacros.features.widgets.R
 import dev.gaborbiro.dailymacros.features.widgets.WidgetNavigator
 import dev.gaborbiro.dailymacros.features.widgets.model.ListUiModelQuickPickFooter
 import dev.gaborbiro.dailymacros.features.widgets.model.ListUiModelQuickPickHeader
@@ -149,6 +151,7 @@ class DiaryWidgetScreen : GlanceAppWidget() {
 
     @Composable
     private fun ErrorView() {
+        val context = LocalContext.current
         Box(
             modifier = GlanceModifier
                 .fillMaxSize()
@@ -156,7 +159,7 @@ class DiaryWidgetScreen : GlanceAppWidget() {
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = "Widget error",
+                text = context.getString(R.string.widgets_content_error),
                 style = TextStyle(color = ColorProvider(Color.Red))
             )
         }

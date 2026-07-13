@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.features.shared
 
+import android.content.Context
 import dev.gaborbiro.dailymacros.repositories.common.model.DomainError
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
@@ -9,11 +10,17 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 
+@RunWith(RobolectricTestRunner::class)
 class ErrorUiMapperTest {
 
-    private val mapperWithApiKey = ErrorUiMapper(fakeSettings(apiKey = "sk-test"))
-    private val mapperWithoutApiKey = ErrorUiMapper(fakeSettings(apiKey = null))
+    private val context: Context get() = RuntimeEnvironment.getApplication()
+
+    private val mapperWithApiKey get() = ErrorUiMapper(context, fakeSettings(apiKey = "sk-test"))
+    private val mapperWithoutApiKey get() = ErrorUiMapper(context, fakeSettings(apiKey = null))
 
     @Test
     fun `mapErrorMessage check internet connection`() {

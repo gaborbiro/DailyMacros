@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.settings.promptEditor.views
+﻿package dev.gaborbiro.dailymacros.features.settings.promptEditor.views
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
@@ -51,6 +51,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -61,6 +62,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import dev.gaborbiro.dailymacros.features.common.utils.verticalScrollWithBar
+import dev.gaborbiro.dailymacros.features.settings.R
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel.Companion.TAB_ANALYSIS
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel.Companion.TAB_ONGOING_WEEK_INSIGHTS
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel.Companion.TAB_RECOGNITION
@@ -152,12 +154,12 @@ internal fun PromptEditorView(
             Scaffold(
                 topBar = {
                     TopAppBar(
-                        title = { Text("Customise AI") },
+                        title = { Text(stringResource(R.string.settings_prompt_editor_title)) },
                         navigationIcon = {
                             IconButton(onClick = onDismissRequested) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back",
+                                    contentDescription = stringResource(R.string.settings_prompt_editor_back_cd),
                                 )
                             }
                         },
@@ -197,51 +199,34 @@ internal fun PromptEditorView(
                         )
                         val email = "nomadworkz@gmail.com"
                         val uriHandler = LocalUriHandler.current
-                        if (viewState.promptsEnabled) {
-                            val annotated = buildAnnotatedString {
-                                append("Changes take effect on the next AI query.\nCustomising the prompts may cause the app to behave in unpredictable ways or even crash. Revert the query to its default version if needed.\nDrop a message to ")
-                                withStyle(SpanStyle(
-                                    color = MaterialTheme.colorScheme.primary,
-                                    textDecoration = TextDecoration.Underline,
-                                )) {
-                                    append(email)
-                                }
-                                append(" for any suggestions or questions.")
-                            }
-                            Text(
-                                text = annotated,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier
-                                    .padding(horizontal = 16.dp, vertical = 4.dp)
-                                    .clickable { uriHandler.openUri("mailto:$email") },
-                            )
+                        val primaryColor = MaterialTheme.colorScheme.primary
+                        val infoText = if (viewState.promptsEnabled) {
+                            stringResource(R.string.settings_prompt_editor_info_enabled, email)
                         } else {
-                            val prefix =
-                                "ℹ\uFE0F Using your own API key means you no longer need to subscribe to this app. Once unlocked, feel free to cancel your subscription in Play Store, or keep it if you'd like to support the developer of this app.\nDrop a message to "
-                            val suffix =
-                                " for any suggestions or questions.\nYou can also customise the AI prompts. This may cause the app to behave in unpredictable ways or even crash. Revert the query to its default version if needed.\nA heads-up on future plans: I intend to collect anonymised custom prompts to improve the app's AI features. I'll ask for your explicit consent before doing so."
-                            val annotated = buildAnnotatedString {
-                                append(prefix)
-                                withStyle(
-                                    SpanStyle(
-                                        color = MaterialTheme.colorScheme.primary,
-                                        textDecoration = TextDecoration.Underline,
-                                    )
-                                ) {
-                                    append(email)
-                                }
-                                append(suffix)
-                            }
-                            Text(
-                                text = annotated,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier
-                                    .padding(horizontal = 16.dp, vertical = 4.dp)
-                                    .clickable { uriHandler.openUri("mailto:$email") },
-                            )
+                            stringResource(R.string.settings_prompt_editor_info_disabled, email)
                         }
+                        val emailStart = infoText.indexOf(email)
+                        val annotated = buildAnnotatedString {
+                            append(infoText)
+                            if (emailStart >= 0) {
+                                addStyle(
+                                    SpanStyle(
+                                        color = primaryColor,
+                                        textDecoration = TextDecoration.Underline,
+                                    ),
+                                    emailStart,
+                                    emailStart + email.length,
+                                )
+                            }
+                        }
+                        Text(
+                            text = annotated,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp, vertical = 4.dp)
+                                .clickable { uriHandler.openUri("mailto:$email") },
+                        )
                         Spacer(Modifier.height(4.dp))
                     }
 
@@ -315,7 +300,7 @@ internal fun PromptEditorView(
                                 .fillMaxWidth()
                                 .padding(top = 8.dp),
                         ) {
-                            Text("Save")
+                            Text(stringResource(R.string.settings_prompt_editor_save))
                         }
                     }
                 }
@@ -326,17 +311,17 @@ internal fun PromptEditorView(
     if (viewState.showExitDialog) {
         AlertDialog(
             onDismissRequest = onExitDialogDismissed,
-            title = { Text("Unsaved changes") },
-            text = { Text("You have unsaved prompt changes. Save or discard them?") },
+            title = { Text(stringResource(R.string.settings_prompt_editor_unsaved_changes_title)) },
+            text = { Text(stringResource(R.string.settings_prompt_editor_unsaved_changes_message)) },
             confirmButton = {
                 if (viewState.hasAnyUnsavedChanges) {
-                    TextButton(onClick = onExitDialogSaveTapped) { Text("Save") }
+                    TextButton(onClick = onExitDialogSaveTapped) { Text(stringResource(R.string.settings_prompt_editor_save)) }
                 }
             },
             dismissButton = {
                 Row {
-                    TextButton(onClick = onExitDialogDiscardTapped) { Text("Discard") }
-                    TextButton(onClick = onExitDialogDismissed) { Text("Cancel") }
+                    TextButton(onClick = onExitDialogDiscardTapped) { Text(stringResource(R.string.settings_prompt_editor_discard)) }
+                    TextButton(onClick = onExitDialogDismissed) { Text(stringResource(R.string.settings_prompt_editor_cancel)) }
                 }
             },
         )
@@ -358,7 +343,7 @@ private fun ApiKeyRow(
         OutlinedTextField(
             value = if (viewState.isApiKeyOverridden) viewState.storedApiKeyOverride!! else viewState.apiKeyDraft,
             onValueChange = { if (!viewState.isApiKeyOverridden) onApiKeyDraftChanged(it) },
-            label = { Text("ChatGPT API key") },
+            label = { Text(stringResource(R.string.settings_prompt_editor_api_key_label)) },
             readOnly = viewState.isApiKeyOverridden,
             singleLine = true,
             modifier = Modifier.weight(1f),
@@ -366,7 +351,7 @@ private fun ApiKeyRow(
         Spacer(Modifier.width(8.dp))
         if (viewState.isApiKeyOverridden) {
             OutlinedButton(onClick = onClearApiKeyTapped) {
-                Text("Clear")
+                Text(stringResource(R.string.settings_prompt_editor_clear))
             }
         } else {
             Button(
@@ -382,7 +367,7 @@ private fun ApiKeyRow(
                         color = MaterialTheme.colorScheme.onPrimary,
                     )
                 } else {
-                    Text("Unlock")
+                    Text(stringResource(R.string.settings_prompt_editor_unlock))
                 }
             }
         }
@@ -404,7 +389,8 @@ private fun VersionPicker(
 
     fun PromptVersion.label() = "v${version} · ${dateFormatter.format(Date(createdAt))}"
 
-    val displayText = if (selectedIndex == 0) "v0 (default)" else versions.getOrNull(selectedIndex - 1)?.label() ?: "v0 (default)"
+    val versionDefault = stringResource(R.string.settings_prompt_editor_version_default)
+    val displayText = if (selectedIndex == 0) versionDefault else versions.getOrNull(selectedIndex - 1)?.label() ?: versionDefault
 
     ExposedDropdownMenuBox(
         expanded = expanded && enabled,
@@ -415,7 +401,7 @@ private fun VersionPicker(
             value = displayText,
             onValueChange = {},
             readOnly = true,
-            label = { Text("Version") },
+            label = { Text(stringResource(R.string.settings_prompt_editor_version_label)) },
             trailingIcon = { if (enabled) ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -427,7 +413,7 @@ private fun VersionPicker(
             onDismissRequest = { expanded = false },
         ) {
             DropdownMenuItem(
-                text = { Text("v0 (default)") },
+                text = { Text(versionDefault) },
                 onClick = {
                     expanded = false
                     onVersionSelected(0)
@@ -443,7 +429,7 @@ private fun VersionPicker(
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Delete,
-                                contentDescription = "Delete version ${version.version}",
+                                contentDescription = stringResource(R.string.settings_prompt_editor_version_delete_cd, version.version),
                                 tint = MaterialTheme.colorScheme.error,
                             )
                         }

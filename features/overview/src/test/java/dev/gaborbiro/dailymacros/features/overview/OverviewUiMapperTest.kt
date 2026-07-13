@@ -13,8 +13,10 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import android.content.Context
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -56,7 +58,10 @@ class OverviewUiMapperTest {
         override fun clearApiKeyOverride() = Unit
     }
 
-    private val mapper = OverviewUiMapper(
+    private val context: Context get() = RuntimeEnvironment.getApplication()
+
+    private val mapper get() = OverviewUiMapper(
+        context = context,
         recordsUiMapper = RecordsUiMapper(TemplateUiMapper()),
         templateUiMapper = TemplateUiMapper(),
         settingsRepository = testSettingsRepository,

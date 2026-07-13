@@ -12,6 +12,7 @@ import androidx.glance.layout.Box
 import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
 import androidx.glance.layout.fillMaxWidth
+import androidx.glance.LocalContext
 import androidx.glance.layout.padding
 import androidx.glance.layout.wrapContentWidth
 import androidx.glance.preview.ExperimentalGlancePreviewApi
@@ -25,6 +26,7 @@ import dev.gaborbiro.dailymacros.features.widgets.util.WidgetPreviewContext
 fun ListItemQuickPickHeader(
     modifier: GlanceModifier = GlanceModifier,
 ) {
+    val context = LocalContext.current
     Box(
         modifier = modifier
     ) {
@@ -38,7 +40,7 @@ fun ListItemQuickPickHeader(
         ) {
             Image(
                 provider = ImageProvider(R.drawable.ic_star),
-                contentDescription = "Favorite",
+                contentDescription = context.getString(R.string.widgets_content_favorite_cd),
                 contentScale = ContentScale.Fit,
                 colorFilter = ColorFilter.tint(GlanceTheme.colors.primary),
             )
@@ -46,12 +48,12 @@ fun ListItemQuickPickHeader(
                 modifier = GlanceModifier
                     .padding(PaddingWidgetDefault)
                     .wrapContentWidth(),
-                text = "Quick Picks",
+                text = context.getString(R.string.widgets_content_quick_picks_header),
                 style = SectionTitleTextStyle,
             )
             Image(
                 provider = ImageProvider(R.drawable.ic_star),
-                contentDescription = "Favorite",
+                contentDescription = context.getString(R.string.widgets_content_favorite_cd),
                 contentScale = ContentScale.Fit,
                 colorFilter = ColorFilter.tint(GlanceTheme.colors.primary),
             )

@@ -36,4 +36,15 @@
     <!-- SearchFAB -->
     <string name="overview_content_search">Search</string>
     <string name="overview_content_search_clear_cd">Clear search</string>
+    <!-- Nutrient labels (OverviewUiMapper) -->
+    <string name="overview_content_nutrient_calories">Calories</string>
+    <string name="overview_content_nutrient_protein">Protein</string>
+    <string name="overview_content_nutrient_fat">Fat</string>
+    <string name="overview_content_nutrient_saturated">saturated</string>
+    <string name="overview_content_nutrient_carbs">Carbs</string>
+    <string name="overview_content_nutrient_sugar">sugar</string>
+    <string name="overview_content_nutrient_salt">Salt</string>
+    <string name="overview_content_nutrient_fibre">Fibre</string>
+    <!-- ListItemRecord -->
+    <string name="overview_content_record_image_cd">image of %1$s</string>
 </resources>

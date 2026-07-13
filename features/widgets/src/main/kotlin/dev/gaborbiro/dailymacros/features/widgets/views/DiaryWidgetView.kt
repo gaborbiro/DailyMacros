@@ -7,6 +7,7 @@ import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
+import androidx.glance.LocalContext
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.background
@@ -37,6 +38,7 @@ internal fun DiaryWidgetView(
     navigator: WidgetNavigator,
     items: List<ListUiModelBase>,
 ) {
+    val context = LocalContext.current
     Column(
         modifier = modifier
             .background(GlanceTheme.colors.widgetBackground)
@@ -82,7 +84,7 @@ internal fun DiaryWidgetView(
                         .size(48.dp),
                     colorFilter = ColorFilter.tint(GlanceTheme.colors.onTertiaryContainer),
                     provider = ImageProvider(R.drawable.ic_open_in_new),
-                    contentDescription = "open app",
+                    contentDescription = context.getString(R.string.widgets_content_open_app_cd),
                 )
             }
         }

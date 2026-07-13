@@ -49,6 +49,8 @@
     <!-- RecordDetailsCreateView -->
     <string name="modal_content_run_ai_cd">Run image recognition</string>
     <string name="modal_content_running_ai_placeholder">Running image recognition…</string>
+    <!-- ViewImageDialog -->
+    <string name="modal_content_view_image_close_cd">Close</string>
     <!-- ImageStrip -->
     <string name="modal_content_image_delete_cd">Delete Button</string>
     <string name="modal_content_image_take_photo_cd">Take photo</string>

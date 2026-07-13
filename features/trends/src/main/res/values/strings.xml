@@ -23,4 +23,6 @@
     <string name="trends_sheet_qualifier_enough_calories">Days that have enough calories logged</string>
     <string name="trends_sheet_calorie_threshold_label">Calorie threshold (for ex: 800)</string>
     <string name="trends_sheet_error_invalid_value">Invalid value</string>
+    <!-- TrendsUiMapper -->
+    <string name="trends_content_adherence">Adherence</string>
 </resources>

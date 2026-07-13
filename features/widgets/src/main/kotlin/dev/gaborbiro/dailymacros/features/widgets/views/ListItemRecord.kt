@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.features.widgets.views
 
 import androidx.compose.runtime.Composable
 import androidx.glance.GlanceModifier
+import androidx.glance.LocalContext
 import androidx.glance.action.Action
 import androidx.glance.action.action
 import androidx.glance.action.clickable
@@ -22,6 +23,7 @@ import androidx.glance.text.Text
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
+import dev.gaborbiro.dailymacros.features.widgets.R
 import dev.gaborbiro.dailymacros.features.widgets.util.WidgetPreviewContext
 
 @Composable
@@ -31,6 +33,7 @@ fun ListItemRecord(
     imageTappedActionProvider: Action,
     bodyTappedActionProvider: Action,
 ) {
+    val context = LocalContext.current
     Row(
         modifier = modifier
             .fillMaxSize()
@@ -65,7 +68,7 @@ fun ListItemRecord(
             )
             if (record.showLoadingIndicator) {
                 Text(
-                    text = "Analyzing…",
+                    text = context.getString(R.string.widgets_content_analyzing),
                     maxLines = 1,
                     style = LoadingTextStyle,
                 )

@@ -1,6 +1,8 @@
-package dev.gaborbiro.dailymacros.features.overview
+﻿package dev.gaborbiro.dailymacros.features.overview
 
+import android.content.Context
 import android.icu.text.DecimalFormat
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.features.shared.TemplateUiMapper
 import dev.gaborbiro.dailymacros.features.shared.RecordsUiMapper
 import dev.gaborbiro.dailymacros.features.common.utils.diaryDayStartTime
@@ -29,9 +31,11 @@ import java.time.temporal.WeekFields
 import java.util.Locale
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
+import dev.gaborbiro.dailymacros.features.overview.R
 import javax.inject.Inject
 
 class OverviewUiMapper @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val recordsUiMapper: RecordsUiMapper,
     private val templateUiMapper: TemplateUiMapper,
     private val settingsRepository: SettingsRepository,
@@ -171,7 +175,7 @@ class OverviewUiMapper @Inject constructor(
                 val rangeLabel = "${min}k-${max}k"
                 add(
                     DailySummaryEntry(
-                        title = "Calories",
+                        title = context.getString(R.string.overview_content_nutrient_calories),
                         progress0to1 = templateUiMapper.targetProgress(it, calories?.toFloat() ?: 0f) ?: 0f,
                         progressLabel = templateUiMapper.formatCalories(calories, withLabel = false),
                         targetRange0to1 = templateUiMapper.targetRange(it),
@@ -183,7 +187,7 @@ class OverviewUiMapper @Inject constructor(
             targets.protein.takeIf { it.enabled }?.let {
                 add(
                     DailySummaryEntry(
-                        title = "Protein",
+                        title = context.getString(R.string.overview_content_nutrient_protein),
                         progress0to1 = templateUiMapper.targetProgress(it, protein ?: 0f) ?: 0f,
                         progressLabel = templateUiMapper.formatProtein(protein, withLabel = false),
                         targetRange0to1 = templateUiMapper.targetRange(it),
@@ -195,7 +199,7 @@ class OverviewUiMapper @Inject constructor(
             targets.fat.takeIf { it.enabled }?.let {
                 add(
                     DailySummaryEntry(
-                        title = "Fat",
+                        title = context.getString(R.string.overview_content_nutrient_fat),
                         progress0to1 = templateUiMapper.targetProgress(it, fat ?: 0f) ?: 0f,
                         progressLabel = templateUiMapper.formatFat(fat, saturated = null, withLabel = false),
                         targetRange0to1 = templateUiMapper.targetRange(it),
@@ -207,7 +211,7 @@ class OverviewUiMapper @Inject constructor(
             targets.ofWhichSaturated.takeIf { it.enabled }?.let {
                 add(
                     DailySummaryEntry(
-                        title = "saturated",
+                        title = context.getString(R.string.overview_content_nutrient_saturated),
                         progress0to1 = templateUiMapper.targetProgress(it, ofWhichSaturated ?: 0f) ?: 0f,
                         progressLabel = templateUiMapper.formatSaturatedFat(ofWhichSaturated, withLabel = false),
                         targetRange0to1 = templateUiMapper.targetRange(it),
@@ -219,7 +223,7 @@ class OverviewUiMapper @Inject constructor(
             targets.carbs.takeIf { it.enabled }?.let {
                 add(
                     DailySummaryEntry(
-                        title = "Carbs",
+                        title = context.getString(R.string.overview_content_nutrient_carbs),
                         progress0to1 = templateUiMapper.targetProgress(it, carbs ?: 0f) ?: 0f,
                         progressLabel = templateUiMapper.formatCarbs(carbs, sugar = null, addedSugar = null, withLabel = false),
                         targetRange0to1 = templateUiMapper.targetRange(it),
@@ -231,7 +235,7 @@ class OverviewUiMapper @Inject constructor(
             targets.ofWhichSugar.takeIf { it.enabled }?.let {
                 add(
                     DailySummaryEntry(
-                        title = "sugar",
+                        title = context.getString(R.string.overview_content_nutrient_sugar),
                         progress0to1 = templateUiMapper.targetProgress(it, ofWhichSugar ?: 0f) ?: 0f,
                         progressLabel = templateUiMapper.formatSugar(ofWhichSugar, withLabel = false),
                         targetRange0to1 = templateUiMapper.targetRange(it),
@@ -243,7 +247,7 @@ class OverviewUiMapper @Inject constructor(
             targets.salt.takeIf { it.enabled }?.let {
                 add(
                     DailySummaryEntry(
-                        title = "Salt",
+                        title = context.getString(R.string.overview_content_nutrient_salt),
                         progress0to1 = templateUiMapper.targetProgress(it, salt ?: 0f) ?: 0f,
                         progressLabel = templateUiMapper.formatSalt(salt, withLabel = false),
                         targetRange0to1 = templateUiMapper.targetRange(it),
@@ -255,7 +259,7 @@ class OverviewUiMapper @Inject constructor(
             targets.fibre.takeIf { it.enabled }?.let {
                 add(
                     DailySummaryEntry(
-                        title = "Fibre",
+                        title = context.getString(R.string.overview_content_nutrient_fibre),
                         progress0to1 = templateUiMapper.targetProgress(it, fibre ?: 0f) ?: 0f,
                         progressLabel = templateUiMapper.formatFibre(fibre, withLabel = false),
                         targetRange0to1 = templateUiMapper.targetRange(it),
@@ -437,7 +441,7 @@ class OverviewUiMapper @Inject constructor(
             targets.calories.takeIf { it.enabled }?.let {
                 add(
                     NutrientSummaryStatEntry(
-                        title = "Calories",
+                        title = context.getString(R.string.overview_content_nutrient_calories),
                         progress0to1 = templateUiMapper.targetProgress(it, dayTotal.calories?.toFloat() ?: 0f) ?: 0f,
                         progressLabel = templateUiMapper.formatCalories(dayTotal.calories, withLabel = false),
                         targetRange0to1 = templateUiMapper.targetRange(it),
@@ -452,7 +456,7 @@ class OverviewUiMapper @Inject constructor(
             targets.protein.takeIf { it.enabled }?.let {
                 add(
                     NutrientSummaryStatEntry(
-                        title = "Protein",
+                        title = context.getString(R.string.overview_content_nutrient_protein),
                         progress0to1 = templateUiMapper.targetProgress(it, dayTotal.protein ?: 0f) ?: 0f,
                         progressLabel = templateUiMapper.formatProtein(dayTotal.protein, withLabel = false),
                         targetRange0to1 = templateUiMapper.targetRange(it),
@@ -467,7 +471,7 @@ class OverviewUiMapper @Inject constructor(
             targets.salt.takeIf { it.enabled }?.let {
                 add(
                     NutrientSummaryStatEntry(
-                        title = "Salt",
+                        title = context.getString(R.string.overview_content_nutrient_salt),
                         progress0to1 = templateUiMapper.targetProgress(it, dayTotal.salt ?: 0f) ?: 0f,
                         progressLabel = templateUiMapper.formatSalt(dayTotal.salt, withLabel = false),
                         targetRange0to1 = templateUiMapper.targetRange(it),
@@ -482,7 +486,7 @@ class OverviewUiMapper @Inject constructor(
             targets.fibre.takeIf { it.enabled }?.let {
                 add(
                     NutrientSummaryStatEntry(
-                        title = "Fibre",
+                        title = context.getString(R.string.overview_content_nutrient_fibre),
                         progress0to1 = templateUiMapper.targetProgress(it, dayTotal.fibre ?: 0f) ?: 0f,
                         progressLabel = templateUiMapper.formatFibre(dayTotal.fibre, withLabel = false),
                         targetRange0to1 = templateUiMapper.targetRange(it),
@@ -497,7 +501,7 @@ class OverviewUiMapper @Inject constructor(
             targets.carbs.takeIf { it.enabled }?.let {
                 add(
                     NutrientSummaryStatEntry(
-                        title = "Carbs",
+                        title = context.getString(R.string.overview_content_nutrient_carbs),
                         progress0to1 = templateUiMapper.targetProgress(it, dayTotal.carbs ?: 0f) ?: 0f,
                         progressLabel = templateUiMapper.formatCarbs(dayTotal.carbs, sugar = null, addedSugar = null, withLabel = false),
                         targetRange0to1 = templateUiMapper.targetRange(it),
@@ -512,7 +516,7 @@ class OverviewUiMapper @Inject constructor(
             targets.ofWhichSugar.takeIf { it.enabled }?.let {
                 add(
                     NutrientSummaryStatEntry(
-                        title = "sugar",
+                        title = context.getString(R.string.overview_content_nutrient_sugar),
                         progress0to1 = templateUiMapper.targetProgress(it, dayTotal.ofWhichSugar ?: 0f) ?: 0f,
                         progressLabel = templateUiMapper.formatSugar(dayTotal.ofWhichSugar, withLabel = false),
                         targetRange0to1 = templateUiMapper.targetRange(it),
@@ -527,7 +531,7 @@ class OverviewUiMapper @Inject constructor(
             targets.fat.takeIf { it.enabled }?.let {
                 add(
                     NutrientSummaryStatEntry(
-                        title = "Fat",
+                        title = context.getString(R.string.overview_content_nutrient_fat),
                         progress0to1 = templateUiMapper.targetProgress(it, dayTotal.fat ?: 0f) ?: 0f,
                         progressLabel = templateUiMapper.formatFat(dayTotal.fat, saturated = null, withLabel = false),
                         targetRange0to1 = templateUiMapper.targetRange(it),
@@ -542,7 +546,7 @@ class OverviewUiMapper @Inject constructor(
             targets.ofWhichSaturated.takeIf { it.enabled }?.let {
                 add(
                     NutrientSummaryStatEntry(
-                        title = "saturated",
+                        title = context.getString(R.string.overview_content_nutrient_saturated),
                         progress0to1 = templateUiMapper.targetProgress(it, dayTotal.ofWhichSaturated ?: 0f) ?: 0f,
                         progressLabel = templateUiMapper.formatSaturatedFat(dayTotal.ofWhichSaturated, withLabel = false),
                         targetRange0to1 = templateUiMapper.targetRange(it),

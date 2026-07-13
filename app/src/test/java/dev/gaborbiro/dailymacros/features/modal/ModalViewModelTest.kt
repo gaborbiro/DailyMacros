@@ -184,7 +184,7 @@ class ModalViewModelTest {
                 appContext = app,
             ),
             analyticsLogger = AnalyticsLogger(),
-            errorUiMapper = ErrorUiMapper(testSettingsRepository),
+            errorUiMapper = ErrorUiMapper(app, testSettingsRepository),
         ).also { activeViewModels.add(it) }
     }
 

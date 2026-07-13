@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.features.shared
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
+import dev.gaborbiro.dailymacros.features.shared.R
 import dev.gaborbiro.dailymacros.features.common.utils.inputStreamToBase64
 import dev.gaborbiro.dailymacros.features.shared.notifications.MacroResultsNotificationSender
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
@@ -101,8 +102,8 @@ class NutrientAnalysisUseCase @Inject constructor(
                         macroResultsNotificationSender.showMacroResultsNotification(
                             id = 123000L + recordId,
                             recordId = recordId,
-                            title = name.ellipsize(50) ?: "Success",
-                            message = "Macronutrient analysis completed",
+                            title = name.ellipsize(50) ?: appContext.getString(R.string.shared_content_analysis_success_title_fallback),
+                            message = appContext.getString(R.string.shared_content_analysis_completed),
                             isError = false,
                         )
                     }
@@ -111,8 +112,10 @@ class NutrientAnalysisUseCase @Inject constructor(
                             macroResultsNotificationSender.showMacroResultsNotification(
                                 id = 123000L + recordId,
                                 recordId = recordId,
-                                title = "There was a problem with analysing ${name.ellipsize(50)?.let { "\'$it\'" } ?: "macros"}",
-                                message = "Please try again later",
+                                title = name.ellipsize(50)
+                                    ?.let { appContext.getString(R.string.shared_content_analysis_error_title, it) }
+                                    ?: appContext.getString(R.string.shared_content_analysis_error_title_unknown),
+                                message = appContext.getString(R.string.shared_content_please_try_again),
                                 isError = true,
                             )
                         }
@@ -124,7 +127,9 @@ class NutrientAnalysisUseCase @Inject constructor(
                             macroResultsNotificationSender.showMacroResultsNotification(
                                 id = 123001L + recordId,
                                 recordId = recordId,
-                                title = "There was a problem with analysing ${name.ellipsize(50)?.let { "\'$it\'" } ?: "macros"}",
+                                title = name.ellipsize(50)
+                                    ?.let { appContext.getString(R.string.shared_content_analysis_error_title, it) }
+                                    ?: appContext.getString(R.string.shared_content_analysis_error_title_unknown),
                                 message = message,
                                 isError = true,
                             )
@@ -137,8 +142,10 @@ class NutrientAnalysisUseCase @Inject constructor(
                 macroResultsNotificationSender.showMacroResultsNotification(
                     id = 123000L + recordId,
                     recordId = recordId,
-                    title = "Couldn't get macros${foodName?.ellipsize(50)?.let { " for '$it'" } ?: ""}",
-                    message = errorUiMapper.mapErrorMessage(domainError, "Please try again later."),
+                    title = foodName?.ellipsize(50)
+                        ?.let { appContext.getString(R.string.shared_content_macros_error_title, it) }
+                        ?: appContext.getString(R.string.shared_content_macros_error_title_unknown),
+                    message = errorUiMapper.mapErrorMessage(domainError, appContext.getString(R.string.shared_content_please_try_again)),
                     isError = true,
                 )
             }
@@ -150,8 +157,10 @@ class NutrientAnalysisUseCase @Inject constructor(
                 macroResultsNotificationSender.showMacroResultsNotification(
                     id = 123000L + recordId,
                     recordId = recordId,
-                    title = "Couldn't get macros${foodName?.ellipsize(50)?.let { " for '$it'" } ?: ""}",
-                    message = "Please try again later.",
+                    title = foodName?.ellipsize(50)
+                        ?.let { appContext.getString(R.string.shared_content_macros_error_title, it) }
+                        ?: appContext.getString(R.string.shared_content_macros_error_title_unknown),
+                    message = appContext.getString(R.string.shared_content_please_try_again),
                     isError = true,
                 )
             }

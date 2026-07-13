@@ -132,7 +132,7 @@ class PhotoMonitorWorker @AssistedInject constructor(
                 .build()
             WorkManager.getInstance(context).enqueueUniqueWork(
                 WORK_NAME,
-                ExistingWorkPolicy.KEEP,
+                ExistingWorkPolicy.REPLACE,
                 request,
             )
         }

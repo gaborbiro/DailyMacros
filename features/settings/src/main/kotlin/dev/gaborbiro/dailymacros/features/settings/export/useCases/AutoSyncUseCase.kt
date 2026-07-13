@@ -7,6 +7,7 @@ import com.google.android.gms.auth.UserRecoverableAuthException
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.features.settings.DRIVE_SCOPE_TOKEN
+import dev.gaborbiro.dailymacros.features.settings.R
 import dev.gaborbiro.dailymacros.repositories.backup.domain.CloudSyncRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.AutoSyncError
@@ -43,7 +44,7 @@ class AutoSyncUseCase @Inject constructor(
         return try {
             val token = getDriveAccessToken()
                 ?: return Result.Failure(
-                    message = "Not signed in to Google",
+                    message = context.getString(R.string.settings_content_not_signed_in_google),
                     shouldNotify = recordErrorAndDecideNotify(AutoSyncError.FAILURE, interval),
                 )
             val lastSynced = settingsRepository.getLastSyncedEpochMs()

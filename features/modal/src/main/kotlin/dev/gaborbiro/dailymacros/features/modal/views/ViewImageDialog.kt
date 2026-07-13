@@ -183,7 +183,7 @@ private fun BoxScope.CloseButton(onTapped: () -> Unit) {
                 .size(64.dp),
             imageVector = Icons.Default.Close,
             tint = Color.White,
-            contentDescription = "Close",
+            contentDescription = stringResource(R.string.modal_content_view_image_close_cd),
         )
     }
 }
