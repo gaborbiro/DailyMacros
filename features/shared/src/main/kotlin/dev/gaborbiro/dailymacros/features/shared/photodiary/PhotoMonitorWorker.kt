@@ -146,7 +146,9 @@ class PhotoMonitorWorker @AssistedInject constructor(
         }
         return bursts.map { burst ->
             val preferred = burst.filter { it.mimeType in preferredMimeTypes }.ifEmpty { burst }
-            val best = preferred.maxByOrNull { it.pixels } ?: preferred.last()
+            // Prefer upright (orientation == 0), then largest pixel area as a tiebreaker.
+            val upright = preferred.filter { it.orientation == 0 }.ifEmpty { preferred }
+            val best = upright.maxByOrNull { it.pixels } ?: upright.last()
             best.id to best.uri
         }
     }
