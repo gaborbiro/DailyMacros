@@ -1,10 +1,16 @@
 package dev.gaborbiro.dailymacros.features.modal.views
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.features.modal.R
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 
@@ -18,15 +24,23 @@ internal fun QuickPickWidgetConfirmDialog(
     AlertDialog(
         onDismissRequest = onDismissRequested,
         title = { Text(dialogHandle.templateName) },
-        text = { Text(stringResource(R.string.quick_pick_confirm_message)) },
         confirmButton = {
-            TextButton(onClick = onLogAgainTapped) {
-                Text(stringResource(R.string.quick_pick_confirm_log_again))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onOpenDetailsTapped) {
-                Text(stringResource(R.string.quick_pick_confirm_open_details))
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                TextButton(
+                    onClick = onOpenDetailsTapped,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.quick_pick_confirm_open_details))
+                }
+                Button(
+                    onClick = onLogAgainTapped,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.quick_pick_confirm_log_again))
+                }
             }
         },
     )
