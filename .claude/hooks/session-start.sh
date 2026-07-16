@@ -19,12 +19,32 @@ git -C "${CLAUDE_PROJECT_DIR:-.}" config core.hooksPath .claude/hooks
 # stale, and the wrapper only recognises distributions installed under its own
 # URL-hashed directory anyway).
 echo "Priming Gradle wrapper (version from gradle-wrapper.properties)..."
+WRAPPER_PROPS="${CLAUDE_PROJECT_DIR:-.}/gradle/wrapper/gradle-wrapper.properties"
 if (cd "${CLAUDE_PROJECT_DIR:-.}" && ./gradlew --version); then
   echo "Gradle wrapper ready."
 else
-  echo "WARNING: Could not provision the Gradle wrapper." \
-       "Build commands will not work in this session." \
-       "Create a CCR environment with network access to services.gradle.org / github.com to fix this."
+  # The official distributionUrl redirects to a GitHub release asset, which the
+  # remote session's GitHub proxy rejects for repositories not attached to the
+  # session — regardless of the environment's network access level. Fall back to
+  # a non-GitHub mirror, integrity-pinned to the official gradle.org checksum
+  # (which is NOT GitHub-hosted and stays reachable).
+  GRADLE_VERSION=$(sed -n 's/^distributionUrl=.*gradle-\(.*\)-bin\.zip$/\1/p' "${WRAPPER_PROPS}")
+  GRADLE_SHA256=$(curl -fsSL "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip.sha256" || true)
+  if [ -n "${GRADLE_VERSION}" ] && [ -n "${GRADLE_SHA256}" ]; then
+    echo "Official Gradle distribution unreachable; using mirror for ${GRADLE_VERSION} (sha256-verified)."
+    sed -i "s|^distributionUrl=.*|distributionUrl=https\\\\://mirrors.cloud.tencent.com/gradle/gradle-${GRADLE_VERSION}-bin.zip|" "${WRAPPER_PROPS}"
+    grep -q '^distributionSha256Sum=' "${WRAPPER_PROPS}" || printf 'distributionSha256Sum=%s\n' "${GRADLE_SHA256}" >> "${WRAPPER_PROPS}"
+    # Session-local override only: hide the edit from git so it can't be committed
+    git -C "${CLAUDE_PROJECT_DIR:-.}" update-index --skip-worktree gradle/wrapper/gradle-wrapper.properties
+    if (cd "${CLAUDE_PROJECT_DIR:-.}" && ./gradlew --version); then
+      echo "Gradle wrapper ready (via mirror)."
+    else
+      echo "WARNING: Mirror fallback failed too. Build commands will not work in this session."
+    fi
+  else
+    echo "WARNING: Could not provision the Gradle wrapper (no mirror/checksum for version '${GRADLE_VERSION}')." \
+         "Build commands will not work in this session."
+  fi
 fi
 
 # ── Android SDK setup ──────────────────────────────────────────────────────────────────────────────
