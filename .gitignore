@@ -23,6 +23,9 @@ release/
 build/
 /captures
 
+# Kotlin compiler session data
+.kotlin/
+
 # Local configuration file (sdk path, etc)
 local.properties
 
