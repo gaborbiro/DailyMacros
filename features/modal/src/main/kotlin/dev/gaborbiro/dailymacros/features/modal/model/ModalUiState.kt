@@ -116,6 +116,7 @@ sealed class DialogHandle {
     data class QuickPickWidgetConfirmDialog(
         val templateId: Long,
         val templateName: String,
+        val dontShowAgain: Boolean = false,
     ) : DialogHandle()
 }
 

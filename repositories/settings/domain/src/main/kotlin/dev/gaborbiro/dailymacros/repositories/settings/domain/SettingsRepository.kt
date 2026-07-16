@@ -50,6 +50,10 @@ interface SettingsRepository {
     fun getAutoPhotoRecognitionEnabled(): Boolean = false
     fun setAutoPhotoRecognitionEnabled(enabled: Boolean) {}
 
+    /** Whether tapping a meal on the Quick Pick widget shows a confirmation dialog before logging. */
+    fun getQuickPickConfirmationEnabled(): Boolean = true
+    fun setQuickPickConfirmationEnabled(enabled: Boolean) {}
+
     fun getLastProcessedMediaStoreId(): Long = -1L
     fun setLastProcessedMediaStoreId(id: Long) {}
 

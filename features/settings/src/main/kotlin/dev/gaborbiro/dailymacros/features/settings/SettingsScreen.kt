@@ -77,6 +77,7 @@ fun SettingsScreen(
         onDiaryDayStartDialogDismissed = settingsViewModel::onDiaryDayStartDialogDismissed,
         onDiaryDayStartHourSelected = settingsViewModel::onDiaryDayStartHourSelected,
         onAutoPhotoRecognitionToggled = settingsViewModel::onAutoPhotoRecognitionToggled,
+        onQuickPickConfirmationToggled = settingsViewModel::onQuickPickConfirmationToggled,
         onExportSettingTapped = { settingsViewModel.onExportSettingsTapped(createPublicDocumentUseCase) },
         onExportDbTapped = { settingsViewModel.onExportDbTapped(createPublicDocumentUseCase) },
         onImportDbTapped = { settingsViewModel.onImportDbTapped(openPublicDocumentUseCase) },

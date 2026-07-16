@@ -143,6 +143,13 @@ class SettingsRepositoryImpl @Inject constructor(
         prefs.edit { putBoolean(KEY_AUTO_PHOTO_RECOGNITION, enabled) }
     }
 
+    override fun getQuickPickConfirmationEnabled(): Boolean =
+        prefs.getBoolean(KEY_QUICK_PICK_CONFIRMATION, true)
+
+    override fun setQuickPickConfirmationEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean(KEY_QUICK_PICK_CONFIRMATION, enabled) }
+    }
+
     override fun getLastProcessedMediaStoreId(): Long =
         prefs.getLong(KEY_LAST_PROCESSED_MEDIA_STORE_ID, -1L)
 
@@ -205,6 +212,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private const val KEY_CLOUD_SYNC_EMAIL = "cloud_sync_email"
         private const val KEY_LAST_SYNCED_EPOCH_MS = "last_synced_epoch_ms"
         private const val KEY_AUTO_PHOTO_RECOGNITION = "auto_photo_recognition"
+        private const val KEY_QUICK_PICK_CONFIRMATION = "quick_pick_confirmation_enabled"
         private const val KEY_LAST_PROCESSED_MEDIA_STORE_ID = "last_processed_media_store_id"
         private const val KEY_LAST_PHOTO_RECOGNITION_REQUEST_EPOCH_MS = "last_photo_recognition_request_epoch_ms"
         private const val KEY_LAST_BACKUP_ATTEMPT_EPOCH_MS = "last_backup_attempt_epoch_ms"

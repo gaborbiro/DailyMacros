@@ -69,6 +69,7 @@ internal fun SettingsView(
     onDiaryDayStartDialogDismissed: () -> Unit,
     onDiaryDayStartHourSelected: (Int) -> Unit,
     onAutoPhotoRecognitionToggled: (Boolean) -> Unit,
+    onQuickPickConfirmationToggled: (Boolean) -> Unit,
     onExportSettingTapped: () -> Unit,
     onExportDbTapped: () -> Unit,
     onImportDbTapped: () -> Unit,
@@ -263,6 +264,19 @@ internal fun SettingsView(
                 )
             }
 
+            SettingSectionHeader(title = stringResource(R.string.settings_content_widgets_section))
+            SettingRow(
+                title = stringResource(R.string.settings_quick_pick_confirmation_row),
+                subtitle = stringResource(R.string.settings_quick_pick_confirmation_subtitle),
+                onTapped = { onQuickPickConfirmationToggled(!viewState.quickPickConfirmationEnabled) },
+                trailing = {
+                    Switch(
+                        checked = viewState.quickPickConfirmationEnabled,
+                        onCheckedChange = onQuickPickConfirmationToggled,
+                    )
+                },
+            )
+
             SettingSectionHeader(title = stringResource(R.string.settings_content_local_sync_section))
             val localSyncIdle = !viewState.exportDataInProgress && !viewState.importDataInProgress
             SettingRow(
@@ -435,6 +449,7 @@ private fun SettingsViewPreview() {
             onDiaryDayStartDialogDismissed = {},
             onDiaryDayStartHourSelected = {},
             onAutoPhotoRecognitionToggled = {},
+            onQuickPickConfirmationToggled = {},
             onExportSettingTapped = {},
             onExportDbTapped = {},
             onImportDbTapped = {},

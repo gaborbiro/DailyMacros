@@ -22,6 +22,9 @@
     <string name="settings_content_customise_ai_subtitle">Experimental!</string>
     <string name="settings_content_export_diary_row">Export food diary</string>
     <string name="settings_content_camera_section">Camera</string>
+    <string name="settings_content_widgets_section">Widgets</string>
+    <string name="settings_quick_pick_confirmation_row">Quick Pick confirmation</string>
+    <string name="settings_quick_pick_confirmation_subtitle">Show a confirmation dialog when tapping a meal on the Quick Pick widget. When off, meals are logged immediately.</string>
     <string name="settings_content_local_sync_section">Local sync</string>
     <string name="settings_content_backup_now_row">Back up now</string>
     <string name="settings_content_restore_backup_row">Restore from backup</string>
