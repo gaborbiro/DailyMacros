@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widgets.views
+package dev.gaborbiro.dailymacros.features.widgets.diarywidget
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -60,12 +60,4 @@ val LoadingTextStyle: TextStyle
         fontSize = 14.sp,
         textAlign = TextAlign.Start,
         color = ColorProvider(day = Color(0xFFFB8C00), night = Color(0xFFFFB74D)),
-    )
-
-val OverlayTitleTextStyle: TextStyle
-    get() = TextStyle(
-        fontWeight = FontWeight.Normal,
-        fontSize = 13.sp,
-        textAlign = TextAlign.Start,
-        color = ColorProvider(day = Color.White, night = Color.White),
     )

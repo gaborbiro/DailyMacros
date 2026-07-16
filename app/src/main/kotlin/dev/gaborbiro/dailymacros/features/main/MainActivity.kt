@@ -44,7 +44,7 @@ import dev.gaborbiro.dailymacros.features.trends.TrendsViewModel
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.widget.Toast
-import dev.gaborbiro.dailymacros.features.widgets.diary.DiaryWidgetReceiver
+import dev.gaborbiro.dailymacros.features.widgets.diarywidget.DiaryWidgetReceiver
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.AutoSyncUseCase
 import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusRepository
 import dev.gaborbiro.dailymacros.util.cancelAutoSyncNotifications

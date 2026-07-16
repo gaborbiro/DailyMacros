@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widgets.views
+package dev.gaborbiro.dailymacros.features.widgets.diarywidget.views
 
 import androidx.compose.runtime.Composable
 import androidx.glance.GlanceModifier
@@ -23,6 +23,12 @@ import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
 import dev.gaborbiro.dailymacros.features.widgets.model.ListUiModelQuickPick
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.widgets.util.WidgetPreviewContext
+import dev.gaborbiro.dailymacros.features.widgets.diarywidget.DescriptionTextStyle
+import dev.gaborbiro.dailymacros.features.widgets.diarywidget.ListItemImageCornerRadius
+import dev.gaborbiro.dailymacros.features.widgets.views.LocalImage
+import dev.gaborbiro.dailymacros.features.widgets.diarywidget.QuickPickBackground
+import dev.gaborbiro.dailymacros.features.widgets.diarywidget.TitleTextStyle
+import dev.gaborbiro.dailymacros.features.widgets.diarywidget.WidgetImageSize
 
 @Composable
 internal fun ListItemQuickPick(

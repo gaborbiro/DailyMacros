@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widgets.diary
+package dev.gaborbiro.dailymacros.features.widgets.diarywidget
 
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver

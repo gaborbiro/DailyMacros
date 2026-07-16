@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widgets.diary
+package dev.gaborbiro.dailymacros.features.widgets.diarywidget
 
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore

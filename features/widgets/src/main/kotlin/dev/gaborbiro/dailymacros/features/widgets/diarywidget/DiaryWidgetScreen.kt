@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.widgets.diary
+package dev.gaborbiro.dailymacros.features.widgets.diarywidget
 
 import android.content.Context
 import android.util.Log
@@ -32,7 +32,7 @@ import dev.gaborbiro.dailymacros.features.widgets.R
 import dev.gaborbiro.dailymacros.features.widgets.WidgetNavigator
 import dev.gaborbiro.dailymacros.features.widgets.model.ListUiModelQuickPickFooter
 import dev.gaborbiro.dailymacros.features.widgets.model.ListUiModelQuickPickHeader
-import dev.gaborbiro.dailymacros.features.widgets.views.DiaryWidgetView
+import dev.gaborbiro.dailymacros.features.widgets.diarywidget.views.DiaryWidgetView
 import dev.gaborbiro.dailymacros.features.widgets.views.LocalImageStoreWidget
 
 class DiaryWidgetScreen : GlanceAppWidget() {

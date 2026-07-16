@@ -1,6 +1,5 @@
 package dev.gaborbiro.dailymacros.features.widgets.views
 
-import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf

@@ -1,114 +1,106 @@
-package dev.gaborbiro.dailymacros.features.widgets.views
+package dev.gaborbiro.dailymacros.features.widgets.diarywidget.views
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
-import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
-import androidx.glance.GlanceTheme
-import androidx.glance.Image
-import androidx.glance.ImageProvider
-import androidx.glance.LocalContext
-import androidx.glance.action.clickable
-import androidx.glance.appwidget.cornerRadius
+import androidx.glance.action.Action
+import androidx.glance.action.action
+import androidx.glance.appwidget.lazy.LazyColumn
+import androidx.glance.appwidget.lazy.itemsIndexed
 import androidx.glance.background
-import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
-import androidx.glance.layout.Column
+import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
-import androidx.glance.layout.size
-import androidx.glance.layout.wrapContentHeight
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
-import dev.gaborbiro.dailymacros.features.widgets.R
+import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDouble
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
-import dev.gaborbiro.dailymacros.features.widgets.model.ListUiModelQuickPick
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
-import dev.gaborbiro.dailymacros.features.widgets.WidgetNavigator
-import dev.gaborbiro.dailymacros.features.widgets.util.PreviewWidgetNavigator
+import dev.gaborbiro.dailymacros.features.widgets.model.ListUiModelQuickPick
+import dev.gaborbiro.dailymacros.features.widgets.model.ListUiModelQuickPickFooter
+import dev.gaborbiro.dailymacros.features.widgets.model.ListUiModelQuickPickHeader
 import dev.gaborbiro.dailymacros.features.widgets.util.WidgetPreviewContext
+import dev.gaborbiro.dailymacros.features.widgets.diarywidget.QuickPickBackground
 
 @Composable
-internal fun DiaryWidgetView(
-    modifier: GlanceModifier,
-    navigator: WidgetNavigator,
+internal fun DiaryWidgetList(
     items: List<ListUiModelBase>,
+    recordImageTapActionProvider: @Composable (recordId: Long) -> Action,
+    recordBodyTapActionProvider: @Composable (recordId: Long) -> Action,
+    quickPickImageTapActionProvider: @Composable (templateId: Long) -> Action,
+    quickPickBodyTapActionProvider: @Composable (templateId: Long) -> Action,
 ) {
-    val context = LocalContext.current
-    Column(
-        modifier = modifier
-            .background(GlanceTheme.colors.widgetBackground)
-            .cornerRadius(8.dp),
-        horizontalAlignment = Alignment.Start
+    LazyColumn(
+        modifier = GlanceModifier
+            .fillMaxSize(),
     ) {
-        Box(
-            modifier = GlanceModifier
-                .fillMaxWidth()
-                .defaultWeight(),
-            contentAlignment = Alignment.BottomEnd,
-        ) {
-            if (items.isNotEmpty()) {
-                DiaryWidgetList(
-                    items = items,
-                    recordImageTapActionProvider = { recordId -> navigator.recordImageTapped(recordId) },
-                    recordBodyTapActionProvider = { recordId -> navigator.recordBodyTapped(recordId) },
-                    quickPickImageTapActionProvider = { templateId -> navigator.quickPickImageTapped(templateId) },
-                    quickPickBodyTapActionProvider = { templateId -> navigator.quickPickBodyTapped(templateId) },
-                )
-            } else {
-                EmptyView()
-            }
-            Box(
-                modifier = GlanceModifier
-                    .fillMaxWidth()
-                    .height(4.dp)
-                    .background(
-                        ImageProvider(R.drawable.widget_shadow)
-                    )
-            ) {}
-            Box(
-                modifier = GlanceModifier
-                    .padding(PaddingWidgetDouble),
-                contentAlignment = Alignment.Center,
-            ) {
-                Image(
+        item { Spacer(modifier = GlanceModifier.height(PaddingWidgetDefault)) }
+        itemsIndexed(
+            items = items,
+            itemId = { _, item -> item.listItemId },
+        ) { _, item ->
+            when (item) {
+                is ListUiModelRecord -> ListItemRecord(
                     modifier = GlanceModifier
-                        .cornerRadius(16.dp)
-                        .background(GlanceTheme.colors.tertiaryContainer)
-                        .padding(12.dp)
-                        .clickable(navigator.openApp())
-                        .size(48.dp),
-                    colorFilter = ColorFilter.tint(GlanceTheme.colors.onTertiaryContainer),
-                    provider = ImageProvider(R.drawable.ic_open_in_new),
-                    contentDescription = context.getString(R.string.widgets_content_open_app_cd),
+                        .padding(
+                            horizontal = PaddingWidgetDouble,
+                            vertical = PaddingWidgetDefault
+                        ),
+                    record = item,
+                    imageTappedActionProvider = recordImageTapActionProvider(item.listItemId),
+                    bodyTappedActionProvider = recordBodyTapActionProvider(item.listItemId),
                 )
+
+                is ListUiModelQuickPickHeader -> ListItemQuickPickHeader(
+                    modifier = GlanceModifier
+                        .padding(top = PaddingWidgetDefault)
+                )
+
+                is ListUiModelQuickPick -> ListItemQuickPick(
+                    modifier = GlanceModifier
+                        .padding(
+                            horizontal = PaddingWidgetDouble,
+                            vertical = PaddingWidgetDefault
+                        ),
+                    quickPickEntry = item,
+                    imageTapActionProvider = quickPickImageTapActionProvider(item.templateId),
+                    bodyTapActionProvider = quickPickBodyTapActionProvider(item.templateId),
+                )
+
+                is ListUiModelQuickPickFooter -> Box(
+                    modifier = GlanceModifier
+                        .fillMaxWidth()
+                        .padding(bottom = PaddingWidgetDefault)
+                ) {
+                    Spacer(
+                        modifier = GlanceModifier
+                            .fillMaxWidth()
+                            .background(QuickPickBackground)
+                            .height(PaddingWidgetDefault)
+                    )
+                }
             }
         }
-        ButtonLayout(
-            modifier = GlanceModifier
-                .fillMaxWidth()
-                .wrapContentHeight(),
-            launchNoteViaCameraAction = { navigator.createRecordWithCamera() },
-            launchNewNoteViaImagePickerActionProvider = { navigator.createRecordWithImagePicker() },
-            launchNewNoteViaTextOnlyActionProvider = { navigator.createRecord() },
-            reloadActionProvider = { navigator.reload() },
-        )
+        item {
+            Spacer(
+                modifier = GlanceModifier
+                    .height(58.dp)
+            )
+        }
     }
 }
 
 @Preview
 @Composable
 @OptIn(ExperimentalGlancePreviewApi::class)
-private fun WidgetViewPreview() {
+private fun WidgetListPreview() {
     WidgetPreviewContext {
-        DiaryWidgetView(
-            modifier = GlanceModifier
-                .fillMaxSize(),
-            navigator = PreviewWidgetNavigator,
+        DiaryWidgetList(
             items = listOf(
                 ListUiModelRecord(
                     recordId = 1,
@@ -126,6 +118,7 @@ private fun WidgetViewPreview() {
                     ),
                     showLoadingIndicator = false,
                 ),
+                ListUiModelQuickPickHeader,
                 ListUiModelQuickPick(
                     templateId = 1,
                     title = "Breakfast",
@@ -165,6 +158,7 @@ private fun WidgetViewPreview() {
                         fibre = "fibre 4",
                     ),
                 ),
+                ListUiModelQuickPickFooter,
                 ListUiModelRecord(
                     recordId = 2L,
                     templateId = 1L,
@@ -198,20 +192,10 @@ private fun WidgetViewPreview() {
                     showLoadingIndicator = false,
                 ),
             ),
-        )
-    }
-}
-
-@Preview(widthDp = 156, heightDp = 180)
-@Composable
-@OptIn(ExperimentalGlancePreviewApi::class)
-private fun WidgetViewPreviewEmpty() {
-    WidgetPreviewContext {
-        DiaryWidgetView(
-            modifier = GlanceModifier
-                .fillMaxSize(),
-            navigator = PreviewWidgetNavigator,
-            items = emptyList(),
+            recordImageTapActionProvider = { action {} },
+            recordBodyTapActionProvider = { action {} },
+            quickPickImageTapActionProvider = { action {} },
+            quickPickBodyTapActionProvider = { action {} },
         )
     }
 }

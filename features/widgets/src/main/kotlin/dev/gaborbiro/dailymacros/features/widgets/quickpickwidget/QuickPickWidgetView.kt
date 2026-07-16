@@ -23,7 +23,6 @@ import dev.gaborbiro.dailymacros.features.widgets.model.ListUiModelQuickPick
 import dev.gaborbiro.dailymacros.features.widgets.util.PreviewWidgetNavigator
 import dev.gaborbiro.dailymacros.features.widgets.util.WidgetPreviewContext
 import dev.gaborbiro.dailymacros.features.widgets.views.LocalImage
-import dev.gaborbiro.dailymacros.features.widgets.views.OverlayTitleTextStyle
 
 @Composable
 internal fun QuickPickWidgetView(
@@ -44,7 +43,7 @@ internal fun QuickPickWidgetView(
                     modifier = GlanceModifier.fillMaxSize(),
                     imageFilename = it,
                     contentScale = ContentScale.Crop,
-                    thumbnail = false,
+                    thumbnail = true,
                 )
             }
         Text(

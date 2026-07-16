@@ -9,7 +9,7 @@ import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.appwidget.updateAll
 import dagger.hilt.android.qualifiers.ApplicationContext
-import dev.gaborbiro.dailymacros.features.widgets.diary.DiaryWidgetScreen
+import dev.gaborbiro.dailymacros.features.widgets.diarywidget.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.features.widgets.quickpickwidget.QuickPickWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import kotlinx.coroutines.CoroutineScope

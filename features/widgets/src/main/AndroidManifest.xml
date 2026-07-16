@@ -8,7 +8,7 @@
             android:theme="@style/Theme.Notes" />
 
         <receiver
-            android:name=".diary.DiaryWidgetReceiver"
+            android:name=".diarywidget.DiaryWidgetReceiver"
             android:label="@string/widget_diary_name"
             android:exported="false">
             <intent-filter>
