@@ -33,9 +33,10 @@
     <plurals name="meal_details_update_linked_records">
         <item quantity="other">Update %d meals</item>
     </plurals>
-    <string name="quick_pick_confirm_message">Log this meal again, or open its details first?</string>
     <string name="quick_pick_confirm_log_again">Log meal again</string>
     <string name="quick_pick_confirm_open_details">Open details</string>
+    <string name="quick_pick_confirm_dont_show_again">Don\'t show this dialog again. You can change this in Settings</string>
+    <string name="quick_pick_confirm_close_cd">Close</string>
     <string name="quick_pick_confirm_logged_toast">Meal logged</string>
     <string name="quick_pick_confirm_log_failed_toast">Couldn’t log meal</string>
     <!-- NutrientsIndentedList -->

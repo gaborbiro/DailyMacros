@@ -172,6 +172,10 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onQuickPickWidgetConfirmDeeplinkReceived(templateId: Long, templateName: String) {
+        if (settingsRepository.getQuickPickConfirmationEnabled().not()) {
+            logMealFromTemplate(templateId)
+            return
+        }
         setRoot(
             DialogHandle.QuickPickWidgetConfirmDialog(
                 templateId = templateId,
@@ -182,10 +186,20 @@ class ModalViewModel @Inject constructor(
 
     fun onQuickPickWidgetLogAgainTapped() {
         val dialog = _uiState.value.rootDialog as? DialogHandle.QuickPickWidgetConfirmDialog ?: return
+        logMealFromTemplate(dialog.templateId)
+    }
+
+    fun onQuickPickWidgetDontShowAgainChanged(dontShowAgain: Boolean) {
+        val dialog = _uiState.value.rootDialog as? DialogHandle.QuickPickWidgetConfirmDialog ?: return
+        settingsRepository.setQuickPickConfirmationEnabled(dontShowAgain.not())
+        _uiState.update { it.copy(rootDialog = dialog.copy(dontShowAgain = dontShowAgain)) }
+    }
+
+    private fun logMealFromTemplate(templateId: Long) {
         viewModelScope.launch {
             try {
-                val recordId = createRecordFromTemplateUseCase.execute(dialog.templateId)
-                scheduleMacroAnalysisForRecordIfTemplateIncomplete(recordId, dialog.templateId)
+                val recordId = createRecordFromTemplateUseCase.execute(templateId)
+                scheduleMacroAnalysisForRecordIfTemplateIncomplete(recordId, templateId)
                 _uiUpdates.emit(
                     ModalUiUpdates.ShowToast(application.getString(R.string.quick_pick_confirm_logged_toast))
                 )

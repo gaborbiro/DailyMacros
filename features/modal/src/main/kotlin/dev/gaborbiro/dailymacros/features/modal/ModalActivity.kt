@@ -313,6 +313,7 @@ class ModalActivity : AppCompatActivity() {
                 dialogHandle = dialogHandle,
                 onLogAgainTapped = viewModel::onQuickPickWidgetLogAgainTapped,
                 onOpenDetailsTapped = viewModel::onQuickPickWidgetOpenDetailsTapped,
+                onDontShowAgainChanged = viewModel::onQuickPickWidgetDontShowAgainChanged,
                 onDismissRequested = onDismissRequested,
             )
 

@@ -69,6 +69,7 @@ class SettingsViewModel @Inject constructor(
             aiInsightsEnabled = featureFlagStore.isEnabled(FeatureFlagStore.Key.AI_INSIGHTS_ENABLED),
             autoPhotoRecognitionEnabled = settingsRepository.getAutoPhotoRecognitionEnabled(),
             autoPhotoRecognitionVisible = featureFlagStore.isEnabled(FeatureFlagStore.Key.AUTO_PHOTO_RECOGNITION_ENABLED),
+            quickPickConfirmationEnabled = settingsRepository.getQuickPickConfirmationEnabled(),
             autoBackupInterval = settingsRepository.getAutoBackupInterval(),
         ),
     )
@@ -421,6 +422,11 @@ class SettingsViewModel @Inject constructor(
             PhotoMonitorWorker.cancel(getApplication())
             _uiState.update { it.copy(autoPhotoRecognitionEnabled = false) }
         }
+    }
+
+    fun onQuickPickConfirmationToggled(enabled: Boolean) {
+        settingsRepository.setQuickPickConfirmationEnabled(enabled)
+        _uiState.update { it.copy(quickPickConfirmationEnabled = enabled) }
     }
 
     fun onAutoPhotoPermissionsGranted() {
