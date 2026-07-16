@@ -14,29 +14,17 @@ git -C "${CLAUDE_PROJECT_DIR:-.}" config core.hooksPath .claude/hooks
 
 # ── Gradle setup ───────────────────────────────────────────────────────────────────────────────────
 
-GRADLE_VERSION="9.4.1"
-GRADLE_DIST_DIR="${HOME}/.gradle/wrapper/dists/gradle-${GRADLE_VERSION}-bin"
-GRADLE_INSTALL_DIR="${GRADLE_DIST_DIR}/gradle-${GRADLE_VERSION}"
-
-if [ -d "${GRADLE_INSTALL_DIR}/bin" ]; then
-  echo "Gradle ${GRADLE_VERSION} already installed."
+# Let the wrapper provision the exact version pinned in
+# gradle/wrapper/gradle-wrapper.properties (a hardcoded version here would go
+# stale, and the wrapper only recognises distributions installed under its own
+# URL-hashed directory anyway).
+echo "Priming Gradle wrapper (version from gradle-wrapper.properties)..."
+if (cd "${CLAUDE_PROJECT_DIR:-.}" && ./gradlew --version); then
+  echo "Gradle wrapper ready."
 else
-  echo "Installing Gradle ${GRADLE_VERSION}..."
-  mkdir -p "${GRADLE_DIST_DIR}"
-  TMP_ZIP=$(mktemp /tmp/gradle-XXXXXX.zip)
-  # services.gradle.org redirects to GitHub releases; follow the redirect
-  if curl -fsSL \
-      "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" \
-      -o "${TMP_ZIP}"; then
-    unzip -q "${TMP_ZIP}" -d "${GRADLE_DIST_DIR}"
-    rm "${TMP_ZIP}"
-    echo "Gradle ${GRADLE_VERSION} installed."
-  else
-    rm -f "${TMP_ZIP}"
-    echo "WARNING: Could not download Gradle ${GRADLE_VERSION}." \
-         "Build commands will not work in this session." \
-         "Create a CCR environment with network access to services.gradle.org / github.com to fix this."
-  fi
+  echo "WARNING: Could not provision the Gradle wrapper." \
+       "Build commands will not work in this session." \
+       "Create a CCR environment with network access to services.gradle.org / github.com to fix this."
 fi
 
 # ── Android SDK setup ──────────────────────────────────────────────────────────────────────────────
