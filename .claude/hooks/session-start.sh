@@ -1,8 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
+echo "session-start hook: running (CLAUDE_CODE_REMOTE=${CLAUDE_CODE_REMOTE:-<unset>})"
+
 # Only run in remote (web) sessions
 if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then
+  echo "session-start hook: not a remote session, skipping setup."
   exit 0
 fi
 
@@ -85,10 +88,18 @@ if [ -n "${ANDROID_SDK_ROOT}" ] && [ -d "${ANDROID_SDK_ROOT}/platforms" ]; then
   export ANDROID_HOME="${ANDROID_SDK_ROOT}"
   export PATH="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:${PATH}"
 
-  # Persist env vars for the Claude Code session
-  echo "export ANDROID_HOME=${ANDROID_SDK_ROOT}" >> "${CLAUDE_ENV_FILE}"
-  echo "export PATH=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:\$PATH" >> "${CLAUDE_ENV_FILE}"
+  # Persist env vars for the Claude Code session; CLAUDE_ENV_FILE is not
+  # guaranteed to be set, and referencing it unguarded under `set -u` would
+  # abort the whole hook here
+  if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
+    echo "export ANDROID_HOME=${ANDROID_SDK_ROOT}" >> "${CLAUDE_ENV_FILE}"
+    echo "export PATH=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:\$PATH" >> "${CLAUDE_ENV_FILE}"
+  else
+    echo "WARNING: CLAUDE_ENV_FILE not set; ANDROID_HOME/PATH not persisted for the session."
+  fi
 
   # Write local.properties so Gradle finds the SDK
   echo "sdk.dir=${ANDROID_SDK_ROOT}" > "${CLAUDE_PROJECT_DIR}/local.properties"
 fi
+
+echo "session-start hook: done"
