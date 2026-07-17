@@ -49,7 +49,7 @@ class QuickPickWidgetScreen : GlanceAppWidget() {
         val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(id)
 
         provideContent {
-            GlanceTheme(colors = WidgetColorScheme.colors(context)) {
+            GlanceTheme(colors = WidgetColorScheme.colors(context, dynamicColor = true)) {
                 val prefs = currentState<Preferences>()
                 val templateJson = prefs[templateJsonKey(appWidgetId)]
                 val uiModel = templateJson?.let { json ->

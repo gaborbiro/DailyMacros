@@ -4,12 +4,18 @@ import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.glance.ColorFilter
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.Image
+import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
@@ -18,7 +24,11 @@ import androidx.glance.background
 import androidx.glance.currentState
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
+import androidx.glance.layout.Column
+import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.height
+import androidx.glance.layout.size
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
@@ -74,20 +84,24 @@ class DiaryWidgetScreen : GlanceAppWidget() {
         ).widgetGlanceDependencies()
         try {
             provideContent {
-                GlanceTheme(colors = WidgetColorScheme.colors(context)) {
+                GlanceTheme(colors = WidgetColorScheme.colors(context, dynamicColor = true)) {
                     val widgetPrefs = currentState<Preferences>()
+                    val quickPicksJSON = widgetPrefs[stringPreferencesKey(PREFS_QUICK_PICKS)]
+                    val recentRecordsJSON = widgetPrefs[stringPreferencesKey(PREFS_RECENT_RECORDS)]
 
-                    val state = try {
+                    // DiaryReloadWorker always writes both keys (even when there is no data),
+                    // so both being absent means the widget has never been populated.
+                    val state = if (quickPicksJSON == null && recentRecordsJSON == null) {
+                        WidgetUiState.Loading
+                    } else try {
                         val quickPicks = runCatching {
-                            val recordsJSON = widgetPrefs[stringPreferencesKey(PREFS_QUICK_PICKS)]
                             deps.widgetUiMapper.map(
-                                PersistenceMapper.deserializeTemplates(recordsJSON)
+                                PersistenceMapper.deserializeTemplates(quickPicksJSON)
                             )
                         }.getOrNull() ?: emptyList()
 
                         val recentRecords = runCatching {
-                            val recordsJSON = widgetPrefs[stringPreferencesKey(PREFS_RECENT_RECORDS)]
-                            PersistenceMapper.deserializeRecords(recordsJSON)
+                            PersistenceMapper.deserializeRecords(recentRecordsJSON)
                                 .map(deps.recordsUiMapper::map)
                         }.getOrNull() ?: emptyList()
 
@@ -124,6 +138,14 @@ class DiaryWidgetScreen : GlanceAppWidget() {
                             }
                         }
 
+                        WidgetUiState.Loading -> {
+                            LoadingView()
+                            // A freshly placed widget has no data yet; kick off the first load.
+                            LaunchedEffect(Unit) {
+                                reload(context)
+                            }
+                        }
+
                         WidgetUiState.Error -> {
                             ErrorView()
                         }
@@ -146,7 +168,37 @@ class DiaryWidgetScreen : GlanceAppWidget() {
             val navigator: WidgetNavigator,
         ) : WidgetUiState
 
+        data object Loading : WidgetUiState
+
         data object Error : WidgetUiState
+    }
+
+    @Composable
+    private fun LoadingView() {
+        val context = LocalContext.current
+        Box(
+            modifier = GlanceModifier
+                .fillMaxSize()
+                .background(GlanceTheme.colors.widgetBackground),
+            contentAlignment = Alignment.Center,
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Image(
+                    modifier = GlanceModifier.size(48.dp),
+                    provider = ImageProvider(R.drawable.widget_loading_icon),
+                    contentDescription = null,
+                    colorFilter = ColorFilter.tint(GlanceTheme.colors.primary),
+                )
+                Spacer(modifier = GlanceModifier.height(8.dp))
+                Text(
+                    text = context.getString(R.string.widget_loading),
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        color = GlanceTheme.colors.onBackground,
+                    ),
+                )
+            }
+        }
     }
 
     @Composable

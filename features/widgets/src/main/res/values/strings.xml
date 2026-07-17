@@ -2,6 +2,8 @@
 <resources>
     <string name="widget_diary_name">Food Diary</string>
     <string name="widget_quick_pick_name">Quick Picks</string>
+    <!-- Loading placeholders -->
+    <string name="widget_loading">Loading…</string>
     <!-- ButtonLayout -->
     <string name="widgets_content_new_record_via_camera_cd">New record via camera</string>
     <string name="widgets_content_new_record_via_image_cd">New record via existing image</string>
