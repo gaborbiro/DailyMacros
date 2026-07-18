@@ -15,12 +15,14 @@ class CreateTemplateUseCase @Inject constructor(
         title: String,
         description: String,
         parentTemplateId: Long? = null,
+        imageSourceMediaStoreIds: Map<String, Long> = emptyMap(),
     ): Long {
         val template = TemplateToSave(
             imageFilenames = imageFilenames,
             name = title,
             description = description,
             parentTemplateId = parentTemplateId,
+            imageSourceMediaStoreIds = imageSourceMediaStoreIds,
         )
         return recordsRepository.saveTemplate(template)
     }

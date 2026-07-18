@@ -36,6 +36,12 @@ interface RecordsRepository {
 
     suspend fun get(recordId: Long): Record?
 
+    /**
+     * MediaStore ids of all gallery photos that are attached to a template, so auto photo
+     * recognition can skip photos the user already logged.
+     */
+    suspend fun getSourceMediaStoreIds(): Set<Long> = emptySet()
+
     fun observe(recordId: Long): Flow<Record>
 
     suspend fun getTemplate(templateId: Long): Template

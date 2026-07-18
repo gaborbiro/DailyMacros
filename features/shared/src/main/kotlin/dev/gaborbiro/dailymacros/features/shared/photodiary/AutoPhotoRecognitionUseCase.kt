@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.features.shared.photodiary
 
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.graphics.ImageDecoder
@@ -66,6 +67,7 @@ class AutoPhotoRecognitionUseCase @Inject constructor(
                 notificationId = filename.hashCode(),
                 recognisedTitle = title,
                 imageFilename = filename,
+                sourceMediaStoreId = runCatching { ContentUris.parseId(photoUri) }.getOrNull(),
             )
         } else {
             imageStore.delete(filename)
@@ -76,6 +78,7 @@ class AutoPhotoRecognitionUseCase @Inject constructor(
         notificationId: Int,
         recognisedTitle: String,
         imageFilename: String,
+        sourceMediaStoreId: Long?,
     ) {
         val confirmIntent = pendingBroadcast(
             requestCode = notificationId,
@@ -83,6 +86,7 @@ class AutoPhotoRecognitionUseCase @Inject constructor(
             imageFilename = imageFilename,
             recognisedTitle = recognisedTitle,
             notificationId = notificationId,
+            sourceMediaStoreId = sourceMediaStoreId,
         )
         // PendingIntent.getActivity so the system collapses the notification shade on tap.
         val detailsIntent = modalNavigator.photoRecognitionDetailsPendingIntent(
@@ -91,6 +95,7 @@ class AutoPhotoRecognitionUseCase @Inject constructor(
             imageFilename = imageFilename,
             recognisedTitle = recognisedTitle,
             notificationId = notificationId,
+            sourceMediaStoreId = sourceMediaStoreId,
         )
         // Fires when the user swipes the notification away — cleans up the stored image.
         val deleteIntent = pendingBroadcast(
@@ -99,6 +104,7 @@ class AutoPhotoRecognitionUseCase @Inject constructor(
             imageFilename = imageFilename,
             recognisedTitle = null,
             notificationId = notificationId,
+            sourceMediaStoreId = null,
         )
         val notification = NotificationCompat.Builder(appContext, CHANNEL_ID_GENERAL)
             .setSmallIcon(R.drawable.ic_nutrition)
@@ -118,6 +124,7 @@ class AutoPhotoRecognitionUseCase @Inject constructor(
         imageFilename: String,
         recognisedTitle: String?,
         notificationId: Int,
+        sourceMediaStoreId: Long?,
     ): PendingIntent = PendingIntent.getBroadcast(
         appContext,
         requestCode,
@@ -126,6 +133,7 @@ class AutoPhotoRecognitionUseCase @Inject constructor(
             putExtra(PhotoRecognitionActionReceiver.EXTRA_IMAGE_FILENAME, imageFilename)
             putExtra(PhotoRecognitionActionReceiver.EXTRA_NOTIFICATION_ID, notificationId)
             recognisedTitle?.let { putExtra(PhotoRecognitionActionReceiver.EXTRA_RECOGNISED_TITLE, it) }
+            sourceMediaStoreId?.let { putExtra(PhotoRecognitionActionReceiver.EXTRA_SOURCE_MEDIA_STORE_ID, it) }
         },
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )

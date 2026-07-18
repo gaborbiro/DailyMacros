@@ -15,12 +15,14 @@ class CreateRecordWithNewTemplateUseCase @Inject constructor(
         title: String,
         description: String,
         parentTemplateId: Long? = null,
+        imageSourceMediaStoreIds: Map<String, Long> = emptyMap(),
     ): Long {
         val templateId = createTemplateUseCase.execute(
             imageFilenames = imageFilenames,
             title = title,
             description = description,
             parentTemplateId = parentTemplateId,
+            imageSourceMediaStoreIds = imageSourceMediaStoreIds,
         )
         return createRecordFromTemplateUseCase.execute(templateId)
     }

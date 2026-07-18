@@ -175,6 +175,12 @@ ORDER BY
     @Query("SELECT COUNT(*) FROM template_images WHERE image = :image")
     suspend fun countTemplatesByImage(image: String): Int
 
+    @Query("SELECT DISTINCT sourceMediaStoreId FROM template_images WHERE sourceMediaStoreId IS NOT NULL")
+    suspend fun getSourceMediaStoreIds(): List<Long>
+
+    @Query("SELECT sourceMediaStoreId FROM template_images WHERE image = :image AND sourceMediaStoreId IS NOT NULL LIMIT 1")
+    suspend fun getSourceMediaStoreIdForImage(image: String): Long?
+
     @Query("UPDATE template_images SET sortOrder = :sort WHERE _id = :imageId")
     suspend fun setSortOrder(imageId: Long, sort: Int): Int
 }

@@ -172,7 +172,7 @@ class ModalViewModelTest {
             updateRecordWithNewTemplateUseCase = updateRec,
             validateEditRecordUseCase = ValidateEditRecordUseCase(repo),
             validateCreateRecordUseCase = ValidateCreateRecordUseCase(),
-            saveImageUseCase = SaveImageUseCase(app, imageStore, testSettingsRepository),
+            saveImageUseCase = SaveImageUseCase(app, imageStore),
             exportImageToGalleryUseCase = ExportImageToGalleryUseCase(app, imageStore),
             getRecordImageUseCase = GetRecordImageUseCase(repo),
             getTemplateImageUseCase = GetTemplateImageUseCase(repo),

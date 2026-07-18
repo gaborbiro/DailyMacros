@@ -57,14 +57,6 @@ interface SettingsRepository {
     fun getLastProcessedMediaStoreId(): Long = -1L
     fun setLastProcessedMediaStoreId(id: Long) {}
 
-    /**
-     * MediaStore ids of gallery photos the user has already attached to an entry by hand,
-     * so auto photo recognition doesn't offer them again. Pruned once the photo monitor's
-     * high-water mark passes them.
-     */
-    fun getManuallyAddedMediaStoreIds(): Set<Long> = emptySet()
-    fun setManuallyAddedMediaStoreIds(ids: Set<Long>) {}
-
     fun getLastPhotoRecognitionRequestEpochMs(): Long = 0L
     fun setLastPhotoRecognitionRequestEpochMs(epochMs: Long) {}
 

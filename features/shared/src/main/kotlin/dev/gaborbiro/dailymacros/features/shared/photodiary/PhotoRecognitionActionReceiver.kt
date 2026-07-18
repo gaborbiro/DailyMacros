@@ -29,7 +29,11 @@ class PhotoRecognitionActionReceiver : BroadcastReceiver() {
                 when (intent.action) {
                     ACTION_CONFIRM -> {
                         val title = intent.getStringExtra(EXTRA_RECOGNISED_TITLE) ?: return@launch
-                        confirmUseCase.execute(imageFilename, title)
+                        val sourceMediaStoreId = intent
+                            .takeIf { it.hasExtra(EXTRA_SOURCE_MEDIA_STORE_ID) }
+                            ?.getLongExtra(EXTRA_SOURCE_MEDIA_STORE_ID, -1L)
+                            ?.takeIf { it >= 0 }
+                        confirmUseCase.execute(imageFilename, title, sourceMediaStoreId)
                     }
                     ACTION_DENY -> denyUseCase.execute(imageFilename)
                 }
@@ -45,5 +49,6 @@ class PhotoRecognitionActionReceiver : BroadcastReceiver() {
         const val EXTRA_IMAGE_FILENAME = "extra_image_filename"
         const val EXTRA_RECOGNISED_TITLE = "extra_recognised_title"
         const val EXTRA_NOTIFICATION_ID = "extra_notification_id"
+        const val EXTRA_SOURCE_MEDIA_STORE_ID = "extra_source_media_store_id"
     }
 }

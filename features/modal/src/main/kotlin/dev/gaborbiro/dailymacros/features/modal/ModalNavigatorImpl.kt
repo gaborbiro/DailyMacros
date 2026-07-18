@@ -59,12 +59,14 @@ class ModalNavigatorImpl @Inject constructor() : ModalNavigator {
         imageFilename: String,
         recognisedTitle: String,
         notificationId: Int,
+        sourceMediaStoreId: Long?,
     ): PendingIntent = PendingIntent.getActivity(
         context,
         requestCode,
         context.getPhotoRecognitionDetailsIntent(imageFilename, recognisedTitle).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             putExtra(EXTRA_DISMISS_NOTIFICATION_ID, notificationId)
+            sourceMediaStoreId?.let { putExtra(EXTRA_SOURCE_MEDIA_STORE_ID, it) }
         },
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
@@ -141,4 +143,5 @@ const val EXTRA_TEMPLATE_ID = "template_id"
 const val EXTRA_TEMPLATE_NAME = "template_name"
 const val EXTRA_IMAGE_FILENAME = "image_filename"
 const val EXTRA_RECOGNISED_TITLE = "recognised_title"
+const val EXTRA_SOURCE_MEDIA_STORE_ID = "source_media_store_id"
 const val EXTRA_DISMISS_NOTIFICATION_ID = "dismiss_notification_id"

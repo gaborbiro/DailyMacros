@@ -157,17 +157,6 @@ class SettingsRepositoryImpl @Inject constructor(
         prefs.edit { putLong(KEY_LAST_PROCESSED_MEDIA_STORE_ID, id) }
     }
 
-    override fun getManuallyAddedMediaStoreIds(): Set<Long> =
-        prefs.getStringSet(KEY_MANUALLY_ADDED_MEDIA_STORE_IDS, emptySet())
-            .orEmpty()
-            .mapNotNullTo(mutableSetOf()) { it.toLongOrNull() }
-
-    override fun setManuallyAddedMediaStoreIds(ids: Set<Long>) {
-        prefs.edit {
-            putStringSet(KEY_MANUALLY_ADDED_MEDIA_STORE_IDS, ids.mapTo(mutableSetOf()) { it.toString() })
-        }
-    }
-
     override fun getLastPhotoRecognitionRequestEpochMs(): Long =
         prefs.getLong(KEY_LAST_PHOTO_RECOGNITION_REQUEST_EPOCH_MS, 0L)
 
@@ -225,7 +214,6 @@ class SettingsRepositoryImpl @Inject constructor(
         private const val KEY_AUTO_PHOTO_RECOGNITION = "auto_photo_recognition"
         private const val KEY_QUICK_PICK_CONFIRMATION = "quick_pick_confirmation_enabled"
         private const val KEY_LAST_PROCESSED_MEDIA_STORE_ID = "last_processed_media_store_id"
-        private const val KEY_MANUALLY_ADDED_MEDIA_STORE_IDS = "manually_added_media_store_ids"
         private const val KEY_LAST_PHOTO_RECOGNITION_REQUEST_EPOCH_MS = "last_photo_recognition_request_epoch_ms"
         private const val KEY_LAST_BACKUP_ATTEMPT_EPOCH_MS = "last_backup_attempt_epoch_ms"
         private const val KEY_AUTO_BACKUP_INTERVAL = "auto_backup_interval"

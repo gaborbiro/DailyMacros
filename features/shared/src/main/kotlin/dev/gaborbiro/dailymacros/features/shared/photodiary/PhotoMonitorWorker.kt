@@ -19,6 +19,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import dev.gaborbiro.dailymacros.features.shared.R
 import dev.gaborbiro.dailymacros.features.shared.notifications.CHANNEL_ID_GENERAL
+import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.hours
@@ -30,6 +31,7 @@ class PhotoMonitorWorker @AssistedInject constructor(
     @Assisted params: WorkerParameters,
     private val autoPhotoRecognitionUseCase: AutoPhotoRecognitionUseCase,
     private val settingsRepository: SettingsRepository,
+    private val recordsRepository: RecordsRepository,
 ) : CoroutineWorker(appContext, params) {
 
     private data class Candidate(
@@ -62,12 +64,12 @@ class PhotoMonitorWorker @AssistedInject constructor(
             val bursts = queryCameraPhotoBurstsSince(settingsRepository.getLastProcessedMediaStoreId())
             if (bursts.isEmpty()) break
 
-            val manuallyAdded = settingsRepository.getManuallyAddedMediaStoreIds()
+            val loggedPhotoIds = recordsRepository.getSourceMediaStoreIds()
             val now = System.currentTimeMillis()
 
             for (burst in bursts) {
                 val burstMaxId = burst.maxOf { it.id }
-                val alreadyAdded = burst.any { it.id in manuallyAdded }
+                val alreadyAdded = burst.any { it.id in loggedPhotoIds }
                 // Age guard: a restored/synced gallery can flood MediaStore with old camera
                 // photos under fresh ids; don't burn API calls scanning last month's meals.
                 val tooOld = burst.all { it.dateTaken > 0 && now - it.dateTaken > SCAN_LOOKBACK.inWholeMilliseconds }
@@ -92,8 +94,6 @@ class PhotoMonitorWorker @AssistedInject constructor(
             }
         }
 
-        pruneManuallyAddedIds()
-
         if (deferred) {
             reenqueueDelayed(applicationContext, maxOf(cooldownRemainingMs(), CONTINUE_DELAY_MS))
         } else {
@@ -105,15 +105,6 @@ class PhotoMonitorWorker @AssistedInject constructor(
     private fun cooldownRemainingMs(): Long {
         val elapsed = System.currentTimeMillis() - settingsRepository.getLastPhotoRecognitionRequestEpochMs()
         return (SCAN_COOLDOWN.inWholeMilliseconds - elapsed).coerceAtLeast(0L)
-    }
-
-    private fun pruneManuallyAddedIds() {
-        val highWaterMark = settingsRepository.getLastProcessedMediaStoreId()
-        val ids = settingsRepository.getManuallyAddedMediaStoreIds()
-        val live = ids.filterTo(mutableSetOf()) { it > highWaterMark }
-        if (live.size != ids.size) {
-            settingsRepository.setManuallyAddedMediaStoreIds(live)
-        }
     }
 
     private fun initHighWaterMark() {
