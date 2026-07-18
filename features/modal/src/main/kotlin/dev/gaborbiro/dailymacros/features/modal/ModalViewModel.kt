@@ -120,12 +120,7 @@ class ModalViewModel @Inject constructor(
         setRoot(emptyRecordDetailsEdit())
     }
 
-    fun onPhotoRecognitionDetailsDeeplinkReceived(
-        recognisedTitle: String,
-        imageFilename: String,
-        sourceMediaStoreId: Long? = null,
-    ) {
-        sourceMediaStoreId?.let { pendingImageSources[imageFilename] = it }
+    fun onPhotoRecognitionDetailsDeeplinkReceived(recognisedTitle: String, imageFilename: String) {
         val titleValue = TextFieldValue(recognisedTitle, TextRange(recognisedTitle.length))
         setRoot(
             DialogHandle.RecordDetailsDialog.Edit(
@@ -226,19 +221,6 @@ class ModalViewModel @Inject constructor(
         onTemplateDetailsButtonTapped(dialog.templateId)
     }
 
-    /**
-     * MediaStore ids of the gallery photos behind images added during this modal session,
-     * keyed by persisted filename. Passed along on save so auto photo recognition knows
-     * these photos are already logged.
-     */
-    private val pendingImageSources = mutableMapOf<String, Long>()
-
-    private suspend fun persistImages(uris: List<Uri>): List<String> {
-        val saved = uris.map { saveImageUseCase.execute(it) }
-        saved.forEach { image -> image.sourceMediaStoreId?.let { pendingImageSources[image.filename] = it } }
-        return saved.map { it.filename }
-    }
-
     fun onImagesSelected(uris: List<Uri>) {
         runSafely("Couldn't add the selected images") {
             val existingCount = when (val root = _uiState.value.rootDialog) {
@@ -253,7 +235,7 @@ class ModalViewModel @Inject constructor(
                 }
                 return@runSafely
             }
-            val persistedFilenames = persistImages(uris)
+            val persistedFilenames = uris.map { saveImageUseCase.execute(it) }
 
             when (val root = _uiState.value.rootDialog) {
                 is DialogHandle.RecordDetailsDialog.Edit -> {
@@ -296,7 +278,7 @@ class ModalViewModel @Inject constructor(
                 _uiUpdates.emit(ModalUiUpdates.ShowToast("Too many images selected. Maximum $MAX_IMAGES total."))
                 return@runSafely
             }
-            val persistedFilenames = persistImages(uris)
+            val persistedFilenames = uris.map { saveImageUseCase.execute(it) }
 
             setRoot(
                 DialogHandle.RecordDetailsDialog.Edit(
@@ -811,7 +793,6 @@ class ModalViewModel @Inject constructor(
                     imageFilenames = imageFilenames,
                     title = title,
                     description = description,
-                    imageSourceMediaStoreIds = pendingImageSources.toMap(),
                 )
                 NutrientAnalysisWorker.setWorkRequest(
                     appContext = application,
@@ -880,7 +861,6 @@ class ModalViewModel @Inject constructor(
                             imageFilenames = dialogHandle.imageFilenames,
                             title = title,
                             description = description,
-                            imageSourceMediaStoreIds = pendingImageSources.toMap(),
                         )
                         if (imagesNeedReanalysis || contentChanged) {
                             NutrientAnalysisWorker.setWorkRequest(
@@ -924,7 +904,6 @@ class ModalViewModel @Inject constructor(
                         title = title,
                         description = description,
                         parentTemplateId = dialogHandle.templateDbId,
-                        imageSourceMediaStoreIds = pendingImageSources.toMap(),
                     )
                     val secondRecordId = createRecordFromTemplateUseCase.execute(newTemplateId)
                     NutrientAnalysisWorker.setWorkRequest(
@@ -974,7 +953,6 @@ class ModalViewModel @Inject constructor(
                     title = title,
                     description = description,
                     parentTemplateId = anchor,
-                    imageSourceMediaStoreIds = pendingImageSources.toMap(),
                 )
                 val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return
                 scheduleMacroAnalysisForRecordIfTemplateIncomplete(recordId, templateId)

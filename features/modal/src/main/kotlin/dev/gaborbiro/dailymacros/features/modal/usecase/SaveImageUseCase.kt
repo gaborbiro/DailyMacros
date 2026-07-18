@@ -7,6 +7,7 @@ import android.provider.MediaStore
 import dev.gaborbiro.dailymacros.data.image.FoodPicMaxSize
 import dev.gaborbiro.dailymacros.data.image.generateFoodPicFilename
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
+import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -15,15 +16,10 @@ import javax.inject.Inject
 class SaveImageUseCase @Inject constructor(
     @ApplicationContext private val appContext: Context,
     private val imageStore: ImageStore,
+    private val settingsRepository: SettingsRepository,
 ) {
 
-    data class SavedImage(
-        val filename: String,
-        /** MediaStore id of the source gallery photo; null when the uri isn't a local MediaStore item. */
-        val sourceMediaStoreId: Long?,
-    )
-
-    suspend fun execute(uri: Uri): SavedImage {
+    suspend fun execute(uri: Uri): String {
         return withContext(Dispatchers.IO) {
             val source = ImageDecoder.createSource(
                 appContext.contentResolver,
@@ -43,8 +39,16 @@ class SaveImageUseCase @Inject constructor(
             }
             val filename = generateFoodPicFilename()
             imageStore.write(filename, bitmap)
-            SavedImage(filename = filename, sourceMediaStoreId = mediaStoreId(uri))
+            markAsManuallyAdded(uri)
+            filename
         }
+    }
+
+    private fun markAsManuallyAdded(uri: Uri) {
+        val mediaStoreId = mediaStoreId(uri) ?: return
+        settingsRepository.setManuallyAddedMediaStoreIds(
+            settingsRepository.getManuallyAddedMediaStoreIds() + mediaStoreId
+        )
     }
 
     /**

@@ -32,6 +32,5 @@ interface ModalNavigator {
         imageFilename: String,
         recognisedTitle: String,
         notificationId: Int,
-        sourceMediaStoreId: Long?,
     ): PendingIntent
 }

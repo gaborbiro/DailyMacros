@@ -15,13 +15,7 @@ class UpdateRecordWithNewTemplateUseCase @Inject constructor(
 ) {
 
     @UiThread
-    suspend fun execute(
-        recordId: Long,
-        imageFilenames: List<String>,
-        title: String,
-        description: String,
-        imageSourceMediaStoreIds: Map<String, Long> = emptyMap(),
-    ) {
+    suspend fun execute(recordId: Long, imageFilenames: List<String>, title: String, description: String) {
         val record: Record = repository.get(recordId)!!
         val parentTemplateId = record.template.dbId
         val newTemplateId = createTemplateUseCase.execute(
@@ -29,7 +23,6 @@ class UpdateRecordWithNewTemplateUseCase @Inject constructor(
             title = title,
             description = description,
             parentTemplateId = parentTemplateId,
-            imageSourceMediaStoreIds = imageSourceMediaStoreIds,
         )
         val newTemplate = repository.getTemplate(newTemplateId)
         repository.updateRecord(record.copy(template = newTemplate))

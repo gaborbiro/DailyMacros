@@ -30,12 +30,6 @@ data class ImageEntity(
      * Null means never classified.
      */
     val isRepresentativeMealPhoto: Boolean? = null,
-    /**
-     * MediaStore id of the gallery photo this image was created from, so auto photo recognition
-     * can tell it has already been logged. Null when the image didn't come from the gallery
-     * (in-app camera, share from another app) or predates this column.
-     */
-    val sourceMediaStoreId: Long? = null,
 ) : BaseEntity() {
     companion object {
         const val COLUMN_TEMPLATE_ID = "templateId"

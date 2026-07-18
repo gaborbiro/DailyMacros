@@ -14,16 +14,13 @@ class ConfirmAutoPhotoEntryUseCase @Inject constructor(
     private val createRecordFromTemplateUseCase: CreateRecordFromTemplateUseCase,
 ) {
 
-    suspend fun execute(imageFilename: String, recognisedTitle: String, sourceMediaStoreId: Long? = null) {
+    suspend fun execute(imageFilename: String, recognisedTitle: String) {
         val templateId = recordsRepository.saveTemplate(
             TemplateToSave(
                 imageFilenames = listOf(imageFilename),
                 name = recognisedTitle,
                 description = "",
                 parentTemplateId = null,
-                imageSourceMediaStoreIds = sourceMediaStoreId
-                    ?.let { mapOf(imageFilename to it) }
-                    .orEmpty(),
             )
         )
         val recordId = createRecordFromTemplateUseCase.execute(templateId)

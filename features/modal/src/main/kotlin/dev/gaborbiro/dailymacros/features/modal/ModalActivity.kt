@@ -234,11 +234,7 @@ class ModalActivity : AppCompatActivity() {
             Action.PHOTO_RECOGNITION_DETAILS -> {
                 val imageFilename = intent.getStringExtra(EXTRA_IMAGE_FILENAME) ?: return
                 val recognisedTitle = intent.getStringExtra(EXTRA_RECOGNISED_TITLE) ?: return
-                val sourceMediaStoreId = intent
-                    .takeIf { it.hasExtra(EXTRA_SOURCE_MEDIA_STORE_ID) }
-                    ?.getLongExtra(EXTRA_SOURCE_MEDIA_STORE_ID, -1L)
-                    ?.takeIf { it >= 0 }
-                viewModel.onPhotoRecognitionDetailsDeeplinkReceived(recognisedTitle, imageFilename, sourceMediaStoreId)
+                viewModel.onPhotoRecognitionDetailsDeeplinkReceived(recognisedTitle, imageFilename)
             }
         }
     }

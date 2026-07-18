@@ -117,18 +117,11 @@ class RecordsRepositoryImpl @Inject constructor(
                     templateId = templateId,
                     image = image,
                     sortOrder = index,
-                    // Fall back to any existing row with the same filename so forked templates
-                    // carrying over images keep their source id.
-                    sourceMediaStoreId = templateToSave.imageSourceMediaStoreIds[image]
-                        ?: templatesDAO.getSourceMediaStoreIdForImage(image),
                 )
             )
         }
         return templateId
     }
-
-    override suspend fun getSourceMediaStoreIds(): Set<Long> =
-        templatesDAO.getSourceMediaStoreIds().toSet()
 
     override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
         return recordsDAO.insertOrUpdate(mapper.map(templateId, timestamp))
@@ -180,10 +173,6 @@ class RecordsRepositoryImpl @Inject constructor(
         }
 
         templateImages?.let { rows ->
-            // Rows are recreated below; keep the source ids of images that survive the update.
-            val existingSourceIds = oldTemplate.images
-                .mapNotNull { image -> image.sourceMediaStoreId?.let { image.image to it } }
-                .toMap()
             templatesDAO.deleteAllImagesForTemplate(templateId)
             rows.forEachIndexed { index, row ->
                 templatesDAO.upsertImage(
@@ -192,8 +181,6 @@ class RecordsRepositoryImpl @Inject constructor(
                         image = row.filename,
                         sortOrder = index,
                         isRepresentativeMealPhoto = row.isRepresentativeOfMeal,
-                        sourceMediaStoreId = existingSourceIds[row.filename]
-                            ?: templatesDAO.getSourceMediaStoreIdForImage(row.filename),
                     )
                 )
             }
