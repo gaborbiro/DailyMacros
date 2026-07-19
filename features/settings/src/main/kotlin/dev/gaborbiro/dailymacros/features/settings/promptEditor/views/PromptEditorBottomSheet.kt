@@ -325,8 +325,7 @@ internal fun PromptEditorView(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp)
-                                    .padding(bottom = 16.dp)
-                                    .imePadding(),
+                                    .padding(bottom = 16.dp),
                             ) {
                                 Text(stringResource(R.string.settings_prompt_editor_save))
                             }
