@@ -129,15 +129,17 @@ internal fun PromptEditorView(
         else -> ongoingInsightsScrollState
     }
 
+    val hasSavableChanges = viewState.promptsEnabled && viewState.currentValues != viewState.originalValues
+
     var hiddenPx by remember { mutableFloatStateOf(0f) }
     var collapsingMaxPx by remember { mutableFloatStateOf(0f) }
     var saveButtonVisible by remember { mutableStateOf(true) }
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                // Pop the floating Save button down when scrolling down, back up when scrolling up
-                if (available.y < -2f) saveButtonVisible = false
-                else if (available.y > 2f) saveButtonVisible = true
+                // Duck the floating Save button when scrolling up, pop it back up when scrolling down
+                if (available.y > 2f) saveButtonVisible = false
+                else if (available.y < -2f) saveButtonVisible = true
                 val max = collapsingMaxPx
                 if (max <= 0f || available.y >= 0f) return Offset.Zero
                 val prev = hiddenPx
@@ -154,6 +156,8 @@ internal fun PromptEditorView(
         }
     }
     LaunchedEffect(selectedTab) { saveButtonVisible = true }
+    // Pop the Save button up the moment the prompt is first modified, without waiting for a scroll
+    LaunchedEffect(hasSavableChanges) { if (hasSavableChanges) saveButtonVisible = true }
 
     Dialog(
         onDismissRequest = onDismissRequested,
@@ -310,14 +314,14 @@ internal fun PromptEditorView(
                             Spacer(Modifier.height(64.dp))
                         }
                         androidx.compose.animation.AnimatedVisibility(
-                            visible = saveButtonVisible,
+                            visible = hasSavableChanges && saveButtonVisible,
                             modifier = Modifier.align(Alignment.BottomCenter),
                             enter = slideInVertically(initialOffsetY = { it * 2 }) + fadeIn(),
                             exit = slideOutVertically(targetOffsetY = { it * 2 }) + fadeOut(),
                         ) {
                             Button(
                                 onClick = { onSaveTapped(currentTabType) },
-                                enabled = viewState.promptsEnabled && viewState.currentValues != viewState.originalValues,
+                                enabled = hasSavableChanges,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp)
