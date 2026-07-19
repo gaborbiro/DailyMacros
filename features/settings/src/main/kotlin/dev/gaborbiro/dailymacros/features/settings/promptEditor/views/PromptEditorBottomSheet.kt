@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -40,8 +39,10 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import android.view.WindowManager
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -57,6 +58,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -67,6 +69,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.DialogWindowProvider
 import dev.gaborbiro.dailymacros.features.common.utils.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.features.settings.R
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel.Companion.TAB_ANALYSIS
@@ -163,6 +166,13 @@ internal fun PromptEditorView(
         onDismissRequest = onDismissRequested,
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
+        // Dialog windows pan by default when the keyboard opens, shoving the whole screen
+        // (top bar included) out of view and leaving the floating Save button misplaced.
+        // Resize instead, so the content area ends right above the keyboard.
+        val dialogWindow = (LocalView.current.parent as? DialogWindowProvider)?.window
+        SideEffect {
+            dialogWindow?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        }
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background,
@@ -261,8 +271,7 @@ internal fun PromptEditorView(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .verticalScrollWithBar(scrollState = activeScrollState, autoFade = false)
-                                .padding(16.dp)
-                                .imePadding(),
+                                .padding(16.dp),
                         ) {
                             // Per-tab version picker
                             VersionPicker(
