@@ -107,10 +107,12 @@ internal object ChatGPTNetworkModule {
     fun imageUploadChatGptRepository(
         @ForImageUploadChatGpt retrofit: Retrofit,
         mapper: ChatGPTMapper,
+        settingsRepository: SettingsRepository,
     ): ChatGPTRepository =
         ChatGPTRepositoryImpl(
             service = retrofit.create(ChatGPTService::class.java),
             mapper = mapper,
+            settingsRepository = settingsRepository,
         )
 
     @Provides
@@ -119,9 +121,11 @@ internal object ChatGPTNetworkModule {
     fun jsonBodyChatGptRepository(
         @ForJsonBodyChatGpt retrofit: Retrofit,
         mapper: ChatGPTMapper,
+        settingsRepository: SettingsRepository,
     ): ChatGPTRepository =
         ChatGPTRepositoryImpl(
             service = retrofit.create(ChatGPTService::class.java),
             mapper = mapper,
+            settingsRepository = settingsRepository,
         )
 }

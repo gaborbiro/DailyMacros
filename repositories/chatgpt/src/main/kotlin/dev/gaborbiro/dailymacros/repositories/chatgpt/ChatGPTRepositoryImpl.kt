@@ -49,6 +49,9 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toOngoingInsightsR
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toWeeklyInsightsResponse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.ChatGPTService
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTResponse
+import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptType
 import dev.gaborbiro.dailymacros.repositories.chatgpt.utils.parse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.utils.runCatching
 import kotlinx.coroutines.Dispatchers
@@ -60,6 +63,7 @@ import okhttp3.Request
 internal class ChatGPTRepositoryImpl(
     private val service: ChatGPTService,
     private val mapper: ChatGPTMapper,
+    private val settingsRepository: SettingsRepository,
 ) : ChatGPTRepository {
 
     private val validationClient by lazy { OkHttpClient() }
@@ -70,8 +74,9 @@ internal class ChatGPTRepositoryImpl(
                 val response = service.callResponses(
                     request = request.toApiModel(),
                 )
-                return@runCatching parse(response)
-                    .toFoodRecognitionResult()
+                val parsed = parse(response)
+                recordUsage(PromptType.RECOGNITION, parsed)
+                return@runCatching parsed.toFoodRecognitionResult()
             }
         }
     }
@@ -83,7 +88,9 @@ internal class ChatGPTRepositoryImpl(
                     request = request.toApiModel(),
                 )
                 val imageCount = request.base64Images.size
-                return@runCatching mapper.map(parse(response).toNutrientAnalysisResponse(), imageCount)
+                val parsed = parse(response)
+                recordUsage(PromptType.ANALYSIS, parsed)
+                return@runCatching mapper.map(parsed.toNutrientAnalysisResponse(), imageCount)
             }
         }
     }
@@ -92,7 +99,9 @@ internal class ChatGPTRepositoryImpl(
         return mappingApiErrors {
             runCatching(logTag = "getWeeklyInsights") {
                 val response = service.callResponses(request = request.toApiModel())
-                return@runCatching parse(response).toWeeklyInsightsResponse()
+                val parsed = parse(response)
+                recordUsage(PromptType.WEEKLY_INSIGHTS, parsed)
+                return@runCatching parsed.toWeeklyInsightsResponse()
             }
         }
     }
@@ -101,7 +110,9 @@ internal class ChatGPTRepositoryImpl(
         return mappingApiErrors {
             runCatching(logTag = "getOngoingWeekInsights") {
                 val response = service.callResponses(request = request.toApiModel())
-                return@runCatching parse(response).toOngoingInsightsResult()
+                val parsed = parse(response)
+                recordUsage(PromptType.ONGOING_WEEK_INSIGHTS, parsed)
+                return@runCatching parsed.toOngoingInsightsResult()
             }
         }
     }
@@ -221,6 +232,14 @@ internal class ChatGPTRepositoryImpl(
             .header("Authorization", "Bearer $apiKey")
             .build()
         runCatching { validationClient.newCall(request).execute().use { it.code == 200 } }.getOrDefault(false)
+    }
+
+    private fun recordUsage(type: String, response: ChatGPTResponse) {
+        // Stats are best-effort bookkeeping; never fail the query over them
+        try {
+            settingsRepository.recordPromptUsage(type, response.usage.totalTokens.toLong())
+        } catch (t: Throwable) {
+        }
     }
 
     private inline fun <T> mappingApiErrors(block: () -> T): T {

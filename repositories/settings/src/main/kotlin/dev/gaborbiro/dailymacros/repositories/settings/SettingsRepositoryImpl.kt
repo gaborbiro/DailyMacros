@@ -10,6 +10,7 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.model.AutoSyncErro
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.AutoSyncErrorStatus
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.BackupInterval
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptUsageStats
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
@@ -74,6 +75,7 @@ class SettingsRepositoryImpl @Inject constructor(
     override fun clearPromptCustomisations() {
         prefs.edit {
             putString(KEY_PROMPT_CUSTOMISATIONS, gson.toJson(emptyMap<String, String>()))
+            remove(KEY_ACTIVE_PROMPT_VERSIONS)
         }
     }
 
@@ -88,7 +90,12 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override fun deletePromptVersion(version: Int) {
         val updated = getAllPromptVersions().filter { it.version != version }
-        prefs.edit { putString(KEY_PROMPT_VERSIONS, gson.toJson(updated)) }
+        val remainingStats = getAllPromptUsageStats()
+            .filterKeys { it.substringAfterLast(':').toIntOrNull() != version }
+        prefs.edit {
+            putString(KEY_PROMPT_VERSIONS, gson.toJson(updated))
+            putString(KEY_PROMPT_USAGE_STATS, gson.toJson(remainingStats))
+        }
     }
 
     override fun savePromptVersion(type: String, customisations: Map<String, String>): PromptVersion {
@@ -103,6 +110,59 @@ class SettingsRepositoryImpl @Inject constructor(
         prefs.edit { putString(KEY_PROMPT_VERSIONS, gson.toJson(existing + newVersion)) }
         return newVersion
     }
+
+    private fun getActivePromptVersions(): Map<String, Int> {
+        val json = prefs.getString(KEY_ACTIVE_PROMPT_VERSIONS, null) ?: return emptyMap()
+        val type = object : TypeToken<Map<String, Int>>() {}.type
+        return runCatching { gson.fromJson<Map<String, Int>>(json, type) }.getOrDefault(emptyMap())
+    }
+
+    override fun getActivePromptVersion(type: String): Int {
+        getActivePromptVersions()[type]?.let { return it }
+        // Nothing recorded: versions may have been applied before active-version tracking
+        // existed. Infer from the applied customisations: the newest saved version whose
+        // values are all currently in effect was presumably the one applied.
+        val customisations = getPromptCustomisations()
+        val inferred = getPromptVersions(type)
+            .sortedByDescending { it.version }
+            .firstOrNull { candidate ->
+                candidate.customisations.isNotEmpty() &&
+                    candidate.customisations.all { (key, value) -> customisations[key] == value }
+            }
+        return inferred?.version ?: 0
+    }
+
+    override fun setActivePromptVersion(type: String, version: Int) {
+        val updated = getActivePromptVersions() + (type to version)
+        prefs.edit { putString(KEY_ACTIVE_PROMPT_VERSIONS, gson.toJson(updated)) }
+    }
+
+    /** Keyed by "<promptType>:<versionNumber>". */
+    private fun getAllPromptUsageStats(): Map<String, PromptUsageStats> {
+        val json = prefs.getString(KEY_PROMPT_USAGE_STATS, null) ?: return emptyMap()
+        val type = object : TypeToken<Map<String, PromptUsageStats>>() {}.type
+        return runCatching { gson.fromJson<Map<String, PromptUsageStats>>(json, type) }.getOrDefault(emptyMap())
+    }
+
+    override fun recordPromptUsage(type: String, totalTokens: Long) {
+        // Customisations only take effect with an API key override; without one the defaults (v0) are in use
+        val version = if (getApiKeyOverride() != null) getActivePromptVersion(type) else 0
+        val all = getAllPromptUsageStats().toMutableMap()
+        val key = "$type:$version"
+        val existing = all[key] ?: PromptUsageStats(count = 0, totalTokens = 0L)
+        all[key] = PromptUsageStats(
+            count = existing.count + 1,
+            totalTokens = existing.totalTokens + totalTokens,
+        )
+        prefs.edit { putString(KEY_PROMPT_USAGE_STATS, gson.toJson(all)) }
+    }
+
+    override fun getPromptUsageStats(type: String): Map<Int, PromptUsageStats> =
+        getAllPromptUsageStats().entries.mapNotNull { (key, stats) ->
+            val keyType = key.substringBeforeLast(':')
+            val version = key.substringAfterLast(':').toIntOrNull()
+            if (keyType == type && version != null) version to stats else null
+        }.toMap()
 
     override fun getApiKeyOverride(): String? = prefs.getString(KEY_API_KEY_OVERRIDE, null)?.takeIf { it.isNotBlank() }
 
@@ -218,6 +278,8 @@ class SettingsRepositoryImpl @Inject constructor(
         private const val DEFAULT_DIARY_DAY_START_HOUR = 0
         private const val KEY_PROMPT_CUSTOMISATIONS = "prompt_customisations_json"
         private const val KEY_PROMPT_VERSIONS = "prompt_versions_json"
+        private const val KEY_ACTIVE_PROMPT_VERSIONS = "active_prompt_versions_json"
+        private const val KEY_PROMPT_USAGE_STATS = "prompt_usage_stats_json"
         private const val KEY_API_KEY_OVERRIDE = "api_key_override"
         private const val KEY_CLOUD_SYNC_PROVIDER = "cloud_sync_provider"
         private const val KEY_CLOUD_SYNC_EMAIL = "cloud_sync_email"
