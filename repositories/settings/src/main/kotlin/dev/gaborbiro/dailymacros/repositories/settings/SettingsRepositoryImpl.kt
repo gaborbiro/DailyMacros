@@ -117,7 +117,20 @@ class SettingsRepositoryImpl @Inject constructor(
         return runCatching { gson.fromJson<Map<String, Int>>(json, type) }.getOrDefault(emptyMap())
     }
 
-    override fun getActivePromptVersion(type: String): Int = getActivePromptVersions()[type] ?: 0
+    override fun getActivePromptVersion(type: String): Int {
+        getActivePromptVersions()[type]?.let { return it }
+        // Nothing recorded: versions may have been applied before active-version tracking
+        // existed. Infer from the applied customisations: the newest saved version whose
+        // values are all currently in effect was presumably the one applied.
+        val customisations = getPromptCustomisations()
+        val inferred = getPromptVersions(type)
+            .sortedByDescending { it.version }
+            .firstOrNull { candidate ->
+                candidate.customisations.isNotEmpty() &&
+                    candidate.customisations.all { (key, value) -> customisations[key] == value }
+            }
+        return inferred?.version ?: 0
+    }
 
     override fun setActivePromptVersion(type: String, version: Int) {
         val updated = getActivePromptVersions() + (type to version)

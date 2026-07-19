@@ -55,7 +55,9 @@ class PromptEditorViewModel @Inject constructor(
             settingsRepository.getPromptVersions(type).sortedByDescending { it.version }
         }
         val tabSelectedVersionIndex = TAB_TYPES.associateWith { type ->
-            if (tabVersions[type]!!.isNotEmpty()) 1 else 0
+            val activeVersion = settingsRepository.getActivePromptVersion(type)
+            val index = tabVersions[type]!!.indexOfFirst { it.version == activeVersion }
+            if (index >= 0) index + 1 else 0
         }
         _uiState.value = PromptEditorUiState(
             recognitionSegments = chatGPTRepository.getDefaultFoodRecognitionPromptSegments(),
