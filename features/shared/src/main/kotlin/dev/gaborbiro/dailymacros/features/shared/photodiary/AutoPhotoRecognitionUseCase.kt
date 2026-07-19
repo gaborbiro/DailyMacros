@@ -105,6 +105,7 @@ class AutoPhotoRecognitionUseCase @Inject constructor(
             .setContentTitle(recognisedTitle)
             .setContentText(appContext.getString(R.string.photo_recognition_add_to_diary_prompt))
             .setAutoCancel(false)
+            .setContentIntent(detailsIntent)
             .setDeleteIntent(deleteIntent)
             .addAction(0, appContext.getString(R.string.photo_recognition_action_add), confirmIntent)
             .addAction(0, appContext.getString(R.string.photo_recognition_action_details), detailsIntent)
