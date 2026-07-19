@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.settings.promptEditor.model
 
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptUsageStats
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion
 
 data class PromptEditorUiState(
@@ -14,6 +15,8 @@ data class PromptEditorUiState(
     val tabVersions: Map<String, List<PromptVersion>> = emptyMap(),
     /** Selected version index per tab type. 0 = v0 (defaults), 1+ = saved versions. */
     val tabSelectedVersionIndex: Map<String, Int> = emptyMap(),
+    /** Usage stats per tab type, keyed by version number (0 = defaults). */
+    val tabUsageStats: Map<String, Map<Int, PromptUsageStats>> = emptyMap(),
     /** Pending version switch (tabType to targetVersionIndex) blocked by unsaved changes. */
     val pendingSwitch: Pair<String, Int>? = null,
     val showExitDialog: Boolean = false,

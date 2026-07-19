@@ -1,7 +1,12 @@
 ﻿package dev.gaborbiro.dailymacros.features.settings.promptEditor.views
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -36,6 +41,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -69,6 +75,7 @@ import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorView
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel.Companion.TAB_WEEKLY_INSIGHTS
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.model.PromptEditorUiState
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptUsageStats
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -124,9 +131,13 @@ internal fun PromptEditorView(
 
     var hiddenPx by remember { mutableFloatStateOf(0f) }
     var collapsingMaxPx by remember { mutableFloatStateOf(0f) }
+    var saveButtonVisible by remember { mutableStateOf(true) }
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                // Pop the floating Save button down when scrolling down, back up when scrolling up
+                if (available.y < -2f) saveButtonVisible = false
+                else if (available.y > 2f) saveButtonVisible = true
                 val max = collapsingMaxPx
                 if (max <= 0f || available.y >= 0f) return Offset.Zero
                 val prev = hiddenPx
@@ -142,6 +153,7 @@ internal fun PromptEditorView(
             }
         }
     }
+    LaunchedEffect(selectedTab) { saveButtonVisible = true }
 
     Dialog(
         onDismissRequest = onDismissRequested,
@@ -240,67 +252,80 @@ internal fun PromptEditorView(
                         }
                     }
 
-                    // Per-tab version picker
-                    VersionPicker(
-                        versions = viewState.tabVersions[currentTabType] ?: emptyList(),
-                        selectedIndex = viewState.tabSelectedVersionIndex[currentTabType] ?: 0,
-                        enabled = viewState.promptsEnabled,
-                        onVersionSelected = { onVersionSelected(currentTabType, it) },
-                        onDeleteVersion = { onDeleteVersion(currentTabType, it) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                    )
+                    Box(modifier = Modifier.weight(1f)) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScrollWithBar(scrollState = activeScrollState, autoFade = false)
+                                .padding(16.dp)
+                                .imePadding(),
+                        ) {
+                            // Per-tab version picker
+                            VersionPicker(
+                                versions = viewState.tabVersions[currentTabType] ?: emptyList(),
+                                selectedIndex = viewState.tabSelectedVersionIndex[currentTabType] ?: 0,
+                                usageStats = viewState.tabUsageStats[currentTabType] ?: emptyMap(),
+                                enabled = viewState.promptsEnabled,
+                                onVersionSelected = { onVersionSelected(currentTabType, it) },
+                                onDeleteVersion = { onDeleteVersion(currentTabType, it) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 16.dp),
+                            )
+                            currentSegments.forEach { segment ->
+                                when (segment) {
+                                    is PromptSegment.Locked -> {
+                                        Text(
+                                            text = segment.text,
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                fontFamily = FontFamily.Monospace,
+                                            ),
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(vertical = 12.dp),
+                                        )
+                                    }
 
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .verticalScrollWithBar(scrollState = activeScrollState, autoFade = false)
-                            .padding(16.dp)
-                            .imePadding(),
-                    ) {
-                        currentSegments.forEach { segment ->
-                            when (segment) {
-                                is PromptSegment.Locked -> {
-                                    Text(
-                                        text = segment.text,
-                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                            fontFamily = FontFamily.Monospace,
-                                        ),
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(vertical = 12.dp),
-                                    )
-                                }
-
-                                is PromptSegment.Editable -> {
-                                    val currentText = viewState.currentValues[segment.id] ?: segment.defaultText
-                                    OutlinedTextField(
-                                        value = currentText,
-                                        onValueChange = { onValueChanged(segment.id, it) },
-                                        label = { Text(segment.label) },
-                                        placeholder = if (segment.hint.isNotBlank()) {
-                                            { Text(segment.hint, style = MaterialTheme.typography.bodySmall) }
-                                        } else null,
-                                        modifier = Modifier.fillMaxWidth(),
-                                        minLines = if (segment.singleLine) 1 else currentText.lines().size.coerceIn(3, 20),
-                                        maxLines = if (segment.singleLine) 1 else Int.MAX_VALUE,
-                                        singleLine = segment.singleLine,
-                                        enabled = viewState.promptsEnabled,
-                                    )
-                                    Spacer(Modifier.height(16.dp))
+                                    is PromptSegment.Editable -> {
+                                        val currentText = viewState.currentValues[segment.id] ?: segment.defaultText
+                                        OutlinedTextField(
+                                            value = currentText,
+                                            onValueChange = { onValueChanged(segment.id, it) },
+                                            label = { Text(segment.label) },
+                                            placeholder = if (segment.hint.isNotBlank()) {
+                                                { Text(segment.hint, style = MaterialTheme.typography.bodySmall) }
+                                            } else null,
+                                            modifier = Modifier.fillMaxWidth(),
+                                            minLines = if (segment.singleLine) 1 else currentText.lines().size.coerceIn(3, 20),
+                                            maxLines = if (segment.singleLine) 1 else Int.MAX_VALUE,
+                                            singleLine = segment.singleLine,
+                                            enabled = viewState.promptsEnabled,
+                                        )
+                                        Spacer(Modifier.height(16.dp))
+                                    }
                                 }
                             }
+                            // Keep the last field reachable above the floating Save button
+                            Spacer(Modifier.height(64.dp))
                         }
-                        Button(
-                            onClick = { onSaveTapped(currentTabType) },
-                            enabled = viewState.promptsEnabled && viewState.currentValues != viewState.originalValues,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 8.dp),
+                        androidx.compose.animation.AnimatedVisibility(
+                            visible = saveButtonVisible,
+                            modifier = Modifier.align(Alignment.BottomCenter),
+                            enter = slideInVertically(initialOffsetY = { it * 2 }) + fadeIn(),
+                            exit = slideOutVertically(targetOffsetY = { it * 2 }) + fadeOut(),
                         ) {
-                            Text(stringResource(R.string.settings_prompt_editor_save))
+                            Button(
+                                onClick = { onSaveTapped(currentTabType) },
+                                enabled = viewState.promptsEnabled && viewState.currentValues != viewState.originalValues,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp)
+                                    .padding(bottom = 16.dp)
+                                    .imePadding(),
+                            ) {
+                                Text(stringResource(R.string.settings_prompt_editor_save))
+                            }
                         }
                     }
                 }
@@ -379,6 +404,7 @@ private fun ApiKeyRow(
 private fun VersionPicker(
     versions: List<PromptVersion>,
     selectedIndex: Int,
+    usageStats: Map<Int, PromptUsageStats>,
     enabled: Boolean,
     onVersionSelected: (Int) -> Unit,
     onDeleteVersion: (Int) -> Unit,
@@ -413,7 +439,9 @@ private fun VersionPicker(
             onDismissRequest = { expanded = false },
         ) {
             DropdownMenuItem(
-                text = { Text(versionDefault) },
+                text = {
+                    VersionItemLabel(label = versionDefault, stats = usageStats[0])
+                },
                 onClick = {
                     expanded = false
                     onVersionSelected(0)
@@ -421,7 +449,9 @@ private fun VersionPicker(
             )
             versions.forEachIndexed { index, version ->
                 DropdownMenuItem(
-                    text = { Text(version.label()) },
+                    text = {
+                        VersionItemLabel(label = version.label(), stats = usageStats[version.version])
+                    },
                     trailingIcon = {
                         IconButton(onClick = {
                             expanded = false
@@ -440,6 +470,27 @@ private fun VersionPicker(
                     },
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun VersionItemLabel(
+    label: String,
+    stats: PromptUsageStats?,
+) {
+    Column {
+        Text(label)
+        if (stats != null && stats.count > 0) {
+            Text(
+                text = stringResource(
+                    R.string.settings_prompt_editor_usage_stats,
+                    stats.count,
+                    stats.averageTokens,
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

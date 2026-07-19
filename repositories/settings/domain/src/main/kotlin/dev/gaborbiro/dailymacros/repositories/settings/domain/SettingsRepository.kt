@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.repositories.settings.domain
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.AutoSyncErrorStatus
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.BackupInterval
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptUsageStats
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 
@@ -31,6 +32,17 @@ interface SettingsRepository {
 
     /** Deletes the version with the given version number. */
     fun deletePromptVersion(version: Int)
+
+    /** Version number currently applied for the given prompt type; 0 means the defaults. */
+    fun getActivePromptVersion(type: String): Int = 0
+
+    fun setActivePromptVersion(type: String, version: Int) {}
+
+    /** Records one AI query against the version of the given prompt type currently in effect. */
+    fun recordPromptUsage(type: String, totalTokens: Long) {}
+
+    /** Usage stats for the given prompt type, keyed by version number (0 = defaults). */
+    fun getPromptUsageStats(type: String): Map<Int, PromptUsageStats> = emptyMap()
 
     fun getApiKeyOverride(): String?
     fun setApiKeyOverride(key: String)

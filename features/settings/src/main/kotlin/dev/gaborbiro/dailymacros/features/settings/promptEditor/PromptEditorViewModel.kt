@@ -9,6 +9,7 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ForImageUploadChatG
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptType
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -34,10 +35,10 @@ class PromptEditorViewModel @Inject constructor(
 ) : ViewModel() {
 
     companion object {
-        const val TAB_RECOGNITION = "recognition"
-        const val TAB_ANALYSIS = "analysis"
-        const val TAB_WEEKLY_INSIGHTS = "insights"
-        const val TAB_ONGOING_WEEK_INSIGHTS = "ongoing_insights"
+        const val TAB_RECOGNITION = PromptType.RECOGNITION
+        const val TAB_ANALYSIS = PromptType.ANALYSIS
+        const val TAB_WEEKLY_INSIGHTS = PromptType.WEEKLY_INSIGHTS
+        const val TAB_ONGOING_WEEK_INSIGHTS = PromptType.ONGOING_WEEK_INSIGHTS
         val TAB_TYPES = listOf(TAB_RECOGNITION, TAB_ANALYSIS, TAB_WEEKLY_INSIGHTS, TAB_ONGOING_WEEK_INSIGHTS)
     }
 
@@ -65,6 +66,7 @@ class PromptEditorViewModel @Inject constructor(
             originalValues = customisations,
             tabVersions = tabVersions,
             tabSelectedVersionIndex = tabSelectedVersionIndex,
+            tabUsageStats = TAB_TYPES.associateWith { settingsRepository.getPromptUsageStats(it) },
             storedApiKeyOverride = storedKey,
             apiKeyDraft = storedKey ?: "",
             aiInsightsEnabled = featureFlagStore.isEnabled(FeatureFlagStore.Key.AI_INSIGHTS_ENABLED),
@@ -216,6 +218,7 @@ class PromptEditorViewModel @Inject constructor(
         val newIndex = newVersions.indexOfFirst { it.version == newVersion.version } + 1
         val mergedCustomisations = settingsRepository.getPromptCustomisations() + tabValues
         settingsRepository.setPromptCustomisations(mergedCustomisations)
+        settingsRepository.setActivePromptVersion(tabType, newVersion.version)
         _uiState.update {
             it.copy(
                 originalValues = it.originalValues + tabValues,
@@ -231,6 +234,7 @@ class PromptEditorViewModel @Inject constructor(
         if (index == 0) {
             val mergedCustomisations = settingsRepository.getPromptCustomisations() - ids
             settingsRepository.setPromptCustomisations(mergedCustomisations)
+            settingsRepository.setActivePromptVersion(tabType, 0)
             _uiState.update {
                 val clearedValues = it.currentValues - ids
                 val clearedOriginal = it.originalValues - ids
@@ -244,6 +248,7 @@ class PromptEditorViewModel @Inject constructor(
             val version = _uiState.value.tabVersions[tabType]?.getOrNull(index - 1) ?: return
             val mergedCustomisations = settingsRepository.getPromptCustomisations() + version.customisations
             settingsRepository.setPromptCustomisations(mergedCustomisations)
+            settingsRepository.setActivePromptVersion(tabType, version.version)
             _uiState.update {
                 it.copy(
                     currentValues = it.currentValues + version.customisations,
