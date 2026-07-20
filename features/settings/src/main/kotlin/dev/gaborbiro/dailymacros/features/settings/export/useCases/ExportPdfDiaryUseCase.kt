@@ -109,16 +109,29 @@ class ExportPdfDiaryUseCase @Inject constructor(
             filenames.forEach { filename ->
                 val bitmap = runCatching { imageStore.read(filename, thumbnail = false) }.getOrNull()
                     ?: runCatching { imageStore.read(filename, thumbnail = true) }.getOrNull()
-                if (bitmap != null) put(filename, bitmap.scaleToMax(PHOTO_MAX_EDGE_PX))
+                if (bitmap != null) put(filename, bitmap.toPrintBitmap(PHOTO_MAX_EDGE_PX))
             }
         }
     }
 
-    private fun Bitmap.scaleToMax(maxEdgePx: Int): Bitmap {
-        val longest = maxOf(width, height)
-        if (longest <= maxEdgePx) return this
+    /**
+     * Produces a software (ARGB_8888) bitmap downscaled to [maxEdgePx]. ImageStore may return a
+     * hardware bitmap (Config.HARDWARE via ImageDecoder), which PdfDocument's software Canvas cannot
+     * draw ("Software rendering doesn't support hardware bitmaps"), so convert before scaling.
+     */
+    private fun Bitmap.toPrintBitmap(maxEdgePx: Int): Bitmap {
+        val software = if (config == Bitmap.Config.HARDWARE) {
+            copy(Bitmap.Config.ARGB_8888, false) ?: this
+        } else {
+            this
+        }
+        val longest = maxOf(software.width, software.height)
+        if (longest <= maxEdgePx) return software
         val ratio = maxEdgePx.toFloat() / longest
-        return scale((width * ratio).toInt().coerceAtLeast(1), (height * ratio).toInt().coerceAtLeast(1))
+        return software.scale(
+            (software.width * ratio).toInt().coerceAtLeast(1),
+            (software.height * ratio).toInt().coerceAtLeast(1),
+        )
     }
 
     private fun List<Record>.groupByDiaryDay(dayStart: java.time.LocalTime): List<TravelDay> =
