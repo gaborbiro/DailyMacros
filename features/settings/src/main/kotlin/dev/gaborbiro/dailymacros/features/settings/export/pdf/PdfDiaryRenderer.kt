@@ -209,42 +209,85 @@ class PdfDiaryRenderer(
             }
         }
 
-        // Title and description always run full width on their own lines. Keep the title with the
-        // start of its content so it never dangles alone at the bottom of a page.
-        val followMin = when {
-            descriptionBlock != null -> 2 * (bodyPaint.textSize + LINE_GAP)
-            sized.isNotEmpty() -> minOf(photoRowHeight, PHOTO_HEIGHT)
-            sideBlocks.isNotEmpty() -> 2 * (sideBlocks.first().paint.textSize + LINE_GAP)
-            else -> 0f
-        }
-        ensureSpace(mealTitlePaint.textSize + LINE_GAP + followMin)
-        drawBlockPaginated(TextBlock(heading(record), mealTitlePaint))
-        descriptionBlock?.let { drawBlockPaginated(it) }
+        val titleBlock = TextBlock(heading(record), mealTitlePaint)
 
         // Photo + (components/macros) block: two columns when the photo is at most half the width.
         val fitsOneRow = sized.isNotEmpty() && rowWidth <= CONTENT_WIDTH
-        val twoColumn = fitsOneRow && rowWidth <= HALF_WIDTH && sized.all { it.width <= HALF_WIDTH }
+        val twoColumn = fitsOneRow && rowWidth <= HALF_WIDTH && sized.all { it.width <= HALF_WIDTH } &&
+            sideBlocks.isNotEmpty()
+        val sideWidth = CONTENT_WIDTH - rowWidth - COLUMN_GAP
 
-        if (twoColumn && sideBlocks.isNotEmpty()) {
-            val textWidth = CONTENT_WIDTH - rowWidth - COLUMN_GAP
-            val blockHeight = maxOf(photoRowHeight, measureBlocks(sideBlocks, textWidth))
-            if (blockHeight <= PAGE_H - 2 * MARGIN) {
-                ensureSpace(blockHeight)
-                val startY = y
-                drawPhotoRow(sized, MARGIN, startY)
-                drawBlocks(sideBlocks, MARGIN + rowWidth + COLUMN_GAP, startY, textWidth)
-                y = startY + blockHeight + MEAL_GAP
-                return
-            }
-            // Too tall for a page in two columns; fall through to single column.
+        // Keep the whole record together on one page. Measure it; if it fits on a page but not in the
+        // remaining space, move it to the next page. Only records taller than a full page are split.
+        val recordHeight = measureMeal(titleBlock, descriptionBlock, sideBlocks, sized, twoColumn, photoRowHeight, sideWidth)
+        if (recordHeight <= PAGE_H - 2 * MARGIN && y + recordHeight > PAGE_H - MARGIN) {
+            startPage()
         }
 
-        if (sized.isNotEmpty()) drawPhotosWrapped(sized)
-        sideBlocks.forEachIndexed { index, block ->
-            if (index > 0) y += block.gapBefore
-            drawBlockPaginated(block)
+        drawBlockPaginated(titleBlock)
+        y += TITLE_GAP
+        descriptionBlock?.let {
+            drawBlockPaginated(it)
+            y += POST_DESC_GAP
+        }
+
+        val twoColumnBlockHeight = maxOf(photoRowHeight, measureBlocks(sideBlocks, sideWidth))
+        if (twoColumn && y + twoColumnBlockHeight <= PAGE_H - MARGIN) {
+            val startY = y
+            drawPhotoRow(sized, MARGIN, startY)
+            drawBlocks(sideBlocks, MARGIN + rowWidth + COLUMN_GAP, startY, sideWidth)
+            y = startY + twoColumnBlockHeight
+        } else {
+            if (sized.isNotEmpty()) drawPhotosWrapped(sized)
+            sideBlocks.forEachIndexed { index, block ->
+                if (index > 0) y += block.gapBefore
+                drawBlockPaginated(block)
+            }
         }
         y += MEAL_GAP
+    }
+
+    /** Total height of a whole meal in its chosen layout, used to keep records off page breaks. */
+    private fun measureMeal(
+        titleBlock: TextBlock,
+        descriptionBlock: TextBlock?,
+        sideBlocks: List<TextBlock>,
+        sized: List<SizedPhoto>,
+        twoColumn: Boolean,
+        photoRowHeight: Float,
+        sideWidth: Float,
+    ): Float {
+        var h = measureBlock(titleBlock, CONTENT_WIDTH) + TITLE_GAP
+        if (descriptionBlock != null) {
+            h += measureBlock(descriptionBlock, CONTENT_WIDTH) + POST_DESC_GAP
+        }
+        h += if (twoColumn) {
+            maxOf(photoRowHeight, measureBlocks(sideBlocks, sideWidth))
+        } else {
+            (if (sized.isNotEmpty()) measurePhotosWrapped(sized) else 0f) +
+                measureBlocks(sideBlocks, CONTENT_WIDTH)
+        }
+        return h
+    }
+
+    private fun measureBlock(block: TextBlock, maxWidth: Float): Float =
+        linesFor(block, maxWidth).size * (block.paint.textSize + LINE_GAP)
+
+    /** Height of [sized] laid out across the full content width, matching [drawPhotosWrapped]. */
+    private fun measurePhotosWrapped(sized: List<SizedPhoto>): Float {
+        var cx = MARGIN
+        var rowHeight = 0f
+        var stacked = 0f
+        sized.forEach { p ->
+            if (cx > MARGIN && cx + p.width > MARGIN + CONTENT_WIDTH) {
+                stacked += rowHeight + PHOTO_GAP
+                cx = MARGIN
+                rowHeight = 0f
+            }
+            cx += p.width + PHOTO_GAP
+            rowHeight = maxOf(rowHeight, p.height)
+        }
+        return 4f + stacked + rowHeight + 4f
     }
 
     private fun heading(record: Record): String {
@@ -461,6 +504,8 @@ class PdfDiaryRenderer(
         private const val LINE_GAP = 4f
         private const val BLOCK_GAP = 3f
         private const val SECTION_GAP = 10f
+        private const val TITLE_GAP = 9f
+        private const val POST_DESC_GAP = 7f
         private const val MEAL_GAP = 16f
         private const val PHOTO_HEIGHT = 210f
         private const val PHOTO_GAP = 6f
