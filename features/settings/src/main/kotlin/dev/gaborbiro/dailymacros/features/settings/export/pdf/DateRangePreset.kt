@@ -1,26 +1,17 @@
 package dev.gaborbiro.dailymacros.features.settings.export.pdf
 
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.DateRangePreset
 import java.time.DayOfWeek
 import java.time.LocalDate
-
-/**
- * Quick date-range choices for the PDF export, expressed in logical diary dates (the caller passes
- * [today] already resolved to a logical diary date, so all ranges honour the diary-day cutoff).
- * "Week" boundaries follow [firstDayOfWeek] (device locale's first day of week).
- */
-enum class DateRangePreset {
-    TODAY,
-    THIS_WEEK,
-    LAST_7_DAYS,
-    LAST_WEEK,
-    THIS_MONTH,
-    LAST_30_DAYS,
-    LAST_MONTH,
-}
 
 /** Inclusive logical-diary-date range [from]..[to]. */
 data class DiaryDateRange(val from: LocalDate, val to: LocalDate)
 
+/**
+ * Resolves a [DateRangePreset] to a concrete range in logical diary dates (the caller passes [today]
+ * already resolved to a logical diary date, so all ranges honour the diary-day cutoff). "Week"
+ * boundaries follow [firstDayOfWeek] (device locale's first day of week).
+ */
 fun computeRange(
     preset: DateRangePreset,
     today: LocalDate,

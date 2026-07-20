@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.features.settings.export.pdf
 
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.DateRangePreset
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.DayOfWeek

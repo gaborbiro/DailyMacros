@@ -11,6 +11,8 @@ data class PdfExportOptions(
     val mealMacros: Boolean = true,
     val description: Boolean = true,
     val components: Boolean = true,
+    /** Last-used date range preset, remembered for the next export. */
+    val rangePreset: DateRangePreset = DateRangePreset.LAST_7_DAYS,
 )
 
 enum class PdfPhotoMode {

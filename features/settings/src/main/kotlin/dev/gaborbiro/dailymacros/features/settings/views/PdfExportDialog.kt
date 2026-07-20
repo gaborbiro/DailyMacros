@@ -31,8 +31,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.features.settings.R
-import dev.gaborbiro.dailymacros.features.settings.export.pdf.DateRangePreset
 import dev.gaborbiro.dailymacros.features.settings.export.pdf.PdfRangeSelection
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.DateRangePreset
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PdfExportOptions
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PdfPhotoMode
 import java.time.Instant
@@ -48,7 +48,7 @@ internal fun PdfExportDialog(
     onDismiss: () -> Unit,
     onExport: (PdfRangeSelection, PdfExportOptions) -> Unit,
 ) {
-    var selectedPreset by remember { mutableStateOf<DateRangePreset?>(DateRangePreset.LAST_7_DAYS) }
+    var selectedPreset by remember { mutableStateOf<DateRangePreset?>(initialOptions.rangePreset) }
     var customRange by remember { mutableStateOf<Pair<LocalDate, LocalDate>?>(null) }
     var showRangePicker by remember { mutableStateOf(false) }
 
@@ -154,6 +154,8 @@ internal fun PdfExportDialog(
                         mealMacros = mealMacros,
                         description = description,
                         components = components,
+                        // Remember the preset for next time; keep the previous one when a custom range is used.
+                        rangePreset = selectedPreset ?: initialOptions.rangePreset,
                     ),
                 )
             }) { Text(stringResource(R.string.pdf_export_action)) }

@@ -66,6 +66,11 @@ class ExportPdfDiaryUseCase @Inject constructor(
 
         if (records.isEmpty()) return PdfExportResult.Empty
 
+        // Ask for the save location up front (cheap) so the user isn't left waiting on the render
+        // before the picker appears; only then do the heavy photo loading and drawing.
+        val fileName = "food-diary-${range.from}_to_${range.to}.pdf"
+        val uri = createPublicDocumentUseCase.execute(fileName) ?: return PdfExportResult.Cancelled
+
         val days = records.groupByDiaryDay(dayStart)
         val photos = loadPhotos(days.flatMap { it.records }, options)
 
@@ -80,9 +85,6 @@ class ExportPdfDiaryUseCase @Inject constructor(
             locale = locale,
         )
         val rendered = withContext(Dispatchers.Default) { renderer.render() }
-
-        val fileName = "food-diary-${range.from}_to_${range.to}.pdf"
-        val uri = createPublicDocumentUseCase.execute(fileName) ?: return PdfExportResult.Cancelled
 
         streamWriter.execute(uri) { output ->
             PDFBoxResourceLoader.init(appContext)

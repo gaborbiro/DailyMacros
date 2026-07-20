@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.features.settings.export.pdf
 
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.DateRangePreset
 import java.time.LocalDate
 
 /** What the user chose in the export dialog's range picker. */

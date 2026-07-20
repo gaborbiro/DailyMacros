@@ -61,7 +61,12 @@ class PdfDiaryRenderer(
 
     private data class SizedPhoto(val bitmap: Bitmap, val width: Float, val height: Float)
 
-    private data class TextBlock(val text: String, val paint: Paint)
+    /**
+     * A run of text. When [items] is set the block wraps only between items (each item stays whole,
+     * separated by [MACRO_SEPARATOR]) — used for the macro line so "Fibre 3 g" never splits across a
+     * line break. Otherwise [text] wraps normally at spaces.
+     */
+    private data class TextBlock(val text: String, val paint: Paint, val items: List<String>? = null)
 
     private val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale)
     private val timeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale)
@@ -79,6 +84,7 @@ class PdfDiaryRenderer(
     private val totalsValuePaint = paint(13f, color = NEAR_BLACK)
     private val mealTitlePaint = paint(16f, bold = true)
     private val bodyPaint = paint(13f)
+    private val componentPaint = paint(13f, color = GRAY, italic = true)
     private val macroPaint = paint(12f, color = GRAY)
     private val tocPaint = paint(16f, color = LINK)
     private val totalsBoxPaint = Paint().apply { color = TOTALS_BG }
@@ -146,8 +152,7 @@ class PdfDiaryRenderer(
 
     /** A shaded band under the day header carrying the whole-day totals — visually above the meals. */
     private fun drawTotalsBox(day: TravelDay) {
-        val valuesText = formatNutrients(sumNutrients(day.records))
-        val valueLines = wrap(valuesText, totalsValuePaint, CONTENT_WIDTH - 2 * BOX_PADDING)
+        val valueLines = wrapItems(nutrientItems(sumNutrients(day.records)), totalsValuePaint, CONTENT_WIDTH - 2 * BOX_PADDING)
         val labelHeight = totalsLabelPaint.textSize + 6f
         val valuesHeight = valueLines.size * (totalsValuePaint.textSize + LINE_GAP)
         val boxHeight = BOX_PADDING + labelHeight + valuesHeight + BOX_PADDING
@@ -195,8 +200,14 @@ class PdfDiaryRenderer(
             // Too tall for a page in two columns; fall through to single column.
         }
 
-        // Single column: title, photos (wrapping full width), then macros/description/components.
-        ensureSpace(mealTitlePaint.textSize + LINE_GAP)
+        // Single column: title, photos (wrapping full width), then description/components/macros.
+        // Keep the title with the start of its content so it never dangles at the page bottom.
+        val followMin = when {
+            sized.isNotEmpty() -> minOf(photoRowHeight, PHOTO_HEIGHT)
+            body.isNotEmpty() -> 2 * (body.first().paint.textSize + LINE_GAP)
+            else -> 0f
+        }
+        ensureSpace(mealTitlePaint.textSize + LINE_GAP + followMin)
         drawBlockPaginated(head)
         if (sized.isNotEmpty()) drawPhotosWrapped(sized)
         body.forEach { drawBlockPaginated(it) }
@@ -205,10 +216,8 @@ class PdfDiaryRenderer(
 
     private fun buildBodyBlocks(record: Record): List<TextBlock> {
         val template = record.template
+        // Order: human description first, then AI components, then macros.
         return buildList {
-            if (options.mealMacros) {
-                add(TextBlock(formatNutrients(template.nutrients), macroPaint))
-            }
             if (options.description && template.description.isNotBlank()) {
                 add(TextBlock(template.description, bodyPaint))
             }
@@ -216,7 +225,10 @@ class PdfDiaryRenderer(
                 val components = template.mealComponents.joinToString("\n") { comp ->
                     "• ${comp.name}" + comp.estimatedAmount.takeIf { it.isNotBlank() }?.let { " ($it)" }.orEmpty()
                 }
-                add(TextBlock(components, bodyPaint))
+                add(TextBlock(components, componentPaint))
+            }
+            if (options.mealMacros) {
+                add(TextBlock(text = "", paint = macroPaint, items = nutrientItems(template.nutrients)))
             }
         }
     }
@@ -276,14 +288,14 @@ class PdfDiaryRenderer(
 
     private fun measureBlocks(blocks: List<TextBlock>, maxWidth: Float): Float =
         blocks.fold(0f) { acc, b ->
-            acc + wrap(b.text, b.paint, maxWidth).size * (b.paint.textSize + LINE_GAP) + BLOCK_GAP
+            acc + linesFor(b, maxWidth).size * (b.paint.textSize + LINE_GAP) + BLOCK_GAP
         }
 
     /** Draws [blocks] stacked at ([x], [startY]) within [maxWidth]. No pagination — caller ensures fit. */
     private fun drawBlocks(blocks: List<TextBlock>, x: Float, startY: Float, maxWidth: Float) {
         var ly = startY
         blocks.forEach { block ->
-            wrap(block.text, block.paint, maxWidth).forEach { line ->
+            linesFor(block, maxWidth).forEach { line ->
                 canvas.drawText(line, x, ly + block.paint.textSize, block.paint)
                 ly += block.paint.textSize + LINE_GAP
             }
@@ -293,11 +305,36 @@ class PdfDiaryRenderer(
 
     /** Draws a single block at the full content width, paginating line by line. Advances [y]. */
     private fun drawBlockPaginated(block: TextBlock) {
-        wrap(block.text, block.paint, CONTENT_WIDTH).forEach { line ->
+        linesFor(block, CONTENT_WIDTH).forEach { line ->
             ensureSpace(block.paint.textSize + LINE_GAP)
             canvas.drawText(line, MARGIN, y + block.paint.textSize, block.paint)
             y += block.paint.textSize + LINE_GAP
         }
+    }
+
+    private fun linesFor(block: TextBlock, maxWidth: Float): List<String> =
+        block.items?.let { wrapItems(it, block.paint, maxWidth) }
+            ?: wrap(block.text, block.paint, maxWidth)
+
+    /** Packs atomic [items] into lines, breaking only between items (never inside one). */
+    private fun wrapItems(items: List<String>, paint: Paint, maxWidth: Float): List<String> {
+        val lines = mutableListOf<String>()
+        var current = StringBuilder()
+        items.forEach { item ->
+            if (current.isEmpty()) {
+                current.append(item)
+            } else {
+                val candidate = "$current$MACRO_SEPARATOR$item"
+                if (paint.measureText(candidate) <= maxWidth) {
+                    current = StringBuilder(candidate)
+                } else {
+                    lines += current.toString()
+                    current = StringBuilder(item)
+                }
+            }
+        }
+        if (current.isNotEmpty()) lines += current.toString()
+        return lines
     }
 
     /** Wraps [text] to [maxWidth], honouring explicit newlines and preferring to break at spaces. */
@@ -345,17 +382,17 @@ class PdfDiaryRenderer(
         page = null
     }
 
-    private fun formatNutrients(n: Nutrients): String = buildList {
-        add("Calories " + (n.calories?.let { "$it kcal" } ?: EMPTY))
-        add("Protein " + grams(n.protein))
-        add("Fat " + grams(n.fat))
-        add("Sat. fat " + grams(n.ofWhichSaturated))
-        add("Carbs " + grams(n.carbs))
-        add("Sugar " + grams(n.ofWhichSugar))
-        add("Added sugar " + grams(n.ofWhichAddedSugar))
-        add("Salt " + grams(n.salt))
-        add("Fibre " + grams(n.fibre))
-    }.joinToString("   ·   ")
+    private fun nutrientItems(n: Nutrients): List<String> = listOf(
+        "Calories " + (n.calories?.let { "$it kcal" } ?: EMPTY),
+        "Protein " + grams(n.protein),
+        "Fat " + grams(n.fat),
+        "Sat. fat " + grams(n.ofWhichSaturated),
+        "Carbs " + grams(n.carbs),
+        "Sugar " + grams(n.ofWhichSugar),
+        "Added sugar " + grams(n.ofWhichAddedSugar),
+        "Salt " + grams(n.salt),
+        "Fibre " + grams(n.fibre),
+    )
 
     private fun grams(v: Float?): String =
         if (v == null) EMPTY else {
@@ -382,11 +419,22 @@ class PdfDiaryRenderer(
         )
     }
 
-    private fun paint(size: Float, bold: Boolean = false, color: Int = Color.BLACK) = Paint().apply {
+    private fun paint(
+        size: Float,
+        bold: Boolean = false,
+        italic: Boolean = false,
+        color: Int = Color.BLACK,
+    ) = Paint().apply {
         isAntiAlias = true
         textSize = size
         this.color = color
-        typeface = if (bold) Typeface.DEFAULT_BOLD else Typeface.DEFAULT
+        val style = when {
+            bold && italic -> Typeface.BOLD_ITALIC
+            bold -> Typeface.BOLD
+            italic -> Typeface.ITALIC
+            else -> Typeface.NORMAL
+        }
+        typeface = Typeface.create(Typeface.DEFAULT, style)
     }
 
     companion object {
@@ -402,6 +450,7 @@ class PdfDiaryRenderer(
         private const val PHOTO_HEIGHT = 210f
         private const val PHOTO_GAP = 6f
         private const val BOX_PADDING = 12f
+        private const val MACRO_SEPARATOR = "   ·   "
         private const val EMPTY = "—"
         private val GRAY = Color.rgb(90, 90, 90)
         private val NEAR_BLACK = Color.rgb(35, 35, 35)
