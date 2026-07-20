@@ -47,4 +47,12 @@
 - [ ] Merge to `release` branch → CI creates Git tag + GitHub Release
 
 ## API key / spending risk
-Key is a GitHub secret injected at build time (not in git). R8/ProGuard obfuscation is on for release builds. Set a tight spending cap in your OpenAI account and monitor usage. Acceptable for v1 — add a proxy in v2 if abuse occurs.
+Moving to a **Firebase Cloud Function proxy** (`functions/`, project `dailymacros-9fab8`) so the key never ships in the APK and spending is capped server-side.
+
+- App (keyless users) → `openaiProxy` Cloud Function → OpenAI. The function holds the key as a deployed secret and meters every request in Firestore.
+- **Caps:** per-user daily cap + global monthly request budget (tripwire, ~3000 req/mo ≈ $30) + manual kill switch, all tunable live in `config/limits` without redeploy.
+- **Latency:** function is US-region + `minInstances: 1` (kept warm) so the added hop is ~50–200ms against a multi-second model call — negligible. Cold starts avoided by the warm instance.
+- **BYO-key (hidden dev path):** if a personal key is set in Settings, the app still calls OpenAI directly, bypassing the proxy.
+- Setup + deploy runbook: `functions/README.md`. Requires Blaze plan, Anonymous Auth, and Firestore enabled.
+
+**Status:** Cloud Function written and ready to deploy. Android client rewiring (anonymous auth + proxy routing in `AuthInterceptor`) is the follow-up step once the deployed function is confirmed working.
