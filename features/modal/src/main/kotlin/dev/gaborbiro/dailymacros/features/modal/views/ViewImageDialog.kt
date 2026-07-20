@@ -287,7 +287,9 @@ private fun ZoomableImage(
         val scaledHeight = fitted.height * newScale
         val maxX = ((scaledWidth - containerSize.width) / 2f).coerceAtLeast(0f)
         val maxY = ((scaledHeight - containerSize.height) / 2f).coerceAtLeast(0f)
-        val adjustedPan = panChange * newScale
+        // The gesture detector sits on the unscaled container, so panChange is
+        // already in screen pixels and maps 1:1 onto graphicsLayer translation.
+        val adjustedPan = panChange
 
         val newOffset =
             if (maxX == 0f && maxY == 0f) {
