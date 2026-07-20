@@ -66,7 +66,13 @@ class PdfDiaryRenderer(
      * separated by [MACRO_SEPARATOR]) — used for the macro line so "Fibre 3 g" never splits across a
      * line break. Otherwise [text] wraps normally at spaces.
      */
-    private data class TextBlock(val text: String, val paint: Paint, val items: List<String>? = null)
+    private data class TextBlock(
+        val text: String,
+        val paint: Paint,
+        val items: List<String>? = null,
+        /** Extra vertical space before this block when stacked after another. */
+        val gapBefore: Float = BLOCK_GAP,
+    )
 
     private val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale)
     private val timeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale)
@@ -171,6 +177,7 @@ class PdfDiaryRenderer(
     }
 
     private fun drawMeal(record: Record) {
+        val template = record.template
         val sized = resolveSizedPhotos(record)
         val rowWidth = if (sized.isEmpty()) {
             0f
@@ -178,49 +185,12 @@ class PdfDiaryRenderer(
             sized.fold(0f) { acc, p -> acc + p.width } + PHOTO_GAP * (sized.size - 1)
         }
         val photoRowHeight = sized.maxOfOrNull { it.height } ?: 0f
-        val head = TextBlock(heading(record), mealTitlePaint)
-        val body = buildBodyBlocks(record)
 
-        val fitsOneRow = sized.isNotEmpty() && rowWidth <= CONTENT_WIDTH
-        val twoColumn = fitsOneRow && rowWidth <= HALF_WIDTH && sized.all { it.width <= HALF_WIDTH }
-
-        if (twoColumn) {
-            val textWidth = CONTENT_WIDTH - rowWidth - COLUMN_GAP
-            val blocks = listOf(head) + body
-            val textHeight = measureBlocks(blocks, textWidth)
-            val blockHeight = maxOf(photoRowHeight, textHeight)
-            if (blockHeight <= PAGE_H - 2 * MARGIN) {
-                ensureSpace(blockHeight)
-                val startY = y
-                drawPhotoRow(sized, MARGIN, startY)
-                drawBlocks(blocks, MARGIN + rowWidth + COLUMN_GAP, startY, textWidth)
-                y = startY + blockHeight + MEAL_GAP
-                return
-            }
-            // Too tall for a page in two columns; fall through to single column.
-        }
-
-        // Single column: title, photos (wrapping full width), then description/components/macros.
-        // Keep the title with the start of its content so it never dangles at the page bottom.
-        val followMin = when {
-            sized.isNotEmpty() -> minOf(photoRowHeight, PHOTO_HEIGHT)
-            body.isNotEmpty() -> 2 * (body.first().paint.textSize + LINE_GAP)
-            else -> 0f
-        }
-        ensureSpace(mealTitlePaint.textSize + LINE_GAP + followMin)
-        drawBlockPaginated(head)
-        if (sized.isNotEmpty()) drawPhotosWrapped(sized)
-        body.forEach { drawBlockPaginated(it) }
-        y += MEAL_GAP
-    }
-
-    private fun buildBodyBlocks(record: Record): List<TextBlock> {
-        val template = record.template
-        // Order: human description first, then AI components, then macros.
-        return buildList {
-            if (options.description && template.description.isNotBlank()) {
-                add(TextBlock(template.description, bodyPaint))
-            }
+        val descriptionBlock = template.description
+            .takeIf { options.description && it.isNotBlank() }
+            ?.let { TextBlock(it, bodyPaint) }
+        // Components and macros are the only blocks that may sit beside the photo.
+        val sideBlocks = buildList {
             if (options.components && template.mealComponents.isNotEmpty()) {
                 val components = template.mealComponents.joinToString("\n") { comp ->
                     "• ${comp.name}" + comp.estimatedAmount.takeIf { it.isNotBlank() }?.let { " ($it)" }.orEmpty()
@@ -228,9 +198,53 @@ class PdfDiaryRenderer(
                 add(TextBlock(components, componentPaint))
             }
             if (options.mealMacros) {
-                add(TextBlock(text = "", paint = macroPaint, items = nutrientItems(template.nutrients)))
+                add(
+                    TextBlock(
+                        text = "",
+                        paint = macroPaint,
+                        items = nutrientItems(template.nutrients),
+                        gapBefore = SECTION_GAP,
+                    ),
+                )
             }
         }
+
+        // Title and description always run full width on their own lines. Keep the title with the
+        // start of its content so it never dangles alone at the bottom of a page.
+        val followMin = when {
+            descriptionBlock != null -> 2 * (bodyPaint.textSize + LINE_GAP)
+            sized.isNotEmpty() -> minOf(photoRowHeight, PHOTO_HEIGHT)
+            sideBlocks.isNotEmpty() -> 2 * (sideBlocks.first().paint.textSize + LINE_GAP)
+            else -> 0f
+        }
+        ensureSpace(mealTitlePaint.textSize + LINE_GAP + followMin)
+        drawBlockPaginated(TextBlock(heading(record), mealTitlePaint))
+        descriptionBlock?.let { drawBlockPaginated(it) }
+
+        // Photo + (components/macros) block: two columns when the photo is at most half the width.
+        val fitsOneRow = sized.isNotEmpty() && rowWidth <= CONTENT_WIDTH
+        val twoColumn = fitsOneRow && rowWidth <= HALF_WIDTH && sized.all { it.width <= HALF_WIDTH }
+
+        if (twoColumn && sideBlocks.isNotEmpty()) {
+            val textWidth = CONTENT_WIDTH - rowWidth - COLUMN_GAP
+            val blockHeight = maxOf(photoRowHeight, measureBlocks(sideBlocks, textWidth))
+            if (blockHeight <= PAGE_H - 2 * MARGIN) {
+                ensureSpace(blockHeight)
+                val startY = y
+                drawPhotoRow(sized, MARGIN, startY)
+                drawBlocks(sideBlocks, MARGIN + rowWidth + COLUMN_GAP, startY, textWidth)
+                y = startY + blockHeight + MEAL_GAP
+                return
+            }
+            // Too tall for a page in two columns; fall through to single column.
+        }
+
+        if (sized.isNotEmpty()) drawPhotosWrapped(sized)
+        sideBlocks.forEachIndexed { index, block ->
+            if (index > 0) y += block.gapBefore
+            drawBlockPaginated(block)
+        }
+        y += MEAL_GAP
     }
 
     private fun heading(record: Record): String {
@@ -287,19 +301,19 @@ class PdfDiaryRenderer(
     // ---- Text block helpers ----
 
     private fun measureBlocks(blocks: List<TextBlock>, maxWidth: Float): Float =
-        blocks.fold(0f) { acc, b ->
-            acc + linesFor(b, maxWidth).size * (b.paint.textSize + LINE_GAP) + BLOCK_GAP
+        blocks.foldIndexed(0f) { index, acc, b ->
+            acc + (if (index > 0) b.gapBefore else 0f) + linesFor(b, maxWidth).size * (b.paint.textSize + LINE_GAP)
         }
 
     /** Draws [blocks] stacked at ([x], [startY]) within [maxWidth]. No pagination — caller ensures fit. */
     private fun drawBlocks(blocks: List<TextBlock>, x: Float, startY: Float, maxWidth: Float) {
         var ly = startY
-        blocks.forEach { block ->
+        blocks.forEachIndexed { index, block ->
+            if (index > 0) ly += block.gapBefore
             linesFor(block, maxWidth).forEach { line ->
                 canvas.drawText(line, x, ly + block.paint.textSize, block.paint)
                 ly += block.paint.textSize + LINE_GAP
             }
-            ly += BLOCK_GAP
         }
     }
 
@@ -446,6 +460,7 @@ class PdfDiaryRenderer(
         private const val COLUMN_GAP = 14f
         private const val LINE_GAP = 4f
         private const val BLOCK_GAP = 3f
+        private const val SECTION_GAP = 10f
         private const val MEAL_GAP = 16f
         private const val PHOTO_HEIGHT = 210f
         private const val PHOTO_GAP = 6f
