@@ -69,6 +69,7 @@ google-play-services-auth = "21.6.0"
 # @pin
 guava = "33.4.8-android"
 commons-compress = "1.28.0"
+pdfbox-android = "2.0.27.0"
 vico = "3.2.3"
 # -------------------------------------------------------------------------------
 # --- Testing -------------------------------------------------------------------
@@ -159,6 +160,7 @@ network-retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "
 network-retrofit-converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "squareup-retrofit" }
 network-gson = { module = "com.google.code.gson:gson", version.ref = "google-gson" }
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commons-compress" }
+pdfbox-android = { module = "com.tom-roush:pdfbox-android", version.ref = "pdfbox-android" }
 # -------------------------------------------------------------------------------
 # --- KotlinX / Concurrency -----------------------------------------------------
 # -------------------------------------------------------------------------------

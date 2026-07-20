@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.repositories.settings.domain
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.AutoSyncErrorStatus
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.BackupInterval
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PdfExportOptions
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptUsageStats
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
@@ -88,4 +89,8 @@ interface SettingsRepository {
 
     fun getAutoSyncErrorStatus(): AutoSyncErrorStatus? = null
     fun setAutoSyncErrorStatus(status: AutoSyncErrorStatus?) {}
+
+    /** Last content options chosen for the PDF food-diary export. */
+    fun getPdfExportOptions(): PdfExportOptions = PdfExportOptions()
+    fun setPdfExportOptions(options: PdfExportOptions) {}
 }

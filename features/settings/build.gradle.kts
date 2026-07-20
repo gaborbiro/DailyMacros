@@ -19,6 +19,7 @@ dependencies {
     implementation(project(":repositories:settings:domain"))
     implementation(project(":repositories:records:domain"))
     implementation(project(":repositories:chatgpt:domain"))
+    implementation(project(":data:image"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -29,6 +30,8 @@ dependencies {
 
     implementation(libs.dagger.hilt.android)
     ksp(libs.dagger.hilt.compiler)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
@@ -38,5 +41,8 @@ dependencies {
 
     implementation(libs.network.gson)
     implementation(libs.google.play.services.auth)
+    implementation(libs.pdfbox.android)
     testImplementation(libs.test.junit)
+    testImplementation(libs.test.robolectric)
+    testImplementation(libs.androidx.test.core)
 }

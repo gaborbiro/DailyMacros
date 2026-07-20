@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.features.settings.model
 
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.BackupInterval
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PdfExportOptions
 
 data class SettingsUiState(
     val showTargetsSettings: Boolean,
@@ -28,4 +29,7 @@ data class SettingsUiState(
     val showAutoBackupIntervalDialog: Boolean = false,
     val showOverwriteConfirmDialog: Boolean = false,
     val overwriteDialogDriveModifiedAtMs: Long = 0L,
+    val showPdfExportDialog: Boolean = false,
+    val pdfExportOptions: PdfExportOptions = PdfExportOptions(),
+    val pdfExportInProgress: Boolean = false,
 )
