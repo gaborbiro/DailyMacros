@@ -83,16 +83,16 @@ class PdfDiaryRenderer(
     private var pageIndex = -1
     private var y = MARGIN
 
-    private val titlePaint = paint(28f, bold = true)
-    private val subtitlePaint = paint(14f, color = GRAY)
-    private val dayHeaderPaint = paint(23f, bold = true)
-    private val totalsLabelPaint = paint(16f, bold = true)
-    private val totalsValuePaint = paint(13f, color = NEAR_BLACK)
-    private val mealTitlePaint = paint(16f, bold = true)
-    private val bodyPaint = paint(13f)
-    private val componentPaint = paint(13f, color = GRAY, italic = true)
-    private val macroPaint = paint(12f, color = GRAY)
-    private val tocPaint = paint(16f, color = LINK)
+    private val titlePaint = paint(31f, bold = true)
+    private val subtitlePaint = paint(15f, color = GRAY)
+    private val dayHeaderPaint = paint(25f, bold = true)
+    private val totalsLabelPaint = paint(18f, bold = true)
+    private val totalsValuePaint = paint(15f, color = NEAR_BLACK)
+    private val mealTitlePaint = paint(18f, bold = true)
+    private val bodyPaint = paint(15f)
+    private val componentPaint = paint(15f, color = GRAY, italic = true)
+    private val macroPaint = paint(14f, color = GRAY)
+    private val tocPaint = paint(18f, color = LINK)
     private val totalsBoxPaint = Paint().apply { color = TOTALS_BG }
 
     fun render(): RenderedDiary {
