@@ -19,7 +19,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.shared.photodiary.PhotoMonitorWorker
 import dev.gaborbiro.dailymacros.features.settings.export.OpenPublicDocumentUseCase
-import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
+import dev.gaborbiro.dailymacros.features.settings.export.SharePublicUriLauncher
+import dev.gaborbiro.dailymacros.features.settings.export.ViewPublicUriLauncher
+import dev.gaborbiro.dailymacros.features.settings.export.pdf.DiaryDateRange
+import dev.gaborbiro.dailymacros.features.settings.export.pdf.PdfRangeSelection
+import dev.gaborbiro.dailymacros.features.settings.export.pdf.computeRange
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportPdfDiaryUseCase
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.PdfExportResult
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportSqliteDatabaseUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseResult
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseUseCase
@@ -31,6 +37,7 @@ import dev.gaborbiro.dailymacros.repositories.backup.domain.CloudSyncRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.BackupInterval
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PdfExportOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,7 +55,9 @@ class SettingsViewModel @Inject constructor(
     application: Application,
     appInfo: SettingsAppInfo,
     private val settingsRepository: SettingsRepository,
-    private val exportFoodDiaryUseCase: ExportFoodDiaryUseCase,
+    private val exportPdfDiaryUseCase: ExportPdfDiaryUseCase,
+    private val sharePublicUriLauncher: SharePublicUriLauncher,
+    private val viewPublicUriLauncher: ViewPublicUriLauncher,
     private val exportSqliteDatabaseUseCase: ExportSqliteDatabaseUseCase,
     private val importSqliteDatabaseUseCase: ImportSqliteDatabaseUseCase,
     private val syncDatabaseUseCase: SyncDatabaseUseCase,
@@ -135,8 +144,85 @@ class SettingsViewModel @Inject constructor(
         _uiState.update { it.copy(diaryDayStartHour = hour, showDiaryDayStartDialog = false) }
     }
 
-    fun onExportSettingsTapped(createPublicDocumentUseCase: CreatePublicDocumentUseCase) {
-        viewModelScope.launch { exportFoodDiaryUseCase.execute(createPublicDocumentUseCase) }
+    fun onExportSettingsTapped() {
+        _uiState.update {
+            it.copy(
+                showPdfExportDialog = true,
+                pdfExportOptions = settingsRepository.getPdfExportOptions(),
+            )
+        }
+    }
+
+    fun onPdfExportDialogDismissed() {
+        _uiState.update { it.copy(showPdfExportDialog = false) }
+    }
+
+    fun onPdfExportConfirmed(
+        createPublicDocumentUseCase: CreatePublicDocumentUseCase,
+        selection: PdfRangeSelection,
+        options: PdfExportOptions,
+    ) {
+        _uiState.update { it.copy(showPdfExportDialog = false) }
+        val range = resolveRange(selection)
+        viewModelScope.launch {
+            _uiState.update { it.copy(pdfExportInProgress = true) }
+            runCatching { exportPdfDiaryUseCase.execute(createPublicDocumentUseCase, range, options) }
+                .onSuccess { result ->
+                    when (result) {
+                        is PdfExportResult.Success ->
+                            _uiState.update { it.copy(pdfExportDoneUri = result.uri) }
+                        PdfExportResult.Empty ->
+                            _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("No entries in that date range."))
+                        PdfExportResult.Cancelled -> Unit
+                    }
+                }
+                .onFailure { t ->
+                    Log.e("PdfExport", "PDF export failed", t)
+                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Export failed: ${t.message ?: t.toString()}"))
+                }
+            _uiState.update { it.copy(pdfExportInProgress = false) }
+        }
+    }
+
+    fun onPdfExportDoneDismissed() {
+        _uiState.update { it.copy(pdfExportDoneUri = null) }
+    }
+
+    fun onPdfExportOpenTapped() {
+        _uiState.value.pdfExportDoneUri?.let { uri ->
+            runCatching { viewPublicUriLauncher.execute(uri) }
+                .onFailure { t ->
+                    viewModelScope.launch {
+                        _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("No app can open PDFs: ${t.message}"))
+                    }
+                }
+        }
+        _uiState.update { it.copy(pdfExportDoneUri = null) }
+    }
+
+    fun onPdfExportShareTapped() {
+        _uiState.value.pdfExportDoneUri?.let { uri ->
+            sharePublicUriLauncher.execute(uri, mimeType = "application/pdf")
+        }
+        _uiState.update { it.copy(pdfExportDoneUri = null) }
+    }
+
+    private fun resolveRange(selection: PdfRangeSelection): DiaryDateRange = when (selection) {
+        is PdfRangeSelection.Custom ->
+            if (selection.from <= selection.to) {
+                DiaryDateRange(selection.from, selection.to)
+            } else {
+                DiaryDateRange(selection.to, selection.from)
+            }
+
+        is PdfRangeSelection.Preset -> {
+            val zone = java.time.ZoneId.systemDefault()
+            val dayStart = dev.gaborbiro.dailymacros.features.common.utils
+                .diaryDayStartTime(settingsRepository.getDiaryDayStartHour())
+            val today = dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryToday(zone, dayStart)
+            val firstDayOfWeek = java.time.temporal.WeekFields.of(java.util.Locale.getDefault()).firstDayOfWeek
+            computeRange(selection.preset, today, firstDayOfWeek)
+        }
     }
 
     fun onExportDbTapped(createPublicDocumentUseCase: CreatePublicDocumentUseCase) {

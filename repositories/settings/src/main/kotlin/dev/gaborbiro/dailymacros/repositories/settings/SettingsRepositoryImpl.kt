@@ -10,6 +10,7 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.model.AutoSyncErro
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.AutoSyncErrorStatus
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.BackupInterval
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PdfExportOptions
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptUsageStats
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
@@ -272,6 +273,17 @@ class SettingsRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun getPdfExportOptions(): PdfExportOptions {
+        val json = prefs.getString(KEY_PDF_EXPORT_OPTIONS, null) ?: return PdfExportOptions()
+        return runCatching { gson.fromJson(json, PdfExportOptions::class.java) }
+            .getOrNull()
+            ?: PdfExportOptions()
+    }
+
+    override fun setPdfExportOptions(options: PdfExportOptions) {
+        prefs.edit { putString(KEY_PDF_EXPORT_OPTIONS, gson.toJson(options)) }
+    }
+
     companion object {
         private const val KEY_TARGETS = "targets_json"
         private const val KEY_DIARY_DAY_START_HOUR = "diary_day_start_hour"
@@ -293,5 +305,6 @@ class SettingsRepositoryImpl @Inject constructor(
         private const val KEY_AUTO_BACKUP_INTERVAL = "auto_backup_interval"
         private const val KEY_AUTO_SYNC_ERROR = "auto_sync_error"
         private const val KEY_AUTO_SYNC_ERROR_NOTIFIED_EPOCH_MS = "auto_sync_error_notified_epoch_ms"
+        private const val KEY_PDF_EXPORT_OPTIONS = "pdf_export_options_json"
     }
 }

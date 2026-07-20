@@ -78,7 +78,14 @@ fun SettingsScreen(
         onDiaryDayStartHourSelected = settingsViewModel::onDiaryDayStartHourSelected,
         onAutoPhotoRecognitionToggled = settingsViewModel::onAutoPhotoRecognitionToggled,
         onQuickPickConfirmationToggled = settingsViewModel::onQuickPickConfirmationToggled,
-        onExportSettingTapped = { settingsViewModel.onExportSettingsTapped(createPublicDocumentUseCase) },
+        onExportSettingTapped = settingsViewModel::onExportSettingsTapped,
+        onPdfExportDismissed = settingsViewModel::onPdfExportDialogDismissed,
+        onPdfExportConfirmed = { selection, options ->
+            settingsViewModel.onPdfExportConfirmed(createPublicDocumentUseCase, selection, options)
+        },
+        onPdfExportDoneDismissed = settingsViewModel::onPdfExportDoneDismissed,
+        onPdfExportOpenTapped = settingsViewModel::onPdfExportOpenTapped,
+        onPdfExportShareTapped = settingsViewModel::onPdfExportShareTapped,
         onExportDbTapped = { settingsViewModel.onExportDbTapped(createPublicDocumentUseCase) },
         onImportDbTapped = { settingsViewModel.onImportDbTapped(openPublicDocumentUseCase) },
         onCloudSyncTapped = settingsViewModel::onCloudSyncRowTapped,

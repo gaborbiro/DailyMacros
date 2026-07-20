@@ -48,9 +48,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.features.common.utils.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.features.settings.R
+import dev.gaborbiro.dailymacros.features.settings.export.pdf.PdfRangeSelection
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.BackupInterval
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PdfExportOptions
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -71,6 +73,11 @@ internal fun SettingsView(
     onAutoPhotoRecognitionToggled: (Boolean) -> Unit,
     onQuickPickConfirmationToggled: (Boolean) -> Unit,
     onExportSettingTapped: () -> Unit,
+    onPdfExportDismissed: () -> Unit,
+    onPdfExportConfirmed: (PdfRangeSelection, PdfExportOptions) -> Unit,
+    onPdfExportDoneDismissed: () -> Unit,
+    onPdfExportOpenTapped: () -> Unit,
+    onPdfExportShareTapped: () -> Unit,
     onExportDbTapped: () -> Unit,
     onImportDbTapped: () -> Unit,
     onCloudSyncTapped: () -> Unit,
@@ -198,6 +205,37 @@ internal fun SettingsView(
         )
     }
 
+    if (viewState.showPdfExportDialog) {
+        PdfExportDialog(
+            initialOptions = viewState.pdfExportOptions,
+            onDismiss = onPdfExportDismissed,
+            onExport = onPdfExportConfirmed,
+        )
+    }
+
+    if (viewState.pdfExportDoneUri != null) {
+        AlertDialog(
+            onDismissRequest = onPdfExportDoneDismissed,
+            title = { Text(stringResource(R.string.pdf_export_done_title)) },
+            text = { Text(stringResource(R.string.pdf_export_done_message)) },
+            confirmButton = {
+                TextButton(onClick = onPdfExportOpenTapped) {
+                    Text(stringResource(R.string.pdf_export_open))
+                }
+            },
+            dismissButton = {
+                Row {
+                    TextButton(onClick = onPdfExportShareTapped) {
+                        Text(stringResource(R.string.pdf_export_share))
+                    }
+                    TextButton(onClick = onPdfExportDoneDismissed) {
+                        Text(stringResource(R.string.pdf_export_done_close))
+                    }
+                }
+            },
+        )
+    }
+
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -247,7 +285,16 @@ internal fun SettingsView(
                 subtitle = diaryDayStartSummary(viewState.diaryDayStartHour),
                 onTapped = onDiaryDayStartTapped,
             )
-            SettingRow(title = stringResource(R.string.settings_content_export_diary_row), onTapped = onExportSettingTapped)
+            SettingRow(
+                title = stringResource(R.string.settings_content_export_diary_row),
+                onTapped = onExportSettingTapped,
+                enabled = !viewState.pdfExportInProgress,
+                trailing = {
+                    if (viewState.pdfExportInProgress) {
+                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                    }
+                },
+            )
 
             if (viewState.autoPhotoRecognitionVisible) {
                 SettingSectionHeader(title = stringResource(R.string.settings_content_camera_section))
@@ -451,6 +498,11 @@ private fun SettingsViewPreview() {
             onAutoPhotoRecognitionToggled = {},
             onQuickPickConfirmationToggled = {},
             onExportSettingTapped = {},
+            onPdfExportDismissed = {},
+            onPdfExportConfirmed = { _, _ -> },
+            onPdfExportDoneDismissed = {},
+            onPdfExportOpenTapped = {},
+            onPdfExportShareTapped = {},
             onExportDbTapped = {},
             onImportDbTapped = {},
             onCloudSyncTapped = {},
