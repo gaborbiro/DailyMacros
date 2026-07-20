@@ -20,7 +20,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Download
@@ -288,7 +287,9 @@ private fun ZoomableImage(
         val scaledHeight = fitted.height * newScale
         val maxX = ((scaledWidth - containerSize.width) / 2f).coerceAtLeast(0f)
         val maxY = ((scaledHeight - containerSize.height) / 2f).coerceAtLeast(0f)
-        val adjustedPan = panChange * newScale
+        // The gesture detector sits on the unscaled container, so panChange is
+        // already in screen pixels and maps 1:1 onto graphicsLayer translation.
+        val adjustedPan = panChange
 
         val newOffset =
             if (maxX == 0f && maxY == 0f) {
@@ -305,66 +306,68 @@ private fun ZoomableImage(
         onZoomChanged(newScale)
     }
 
-    Surface(
+    Box(
         modifier = Modifier
+            .fillMaxSize()
             .padding(PaddingDefault)
-            .clip(RoundedCornerShape(4.dp))
-            .onSizeChanged { containerSize = it },
+            .onSizeChanged { containerSize = it }
+            .pointerInput(Unit) {
+                awaitEachGesture {
+                    var zoom = 1f
+                    var pan = Offset.Zero
+                    var pastTouchSlop = false
+                    val touchSlop = viewConfiguration.touchSlop
+
+                    awaitFirstDown(requireUnconsumed = false)
+                    do {
+                        val event = awaitPointerEvent()
+                        val canceled = event.changes.any { it.isConsumed }
+                        if (!canceled) {
+                            val zoomChange = event.calculateZoom()
+                            val panChange = event.calculatePan()
+
+                            if (!pastTouchSlop) {
+                                zoom *= zoomChange
+                                pan += panChange
+                                val centroidSize =
+                                    event.calculateCentroidSize(useCurrent = false)
+                                val zoomMotion = abs(1 - zoom) * centroidSize
+                                val panMotion = pan.getDistance()
+
+                                if (zoomMotion > touchSlop || (scale > 1f && panMotion > touchSlop)) {
+                                    pastTouchSlop = true
+                                }
+                            }
+
+                            if (pastTouchSlop) {
+                                val effectivePan =
+                                    if (scale > 1f) panChange else Offset.Zero
+                                if (zoomChange != 1f || effectivePan != Offset.Zero) {
+                                    applyGesture(zoomChange, effectivePan)
+                                    event.changes.forEach {
+                                        if (it.positionChanged()) {
+                                            it.consume()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } while (!canceled && event.changes.any { it.pressed })
+                }
+            },
+        contentAlignment = Alignment.Center,
     ) {
         Image(
             bitmap = bitmap,
             contentDescription = contentDescription,
             contentScale = ContentScale.Fit,
             modifier = Modifier
+                .fillMaxSize()
                 .graphicsLayer {
                     scaleX = scale
                     scaleY = scale
                     translationX = offset.x
                     translationY = offset.y
-                }
-                .pointerInput(Unit) {
-                    awaitEachGesture {
-                        var zoom = 1f
-                        var pan = Offset.Zero
-                        var pastTouchSlop = false
-                        val touchSlop = viewConfiguration.touchSlop
-
-                        awaitFirstDown(requireUnconsumed = false)
-                        do {
-                            val event = awaitPointerEvent()
-                            val canceled = event.changes.any { it.isConsumed }
-                            if (!canceled) {
-                                val zoomChange = event.calculateZoom()
-                                val panChange = event.calculatePan()
-
-                                if (!pastTouchSlop) {
-                                    zoom *= zoomChange
-                                    pan += panChange
-                                    val centroidSize =
-                                        event.calculateCentroidSize(useCurrent = false)
-                                    val zoomMotion = abs(1 - zoom) * centroidSize
-                                    val panMotion = pan.getDistance()
-
-                                    if (zoomMotion > touchSlop || (scale > 1f && panMotion > touchSlop)) {
-                                        pastTouchSlop = true
-                                    }
-                                }
-
-                                if (pastTouchSlop) {
-                                    val effectivePan =
-                                        if (scale > 1f) panChange else Offset.Zero
-                                    if (zoomChange != 1f || effectivePan != Offset.Zero) {
-                                        applyGesture(zoomChange, effectivePan)
-                                        event.changes.forEach {
-                                            if (it.positionChanged()) {
-                                                it.consume()
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        } while (!canceled && event.changes.any { it.pressed })
-                    }
                 }
         )
     }
