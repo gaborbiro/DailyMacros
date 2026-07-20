@@ -83,9 +83,6 @@ fun SettingsScreen(
         onPdfExportConfirmed = { selection, options ->
             settingsViewModel.onPdfExportConfirmed(createPublicDocumentUseCase, selection, options)
         },
-        onPdfExportDoneDismissed = settingsViewModel::onPdfExportDoneDismissed,
-        onPdfExportOpenTapped = settingsViewModel::onPdfExportOpenTapped,
-        onPdfExportShareTapped = settingsViewModel::onPdfExportShareTapped,
         onExportDbTapped = { settingsViewModel.onExportDbTapped(createPublicDocumentUseCase) },
         onImportDbTapped = { settingsViewModel.onImportDbTapped(openPublicDocumentUseCase) },
         onCloudSyncTapped = settingsViewModel::onCloudSyncRowTapped,

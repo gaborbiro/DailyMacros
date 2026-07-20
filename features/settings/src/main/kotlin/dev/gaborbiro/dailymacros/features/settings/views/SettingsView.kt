@@ -75,9 +75,6 @@ internal fun SettingsView(
     onExportSettingTapped: () -> Unit,
     onPdfExportDismissed: () -> Unit,
     onPdfExportConfirmed: (PdfRangeSelection, PdfExportOptions) -> Unit,
-    onPdfExportDoneDismissed: () -> Unit,
-    onPdfExportOpenTapped: () -> Unit,
-    onPdfExportShareTapped: () -> Unit,
     onExportDbTapped: () -> Unit,
     onImportDbTapped: () -> Unit,
     onCloudSyncTapped: () -> Unit,
@@ -210,29 +207,6 @@ internal fun SettingsView(
             initialOptions = viewState.pdfExportOptions,
             onDismiss = onPdfExportDismissed,
             onExport = onPdfExportConfirmed,
-        )
-    }
-
-    if (viewState.pdfExportDoneUri != null) {
-        AlertDialog(
-            onDismissRequest = onPdfExportDoneDismissed,
-            title = { Text(stringResource(R.string.pdf_export_done_title)) },
-            text = { Text(stringResource(R.string.pdf_export_done_message)) },
-            confirmButton = {
-                TextButton(onClick = onPdfExportOpenTapped) {
-                    Text(stringResource(R.string.pdf_export_open))
-                }
-            },
-            dismissButton = {
-                Row {
-                    TextButton(onClick = onPdfExportShareTapped) {
-                        Text(stringResource(R.string.pdf_export_share))
-                    }
-                    TextButton(onClick = onPdfExportDoneDismissed) {
-                        Text(stringResource(R.string.pdf_export_done_close))
-                    }
-                }
-            },
         )
     }
 
@@ -500,9 +474,6 @@ private fun SettingsViewPreview() {
             onExportSettingTapped = {},
             onPdfExportDismissed = {},
             onPdfExportConfirmed = { _, _ -> },
-            onPdfExportDoneDismissed = {},
-            onPdfExportOpenTapped = {},
-            onPdfExportShareTapped = {},
             onExportDbTapped = {},
             onImportDbTapped = {},
             onCloudSyncTapped = {},

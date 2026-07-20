@@ -19,8 +19,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.shared.photodiary.PhotoMonitorWorker
 import dev.gaborbiro.dailymacros.features.settings.export.OpenPublicDocumentUseCase
-import dev.gaborbiro.dailymacros.features.settings.export.SharePublicUriLauncher
-import dev.gaborbiro.dailymacros.features.settings.export.ViewPublicUriLauncher
 import dev.gaborbiro.dailymacros.features.settings.export.pdf.DiaryDateRange
 import dev.gaborbiro.dailymacros.features.settings.export.pdf.PdfRangeSelection
 import dev.gaborbiro.dailymacros.features.settings.export.pdf.computeRange
@@ -56,8 +54,6 @@ class SettingsViewModel @Inject constructor(
     appInfo: SettingsAppInfo,
     private val settingsRepository: SettingsRepository,
     private val exportPdfDiaryUseCase: ExportPdfDiaryUseCase,
-    private val sharePublicUriLauncher: SharePublicUriLauncher,
-    private val viewPublicUriLauncher: ViewPublicUriLauncher,
     private val exportSqliteDatabaseUseCase: ExportSqliteDatabaseUseCase,
     private val importSqliteDatabaseUseCase: ImportSqliteDatabaseUseCase,
     private val syncDatabaseUseCase: SyncDatabaseUseCase,
@@ -169,8 +165,8 @@ class SettingsViewModel @Inject constructor(
             runCatching { exportPdfDiaryUseCase.execute(createPublicDocumentUseCase, range, options) }
                 .onSuccess { result ->
                     when (result) {
-                        is PdfExportResult.Success ->
-                            _uiState.update { it.copy(pdfExportDoneUri = result.uri) }
+                        PdfExportResult.Enqueued ->
+                            _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Exporting… we'll notify you when the PDF is ready."))
                         PdfExportResult.Empty ->
                             _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("No entries in that date range."))
                         PdfExportResult.Cancelled -> Unit
@@ -182,29 +178,6 @@ class SettingsViewModel @Inject constructor(
                 }
             _uiState.update { it.copy(pdfExportInProgress = false) }
         }
-    }
-
-    fun onPdfExportDoneDismissed() {
-        _uiState.update { it.copy(pdfExportDoneUri = null) }
-    }
-
-    fun onPdfExportOpenTapped() {
-        _uiState.value.pdfExportDoneUri?.let { uri ->
-            runCatching { viewPublicUriLauncher.execute(uri) }
-                .onFailure { t ->
-                    viewModelScope.launch {
-                        _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("No app can open PDFs: ${t.message}"))
-                    }
-                }
-        }
-        _uiState.update { it.copy(pdfExportDoneUri = null) }
-    }
-
-    fun onPdfExportShareTapped() {
-        _uiState.value.pdfExportDoneUri?.let { uri ->
-            sharePublicUriLauncher.execute(uri, mimeType = "application/pdf")
-        }
-        _uiState.update { it.copy(pdfExportDoneUri = null) }
     }
 
     private fun resolveRange(selection: PdfRangeSelection): DiaryDateRange = when (selection) {

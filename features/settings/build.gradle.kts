@@ -30,6 +30,8 @@ dependencies {
 
     implementation(libs.dagger.hilt.android)
     ksp(libs.dagger.hilt.compiler)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)

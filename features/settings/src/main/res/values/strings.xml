@@ -45,11 +45,13 @@
     <string name="pdf_export_action">Export</string>
     <string name="pdf_export_cancel">Cancel</string>
     <string name="pdf_export_range_picker_confirm">OK</string>
-    <string name="pdf_export_done_title">PDF saved</string>
-    <string name="pdf_export_done_message">Your food diary PDF has been saved.</string>
     <string name="pdf_export_open">Open</string>
     <string name="pdf_export_share">Share</string>
-    <string name="pdf_export_done_close">Close</string>
+    <string name="pdf_export_notification_progress_title">Exporting food diary…</string>
+    <string name="pdf_export_notification_complete_title">Food diary PDF ready</string>
+    <string name="pdf_export_notification_complete_text">Tap to open</string>
+    <string name="pdf_export_notification_error_title">Food diary export failed</string>
+    <string name="pdf_export_notification_error_text">Something went wrong while creating the PDF.</string>
     <string name="settings_content_camera_section">Camera</string>
     <string name="settings_content_widgets_section">Widgets</string>
     <string name="settings_quick_pick_confirmation_row">Quick Pick confirmation</string>

@@ -1,6 +1,5 @@
 package dev.gaborbiro.dailymacros.features.settings.model
 
-import android.net.Uri
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.BackupInterval
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PdfExportOptions
@@ -33,5 +32,4 @@ data class SettingsUiState(
     val showPdfExportDialog: Boolean = false,
     val pdfExportOptions: PdfExportOptions = PdfExportOptions(),
     val pdfExportInProgress: Boolean = false,
-    val pdfExportDoneUri: Uri? = null,
 )
