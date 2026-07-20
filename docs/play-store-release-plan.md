@@ -55,4 +55,4 @@ Moving to a **Firebase Cloud Function proxy** (`functions/`, project `dailymacro
 - **BYO-key (hidden dev path):** if a personal key is set in Settings, the app still calls OpenAI directly, bypassing the proxy.
 - Setup + deploy runbook: `functions/README.md`. Requires Blaze plan, Anonymous Auth, and Firestore enabled.
 
-**Status:** Cloud Function written and ready to deploy. Android client rewiring (anonymous auth + proxy routing in `AuthInterceptor`) is the follow-up step once the deployed function is confirmed working.
+**Status:** Cloud Function + Android client rewiring both written (branch `claude/play-store-pricing-strategy-j5y5rq`). The embedded `CHATGPT_API_KEY` is removed from the app; `AuthInterceptor` now routes keyless users through the proxy with an anonymous Firebase ID token. **Remaining before this works end-to-end:** deploy the function (`functions/README.md`), then verify latency + a real analysis on device. The app has no key fallback, so the proxy must be live before shipping this build.

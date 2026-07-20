@@ -1,5 +1,3 @@
-import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
-
 plugins {
     id("AndroidLibraryConvention")
     alias(libs.plugins.hilt.android)
@@ -9,20 +7,16 @@ plugins {
 android {
     namespace = "dev.gaborbiro.dailymacros.repositories.chatgpt"
 
-    val localProperties = gradleLocalProperties(rootDir, providers)
-    val chatGptApiKeyKey = "CHATGPT_API_KEY"
-    val chatGptApiKey = System.getenv(chatGptApiKeyKey)
-        ?: localProperties.getProperty(chatGptApiKeyKey)
-        ?: "missing $chatGptApiKeyKey"
+    // The OpenAI key is no longer embedded in the app. Keyless users go through
+    // the Cloud Function proxy (see AuthInterceptor); only the hidden
+    // Personalise AI feature lets a user supply their own key at runtime.
 
     buildTypes {
         debug {
             isMinifyEnabled = false
-            buildConfigField("String", chatGptApiKeyKey, "\"$chatGptApiKey\"")
         }
         release {
             isMinifyEnabled = false
-            buildConfigField("String", chatGptApiKeyKey, "\"$chatGptApiKey\"")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
@@ -38,6 +32,9 @@ dependencies {
     implementation(project(":repositories:settings:domain"))
 
     implementation(libs.androidx.core.ktx)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
 
     api(libs.network.retrofit)
     api(libs.network.retrofit.converter.gson)

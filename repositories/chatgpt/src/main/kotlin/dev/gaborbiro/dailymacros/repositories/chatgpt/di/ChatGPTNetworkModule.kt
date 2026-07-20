@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.repositories.chatgpt.di
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
+import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -50,7 +51,7 @@ internal object ChatGPTNetworkModule {
     @ForImageUploadChatGpt
     fun imageUploadOkHttp(settingsRepository: SettingsRepository): OkHttpClient {
         val logger = HttpLoggingInterceptor().also { it.level = HttpLoggingInterceptor.Level.BODY }
-        val authInterceptor = AuthInterceptor(settingsRepository)
+        val authInterceptor = AuthInterceptor(settingsRepository, FirebaseAuth.getInstance())
         return OkHttpClient.Builder()
             .addNetworkInterceptor(logger)
             .addInterceptor(authInterceptor)
@@ -65,7 +66,7 @@ internal object ChatGPTNetworkModule {
     @ForJsonBodyChatGpt
     fun jsonBodyOkHttp(settingsRepository: SettingsRepository): OkHttpClient {
         val logger = HttpLoggingInterceptor().also { it.level = HttpLoggingInterceptor.Level.BODY }
-        val authInterceptor = AuthInterceptor(settingsRepository)
+        val authInterceptor = AuthInterceptor(settingsRepository, FirebaseAuth.getInstance())
         return OkHttpClient.Builder()
             .addNetworkInterceptor(logger)
             .addInterceptor(authInterceptor)
