@@ -35,7 +35,6 @@ import dev.gaborbiro.dailymacros.features.settings.export.pdf.DateRangePreset
 import dev.gaborbiro.dailymacros.features.settings.export.pdf.PdfRangeSelection
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PdfExportOptions
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PdfPhotoMode
-import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PdfTextMode
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -56,7 +55,8 @@ internal fun PdfExportDialog(
     var dailyTotals by remember { mutableStateOf(initialOptions.dailyTotals) }
     var mealMacros by remember { mutableStateOf(initialOptions.mealMacros) }
     var photos by remember { mutableStateOf(initialOptions.photos) }
-    var text by remember { mutableStateOf(initialOptions.text) }
+    var description by remember { mutableStateOf(initialOptions.description) }
+    var components by remember { mutableStateOf(initialOptions.components) }
 
     if (showRangePicker) {
         val pickerState = rememberDateRangePickerState()
@@ -118,21 +118,22 @@ internal fun PdfExportDialog(
                     onCheckedChange = { mealMacros = it },
                 )
 
+                SwitchRow(
+                    label = stringResource(R.string.pdf_export_description),
+                    checked = description,
+                    onCheckedChange = { description = it },
+                )
+                SwitchRow(
+                    label = stringResource(R.string.pdf_export_components),
+                    checked = components,
+                    onCheckedChange = { components = it },
+                )
+
                 ChoiceRow(label = stringResource(R.string.pdf_export_photos)) {
                     photoLabels.forEach { (mode, labelRes) ->
                         FilterChip(
                             selected = photos == mode,
                             onClick = { photos = mode },
-                            label = { Text(stringResource(labelRes)) },
-                        )
-                    }
-                }
-
-                ChoiceRow(label = stringResource(R.string.pdf_export_text)) {
-                    textLabels.forEach { (mode, labelRes) ->
-                        FilterChip(
-                            selected = text == mode,
-                            onClick = { text = mode },
                             label = { Text(stringResource(labelRes)) },
                         )
                     }
@@ -151,7 +152,8 @@ internal fun PdfExportDialog(
                         dailyTotals = dailyTotals,
                         photos = photos,
                         mealMacros = mealMacros,
-                        text = text,
+                        description = description,
+                        components = components,
                     ),
                 )
             }) { Text(stringResource(R.string.pdf_export_action)) }
@@ -208,11 +210,6 @@ private val photoLabels = listOf(
     PdfPhotoMode.ALL to R.string.pdf_export_photos_all,
     PdfPhotoMode.TITULAR to R.string.pdf_export_photos_titular,
     PdfPhotoMode.NONE to R.string.pdf_export_photos_none,
-)
-
-private val textLabels = listOf(
-    PdfTextMode.TITLE_ONLY to R.string.pdf_export_text_title_only,
-    PdfTextMode.TITLE_AND_DESCRIPTION to R.string.pdf_export_text_full,
 )
 
 private val chipDateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)

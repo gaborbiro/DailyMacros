@@ -40,9 +40,8 @@
     <string name="pdf_export_photos_all">All</string>
     <string name="pdf_export_photos_titular">Main only</string>
     <string name="pdf_export_photos_none">None</string>
-    <string name="pdf_export_text">Text</string>
-    <string name="pdf_export_text_title_only">Title only</string>
-    <string name="pdf_export_text_full">Title + details</string>
+    <string name="pdf_export_description">Description</string>
+    <string name="pdf_export_components">Components (AI)</string>
     <string name="pdf_export_action">Export</string>
     <string name="pdf_export_cancel">Cancel</string>
     <string name="pdf_export_range_picker_confirm">OK</string>

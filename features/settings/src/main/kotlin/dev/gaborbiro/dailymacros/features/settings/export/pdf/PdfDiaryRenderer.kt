@@ -13,7 +13,6 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PdfExportOptions
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PdfPhotoMode
-import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PdfTextMode
 import java.io.ByteArrayOutputStream
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -49,6 +48,7 @@ fun representativeImageFilename(template: Template): String? {
  * added afterwards by [PdfNavigationDecorator], which needs the [PdfDayNav] metadata returned here.
  *
  * [photos] maps image filename to an already-downscaled bitmap; the renderer never touches disk.
+ * Meals with a narrow photo use a two-column layout (photo left, text right) to fill the page width.
  */
 class PdfDiaryRenderer(
     private val title: String,
@@ -59,6 +59,10 @@ class PdfDiaryRenderer(
     private val locale: Locale = Locale.getDefault(),
 ) {
 
+    private data class SizedPhoto(val bitmap: Bitmap, val width: Float, val height: Float)
+
+    private data class TextBlock(val text: String, val paint: Paint)
+
     private val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale)
     private val timeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale)
 
@@ -68,14 +72,16 @@ class PdfDiaryRenderer(
     private var pageIndex = -1
     private var y = MARGIN
 
-    private val titlePaint = paint(24f, bold = true)
-    private val subtitlePaint = paint(12f, color = GRAY)
-    private val dayHeaderPaint = paint(18f, bold = true)
-    private val totalsLabelPaint = paint(11f, bold = true)
-    private val mealTitlePaint = paint(13f, bold = true)
-    private val bodyPaint = paint(11f)
-    private val macroPaint = paint(10f, color = GRAY)
-    private val tocPaint = paint(13f, color = LINK)
+    private val titlePaint = paint(28f, bold = true)
+    private val subtitlePaint = paint(14f, color = GRAY)
+    private val dayHeaderPaint = paint(23f, bold = true)
+    private val totalsLabelPaint = paint(16f, bold = true)
+    private val totalsValuePaint = paint(13f, color = NEAR_BLACK)
+    private val mealTitlePaint = paint(16f, bold = true)
+    private val bodyPaint = paint(13f)
+    private val macroPaint = paint(12f, color = GRAY)
+    private val tocPaint = paint(16f, color = LINK)
+    private val totalsBoxPaint = Paint().apply { color = TOTALS_BG }
 
     fun render(): RenderedDiary {
         val nav = mutableListOf<PdfDayNav>()
@@ -85,14 +91,14 @@ class PdfDiaryRenderer(
         canvas.drawText(title, MARGIN, y + titlePaint.textSize, titlePaint)
         y += titlePaint.textSize + 8f
         canvas.drawText(rangeLabel, MARGIN, y + subtitlePaint.textSize, subtitlePaint)
-        y += subtitlePaint.textSize + 20f
+        y += subtitlePaint.textSize + 24f
 
         data class TocLine(val label: String, val tocPageIndex: Int, val rect: RectF)
 
         val tocLines = mutableListOf<TocLine>()
         days.forEach { day ->
             val label = day.day.format(dateFormatter)
-            val lineHeight = tocPaint.textSize + 12f
+            val lineHeight = tocPaint.textSize + 14f
             ensureSpace(lineHeight)
             val top = y
             canvas.drawText(label, MARGIN, y + tocPaint.textSize, tocPaint)
@@ -130,114 +136,193 @@ class PdfDiaryRenderer(
         y += dayHeaderPaint.textSize + 10f
 
         if (options.dailyTotals) {
-            val totals = sumNutrients(day.records)
-            drawWrapped("Daily totals", totalsLabelPaint)
-            drawWrapped(formatNutrients(totals), macroPaint)
-            y += 8f
+            drawTotalsBox(day)
         }
 
         day.records.sortedBy { it.timestamp.toInstant() }.forEach { record ->
             drawMeal(record)
-            y += 10f
         }
+    }
+
+    /** A shaded band under the day header carrying the whole-day totals — visually above the meals. */
+    private fun drawTotalsBox(day: TravelDay) {
+        val valuesText = formatNutrients(sumNutrients(day.records))
+        val valueLines = wrap(valuesText, totalsValuePaint, CONTENT_WIDTH - 2 * BOX_PADDING)
+        val labelHeight = totalsLabelPaint.textSize + 6f
+        val valuesHeight = valueLines.size * (totalsValuePaint.textSize + LINE_GAP)
+        val boxHeight = BOX_PADDING + labelHeight + valuesHeight + BOX_PADDING
+
+        ensureSpace(boxHeight)
+        canvas.drawRoundRect(MARGIN, y, MARGIN + CONTENT_WIDTH, y + boxHeight, 8f, 8f, totalsBoxPaint)
+
+        var ty = y + BOX_PADDING
+        canvas.drawText("Daily totals", MARGIN + BOX_PADDING, ty + totalsLabelPaint.textSize, totalsLabelPaint)
+        ty += labelHeight
+        valueLines.forEach { line ->
+            canvas.drawText(line, MARGIN + BOX_PADDING, ty + totalsValuePaint.textSize, totalsValuePaint)
+            ty += totalsValuePaint.textSize + LINE_GAP
+        }
+        y += boxHeight + 14f
     }
 
     private fun drawMeal(record: Record) {
-        val template = record.template
-        val time = record.timestamp.format(timeFormatter)
-
-        ensureSpace(mealTitlePaint.textSize + 4f)
-        val heading = if (options.text == PdfTextMode.TITLE_ONLY || template.name.isNotBlank()) {
-            "$time   ${template.name}".trim()
+        val sized = resolveSizedPhotos(record)
+        val rowWidth = if (sized.isEmpty()) {
+            0f
         } else {
-            time
+            sized.fold(0f) { acc, p -> acc + p.width } + PHOTO_GAP * (sized.size - 1)
         }
-        drawWrapped(heading, mealTitlePaint)
+        val photoRowHeight = sized.maxOfOrNull { it.height } ?: 0f
+        val head = TextBlock(heading(record), mealTitlePaint)
+        val body = buildBodyBlocks(record)
 
-        if (options.text == PdfTextMode.TITLE_AND_DESCRIPTION) {
-            if (template.description.isNotBlank()) {
-                drawWrapped(template.description, bodyPaint)
+        val fitsOneRow = sized.isNotEmpty() && rowWidth <= CONTENT_WIDTH
+        val twoColumn = fitsOneRow && rowWidth <= HALF_WIDTH && sized.all { it.width <= HALF_WIDTH }
+
+        if (twoColumn) {
+            val textWidth = CONTENT_WIDTH - rowWidth - COLUMN_GAP
+            val blocks = listOf(head) + body
+            val textHeight = measureBlocks(blocks, textWidth)
+            val blockHeight = maxOf(photoRowHeight, textHeight)
+            if (blockHeight <= PAGE_H - 2 * MARGIN) {
+                ensureSpace(blockHeight)
+                val startY = y
+                drawPhotoRow(sized, MARGIN, startY)
+                drawBlocks(blocks, MARGIN + rowWidth + COLUMN_GAP, startY, textWidth)
+                y = startY + blockHeight + MEAL_GAP
+                return
             }
-            if (template.mealComponents.isNotEmpty()) {
+            // Too tall for a page in two columns; fall through to single column.
+        }
+
+        // Single column: title, photos (wrapping full width), then macros/description/components.
+        ensureSpace(mealTitlePaint.textSize + LINE_GAP)
+        drawBlockPaginated(head)
+        if (sized.isNotEmpty()) drawPhotosWrapped(sized)
+        body.forEach { drawBlockPaginated(it) }
+        y += MEAL_GAP
+    }
+
+    private fun buildBodyBlocks(record: Record): List<TextBlock> {
+        val template = record.template
+        return buildList {
+            if (options.mealMacros) {
+                add(TextBlock(formatNutrients(template.nutrients), macroPaint))
+            }
+            if (options.description && template.description.isNotBlank()) {
+                add(TextBlock(template.description, bodyPaint))
+            }
+            if (options.components && template.mealComponents.isNotEmpty()) {
                 val components = template.mealComponents.joinToString("\n") { comp ->
                     "• ${comp.name}" + comp.estimatedAmount.takeIf { it.isNotBlank() }?.let { " ($it)" }.orEmpty()
                 }
-                drawWrapped(components, bodyPaint)
+                add(TextBlock(components, bodyPaint))
             }
-        }
-
-        if (options.photos != PdfPhotoMode.NONE) {
-            drawPhotos(record)
-        }
-
-        if (options.mealMacros) {
-            drawWrapped(formatNutrients(template.nutrients), macroPaint)
         }
     }
 
-    private fun drawPhotos(record: Record) {
+    private fun heading(record: Record): String {
+        val time = record.timestamp.format(timeFormatter)
+        return listOf(time, record.template.name).filter { it.isNotBlank() }.joinToString("   ")
+    }
+
+    private fun resolveSizedPhotos(record: Record): List<SizedPhoto> {
         val template = record.template
         val filenames = when (options.photos) {
             PdfPhotoMode.ALL -> template.imageFilenames
             PdfPhotoMode.TITULAR -> listOfNotNull(representativeImageFilename(template))
             PdfPhotoMode.NONE -> emptyList()
         }
-        val bitmaps = filenames.mapNotNull { photos[it] }
-        if (bitmaps.isEmpty()) return
-
-        y += 4f
-        var x = MARGIN
-        var rowHeight = 0f
-        bitmaps.forEach { bitmap ->
+        return filenames.mapNotNull { photos[it] }.map { bitmap ->
             var w = PHOTO_HEIGHT * (bitmap.width.toFloat() / bitmap.height)
             var h = PHOTO_HEIGHT
             if (w > CONTENT_WIDTH) {
                 w = CONTENT_WIDTH
                 h = CONTENT_WIDTH * (bitmap.height.toFloat() / bitmap.width)
             }
-            // Wrap to a new row when this photo would overflow the content width.
-            if (x > MARGIN && x + w > MARGIN + CONTENT_WIDTH) {
+            SizedPhoto(bitmap, w, h)
+        }
+    }
+
+    /** Draws photos left-to-right on a single row at [startY] (caller guarantees they fit). */
+    private fun drawPhotoRow(sized: List<SizedPhoto>, x: Float, startY: Float) {
+        var cx = x
+        sized.forEach { p ->
+            canvas.drawBitmap(p.bitmap, null, RectF(cx, startY, cx + p.width, startY + p.height), null)
+            cx += p.width + PHOTO_GAP
+        }
+    }
+
+    /** Draws photos across the full content width, wrapping to new rows and paginating as needed. */
+    private fun drawPhotosWrapped(sized: List<SizedPhoto>) {
+        y += 4f
+        var cx = MARGIN
+        var rowHeight = 0f
+        sized.forEach { p ->
+            if (cx > MARGIN && cx + p.width > MARGIN + CONTENT_WIDTH) {
                 y += rowHeight + PHOTO_GAP
-                x = MARGIN
+                cx = MARGIN
                 rowHeight = 0f
             }
-            ensureSpace(h)
-            if (x == MARGIN) {
-                // ensureSpace may have moved us to a fresh page; nothing else to reset.
-            }
-            val dest = RectF(x, y, x + w, y + h)
-            canvas.drawBitmap(bitmap, null, dest, null)
-            x += w + PHOTO_GAP
-            rowHeight = maxOf(rowHeight, h)
+            ensureSpace(p.height)
+            canvas.drawBitmap(p.bitmap, null, RectF(cx, y, cx + p.width, y + p.height), null)
+            cx += p.width + PHOTO_GAP
+            rowHeight = maxOf(rowHeight, p.height)
         }
         y += rowHeight + 4f
     }
 
-    /** Wraps [text] to the content width, honouring explicit newlines, and advances [y]. */
-    private fun drawWrapped(text: String, paint: Paint) {
-        if (text.isEmpty()) return
+    // ---- Text block helpers ----
+
+    private fun measureBlocks(blocks: List<TextBlock>, maxWidth: Float): Float =
+        blocks.fold(0f) { acc, b ->
+            acc + wrap(b.text, b.paint, maxWidth).size * (b.paint.textSize + LINE_GAP) + BLOCK_GAP
+        }
+
+    /** Draws [blocks] stacked at ([x], [startY]) within [maxWidth]. No pagination — caller ensures fit. */
+    private fun drawBlocks(blocks: List<TextBlock>, x: Float, startY: Float, maxWidth: Float) {
+        var ly = startY
+        blocks.forEach { block ->
+            wrap(block.text, block.paint, maxWidth).forEach { line ->
+                canvas.drawText(line, x, ly + block.paint.textSize, block.paint)
+                ly += block.paint.textSize + LINE_GAP
+            }
+            ly += BLOCK_GAP
+        }
+    }
+
+    /** Draws a single block at the full content width, paginating line by line. Advances [y]. */
+    private fun drawBlockPaginated(block: TextBlock) {
+        wrap(block.text, block.paint, CONTENT_WIDTH).forEach { line ->
+            ensureSpace(block.paint.textSize + LINE_GAP)
+            canvas.drawText(line, MARGIN, y + block.paint.textSize, block.paint)
+            y += block.paint.textSize + LINE_GAP
+        }
+    }
+
+    /** Wraps [text] to [maxWidth], honouring explicit newlines and preferring to break at spaces. */
+    private fun wrap(text: String, paint: Paint, maxWidth: Float): List<String> {
+        val lines = mutableListOf<String>()
         text.split("\n").forEach { paragraph ->
             if (paragraph.isEmpty()) {
-                y += paint.textSize + LINE_GAP
+                lines += ""
                 return@forEach
             }
             var start = 0
             while (start < paragraph.length) {
-                val fit = paint.breakText(paragraph, start, paragraph.length, true, CONTENT_WIDTH, null)
+                val fit = paint.breakText(paragraph, start, paragraph.length, true, maxWidth, null)
                     .coerceAtLeast(1)
                 var end = start + fit
-                // Prefer to break at the last space so words aren't split mid-way.
                 if (end < paragraph.length) {
                     val lastSpace = paragraph.lastIndexOf(' ', end - 1)
                     if (lastSpace > start) end = lastSpace
                 }
-                ensureSpace(paint.textSize + LINE_GAP)
-                canvas.drawText(paragraph, start, end, MARGIN, y + paint.textSize, paint)
-                y += paint.textSize + LINE_GAP
+                lines += paragraph.substring(start, end)
                 start = end
                 while (start < paragraph.length && paragraph[start] == ' ') start++
             }
         }
+        return lines
     }
 
     private fun ensureSpace(needed: Float) {
@@ -309,11 +394,18 @@ class PdfDiaryRenderer(
         private const val PAGE_H = 842f
         private const val MARGIN = 40f
         private const val CONTENT_WIDTH = PAGE_W - 2 * MARGIN
+        private const val HALF_WIDTH = CONTENT_WIDTH / 2f
+        private const val COLUMN_GAP = 14f
         private const val LINE_GAP = 4f
-        private const val PHOTO_HEIGHT = 150f
+        private const val BLOCK_GAP = 3f
+        private const val MEAL_GAP = 16f
+        private const val PHOTO_HEIGHT = 210f
         private const val PHOTO_GAP = 6f
+        private const val BOX_PADDING = 12f
         private const val EMPTY = "—"
         private val GRAY = Color.rgb(90, 90, 90)
+        private val NEAR_BLACK = Color.rgb(35, 35, 35)
         private val LINK = Color.rgb(20, 90, 200)
+        private val TOTALS_BG = Color.rgb(238, 240, 244)
     }
 }
