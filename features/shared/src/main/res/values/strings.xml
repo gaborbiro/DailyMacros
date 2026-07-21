@@ -11,8 +11,8 @@
     <string name="shared_content_analysis_error_title">There was a problem with analysing \'%1$s\'</string>
     <string name="shared_content_analysis_error_title_unknown">There was a problem with analysing macros</string>
     <string name="shared_content_please_try_again">Please try again later</string>
-    <string name="shared_content_macros_error_title">Couldn\'t get macros for \'%1$s\'</string>
-    <string name="shared_content_macros_error_title_unknown">Couldn\'t get macros</string>
+    <string name="shared_content_macros_error_title">Couldn`t get macros for \'%1$s\'</string>
+    <string name="shared_content_macros_error_title_unknown">Couldn`t get macros</string>
     <!-- ErrorUiMapper -->
     <string name="shared_content_connectivity_error">Connectivity error. Please check your internet connection and try again.</string>
 </resources>
