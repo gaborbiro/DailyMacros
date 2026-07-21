@@ -14,3 +14,32 @@
 
 ./gradlew versionCatalogUpdate
 
+## Pending doc/text updates for hidden features
+
+Some features are currently hidden, so their data handling was deliberately
+left out of the user-facing privacy text. When a feature below is unhidden or
+shipped, make the listed changes so the disclosures stay accurate.
+
+### Personalise AI (bring-your-own OpenAI key)
+
+- `PRIVACY.md`, "Data sent to OpenAI" section: change the opening of the routing
+  paragraph from "These requests are routed…" back to "By default these
+  requests are routed…", and re-add the paragraph explaining that supplying a
+  personal key sends requests directly to OpenAI, bypassing the developer's
+  proxy, and that the key is stored encrypted on-device and never backed up
+  off the device.
+- `PRIVACY.md`, "Optional cloud backup" section: re-add "Your encrypted API key
+  is never included in any backup."
+- Play Console Data safety form: note the direct-to-OpenAI path for BYO-key users.
+
+### Weekly insights
+
+- `PRIVACY.md`, "Data sent to OpenAI" section: change the intro to "When you add
+  a meal, or request weekly insights, the app sends…" and re-add the bullet that
+  your recent food diary (~2 weeks of entries) and nutritional targets are sent
+  to OpenAI for insights.
+- `features/settings/.../res/values/strings.xml`, `settings_privacy_disclosure`:
+  re-add "and, for weekly insights, your recent food diary" to the sentence
+  about what is sent to OpenAI.
+- Play Console Data safety form: confirm recent-diary + targets are covered.
+
