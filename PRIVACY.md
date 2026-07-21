@@ -78,9 +78,8 @@ person.
 
 ## Permissions
 
-- **Photos / media (`READ_MEDIA_IMAGES`)** — to read the meal photos you add,
-  and, if you enable auto-detection, to recognise new photos in your Camera
-  folder as candidate meals. Photos are only analysed when this is used.
+- **Photos / media (`READ_MEDIA_IMAGES`)** — to read the meal photos you add to
+  your food diary.
 - **Notifications** — to show reminders and status notifications.
 
 ## Data retention and deletion

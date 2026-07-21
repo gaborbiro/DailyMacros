@@ -43,3 +43,12 @@ shipped, make the listed changes so the disclosures stay accurate.
   about what is sent to OpenAI.
 - Play Console Data safety form: confirm recent-diary + targets are covered.
 
+### Auto photo detection (scan camera folder)
+
+- `PRIVACY.md`, "Permissions" section: expand the `READ_MEDIA_IMAGES` bullet to
+  note that, when auto-detection is enabled, the app scans new photos in your
+  Camera folder to suggest them as candidate meals (and that those photos are
+  only analysed when the feature is used).
+- Play Console Data safety form / permissions declaration: cover the camera-folder
+  scan use of `READ_MEDIA_IMAGES`.
+
