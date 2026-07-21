@@ -23,24 +23,11 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
-    - name: Ensure CHATGPT_API_KEY is available to Actions
-      env:
-        CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
-      run: |
-        if [ -z "$CHATGPT_API_KEY" ]; then
-          echo "::error::CHATGPT_API_KEY is empty. Add it under Settings → Secrets and variables → Actions (same name: CHATGPT_API_KEY). Codespaces secrets are not used here."
-          exit 1
-        fi
-
     - name: Run unit tests
-      env:
-        CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
       run: ./gradlew testDebugUnitTest --stacktrace
 
     # ── Debug APK ──────────────────────────────────────────────
     - name: Build debug APK
-      env:
-        CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
       run: ./gradlew assembleDebug
 
     # ── Release AAB (signed) ───────────────────────────────────
@@ -52,7 +39,6 @@ jobs:
 
     - name: Build signed release AAB
       env:
-        CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
         RELEASE_KEYSTORE_PATH: /tmp/release-dev_keystore.jks
         RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
         RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}

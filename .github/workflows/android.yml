@@ -34,26 +34,10 @@ jobs:
           echo "BUILD_SHA=${GITHUB_SHA}" >> "$GITHUB_ENV"
         fi
 
-    # Actions only sees Settings → Secrets and variables → Actions (not Codespaces-only secrets).
-    # Fork PRs do not receive repository secrets; skip the strict check there (tests may still fail if they need the key).
-    - name: Ensure CHATGPT_API_KEY is available to Actions
-      if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
-      env:
-        CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
-      run: |
-        if [ -z "$CHATGPT_API_KEY" ]; then
-          echo "::error::CHATGPT_API_KEY is empty. Add a repository secret with this exact name under Settings → Secrets and variables → Actions (Codespaces secrets are not used by workflows)."
-          exit 1
-        fi
-
     - name: Run unit tests
-      env:
-        CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
       run: ./gradlew testDebugUnitTest --stacktrace
 
     - name: Build debug APK
-      env:
-        CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
       run: ./gradlew assembleDebug
 
     - name: Set short SHA for release tag
