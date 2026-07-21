@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.repositories.chatgpt
 
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ClientIdProvider
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
@@ -16,15 +17,23 @@ import java.io.IOException
  *   proxy and its spending caps. This is the dev / power-user path.
  * - Otherwise the request is routed to the [PROXY_URL] Cloud Function and
  *   authenticated with a Firebase ID token (anonymous auth). The OpenAI key no
- *   longer ships in the app; the proxy holds it and enforces the caps.
+ *   longer ships in the app; the proxy holds it and enforces the caps. The
+ *   three-word client id ([ClientIdProvider]) is attached so the proxy can
+ *   record it on the usage document — that is the handle a user reports in a
+ *   support email, letting you find their row and, if needed, grant a bonus.
  */
 class AuthInterceptor(
     private val settingsRepository: SettingsRepository,
     private val firebaseAuth: FirebaseAuth,
+    private val clientIdProvider: ClientIdProvider,
 ) : Interceptor {
 
     companion object {
         private const val HEADER_AUTHORIZATION = "Authorization"
+
+        // Read by the proxy and stored on the usage document (functions/index.js).
+        // Sent only on the proxy path, never on the direct-to-OpenAI BYO-key path.
+        private const val HEADER_CLIENT_ID = "X-Client-Id"
 
         // OpenAI proxy Cloud Function. Update this if the region, project id, or
         // function name change (see functions/README.md).
@@ -50,6 +59,7 @@ class AuthInterceptor(
             chain.request().newBuilder()
                 .url(rewrittenUrl)
                 .header(HEADER_AUTHORIZATION, "Bearer $token")
+                .header(HEADER_CLIENT_ID, clientIdProvider.clientId)
                 .build()
         }
         return chain.proceed(request)
