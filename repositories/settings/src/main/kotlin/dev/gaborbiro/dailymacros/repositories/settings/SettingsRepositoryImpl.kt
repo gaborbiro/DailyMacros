@@ -27,6 +27,7 @@ class SettingsRepositoryImpl @Inject constructor(
 
     private val prefs = context.getSharedPreferences("settings2", Context.MODE_PRIVATE)
     private val gson = Gson()
+    private val secureApiKeyStore = SecureApiKeyStore(context)
 
     override fun setTargets(targets: Targets) {
         val json = mapper.map(targets)
@@ -165,13 +166,26 @@ class SettingsRepositoryImpl @Inject constructor(
             if (keyType == type && version != null) version to stats else null
         }.toMap()
 
-    override fun getApiKeyOverride(): String? = prefs.getString(KEY_API_KEY_OVERRIDE, null)?.takeIf { it.isNotBlank() }
+    override fun getApiKeyOverride(): String? {
+        secureApiKeyStore.get()?.let { return it }
+        // Migrate a legacy plaintext key (stored before at-rest encryption existed)
+        // into the encrypted store, then scrub it from the plaintext prefs.
+        val legacy = prefs.getString(KEY_API_KEY_OVERRIDE, null)?.takeIf { it.isNotBlank() }
+        if (legacy != null) {
+            secureApiKeyStore.set(legacy)
+            prefs.edit { remove(KEY_API_KEY_OVERRIDE) }
+        }
+        return legacy
+    }
 
     override fun setApiKeyOverride(key: String) {
-        prefs.edit { putString(KEY_API_KEY_OVERRIDE, key) }
+        secureApiKeyStore.set(key)
+        // Ensure no plaintext copy lingers from a pre-encryption install.
+        prefs.edit { remove(KEY_API_KEY_OVERRIDE) }
     }
 
     override fun clearApiKeyOverride() {
+        secureApiKeyStore.clear()
         prefs.edit { remove(KEY_API_KEY_OVERRIDE) }
     }
 

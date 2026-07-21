@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -131,6 +132,25 @@ internal fun WelcomeView(
             Text(
                 modifier = Modifier.clickable(onClick = onRestoreFromCloud),
                 text = stringResource(R.string.welcome_restore_from_cloud),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            val uriHandler = LocalUriHandler.current
+            val privacyPolicyUrl = stringResource(R.string.welcome_privacy_policy_url)
+            Text(
+                text = stringResource(R.string.welcome_privacy_notice),
+                style = MaterialTheme.typography.bodySmall,
+                color = onBackground.copy(alpha = 0.5f),
+                textAlign = TextAlign.Center,
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                modifier = Modifier.clickable { uriHandler.openUri(privacyPolicyUrl) },
+                text = stringResource(R.string.welcome_privacy_policy_link),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.Center,

@@ -9,6 +9,9 @@
     <string name="welcome_chip_carbs">Carbs</string>
     <string name="welcome_chip_fat">Fat</string>
     <string name="welcome_chip_calories">Calories</string>
+    <string name="welcome_privacy_notice">Meal photos and descriptions you add are sent to OpenAI to estimate nutrition. Your food diary stays on your device.</string>
+    <string name="welcome_privacy_policy_link">Privacy policy</string>
+    <string name="welcome_privacy_policy_url">https://github.com/gaborbiro/DailyMacros/blob/master/PRIVACY.md</string>
     <string name="record_title_has_other_versions_a11y">Other logged versions of this meal exist</string>
     <!-- OverviewView -->
     <string name="overview_content_record_deleted">Record deleted</string>

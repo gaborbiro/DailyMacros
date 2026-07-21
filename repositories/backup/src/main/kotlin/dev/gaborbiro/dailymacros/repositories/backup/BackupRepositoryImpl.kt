@@ -86,6 +86,10 @@ class BackupRepositoryImpl @Inject constructor(
                 if (sharedPrefsRoot.exists()) {
                     sharedPrefsRoot.walkTopDown()
                         .filter { it.isFile }
+                        // Never export the encrypted API-key store: its ciphertext is bound to
+                        // this device's Keystore and cannot be decrypted after restore, and it
+                        // is a credential we keep on-device only.
+                        .filter { it.name != SECURE_PREFS_FILE_NAME }
                         .forEach { file ->
                             val rel = file.relativeTo(sharedPrefsRoot).invariantSeparatorsPath
                             val entryName = "$SHARED_PREFS_TAR_PREFIX/$rel"
@@ -406,6 +410,9 @@ class BackupRepositoryImpl @Inject constructor(
         const val THUMBNAILS_TAR_PREFIX = "files/thumbnails"
         const val LEGACY_PUBLIC_TAR_PREFIX = "files/public"
         const val SHARED_PREFS_TAR_PREFIX = "shared_prefs"
+
+        // Encrypted API-key store (see SecureApiKeyStore); excluded from export.
+        const val SECURE_PREFS_FILE_NAME = "secure_settings.xml"
     }
 }
 

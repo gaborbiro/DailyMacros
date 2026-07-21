@@ -9,6 +9,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dev.gaborbiro.dailymacros.repositories.chatgpt.AuthInterceptor
+import dev.gaborbiro.dailymacros.repositories.chatgpt.BuildConfig
 import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGPTMapper
 import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGPTRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGptOkHttpTimeouts
@@ -35,6 +36,27 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 internal object ChatGPTNetworkModule {
 
+    /**
+     * OkHttp logging interceptor for the OpenAI/proxy clients.
+     *
+     * Request/response bodies carry the user's meal photos and food diary, and
+     * the headers carry bearer credentials (the user's own OpenAI key on the
+     * BYO-key path, or a Firebase token on the proxy path). We must never write
+     * any of that to logcat in a shipped build, where other tooling can read it.
+     * So body logging is enabled only in debug builds, and even then the
+     * credential-bearing headers are redacted.
+     */
+    private fun loggingInterceptor(): HttpLoggingInterceptor =
+        HttpLoggingInterceptor().apply {
+            level = if (BuildConfig.DEBUG) {
+                HttpLoggingInterceptor.Level.BODY
+            } else {
+                HttpLoggingInterceptor.Level.NONE
+            }
+            redactHeader("Authorization")
+            redactHeader("X-Client-Id")
+        }
+
     @Provides
     @Singleton
     @ChatGptClientGson
@@ -54,7 +76,7 @@ internal object ChatGPTNetworkModule {
         settingsRepository: SettingsRepository,
         clientIdProvider: ClientIdProvider,
     ): OkHttpClient {
-        val logger = HttpLoggingInterceptor().also { it.level = HttpLoggingInterceptor.Level.BODY }
+        val logger = loggingInterceptor()
         val authInterceptor = AuthInterceptor(settingsRepository, FirebaseAuth.getInstance(), clientIdProvider)
         return OkHttpClient.Builder()
             .addNetworkInterceptor(logger)
@@ -72,7 +94,7 @@ internal object ChatGPTNetworkModule {
         settingsRepository: SettingsRepository,
         clientIdProvider: ClientIdProvider,
     ): OkHttpClient {
-        val logger = HttpLoggingInterceptor().also { it.level = HttpLoggingInterceptor.Level.BODY }
+        val logger = loggingInterceptor()
         val authInterceptor = AuthInterceptor(settingsRepository, FirebaseAuth.getInstance(), clientIdProvider)
         return OkHttpClient.Builder()
             .addNetworkInterceptor(logger)

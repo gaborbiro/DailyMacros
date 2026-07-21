@@ -9,9 +9,16 @@
 ## Remaining (priority order)
 
 ### 1. Privacy policy page *(required, ~1 day)*
-- Static page on GitHub Pages (or any hosting)
-- Content: photos sent to OpenAI for analysis, nothing stored by developer, link to OpenAI's privacy policy
-- Add URL to Play Console listing + app's About/Settings screen
+- Draft written: `PRIVACY.md` at repo root (covers on-device storage, the OpenAI
+  data flow + proxy, optional Drive backup, anonymous telemetry, identifiers,
+  permissions, retention). Still TODO: fill in the `<your-contact-email>`
+  placeholder.
+- Host it. The in-app links currently point at
+  `https://github.com/gaborbiro/DailyMacros/blob/master/PRIVACY.md`
+  (string resources `settings_privacy_policy_url` / `welcome_privacy_policy_url`).
+  If hosting on GitHub Pages or elsewhere, update those two strings to match.
+- In-app links: done (Settings "Privacy & data" section + Welcome-screen notice).
+- Remaining: add the final URL to the Play Console listing.
 
 ### 2. Play Store listing materials *(required, ~1 day)*
 - Short description (80 chars), long description (~4000 chars)
@@ -20,10 +27,25 @@
 
 ### 3. Data safety form *(required, ~2 hrs)*
 - Manual form in Play Console — no code
-- Key answers:
-  - No data collected/stored by the developer
-  - Photos shared with OpenAI (third party) for app functionality
-  - No encryption at rest (no storage)
+- Key answers (kept in sync with actual app behaviour — see `PRIVACY.md`):
+  - **Shared with a third party (OpenAI):** the photos and meal descriptions the
+    user enters, and — for weekly insights — their recent diary and targets, are
+    sent to OpenAI to provide meal recognition / nutrition analysis. Not stored
+    by the developer.
+  - **Collected by the developer (limited):** anonymous usage analytics and crash
+    diagnostics via Firebase, plus a random per-device identifier and usage
+    counters stored by the proxy in Firestore to enforce usage limits. None of
+    this is linked to a user's identity, and no meal photos/diary content is
+    collected. (The earlier "no data collected by the developer" answer was
+    inaccurate.)
+  - **Stored on-device:** the user's diary (photos, descriptions, nutrition) and
+    settings live on the device; optional backup goes to the user's *own* Google
+    Drive.
+  - **Encryption in transit:** yes — all requests use HTTPS/TLS.
+  - **Encryption at rest:** the BYO OpenAI key is encrypted on-device (Android
+    Keystore, AES-GCM). The diary database itself is not separately encrypted
+    beyond the OS app sandbox. (The earlier "no encryption at rest (no storage)"
+    answer was inaccurate — the diary *is* stored on-device.)
 
 ### 4. Subscription via Play Billing + free trial *(revenue, ~3–5 days)*
 - Define subscription product + free trial period in Play Console (trial = no code)
