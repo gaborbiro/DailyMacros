@@ -42,10 +42,12 @@
     settings live on the device; optional backup goes to the user's *own* Google
     Drive.
   - **Encryption in transit:** yes — all requests use HTTPS/TLS.
-  - **Encryption at rest:** the BYO OpenAI key is encrypted on-device (Android
-    Keystore, AES-GCM). The diary database itself is not separately encrypted
-    beyond the OS app sandbox. (The earlier "no encryption at rest (no storage)"
-    answer was inaccurate — the diary *is* stored on-device.)
+  - **Encryption at rest:** yes. Android encrypts app-private storage at rest by
+    default (File-Based Encryption tied to the device lock screen), so the diary
+    database and settings are encrypted on the flash storage. The BYO OpenAI key
+    additionally gets app-level encryption (Android Keystore, AES-GCM). (The
+    earlier "no encryption at rest (no storage)" answer was inaccurate — the
+    diary *is* stored on-device, and it *is* encrypted at rest by the OS.)
 
 ### 4. Subscription via Play Billing + free trial *(revenue, ~3–5 days)*
 - Define subscription product + free trial period in Play Console (trial = no code)
