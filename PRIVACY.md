@@ -42,23 +42,18 @@ Please avoid including information in photos or text that you do not want
 analysed by a third party. OpenAI's handling of API data is governed by
 OpenAI's own policies.
 
-By default these requests are routed through a small server function operated by
-the developer. That function's only role is to attach the app's OpenAI
-credential and enforce usage limits — it passes your content straight to OpenAI
-and does **not** store your photos, descriptions, or diary. It records only a
-per-device counter and a random identifier so usage limits can be enforced and
-support requests answered (see "Identifiers" below).
-
-If you supply your own OpenAI API key ("Personalise AI"), requests go directly
-from your device to OpenAI and bypass the developer's server entirely. Your key
-is stored encrypted on your device and is never backed up off the device.
+These requests are routed through a small server function operated by the
+developer. That function's only role is to attach the app's OpenAI credential
+and enforce usage limits — it passes your content straight to OpenAI and does
+**not** store your photos, descriptions, or diary. It records only a per-device
+counter and a random identifier so usage limits can be enforced and support
+requests answered (see "Identifiers" below).
 
 ## Optional cloud backup (your Google Drive)
 
 If you enable cloud backup, the app writes a backup of your diary to a private
 folder in **your own** Google Drive account. This data is under your control in
-your Google account; the developer cannot access it. Your encrypted API key is
-never included in any backup.
+your Google account; the developer cannot access it.
 
 ## Analytics and crash reporting
 
@@ -83,9 +78,8 @@ person.
 
 ## Permissions
 
-- **Photos / media (`READ_MEDIA_IMAGES`)** — to read the meal photos you add,
-  and, if you enable auto-detection, to recognise new photos in your Camera
-  folder as candidate meals. Photos are only analysed when this is used.
+- **Photos / media (`READ_MEDIA_IMAGES`)** — to read the meal photos you add to
+  your food diary.
 - **Notifications** — to show reminders and status notifications.
 
 ## Data retention and deletion
