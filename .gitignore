@@ -93,3 +93,8 @@ buildNumber.properties
 /.idea/markdown-navigator-enh.xml
 /.idea/jarRepositories.xml
 
+# Claude Code local git-worktree checkouts — throwaway copies of the repo.
+# Not for version control, and excluding them keeps code searches from
+# matching every file multiple times.
+.claude/worktrees/
+
