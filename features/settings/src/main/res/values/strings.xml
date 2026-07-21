@@ -112,7 +112,7 @@
     <string name="settings_content_not_signed_in_google">Not signed in to Google</string>
     <!-- Privacy & data -->
     <string name="settings_privacy_section">Privacy &amp; data</string>
-    <string name="settings_privacy_disclosure">To recognise meals and estimate nutrition, the photos and descriptions you add — and, for weekly insights, your recent diary — are sent to OpenAI for analysis. Your diary is stored on this device; the developer does not store your meal photos or entries. Cloud backup, if you enable it, goes to your own Google account.</string>
+    <string name="settings_privacy_disclosure">To recognise meals and estimate nutrition, the photos and descriptions you add are sent to OpenAI for analysis. Your diary is stored on this device; the developer does not store your meal photos or entries. Cloud backup, if you enable it, goes to your own Google account.</string>
     <string name="settings_privacy_policy_row">Privacy policy</string>
     <string name="settings_privacy_policy_url">https://github.com/gaborbiro/DailyMacros/blob/master/PRIVACY.md</string>
 </resources>

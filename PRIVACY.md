@@ -31,13 +31,11 @@ Uninstalling the app removes all of this on-device data.
 
 ## Data sent to OpenAI (meal analysis)
 
-When you add a meal, or request weekly insights, the app sends the relevant
-content to OpenAI's API so it can recognise the food and estimate nutrition:
+When you add a meal, the app sends the relevant content to OpenAI's API so it
+can recognise the food and estimate nutrition:
 
 - The **photos** you attach to a meal.
 - The **title and description** you type.
-- For weekly insights, your **recent diary entries** (roughly the last two
-  weeks) and your nutritional targets.
 - Your device language, so results come back in your language.
 
 Please avoid including information in photos or text that you do not want
