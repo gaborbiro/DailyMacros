@@ -3,7 +3,8 @@ package dev.gaborbiro.dailymacros.repositories.chatgpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.MealComponent
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.NutrientAnalysisResponse
-import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.AiRequestError
+import dev.gaborbiro.dailymacros.repositories.common.model.UsageLimitException
 import dev.gaborbiro.dailymacros.repositories.common.model.DomainError
 import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
 import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
@@ -61,12 +62,17 @@ internal class ChatGPTMapper @Inject constructor() {
         )
     }
 
-    fun map(error: ChatGPTApiError): DomainError {
+    fun map(error: AiRequestError): DomainError {
         return when (error) {
-            is ChatGPTApiError.InternetError -> DomainError.DisplayMessageToUser.CheckInternetConnection(error)
-            is ChatGPTApiError.ServerErrorResponse -> DomainError.DisplayMessageToUser.TechnicalMessage(errorMessage = error.errorMessage, error) // for power users
-            is ChatGPTApiError.GenericError, is ChatGPTApiError.MappingError -> DomainError.DisplayMessageToUser.OperationFailed(analyticsMessage = error.analyticsMessage, error)
-            // we do not at the moment have any critical ForcedErrorMessage (which would be shown even to non-power-users)
+            is AiRequestError.Network -> DomainError.DisplayMessageToUser.CheckInternetConnection(error)
+            // Usage limit: not a technical/upstream failure, so it's shown to every
+            // user. The kind rides in the cause; ErrorUiMapper turns it into copy.
+            is AiRequestError.Proxy -> DomainError.DisplayMessageToUser.OperationFailed(
+                analyticsMessage = error.analyticsMessage,
+                cause = UsageLimitException(error.kind, error),
+            )
+            is AiRequestError.Upstream -> DomainError.DisplayMessageToUser.TechnicalMessage(errorMessage = error.errorMessage, error) // for power users
+            is AiRequestError.Generic, is AiRequestError.Mapping -> DomainError.DisplayMessageToUser.OperationFailed(analyticsMessage = error.analyticsMessage, error)
         }
     }
 

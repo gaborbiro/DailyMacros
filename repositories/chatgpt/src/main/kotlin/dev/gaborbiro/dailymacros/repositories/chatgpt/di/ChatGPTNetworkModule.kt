@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.repositories.chatgpt.di
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
+import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -12,6 +13,7 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGPTMapper
 import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGPTRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGptOkHttpTimeouts
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ClientIdProvider
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGptClientGson
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ForImageUploadChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ForJsonBodyChatGpt
@@ -48,9 +50,12 @@ internal object ChatGPTNetworkModule {
     @Provides
     @Singleton
     @ForImageUploadChatGpt
-    fun imageUploadOkHttp(settingsRepository: SettingsRepository): OkHttpClient {
+    fun imageUploadOkHttp(
+        settingsRepository: SettingsRepository,
+        clientIdProvider: ClientIdProvider,
+    ): OkHttpClient {
         val logger = HttpLoggingInterceptor().also { it.level = HttpLoggingInterceptor.Level.BODY }
-        val authInterceptor = AuthInterceptor(settingsRepository)
+        val authInterceptor = AuthInterceptor(settingsRepository, FirebaseAuth.getInstance(), clientIdProvider)
         return OkHttpClient.Builder()
             .addNetworkInterceptor(logger)
             .addInterceptor(authInterceptor)
@@ -63,9 +68,12 @@ internal object ChatGPTNetworkModule {
     @Provides
     @Singleton
     @ForJsonBodyChatGpt
-    fun jsonBodyOkHttp(settingsRepository: SettingsRepository): OkHttpClient {
+    fun jsonBodyOkHttp(
+        settingsRepository: SettingsRepository,
+        clientIdProvider: ClientIdProvider,
+    ): OkHttpClient {
         val logger = HttpLoggingInterceptor().also { it.level = HttpLoggingInterceptor.Level.BODY }
-        val authInterceptor = AuthInterceptor(settingsRepository)
+        val authInterceptor = AuthInterceptor(settingsRepository, FirebaseAuth.getInstance(), clientIdProvider)
         return OkHttpClient.Builder()
             .addNetworkInterceptor(logger)
             .addInterceptor(authInterceptor)

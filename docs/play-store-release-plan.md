@@ -47,4 +47,12 @@
 - [ ] Merge to `release` branch → CI creates Git tag + GitHub Release
 
 ## API key / spending risk
-Key is a GitHub secret injected at build time (not in git). R8/ProGuard obfuscation is on for release builds. Set a tight spending cap in your OpenAI account and monitor usage. Acceptable for v1 — add a proxy in v2 if abuse occurs.
+Moving to a **Firebase Cloud Function proxy** (`functions/`, project `dailymacros-9fab8`) so the key never ships in the APK and spending is capped server-side.
+
+- App (keyless users) → `openaiProxy` Cloud Function → OpenAI. The function holds the key as a deployed secret and meters every request in Firestore.
+- **Caps:** per-user daily cap + global monthly request budget (tripwire, ~3000 req/mo ≈ $30) + manual kill switch, all tunable live in `config/limits` without redeploy.
+- **Latency:** function is US-region + `minInstances: 1` (kept warm) so the added hop is ~50–200ms against a multi-second model call — negligible. Cold starts avoided by the warm instance.
+- **BYO-key (hidden dev path):** if a personal key is set in Settings, the app still calls OpenAI directly, bypassing the proxy.
+- Setup + deploy runbook: `functions/README.md`. Requires Blaze plan, Anonymous Auth, and Firestore enabled.
+
+**Status:** ✅ **Deployed and validated.** The `openaiProxy` Cloud Function is live (Node 22, `us-central1`, `minInstances: 1`) holding `OPENAI_KEY` as a deployed secret and enforcing per-user daily + global monthly caps via `config/limits` in Firestore, with a manual kill switch. The embedded `CHATGPT_API_KEY` is removed from the app; `AuthInterceptor` routes keyless users through the proxy with an anonymous Firebase ID token, while the hidden BYO-key path still calls OpenAI directly. Verified end-to-end on device (real analysis + acceptable latency) and cap logic confirmed in Firestore. The app has no key fallback, so the proxy must stay live for shipped builds.

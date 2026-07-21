@@ -48,7 +48,7 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toNutrientAnalysis
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toOngoingInsightsResult
 import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toWeeklyInsightsResponse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.ChatGPTService
-import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.AiRequestError
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTResponse
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptType
@@ -245,7 +245,7 @@ internal class ChatGPTRepositoryImpl(
     private inline fun <T> mappingApiErrors(block: () -> T): T {
         return try {
             block()
-        } catch (apiError: ChatGPTApiError) {
+        } catch (apiError: AiRequestError) {
             throw mapper.map(apiError)
         }
     }
