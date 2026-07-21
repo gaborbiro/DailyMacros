@@ -6,10 +6,6 @@ Daily Macros is a nutrition diary. This policy explains what data the app
 handles, where it goes, and the choices you have. It describes the app's current
 behaviour; if it changes materially, this document will be updated.
 
-> **Note for the maintainer:** replace `<your-contact-email>` below with a real
-> contact address before publishing this policy or submitting the Play Store
-> Data safety form.
-
 ## Summary
 
 - Your food diary (meal photos, descriptions, and the nutrition figures derived
@@ -107,4 +103,4 @@ Daily Macros is a general-audience app and is not directed at children.
 
 ## Contact
 
-Questions about this policy or your data: `<your-contact-email>`.
+Questions about this policy or your data: nomadworkz@gmail.com.
