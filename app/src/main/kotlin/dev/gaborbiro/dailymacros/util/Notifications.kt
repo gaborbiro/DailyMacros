@@ -68,7 +68,7 @@ fun Context.showMacroResultsNotification(
         .setStyle(
             NotificationCompat.BigTextStyle()
                 .bigText(message)
-                .setSummaryText(title ?: "")
+//                .setSummaryText(title ?: "")
         )
     getSystemService(NotificationManager::class.java).notify(
         id.toInt(),
