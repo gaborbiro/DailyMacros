@@ -110,4 +110,9 @@
     <string name="settings_prompt_editor_info_disabled">ℹ️ Using your own API key means you no longer need to subscribe to this app. Once unlocked, feel free to cancel your subscription in Play Store, or keep it if you\'d like to support the developer of this app.\nDrop a message to %1$s for any suggestions or questions.\nYou can also customise the AI prompts. This may cause the app to behave in unpredictable ways or even crash. Revert the query to its default version if needed.\nA heads-up on future plans: I intend to collect anonymised custom prompts to improve the app\'s AI features. I\'ll ask for your explicit consent before doing so.</string>
     <!-- AutoSyncUseCase -->
     <string name="settings_content_not_signed_in_google">Not signed in to Google</string>
+    <!-- Privacy & data -->
+    <string name="settings_privacy_section">Privacy &amp; data</string>
+    <string name="settings_privacy_disclosure">To recognise meals and estimate nutrition, the photos and descriptions you add — and, for weekly insights, your recent diary — are sent to OpenAI for analysis. Your diary is stored on this device; the developer does not store your meal photos or entries. Cloud backup, if you enable it, goes to your own Google account.</string>
+    <string name="settings_privacy_policy_row">Privacy policy</string>
+    <string name="settings_privacy_policy_url">https://github.com/gaborbiro/DailyMacros/blob/master/PRIVACY.md</string>
 </resources>

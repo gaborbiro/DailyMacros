@@ -42,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -365,6 +366,22 @@ internal fun SettingsView(
                     onTapped = onRestoreFromDriveTapped,
                 )
             }
+
+            SettingSectionHeader(title = stringResource(R.string.settings_privacy_section))
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                text = stringResource(R.string.settings_privacy_disclosure),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            val uriHandler = LocalUriHandler.current
+            val privacyPolicyUrl = stringResource(R.string.settings_privacy_policy_url)
+            SettingRow(
+                title = stringResource(R.string.settings_privacy_policy_row),
+                onTapped = { uriHandler.openUri(privacyPolicyUrl) },
+            )
 
             SelectionContainer {
                 Text(
