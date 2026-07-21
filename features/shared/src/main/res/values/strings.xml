@@ -15,4 +15,7 @@
     <string name="shared_content_macros_error_title_unknown">Couldn`t get macros</string>
     <!-- ErrorUiMapper -->
     <string name="shared_content_connectivity_error">Connectivity error. Please check your internet connection and try again.</string>
+    <string name="shared_content_usage_limit_daily">You’ve reached today’s limit. Please try again tomorrow.</string>
+    <string name="shared_content_usage_limit_monthly">Daily Macros is at capacity right now. Please try again later.</string>
+    <string name="shared_content_usage_limit_unavailable">AI analysis is temporarily unavailable. Please try again later.</string>
 </resources>

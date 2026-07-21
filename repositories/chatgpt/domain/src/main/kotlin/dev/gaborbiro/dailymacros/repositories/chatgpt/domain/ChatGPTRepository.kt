@@ -12,7 +12,7 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsight
 
 /**
  * All operations translate API/transport failures into [dev.gaborbiro.dailymacros.repositories.common.model.DomainError]
- * before throwing. No service-layer exception (e.g. `ChatGPTApiError`) leaks out of the repository.
+ * before throwing. No service-layer exception (e.g. `AiRequestError`) leaks out of the repository.
  */
 interface ChatGPTRepository {
 

@@ -1,9 +1,10 @@
 package dev.gaborbiro.dailymacros.repositories.chatgpt.utils
 
 import com.google.gson.Gson
-import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.AiRequestError
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ErrorResponseBody1
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ErrorResponseBody2
+import dev.gaborbiro.dailymacros.repositories.common.model.UsageLimitKind
 import kotlinx.coroutines.CancellationException
 import okhttp3.ResponseBody
 import retrofit2.Response
@@ -12,7 +13,7 @@ import java.io.IOException
 class ErrorHandlingContext(val tag: String)
 
 /**
- * @throws ChatGPTApiError
+ * @throws AiRequestError
  */
 internal suspend fun <T> runCatching(
     logTag: String,
@@ -20,15 +21,15 @@ internal suspend fun <T> runCatching(
 ): T {
     return try {
         body(ErrorHandlingContext(logTag))
-    } catch (e: ChatGPTApiError) {
+    } catch (e: AiRequestError) {
         throw e
     } catch (e: CancellationException) {
-        // not mapping this into ChatGPTApiError means upstreams won't pick up on it, allowing quiet task cancellations
+        // not mapping this into AiRequestError means upstreams won't pick up on it, allowing quiet task cancellations
         throw e
     } catch (e: IOException) {
-        throw ChatGPTApiError.InternetError(cause = e)
+        throw AiRequestError.Network(cause = e)
     } catch (t: Throwable) {
-        throw ChatGPTApiError.GenericError(analyticsMessage = "$logTag Error: ${t.message}", cause = t)
+        throw AiRequestError.Generic(analyticsMessage = "$logTag Error: ${t.message}", cause = t)
     }
 }
 
@@ -48,19 +49,19 @@ fun <T> ErrorHandlingContext.parse(
         doOnSuccess = { response ->
             val body =
                 response.body()
-                    ?: throw ChatGPTApiError.GenericError("$tag Error: missing response payload")
+                    ?: throw AiRequestError.Generic("$tag Error: missing response payload")
             doOnSuccess?.invoke(body, response)
         },
         doOnError
     )
     return response.body()
-        ?: throw ChatGPTApiError.GenericError("$tag Error: missing response payload")
+        ?: throw AiRequestError.Generic("$tag Error: missing response payload")
 }
 
 /**
  * Use this when there is no return value
  *
- * @throws ChatGPTApiError
+ * @throws AiRequestError
  */
 fun <T> ErrorHandlingContext.handle(
     response: Response<T>,
@@ -75,7 +76,7 @@ fun <T> ErrorHandlingContext.handle(
 }
 
 /**
- * @throws ChatGPTApiError
+ * @throws AiRequestError
  */
 private fun <T> ErrorHandlingContext.handleUnsuccessful(
     response: Response<T>,
@@ -85,29 +86,39 @@ private fun <T> ErrorHandlingContext.handleUnsuccessful(
     val errorBody = response.errorBody()?.string()
     val gson = Gson()
 
-    val (analyticsMessage, type) = runCatching {
-        gson.fromJson(
-            errorBody,
-            ErrorResponseBody1::class.java
-        ).error
-            ?.let { it.message to it.type }
-            ?: run {
-                val body = gson.fromJson(
-                    errorBody,
-                    ErrorResponseBody2::class.java
-                )
-                body.message to (null as String)
-            }
-    }.recover {
-        runCatching {
-            val body = gson.fromJson(
-                errorBody,
-                ErrorResponseBody2::class.java
-            )
-            body.message to null
-        }.getOrDefault(null to null)
-    }.getOrDefault(null to null)
+    // The proxy shape is {"error":{"message","type","code"}}; a bare {"message"}
+    // is the fallback. Parse the structured error first so we can read `code`.
+    val error = runCatching {
+        gson.fromJson(errorBody, ErrorResponseBody1::class.java)?.error
+    }.getOrNull()
+
+    // A usage limit is enforced by the Firebase proxy, not the AI model, so it
+    // gets its own error rather than the generic upstream one.
+    proxyCodeToKind(error?.code)?.let { kind ->
+        throw AiRequestError.Proxy(kind = kind)
+    }
+
+    val (analyticsMessage, type) = if (error != null) {
+        error.message to error.type
+    } else {
+        val message = runCatching {
+            gson.fromJson(errorBody, ErrorResponseBody2::class.java)?.message
+        }.getOrNull()
+        message to null
+    }
     val finalType = type ?: "unknown error type"
     val finalMessage = analyticsMessage ?: "no error message"
-    throw ChatGPTApiError.ServerErrorResponse(errorMessage = "$finalType - $finalMessage")
+    throw AiRequestError.Upstream(errorMessage = "$finalType - $finalMessage")
+}
+
+/**
+ * Maps the Firebase proxy's usage-limit `code` (see `functions/index.js`) to a
+ * [UsageLimitKind]; null for any other/absent code. This is the single
+ * client-side location that knows the proxy's cap codes.
+ */
+private fun proxyCodeToKind(code: String?): UsageLimitKind? = when (code) {
+    "daily_cap" -> UsageLimitKind.DAILY
+    "monthly_budget" -> UsageLimitKind.MONTHLY
+    "kill_switch" -> UsageLimitKind.UNAVAILABLE
+    else -> null
 }

@@ -2,6 +2,8 @@ package dev.gaborbiro.dailymacros.features.shared
 
 import android.content.Context
 import dev.gaborbiro.dailymacros.repositories.common.model.DomainError
+import dev.gaborbiro.dailymacros.repositories.common.model.UsageLimitException
+import dev.gaborbiro.dailymacros.repositories.common.model.UsageLimitKind
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion
@@ -38,6 +40,42 @@ class ErrorUiMapperTest {
             mapperWithoutApiKey.mapErrorMessage(
                 DomainError.DisplayMessageToUser.OperationFailed(),
                 defaultMessage = "Couldn't save your entry",
+            ),
+        )
+    }
+
+    @Test
+    fun `mapErrorMessage usage limit daily shows specific message even without api key`() {
+        val result = mapperWithoutApiKey.mapErrorMessage(
+            DomainError.DisplayMessageToUser.OperationFailed(
+                cause = UsageLimitException(UsageLimitKind.DAILY),
+            ),
+            defaultMessage = "default",
+        )
+        assertEquals(
+            context.getString(R.string.shared_content_usage_limit_daily),
+            result,
+        )
+    }
+
+    @Test
+    fun `mapErrorMessage usage limit monthly and unavailable map to their strings`() {
+        assertEquals(
+            context.getString(R.string.shared_content_usage_limit_monthly),
+            mapperWithoutApiKey.mapErrorMessage(
+                DomainError.DisplayMessageToUser.OperationFailed(
+                    cause = UsageLimitException(UsageLimitKind.MONTHLY),
+                ),
+                defaultMessage = "default",
+            ),
+        )
+        assertEquals(
+            context.getString(R.string.shared_content_usage_limit_unavailable),
+            mapperWithoutApiKey.mapErrorMessage(
+                DomainError.DisplayMessageToUser.OperationFailed(
+                    cause = UsageLimitException(UsageLimitKind.UNAVAILABLE),
+                ),
+                defaultMessage = "default",
             ),
         )
     }
