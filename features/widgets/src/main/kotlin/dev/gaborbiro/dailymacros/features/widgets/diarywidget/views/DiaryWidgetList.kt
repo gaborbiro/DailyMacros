@@ -18,6 +18,7 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDouble
+import dev.gaborbiro.dailymacros.design.PaddingWidgetHalf
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
@@ -39,7 +40,7 @@ internal fun DiaryWidgetList(
         modifier = GlanceModifier
             .fillMaxSize(),
     ) {
-        item { Spacer(modifier = GlanceModifier.height(PaddingWidgetDefault)) }
+        item { Spacer(modifier = GlanceModifier.height(PaddingWidgetHalf)) }
         itemsIndexed(
             items = items,
             itemId = { _, item -> item.listItemId },
@@ -48,9 +49,10 @@ internal fun DiaryWidgetList(
                 is ListUiModelRecord -> ListItemRecord(
                     modifier = GlanceModifier
                         .padding(
-                            horizontal = PaddingWidgetDouble,
-                            vertical = PaddingWidgetDefault
-                        ),
+                            horizontal = PaddingWidgetDefault,
+                            vertical = PaddingWidgetHalf
+                        )
+                    ,
                     record = item,
                     imageTappedActionProvider = recordImageTapActionProvider(item.listItemId),
                     bodyTappedActionProvider = recordBodyTapActionProvider(item.listItemId),
@@ -64,8 +66,8 @@ internal fun DiaryWidgetList(
                 is ListUiModelQuickPick -> ListItemQuickPick(
                     modifier = GlanceModifier
                         .padding(
-                            horizontal = PaddingWidgetDouble,
-                            vertical = PaddingWidgetDefault
+                            horizontal = PaddingWidgetDefault,
+                            vertical = PaddingWidgetHalf
                         ),
                     quickPickEntry = item,
                     imageTapActionProvider = quickPickImageTapActionProvider(item.templateId),

@@ -69,6 +69,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import dev.gaborbiro.dailymacros.features.common.SUPPORT_EMAIL
 import dev.gaborbiro.dailymacros.features.common.utils.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.features.settings.R
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel.Companion.TAB_ANALYSIS
@@ -218,15 +219,14 @@ internal fun PromptEditorView(
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp, vertical = 4.dp),
                         )
-                        val email = "nomadworkz@gmail.com"
                         val uriHandler = LocalUriHandler.current
                         val primaryColor = MaterialTheme.colorScheme.primary
                         val infoText = if (viewState.promptsEnabled) {
-                            stringResource(R.string.settings_prompt_editor_info_enabled, email)
+                            stringResource(R.string.settings_prompt_editor_info_enabled, SUPPORT_EMAIL)
                         } else {
-                            stringResource(R.string.settings_prompt_editor_info_disabled, email)
+                            stringResource(R.string.settings_prompt_editor_info_disabled, SUPPORT_EMAIL)
                         }
-                        val emailStart = infoText.indexOf(email)
+                        val emailStart = infoText.indexOf(SUPPORT_EMAIL)
                         val annotated = buildAnnotatedString {
                             append(infoText)
                             if (emailStart >= 0) {
@@ -236,7 +236,7 @@ internal fun PromptEditorView(
                                         textDecoration = TextDecoration.Underline,
                                     ),
                                     emailStart,
-                                    emailStart + email.length,
+                                    emailStart + SUPPORT_EMAIL.length,
                                 )
                             }
                         }
@@ -246,7 +246,7 @@ internal fun PromptEditorView(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier
                                 .padding(horizontal = 16.dp, vertical = 4.dp)
-                                .clickable { uriHandler.openUri("mailto:$email") },
+                                .clickable { uriHandler.openUri("mailto:$SUPPORT_EMAIL") },
                         )
                         Spacer(Modifier.height(4.dp))
                     }

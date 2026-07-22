@@ -12,6 +12,6 @@ val PaddingQuarter = PaddingDefault / 4
 
 // Widget
 
-val PaddingWidgetDefault = 3.dp
+val PaddingWidgetDefault = 6.dp
 val PaddingWidgetDouble = PaddingWidgetDefault * 2
 val PaddingWidgetHalf = PaddingWidgetDefault / 2
