@@ -19,3 +19,8 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# PdfBox-Android references the optional JPEG 2000 codec (com.gemalto.jp2)
+# from JPXFilter, but that dependency is not bundled. We don't decode JP2
+# images, so it's safe to tell R8 to ignore the missing references.
+-dontwarn com.gemalto.jp2.**
