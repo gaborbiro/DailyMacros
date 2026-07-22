@@ -54,7 +54,6 @@ internal fun OverviewView(
     onSettingsButtonTapped: () -> Unit,
     onSetTargetsTapped: () -> Unit,
     onSummaryTapped: () -> Unit,
-    onCoachMarkDismissed: () -> Unit,
     onAddWidget: () -> Unit = {},
     onRestoreFromCloud: () -> Unit = {},
     onLoadMore: () -> Unit = {},
@@ -139,12 +138,9 @@ internal fun OverviewView(
 
             OverviewListTopActions(
                 showSettingsButton = viewState.showSettingsButton,
-                showCoachMark = viewState.showCoachMark,
                 listAtTop = listAtTop,
                 topContentPadding = paddingValues.calculateTopPadding(),
                 onSettingsButtonTapped = onSettingsButtonTapped,
-                onSetTargetsTapped = onSetTargetsTapped,
-                onCoachMarkDismissed = onCoachMarkDismissed,
             )
         }
     }
@@ -266,7 +262,6 @@ private fun OverviewListPreview() {
             onSettingsButtonTapped = {},
             onSetTargetsTapped = {},
             onSummaryTapped = {},
-            onCoachMarkDismissed = {},
             onLoadMore = {},
         )
     }
@@ -294,7 +289,6 @@ private fun OverviewListPreviewEmpty() {
             onSettingsButtonTapped = {},
             onSetTargetsTapped = {},
             onSummaryTapped = {},
-            onCoachMarkDismissed = {},
             onLoadMore = {},
         )
     }

@@ -11,6 +11,5 @@ data class OverviewUiState(
     val showAddWidgetButton: Boolean = false,
     val showUndoDeleteSnackbar: Boolean = false,
     val recordToUndelete: Record? = null,
-    val showCoachMark: Boolean = false,
     val showSettingsButton: Boolean = false,
 )

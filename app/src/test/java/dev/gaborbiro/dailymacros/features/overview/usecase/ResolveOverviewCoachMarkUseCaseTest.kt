@@ -2,7 +2,6 @@ package dev.gaborbiro.dailymacros.features.overview.usecase
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import dev.gaborbiro.dailymacros.features.overview.OverviewPrefs
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before

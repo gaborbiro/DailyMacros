@@ -17,7 +17,7 @@
     <!-- SettingsView content -->
     <string name="settings_content_title">Settings</string>
     <string name="settings_content_back_cd">Back Button</string>
-    <string name="settings_content_daily_targets_row">Daily targets</string>
+    <string name="settings_content_daily_targets_row">Daily Targets</string>
     <string name="settings_content_customise_ai_row">Personalise AI</string>
     <string name="settings_content_customise_ai_subtitle">Experimental!</string>
     <string name="settings_content_export_diary_row">Export food diary</string>
@@ -72,7 +72,7 @@
     <string name="settings_dialog_restore_message">A backup from %1$s is available on Google Drive. Restore it now? This will replace all your current data.</string>
     <string name="settings_dialog_restore_confirm">Restore</string>
     <!-- TargetsHeader / TargetsSettingsBottomSheet -->
-    <string name="settings_content_targets_title">Daily targets</string>
+    <string name="settings_content_targets_title">Daily Targets</string>
     <string name="settings_content_targets_back_cd">Back</string>
     <string name="settings_content_targets_reset">Reset</string>
     <string name="settings_content_targets_save">Save</string>

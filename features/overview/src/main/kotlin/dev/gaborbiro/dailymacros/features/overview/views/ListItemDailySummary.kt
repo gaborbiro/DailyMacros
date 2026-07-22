@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingDouble
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
@@ -28,7 +29,6 @@ import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelDailySummary
 internal fun ListItemDailySummary(
     modifier: Modifier = Modifier,
     model: ListUiModelDailySummary,
-    showTopPadding: Boolean,
     onTapped: () -> Unit,
 ) {
     Column(
@@ -39,13 +39,6 @@ internal fun ListItemDailySummary(
         Text(
             modifier = Modifier
                 .padding(horizontal = PaddingHalf)
-                .let {
-                    if (showTopPadding) {
-                        it.padding(top = PaddingDouble)
-                    } else {
-                        it
-                    }
-                }
                 .align(Alignment.CenterHorizontally),
             text = model.dayTitle,
             style = MaterialTheme.typography.titleMedium,
@@ -192,7 +185,6 @@ private fun ListItemDailySummaryPreview() {
                     ),
                 ),
             ),
-            showTopPadding = false,
             onTapped = {},
         )
     }

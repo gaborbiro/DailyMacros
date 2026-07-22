@@ -15,7 +15,7 @@
     <string name="trends_content_weekly_insights_title">Weekly Insights</string>
     <!-- TrendsSettingsBottomSheet -->
     <string name="trends_sheet_title">Trends Settings</string>
-    <string name="trends_sheet_daily_targets_title">Daily targets</string>
+    <string name="trends_sheet_daily_targets_title">Daily Targets</string>
     <string name="trends_sheet_daily_targets_subtitle">Set your daily nutrient goals here</string>
     <string name="trends_sheet_days_filter_prompt">Which days to consider for Trends calculations?</string>
     <string name="trends_sheet_qualifier_all_days">All days</string>

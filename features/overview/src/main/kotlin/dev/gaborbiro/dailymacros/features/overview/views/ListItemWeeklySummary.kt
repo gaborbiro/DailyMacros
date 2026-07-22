@@ -38,7 +38,6 @@ internal fun ListItemWeeklySummary(
 ) {
     Column(
         modifier = modifier
-            .padding(top = PaddingDouble)
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
             .clickable(onClick = onTapped)
@@ -49,7 +48,7 @@ internal fun ListItemWeeklySummary(
                 .padding(top = PaddingHalf)
                 .align(Alignment.CenterHorizontally),
             text = stringResource(R.string.overview_content_weekly_summary_heading),
-            style = MaterialTheme.typography.titleLarge.copy(textDecoration = TextDecoration.Underline),
+            style = MaterialTheme.typography.titleMedium.copy(textDecoration = TextDecoration.Underline),
         )
         Row(
             modifier = Modifier

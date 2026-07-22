@@ -59,11 +59,9 @@ fun OverviewScreen(
         onAddWidget = onAddWidget,
         onRestoreFromCloud = onRestoreFromCloud,
         onSetTargetsTapped = {
-            viewModel.onCoachMarkDismissed()
             navController.navigate("$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_TARGETS_ARG=true")
         },
         onSummaryTapped = viewModel::onTrendsButtonTapped,
-        onCoachMarkDismissed = viewModel::onCoachMarkDismissed,
         onLoadMore = viewModel::onLoadMore,
     )
 

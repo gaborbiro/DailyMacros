@@ -5,10 +5,12 @@ import android.util.Range
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -133,14 +135,25 @@ internal fun OverviewList(
                     }
 
                     is ListUiModelDailySummary -> {
+                        if (index > 0) {
+                            Spacer(
+                                modifier = Modifier
+                                    .height(PaddingDefault)
+                            )
+                        }
                         ListItemDailySummary(
                             model = item,
-                            showTopPadding = index > 0,
                             onTapped = onSummaryTapped,
                         )
                     }
 
                     is ListUiModelWeeklySummary -> {
+                        if (index > 0) {
+                            Spacer(
+                                modifier = Modifier
+                                    .height(PaddingDefault)
+                            )
+                        }
                         ListItemWeeklySummary(
                             model = item,
                             onTapped = onSummaryTapped,

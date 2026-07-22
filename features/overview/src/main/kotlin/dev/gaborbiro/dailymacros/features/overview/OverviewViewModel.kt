@@ -6,15 +6,14 @@ import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.features.common.utils.combine
-import dev.gaborbiro.dailymacros.features.shared.ListMealVariantsForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiState
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiUpdates
 import dev.gaborbiro.dailymacros.features.overview.usecase.CancelMacrosAnalysisForRecordUseCase
 import dev.gaborbiro.dailymacros.features.overview.usecase.ComputeOverviewHasMoreItemsUseCase
 import dev.gaborbiro.dailymacros.features.overview.usecase.DeleteUnusedTemplateIfOrphanedUseCase
-import dev.gaborbiro.dailymacros.features.overview.usecase.ResolveOverviewCoachMarkUseCase
 import dev.gaborbiro.dailymacros.features.overview.usecase.ResolveOverviewObserveSinceEpochMillisUseCase
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
+import dev.gaborbiro.dailymacros.features.shared.ListMealVariantsForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.NutrientAnalysisWorker
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
@@ -24,7 +23,6 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -37,7 +35,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -48,7 +45,6 @@ class OverviewViewModel @Inject constructor(
     private val uiMapper: OverviewUiMapper,
     private val resolveObserveSinceEpochMillis: ResolveOverviewObserveSinceEpochMillisUseCase,
     private val computeHasMoreItems: ComputeOverviewHasMoreItemsUseCase,
-    private val resolveCoachMark: ResolveOverviewCoachMarkUseCase,
     private val deleteUnusedTemplateIfOrphaned: DeleteUnusedTemplateIfOrphanedUseCase,
     private val cancelMacrosAnalysisForRecord: CancelMacrosAnalysisForRecordUseCase,
     private val listMealVariantsForTemplateUseCase: ListMealVariantsForTemplateUseCase,
@@ -129,18 +125,6 @@ class OverviewViewModel @Inject constructor(
                             )
                         }
                     }
-                    if (resolveCoachMark.execute(records.filterIsInstance<ListUiModelRecord>().size)) {
-                        viewModelScope.launch {
-                            delay(1.seconds)
-                            _viewState.update {
-                                val stillNotSearching = search.isNullOrBlank()
-                                it.copy(
-                                    showCoachMark = true,
-                                    showSettingsButton = stillNotSearching,
-                                )
-                            }
-                        }
-                    }
                 }
         }
     }
@@ -152,17 +136,10 @@ class OverviewViewModel @Inject constructor(
                     val show = listMealVariantsForTemplateUseCase.hasOtherVariants(item.templateId)
                     item.copy(showOtherLoggedVariantsIcon = show)
                 }
+
                 else -> item
             }
         }
-
-    fun onCoachMarkDismissed() {
-        _viewState.update {
-            it.copy(
-                showCoachMark = false
-            )
-        }
-    }
 
     fun onRepeatMenuItemTapped(recordId: Long) {
         viewModelScope.launch {
@@ -227,11 +204,6 @@ class OverviewViewModel @Inject constructor(
     fun onSettingsButtonTapped() {
         viewModelScope.launch {
             _uiUpdates.emit(OverviewUiUpdates.OpenSettingsScreen)
-        }
-        _viewState.update {
-            it.copy(
-                showCoachMark = false
-            )
         }
     }
 

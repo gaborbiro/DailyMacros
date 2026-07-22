@@ -1,6 +1,5 @@
 package dev.gaborbiro.dailymacros.features.overview.views
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -17,12 +16,8 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -32,16 +27,10 @@ import dev.gaborbiro.dailymacros.features.overview.R
 @Composable
 internal fun OverviewListTopActions(
     showSettingsButton: Boolean,
-    showCoachMark: Boolean,
     listAtTop: Boolean,
     topContentPadding: Dp,
     onSettingsButtonTapped: () -> Unit,
-    onSetTargetsTapped: () -> Unit,
-    onCoachMarkDismissed: () -> Unit,
 ) {
-    var targetBounds by remember { mutableStateOf<Rect?>(null) }
-    var coachMarkVisible by remember(showCoachMark) { mutableStateOf(showCoachMark) }
-
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -64,15 +53,11 @@ internal fun OverviewListTopActions(
         ) {
             if (showSettingsButton) {
                 IconButton(
-                    modifier = Modifier
-                        .coachMarkOverlayAnchor {
-                            targetBounds = it
-                        },
                     colors = IconButtonDefaults.filledIconButtonColors(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
                         contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                     ),
-                    onClick = if (coachMarkVisible) onSetTargetsTapped else onSettingsButtonTapped,
+                    onClick = onSettingsButtonTapped,
                 ) {
                     Icon(
                         imageVector = Icons.Default.Settings,
@@ -80,21 +65,6 @@ internal fun OverviewListTopActions(
                     )
                 }
             }
-        }
-    }
-
-    if (coachMarkVisible) {
-        CoachMarkOverlay(
-            targetRect = targetBounds,
-            text = stringResource(R.string.overview_content_coach_mark),
-            onDismiss = {
-                coachMarkVisible = false
-                onCoachMarkDismissed()
-            },
-        )
-        BackHandler {
-            coachMarkVisible = false
-            onCoachMarkDismissed()
         }
     }
 }
