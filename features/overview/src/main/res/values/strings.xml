@@ -22,7 +22,6 @@
     <string name="overview_content_coach_mark">Set your daily targets here</string>
     <!-- ListItemSetTargetsCta -->
     <string name="overview_content_set_targets_title">Set your Daily Targets</string>
-    <string name="overview_content_set_targets_subtitle">Track calories, protein and more against your personal goals</string>
     <!-- ScrollToTopView -->
     <string name="overview_content_scroll_to_top">Scroll to top</string>
     <!-- RowDropdownMenu -->
