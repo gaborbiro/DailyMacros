@@ -3,6 +3,15 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!--
+       Firebase Analytics transitively depends on play-services-measurement-api,
+       which declares this permission in its own manifest so it can collect the
+       advertising ID for ad-attribution features. This app doesn't use ads or
+       ad personalisation, so the permission is stripped here to keep the Play
+       Console "Advertising ID" data-safety answer ("No") accurate.
+    -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
     <!--
        READ_MEDIA_IMAGES / READ_EXTERNAL_STORAGE are intentionally NOT declared.
        The visible app adds meal photos via the Android Photo Picker
