@@ -7,7 +7,18 @@ data class ModalUiState(
     val rootDialog: DialogHandle? = null,
     val overlayDialog: DialogHandle? = null,
     val photoExportInProgress: Boolean = false,
+    /**
+     * Terminal close request. Held in state (not a one-shot event) so it is observed even when set
+     * before the UI starts collecting — e.g. an action that logs and closes immediately on launch,
+     * before composition subscribes. Null while the modal should stay open.
+     */
+    val closeSignal: CloseSignal? = null,
 )
+
+enum class CloseSignal {
+    CLOSE,
+    CLOSE_AND_REQUEST_NOTIFICATION_PERMISSION,
+}
 
 sealed class DialogHandle {
     data class EditTargetConfirmationDialog(

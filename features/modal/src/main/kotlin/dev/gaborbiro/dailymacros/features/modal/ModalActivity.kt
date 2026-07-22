@@ -37,6 +37,7 @@ import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.data.file.di.FileStorePublicBucketEphemeral
 import dev.gaborbiro.dailymacros.features.common.views.InfoDialog
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
+import dev.gaborbiro.dailymacros.features.modal.model.CloseSignal
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
@@ -114,22 +115,28 @@ class ModalActivity : AppCompatActivity() {
                 }
             }
 
+            LaunchedEffect(viewState.closeSignal) {
+                when (viewState.closeSignal) {
+                    CloseSignal.CLOSE -> finish()
+                    CloseSignal.CLOSE_AND_REQUEST_NOTIFICATION_PERMISSION -> {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                            ContextCompat.checkSelfPermission(
+                                this@ModalActivity,
+                                Manifest.permission.POST_NOTIFICATIONS,
+                            ) != PermissionChecker.PERMISSION_GRANTED
+                        ) {
+                            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        } else {
+                            finish()
+                        }
+                    }
+                    null -> Unit
+                }
+            }
+
             LaunchedEffect(viewModel) {
                 viewModel.uiUpdates.collect { update ->
                     when (update) {
-                        ModalUiUpdates.Close -> finish()
-                        ModalUiUpdates.CloseAndRequestNotificationPermission -> {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                                ContextCompat.checkSelfPermission(
-                                    this@ModalActivity,
-                                    Manifest.permission.POST_NOTIFICATIONS,
-                                ) != PermissionChecker.PERMISSION_GRANTED
-                            ) {
-                                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                            } else {
-                                finish()
-                            }
-                        }
                         is ModalUiUpdates.ShowToast -> {
                             Toast.makeText(
                                 this@ModalActivity,

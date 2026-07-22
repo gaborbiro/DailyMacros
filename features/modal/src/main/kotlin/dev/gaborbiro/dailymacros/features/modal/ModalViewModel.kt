@@ -11,6 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.ChangeImagesTarget
+import dev.gaborbiro.dailymacros.features.modal.model.CloseSignal
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiState
@@ -146,7 +147,7 @@ class ModalViewModel @Inject constructor(
                     setRoot(imageDialog)
                 }
                 ?: run {
-                    _uiUpdates.emit(ModalUiUpdates.Close)
+                    closeAll()
                 }
         }
     }
@@ -158,7 +159,7 @@ class ModalViewModel @Inject constructor(
                     setRoot(imageDialog)
                 }
                 ?: run {
-                    _uiUpdates.emit(ModalUiUpdates.Close)
+                    closeAll()
                 }
         }
     }
@@ -987,7 +988,7 @@ class ModalViewModel @Inject constructor(
 
     private fun setRoot(dialog: DialogHandle) {
         _uiState.update {
-            it.copy(rootDialog = dialog, overlayDialog = null)
+            it.copy(rootDialog = dialog, overlayDialog = null, closeSignal = null)
         }
     }
 
@@ -1004,14 +1005,14 @@ class ModalViewModel @Inject constructor(
     }
 
     private fun closeAll() {
-        closeAllEmitting(ModalUiUpdates.Close)
+        closeAllWithSignal(CloseSignal.CLOSE)
     }
 
     private fun closeAllRequestingNotificationPermission() {
-        closeAllEmitting(ModalUiUpdates.CloseAndRequestNotificationPermission)
+        closeAllWithSignal(CloseSignal.CLOSE_AND_REQUEST_NOTIFICATION_PERMISSION)
     }
 
-    private fun closeAllEmitting(update: ModalUiUpdates) {
+    private fun closeAllWithSignal(signal: CloseSignal) {
         recogniseFoodJob?.cancel()
         recordDetailsJob?.cancel()
         photoExportJob?.cancel()
@@ -1020,10 +1021,8 @@ class ModalViewModel @Inject constructor(
                 rootDialog = null,
                 overlayDialog = null,
                 photoExportInProgress = false,
+                closeSignal = signal,
             )
-        }
-        viewModelScope.launch {
-            _uiUpdates.emit(update)
         }
     }
 
