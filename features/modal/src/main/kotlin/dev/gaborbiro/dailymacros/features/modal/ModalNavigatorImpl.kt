@@ -9,38 +9,11 @@ import javax.inject.Inject
 
 class ModalNavigatorImpl @Inject constructor() : ModalNavigator {
 
-    override fun launchToAddRecordWithCamera(context: Context) =
-        context.launchActivityInNewStack(Context::getCameraIntent)
-
-    override fun launchToAddRecordWithImagePicker(context: Context) =
-        context.launchActivityInNewStack(Context::getImagePickerIntent)
-
     override fun launchToShowRecordImage(context: Context, recordId: Long) =
         context.launchActivity { it.getShowRecordImageIntent(recordId) }
 
-    override fun launchToShowRecordImageNoApp(context: Context, recordId: Long) =
-        context.launchActivityInNewStack { it.getShowRecordImageIntent(recordId) }
-
-    override fun launchToShowTemplateImage(context: Context, templateId: Long) =
-        context.launchActivityInNewStack { it.getShowTemplateImageIntent(templateId) }
-
-    override fun launchToAddRecord(context: Context) =
-        context.launchActivityInNewStack(Context::getTextOnlyIntent)
-
     override fun launchViewRecordDetails(context: Context, recordId: Long) {
         context.launchActivity { it.getViewRecordDetailsIntent(recordId) }
-    }
-
-    override fun launchViewRecordDetailsFromWidget(context: Context, recordId: Long) {
-        context.launchActivityInNewStack { it.getViewRecordDetailsIntent(recordId) }
-    }
-
-    override fun launchViewTemplateDetailsFromWidget(context: Context, templateId: Long) {
-        context.launchActivityInNewStack { it.getViewTemplateDetailsIntent(templateId) }
-    }
-
-    override fun launchQuickPickWidgetConfirmDialog(context: Context, templateId: Long, templateName: String) {
-        context.launchActivityInNewStack { it.getQuickPickWidgetConfirmIntent(templateId, templateName) }
     }
 
     override fun launchToAddRecordFromPhotoRecognition(
