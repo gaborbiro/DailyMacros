@@ -45,10 +45,21 @@ shipped, make the listed changes so the disclosures stay accurate.
 
 ### Auto photo detection (scan camera folder)
 
+Unlike the other two, this feature needs a manifest permission, so enabling it
+requires a **new app release** — a Remote Config flip alone is not enough.
+
+- `app/src/main/AndroidManifest.xml`: re-add the two media permissions (currently
+  removed, see the comment there):
+  ```xml
+  <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+  ```
 - `PRIVACY.md`, "Permissions" section: expand the `READ_MEDIA_IMAGES` bullet to
   note that, when auto-detection is enabled, the app scans new photos in your
   Camera folder to suggest them as candidate meals (and that those photos are
   only analysed when the feature is used).
-- Play Console Data safety form / permissions declaration: cover the camera-folder
-  scan use of `READ_MEDIA_IMAGES`.
+- Play Console → "Photo and video permissions" declaration: justify the broad
+  `READ_MEDIA_IMAGES` access (continuous camera-folder scan). Removed for now
+  because the visible app only uses the Android Photo Picker + share sheet.
+- Play Console Data safety form: cover the camera-folder scan use.
 

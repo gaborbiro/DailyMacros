@@ -3,8 +3,19 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <!--
+       READ_MEDIA_IMAGES / READ_EXTERNAL_STORAGE are intentionally NOT declared.
+       The visible app adds meal photos via the Android Photo Picker
+       (PickVisualMedia) and the share sheet (ACTION_SEND), neither of which
+       needs a media permission. The only consumer of broad media access is the
+       hidden auto photo-detection feature (PhotoMonitorWorker, gated by the
+       auto_photo_recognition_enabled Remote Config flag). When that feature is
+       shipped, re-add:
+         <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+         <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+       and complete the Play Console "Photo and video permissions" declaration.
+       See README.md → "Pending doc/text updates for hidden features".
+    -->
 
 
     <application
