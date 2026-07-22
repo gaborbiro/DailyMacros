@@ -397,6 +397,43 @@ class ModalViewModelTest {
     }
 
     @Test
+    fun `add again without edits logs from template even when meal is unrecognised`() = runTest(testDispatcher) {
+        var saveTemplateCalls = 0
+        var saveRecordCalls = 0
+        // Unrecognised meal: no title/macros yet. "Log meal again" must still duplicate it.
+        val tpl = ModalRecordFixtures.template(dbId = 7L, name = "").copy(
+            isPending = true,
+        )
+        val rec = ModalRecordFixtures.record(5L, tpl)
+        val repo = object : BaseRecordsRepositoryStub() {
+            override fun observe(recordId: Long) = flowOf(rec)
+            override suspend fun get(recordId: Long) = rec.takeIf { it.recordId == recordId }
+            override suspend fun countRecordsForTemplate(templateId: Long) = 1
+            override suspend fun getRecordsByTemplate(templateId: Long) = listOf(rec)
+            override suspend fun getTemplateIdsInSameVariantFamily(templateId: Long) = listOf(templateId)
+            override suspend fun getTemplate(templateId: Long) = tpl
+            override suspend fun saveTemplate(templateToSave: TemplateToSave): Long {
+                saveTemplateCalls++
+                return 99L
+            }
+
+            override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
+                saveRecordCalls++
+                assertEquals(7L, templateId)
+                return 88L
+            }
+        }
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        vm.onSaveAndAddDetailsTapped()
+        advanceUntilIdle()
+        assertEquals(0, saveTemplateCalls)
+        assertEquals(1, saveRecordCalls)
+        assertNull(vm.uiState.value.rootDialog)
+    }
+
+    @Test
     fun `varied family save with edits updates shared template in place`() = runTest(testDispatcher) {
         var updateTemplateCalls = 0
         val tpl = ModalRecordFixtures.template(dbId = 7L, name = "Soup")

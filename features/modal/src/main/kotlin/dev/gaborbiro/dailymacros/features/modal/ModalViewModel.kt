@@ -885,6 +885,18 @@ class ModalViewModel @Inject constructor(
         dialogHandle: DialogHandle.RecordDetailsDialog.View,
     ) {
         recordDetailsJob?.cancel()
+
+        // No edits: just log the meal again from its existing template. This must not require a
+        // title — an as-yet-unrecognised meal has a blank title, and "Log meal again" simply
+        // duplicates the entry (macro analysis is rescheduled if the template is still incomplete).
+        if (!dialogHandle.hasUnsavedEdits) {
+            val templateId = dialogHandle.templateDbId
+            val secondRecordId = createRecordFromTemplateUseCase.execute(templateId)
+            scheduleMacroAnalysisForRecordIfTemplateIncomplete(secondRecordId, templateId)
+            closeAll()
+            return
+        }
+
         val title = dialogHandle.title.text.trim()
         val description = dialogHandle.description.text.trim()
 
@@ -895,24 +907,18 @@ class ModalViewModel @Inject constructor(
         )
         when (result) {
             is EditValidationResult.Valid -> {
-                if (!dialogHandle.hasUnsavedEdits) {
-                    val templateId = dialogHandle.templateDbId
-                    val secondRecordId = createRecordFromTemplateUseCase.execute(templateId)
-                    scheduleMacroAnalysisForRecordIfTemplateIncomplete(secondRecordId, templateId)
-                } else {
-                    val newTemplateId = createTemplateUseCase.execute(
-                        imageFilenames = dialogHandle.imageFilenames,
-                        title = title,
-                        description = description,
-                        parentTemplateId = dialogHandle.templateDbId,
-                    )
-                    val secondRecordId = createRecordFromTemplateUseCase.execute(newTemplateId)
-                    NutrientAnalysisWorker.setWorkRequest(
-                        appContext = application,
-                        recordId = secondRecordId,
-                        force = true,
-                    )
-                }
+                val newTemplateId = createTemplateUseCase.execute(
+                    imageFilenames = dialogHandle.imageFilenames,
+                    title = title,
+                    description = description,
+                    parentTemplateId = dialogHandle.templateDbId,
+                )
+                val secondRecordId = createRecordFromTemplateUseCase.execute(newTemplateId)
+                NutrientAnalysisWorker.setWorkRequest(
+                    appContext = application,
+                    recordId = secondRecordId,
+                    force = true,
+                )
                 closeAll()
             }
 
