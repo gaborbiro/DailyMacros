@@ -12,6 +12,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        # Full history so `git rev-list --count HEAD` (the versionCode source) is accurate;
+        # a shallow clone would report 1.
+        fetch-depth: 0
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
