@@ -94,7 +94,24 @@ android {
     }
 }
 
-private val pipelineId = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: Int.MAX_VALUE
+// versionCode is the total git commit count: intrinsically monotonic (grows by one per
+// commit), independent of any CI system, workflow filename, or run counter, and identical
+// whether built in CI or on a laptop. Requires full git history — CI checkout must use
+// fetch-depth: 0, otherwise a shallow clone reports a count of 1. Falls back to
+// Int.MAX_VALUE only when git is unavailable (keeps debug/QA installs winning over Play).
+private fun gitCommitCount(): Int? =
+    try {
+        val process = ProcessBuilder("git", "rev-list", "--count", "HEAD")
+            .directory(rootDir)
+            .redirectErrorStream(true)
+            .start()
+        val output = process.inputStream.bufferedReader().readText().trim()
+        if (process.waitFor() == 0) output.toIntOrNull() else null
+    } catch (e: Exception) {
+        null
+    }
+
+private val pipelineId = gitCommitCount() ?: Int.MAX_VALUE
 
 private val sha = (System.getenv("BUILD_SHA") ?: System.getenv("GITHUB_SHA"))?.take(7) ?: "manual"
 
