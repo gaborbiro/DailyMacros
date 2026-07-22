@@ -1,0 +1,60 @@
+<resources>
+    <string name="record_details_analyzing">Analyzing…</string>
+    <string name="record_details_ai_disclaimer">Nutrition estimates are based on AI analysis and may not be exact.</string>
+    <string name="meal_details_action_cancel">Cancel</string>
+    <string name="meal_details_action_close">Close</string>
+    <string name="meal_details_variant_different_link">Looking for a different variant?</string>
+    <string name="meal_details_pick_variant_cd">Choose which version of this meal to use</string>
+    <string name="meal_details_variant_row_selected_cd">Selected version</string>
+    <string name="meal_details_action_save">Save</string>
+    <string name="meal_details_action_save_and_analyse">Save and Analyse</string>
+    <string name="meal_details_action_add_new">Log meal again</string>
+    <string name="meal_details_action_add_new_template">Log as new meal</string>
+    <string name="meal_details_action_update">Update</string>
+    <string name="meal_details_expand">More details</string>
+    <string name="meal_details_collapse">Collapse</string>
+    <string name="meal_details_begin_edit_cd">Edit meal details</string>
+    <string name="meal_details_description_placeholder">Notes, ingredients, or how you made it</string>
+    <string name="meal_details_quick_pick_star_cd">Add meal to Quick Picks</string>
+    <string name="meal_details_quick_pick_unstar_cd">Remove meal from Quick Picks</string>
+    <string name="meal_details_photo_download_cd">Save photo to device</string>
+    <string name="meal_details_photo_share_chooser_title">Share photo</string>
+    <string name="meal_details_image_move_left_cd">Move photo left</string>
+    <string name="meal_details_image_move_right_cd">Move photo right</string>
+    <string name="meal_details_photo_exported_toast">Photo saved to Pictures/%1$s</string>
+    <string name="meal_details_switch_variant_title">Discard changes?</string>
+    <string name="meal_details_switch_variant_message">You changed something in this meal. Switch to another version anyway? You\'ll lose those edits.</string>
+    <string name="meal_details_switch_variant_confirm">Switch</string>
+    <string name="meal_details_switch_variant_cancel">Keep editing</string>
+    <string name="meal_details_close_unsaved_title">@string/meal_details_switch_variant_title</string>
+    <string name="meal_details_close_unsaved_message">You have unsaved changes. If you close now, those changes will be lost.</string>
+    <string name="meal_details_close_unsaved_discard">Discard</string>
+    <string name="meal_details_close_unsaved_keep_editing">@string/meal_details_switch_variant_cancel</string>
+    <plurals name="meal_details_update_linked_records">
+        <item quantity="other">Update %d meals</item>
+    </plurals>
+    <string name="quick_pick_confirm_log_again">Log meal again</string>
+    <string name="quick_pick_confirm_open_details">Open details</string>
+    <string name="quick_pick_confirm_dont_show_again">Don\'t show this dialog again. You can change this in Settings</string>
+    <string name="quick_pick_confirm_close_cd">Close</string>
+    <string name="quick_pick_confirm_logged_toast">Meal logged</string>
+    <string name="quick_pick_confirm_log_failed_toast">Couldn’t log meal</string>
+    <!-- NutrientsIndentedList -->
+    <string name="modal_content_ai_notes">AI notes:</string>
+    <string name="modal_content_components">Components:</string>
+    <!-- EditTargetConfirmationDialogContent -->
+    <string name="modal_dialog_edit_target_message">Update all %1$d linked entries (including this one), or only this one?</string>
+    <string name="modal_dialog_edit_target_cancel_cd">Cancel</string>
+    <string name="modal_dialog_edit_target_save_new">Save as new</string>
+    <string name="modal_dialog_edit_target_update_all">Update all entries</string>
+    <!-- RecordDetailsCreateView -->
+    <string name="modal_content_run_ai_cd">Run image recognition</string>
+    <string name="modal_content_running_ai_placeholder">Running image recognition…</string>
+    <!-- ViewImageDialog -->
+    <string name="modal_content_view_image_close_cd">Close</string>
+    <!-- ImageStrip -->
+    <string name="modal_content_image_delete_cd">Delete Button</string>
+    <string name="modal_content_image_take_photo_cd">Take photo</string>
+    <string name="modal_content_image_picker_cd">Image picker</string>
+    <string name="modal_content_image_info_cd">Info</string>
+</resources>

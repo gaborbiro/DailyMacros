@@ -12,6 +12,62 @@
           "package_name": "dev.gaborbiro.dailymacros"
         }
       },
+      "oauth_client": [
+        {
+          "client_id": "951157077632-hd89jkjhrd3gfust0jt9ne8mefdqci0h.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "dev.gaborbiro.dailymacros",
+            "certificate_hash": "ab9050aadc7ce8ac8fa53f0029657c115777776d"
+          }
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJ2PpITioXD7pqiidwEAmv6-cYD8dYzi8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:951157077632:android:336de326b6193da2719865",
+        "android_client_info": {
+          "package_name": "dev.gaborbiro.dailymacros.debug"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "951157077632-j2ejpi6oguj1q3m4ibuoa0ue50u2r49g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "dev.gaborbiro.dailymacros.debug",
+            "certificate_hash": "f770828f75474408e2815ce7d8d2cf273d3d6c5c"
+          }
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJ2PpITioXD7pqiidwEAmv6-cYD8dYzi8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:951157077632:android:fc15d7c3a72b36a3719865",
+        "android_client_info": {
+          "package_name": "dev.gaborbiro.dailymacros.qa"
+        }
+      },
       "oauth_client": [],
       "api_key": [
         {

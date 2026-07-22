@@ -8,7 +8,7 @@ import retrofit2.http.Headers
 import retrofit2.http.POST
 
 
-interface ChatGPTService {
+internal interface ChatGPTService {
 
     @Headers("Content-Type: application/json")
     @POST("v1/responses")

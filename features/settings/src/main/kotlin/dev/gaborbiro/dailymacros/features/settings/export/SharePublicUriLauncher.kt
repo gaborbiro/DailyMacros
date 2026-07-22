@@ -1,15 +1,20 @@
 package dev.gaborbiro.dailymacros.features.settings.export
 
-import android.app.Activity
 import android.content.ContentResolver
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Launches a share intent for a user-exported document.
  *
  * Guarantees:
  * - Adds FLAG_GRANT_READ_URI_PERMISSION to the share intent
+ * - Adds FLAG_ACTIVITY_NEW_TASK to the chooser (required when starting an
+ *   activity from a non-Activity context)
  *
  * Preconditions:
  * - Uri must be a content:// Uri
@@ -21,8 +26,9 @@ import android.net.Uri
  * - app-private files
  * - temporary cache Uris
  */
-class SharePublicUriLauncher(
-    private val activity: Activity,
+@Singleton
+class SharePublicUriLauncher @Inject constructor(
+    @ApplicationContext private val appContext: Context,
 ) {
 
     fun execute(
@@ -34,14 +40,16 @@ class SharePublicUriLauncher(
             "Only content:// Uris can be shared safely. Got: $uri"
         }
 
-        val intent = Intent(Intent.ACTION_SEND).apply {
+        val send = Intent(Intent.ACTION_SEND).apply {
             type = mimeType
             putExtra(Intent.EXTRA_STREAM, uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
 
-        activity.startActivity(
-            Intent.createChooser(intent, chooserTitle)
-        )
+        val chooser = Intent.createChooser(send, chooserTitle).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+
+        appContext.startActivity(chooser)
     }
 }

@@ -1,0 +1,84 @@
+package dev.gaborbiro.dailymacros.repositories.chatgpt
+
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.MealComponent
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisResult
+import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.NutrientAnalysisResponse
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.AiRequestError
+import dev.gaborbiro.dailymacros.repositories.common.model.UsageLimitException
+import dev.gaborbiro.dailymacros.repositories.common.model.DomainError
+import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
+import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+internal class ChatGPTMapper @Inject constructor() {
+
+    fun map(parsed: NutrientAnalysisResponse, imageCount: Int): NutrientAnalysisResult {
+        val nutrients = parsed.nutrients?.let {
+            Nutrients(
+                calories = it.calories?.toInt(),
+                protein = it.protein?.grams?.toFloat(),
+                fat = it.fat?.grams?.toFloat(),
+                ofWhichSaturated = it.ofWhichSaturated?.grams?.toFloat(),
+                carbs = it.carbs?.grams?.toFloat(),
+                ofWhichSugar = it.ofWhichSugar?.grams?.toFloat(),
+                ofWhichAddedSugar = it.ofWhichAddedSugar?.grams?.toFloat(),
+                salt = it.salt?.grams?.toFloat(),
+                fibre = it.fibre?.grams?.toFloat(),
+            )
+        }
+        val topContributors = parsed.nutrients?.let {
+            TopContributors(
+                topProteinContributors = it.protein?.topContributorIngredients,
+                topFatContributors = it.fat?.topContributorIngredients,
+                topSaturatedFatContributors = it.ofWhichSaturated?.topContributorIngredients,
+                topCarbsContributors = it.carbs?.topContributorIngredients,
+                topSugarContributors = it.ofWhichSugar?.topContributorIngredients,
+                topAddedSugarContributors = it.ofWhichAddedSugar?.topContributorIngredients,
+                topSaltContributors = it.salt?.topContributorIngredients,
+                topFibreContributors = it.fibre?.topContributorIngredients,
+            )
+        }
+        val components = parsed.components.orEmpty().mapNotNull { component ->
+            val name = component.name?.trim().orEmpty()
+            if (name.isEmpty()) return@mapNotNull null
+            MealComponent(
+                name = name,
+                estimatedAmount = component.estimatedAmount?.trim().orEmpty(),
+                confidence = component.confidence?.trim().orEmpty().ifEmpty { "unknown" },
+            )
+        }
+        val representativeFlags = normalizeRepresentativeOfMealFlags(imageCount, parsed.representativeOfMeal)
+
+        return NutrientAnalysisResult(
+            nutrients = nutrients,
+            topContributors = topContributors,
+            title = parsed.title,
+            notes = parsed.notes.takeIf { it.isNullOrBlank().not() },
+            components = components,
+            isRepresentativeOfMealByImageIndex = representativeFlags,
+            error = parsed.error,
+        )
+    }
+
+    fun map(error: AiRequestError): DomainError {
+        return when (error) {
+            is AiRequestError.Network -> DomainError.DisplayMessageToUser.CheckInternetConnection(error)
+            // Usage limit: not a technical/upstream failure, so it's shown to every
+            // user. The kind rides in the cause; ErrorUiMapper turns it into copy.
+            is AiRequestError.Proxy -> DomainError.DisplayMessageToUser.OperationFailed(
+                analyticsMessage = error.analyticsMessage,
+                cause = UsageLimitException(error.kind, error),
+            )
+            is AiRequestError.Upstream -> DomainError.DisplayMessageToUser.TechnicalMessage(errorMessage = error.errorMessage, error) // for power users
+            is AiRequestError.Generic, is AiRequestError.Mapping -> DomainError.DisplayMessageToUser.OperationFailed(analyticsMessage = error.analyticsMessage, error)
+        }
+    }
+
+    private fun normalizeRepresentativeOfMealFlags(imageCount: Int, fromModel: List<Boolean>?): List<Boolean?> {
+        if (imageCount <= 0) return emptyList()
+        if (fromModel == null) return List(imageCount) { null }
+        return List(imageCount) { index -> fromModel.getOrNull(index) }
+    }
+}

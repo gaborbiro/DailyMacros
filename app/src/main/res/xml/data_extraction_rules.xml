@@ -1,20 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-   Sample data extraction rules file; uncomment and customize as necessary.
+   Controls Android Auto Backup (cloud) and device-to-device transfer on API 31+.
    See https://developer.android.com/about/versions/12/backup-restore#xml-changes
-   for details.
+
+   We exclude the shared-preferences files that hold credentials or PII:
+   - secure_settings.xml : the encrypted BYO OpenAI key. Its ciphertext is bound
+     to this device's Keystore master key, which is non-exportable, so a restored
+     copy could never be decrypted on another device — and it is a credential, so
+     it must not leave the device regardless.
+   - settings2.xml : holds the cloud-sync email and, on installs that predate the
+     encrypted-key migration, a plaintext copy of the OpenAI key.
+
+   Everything else (the food/health database, thumbnails) still backs up to the
+   user's own Google account, matching the trust boundary of the in-app Drive
+   backup and enabling restore on a new device.
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <exclude domain="sharedpref" path="secure_settings.xml" />
+        <exclude domain="sharedpref" path="settings2.xml" />
     </cloud-backup>
-    <!--
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <exclude domain="sharedpref" path="secure_settings.xml" />
+        <exclude domain="sharedpref" path="settings2.xml" />
     </device-transfer>
-    -->
 </data-extraction-rules>

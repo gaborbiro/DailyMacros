@@ -1,5 +1,7 @@
 plugins {
     id("AndroidLibraryConvention")
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -7,10 +9,18 @@ android {
 }
 
 dependencies {
-    api(project(":repositories:records:domain"))
     implementation(project(":core:analytics"))
+    implementation(project(":repositories:common"))
+    implementation(project(":repositories:records:domain"))
     implementation(project(":data:db"))
     implementation(project(":data:image"))
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.network.gson)
+    implementation(libs.javax.inject)
+
+    implementation(libs.dagger.hilt.android)
+    ksp(libs.dagger.hilt.compiler)
+
+    testImplementation(libs.test.junit)
 }

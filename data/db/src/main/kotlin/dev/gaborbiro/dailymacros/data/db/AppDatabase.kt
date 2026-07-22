@@ -1,13 +1,10 @@
 package dev.gaborbiro.dailymacros.data.db
 
 import android.content.Context
-import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
 import dev.gaborbiro.dailymacros.data.db.model.entity.ImageEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.MacrosEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.QuickPickOverrideEntity
@@ -15,8 +12,6 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatusEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TopContributorsEntity
-import java.time.LocalDateTime
-import java.time.ZoneId
 
 @Database(
     entities = [
@@ -28,12 +23,8 @@ import java.time.ZoneId
         RequestStatusEntity::class,
         QuickPickOverrideEntity::class,
     ],
-    version = 8,
+    version = 1,
     exportSchema = true,
-    autoMigrations = [
-        AutoMigration(from = 1, to = 2),
-        AutoMigration(from = 7, to = 8), // adding top_contributors table
-    ]
 )
 @TypeConverters(Converters::class, QuickPickOverrideEntity.Converters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -44,96 +35,16 @@ abstract class AppDatabase : RoomDatabase() {
 
     companion object {
 
-        @Volatile
-        private lateinit var INSTANCE: AppDatabase
+        const val DATABASE_FILE_NAME: String = "daily_macros_db"
 
-        fun init(appContext: Context) {
-            INSTANCE = buildDatabase(appContext)
-        }
-
-        fun getInstance() = INSTANCE
-
-        private fun buildDatabase(context: Context): AppDatabase {
+        internal fun build(context: Context): AppDatabase {
             return Room.databaseBuilder(
                 context.applicationContext,
                 AppDatabase::class.java,
-                "daily_macros_db"
+                DATABASE_FILE_NAME,
             )
-                .addMigrations(MIGRATION_2_3)
-                .addMigrations(MIGRATION_3_4)
-                .addMigrations(MIGRATION_4_5)
-                .addMigrations(MIGRATION_5_6)
-                .addMigrations(MIGRATION_6_7)
+                .fallbackToDestructiveMigration()
                 .build()
         }
-    }
-}
-
-val MIGRATION_2_3 = object : Migration(2, 3) {
-
-    override fun migrate(database: SupportSQLiteDatabase) {
-        val zoneIdString: String = ZoneId.systemDefault().id
-
-        database.execSQL(
-            "ALTER TABLE records ADD COLUMN zoneId TEXT NOT NULL DEFAULT '$zoneIdString'"
-        )
-    }
-}
-
-val MIGRATION_3_4 = object : Migration(3, 4) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL(
-            "ALTER TABLE records ADD COLUMN epochMillis INTEGER NOT NULL DEFAULT 0"
-        )
-
-        val cursor = database.query("SELECT _id, timestamp, zoneId FROM records")
-        while (cursor.moveToNext()) {
-            val id = cursor.getLong(0)
-            val localDateTimeStr = cursor.getString(1)
-            val zoneIdStr = cursor.getString(2)
-
-            val ldt = LocalDateTime.parse(localDateTimeStr)
-            val zone = ZoneId.of(zoneIdStr)
-            val epochMillis = ldt.atZone(zone).toInstant().toEpochMilli()
-
-            database.execSQL(
-                "UPDATE records SET epochMillis = ? WHERE _id = ?",
-                arrayOf(epochMillis, id)
-            )
-        }
-        cursor.close()
-    }
-}
-
-val MIGRATION_4_5 = object : Migration(4, 5) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL(
-            "ALTER TABLE macros ADD COLUMN ofWhichAddedSugar REAL DEFAULT NULL"
-        )
-    }
-}
-
-val MIGRATION_5_6 = object : Migration(5, 6) {
-    override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL(
-            """
-            CREATE TABLE QuickPickOverride (
-                templateId INTEGER NOT NULL,
-                overrideType TEXT NOT NULL,
-                PRIMARY KEY(templateId),
-                FOREIGN KEY(templateId)
-                    REFERENCES templates(_id)
-                    ON DELETE CASCADE
-            )
-            """.trimIndent()
-        )
-    }
-}
-
-val MIGRATION_6_7 = object : Migration(6, 7) {
-    override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL(
-            "ALTER TABLE QuickPickOverride ADD COLUMN sortOrder INTEGER DEFAULT NULL"
-        )
     }
 }

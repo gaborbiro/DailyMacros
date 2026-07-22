@@ -5,11 +5,28 @@ import androidx.compose.ui.graphics.Color
 data class TrendsUiState(
     val charts: List<TrendsChartUiModel> = emptyList(),
     val settings: TrendsSettingsUIModel = TrendsSettingsUIModel.Hidden,
+    val showTargetsSettings: Boolean = false,
+    val weeklyInsights: Map<String, String> = emptyMap(),
+    val weeklyInsightsDateRange: String? = null,
+    val weeklyInsightsLoading: Boolean = false,
+    val weeklyInsightsError: String? = null,
+    val ongoingWeekInsights: String? = null,
+    val ongoingWeekInsightsDateRange: String? = null,
+    val ongoingWeekInsightsLoading: Boolean = false,
+    val ongoingWeekInsightsError: String? = null,
+    val aiInsightsEnabled: Boolean = false,
+    val weeklyInsightsFetchedAtLabel: String? = null,
+    val ongoingInsightsFetchedAtLabel: String? = null,
+    val weeklyInsightsWeekAssessment: String? = null,
 )
 
 enum class Timescale { DAYS, WEEKS, MONTHS }
 
-data class TrendsChartUiModel(val datasets: List<ChartDataset>)
+data class TrendsChartUiModel(
+    val title: String,
+    val datasets: List<ChartDataset>,
+    val pinnedMaxY: Double? = null,
+)
 data class ChartDataset(
     val name: String,
     val color: Color,

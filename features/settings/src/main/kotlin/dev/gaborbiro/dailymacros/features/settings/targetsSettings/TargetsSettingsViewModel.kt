@@ -1,7 +1,10 @@
 package dev.gaborbiro.dailymacros.features.settings.targetsSettings
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.FieldErrors
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.MacroType
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetUiModel
@@ -16,11 +19,14 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class TargetsSettingsViewModel(
+@HiltViewModel
+class TargetsSettingsViewModel @Inject constructor(
+    application: Application,
     private val repo: SettingsRepository,
-    private val uiMapper: TargetsSettingsUiMapper = TargetsSettingsUiMapper(),
-) : ViewModel() {
+    private val uiMapper: TargetsSettingsUiMapper,
+) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(TargetsSettingsUiState())
     val uiState: StateFlow<TargetsSettingsUiState> = _uiState.asStateFlow()
@@ -41,6 +47,14 @@ class TargetsSettingsViewModel(
         _uiState.value = targets
     }
 
+    /**
+     * Reloads persisted targets into UI state. Use when opening the sheet from another screen
+     * so edits made elsewhere are visible.
+     */
+    fun reloadFromRepository() {
+        load()
+    }
+
     fun onTargetChanged(type: MacroType, target: TargetUiModel) {
         val current = _uiState.value.targets
         val targets = current + (type to target)
@@ -49,12 +63,6 @@ class TargetsSettingsViewModel(
             var minErr: ValidationError? = null
             var maxErr: ValidationError? = null
 
-            if (t.min == null) {
-                minErr = ValidationError.Empty
-            }
-            if (t.max == null) {
-                maxErr = ValidationError.Empty
-            }
             if (t.min != null && t.max != null && t.min > t.max) {
                 minErr = ValidationError.MinGreaterThanMax
                 maxErr = ValidationError.MinGreaterThanMax

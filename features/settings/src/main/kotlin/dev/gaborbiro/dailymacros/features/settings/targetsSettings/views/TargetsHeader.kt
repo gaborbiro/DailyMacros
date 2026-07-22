@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ButtonDefaults
@@ -13,10 +14,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.gaborbiro.dailymacros.features.settings.R
 import dev.gaborbiro.dailymacros.features.settings.views.SettingsViewPreviewContext
 
 
@@ -31,15 +34,17 @@ internal fun TargetsHeader(
     Column(modifier = modifier) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 modifier = Modifier.padding(end = 16.dp),
-                text = "Daily Targets",
+                text = stringResource(R.string.settings_content_targets_title),
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Start
+            )
+            Spacer(
+                modifier = Modifier.weight(1f)
             )
             if (resetButtonVisible) {
                 TextButton(
@@ -48,7 +53,7 @@ internal fun TargetsHeader(
                     contentPadding = ButtonDefaults.TextButtonContentPadding
                 ) {
                     Text(
-                        text = "Reset",
+                        text = stringResource(R.string.settings_content_targets_reset),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                     )
                 }
@@ -59,7 +64,7 @@ internal fun TargetsHeader(
                 contentPadding = ButtonDefaults.TextButtonContentPadding
             ) {
                 Text(
-                    text = "Save",
+                    text = stringResource(R.string.settings_content_targets_save),
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                 )
             }
@@ -69,7 +74,7 @@ internal fun TargetsHeader(
             modifier = Modifier.padding(top = 8.dp)
         ) {
             Text(
-                text = "Feel free to disable the ones you don't care about",
+                text = stringResource(R.string.settings_content_targets_hint),
             )
         }
     }

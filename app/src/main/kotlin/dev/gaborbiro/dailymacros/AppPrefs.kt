@@ -2,10 +2,16 @@ package dev.gaborbiro.dailymacros
 
 import android.content.Context
 import androidx.core.content.edit
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.util.ThreeWordId
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.uuid.ExperimentalUuidApi
 
-internal class AppPrefs(context: Context) {
+@Singleton
+class AppPrefs @Inject constructor(
+    @ApplicationContext context: Context
+) {
 
     companion object {
         private const val KEY_USER_UUID = "user_uuid_3"

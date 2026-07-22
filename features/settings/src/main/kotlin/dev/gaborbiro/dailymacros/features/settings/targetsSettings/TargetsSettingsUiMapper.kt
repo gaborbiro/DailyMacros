@@ -14,8 +14,9 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.model.THEORETICAL_
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.THEORETICAL_SUGAR_MAX
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
+import javax.inject.Inject
 
-class TargetsSettingsUiMapper {
+class TargetsSettingsUiMapper @Inject constructor() {
 
     fun map(
         targets: Targets,

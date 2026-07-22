@@ -1,26 +1,24 @@
 package dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model
 
+import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
+import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
+
 data class NutrientAnalysisResult(
-    val nutrients: NutrientsApiModel?,
+    val nutrients: Nutrients?,
+    val topContributors: TopContributors?,
     val title: String?,
     val notes: String?,
-    val cachedTokens: Int?,
+    val components: List<MealComponent>,
+    /** Per submitted photo index; null if model omitted `representative_of_meal` or that index. */
+    val isRepresentativeOfMealByImageIndex: List<Boolean?>,
     val error: String?,
 )
 
-data class NutrientsApiModel(
-    val calories: Int?,
-    val protein: NutrientApiModel?,
-    val fat: NutrientApiModel?,
-    val ofWhichSaturated: NutrientApiModel?,
-    val carb: NutrientApiModel?,
-    val ofWhichSugar: NutrientApiModel?,
-    val ofWhichAddedSugar: NutrientApiModel?,
-    val salt: NutrientApiModel?,
-    val fibre: NutrientApiModel?,
-)
-
-data class NutrientApiModel(
-    val grams: Float?,
-    val topContributors: String?,
+/**
+ * Parsed from ChatGPT nutrient / recognition JSON before persistence.
+ */
+data class MealComponent(
+    val name: String,
+    val estimatedAmount: String,
+    val confidence: String,
 )

@@ -6,12 +6,13 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusReposi
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.RequestStatus
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.time.Clock
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.time.Duration.Companion.seconds
 
-class RequestStatusRepositoryImpl(
+@Singleton
+class RequestStatusRepositoryImpl @Inject constructor(
     private val requestStatusDAO: RequestStatusDAO,
-    private val clock: Clock = Clock.systemDefaultZone(),
 ) : RequestStatusRepository {
 
     companion object {
@@ -56,7 +57,7 @@ class RequestStatusRepositoryImpl(
     override suspend fun deleteStale() {
         requestStatusDAO.deleteStale(
             status = RequestStatusEntity.Status.PENDING,
-            cutoff = clock.millis() - REQUEST_TIMEOUT.inWholeMilliseconds,
+            cutoff = System.currentTimeMillis() - REQUEST_TIMEOUT.inWholeMilliseconds,
         )
     }
 }

@@ -8,7 +8,7 @@ import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.Targets
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.views.TargetsSettingsBottomSheet
 
 @Composable
-internal fun TargetsSettingsScreen(
+fun TargetsSettingsScreen(
     viewModel: TargetsSettingsViewModel,
     onCloseRequested: () -> Unit,
 ) {
@@ -16,8 +16,7 @@ internal fun TargetsSettingsScreen(
 
     TargetsSettingsBottomSheet(
         viewState = viewState,
-        events = viewModel.uiUpdates,
-        onDismissRequested = onCloseRequested,
+        onDismissRequested = viewModel::onBottomSheetDismissRequested,
         onTargetChanged = viewModel::onTargetChanged,
         onResetTapped = viewModel::onTargetsResetTapped,
         onSaveTapped = viewModel::onSaveTapped,
@@ -28,10 +27,8 @@ internal fun TargetsSettingsScreen(
     LaunchedEffect(viewModel) {
         viewModel.uiUpdates.collect { event ->
             when (event) {
-                TargetsSettingsUiUpdates.Close -> onCloseRequested()
-                else -> {
-                    // nothing to do
-                }
+                TargetsSettingsUiUpdates.Hide, TargetsSettingsUiUpdates.Close -> onCloseRequested()
+                else -> {}
             }
         }
     }

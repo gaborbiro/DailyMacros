@@ -26,6 +26,9 @@ interface RecordsDAO {
     @Query("SELECT * FROM records WHERE templateId=:templateId ORDER BY epochMillis DESC")
     suspend fun getByTemplate(templateId: Long): List<RecordJoined>
 
+    @Query("SELECT COUNT(*) FROM records WHERE templateId = :templateId")
+    suspend fun countByTemplate(templateId: Long): Int
+
     @Transaction
     @Query("SELECT * FROM records WHERE epochMillis>=:sinceEpochMillis ORDER BY epochMillis")
     fun getFlow(sinceEpochMillis: Long?): Flow<List<RecordJoined>>

@@ -12,18 +12,23 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TopContributorsEntity
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
+import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import java.time.ZonedDateTime
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class RecordsRepositoryImpl(
+@Singleton
+class RecordsRepositoryImpl @Inject constructor(
     private val templatesDAO: TemplatesDAO,
     private val recordsDAO: RecordsDAO,
     private val mapper: RecordsApiMapper,
@@ -37,6 +42,11 @@ class RecordsRepositoryImpl(
         .get(since?.toInstant()?.toEpochMilli() ?: 0L)
         .map(mapper::map)
 
+    override suspend fun getTemplateIdsInSameVariantFamily(templateId: Long): List<Long> =
+        templatesDAO.getTemplateIdsInVariantFamily(templateId)
+
+    override suspend fun countTemplates(): Int = templatesDAO.countAllTemplates()
+
     override fun getMostRecentRecord(): Record? {
         return recordsDAO.getMostRecentRecord()
             ?.let(mapper::map)
@@ -46,9 +56,23 @@ class RecordsRepositoryImpl(
         .getQuickPicks(count)
         .map(mapper::map)
 
+    override fun observeQuickPicks(count: Int): Flow<List<Template>> {
+        return try {
+            templatesDAO.observeQuickPicks(count)
+                .distinctUntilChanged()
+                .map { quickPicks -> quickPicks.map(mapper::map) }
+        } catch (t: Throwable) {
+            analyticsLogger.logError(t)
+            flowOf(emptyList())
+        }
+    }
+
     override suspend fun getRecordsByTemplate(templateId: Long): List<Record> = recordsDAO
         .getByTemplate(templateId)
         .let(mapper::map)
+
+    override suspend fun countRecordsForTemplate(templateId: Long): Int =
+        recordsDAO.countByTemplate(templateId)
 
     override fun observeRecords(
         searchTerm: String?, /* = null */
@@ -87,7 +111,7 @@ class RecordsRepositoryImpl(
         val template = mapper.map(templateToSave)
         val templateId = templatesDAO.insertOrUpdate(template)
         templatesDAO.deleteAllImagesForTemplate(templateId)
-        templateToSave.images.forEachIndexed { index, image ->
+        templateToSave.imageFilenames.forEachIndexed { index, image ->
             templatesDAO.upsertImage(
                 ImageEntity(
                     templateId = templateId,
@@ -126,39 +150,52 @@ class RecordsRepositoryImpl(
         templateId: Long,
         name: String?, /* = null */
         description: String?, /* = null */
-        images: List<String>?, /* = null */
-        nutrients: Pair<TemplateNutrientBreakdown, TopContributors>?, /* = null */
+        templateImages: List<TemplateImageUpdate>?, /* = null */
+        nutrients: Pair<Nutrients, TopContributors>?, /* = null */
         notes: String?, /* = null */
+        mealComponents: List<MealComponent>?,
     ) {
         val oldTemplate = templatesDAO.getTemplateById(templateId)
 
+        val now = System.currentTimeMillis()
         templatesDAO.insertOrUpdate(
             TemplateEntity(
                 name = name ?: oldTemplate.entity.name,
                 description = description ?: oldTemplate.entity.description,
+                parentTemplateId = oldTemplate.entity.parentTemplateId,
+                createdAtEpochMs = oldTemplate.entity.createdAtEpochMs,
+                updatedAtEpochMs = now,
             ).apply { id = templateId }
         )
 
-        images?.let {
+        if (name == null && description == null && templateImages == null && nutrients == null && notes == null && mealComponents == null) {
+            return
+        }
+
+        templateImages?.let { rows ->
             templatesDAO.deleteAllImagesForTemplate(templateId)
-            images.forEachIndexed { index, image ->
+            rows.forEachIndexed { index, row ->
                 templatesDAO.upsertImage(
                     ImageEntity(
                         templateId = templateId,
-                        image = image,
+                        image = row.filename,
                         sortOrder = index,
+                        isRepresentativeMealPhoto = row.isRepresentativeOfMeal,
                     )
                 )
             }
         }
 
-        if (nutrients == null) {
-            templatesDAO.deleteMacrosForTemplate(templateId)
-        } else {
+        if (nutrients != null) {
             val (nutrients, topContributors) = nutrients
+            val componentsJson = when {
+                mealComponents != null -> encodeMealComponentsJson(mealComponents)
+                else -> oldTemplate.macros?.analysisComponentsJson
+            }
             val macrosEntity: MacrosEntity = mapper.map(
-                nutrientBreakdown = nutrients,
+                nutrients = nutrients,
                 notes = notes ?: oldTemplate.macros?.notes,
+                analysisComponentsJson = componentsJson,
                 id = oldTemplate.macros?.id,
                 templateId = templateId,
             )
@@ -201,10 +238,10 @@ class RecordsRepositoryImpl(
         templatesDAO.deleteQuickPickOverride(templateId)
     }
 
-    private suspend fun deleteImageIfUnused(image: String): Boolean {
-        val refs = templatesDAO.countTemplatesByImage(image)
+    private suspend fun deleteImageIfUnused(imageFilename: String): Boolean {
+        val refs = templatesDAO.countTemplatesByImage(imageFilename)
         if (refs == 0) {
-            imageStore.delete(image)
+            imageStore.delete(imageFilename)
             return true
         }
         return false

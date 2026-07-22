@@ -7,11 +7,11 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import dev.gaborbiro.dailymacros.R
-import dev.gaborbiro.dailymacros.features.modal.getViewRecordDetailsIntent
+import dev.gaborbiro.dailymacros.features.main.MainActivity
+import dev.gaborbiro.dailymacros.features.shared.notifications.CHANNEL_ID_FOREGROUND
 
 private const val CHANNEL_ID_GENERAL = "general"
 const val CHANNEL_ID_ERROR = "error"
-const val CHANNEL_ID_FOREGROUND = "foreground"
 
 fun Context.createNotificationChannels() {
     val generalChannel = NotificationChannel(
@@ -20,6 +20,7 @@ fun Context.createNotificationChannels() {
         NotificationManager.IMPORTANCE_DEFAULT
     ).also {
         it.setShowBadge(false)
+        it.setSound(null, null)
     }
     val errorChannel = NotificationChannel(
         CHANNEL_ID_ERROR,
@@ -31,7 +32,7 @@ fun Context.createNotificationChannels() {
     val foregroundChannel = NotificationChannel(
         CHANNEL_ID_FOREGROUND,
         "Background process",
-        NotificationManager.IMPORTANCE_DEFAULT
+        NotificationManager.IMPORTANCE_LOW
     )
         .apply {
             setShowBadge(false)
@@ -53,24 +54,45 @@ fun Context.showMacroResultsNotification(
     id: Long,
     recordId: Long,
     title: String?,
-    message: String?,
+    message: String,
     isError: Boolean,
 ) {
-    var builder = NotificationCompat.Builder(this, if (isError) CHANNEL_ID_ERROR else CHANNEL_ID_GENERAL)
+    val channelId = if (isError) CHANNEL_ID_ERROR else CHANNEL_ID_GENERAL
+    var builder = NotificationCompat.Builder(this, channelId)
         .setSmallIcon(R.drawable.ic_nutrition)
-        .setContentIntent(openRecordDetailsIntent(recordId))
-    message?.let {
-        builder = builder.setContentText(message)
-            .setStyle(
-                NotificationCompat.BigTextStyle()
-                    .bigText(message)
-                    .setSummaryText(title ?: "")
-            )
+        .setContentIntent(openOverviewIntent())
+    title?.takeIf { it.isNotBlank() }?.let {
+        builder = builder.setContentTitle(it)
     }
+    builder = builder.setContentText(message)
+        .setStyle(
+            NotificationCompat.BigTextStyle()
+                .bigText(message)
+//                .setSummaryText(title ?: "")
+        )
     getSystemService(NotificationManager::class.java).notify(
         id.toInt(),
         builder.build()
     )
+}
+
+fun Context.showTitleTextNotification(
+    id: Int,
+    title: String,
+    text: String,
+    isError: Boolean,
+) {
+    val channelId = if (isError) CHANNEL_ID_ERROR else CHANNEL_ID_GENERAL
+    val builder = NotificationCompat.Builder(this, channelId)
+        .setSmallIcon(R.drawable.ic_nutrition)
+        .setContentTitle(title)
+        .setContentText(text)
+        .setAutoCancel(true)
+        .setStyle(
+            NotificationCompat.BigTextStyle()
+                .bigText(text),
+        )
+    getSystemService(NotificationManager::class.java).notify(id, builder.build())
 }
 
 fun Context.showTextNotification(
@@ -93,14 +115,44 @@ fun Context.showTextNotification(
     )
 }
 
-private fun Context.openRecordDetailsIntent(recordId: Long): PendingIntent? {
-    val modalIntent = getViewRecordDetailsIntent(recordId)
-    modalIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+private const val NOTIFICATION_ID_AUTO_SYNC_FAILURE = 2001
+private const val NOTIFICATION_ID_AUTO_SYNC_CONFLICT = 2002
 
-    return PendingIntent.getActivities(
+fun Context.showAutoSyncConflictNotification() {
+    val builder = NotificationCompat.Builder(this, CHANNEL_ID_ERROR)
+        .setSmallIcon(R.drawable.ic_nutrition)
+        .setContentTitle("Backup conflict")
+        .setContentText("Newer backup data found than the last sync of this app instance. Open Settings to decide what to do.")
+        .setAutoCancel(true)
+        .setContentIntent(openOverviewIntent())
+    getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID_AUTO_SYNC_CONFLICT, builder.build())
+}
+
+fun Context.cancelAutoSyncNotifications() {
+    getSystemService(NotificationManager::class.java).run {
+        cancel(NOTIFICATION_ID_AUTO_SYNC_FAILURE)
+        cancel(NOTIFICATION_ID_AUTO_SYNC_CONFLICT)
+    }
+}
+
+fun Context.showAutoSyncFailureNotification() {
+    val builder = NotificationCompat.Builder(this, CHANNEL_ID_ERROR)
+        .setSmallIcon(R.drawable.ic_nutrition)
+        .setContentTitle("Backup failed")
+        .setContentText("Cloud backup failed. Open Settings to fix.")
+        .setAutoCancel(true)
+        .setContentIntent(openOverviewIntent())
+    getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID_AUTO_SYNC_FAILURE, builder.build())
+}
+
+private fun Context.openOverviewIntent(): PendingIntent? {
+    val intent = Intent(this, MainActivity::class.java).apply {
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+    }
+    return PendingIntent.getActivity(
         this,
-        recordId.toInt(),
-        arrayOf(modalIntent),
+        0,
+        intent,
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
 }

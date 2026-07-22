@@ -1,49 +1,60 @@
 package dev.gaborbiro.dailymacros.features.settings.export
 
 import android.net.Uri
-import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.suspendCancellableCoroutine
 
-interface CreatePublicDocumentUseCase {
+fun interface CreatePublicDocumentUseCase {
 
     suspend fun execute(suggestedFileName: String): Uri?
 }
 
 /**
- * UI utility for launching Storage Access Framework > Create Document.
- *
- * Must be called from the main thread.
- * Only one execute() call may be active at a time.
+ * UI utility for launching Storage Access Framework > Create Document from Compose.
  */
-class CreatePublicDocumentUseCaseImpl(activity: ComponentActivity) : CreatePublicDocumentUseCase {
+@Composable
+fun rememberCreatePublicDocumentUseCase(): CreatePublicDocumentUseCase {
+    var continuation by remember { mutableStateOf<CancellableContinuation<Uri?>?>(null) }
+    val launcher = rememberLauncherForActivityResult(
+        // Covers JSON diary exports and full app backups (.tar).
+        contract = ActivityResultContracts.CreateDocument("*/*"),
+    ) { uri ->
+        continuation?.resume(uri) { _, _, _ -> }
+        continuation = null
+    }
 
-    private var continuation: CancellableContinuation<Uri?>? = null
-
-    private val launcher =
-        activity.registerForActivityResult(
-            ActivityResultContracts.CreateDocument("application/json")
-        ) { uri ->
-            continuation?.resume(uri) { _, _, _ -> }
+    DisposableEffect(Unit) {
+        onDispose {
+            continuation?.cancel()
             continuation = null
         }
+    }
 
-    override suspend fun execute(
-        suggestedFileName: String,
-    ): Uri? = suspendCancellableCoroutine { cont ->
-        check(continuation == null) {
-            "CreateJsonDocumentUseCase.execute() called while another request is active"
-        }
+    return remember(launcher) {
+        CreatePublicDocumentUseCase { suggestedFileName ->
+            suspendCancellableCoroutine { cont ->
+                check(continuation == null) {
+                    "CreatePublicDocumentUseCase.execute() called while another request is active"
+                }
 
-        continuation = cont
+                continuation = cont
 
-        cont.invokeOnCancellation {
-            if (continuation === cont) {
-                continuation = null
+                cont.invokeOnCancellation {
+                    if (continuation === cont) {
+                        continuation = null
+                    }
+                }
+
+                launcher.launch(suggestedFileName)
             }
         }
-
-        launcher.launch(suggestedFileName)
     }
 }

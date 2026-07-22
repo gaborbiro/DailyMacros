@@ -1,29 +1,50 @@
 package dev.gaborbiro.dailymacros.features.trends
 
+import android.content.Context
 import androidx.compose.ui.graphics.Color
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.gaborbiro.dailymacros.features.common.utils.diaryDayStartTime
+import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryDate
+import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryToday
 import dev.gaborbiro.dailymacros.features.trends.model.ChartDataPoint
 import dev.gaborbiro.dailymacros.features.trends.model.ChartDataset
 import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsChartUiModel
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.YearMonth
+import java.time.ZoneId
 import java.time.format.TextStyle
 import java.time.temporal.WeekFields
 import java.util.Locale
+import javax.inject.Inject
+import dev.gaborbiro.dailymacros.features.trends.R
 
-class TrendsUiMapper(
+class TrendsUiMapper @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val preferences: TrendsPreferences,
+    private val settingsRepository: SettingsRepository,
 ) {
+
+    private val diaryDayStart: LocalTime
+        get() = diaryDayStartTime(settingsRepository.getDiaryDayStartHour())
+
+    private fun Record.diaryKeyDate(): LocalDate =
+        timestamp.logicalDiaryDate(diaryDayStart)
+
+    private fun logicalToday(): LocalDate =
+        logicalDiaryToday(ZoneId.systemDefault(), diaryDayStart)
 
     fun mapDaysCharts(
         records: List<Record>,
         dayQualifier: DayQualifier,
         targets: Targets,
     ): List<TrendsChartUiModel> {
-        val recordsByPeriod = records.groupBy { it.timestamp.toLocalDate() }
+        val recordsByPeriod = records.groupBy { it.diaryKeyDate() }
 
         val days: List<LocalDate> = generateSequence(
             from = recordsByPeriod.keys.minOrNull(),
@@ -48,7 +69,7 @@ class TrendsUiMapper(
             }
         }
 
-        val today = LocalDate.now()
+        val today = logicalToday()
 
         return mapCharts(
             timeRange = days,
@@ -76,7 +97,7 @@ class TrendsUiMapper(
         val weekFields = WeekFields.of(Locale.getDefault())
 
         val recordsByPeriod = records.groupBy { record ->
-            record.timestamp.toLocalDate().with(weekFields.dayOfWeek(), 1)
+            record.diaryKeyDate().with(weekFields.dayOfWeek(), 1)
         }
 
         val weeks: List<LocalDate> = generateSequence(
@@ -97,46 +118,53 @@ class TrendsUiMapper(
             }
         }
 
-        val today = LocalDate.now()
+        val today = logicalToday()
+
+        val contributingDaysProvider: (LocalDate) -> List<LocalDate> = { weekStart ->
+            val calendarDays: List<LocalDate> = (0L..6L).map { weekStart.plusDays(it) }
+            contributingDays(
+                records = recordsByPeriod[weekStart].orEmpty(),
+                calendarDays = calendarDays,
+                dayQualifier = dayQualifier,
+            )
+        }
+
+        val currentPeriodMode = CurrentPeriodCalculationMode.Projected<LocalDate>(
+            elapsedDaysProvider = { weekStart ->
+                if (today in weekStart..weekStart.plusDays(6)) {
+                    val elapsedCalendarDays: List<LocalDate> =
+                        generateSequence(weekStart) { it.plusDays(1) }
+                            .takeWhile { it <= today }
+                            .toList()
+                    contributingDays(
+                        records = recordsByPeriod[weekStart].orEmpty(),
+                        calendarDays = elapsedCalendarDays,
+                        dayQualifier = dayQualifier,
+                    )
+                } else {
+                    emptyList()
+                }
+            },
+            minElapsedDays = 2,
+            isCurrentPeriod = { start -> today in start..start.plusDays(6) },
+        )
 
         return mapCharts(
             timeRange = weeks,
             records = recordsByPeriod,
-            contributingDaysProvider = { weekStart: LocalDate ->
-                val calendarDays: List<LocalDate> =
-                    (0L..6L)
-                        .map { weekStart.plusDays(it) }
-
-                contributingDays(
-                    records = recordsByPeriod[weekStart].orEmpty(),
-                    calendarDays = calendarDays,
-                    dayQualifier = dayQualifier,
-                )
-            },
-            currentPeriodCalculationMode = CurrentPeriodCalculationMode.Projected(
-                elapsedDaysProvider = { weekStart: LocalDate ->
-                    if (today in weekStart..weekStart.plusDays(6)) {
-                        val elapsedCalendarDays: List<LocalDate> =
-                            generateSequence(weekStart) { it.plusDays(1) }
-                                .takeWhile { it <= today }
-                                .toList()
-
-                        contributingDays(
-                            records = recordsByPeriod[weekStart].orEmpty(),
-                            calendarDays = elapsedCalendarDays,
-                            dayQualifier = dayQualifier,
-                        )
-                    } else {
-                        emptyList()
-                    }
-                },
-                minElapsedDays = 2,
-                isCurrentPeriod = { start ->
-                    today in start..start.plusDays(6)
-                },
-            ),
+            contributingDaysProvider = contributingDaysProvider,
+            currentPeriodCalculationMode = currentPeriodMode,
             labelProvider = ::weekLabel,
             targets = targets,
+        ) + listOf(
+            adherenceChart(
+                timeRange = weeks,
+                records = recordsByPeriod,
+                contributingDaysProvider = contributingDaysProvider,
+                currentPeriodCalculationMode = currentPeriodMode,
+                labelProvider = ::weekLabel,
+                targets = targets,
+            )
         )
     }
 
@@ -145,7 +173,7 @@ class TrendsUiMapper(
         aggregationMode: DayQualifier,
         targets: Targets,
     ): List<TrendsChartUiModel> {
-        val recordsByPeriod = records.groupBy { YearMonth.from(it.timestamp.toLocalDate()) }
+        val recordsByPeriod = records.groupBy { YearMonth.from(it.diaryKeyDate()) }
 
         val months: List<YearMonth> = generateSequence(
             from = recordsByPeriod.keys.minOrNull(),
@@ -156,46 +184,52 @@ class TrendsUiMapper(
         fun monthLabel(ym: YearMonth): String =
             ym.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
 
-        val thisMonth = YearMonth.now()
-        val todayDate = LocalDate.now()
+        val todayDate = logicalToday()
+        val thisMonth = YearMonth.from(todayDate)
+
+        val contributingDaysProvider: (YearMonth) -> List<LocalDate> = { ym ->
+            val calendarDays: List<LocalDate> = (1..ym.lengthOfMonth()).map { day -> ym.atDay(day) }
+            contributingDays(
+                records = recordsByPeriod[ym].orEmpty(),
+                calendarDays = calendarDays,
+                dayQualifier = aggregationMode,
+            )
+        }
+
+        val currentPeriodMode = CurrentPeriodCalculationMode.Projected<YearMonth>(
+            elapsedDaysProvider = { ym ->
+                if (ym == thisMonth) {
+                    val elapsedCalendarDays: List<LocalDate> =
+                        (1..todayDate.dayOfMonth).map { day -> ym.atDay(day) }
+                    contributingDays(
+                        records = recordsByPeriod[ym].orEmpty(),
+                        calendarDays = elapsedCalendarDays,
+                        dayQualifier = aggregationMode,
+                    )
+                } else {
+                    emptyList()
+                }
+            },
+            minElapsedDays = 7,
+            isCurrentPeriod = { ym -> ym == thisMonth },
+        )
 
         return mapCharts(
             timeRange = months,
             records = recordsByPeriod,
-            contributingDaysProvider = { ym: YearMonth ->
-                val calendarDays: List<LocalDate> =
-                    (1..ym.lengthOfMonth())
-                        .map { day -> ym.atDay(day) }
-
-                contributingDays(
-                    records = recordsByPeriod[ym].orEmpty(),
-                    calendarDays = calendarDays,
-                    dayQualifier = aggregationMode,
-                )
-            },
-            currentPeriodCalculationMode = CurrentPeriodCalculationMode.Projected(
-                elapsedDaysProvider = { ym: YearMonth ->
-                    if (ym == thisMonth) {
-                        val elapsedCalendarDays: List<LocalDate> =
-                            (1..todayDate.dayOfMonth)
-                                .map { day -> ym.atDay(day) }
-
-                        contributingDays(
-                            records = recordsByPeriod[ym].orEmpty(),
-                            calendarDays = elapsedCalendarDays,
-                            dayQualifier = aggregationMode,
-                        )
-                    } else {
-                        emptyList()
-                    }
-                },
-                minElapsedDays = 7,
-                isCurrentPeriod = { ym ->
-                    ym == thisMonth
-                },
-            ),
+            contributingDaysProvider = contributingDaysProvider,
+            currentPeriodCalculationMode = currentPeriodMode,
             labelProvider = ::monthLabel,
             targets = targets,
+        ) + listOf(
+            adherenceChart(
+                timeRange = months,
+                records = recordsByPeriod,
+                contributingDaysProvider = contributingDaysProvider,
+                currentPeriodCalculationMode = currentPeriodMode,
+                labelProvider = ::monthLabel,
+                targets = targets,
+            )
         )
     }
 
@@ -221,25 +255,25 @@ class TrendsUiMapper(
         val noTarget = Target(enabled = false)
 
         return datasetsOf(
-            listOf(
+            "Calories" to listOf(
                 series("Calories (kcal)", Color(0xFF8AB4F8), agg { it.template.nutrients.calories?.toFloat() }, targets.calories),
             ),
-            listOf(
+            "Protein" to listOf(
                 series("Protein (g)", Color(0xFF81C995), agg { it.template.nutrients.protein }, targets.protein),
             ),
-            listOf(
+            "Carbs" to listOf(
                 series("Carbs (g)", Color(0xFFFFC278), agg { it.template.nutrients.carbs }, targets.carbs),
                 series("  └>of which sugar (g)", Color(0xFFFFB74D), agg { it.template.nutrients.ofWhichSugar }, targets.ofWhichSugar),
                 series("      └>of which added sugar (g)", Color(0xFFFF802C), agg { it.template.nutrients.ofWhichAddedSugar }, noTarget),
             ),
-            listOf(
+            "Fat" to listOf(
                 series("Fat (g)", Color(0xFFFFA6A6), agg { it.template.nutrients.fat }, targets.fat),
                 series(" └>of which saturated fat (g)", Color(0xFFE57373), agg { it.template.nutrients.ofWhichSaturated }, targets.ofWhichSaturated),
             ),
-            listOf(
+            "Salt" to listOf(
                 series("Salt (g)", Color(0xFFB39DDB), agg { it.template.nutrients.salt }, targets.salt),
             ),
-            listOf(
+            "Fibre" to listOf(
                 series("Fibre (g)", Color(0xFF4DB6AC), agg { it.template.nutrients.fibre }, targets.fibre),
             ),
         )
@@ -276,7 +310,7 @@ class TrendsUiMapper(
 
             DayQualifier.ONLY_LOGGED_DAYS ->
                 records
-                    .map { it.timestamp.toLocalDate() }
+                    .map { it.diaryKeyDate() }
                     .distinct()
 
             DayQualifier.ONLY_QUALIFIED_DAYS -> {
@@ -294,7 +328,7 @@ class TrendsUiMapper(
         records
             .mapNotNull { record ->
                 record.template.nutrients.calories?.toFloat()?.let {
-                    record.timestamp.toLocalDate() to it
+                    record.diaryKeyDate() to it
                 }
             }
             .groupBy({ it.first }, { it.second })
@@ -313,7 +347,7 @@ class TrendsUiMapper(
                 records[key]
                     ?.mapNotNull { record ->
                         valueProvider(record)?.let { value ->
-                            record.timestamp.toLocalDate() to value
+                            record.diaryKeyDate() to value
                         }
                     }
                     ?.groupBy({ it.first }, { it.second })
@@ -363,11 +397,12 @@ class TrendsUiMapper(
     }
 
     private fun datasetsOf(
-        vararg rows: List<SeriesWithTarget>,
+        vararg rows: Pair<String, List<SeriesWithTarget>>,
     ): List<TrendsChartUiModel> {
-        return rows.map { chartConfig ->
+        return rows.map { (title, chartConfig) ->
             TrendsChartUiModel(
-                chartConfig.map { spec ->
+                title = title,
+                datasets = chartConfig.map { spec ->
                     val (set: List<ChartDataPoint>, current) = spec.data
                     val (minY, maxY) = targetHorizontalValues(spec.target)
                     ChartDataset(
@@ -399,6 +434,113 @@ class TrendsUiMapper(
             val minElapsedDays: Int = 2,
             override val isCurrentPeriod: (K) -> Boolean,
         ) : CurrentPeriodCalculationMode<K>(isCurrentPeriod)
+    }
+
+    private fun <K : Comparable<K>> adherenceChart(
+        timeRange: List<K>,
+        records: Map<K, List<Record>>,
+        contributingDaysProvider: (K) -> List<LocalDate>,
+        currentPeriodCalculationMode: CurrentPeriodCalculationMode<K>,
+        labelProvider: (K) -> String,
+        targets: Targets,
+    ): TrendsChartUiModel {
+        fun adherenceForDays(key: K, days: List<LocalDate>): Double? {
+            if (days.isEmpty()) return null
+            val byDay: Map<LocalDate, List<Record>> = records[key].orEmpty().groupBy { it.diaryKeyDate() }
+            return days.map { day ->
+                calculateAdherence(byDay[day], targets).toDouble()
+            }.average()
+        }
+
+        val points = timeRange.mapIndexed { index, key ->
+            val contributingDays = when {
+                currentPeriodCalculationMode.isCurrentPeriod(key) && currentPeriodCalculationMode is CurrentPeriodCalculationMode.Projected ->
+                    currentPeriodCalculationMode.elapsedDaysProvider(key)
+
+                else ->
+                    contributingDaysProvider(key)
+            }
+
+            val avg = when {
+                currentPeriodCalculationMode.isCurrentPeriod(key) && currentPeriodCalculationMode is CurrentPeriodCalculationMode.Hidden ->
+                    null
+
+                currentPeriodCalculationMode.isCurrentPeriod(key) && currentPeriodCalculationMode is CurrentPeriodCalculationMode.Projected ->
+                    if (contributingDays.size >= currentPeriodCalculationMode.minElapsedDays)
+                        adherenceForDays(key, contributingDays)
+                    else
+                        null
+
+                else ->
+                    adherenceForDays(key, contributingDays)
+            }
+
+            key to ChartDataPoint(
+                index = index,
+                label = labelProvider(key),
+                value = avg?.times(100.0),
+            )
+        }
+
+        val last = points.lastOrNull()
+        val (historicalPoints, currentPoint) = if (last != null && currentPeriodCalculationMode.isCurrentPeriod(last.first)) {
+            points.dropLast(1).map { it.second } to last.second
+        } else {
+            points.map { it.second } to null
+        }
+
+        return TrendsChartUiModel(
+            title = context.getString(R.string.trends_content_adherence),
+            datasets = listOf(
+                ChartDataset(
+                    name = "Adherence (%)",
+                    color = Color(0xFF66BB6A),
+                    set = historicalPoints,
+                    current = currentPoint,
+                )
+            ),
+            pinnedMaxY = 100.0,
+        )
+    }
+
+    private fun calculateAdherence(records: List<Record>?, targets: Targets): Float {
+        val scores = mutableListOf<Float>()
+
+        fun score(value: Float?, target: Target): Float? {
+            if (!target.enabled || value == null) return null
+            val min = target.min?.toFloat()
+            val max = target.max?.toFloat()
+            if (min == null && max == null) return null
+            if ((min == null || value >= min) && (max == null || value <= max)) return 1f
+            if (min != null && value < min) {
+                return (1f - ((min - value) / min.coerceAtLeast(1f))).coerceIn(0f, 1f)
+            }
+            if (max != null && value > max) {
+                return (1f - ((value - max) / max.coerceAtLeast(1f))).coerceIn(0f, 1f)
+            }
+            return null
+        }
+
+        val r = records.orEmpty()
+        val calories = r.mapNotNull { it.template.nutrients.calories }.takeIf { it.isNotEmpty() }?.sum()
+        val protein = r.mapNotNull { it.template.nutrients.protein }.takeIf { it.isNotEmpty() }?.sum()
+        val fat = r.mapNotNull { it.template.nutrients.fat }.takeIf { it.isNotEmpty() }?.sum()
+        val ofWhichSaturated = r.mapNotNull { it.template.nutrients.ofWhichSaturated }.takeIf { it.isNotEmpty() }?.sum()
+        val carbs = r.mapNotNull { it.template.nutrients.carbs }.takeIf { it.isNotEmpty() }?.sum()
+        val ofWhichSugar = r.mapNotNull { it.template.nutrients.ofWhichSugar }.takeIf { it.isNotEmpty() }?.sum()
+        val salt = r.mapNotNull { it.template.nutrients.salt }.takeIf { it.isNotEmpty() }?.sum()
+        val fibre = r.mapNotNull { it.template.nutrients.fibre }.takeIf { it.isNotEmpty() }?.sum()
+
+        calories?.toFloat()?.let { score(it, targets.calories)?.let(scores::add) }
+        protein?.let { score(it, targets.protein)?.let(scores::add) }
+        fat?.let { score(it, targets.fat)?.let(scores::add) }
+        carbs?.let { score(it, targets.carbs)?.let(scores::add) }
+        ofWhichSaturated?.let { score(it, targets.ofWhichSaturated)?.let(scores::add) }
+        ofWhichSugar?.let { score(it, targets.ofWhichSugar)?.let(scores::add) }
+        salt?.let { score(it, targets.salt)?.let(scores::add) }
+        fibre?.let { score(it, targets.fibre)?.let(scores::add) }
+
+        return if (scores.isEmpty()) 0f else scores.average().toFloat()
     }
 
     private fun <T : Comparable<T>> generateSequence(

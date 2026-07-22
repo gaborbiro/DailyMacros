@@ -29,6 +29,8 @@ data class MacrosEntity(
     val salt: Float?,
     val fibre: Float?,
     val notes: String?,
+    /** JSON array of {name, estimatedAmount, confidence}; null if legacy or empty. */
+    val analysisComponentsJson: String? = null,
 ) : BaseEntity() {
     companion object {
         const val COLUMN_TEMPLATE_ID = "templateId"

@@ -23,6 +23,9 @@ release/
 build/
 /captures
 
+# Kotlin compiler session data
+.kotlin/
+
 # Local configuration file (sdk path, etc)
 local.properties
 
@@ -89,4 +92,9 @@ buildNumber.properties
 /.idea/markdown-navigator.xml
 /.idea/markdown-navigator-enh.xml
 /.idea/jarRepositories.xml
-/.cursor
+
+# Claude Code local git-worktree checkouts — throwaway copies of the repo.
+# Not for version control, and excluding them keeps code searches from
+# matching every file multiple times.
+.claude/worktrees/
+

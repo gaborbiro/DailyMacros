@@ -8,28 +8,36 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.RequestStatusEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TopContributorsEntity
+import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
+import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateNutrientBreakdown
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TopContributors
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import javax.inject.Inject
 
-class RecordsApiMapper {
+class RecordsApiMapper @Inject constructor() {
 
     // -------- Domain <— DB: Template --------
 
     fun map(template: TemplateJoined): Template {
-        val orderedImages = template.images.sortedBy { it.sortOrder }.map { it.image }
+        val ordered = template.images.sortedBy { it.sortOrder }
+        val orderedImageFilenames: List<String> = ordered.map { it.image }
+        val representativeFlags = ordered.map { it.isRepresentativeMealPhoto }
         return Template(
             dbId = requireNotNull(template.entity.id) { "Template db id null" },
-            images = orderedImages,
+            imageFilenames = orderedImageFilenames,
+            isRepresentativeOfMealByImageIndex = representativeFlags,
             name = template.entity.name,
             description = template.entity.description,
-            nutrients = template.macros?.let(::map) ?: TemplateNutrientBreakdown(),
-            notes = template.macros?.notes ?: "",
+            parentTemplateId = template.entity.parentTemplateId,
+            createdAtEpochMs = template.entity.createdAtEpochMs,
+            updatedAtEpochMs = template.entity.updatedAtEpochMs,
+            nutrients = template.macros?.let(::mapToNutrients) ?: Nutrients(),
+            notes = (template.macros?.notes ?: "").substringBefore("\nComponents:\n").trimEnd().takeIf { it.isNotBlank() } ?: "",
+            mealComponents = decodeMealComponentsJson(template.macros?.analysisComponentsJson),
             topContributors = template.topContributors?.let(::map) ?: TopContributors(),
             isPending = template.requestStatus?.status == RequestStatusEntity.Status.PENDING,
             quickPickOverride = map(template.quickPickOverride),
@@ -46,19 +54,17 @@ class RecordsApiMapper {
 
     // -------- Domain <— DB: Macros --------
 
-    private fun map(template: MacrosEntity): TemplateNutrientBreakdown {
-        return TemplateNutrientBreakdown(
-            calories = template.calories,
-            protein = template.protein,
-            fat = template.fat,
-            ofWhichSaturated = template.ofWhichSaturated,
-            carbs = template.carbohydrates,
-            ofWhichSugar = template.ofWhichSugar,
-            ofWhichAddedSugar = template.ofWhichAddedSugar,
-            salt = template.salt,
-            fibre = template.fibre,
-        )
-    }
+    private fun mapToNutrients(macros: MacrosEntity): Nutrients = Nutrients(
+        calories = macros.calories,
+        protein = macros.protein,
+        fat = macros.fat,
+        ofWhichSaturated = macros.ofWhichSaturated,
+        carbs = macros.carbohydrates,
+        ofWhichSugar = macros.ofWhichSugar,
+        ofWhichAddedSugar = macros.ofWhichAddedSugar,
+        salt = macros.salt,
+        fibre = macros.fibre,
+    )
 
     private fun map(template: TopContributorsEntity): TopContributors {
         return TopContributors(
@@ -101,31 +107,37 @@ class RecordsApiMapper {
     }
 
     fun map(template: TemplateToSave): TemplateEntity {
+        val now = System.currentTimeMillis()
         return TemplateEntity(
             name = template.name,
             description = template.description,
+            parentTemplateId = template.parentTemplateId,
+            createdAtEpochMs = now,
+            updatedAtEpochMs = now,
         )
     }
 
     // Domain Macros -> MacrosEntity (templateId set by caller via .copy)
     fun map(
-        nutrientBreakdown: TemplateNutrientBreakdown,
+        nutrients: Nutrients,
         notes: String?,
+        analysisComponentsJson: String?,
         id: Long?,
         templateId: Long
     ): MacrosEntity {
         return MacrosEntity(
             templateId = templateId,
-            calories = nutrientBreakdown.calories,
-            protein = nutrientBreakdown.protein,
-            carbohydrates = nutrientBreakdown.carbs,
-            ofWhichSugar = nutrientBreakdown.ofWhichSugar,
-            ofWhichAddedSugar = nutrientBreakdown.ofWhichAddedSugar,
-            fat = nutrientBreakdown.fat,
-            ofWhichSaturated = nutrientBreakdown.ofWhichSaturated,
-            salt = nutrientBreakdown.salt,
-            fibre = nutrientBreakdown.fibre,
+            calories = nutrients.calories,
+            protein = nutrients.protein,
+            carbohydrates = nutrients.carbs,
+            ofWhichSugar = nutrients.ofWhichSugar,
+            ofWhichAddedSugar = nutrients.ofWhichAddedSugar,
+            fat = nutrients.fat,
+            ofWhichSaturated = nutrients.ofWhichSaturated,
+            salt = nutrients.salt,
+            fibre = nutrients.fibre,
             notes = notes,
+            analysisComponentsJson = analysisComponentsJson,
         ).also {
             it.id = id
         }

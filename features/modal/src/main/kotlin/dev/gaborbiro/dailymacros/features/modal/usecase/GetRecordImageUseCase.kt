@@ -1,0 +1,22 @@
+package dev.gaborbiro.dailymacros.features.modal.usecase
+
+import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
+import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import javax.inject.Inject
+
+class GetRecordImageUseCase @Inject constructor(
+    private val repository: RecordsRepository,
+) {
+
+    suspend fun execute(recordId: Long): DialogHandle.ViewImageDialog? {
+        val template = repository.get(recordId)!!.template
+        return template.imageFilenames
+            .takeIf { it.isNotEmpty() }
+            ?.let {
+                DialogHandle.ViewImageDialog(
+                    title = template.name,
+                    imageFilenames = it,
+                )
+            }
+    }
+}

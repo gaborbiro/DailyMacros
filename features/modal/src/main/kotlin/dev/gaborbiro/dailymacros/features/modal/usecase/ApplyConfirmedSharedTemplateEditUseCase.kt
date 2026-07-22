@@ -1,0 +1,54 @@
+package dev.gaborbiro.dailymacros.features.modal.usecase
+
+import android.content.Context
+import dev.gaborbiro.dailymacros.features.shared.NutrientAnalysisWorker
+import dev.gaborbiro.dailymacros.features.modal.model.ChangeImagesTarget
+import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+
+/**
+ * Applies the shared-template edit confirmation: update either the single record or the backing
+ * template, then schedules macro re-analysis for that record.
+ */
+class ApplyConfirmedSharedTemplateEditUseCase @Inject constructor(
+    private val updateRecordWithNewTemplateUseCase: UpdateRecordWithNewTemplateUseCase,
+    private val recordsRepository: RecordsRepository,
+    @ApplicationContext private val appContext: Context,
+) {
+
+    suspend fun execute(
+        target: ChangeImagesTarget,
+        recordId: Long,
+        imageFilenames: List<String>,
+        title: String,
+        description: String,
+    ) {
+        when (target) {
+            ChangeImagesTarget.RECORD -> {
+                updateRecordWithNewTemplateUseCase.execute(
+                    recordId = recordId,
+                    imageFilenames = imageFilenames,
+                    title = title,
+                    description = description,
+                )
+            }
+
+            ChangeImagesTarget.TEMPLATE -> {
+                val templateId = recordsRepository.get(recordId)!!.template.dbId
+                recordsRepository.updateTemplate(
+                    templateId = templateId,
+                    name = title,
+                    description = description,
+                    templateImages = imageFilenames.map { TemplateImageUpdate(filename = it) },
+                )
+            }
+        }
+        NutrientAnalysisWorker.setWorkRequest(
+            appContext = appContext,
+            recordId = recordId,
+            force = true,
+        )
+    }
+}

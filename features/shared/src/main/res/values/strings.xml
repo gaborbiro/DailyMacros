@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="photo_monitor_notification_title">Watching for meal photos…</string>
+    <string name="photo_recognition_scanning">Analysing meal photo…</string>
+    <string name="photo_recognition_add_to_diary_prompt">Add to diary?</string>
+    <string name="photo_recognition_action_add">Add</string>
+    <string name="photo_recognition_action_details">Details</string>
+    <!-- NutrientAnalysisUseCase notifications -->
+    <string name="shared_content_analysis_completed">Macros fetched</string>
+    <string name="shared_content_analysis_success_title_fallback">Success</string>
+    <string name="shared_content_analysis_error_title">There was a problem with analysing \'%1$s\'</string>
+    <string name="shared_content_analysis_error_title_unknown">There was a problem with analysing macros</string>
+    <string name="shared_content_please_try_again">Please try again later</string>
+    <string name="shared_content_macros_error_title">Couldn’t get macros for \'%1$s\'</string>
+    <string name="shared_content_macros_error_title_unknown">Couldn’t get macros</string>
+    <!-- ErrorUiMapper -->
+    <string name="shared_content_connectivity_error">Connectivity error. Please check your internet connection and try again.</string>
+    <string name="shared_content_usage_limit_daily">You’ve reached today’s limit. Please try again tomorrow.</string>
+    <string name="shared_content_usage_limit_monthly">Daily Macros is at capacity right now. Please try again later.</string>
+    <string name="shared_content_usage_limit_unavailable">AI analysis is temporarily unavailable. Please try again later.</string>
+</resources>

@@ -3,10 +3,20 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!--
+       READ_MEDIA_IMAGES / READ_EXTERNAL_STORAGE are intentionally NOT declared.
+       The visible app adds meal photos via the Android Photo Picker
+       (PickVisualMedia) and the share sheet (ACTION_SEND), neither of which
+       needs a media permission. The only consumer of broad media access is the
+       hidden auto photo-detection feature (PhotoMonitorWorker, gated by the
+       auto_photo_recognition_enabled Remote Config flag). When that feature is
+       shipped, re-add:
+         <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+         <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+       and complete the Play Console "Photo and video permissions" declaration.
+       See README.md → "Pending doc/text updates for hidden features".
+    -->
+
 
     <application
         android:name=".App"
@@ -35,47 +45,15 @@
                 android:resource="@xml/shortcuts" />
         </activity>
 
-        <activity
-            android:name=".features.modal.ModalActivity"
-            android:configChanges="orientation|screenSize"
-            android:exported="true"
-            android:launchMode="singleTop"
-            android:theme="@style/Theme.Transparent"
-            android:windowSoftInputMode="adjustResize" >
-
-            <intent-filter>
-                <action android:name="android.intent.action.SEND" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <data android:mimeType="image/*" />
-            </intent-filter>
-
-            <intent-filter>
-                <action android:name="android.intent.action.SEND_MULTIPLE" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <data android:mimeType="image/*" />
-            </intent-filter>
-        </activity>
-
-        <receiver
-            android:name=".features.widget.DiaryWidgetReceiver"
-            android:enabled="@bool/glance_appwidget_available"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-
+<provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
             <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/widget_info_diary" />
-        </receiver>
-
-        <service
-            android:name="androidx.work.impl.foreground.SystemForegroundService"
-            android:foregroundServiceType="dataSync"
-            tools:node="merge" />
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
     </application>
 </manifest>

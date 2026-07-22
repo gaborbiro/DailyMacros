@@ -1,65 +1,97 @@
 package dev.gaborbiro.dailymacros.features.main
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.viewModels
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import dev.gaborbiro.dailymacros.features.settings.SettingsEffectHandler
+import dagger.hilt.android.AndroidEntryPoint
 import dev.gaborbiro.dailymacros.AppPrefs
-import dev.gaborbiro.dailymacros.BuildConfig
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
-import dev.gaborbiro.dailymacros.data.db.AppDatabase
-import dev.gaborbiro.dailymacros.data.file.FileStoreFactoryImpl
-import dev.gaborbiro.dailymacros.data.image.ImageStoreImpl
+import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.design.AppTheme
-import dev.gaborbiro.dailymacros.features.common.CreateRecordFromTemplateUseCase
-import dev.gaborbiro.dailymacros.features.common.NutrientsUiMapper
-import dev.gaborbiro.dailymacros.features.common.RecordsMapper
-import dev.gaborbiro.dailymacros.features.common.RepeatRecordUseCase
-import dev.gaborbiro.dailymacros.features.common.SharedRecordsUiMapper
-import dev.gaborbiro.dailymacros.features.common.util.viewModelFactory
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
-import dev.gaborbiro.dailymacros.features.overview.OverviewPrefs
+import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
-import dev.gaborbiro.dailymacros.features.overview.OverviewUiMapper
-import dev.gaborbiro.dailymacros.features.overview.OverviewViewModel
-import dev.gaborbiro.dailymacros.features.settings.SettingsAppInfo
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
-import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCaseImpl
-import dev.gaborbiro.dailymacros.features.settings.export.SharePublicUriLauncher
-import dev.gaborbiro.dailymacros.features.settings.export.StreamWriter
-import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportFoodDiaryUseCase
+import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsViewModel
-import dev.gaborbiro.dailymacros.features.trends.TrendsPreferencesImpl
 import dev.gaborbiro.dailymacros.features.trends.TrendsScreen
-import dev.gaborbiro.dailymacros.features.trends.TrendsUiMapper
 import dev.gaborbiro.dailymacros.features.trends.TrendsViewModel
-import dev.gaborbiro.dailymacros.repositories.records.RecordsApiMapper
-import dev.gaborbiro.dailymacros.repositories.records.RecordsRepositoryImpl
-import dev.gaborbiro.dailymacros.repositories.records.RequestStatusRepositoryImpl
-import dev.gaborbiro.dailymacros.repositories.settings.SettingsMapper
-import dev.gaborbiro.dailymacros.repositories.settings.SettingsRepositoryImpl
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
+import android.widget.Toast
+import dev.gaborbiro.dailymacros.features.widgets.diarywidget.DiaryWidgetReceiver
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.AutoSyncUseCase
+import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusRepository
+import dev.gaborbiro.dailymacros.util.cancelAutoSyncNotifications
+import dev.gaborbiro.dailymacros.util.showAutoSyncConflictNotification
+import dev.gaborbiro.dailymacros.util.showAutoSyncFailureNotification
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var imageStore: ImageStore
+
+    @Inject
+    lateinit var analyticsLogger: AnalyticsLogger
+
+    @Inject
+    lateinit var appPrefs: AppPrefs
+
+    @Inject
+    lateinit var requestStatusRepository: RequestStatusRepository
+
+    @Inject
+    lateinit var modalNavigator: ModalNavigator
+
+    @Inject
+    lateinit var autoSyncUseCase: AutoSyncUseCase
+
+    // Same instance as the hiltViewModel() in setContent: both are scoped to this Activity.
+    private val settingsViewModel: SettingsViewModel by viewModels()
+
+    override fun onResume() {
+        super.onResume()
+        lifecycleScope.launch {
+            when (val result = autoSyncUseCase.execute()) {
+                is AutoSyncUseCase.Result.ConflictDetected ->
+                    if (result.shouldNotify) showAutoSyncConflictNotification()
+                is AutoSyncUseCase.Result.Failure ->
+                    if (result.shouldNotify) showAutoSyncFailureNotification()
+                AutoSyncUseCase.Result.Success,
+                AutoSyncUseCase.Result.Skipped,
+                -> cancelAutoSyncNotifications()
+            }
+            settingsViewModel.onAutoSyncFinished()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
@@ -67,88 +99,19 @@ class MainActivity : ComponentActivity() {
         )
         super.onCreate(savedInstanceState)
 
-        val analyticsLogger = AnalyticsLogger()
-
-        val fileStore = FileStoreFactoryImpl(this).getStore("public", keepFiles = true)
-        val imageStore = ImageStoreImpl(fileStore)
-        val db = AppDatabase.getInstance()
-        val recordsRepository = RecordsRepositoryImpl(
-            templatesDAO = db.templatesDAO(),
-            recordsDAO = db.recordsDAO(),
-            mapper = RecordsApiMapper(),
-            imageStore = imageStore,
-            analyticsLogger = analyticsLogger,
-        )
-        val nutrientsUiMapper = NutrientsUiMapper()
-
-        val settingsRepository = SettingsRepositoryImpl(this@MainActivity, SettingsMapper())
-        val appPrefs = AppPrefs(this@MainActivity)
-        val overviewPrefs = OverviewPrefs(this@MainActivity)
         analyticsLogger.setUserId(appPrefs.userUUID)
         lifecycleScope.launch {
-            RequestStatusRepositoryImpl(db.requestStatusDAO()).deleteStale()
+            requestStatusRepository.deleteStale()
         }
-        val createRecordFromTemplateUseCase = CreateRecordFromTemplateUseCase(recordsRepository)
-        val repeatRecordUseCase = RepeatRecordUseCase(
-            recordsRepository = recordsRepository,
-            createRecordFromTemplateUseCase = createRecordFromTemplateUseCase,
-        )
-        val createJsonDocumentUseCase = CreatePublicDocumentUseCaseImpl(this@MainActivity)
-        val streamWriter = StreamWriter(this@MainActivity)
-        val sharePublicUriLauncher = SharePublicUriLauncher(this@MainActivity)
-        val exportFoodDiaryUseCase = ExportFoodDiaryUseCase(
-            recordRepository = recordsRepository,
-            createPublicDocumentUseCase = createJsonDocumentUseCase,
-            streamWriter = streamWriter,
-            sharePublicUriLauncher = sharePublicUriLauncher,
-        )
-
-        val recordsUiMapper = SharedRecordsUiMapper(nutrientsUiMapper)
-        val recordsMapper = RecordsMapper()
-        val overviewUiMapper = OverviewUiMapper(recordsUiMapper, nutrientsUiMapper, recordsMapper)
 
         setContent {
             AppTheme {
                 val navController: NavHostController = rememberNavController()
-                val overviewViewModel = viewModelFactory {
-                    OverviewViewModel(
-                        recordsRepository = recordsRepository,
-                        repeatRecordUseCase = repeatRecordUseCase,
-                        settingsRepository = settingsRepository,
-                        uiMapper = overviewUiMapper,
-                        overviewPrefs = overviewPrefs,
-                    )
-                }
+                val targetsSettingsViewModel: TargetsSettingsViewModel = hiltViewModel()
+                val promptEditorViewModel: PromptEditorViewModel = hiltViewModel()
+                val trendsViewModel: TrendsViewModel = hiltViewModel()
 
-                val settingsAppInfo = remember {
-                    object : SettingsAppInfo {
-                        override val versionLabel: String
-                            get() = "v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})  |  UserID: ${appPrefs.userUUID}"
-                    }
-                }
-                val settingsViewModel = viewModelFactory {
-                    SettingsViewModel(
-                        appInfo = settingsAppInfo,
-                        exportFoodDiaryUseCase = exportFoodDiaryUseCase,
-                    )
-                }
-                val targetsViewModel = viewModelFactory {
-                    TargetsSettingsViewModel(
-                        repo = settingsRepository,
-                    )
-                }
-
-                val trendsPreferences = remember {
-                    TrendsPreferencesImpl(this@MainActivity.applicationContext)
-                }
-                val trendsViewModel = viewModelFactory {
-                    TrendsViewModel(
-                        recordsRepository = recordsRepository,
-                        settingsRepository = settingsRepository,
-                        preferences = trendsPreferences,
-                        mapper = TrendsUiMapper(trendsPreferences),
-                    )
-                }
+                SettingsEffectHandler(settingsViewModel)
 
                 NavHost(
                     navController = navController,
@@ -159,45 +122,63 @@ class MainActivity : ComponentActivity() {
                     ) {
                         CompositionLocalProvider(LocalImageStore provides imageStore) {
                             OverviewScreen(
-                                viewModel = overviewViewModel,
+                                modalNavigator = modalNavigator,
                                 navController = navController,
+                                onRestoreFromCloud = settingsViewModel::onCloudSyncForRestoreTapped,
+                                onAddWidget = {
+                                    val mgr = AppWidgetManager.getInstance(this@MainActivity)
+                                    val provider = ComponentName(this@MainActivity, DiaryWidgetReceiver::class.java)
+                                    if (mgr.isRequestPinAppWidgetSupported) {
+                                        mgr.requestPinAppWidget(provider, null, null)
+                                    } else {
+                                        Toast.makeText(this@MainActivity, "Pinning widgets is not supported on this launcher", Toast.LENGTH_SHORT).show()
+                                    }
+                                },
                             )
                         }
                     }
                     composable(
-                        route = SETTINGS_ROUTE,
+                        route = "$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_TARGETS_ARG={$SETTINGS_HIGHLIGHT_TARGETS_ARG}",
+                        arguments = listOf(
+                            navArgument(SETTINGS_HIGHLIGHT_TARGETS_ARG) {
+                                type = NavType.BoolType
+                                defaultValue = false
+                            },
+                        ),
                         enterTransition = {
-                            // Slide in from right
-                            slideInHorizontally(
-                                initialOffsetX = { fullWidth -> fullWidth },
-                                animationSpec = tween(600, easing = FastOutSlowInEasing)
-                            )
+                            scaleIn(
+                                initialScale = 0.85f,
+                                transformOrigin = TransformOrigin(1f, 0f),
+                                animationSpec = tween(350, easing = FastOutSlowInEasing),
+                            ) + fadeIn(animationSpec = tween(350))
                         },
                         exitTransition = {
-                            // Slide out to right
-                            slideOutHorizontally(
-                                targetOffsetX = { fullWidth -> fullWidth },
-                                animationSpec = tween(600, easing = FastOutSlowInEasing)
-                            )
+                            scaleOut(
+                                targetScale = 0.85f,
+                                transformOrigin = TransformOrigin(1f, 0f),
+                                animationSpec = tween(300, easing = FastOutSlowInEasing),
+                            ) + fadeOut(animationSpec = tween(200))
                         },
-                    ) {
+                    ) { backStackEntry ->
+                        val highlightTargets = backStackEntry.arguments?.getBoolean(SETTINGS_HIGHLIGHT_TARGETS_ARG) ?: false
                         SettingsScreen(
                             settingsViewModel = settingsViewModel,
-                            targetsViewModel = targetsViewModel,
+                            targetsSettingsViewModel = targetsSettingsViewModel,
+                            promptEditorViewModel = promptEditorViewModel,
                             navController = navController,
+                            highlightTargets = highlightTargets,
                         )
                     }
                     composable(
                         route = TRENDS_ROUTE,
+                        // Same horizontal slide as Settings: Trends enters from the right and exits to the right.
                         enterTransition = {
-                            // Slide in from right
                             slideInHorizontally(
                                 initialOffsetX = { fullWidth -> fullWidth },
                                 animationSpec = tween(600, easing = FastOutSlowInEasing)
                             )
                         },
                         exitTransition = {
-                            // Slide out to right
                             slideOutHorizontally(
                                 targetOffsetX = { fullWidth -> fullWidth },
                                 animationSpec = tween(600, easing = FastOutSlowInEasing)
@@ -205,22 +186,14 @@ class MainActivity : ComponentActivity() {
                         },
                     ) {
                         TrendsScreen(
-                            viewModel = trendsViewModel,
+                            trendsViewModel = trendsViewModel,
+                            targetsSettingsViewModel = targetsSettingsViewModel,
                             navController = navController,
                         )
                     }
                 }
             }
-
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    /* activity = */ this,
-                    /* permissions = */ arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                    /* requestCode = */ 123
-                )
-            }
         }
+
     }
 }

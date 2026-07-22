@@ -4,22 +4,52 @@ import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
-import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTApiError
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTResponse
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ContentEntry
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.InputContent
-import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.OutputContent
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ReasoningLevel
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.Role
 
+
+internal val DEFAULT_RECOGNITION_SYSTEM = """
+You are a food identifier for a macronutrient tracker app.
+The user provides one or more photos of a meal.
+
+OUTPUT RULES:
+Use this JSON format:
+{
+  "title": ""
+}
+
+If food cannot be identified:
+{
+  "error": "<one short sentence explaining clearly why food cannot be identified>"
+}
+
+LANGUAGE RULES:
+- All output (title or error message) MUST be in {phone_language}.
+- Never switch output language based on packaging language.
+- If packaging text is not in {phone_language}, translate output into {phone_language}.
+""".trimIndent()
+
+internal val DEFAULT_RECOGNITION_USER = """
+TASK: RECOGNITION
+Concisely identify the food shown in the photos.
+""".trimIndent()
+
 internal fun FoodRecognitionRequest.toApiModel() = ChatGPTRequest(
-    model = foodPhotoRecognitionModel,
-    reasoning = ReasoningLevel(foodPhotoRecognitionReasoningEffort),
+    model = customisations.systemPrompt(SEG_RECOGNITION_MODEL, foodPhotoRecognitionModel),
+    reasoning = ReasoningLevel(customisations.systemPrompt(SEG_RECOGNITION_REASONING_EFFORT, foodPhotoRecognitionReasoningEffort)),
     input = listOf(
         ContentEntry(
             role = Role.system,
-            content = listOf(InputContent.Text(sharedSystemPrompt())),
+            content = listOf(
+                InputContent.Text(
+                    this.customisations.systemPrompt(SEG_RECOGNITION_SYSTEM, DEFAULT_RECOGNITION_SYSTEM)
+                        .replace("{phone_language}", this.phoneLanguage)
+                )
+            ),
         ),
         ContentEntry(
             role = Role.user,
@@ -31,88 +61,25 @@ internal fun FoodRecognitionRequest.toApiModel() = ChatGPTRequest(
             role = Role.user,
             content = listOf(
                 InputContent.Text(
-                    """
-TASK: RECOGNITION
-
-Return structured food breakdown suitable for later nutrient estimation.
-
-Output format:
-{
-  "components": [
-    {
-      "name": "",
-      "estimatedAmount": "",
-      "confidence": "high|medium|low"
-    }
-  ],
-  "title": "",
-  "description": ""
-}
-If food cannot be determined:
-{
-  "error": "<one short sentence explaining clearly why food cannot be determined>"
-}
-"""
+                    this.customisations.systemPrompt(SEG_RECOGNITION_USER, DEFAULT_RECOGNITION_USER)
+                        .replace("{phone_language}", this.phoneLanguage)
                 )
-            )
+            ),
         )
     )
 )
 
-internal fun ChatGPTResponse.toFoodRecognitionResponse(): FoodRecognitionResult {
-    val gson = GsonBuilder().create()
-
-    val resultJson: String? = this.output
-        .lastOrNull {
-            it.role == Role.assistant &&
-                    it.content?.any { it is OutputContent.Text } == true
-        }
-        ?.content
-        ?.filterIsInstance<OutputContent.Text>()
-        ?.firstOrNull {
-            it.text.isNotBlank()
-        }
-        ?.text
-
-    val cachedTokens = this.usage.inputTokensDetails.cachedTokens
-
-    // temporary helper class
-
-    class FoodDescription(
+internal fun ChatGPTResponse.toFoodRecognitionResult(): FoodRecognitionResult {
+    class FoodDescriptionResponse(
         @SerializedName("title") val title: String?,
-        @SerializedName("description") val description: String?,
-        @SerializedName("components") val components: List<Component>,
         @SerializedName("error") val error: String?,
     )
 
-    return resultJson
-        ?.let {
-            val foodDescription = gson.fromJson(resultJson, FoodDescription::class.java)
-            if (foodDescription.error != null) {
-                throw ChatGPTApiError.GenericApiError(foodDescription.error)
-            }
-            val componentStr = foodDescription.components.joinToString("\n") { component ->
-                val confidence = when (component.confidence) {
-                    "medium" -> "?"
-                    "low" -> "??"
-                    else -> null
-                }
-                "${component.estimatedAmount} ${component.name} ${confidence?.let { "($it)" } ?: ""}"
-            }
-            val descriptionItems = listOfNotNull(
-                foodDescription.description.takeIf { it.isNullOrBlank().not() },
-                componentStr
-            )
-
-            FoodRecognitionResult(
-                title = foodDescription.title.takeIf { it.isNullOrBlank().not() },
-                description = descriptionItems.joinToString("\nComponents:\n").takeIf { it.isNotBlank() },
-                cachedTokens = cachedTokens,
-            )
-        }
-        ?: FoodRecognitionResult(
-            title = null,
-            description = null,
-            cachedTokens = cachedTokens,
-        )
+    val gson = GsonBuilder().create()
+    val response = gson.fromJson(this.resultJson(), FoodDescriptionResponse::class.java)
+    return FoodRecognitionResult(
+        title = response.title.takeIf { it.isNullOrBlank().not() },
+        error = response.error.takeIf { it.isNullOrBlank().not() },
+    )
 }
+

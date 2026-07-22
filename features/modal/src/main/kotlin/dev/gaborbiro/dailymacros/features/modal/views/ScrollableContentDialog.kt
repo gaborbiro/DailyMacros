@@ -1,0 +1,175 @@
+package dev.gaborbiro.dailymacros.features.modal.views
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import dev.gaborbiro.dailymacros.design.PaddingDefault
+import dev.gaborbiro.dailymacros.features.common.utils.verticalScrollWithBar
+import kotlinx.coroutines.flow.Flow
+import kotlin.math.min
+
+
+@Composable
+internal fun ScrollableContentDialog(
+    onDismissRequested: () -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
+    footer: @Composable () -> Unit,
+    errorMessages: Flow<String>,
+    /**
+     * When true (default), tapping the dimmed area outside the card dismisses the dialog.
+     * When false, outside taps are consumed so only explicit actions (e.g. Cancel / system back) close.
+     */
+    dismissOnOutsideTap: Boolean = true,
+) {
+    Dialog(
+        onDismissRequest = onDismissRequested,
+        properties = DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = false,   // <-- we will handle outside taps
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false,
+        )
+    ) {
+        val snackbarHostState = remember { SnackbarHostState() }
+
+        LaunchedEffect(Unit) {
+            errorMessages.collect {
+                snackbarHostState.showSnackbar(
+                    message = it,
+                    withDismissAction = true,
+                    duration = SnackbarDuration.Indefinite,
+                )
+            }
+        }
+
+        Scaffold(
+            modifier = Modifier
+                .fillMaxSize(),
+            containerColor = Color.Transparent,
+            contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
+            snackbarHost = {
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                )
+            },
+        ) { paddingValues ->
+            // Scrim/outside area: only dismiss on TAP (no drag) when enabled; otherwise consume taps
+            // so they do not fall through the transparent [BoxWithConstraints] margin around the card.
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .pointerInput(dismissOnOutsideTap) {
+                        detectTapGestures(
+                            onTap = {
+                                if (dismissOnOutsideTap) {
+                                    onDismissRequested()
+                                }
+                            },
+                        )
+                    },
+            )
+            BoxWithConstraints(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
+                val max = this.maxHeight
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = max)
+                        .padding(PaddingDefault),
+                    shape = MaterialTheme.shapes.medium,
+                    shadowElevation = 6.dp,
+                ) {
+                    Column {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f, fill = false)
+                        ) {
+                            val scrollState = rememberScrollState()
+                            Column(
+                                modifier = Modifier
+                                    .verticalScrollWithBar(
+                                        scrollState = scrollState,
+                                        autoFade = false,
+                                    )
+                                    .padding(bottom = PaddingDefault),
+                            ) {
+                                content()
+                            }
+
+                            val shadowHeight: Dp = 12.dp
+                            val fadeDistance: Dp =
+                                32.dp // px range over which the shadow ramps up/down
+                            val maxShadowAlpha = 0.16f
+                            val fadePx = with(LocalDensity.current) { fadeDistance.toPx() }
+
+                            val targetBottom = remember {
+                                derivedStateOf {
+                                    val remaining =
+                                        (scrollState.maxValue - scrollState.value).toFloat().coerceAtLeast(0f)
+                                    val d = min(remaining, fadePx)
+                                    (d / fadePx) * maxShadowAlpha
+                                }
+                            }
+
+                            Box(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .align(Alignment.BottomCenter)
+                                    .height(shadowHeight)
+                                    .graphicsLayer { alpha = targetBottom.value }
+                                    .background(
+                                        Brush.verticalGradient(
+                                            0f to Color.Transparent,
+                                            1f to Color.Black // final opacity controlled by graphicsLayer alpha
+                                        )
+                                    )
+                            )
+                        }
+
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+                        footer()
+                    }
+                }
+            }
+        }
+    }
+}

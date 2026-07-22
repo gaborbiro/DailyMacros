@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_diary_name">Food Diary</string>
+    <string name="widget_quick_pick_name">Quick Picks</string>
+    <!-- Loading placeholders -->
+    <string name="widget_loading">Loading…</string>
+    <!-- ButtonLayout -->
+    <string name="widgets_content_new_record_via_camera_cd">New record via camera</string>
+    <string name="widgets_content_new_record_via_image_cd">New record via existing image</string>
+    <string name="widgets_content_new_record_cd">New record</string>
+    <string name="widgets_content_reload_cd">Reload</string>
+    <!-- EmptyView -->
+    <string name="widgets_content_empty_state">Tap one of these buttons\nto record your first meal</string>
+    <string name="widgets_content_arrow_cd">Arrow to bottom-left</string>
+    <!-- ListItemQuickPickHeader -->
+    <string name="widgets_content_favorite_cd">Favorite</string>
+    <string name="widgets_content_quick_picks_header">Quick Picks</string>
+    <!-- ListItemRecord -->
+    <string name="widgets_content_analyzing">Analyzing…</string>
+    <!-- DiaryWidgetView -->
+    <string name="widgets_content_open_app_cd">Open app</string>
+    <!-- DiaryWidgetScreen -->
+    <string name="widgets_content_error">Widget error</string>
+    <!-- QuickPickWidgetConfigActivity -->
+    <string name="widgets_quick_pick_config_title">Select Quick Pick</string>
+    <string name="widgets_quick_pick_config_empty_state">No Quick Picks available yet</string>
+    <!-- QuickPickWidgetScreen -->
+    <string name="widgets_quick_pick_reconfigure_hint">Remove and re-add to reconfigure</string>
+</resources>

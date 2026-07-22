@@ -8,12 +8,14 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
     - uses: actions/checkout@v4
-    - name: set up JDK 17
+
+    - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
@@ -22,7 +24,48 @@ jobs:
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
+
+    # On PRs, GITHUB_SHA is the merge-commit SHA (not in git log). Use the actual head SHA instead.
+    - name: Resolve build SHA
+      run: |
+        if [ "${{ github.event_name }}" = "pull_request" ]; then
+          echo "BUILD_SHA=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
+        else
+          echo "BUILD_SHA=${GITHUB_SHA}" >> "$GITHUB_ENV"
+        fi
+
     - name: Run unit tests
       run: ./gradlew testDebugUnitTest --stacktrace
-    - name: Build debug
+
+    - name: Build debug APK
       run: ./gradlew assembleDebug
+
+    - name: Set short SHA for release tag
+      if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+      run: echo "GIT_SHORT_SHA=${BUILD_SHA:0:7}" >> "$GITHUB_ENV"
+
+    - name: Create GitHub Release (master)
+      if: github.event_name == 'push'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: build-${{ env.GIT_SHORT_SHA }}
+        name: "Master #${{ github.run_number }} (${{ env.GIT_SHORT_SHA }})"
+        generate_release_notes: true
+        # assembleDebug renames the APK (see app/build.gradle.kts); there is no app-debug.apk.
+        files: app/build/outputs/apk/debug/*.apk
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # Same-repo PRs only: fork PRs cannot use GITHUB_TOKEN to create releases in the upstream repo.
+    - name: Create GitHub Release (PR preview)
+      if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: pr-${{ github.event.pull_request.number }}-${{ env.GIT_SHORT_SHA }}
+        name: "PR #${{ github.event.pull_request.number }} (${{ env.GIT_SHORT_SHA }})"
+        prerelease: true
+        make_latest: false
+        generate_release_notes: true
+        files: app/build/outputs/apk/debug/*.apk
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

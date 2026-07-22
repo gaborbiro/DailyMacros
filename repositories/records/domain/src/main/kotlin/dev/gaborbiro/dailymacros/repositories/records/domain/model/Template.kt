@@ -1,13 +1,26 @@
 package dev.gaborbiro.dailymacros.repositories.records.domain.model
 
+import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
+import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
+
 data class Template(
     val dbId: Long,
-    val images: List<String>,
+    val imageFilenames: List<String>,
+    /** Same order as [imageFilenames]; null = never classified (legacy row or no analysis). */
+    val isRepresentativeOfMealByImageIndex: List<Boolean?>,
     val name: String,
     val description: String,
+    /** When this template was created by forking from another template; null for roots or legacy rows. */
+    val parentTemplateId: Long? = null,
+    /** Epoch ms when the template row was created (0 = legacy / epoch start default). */
+    val createdAtEpochMs: Long = 0L,
+    /** Epoch ms when the template row was last updated. */
+    val updatedAtEpochMs: Long = 0L,
     val isPending: Boolean,
-    val nutrients: TemplateNutrientBreakdown,
+    val nutrients: Nutrients,
     val notes: String,
+    /** Parsed from persisted AI analysis; empty if none or legacy data. */
+    val mealComponents: List<MealComponent>,
     val topContributors: TopContributors,
     val quickPickOverride: QuickPickOverride?,
 ) {
@@ -17,17 +30,17 @@ data class Template(
 }
 
 /**
- * null doesn't mean 0 for that nutrient. It means it's unknown.
+ * One line item from AI nutrient analysis (or recognition), stored structurally.
+ * [estimatedAmount] is the free-text amount from the model (e.g. "125 g", "1 tbsp").
  */
-
-data class TemplateNutrientBreakdown(
-    val calories: Int? = null,
-    val protein: Float? = null,
-    val fat: Float? = null,
-    val ofWhichSaturated: Float? = null,
-    val carbs: Float? = null,
-    val ofWhichSugar: Float? = null,
-    val ofWhichAddedSugar: Float? = null,
-    val salt: Float? = null,
-    val fibre: Float? = null,
+data class MealComponent(
+    val name: String,
+    val estimatedAmount: String,
+    val confidence: ComponentConfidence,
 )
+
+enum class ComponentConfidence {
+    HIGH,
+    MEDIUM,
+    LOW,
+}

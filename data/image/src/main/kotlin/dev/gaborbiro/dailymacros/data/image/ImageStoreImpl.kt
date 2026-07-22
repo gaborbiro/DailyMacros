@@ -4,6 +4,8 @@ import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.util.LruCache
 import androidx.core.graphics.scale
+import dev.gaborbiro.dailymacros.data.file.di.FileStorePublicBucketEphemeral
+import dev.gaborbiro.dailymacros.data.file.di.FileStorePublicBucketPersistent
 import dev.gaborbiro.dailymacros.data.file.domain.FileStore
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import kotlinx.coroutines.Deferred
@@ -17,14 +19,19 @@ import java.io.File
 import java.io.InputStream
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantLock
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.concurrent.withLock
 
-class ImageStoreImpl(
-    private val fileStore: FileStore,
-    private val maxThumbnailSizePx: Int = 192, // bound for the longer edge
-    private val foodPicFormat: Bitmap.CompressFormat = DefaultFoodPicFormat,
-    private val foodPicQuality: Int = DefaultFoodPicQuality,
+@Singleton
+class ImageStoreImpl @Inject constructor(
+    @FileStorePublicBucketEphemeral private val fullSizeStore: FileStore,
+    @FileStorePublicBucketPersistent private val thumbStore: FileStore,
 ) : ImageStore {
+
+    private val maxThumbnailSizePx: Int = 192 // bound for the longer edge
+    private val foodPicFormat: Bitmap.CompressFormat = DefaultFoodPicFormat
+    private val foodPicQuality: Int = DefaultFoodPicQuality
 
     private val io = Dispatchers.IO
     private val cacheLock = ReentrantLock()
@@ -46,10 +53,11 @@ class ImageStoreImpl(
     // ---------- Public API (suspend, main-safe) ----------
 
     override suspend fun open(filename: String, thumbnail: Boolean): InputStream = withContext(io) {
+        val store = if (thumbnail) thumbStore else fullSizeStore
         val finalFilename = if (thumbnail) thumbName(filename) else filename
-        val path = fileStore.resolveFilePath(finalFilename)
+        val path = store.resolveFilePath(finalFilename)
         if (File(path).exists().not()) error("File not found: $path")
-        fileStore.read(finalFilename) // returns InputStream
+        store.read(finalFilename)
     }
 
     private val inflight = ConcurrentHashMap<String, Deferred<Bitmap?>>()
@@ -68,10 +76,11 @@ class ImageStoreImpl(
                 decodeLimiter.withPermit {
                     // decode from disk (or generate thumb)
                     val bmp: Bitmap? = if (thumbnail) {
-                        // Prefer existing thumb on disk
-                        decodeIfExists(thumbName(filename)) ?: decodeAndCreateThumb(filename)
+                        decodeIfExists(thumbName(filename), thumbStore) ?: decodeAndCreateThumb(filename)
                     } else {
-                        decodeIfExists(filename)
+                        // Full-size lives in cache and may have been evicted; fall back to thumbnail.
+                        decodeIfExists(filename, fullSizeStore)
+                            ?: decodeIfExists(thumbName(filename), thumbStore)
                     }
 
                     // cache or purge on miss
@@ -87,7 +96,7 @@ class ImageStoreImpl(
     }
 
     override suspend fun write(filename: String, bitmap: Bitmap): Unit = withContext(io) {
-        fileStore.write(filename) { out ->
+        fullSizeStore.write(filename) { out ->
             bitmap.compress(
                 /* format = */ foodPicFormat,
                 /* quality = */ foodPicQuality,
@@ -98,7 +107,7 @@ class ImageStoreImpl(
         // Eagerly create/update thumbnail for faster subsequent reads
         try {
             val thumb = createBoundedCopy(bitmap, maxThumbnailSizePx)
-            fileStore.write(thumbName(filename)) { out ->
+            thumbStore.write(thumbName(filename)) { out ->
                 thumb.compress(foodPicFormat, foodPicQuality, out)
             }
             cacheLock.withLock {
@@ -111,8 +120,8 @@ class ImageStoreImpl(
     }
 
     override suspend fun delete(filename: String): Unit = withContext(io) {
-        fileStore.delete(filename)
-        fileStore.delete(thumbName(filename))
+        fullSizeStore.delete(filename)
+        thumbStore.delete(thumbName(filename))
         cacheLock.withLock {
             memCache.remove(filename)
             memCache.remove(thumbName(filename))
@@ -121,8 +130,8 @@ class ImageStoreImpl(
 
     // ---------- Internals ----------
 
-    private fun decodeIfExists(filename: String): Bitmap? {
-        val file = File(fileStore.resolveFilePath(filename))
+    private fun decodeIfExists(filename: String, store: FileStore): Bitmap? {
+        val file = File(store.resolveFilePath(filename))
         if (!file.exists()) return null
         val src = ImageDecoder.createSource(file)
         return ImageDecoder.decodeBitmap(src) { decoder, _, _ ->
@@ -131,9 +140,9 @@ class ImageStoreImpl(
         }
     }
 
-    /** Decode full image and create/write a bounded thumbnail copy on disk. */
+    /** Decode full image from cache store and write a bounded thumbnail to the persistent store. */
     private fun decodeAndCreateThumb(filename: String): Bitmap? {
-        val file = File(fileStore.resolveFilePath(filename))
+        val file = File(fullSizeStore.resolveFilePath(filename))
         if (!file.exists()) return null
 
         // One pass decode + scale via ImageDecoder target size
@@ -149,7 +158,7 @@ class ImageStoreImpl(
         }
 
         // Persist thumb
-        fileStore.write(thumbName(filename)) { out ->
+        thumbStore.write(thumbName(filename)) { out ->
             thumb.compress(foodPicFormat, foodPicQuality, out)
         }
         return thumb

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_diary_day_start_row">Day ends at</string>
+    <string name="settings_diary_day_start_dialog_title">When does your food day roll over?</string>
+    <string name="settings_diary_day_start_option_midnight">Midnight</string>
+    <string name="settings_diary_day_start_option_1am">1:00 a.m.</string>
+    <string name="settings_diary_day_start_option_2am">2:00 a.m.</string>
+    <string name="settings_diary_day_start_dialog_close">Close</string>
+    <string name="settings_auto_photo_recognition_row">Auto-detect meal photos</string>
+    <string name="settings_auto_photo_recognition_subtitle">Analyses new camera photos and asks to add them to your diary</string>
+    <string name="settings_cloud_sync_auto_backup_row">Auto backup</string>
+    <string name="settings_cloud_sync_auto_backup_dialog_title">How often should we back up automatically?</string>
+    <string name="settings_cloud_sync_auto_backup_never">Never</string>
+    <string name="settings_cloud_sync_auto_backup_daily">Daily</string>
+    <string name="settings_cloud_sync_auto_backup_weekly">Weekly</string>
+    <string name="settings_cloud_sync_auto_backup_monthly">Monthly</string>
+    <!-- SettingsView content -->
+    <string name="settings_content_title">Settings</string>
+    <string name="settings_content_back_cd">Back Button</string>
+    <string name="settings_content_daily_targets_row">Daily Targets</string>
+    <string name="settings_content_customise_ai_row">Personalise AI</string>
+    <string name="settings_content_customise_ai_subtitle">Experimental!</string>
+    <string name="settings_content_export_diary_row">Export food diary</string>
+    <!-- PDF export -->
+    <string name="pdf_export_title">Food diary</string>
+    <string name="pdf_export_dialog_title">Export to PDF</string>
+    <string name="pdf_export_range_section">Date range</string>
+    <string name="pdf_export_preset_today">Today</string>
+    <string name="pdf_export_preset_this_week">This week</string>
+    <string name="pdf_export_preset_last_7_days">Last 7 days</string>
+    <string name="pdf_export_preset_last_week">Last week</string>
+    <string name="pdf_export_preset_this_month">This month</string>
+    <string name="pdf_export_preset_last_30_days">Last 30 days</string>
+    <string name="pdf_export_preset_last_month">Last month</string>
+    <string name="pdf_export_preset_custom">Custom…</string>
+    <string name="pdf_export_options_section">Include</string>
+    <string name="pdf_export_daily_totals">Daily totals</string>
+    <string name="pdf_export_meal_macros">Macros per meal</string>
+    <string name="pdf_export_photos">Photos</string>
+    <string name="pdf_export_photos_all">All</string>
+    <string name="pdf_export_photos_titular">Main only</string>
+    <string name="pdf_export_photos_none">None</string>
+    <string name="pdf_export_description">Description</string>
+    <string name="pdf_export_components">Components (AI)</string>
+    <string name="pdf_export_action">Export</string>
+    <string name="pdf_export_cancel">Cancel</string>
+    <string name="pdf_export_range_picker_confirm">OK</string>
+    <string name="pdf_export_open">Open</string>
+    <string name="pdf_export_share">Share</string>
+    <string name="pdf_export_notification_progress_title">Exporting food diary…</string>
+    <string name="pdf_export_notification_complete_title">Food diary PDF ready</string>
+    <string name="pdf_export_notification_complete_text">Tap to open</string>
+    <string name="pdf_export_notification_error_title">Food diary export failed</string>
+    <string name="pdf_export_notification_error_text">Something went wrong while creating the PDF.</string>
+    <string name="settings_content_camera_section">Camera</string>
+    <string name="settings_content_widgets_section">Widgets</string>
+    <string name="settings_quick_pick_confirmation_row">Quick Pick confirmation</string>
+    <string name="settings_quick_pick_confirmation_subtitle">Show a confirmation dialog when tapping a meal on the Quick Pick widget. When off, meals are logged immediately.</string>
+    <string name="settings_content_local_sync_section">Local sync</string>
+    <string name="settings_content_backup_now_row">Back up now</string>
+    <string name="settings_content_restore_backup_row">Restore from backup</string>
+    <string name="settings_content_cloud_sync_section">Cloud sync</string>
+    <string name="settings_content_account_row">Account</string>
+    <string name="settings_content_sign_in_subtitle">Sign in with Google</string>
+    <string name="settings_content_last_backed_up">Last backup: %1$s</string>
+    <!-- SettingsView dialogs -->
+    <string name="settings_dialog_sign_out_title">Sign out?</string>
+    <string name="settings_dialog_sign_out_message">You\'ll be signed out of %1$s and cloud backup will be turned off.</string>
+    <string name="settings_dialog_sign_out_confirm">Sign out</string>
+    <string name="settings_dialog_cancel">Cancel</string>
+    <string name="settings_dialog_restore_title">Restore from backup?</string>
+    <string name="settings_dialog_restore_message">A backup from %1$s is available on Google Drive. Restore it now? This will replace all your current data.</string>
+    <string name="settings_dialog_restore_confirm">Restore</string>
+    <!-- TargetsHeader / TargetsSettingsBottomSheet -->
+    <string name="settings_content_targets_title">Daily Targets</string>
+    <string name="settings_content_targets_back_cd">Back</string>
+    <string name="settings_content_targets_reset">Reset</string>
+    <string name="settings_content_targets_save">Save</string>
+    <string name="settings_content_targets_hint">Feel free to disable the ones you don\'t care about</string>
+    <string name="settings_content_targets_expand_cd">More details</string>
+    <string name="settings_content_targets_collapse_cd">Collapse</string>
+    <string name="settings_content_targets_min_label">Min</string>
+    <string name="settings_content_targets_max_label">Max</string>
+    <string name="settings_content_targets_error_required">Value required</string>
+    <string name="settings_content_targets_error_min_max">min cannot be higher than max</string>
+    <!-- SettingsView overwrite backup dialog -->
+    <string name="settings_dialog_overwrite_title">Overwrite backup?</string>
+    <string name="settings_dialog_overwrite_message">A backup from another device (%1$s) is present in your Google Drive. Overwrite it with this device\'s data?</string>
+    <string name="settings_dialog_overwrite_confirm">Overwrite</string>
+    <!-- ExitConfirmationDialog -->
+    <string name="settings_dialog_targets_unsaved_title">Unsaved changes</string>
+    <string name="settings_dialog_targets_unsaved_message">You have unsaved changes. Do you want to save them?</string>
+    <string name="settings_dialog_targets_discard">Discard</string>
+    <!-- PromptEditorBottomSheet -->
+    <string name="settings_prompt_editor_title">Personalise AI</string>
+    <string name="settings_prompt_editor_back_cd">Back</string>
+    <string name="settings_prompt_editor_save">Save</string>
+    <string name="settings_prompt_editor_unsaved_changes_title">Unsaved changes</string>
+    <string name="settings_prompt_editor_unsaved_changes_message">You have unsaved prompt changes. Save or discard them?</string>
+    <string name="settings_prompt_editor_discard">Discard</string>
+    <string name="settings_prompt_editor_cancel">Cancel</string>
+    <string name="settings_prompt_editor_api_key_label">ChatGPT API key</string>
+    <string name="settings_prompt_editor_clear">Clear</string>
+    <string name="settings_prompt_editor_unlock">Unlock</string>
+    <string name="settings_prompt_editor_version_label">Version</string>
+    <string name="settings_prompt_editor_version_default">v0 (default)</string>
+    <string name="settings_prompt_editor_version_delete_cd">Delete version %1$d</string>
+    <string name="settings_prompt_editor_usage_stats">%1$d x %2$d tokens avg</string>
+    <string name="settings_prompt_editor_info_enabled">Changes take effect on the next AI query.\nCustomising the prompts may cause the app to behave in unpredictable ways or even crash. Revert the query to its default version if needed.\nDrop a message to %1$s for any suggestions or questions.</string>
+    <string name="settings_prompt_editor_info_disabled">ℹ️ Using your own API key means you no longer need to subscribe to this app. Once unlocked, feel free to cancel your subscription in Play Store, or keep it if you\'d like to support the developer of this app.\nDrop a message to %1$s for any suggestions or questions.\nYou can also customise the AI prompts. This may cause the app to behave in unpredictable ways or even crash. Revert the query to its default version if needed.\nA heads-up on future plans: I intend to collect anonymised custom prompts to improve the app\'s AI features. I\'ll ask for your explicit consent before doing so.</string>
+    <!-- AutoSyncUseCase -->
+    <string name="settings_content_not_signed_in_google">Not signed in to Google</string>
+    <!-- Privacy & data -->
+    <string name="settings_privacy_section">Privacy &amp; data</string>
+    <string name="settings_privacy_disclosure">To recognise meals and estimate nutrition, the photos and descriptions you add are sent to OpenAI for analysis. Your food diary is stored on this device; the developer does not store your meal photos or entries. Cloud backup, if you enable it, goes to your own Google account.</string>
+    <string name="settings_privacy_policy_row">Privacy policy</string>
+    <string name="settings_privacy_policy_url">https://github.com/gaborbiro/DailyMacros/blob/master/PRIVACY.md</string>
+</resources>
