@@ -15,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import dev.gaborbiro.dailymacros.features.common.SettingsRowId
 import dev.gaborbiro.dailymacros.features.settings.export.rememberCreatePublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.rememberOpenPublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
@@ -30,7 +31,7 @@ fun SettingsScreen(
     targetsSettingsViewModel: TargetsSettingsViewModel,
     promptEditorViewModel: PromptEditorViewModel,
     navController: NavHostController,
-    highlightTargets: Boolean = false,
+    highlightRowId: SettingsRowId? = null,
 ) {
     val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -69,7 +70,7 @@ fun SettingsScreen(
     SettingsView(
         viewState = settingsUiState,
         snackbarHostState = snackbarHostState,
-        highlightTargets = highlightTargets,
+        highlightRowId = highlightRowId,
         onBackNavigateRequested = settingsViewModel::onBackNavigateRequested,
         onTargetsSettingTapped = settingsViewModel::onTargetsSettingsTapped,
         onPromptEditorTapped = settingsViewModel::onPromptEditorTapped,

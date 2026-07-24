@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import dev.gaborbiro.dailymacros.R
+import dev.gaborbiro.dailymacros.features.common.SettingsRowId
 import dev.gaborbiro.dailymacros.features.main.MainActivity
 import dev.gaborbiro.dailymacros.features.shared.notifications.CHANNEL_ID_FOREGROUND
 
@@ -124,7 +125,10 @@ fun Context.showAutoSyncConflictNotification() {
         .setContentTitle("Backup conflict")
         .setContentText("Newer backup data found than the last sync of this app instance. Open Settings to decide what to do.")
         .setAutoCancel(true)
-        .setContentIntent(openOverviewIntent())
+        // TEMPORARY (this branch only, for testing): highlights Privacy Policy instead of
+        // Auto backup so the scroll/blink can be verified without needing cloud sync signed in.
+        // Switch to SettingsRowId.AUTO_BACKUP once confirmed.
+        .setContentIntent(openSettingsIntent(NOTIFICATION_ID_AUTO_SYNC_CONFLICT, SettingsRowId.PRIVACY_POLICY))
     getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID_AUTO_SYNC_CONFLICT, builder.build())
 }
 
@@ -141,7 +145,8 @@ fun Context.showAutoSyncFailureNotification() {
         .setContentTitle("Backup failed")
         .setContentText("Cloud backup failed. Open Settings to fix.")
         .setAutoCancel(true)
-        .setContentIntent(openOverviewIntent())
+        // TEMPORARY (this branch only, for testing): see comment in showAutoSyncConflictNotification.
+        .setContentIntent(openSettingsIntent(NOTIFICATION_ID_AUTO_SYNC_FAILURE, SettingsRowId.PRIVACY_POLICY))
     getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID_AUTO_SYNC_FAILURE, builder.build())
 }
 
@@ -152,6 +157,23 @@ private fun Context.openOverviewIntent(): PendingIntent? {
     return PendingIntent.getActivity(
         this,
         0,
+        intent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+}
+
+// Distinct requestCode per notification so their PendingIntents (and the extras carried in
+// them) don't collide - PendingIntent identity ignores extras, only action/data/component/
+// requestCode are compared, so two notifications sharing a requestCode would silently clobber
+// each other's target row when FLAG_UPDATE_CURRENT applies.
+private fun Context.openSettingsIntent(requestCode: Int, highlightRowId: SettingsRowId): PendingIntent? {
+    val intent = Intent(this, MainActivity::class.java).apply {
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        putExtra(MainActivity.EXTRA_HIGHLIGHT_ROW_ID, highlightRowId.name)
+    }
+    return PendingIntent.getActivity(
+        this,
+        requestCode,
         intent,
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
