@@ -125,10 +125,7 @@ fun Context.showAutoSyncConflictNotification() {
         .setContentTitle("Backup conflict")
         .setContentText("Newer backup data found than the last sync of this app instance. Open Settings to decide what to do.")
         .setAutoCancel(true)
-        // TEMPORARY (this branch only, for testing): highlights Privacy Policy instead of
-        // Auto backup so the scroll/blink can be verified without needing cloud sync signed in.
-        // Switch to SettingsRowId.AUTO_BACKUP once confirmed.
-        .setContentIntent(openSettingsIntent(NOTIFICATION_ID_AUTO_SYNC_CONFLICT, SettingsRowId.PRIVACY_POLICY))
+        .setContentIntent(openSettingsIntent(NOTIFICATION_ID_AUTO_SYNC_CONFLICT, SettingsRowId.AUTO_BACKUP))
     getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID_AUTO_SYNC_CONFLICT, builder.build())
 }
 
@@ -145,8 +142,7 @@ fun Context.showAutoSyncFailureNotification() {
         .setContentTitle("Backup failed")
         .setContentText("Cloud backup failed. Open Settings to fix.")
         .setAutoCancel(true)
-        // TEMPORARY (this branch only, for testing): see comment in showAutoSyncConflictNotification.
-        .setContentIntent(openSettingsIntent(NOTIFICATION_ID_AUTO_SYNC_FAILURE, SettingsRowId.PRIVACY_POLICY))
+        .setContentIntent(openSettingsIntent(NOTIFICATION_ID_AUTO_SYNC_FAILURE, SettingsRowId.AUTO_BACKUP))
     getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID_AUTO_SYNC_FAILURE, builder.build())
 }
 

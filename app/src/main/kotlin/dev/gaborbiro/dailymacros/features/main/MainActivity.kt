@@ -185,9 +185,11 @@ class MainActivity : ComponentActivity() {
                             ) + fadeOut(animationSpec = tween(200))
                         },
                     ) { backStackEntry ->
-                        val highlightRowId = backStackEntry.arguments
-                            ?.getString(SETTINGS_HIGHLIGHT_ROW_ARG)
-                            ?.let { runCatching { SettingsRowId.valueOf(it) }.getOrNull() }
+                        // TEMPORARY (this branch only, for testing): always highlight Privacy
+                        // Policy regardless of how Settings was opened, so the scroll/blink
+                        // mechanism can be exercised without needing an actual sync error.
+                        // Revert to the parsed nav arg once confirmed working.
+                        val highlightRowId = SettingsRowId.PRIVACY_POLICY
                         SettingsScreen(
                             settingsViewModel = settingsViewModel,
                             targetsSettingsViewModel = targetsSettingsViewModel,
