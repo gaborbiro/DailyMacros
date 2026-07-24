@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.features.main
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
@@ -18,6 +19,10 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -32,6 +37,7 @@ import dev.gaborbiro.dailymacros.AppPrefs
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.design.AppTheme
+import dev.gaborbiro.dailymacros.features.common.SettingsRowId
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
@@ -77,6 +83,16 @@ class MainActivity : ComponentActivity() {
     // Same instance as the hiltViewModel() in setContent: both are scoped to this Activity.
     private val settingsViewModel: SettingsViewModel by viewModels()
 
+    // Set from a notification's Intent extra; consumed by a LaunchedEffect inside setContent
+    // once the NavHost exists, since a PendingIntent can't target a Compose nav route directly.
+    private var pendingHighlightRowId by mutableStateOf<SettingsRowId?>(null)
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        pendingHighlightRowId = intent.highlightRowIdExtra()
+    }
+
     override fun onResume() {
         super.onResume()
         lifecycleScope.launch {
@@ -103,6 +119,7 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             requestStatusRepository.deleteStale()
         }
+        pendingHighlightRowId = intent.highlightRowIdExtra()
 
         setContent {
             AppTheme {
@@ -112,6 +129,13 @@ class MainActivity : ComponentActivity() {
                 val trendsViewModel: TrendsViewModel = hiltViewModel()
 
                 SettingsEffectHandler(settingsViewModel)
+
+                LaunchedEffect(pendingHighlightRowId) {
+                    pendingHighlightRowId?.let { rowId ->
+                        navController.navigate("$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_ROW_ARG=${rowId.name}")
+                        pendingHighlightRowId = null
+                    }
+                }
 
                 NavHost(
                     navController = navController,
@@ -138,11 +162,12 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     composable(
-                        route = "$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_TARGETS_ARG={$SETTINGS_HIGHLIGHT_TARGETS_ARG}",
+                        route = "$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_ROW_ARG={$SETTINGS_HIGHLIGHT_ROW_ARG}",
                         arguments = listOf(
-                            navArgument(SETTINGS_HIGHLIGHT_TARGETS_ARG) {
-                                type = NavType.BoolType
-                                defaultValue = false
+                            navArgument(SETTINGS_HIGHLIGHT_ROW_ARG) {
+                                type = NavType.StringType
+                                nullable = true
+                                defaultValue = null
                             },
                         ),
                         enterTransition = {
@@ -160,13 +185,15 @@ class MainActivity : ComponentActivity() {
                             ) + fadeOut(animationSpec = tween(200))
                         },
                     ) { backStackEntry ->
-                        val highlightTargets = backStackEntry.arguments?.getBoolean(SETTINGS_HIGHLIGHT_TARGETS_ARG) ?: false
+                        val highlightRowId = backStackEntry.arguments
+                            ?.getString(SETTINGS_HIGHLIGHT_ROW_ARG)
+                            ?.let { runCatching { SettingsRowId.valueOf(it) }.getOrNull() }
                         SettingsScreen(
                             settingsViewModel = settingsViewModel,
                             targetsSettingsViewModel = targetsSettingsViewModel,
                             promptEditorViewModel = promptEditorViewModel,
                             navController = navController,
-                            highlightTargets = highlightTargets,
+                            highlightRowId = highlightRowId,
                         )
                     }
                     composable(
@@ -196,4 +223,13 @@ class MainActivity : ComponentActivity() {
         }
 
     }
+
+    companion object {
+        const val EXTRA_HIGHLIGHT_ROW_ID = "highlight_row_id"
+    }
 }
+
+private fun Intent.highlightRowIdExtra(): SettingsRowId? =
+    getStringExtra(MainActivity.EXTRA_HIGHLIGHT_ROW_ID)?.let { name ->
+        runCatching { SettingsRowId.valueOf(name) }.getOrNull()
+    }

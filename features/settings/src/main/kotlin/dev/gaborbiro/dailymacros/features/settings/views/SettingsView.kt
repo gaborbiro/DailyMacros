@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -37,7 +39,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,6 +51,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.gaborbiro.dailymacros.features.common.SettingsRowId
 import dev.gaborbiro.dailymacros.features.common.utils.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.features.settings.R
 import dev.gaborbiro.dailymacros.features.settings.export.pdf.PdfRangeSelection
@@ -64,7 +69,7 @@ import java.util.Locale
 internal fun SettingsView(
     viewState: SettingsUiState,
     snackbarHostState: SnackbarHostState,
-    highlightTargets: Boolean = false,
+    highlightRowId: SettingsRowId? = null,
     onBackNavigateRequested: () -> Unit,
     onTargetsSettingTapped: () -> Unit,
     onPromptEditorTapped: () -> Unit,
@@ -229,17 +234,7 @@ internal fun SettingsView(
         },
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
-        val targetsHighlight = remember { Animatable(0f) }
-        LaunchedEffect(highlightTargets) {
-            if (highlightTargets) {
-                delay(400)
-                repeat(2) {
-                    targetsHighlight.animateTo(1f, tween(250))
-                    targetsHighlight.animateTo(0f, tween(350))
-                }
-            }
-        }
-
+        CompositionLocalProvider(LocalSettingsHighlightRowId provides highlightRowId) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -247,7 +242,7 @@ internal fun SettingsView(
                 .imePadding()
                 .verticalScrollWithBar(),
         ) {
-            SettingRow(title = stringResource(R.string.settings_content_daily_targets_row), highlight = targetsHighlight.value, onTapped = onTargetsSettingTapped)
+            SettingRow(title = stringResource(R.string.settings_content_daily_targets_row), rowId = SettingsRowId.TARGETS, onTapped = onTargetsSettingTapped)
             if (viewState.customiseAiEnabled) {
                 SettingRow(
                     title = stringResource(R.string.settings_content_customise_ai_row),
@@ -353,6 +348,7 @@ internal fun SettingsView(
                     title = stringResource(R.string.settings_cloud_sync_auto_backup_row),
                     subtitle = stringResource(viewState.autoBackupInterval.toLabelRes()),
                     enabled = cloudSyncIdle,
+                    rowId = SettingsRowId.AUTO_BACKUP,
                     onTapped = onAutoBackupIntervalTapped,
                 )
                 SettingRow(
@@ -380,6 +376,7 @@ internal fun SettingsView(
             val privacyPolicyUrl = stringResource(R.string.settings_privacy_policy_url)
             SettingRow(
                 title = stringResource(R.string.settings_privacy_policy_row),
+                rowId = SettingsRowId.PRIVACY_POLICY,
                 onTapped = { uriHandler.openUri(privacyPolicyUrl) },
             )
 
@@ -395,6 +392,7 @@ internal fun SettingsView(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+        }
         }
     }
 }
@@ -421,19 +419,41 @@ private fun SettingSectionHeader(title: String) {
     )
 }
 
+/**
+ * The [SettingsRowId] that the Settings screen was asked to draw attention to for this
+ * composition, or null if no row should be highlighted. Read by [SettingRow] so any row can
+ * opt into "scroll to me and pulse" behavior just by passing its own [SettingsRowId] - no
+ * wiring through every call site is needed.
+ */
+private val LocalSettingsHighlightRowId = compositionLocalOf<SettingsRowId?> { null }
+
 @Composable
 private fun SettingRow(
     title: String,
     subtitle: String? = null,
     enabled: Boolean = true,
-    highlight: Float = 0f,
+    rowId: SettingsRowId? = null,
     trailing: @Composable (() -> Unit)? = null,
     onTapped: () -> Unit,
 ) {
+    val highlightTarget = LocalSettingsHighlightRowId.current
+    val highlight = remember { Animatable(0f) }
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    LaunchedEffect(highlightTarget) {
+        if (rowId != null && rowId == highlightTarget) {
+            delay(400)
+            bringIntoViewRequester.bringIntoView()
+            repeat(2) {
+                highlight.animateTo(1f, tween(250))
+                highlight.animateTo(0f, tween(350))
+            }
+        }
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = highlight))
+            .bringIntoViewRequester(bringIntoViewRequester)
+            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = highlight.value))
             .clickable(
                 enabled = enabled,
                 onClick = onTapped,
