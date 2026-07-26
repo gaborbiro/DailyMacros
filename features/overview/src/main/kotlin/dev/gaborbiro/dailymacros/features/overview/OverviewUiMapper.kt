@@ -140,7 +140,7 @@ class OverviewUiMapper @Inject constructor(
             targets = effectiveTargets,
         )
 
-        val infoMessage = buildTimezoneInfo(travelDelta)
+        val infoMessage = buildTimezoneInfo(day, travelDelta)
 
         return ListUiModelDailySummary(
             listItemId = diaryDayWindowStart(day.day, day.diaryDayStart, day.startZone)
@@ -286,17 +286,12 @@ class OverviewUiMapper @Inject constructor(
     /** Returns deltaHours (negative = shorter/eastbound, positive = longer/westbound),
      *  or null if the day has no significant timezone shift.
      *
-     *  If the previous day was already mid-flight (its startZone != endZone), we use the
-     *  previous day's startZone as the anchor so multi-day flights trace back to the true
-     *  departure timezone rather than a mid-flight zone the phone happened to be in at midnight. */
+     *  The zone in effect when this day started is assumed to be whatever zone the previous
+     *  logged day ended in (continuity) rather than this day's own first-record zone, so a
+     *  shift that happens entirely overnight — between yesterday's last log and today's first
+     *  one — is still caught even though today's records are all already in the new zone. */
     private fun effectiveTravelDelta(day: TravelDay, previousDay: TravelDay?): Long? {
-        val startZone = if (day.startZone != day.endZone
-                            && previousDay != null
-                            && previousDay.startZone != previousDay.endZone) {
-            previousDay.startZone
-        } else {
-            day.startZone
-        }
+        val startZone = previousDay?.endZone ?: day.startZone
         val endZone = if (day.day == LocalDate.now(ZoneId.systemDefault())) {
             ZoneId.systemDefault()
         } else {
@@ -311,7 +306,7 @@ class OverviewUiMapper @Inject constructor(
         return if (deltaHours.absoluteValue > 2) deltaHours else null
     }
 
-    private fun buildTimezoneInfo(deltaHours: Long?): String? {
+    private fun buildTimezoneInfo(day: TravelDay, deltaHours: Long?): String? {
         if (deltaHours == null) return null
         val absHours = deltaHours.absoluteValue
         val absPct = (absHours / 24f * 100).toInt()
@@ -321,7 +316,8 @@ class OverviewUiMapper @Inject constructor(
                 "Try to go to bed when locals do. Or as close as you can.\n" +
                 "Meals tend to pile up on shorter days \u2014 consider a lighter meal during the journey."
         } else {
-            val dinnerNote = if (LocalTime.now(ZoneId.systemDefault()).hour >= 15) {
+            val isOngoingToday = day.day == LocalDate.now(ZoneId.systemDefault())
+            val dinnerNote = if (isOngoingToday && LocalTime.now(ZoneId.systemDefault()).hour >= 15) {
                 " Even if you ate during your journey, try not to skip local dinner \u2014 restaurants may be closed by the time hunger kicks in."
             } else ""
             "\uD83D\uDCA1 Timezone jump: your body clock is $deltaHours hrs ahead of local time ($absPct% longer day).\n" +

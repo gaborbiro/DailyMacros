@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.features.overview
 import dev.gaborbiro.dailymacros.features.shared.TemplateUiMapper
 import dev.gaborbiro.dailymacros.features.shared.RecordsUiMapper
 import dev.gaborbiro.dailymacros.features.overview.model.ChangeDirection
+import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelDailySummary
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
@@ -13,6 +14,7 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import android.content.Context
@@ -21,6 +23,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
 @RunWith(RobolectricTestRunner::class)
@@ -91,6 +94,32 @@ class OverviewUiMapperTest {
         timestamp = ZonedDateTime.of(2024, 5, 10, hour, 0, 0, 0, zone),
         template = template,
     )
+
+    private fun stubRecordAt(id: Long, calories: Int, timestamp: ZonedDateTime) = Record(
+        recordId = id,
+        timestamp = timestamp,
+        template = stubTemplate(id, "R$id").copy(nutrients = Nutrients(calories = calories)),
+    )
+
+    private val caloriesOnlyTargets = Targets(
+        calories = Target(enabled = true, min = 1600, max = 2000),
+        protein = disabledTarget,
+        salt = disabledTarget,
+        fat = disabledTarget,
+        carbs = disabledTarget,
+        fibre = disabledTarget,
+        ofWhichSaturated = disabledTarget,
+        ofWhichSugar = disabledTarget,
+    )
+
+    private fun dailySummaryFor(
+        records: List<Record>,
+        targets: Targets,
+        day: java.time.LocalDate,
+    ): ListUiModelDailySummary =
+        mapper.map(records, targets)
+            .filterIsInstance<ListUiModelDailySummary>()
+            .first { it.dayTitle.endsWith(day.format(java.time.format.DateTimeFormatter.ofPattern("dd MMM"))) }
 
     @Test
     fun `mapSearchResults reverses mapped records`() {
@@ -165,5 +194,52 @@ class OverviewUiMapperTest {
     fun `calculateChangeIndicator neutral within two percent band`() {
         assertEquals(ChangeDirection.NEUTRAL, mapper.calculateChangeIndicator(102f, 100f).direction)
         assertEquals(ChangeDirection.NEUTRAL, mapper.calculateChangeIndicator(98f, 100f).direction)
+    }
+
+    @Test
+    fun `day summary is not scaled when there is no timezone shift`() {
+        val day1 = stubRecordAt(1L, 300, ZonedDateTime.of(2024, 5, 10, 20, 0, 0, 0, ZoneOffset.UTC))
+        val day2 = stubRecordAt(2L, 1500, ZonedDateTime.of(2024, 5, 11, 9, 0, 0, 0, ZoneOffset.UTC))
+
+        val summary = dailySummaryFor(listOf(day1, day2), caloriesOnlyTargets, day2.timestamp.toLocalDate())
+
+        assertNull(summary.infoMessage)
+        // unscaled: total(1500) <= min(1600) -> (1500/1600) * 0.75
+        assertEquals(0.703125f, summary.entries.single().progress0to1, 0.001f)
+    }
+
+    @Test
+    fun `day summary is scaled down for a timezone shift that happens entirely overnight`() {
+        // Last log of day 1 is still in the old zone; day 2's only log is already in the new
+        // (arrival) zone -- the shift happened in the gap between the two, not during either day.
+        val day1 = stubRecordAt(1L, 300, ZonedDateTime.of(2024, 5, 10, 20, 0, 0, 0, ZoneOffset.UTC))
+        val day2 = stubRecordAt(2L, 1500, ZonedDateTime.of(2024, 5, 11, 9, 0, 0, 0, ZoneOffset.ofHours(6)))
+
+        val summary = dailySummaryFor(listOf(day1, day2), caloriesOnlyTargets, day2.timestamp.toLocalDate())
+
+        assertTrue(summary.infoMessage.orEmpty().contains("6 hrs behind"))
+        assertTrue(summary.infoMessage.orEmpty().contains("shorter day"))
+        // scaled to an 18hr day: min=1200, max=1500 -> total(1500) is at the top of the scaled range
+        assertEquals(1.0f, summary.entries.single().progress0to1, 0.001f)
+    }
+
+    @Test
+    fun `scaling does not linger into the day after the travel day`() {
+        val day1 = stubRecordAt(1L, 300, ZonedDateTime.of(2024, 5, 10, 20, 0, 0, 0, ZoneOffset.UTC))
+        // Mid-flight day: starts in the old zone, ends in the new one.
+        val day2First = stubRecordAt(2L, 200, ZonedDateTime.of(2024, 5, 11, 2, 0, 0, 0, ZoneOffset.UTC))
+        val day2Second = stubRecordAt(3L, 200, ZonedDateTime.of(2024, 5, 11, 20, 0, 0, 0, ZoneOffset.ofHours(6)))
+        // Fully settled in the new zone -- a plain 24hr day, no shift of its own.
+        val day3 = stubRecordAt(4L, 1500, ZonedDateTime.of(2024, 5, 12, 9, 0, 0, 0, ZoneOffset.ofHours(6)))
+
+        val summary = dailySummaryFor(
+            listOf(day1, day2First, day2Second, day3),
+            caloriesOnlyTargets,
+            day3.timestamp.toLocalDate(),
+        )
+
+        assertNull(summary.infoMessage)
+        // back to unscaled targets: total(1500) <= min(1600) -> (1500/1600) * 0.75
+        assertEquals(0.703125f, summary.entries.single().progress0to1, 0.001f)
     }
 }
