@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.features.overview
 import dev.gaborbiro.dailymacros.features.shared.TemplateUiMapper
 import dev.gaborbiro.dailymacros.features.shared.RecordsUiMapper
 import dev.gaborbiro.dailymacros.features.overview.model.ChangeDirection
+import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
@@ -11,6 +12,7 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import android.content.Context
@@ -98,6 +100,43 @@ class OverviewUiMapperTest {
         assertEquals(2, out.size)
         assertEquals(2L, out[0].listItemId)
         assertEquals(1L, out[1].listItemId)
+    }
+
+    @Test
+    fun `mapSearchResults adds timezone shift label when zone changes between records`() {
+        val r1 = Record(
+            recordId = 1L,
+            timestamp = ZonedDateTime.of(2024, 5, 10, 8, 0, 0, 0, ZoneId.of("Europe/Lisbon")),
+            template = stubTemplate(10L, "First"),
+        )
+        val r2 = Record(
+            recordId = 2L,
+            timestamp = ZonedDateTime.of(2024, 5, 10, 14, 0, 0, 0, ZoneId.of("Asia/Dubai")),
+            template = stubTemplate(20L, "Second"),
+        )
+        val out = mapper.mapSearchResults(listOf(r1, r2)).filterIsInstance<ListUiModelRecord>()
+        val second = out.first { it.listItemId == 2L }
+        assertTrue(second.timestamp.contains("(+3h)"))
+    }
+
+    @Test
+    fun `map adds timezone shift label when zone changes between records`() {
+        val r1 = Record(
+            recordId = 1L,
+            timestamp = ZonedDateTime.of(2024, 5, 10, 8, 0, 0, 0, ZoneId.of("Europe/Lisbon")),
+            template = stubTemplate(10L, "First"),
+        )
+        val r2 = Record(
+            recordId = 2L,
+            timestamp = ZonedDateTime.of(2024, 5, 10, 14, 0, 0, 0, ZoneId.of("Asia/Dubai")),
+            template = stubTemplate(20L, "Second"),
+        )
+        val out = mapper.map(listOf(r1, r2), testSettingsRepository.getTargets())
+            .filterIsInstance<ListUiModelRecord>()
+        val first = out.first { it.listItemId == 1L }
+        val second = out.first { it.listItemId == 2L }
+        assertFalse(first.timestamp.contains("("))
+        assertTrue(second.timestamp.contains("(+3h)"))
     }
 
     @Test

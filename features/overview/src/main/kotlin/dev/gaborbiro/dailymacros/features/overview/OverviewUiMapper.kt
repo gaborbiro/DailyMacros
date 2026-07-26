@@ -43,9 +43,16 @@ class OverviewUiMapper @Inject constructor(
 
     fun mapSearchResults(
         records: List<Record>,
-    ) = records
-        .map(recordsUiMapper::map)
-        .reversed()
+    ): List<ListUiModelBase> {
+        var previousRecord: Record? = null
+        return records
+            .map { record ->
+                recordsUiMapper.map(record = record, previousRecord = previousRecord).also {
+                    previousRecord = record
+                }
+            }
+            .reversed()
+    }
 
     fun map(
         records: List<Record>,
@@ -60,11 +67,16 @@ class OverviewUiMapper @Inject constructor(
         val today = logicalDiaryToday(ZoneId.systemDefault(), dayStart)
 
         val grouped = records.groupByWallClockDay(dayStart)
+        var previousRecord: Record? = null
 
         grouped.forEachIndexed { index, travelDay ->
             val previousTravelDay = grouped.getOrNull(index - 1)
             currentWeek += travelDay
-            result += travelDay.records.map { recordsUiMapper.map(record = it, timeOnly = true) }
+            result += travelDay.records.map { record ->
+                recordsUiMapper.map(record = record, timeOnly = true, previousRecord = previousRecord).also {
+                    previousRecord = record
+                }
+            }
             result += mapDailyNutrientProgressTable(travelDay, previousTravelDay, targets)
 
             val lookAhead = grouped.getOrNull(index + 1)
