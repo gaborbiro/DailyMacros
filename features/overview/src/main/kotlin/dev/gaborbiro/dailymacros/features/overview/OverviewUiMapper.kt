@@ -297,8 +297,17 @@ class OverviewUiMapper @Inject constructor(
      * preceded it, so a short layover in an intermediate zone doesn't mask the true cumulative
      * shift from where the user was last genuinely settled.
      *
-     * Returns one entry per day in [days], being the settled zone as of the *start* of that
-     * day (null for the very first day, which has no history to anchor to).
+     * A day where a *new* candidate zone first appears always shows its own shift against the
+     * existing baseline, no matter the threshold — you can't already be "settled" on the very
+     * day a new zone shows up. But a day that's merely *continuing* an existing candidate can
+     * clear the threshold on its own account: if this day's own cumulative dwell in that zone
+     * crosses [thresholdHours] by its own last log, it's already settled by the end of that same
+     * day, rather than only from the day after. Without this, a day that fully qualifies partway
+     * through still shows a stale repeat of the old baseline's shift, and the fix only visibly
+     * lands one calendar day late.
+     *
+     * Returns one entry per day in [days], being the settled zone as of [day]'s own banner
+     * (null for the very first day, which has no history to anchor to).
      */
     private fun computeAdaptationBaselines(
         days: List<TravelDay>,
@@ -311,8 +320,6 @@ class OverviewUiMapper @Inject constructor(
         var candidateEnteredAt: Instant? = null
 
         days.forEach { day ->
-            baselines += settledZone
-
             val dayEndZone = if (day.day == today) ZoneId.systemDefault() else day.endZone
             val dayEndInstant = if (day.day == today) Instant.now() else day.lastLog.toInstant()
 
@@ -320,11 +327,25 @@ class OverviewUiMapper @Inject constructor(
                 settledZone = day.startZone
             }
 
-            if (dayEndZone == settledZone) {
-                candidateZone = null
-                candidateEnteredAt = null
-            } else {
-                if (candidateZone != dayEndZone) {
+            when {
+                dayEndZone == settledZone -> {
+                    baselines += settledZone
+                    candidateZone = null
+                    candidateEnteredAt = null
+                }
+
+                candidateZone == dayEndZone -> {
+                    val dwellHours = Duration.between(candidateEnteredAt, dayEndInstant).toHours()
+                    if (dwellHours >= thresholdHours) {
+                        settledZone = candidateZone
+                        candidateZone = null
+                        candidateEnteredAt = null
+                    }
+                    baselines += settledZone
+                }
+
+                else -> {
+                    baselines += settledZone
                     candidateZone = dayEndZone
                     candidateEnteredAt = day.records
                         .filter { it.timestamp.zone == dayEndZone }
@@ -332,12 +353,12 @@ class OverviewUiMapper @Inject constructor(
                         ?.timestamp
                         ?.toInstant()
                         ?: day.firstLog.toInstant()
-                }
-                val dwellHours = Duration.between(candidateEnteredAt, dayEndInstant).toHours()
-                if (dwellHours >= thresholdHours) {
-                    settledZone = candidateZone
-                    candidateZone = null
-                    candidateEnteredAt = null
+                    val dwellHours = Duration.between(candidateEnteredAt, dayEndInstant).toHours()
+                    if (dwellHours >= thresholdHours) {
+                        settledZone = candidateZone
+                        candidateZone = null
+                        candidateEnteredAt = null
+                    }
                 }
             }
         }

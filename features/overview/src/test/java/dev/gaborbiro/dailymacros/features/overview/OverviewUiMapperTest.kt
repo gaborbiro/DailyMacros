@@ -300,4 +300,33 @@ class OverviewUiMapperTest {
         assertTrue(summary.infoMessage.orEmpty().contains("6 hrs behind"))
         assertEquals(0.7917f, summary.entries.single().progress0to1, 0.001f)
     }
+
+    @Test
+    fun `a day that only continues an already-tracked candidate can self-clear once it dwells long enough`() {
+        val home = ZoneOffset.UTC
+        val dest = ZoneOffset.ofHours(9)
+
+        val day1 = stubRecordAt(1L, 300, ZonedDateTime.of(2024, 5, 10, 20, 0, 0, 0, home))
+        // Arrival day: shows its own full 9hr shift, same as the day the new zone first appears.
+        val day2First = stubRecordAt(2L, 300, ZonedDateTime.of(2024, 5, 11, 9, 0, 0, 0, dest))
+        val day2Last = stubRecordAt(3L, 300, ZonedDateTime.of(2024, 5, 11, 19, 0, 0, 0, dest))
+        // A plain day after arrival with no shift of its own -- just continuing the same zone.
+        // By this day's own last log, cumulative dwell since day2's first log crosses the
+        // default 20hr threshold, so this day should read as settled, not repeat day2's shift.
+        val day3 = stubRecordAt(4L, 300, ZonedDateTime.of(2024, 5, 12, 17, 0, 0, 0, dest))
+
+        val day2Summary = dailySummaryFor(
+            listOf(day1, day2First, day2Last, day3),
+            caloriesOnlyTargets,
+            day2First.timestamp.toLocalDate(),
+        )
+        val day3Summary = dailySummaryFor(
+            listOf(day1, day2First, day2Last, day3),
+            caloriesOnlyTargets,
+            day3.timestamp.toLocalDate(),
+        )
+
+        assertTrue(day2Summary.infoMessage.orEmpty().contains("9 hrs behind"))
+        assertNull(day3Summary.infoMessage)
+    }
 }
