@@ -76,7 +76,7 @@ internal fun OverviewList(
 
     Box(Modifier.fillMaxSize()) {
         val repeatIcon = painterResource(R.drawable.ic_exposure_plus_1)
-        val macrosIcon = painterResource(R.drawable.ic_chatgpt)
+        val macrosIcon = painterResource(R.drawable.ic_ai_borg)
         val detailsIcon = painterResource(R.drawable.ic_topic)
         val starIcon = painterResource(R.drawable.ic_star)
         val deleteIcon = painterResource(R.drawable.ic_delete)
