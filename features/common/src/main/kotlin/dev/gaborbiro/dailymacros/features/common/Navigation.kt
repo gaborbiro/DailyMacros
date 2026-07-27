@@ -13,5 +13,6 @@ const val TRENDS_ROUTE = "trends"
 enum class SettingsRowId {
     TARGETS,
     AUTO_BACKUP,
+    BACKUP_NOW,
     PRIVACY_POLICY,
 }

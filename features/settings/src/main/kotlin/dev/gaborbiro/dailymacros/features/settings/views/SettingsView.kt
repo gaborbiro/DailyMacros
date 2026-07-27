@@ -354,6 +354,7 @@ internal fun SettingsView(
                 SettingRow(
                     title = stringResource(R.string.settings_content_backup_now_row),
                     enabled = cloudSyncIdle,
+                    rowId = SettingsRowId.BACKUP_NOW,
                     onTapped = onSyncTapped,
                 )
                 SettingRow(

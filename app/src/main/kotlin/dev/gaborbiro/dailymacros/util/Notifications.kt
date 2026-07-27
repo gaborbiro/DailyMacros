@@ -142,7 +142,7 @@ fun Context.showAutoSyncFailureNotification() {
         .setContentTitle("Backup failed")
         .setContentText("Cloud backup failed. Open Settings to fix.")
         .setAutoCancel(true)
-        .setContentIntent(openSettingsIntent(NOTIFICATION_ID_AUTO_SYNC_FAILURE, SettingsRowId.AUTO_BACKUP))
+        .setContentIntent(openSettingsIntent(NOTIFICATION_ID_AUTO_SYNC_FAILURE, SettingsRowId.BACKUP_NOW))
     getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID_AUTO_SYNC_FAILURE, builder.build())
 }
 
