@@ -112,10 +112,20 @@ class OverviewUiMapperTest {
         ofWhichSugar = disabledTarget,
     )
 
+    private fun mapperWithAdaptationHours(hours: Int) = OverviewUiMapper(
+        context = context,
+        recordsUiMapper = RecordsUiMapper(TemplateUiMapper()),
+        templateUiMapper = TemplateUiMapper(),
+        settingsRepository = object : SettingsRepository by testSettingsRepository {
+            override fun getTimezoneAdaptationHours(): Int = hours
+        },
+    )
+
     private fun dailySummaryFor(
         records: List<Record>,
         targets: Targets,
         day: java.time.LocalDate,
+        mapper: OverviewUiMapper = this.mapper,
     ): ListUiModelDailySummary =
         mapper.map(records, targets)
             .filterIsInstance<ListUiModelDailySummary>()
@@ -224,22 +234,70 @@ class OverviewUiMapperTest {
     }
 
     @Test
-    fun `scaling does not linger into the day after the travel day`() {
-        val day1 = stubRecordAt(1L, 300, ZonedDateTime.of(2024, 5, 10, 20, 0, 0, 0, ZoneOffset.UTC))
-        // Mid-flight day: starts in the old zone, ends in the new one.
-        val day2First = stubRecordAt(2L, 200, ZonedDateTime.of(2024, 5, 11, 2, 0, 0, 0, ZoneOffset.UTC))
-        val day2Second = stubRecordAt(3L, 200, ZonedDateTime.of(2024, 5, 11, 20, 0, 0, 0, ZoneOffset.ofHours(6)))
-        // Fully settled in the new zone -- a plain 24hr day, no shift of its own.
-        val day3 = stubRecordAt(4L, 1500, ZonedDateTime.of(2024, 5, 12, 9, 0, 0, 0, ZoneOffset.ofHours(6)))
+    fun `a short layover keeps tracking cumulative shift at the default adaptation threshold`() {
+        // Home -> a brief stopover (a single log, no real dwell time) -> final destination.
+        val home = ZoneOffset.UTC
+        val stopover = ZoneOffset.ofHours(3)
+        val dest = ZoneOffset.ofHours(9)
+
+        val day1 = stubRecordAt(1L, 300, ZonedDateTime.of(2024, 5, 10, 20, 0, 0, 0, home))
+        val day2 = stubRecordAt(2L, 300, ZonedDateTime.of(2024, 5, 11, 9, 0, 0, 0, stopover))
+        val day3 = stubRecordAt(3L, 1250, ZonedDateTime.of(2024, 5, 12, 9, 0, 0, 0, dest))
+
+        val summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day3.timestamp.toLocalDate())
+
+        // The stopover log has ~0hrs of measured dwell, well under the default 20hr threshold,
+        // so day 3 is still compared against home (the last genuinely-settled zone) -- the full
+        // 9hr difference, not just the 6hr of the final leg.
+        assertTrue(summary.infoMessage.orEmpty().contains("9 hrs behind"))
+        // scaled to a 15hr day: min=1000, max=1250 -> total(1250) is at the top of the range
+        assertEquals(1.0f, summary.entries.single().progress0to1, 0.001f)
+    }
+
+    @Test
+    fun `lowering the adaptation threshold lets a short layover reset the baseline`() {
+        val home = ZoneOffset.UTC
+        val stopover = ZoneOffset.ofHours(3)
+        val dest = ZoneOffset.ofHours(9)
+
+        val day1 = stubRecordAt(1L, 300, ZonedDateTime.of(2024, 5, 10, 20, 0, 0, 0, home))
+        val day2 = stubRecordAt(2L, 300, ZonedDateTime.of(2024, 5, 11, 9, 0, 0, 0, stopover))
+        val day3 = stubRecordAt(3L, 1250, ZonedDateTime.of(2024, 5, 12, 9, 0, 0, 0, dest))
 
         val summary = dailySummaryFor(
-            listOf(day1, day2First, day2Second, day3),
+            listOf(day1, day2, day3),
+            caloriesOnlyTargets,
+            day3.timestamp.toLocalDate(),
+            mapper = mapperWithAdaptationHours(0),
+        )
+
+        // With the threshold set to 0, any logged presence in the stopover counts as settled,
+        // so day 3 only reflects the final 6hr leg (stopover -> destination).
+        assertTrue(summary.infoMessage.orEmpty().contains("6 hrs behind"))
+        // scaled to an 18hr day: min=1200, max=1500 -> total(1250) is partway through the range
+        assertEquals(0.7917f, summary.entries.single().progress0to1, 0.001f)
+    }
+
+    @Test
+    fun `a stopover long enough to clear the default threshold resets the baseline on its own`() {
+        val home = ZoneOffset.UTC
+        val stopover = ZoneOffset.ofHours(3)
+        val dest = ZoneOffset.ofHours(9)
+
+        val day1 = stubRecordAt(1L, 300, ZonedDateTime.of(2024, 5, 10, 20, 0, 0, 0, home))
+        // Two logs 22hrs apart in the stopover zone -- a genuine overnight stay, clearing the
+        // default 20hr threshold before the final leg begins.
+        val day2a = stubRecordAt(2L, 300, ZonedDateTime.of(2024, 5, 11, 9, 0, 0, 0, stopover))
+        val day2b = stubRecordAt(3L, 300, ZonedDateTime.of(2024, 5, 12, 7, 0, 0, 0, stopover))
+        val day3 = stubRecordAt(4L, 1250, ZonedDateTime.of(2024, 5, 13, 9, 0, 0, 0, dest))
+
+        val summary = dailySummaryFor(
+            listOf(day1, day2a, day2b, day3),
             caloriesOnlyTargets,
             day3.timestamp.toLocalDate(),
         )
 
-        assertNull(summary.infoMessage)
-        // back to unscaled targets: total(1500) <= min(1600) -> (1500/1600) * 0.75
-        assertEquals(0.703125f, summary.entries.single().progress0to1, 0.001f)
+        assertTrue(summary.infoMessage.orEmpty().contains("6 hrs behind"))
+        assertEquals(0.7917f, summary.entries.single().progress0to1, 0.001f)
     }
 }

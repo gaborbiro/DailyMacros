@@ -23,6 +23,7 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import java.time.Duration
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
@@ -68,16 +69,20 @@ class OverviewUiMapper @Inject constructor(
 
         val grouped = records.groupByWallClockDay(dayStart)
         var previousRecord: Record? = null
+        val adaptationBaselines = computeAdaptationBaselines(
+            days = grouped,
+            thresholdHours = settingsRepository.getTimezoneAdaptationHours(),
+            today = today,
+        )
 
         grouped.forEachIndexed { index, travelDay ->
-            val previousTravelDay = grouped.getOrNull(index - 1)
             currentWeek += travelDay
             result += travelDay.records.map { record ->
                 recordsUiMapper.map(record = record, timeOnly = true, previousRecord = previousRecord).also {
                     previousRecord = record
                 }
             }
-            result += mapDailyNutrientProgressTable(travelDay, previousTravelDay, targets)
+            result += mapDailyNutrientProgressTable(travelDay, adaptationBaselines[index], targets)
 
             val lookAhead = grouped.getOrNull(index + 1)
             val weekEnded =
@@ -104,7 +109,7 @@ class OverviewUiMapper @Inject constructor(
 
     private fun mapDailyNutrientProgressTable(
         day: TravelDay,
-        previousDay: TravelDay?,
+        adaptationBaseline: ZoneId?,
         targets: Targets,
     ): ListUiModelDailySummary {
         val records = day.records
@@ -121,7 +126,7 @@ class OverviewUiMapper @Inject constructor(
         val totalSalt = records.sumOf { it.template.nutrients.salt?.toDouble() ?: 0.0 }.toFloat()
         val totalFibre = records.sumOf { it.template.nutrients.fibre?.toDouble() ?: 0.0 }.toFloat()
 
-        val travelDelta = effectiveTravelDelta(day, previousDay)
+        val travelDelta = effectiveTravelDelta(day, adaptationBaseline)
         val effectiveTargets = if (travelDelta != null) {
             targets.scale((24.0 + travelDelta) / 24.0)
         } else {
@@ -283,15 +288,68 @@ class OverviewUiMapper @Inject constructor(
         }
     }
 
-    /** Returns deltaHours (negative = shorter/eastbound, positive = longer/westbound),
-     *  or null if the day has no significant timezone shift.
+    /**
+     * Walks [days] (chronological order) and works out, for each day, which zone should be
+     * treated as the "settled" adaptation baseline for that day's own [effectiveTravelDelta] —
+     * i.e. the last zone the user actually dwelled in for at least [thresholdHours] continuous
+     * hours (per their own logs). A stop shorter than that (a technical layover, a connecting
+     * flight) doesn't reset the baseline: the day keeps comparing back to whatever zone
+     * preceded it, so a short layover in an intermediate zone doesn't mask the true cumulative
+     * shift from where the user was last genuinely settled.
      *
-     *  The zone in effect when this day started is assumed to be whatever zone the previous
-     *  logged day ended in (continuity) rather than this day's own first-record zone, so a
-     *  shift that happens entirely overnight — between yesterday's last log and today's first
-     *  one — is still caught even though today's records are all already in the new zone. */
-    private fun effectiveTravelDelta(day: TravelDay, previousDay: TravelDay?): Long? {
-        val startZone = previousDay?.endZone ?: day.startZone
+     * Returns one entry per day in [days], being the settled zone as of the *start* of that
+     * day (null for the very first day, which has no history to anchor to).
+     */
+    private fun computeAdaptationBaselines(
+        days: List<TravelDay>,
+        thresholdHours: Int,
+        today: LocalDate,
+    ): List<ZoneId?> {
+        val baselines = mutableListOf<ZoneId?>()
+        var settledZone: ZoneId? = null
+        var candidateZone: ZoneId? = null
+        var candidateEnteredAt: Instant? = null
+
+        days.forEach { day ->
+            baselines += settledZone
+
+            val dayEndZone = if (day.day == today) ZoneId.systemDefault() else day.endZone
+            val dayEndInstant = if (day.day == today) Instant.now() else day.lastLog.toInstant()
+
+            if (settledZone == null) {
+                settledZone = day.startZone
+            }
+
+            if (dayEndZone == settledZone) {
+                candidateZone = null
+                candidateEnteredAt = null
+            } else {
+                if (candidateZone != dayEndZone) {
+                    candidateZone = dayEndZone
+                    candidateEnteredAt = day.records
+                        .filter { it.timestamp.zone == dayEndZone }
+                        .minByOrNull { it.timestamp.toInstant() }
+                        ?.timestamp
+                        ?.toInstant()
+                        ?: day.firstLog.toInstant()
+                }
+                val dwellHours = Duration.between(candidateEnteredAt, dayEndInstant).toHours()
+                if (dwellHours >= thresholdHours) {
+                    settledZone = candidateZone
+                    candidateZone = null
+                    candidateEnteredAt = null
+                }
+            }
+        }
+        return baselines
+    }
+
+    /** Returns deltaHours (negative = shorter/eastbound, positive = longer/westbound),
+     *  or null if the day has no significant timezone shift. [baselineZone] is the settled
+     *  adaptation baseline as of the start of [day] (see [computeAdaptationBaselines]),
+     *  falling back to the day's own first-record zone when there's no prior history. */
+    private fun effectiveTravelDelta(day: TravelDay, baselineZone: ZoneId?): Long? {
+        val startZone = baselineZone ?: day.startZone
         val endZone = if (day.day == LocalDate.now(ZoneId.systemDefault())) {
             ZoneId.systemDefault()
         } else {

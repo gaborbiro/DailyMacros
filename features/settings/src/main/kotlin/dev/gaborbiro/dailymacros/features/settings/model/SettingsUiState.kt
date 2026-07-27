@@ -11,6 +11,8 @@ data class SettingsUiState(
     val importDataInProgress: Boolean = false,
     val diaryDayStartHour: Int = 0,
     val showDiaryDayStartDialog: Boolean = false,
+    val timezoneAdaptationHours: Int = 20,
+    val showTimezoneAdaptationDialog: Boolean = false,
     val showPromptEditor: Boolean = false,
     val cloudSyncProvider: CloudSyncProvider = CloudSyncProvider.NONE,
     val cloudSyncEmail: String? = null,

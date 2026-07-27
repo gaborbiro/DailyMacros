@@ -19,6 +19,15 @@ interface SettingsRepository {
 
     fun setDiaryDayStartHour(hourOfDay: Int)
 
+    /**
+     * Minimum number of continuous hours a timezone must be dwelled in before it's treated as
+     * the new adapted baseline for jet-lag advisories/target scaling. Below this, a stop is
+     * treated as a technical layover and the previous baseline zone keeps being used.
+     */
+    fun getTimezoneAdaptationHours(): Int = 20
+
+    fun setTimezoneAdaptationHours(hours: Int) {}
+
     /** Returns user overrides for AI prompt editable segments, keyed by segment ID. */
     fun getPromptCustomisations(): Map<String, String>
 
