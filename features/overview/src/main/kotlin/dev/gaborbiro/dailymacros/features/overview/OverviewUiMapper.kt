@@ -43,9 +43,16 @@ class OverviewUiMapper @Inject constructor(
 
     fun mapSearchResults(
         records: List<Record>,
-    ) = records
-        .map(recordsUiMapper::map)
-        .reversed()
+    ): List<ListUiModelBase> {
+        var previousRecord: Record? = null
+        return records
+            .map { record ->
+                recordsUiMapper.map(record = record, previousRecord = previousRecord).also {
+                    previousRecord = record
+                }
+            }
+            .reversed()
+    }
 
     fun map(
         records: List<Record>,
@@ -60,12 +67,17 @@ class OverviewUiMapper @Inject constructor(
         val today = logicalDiaryToday(ZoneId.systemDefault(), dayStart)
 
         val grouped = records.groupByWallClockDay(dayStart)
+        var previousRecord: Record? = null
+        val timezoneAnchors = computeTimezoneAnchors(days = grouped, today = today)
 
         grouped.forEachIndexed { index, travelDay ->
-            val previousTravelDay = grouped.getOrNull(index - 1)
             currentWeek += travelDay
-            result += travelDay.records.map { recordsUiMapper.map(record = it, timeOnly = true) }
-            result += mapDailyNutrientProgressTable(travelDay, previousTravelDay, targets)
+            result += travelDay.records.map { record ->
+                recordsUiMapper.map(record = record, timeOnly = true, previousRecord = previousRecord).also {
+                    previousRecord = record
+                }
+            }
+            result += mapDailyNutrientProgressTable(travelDay, timezoneAnchors[index], targets)
 
             val lookAhead = grouped.getOrNull(index + 1)
             val weekEnded =
@@ -92,7 +104,7 @@ class OverviewUiMapper @Inject constructor(
 
     private fun mapDailyNutrientProgressTable(
         day: TravelDay,
-        previousDay: TravelDay?,
+        timezoneAnchor: ZoneId?,
         targets: Targets,
     ): ListUiModelDailySummary {
         val records = day.records
@@ -109,7 +121,7 @@ class OverviewUiMapper @Inject constructor(
         val totalSalt = records.sumOf { it.template.nutrients.salt?.toDouble() ?: 0.0 }.toFloat()
         val totalFibre = records.sumOf { it.template.nutrients.fibre?.toDouble() ?: 0.0 }.toFloat()
 
-        val travelDelta = effectiveTravelDelta(day, previousDay)
+        val travelDelta = effectiveTravelDelta(day, timezoneAnchor)
         val effectiveTargets = if (travelDelta != null) {
             targets.scale((24.0 + travelDelta) / 24.0)
         } else {
@@ -128,7 +140,7 @@ class OverviewUiMapper @Inject constructor(
             targets = effectiveTargets,
         )
 
-        val infoMessage = buildTimezoneInfo(travelDelta)
+        val infoMessage = buildTimezoneInfo(day, travelDelta)
 
         return ListUiModelDailySummary(
             listItemId = diaryDayWindowStart(day.day, day.diaryDayStart, day.startZone)
@@ -271,20 +283,45 @@ class OverviewUiMapper @Inject constructor(
         }
     }
 
-    /** Returns deltaHours (negative = shorter/eastbound, positive = longer/westbound),
-     *  or null if the day has no significant timezone shift.
+    /**
+     * Chains a "significant zone" anchor across [days] (chronological order): each day's own
+     * shift is measured against the last zone that produced a *significant* shift (see
+     * [effectiveTravelDelta]'s >2hr threshold), not simply "yesterday's zone" — so a small,
+     * noisy zone blip (e.g. the phone's zone catching up gradually mid-flight, or a brief
+     * technical layover barely off the previous zone) doesn't get banked as a real waypoint.
+     * The moment a day's shift against the anchor IS significant, that day's own end zone
+     * becomes the new anchor for the day after — so each leg of a multi-leg trip is measured
+     * on its own marginal terms (e.g. a 3hr first leg, then a 6hr second leg) rather than
+     * repeating the whole cumulative shift from the original departure zone on every
+     * subsequent leg, which would double-count the earlier legs.
      *
-     *  If the previous day was already mid-flight (its startZone != endZone), we use the
-     *  previous day's startZone as the anchor so multi-day flights trace back to the true
-     *  departure timezone rather than a mid-flight zone the phone happened to be in at midnight. */
-    private fun effectiveTravelDelta(day: TravelDay, previousDay: TravelDay?): Long? {
-        val startZone = if (day.startZone != day.endZone
-                            && previousDay != null
-                            && previousDay.startZone != previousDay.endZone) {
-            previousDay.startZone
-        } else {
-            day.startZone
+     * Returns one entry per day in [days]: the anchor zone used for that day's own
+     * [effectiveTravelDelta] (null only for the very first day, which falls back to its own
+     * start zone).
+     */
+    private fun computeTimezoneAnchors(days: List<TravelDay>, today: LocalDate): List<ZoneId?> {
+        val anchors = mutableListOf<ZoneId?>()
+        var anchorZone: ZoneId? = null
+
+        days.forEach { day ->
+            if (anchorZone == null) {
+                anchorZone = day.startZone
+            }
+            anchors += anchorZone
+
+            if (effectiveTravelDelta(day, anchorZone) != null) {
+                anchorZone = if (day.day == today) ZoneId.systemDefault() else day.endZone
+            }
         }
+        return anchors
+    }
+
+    /** Returns deltaHours (negative = shorter/eastbound, positive = longer/westbound),
+     *  or null if the day has no significant (>2hr) timezone shift. [anchorZone] is the last
+     *  significant-shift zone as of [day] (see [computeTimezoneAnchors]), falling back to the
+     *  day's own first-record zone when there's no prior history. */
+    private fun effectiveTravelDelta(day: TravelDay, anchorZone: ZoneId?): Long? {
+        val startZone = anchorZone ?: day.startZone
         val endZone = if (day.day == LocalDate.now(ZoneId.systemDefault())) {
             ZoneId.systemDefault()
         } else {
@@ -299,7 +336,7 @@ class OverviewUiMapper @Inject constructor(
         return if (deltaHours.absoluteValue > 2) deltaHours else null
     }
 
-    private fun buildTimezoneInfo(deltaHours: Long?): String? {
+    private fun buildTimezoneInfo(day: TravelDay, deltaHours: Long?): String? {
         if (deltaHours == null) return null
         val absHours = deltaHours.absoluteValue
         val absPct = (absHours / 24f * 100).toInt()
@@ -309,7 +346,8 @@ class OverviewUiMapper @Inject constructor(
                 "Try to go to bed when locals do. Or as close as you can.\n" +
                 "Meals tend to pile up on shorter days \u2014 consider a lighter meal during the journey."
         } else {
-            val dinnerNote = if (LocalTime.now(ZoneId.systemDefault()).hour >= 15) {
+            val isOngoingToday = day.day == LocalDate.now(ZoneId.systemDefault())
+            val dinnerNote = if (isOngoingToday && LocalTime.now(ZoneId.systemDefault()).hour >= 15) {
                 " Even if you ate during your journey, try not to skip local dinner \u2014 restaurants may be closed by the time hunger kicks in."
             } else ""
             "\uD83D\uDCA1 Timezone jump: your body clock is $deltaHours hrs ahead of local time ($absPct% longer day).\n" +
