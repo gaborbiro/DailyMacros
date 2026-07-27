@@ -112,20 +112,10 @@ class OverviewUiMapperTest {
         ofWhichSugar = disabledTarget,
     )
 
-    private fun mapperWithAdaptationHours(hours: Int) = OverviewUiMapper(
-        context = context,
-        recordsUiMapper = RecordsUiMapper(TemplateUiMapper()),
-        templateUiMapper = TemplateUiMapper(),
-        settingsRepository = object : SettingsRepository by testSettingsRepository {
-            override fun getTimezoneAdaptationHours(): Int = hours
-        },
-    )
-
     private fun dailySummaryFor(
         records: List<Record>,
         targets: Targets,
         day: java.time.LocalDate,
-        mapper: OverviewUiMapper = this.mapper,
     ): ListUiModelDailySummary =
         mapper.map(records, targets)
             .filterIsInstance<ListUiModelDailySummary>()
@@ -234,8 +224,8 @@ class OverviewUiMapperTest {
     }
 
     @Test
-    fun `a short layover keeps tracking cumulative shift at the default adaptation threshold`() {
-        // Home -> a brief stopover (a single log, no real dwell time) -> final destination.
+    fun `each leg of a multi-leg trip is scaled on its own marginal shift, not the cumulative shift from departure`() {
+        // Home -> a stopover -> final destination, each leg a real (greater than 2hr) shift.
         val home = ZoneOffset.UTC
         val stopover = ZoneOffset.ofHours(3)
         val dest = ZoneOffset.ofHours(9)
@@ -244,87 +234,51 @@ class OverviewUiMapperTest {
         val day2 = stubRecordAt(2L, 300, ZonedDateTime.of(2024, 5, 11, 9, 0, 0, 0, stopover))
         val day3 = stubRecordAt(3L, 1250, ZonedDateTime.of(2024, 5, 12, 9, 0, 0, 0, dest))
 
-        val summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day3.timestamp.toLocalDate())
+        val day2Summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day2.timestamp.toLocalDate())
+        val day3Summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day3.timestamp.toLocalDate())
 
-        // The stopover log has ~0hrs of measured dwell, well under the default 20hr threshold,
-        // so day 3 is still compared against home (the last genuinely-settled zone) -- the full
-        // 9hr difference, not just the 6hr of the final leg.
-        assertTrue(summary.infoMessage.orEmpty().contains("9 hrs behind"))
-        // scaled to a 15hr day: min=1000, max=1250 -> total(1250) is at the top of the range
-        assertEquals(1.0f, summary.entries.single().progress0to1, 0.001f)
-    }
-
-    @Test
-    fun `lowering the adaptation threshold lets a short layover reset the baseline`() {
-        val home = ZoneOffset.UTC
-        val stopover = ZoneOffset.ofHours(3)
-        val dest = ZoneOffset.ofHours(9)
-
-        val day1 = stubRecordAt(1L, 300, ZonedDateTime.of(2024, 5, 10, 20, 0, 0, 0, home))
-        val day2 = stubRecordAt(2L, 300, ZonedDateTime.of(2024, 5, 11, 9, 0, 0, 0, stopover))
-        val day3 = stubRecordAt(3L, 1250, ZonedDateTime.of(2024, 5, 12, 9, 0, 0, 0, dest))
-
-        val summary = dailySummaryFor(
-            listOf(day1, day2, day3),
-            caloriesOnlyTargets,
-            day3.timestamp.toLocalDate(),
-            mapper = mapperWithAdaptationHours(0),
-        )
-
-        // With the threshold set to 0, any logged presence in the stopover counts as settled,
-        // so day 3 only reflects the final 6hr leg (stopover -> destination).
-        assertTrue(summary.infoMessage.orEmpty().contains("6 hrs behind"))
+        // Day 2: home -> stopover is a 3hr shift.
+        assertTrue(day2Summary.infoMessage.orEmpty().contains("3 hrs behind"))
+        // Day 3: stopover -> destination is only a 6hr shift (marginal), not the cumulative
+        // 9hr from home -- otherwise the stopover's 3hrs would be counted twice.
+        assertTrue(day3Summary.infoMessage.orEmpty().contains("6 hrs behind"))
+        assertFalse(day3Summary.infoMessage.orEmpty().contains("9 hrs"))
         // scaled to an 18hr day: min=1200, max=1500 -> total(1250) is partway through the range
-        assertEquals(0.7917f, summary.entries.single().progress0to1, 0.001f)
+        assertEquals(0.7917f, day3Summary.entries.single().progress0to1, 0.001f)
     }
 
     @Test
-    fun `a stopover long enough to clear the default threshold resets the baseline on its own`() {
+    fun `a zone blip of 2hrs or less is ignored and does not become the new anchor`() {
         val home = ZoneOffset.UTC
-        val stopover = ZoneOffset.ofHours(3)
-        val dest = ZoneOffset.ofHours(9)
+        val blip = ZoneOffset.ofHours(2)
+        val farther = ZoneOffset.ofHours(5)
 
         val day1 = stubRecordAt(1L, 300, ZonedDateTime.of(2024, 5, 10, 20, 0, 0, 0, home))
-        // Two logs 22hrs apart in the stopover zone -- a genuine overnight stay, clearing the
-        // default 20hr threshold before the final leg begins.
-        val day2a = stubRecordAt(2L, 300, ZonedDateTime.of(2024, 5, 11, 9, 0, 0, 0, stopover))
-        val day2b = stubRecordAt(3L, 300, ZonedDateTime.of(2024, 5, 12, 7, 0, 0, 0, stopover))
-        val day3 = stubRecordAt(4L, 1250, ZonedDateTime.of(2024, 5, 13, 9, 0, 0, 0, dest))
+        // A 2hr blip -- at the threshold, not past it, so it should be silently ignored.
+        val day2 = stubRecordAt(2L, 300, ZonedDateTime.of(2024, 5, 11, 9, 0, 0, 0, blip))
+        val day3 = stubRecordAt(3L, 300, ZonedDateTime.of(2024, 5, 12, 9, 0, 0, 0, farther))
 
-        val summary = dailySummaryFor(
-            listOf(day1, day2a, day2b, day3),
-            caloriesOnlyTargets,
-            day3.timestamp.toLocalDate(),
-        )
+        val day2Summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day2.timestamp.toLocalDate())
+        val day3Summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day3.timestamp.toLocalDate())
 
-        assertTrue(summary.infoMessage.orEmpty().contains("6 hrs behind"))
-        assertEquals(0.7917f, summary.entries.single().progress0to1, 0.001f)
+        assertNull(day2Summary.infoMessage)
+        // If the 2hr blip had wrongly become the new anchor, day 3 would read as a 3hr shift
+        // (blip -> farther) instead of the correct 5hr shift measured from home.
+        assertTrue(day3Summary.infoMessage.orEmpty().contains("5 hrs behind"))
     }
 
     @Test
-    fun `a day that only continues an already-tracked candidate can self-clear once it dwells long enough`() {
+    fun `a plain day fully in the new zone does not repeat the previous day's shift`() {
         val home = ZoneOffset.UTC
         val dest = ZoneOffset.ofHours(9)
 
         val day1 = stubRecordAt(1L, 300, ZonedDateTime.of(2024, 5, 10, 20, 0, 0, 0, home))
-        // Arrival day: shows its own full 9hr shift, same as the day the new zone first appears.
-        val day2First = stubRecordAt(2L, 300, ZonedDateTime.of(2024, 5, 11, 9, 0, 0, 0, dest))
-        val day2Last = stubRecordAt(3L, 300, ZonedDateTime.of(2024, 5, 11, 19, 0, 0, 0, dest))
-        // A plain day after arrival with no shift of its own -- just continuing the same zone.
-        // By this day's own last log, cumulative dwell since day2's first log crosses the
-        // default 20hr threshold, so this day should read as settled, not repeat day2's shift.
-        val day3 = stubRecordAt(4L, 300, ZonedDateTime.of(2024, 5, 12, 17, 0, 0, 0, dest))
+        val day2 = stubRecordAt(2L, 300, ZonedDateTime.of(2024, 5, 11, 9, 0, 0, 0, dest))
+        // A plain day after arrival, no shift of its own -- just continuing the same zone.
+        val day3 = stubRecordAt(3L, 300, ZonedDateTime.of(2024, 5, 12, 17, 0, 0, 0, dest))
 
-        val day2Summary = dailySummaryFor(
-            listOf(day1, day2First, day2Last, day3),
-            caloriesOnlyTargets,
-            day2First.timestamp.toLocalDate(),
-        )
-        val day3Summary = dailySummaryFor(
-            listOf(day1, day2First, day2Last, day3),
-            caloriesOnlyTargets,
-            day3.timestamp.toLocalDate(),
-        )
+        val day2Summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day2.timestamp.toLocalDate())
+        val day3Summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day3.timestamp.toLocalDate())
 
         assertTrue(day2Summary.infoMessage.orEmpty().contains("9 hrs behind"))
         assertNull(day3Summary.infoMessage)

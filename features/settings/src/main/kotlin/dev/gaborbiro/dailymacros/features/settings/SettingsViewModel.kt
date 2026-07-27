@@ -67,7 +67,6 @@ class SettingsViewModel @Inject constructor(
             showTargetsSettings = false,
             bottomLabel = appInfo.versionLabel,
             diaryDayStartHour = settingsRepository.getDiaryDayStartHour(),
-            timezoneAdaptationHours = settingsRepository.getTimezoneAdaptationHours(),
             cloudSyncProvider = settingsRepository.getCloudSyncProvider(),
             cloudSyncEmail = settingsRepository.getCloudSyncEmail(),
             lastSyncedEpochMs = settingsRepository.getLastSyncedEpochMs(),
@@ -139,19 +138,6 @@ class SettingsViewModel @Inject constructor(
         val hour = hourOfDay.coerceIn(0, 2)
         settingsRepository.setDiaryDayStartHour(hour)
         _uiState.update { it.copy(diaryDayStartHour = hour, showDiaryDayStartDialog = false) }
-    }
-
-    fun onTimezoneAdaptationRowTapped() {
-        _uiState.update { it.copy(showTimezoneAdaptationDialog = true) }
-    }
-
-    fun onTimezoneAdaptationDialogDismissed() {
-        _uiState.update { it.copy(showTimezoneAdaptationDialog = false) }
-    }
-
-    fun onTimezoneAdaptationHoursSelected(hours: Int) {
-        settingsRepository.setTimezoneAdaptationHours(hours)
-        _uiState.update { it.copy(timezoneAdaptationHours = hours, showTimezoneAdaptationDialog = false) }
     }
 
     fun onExportSettingsTapped() {

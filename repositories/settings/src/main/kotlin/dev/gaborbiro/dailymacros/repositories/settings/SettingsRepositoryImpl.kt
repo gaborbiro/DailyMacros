@@ -62,16 +62,6 @@ class SettingsRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getTimezoneAdaptationHours(): Int =
-        prefs.getInt(KEY_TIMEZONE_ADAPTATION_HOURS, DEFAULT_TIMEZONE_ADAPTATION_HOURS)
-            .coerceIn(1, 168)
-
-    override fun setTimezoneAdaptationHours(hours: Int) {
-        prefs.edit {
-            putInt(KEY_TIMEZONE_ADAPTATION_HOURS, hours.coerceIn(1, 168))
-        }
-    }
-
     override fun getPromptCustomisations(): Map<String, String> {
         val json = prefs.getString(KEY_PROMPT_CUSTOMISATIONS, null) ?: return emptyMap()
         val type = object : TypeToken<Map<String, String>>() {}.type
@@ -312,8 +302,6 @@ class SettingsRepositoryImpl @Inject constructor(
         private const val KEY_TARGETS = "targets_json"
         private const val KEY_DIARY_DAY_START_HOUR = "diary_day_start_hour"
         private const val DEFAULT_DIARY_DAY_START_HOUR = 0
-        private const val KEY_TIMEZONE_ADAPTATION_HOURS = "timezone_adaptation_hours"
-        private const val DEFAULT_TIMEZONE_ADAPTATION_HOURS = 20
         private const val KEY_PROMPT_CUSTOMISATIONS = "prompt_customisations_json"
         private const val KEY_PROMPT_VERSIONS = "prompt_versions_json"
         private const val KEY_ACTIVE_PROMPT_VERSIONS = "active_prompt_versions_json"

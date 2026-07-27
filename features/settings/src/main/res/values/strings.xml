@@ -6,10 +6,6 @@
     <string name="settings_diary_day_start_option_1am">1:00 a.m.</string>
     <string name="settings_diary_day_start_option_2am">2:00 a.m.</string>
     <string name="settings_diary_day_start_dialog_close">Close</string>
-    <string name="settings_timezone_adaptation_row">Timezone adaptation</string>
-    <string name="settings_timezone_adaptation_dialog_title">How long in a new timezone before it counts as settled?</string>
-    <string name="settings_timezone_adaptation_option_immediately">Immediately</string>
-    <string name="settings_timezone_adaptation_option_hours">%dh</string>
     <string name="settings_auto_photo_recognition_row">Auto-detect meal photos</string>
     <string name="settings_auto_photo_recognition_subtitle">Analyses new camera photos and asks to add them to your diary</string>
     <string name="settings_cloud_sync_auto_backup_row">Auto backup</string>

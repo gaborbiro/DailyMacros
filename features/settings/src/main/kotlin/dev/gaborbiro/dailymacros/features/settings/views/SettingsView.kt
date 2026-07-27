@@ -76,9 +76,6 @@ internal fun SettingsView(
     onDiaryDayStartTapped: () -> Unit,
     onDiaryDayStartDialogDismissed: () -> Unit,
     onDiaryDayStartHourSelected: (Int) -> Unit,
-    onTimezoneAdaptationTapped: () -> Unit,
-    onTimezoneAdaptationDialogDismissed: () -> Unit,
-    onTimezoneAdaptationHoursSelected: (Int) -> Unit,
     onAutoPhotoRecognitionToggled: (Boolean) -> Unit,
     onQuickPickConfirmationToggled: (Boolean) -> Unit,
     onExportSettingTapped: () -> Unit,
@@ -124,32 +121,6 @@ internal fun SettingsView(
             },
             confirmButton = {
                 TextButton(onClick = onDiaryDayStartDialogDismissed) {
-                    Text(stringResource(R.string.settings_diary_day_start_dialog_close))
-                }
-            },
-        )
-    }
-
-    if (viewState.showTimezoneAdaptationDialog) {
-        AlertDialog(
-            onDismissRequest = onTimezoneAdaptationDialogDismissed,
-            title = {
-                Text(text = stringResource(R.string.settings_timezone_adaptation_dialog_title))
-            },
-            text = {
-                Column {
-                    listOf(0, 4, 8, 12, 16, 20, 24, 36, 48).forEach { hours ->
-                        TextButton(
-                            onClick = { onTimezoneAdaptationHoursSelected(hours) },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(timezoneAdaptationHoursLabel(hours))
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = onTimezoneAdaptationDialogDismissed) {
                     Text(stringResource(R.string.settings_diary_day_start_dialog_close))
                 }
             },
@@ -283,11 +254,6 @@ internal fun SettingsView(
                 title = stringResource(R.string.settings_diary_day_start_row),
                 subtitle = diaryDayStartSummary(viewState.diaryDayStartHour),
                 onTapped = onDiaryDayStartTapped,
-            )
-            SettingRow(
-                title = stringResource(R.string.settings_timezone_adaptation_row),
-                subtitle = timezoneAdaptationHoursLabel(viewState.timezoneAdaptationHours),
-                onTapped = onTimezoneAdaptationTapped,
             )
             SettingRow(
                 title = stringResource(R.string.settings_content_export_diary_row),
@@ -442,14 +408,6 @@ private fun diaryDayStartSummary(hour: Int): String {
 }
 
 @Composable
-private fun timezoneAdaptationHoursLabel(hours: Int): String =
-    if (hours == 0) {
-        stringResource(R.string.settings_timezone_adaptation_option_immediately)
-    } else {
-        stringResource(R.string.settings_timezone_adaptation_option_hours, hours)
-    }
-
-@Composable
 private fun SettingSectionHeader(title: String) {
     Text(
         modifier = Modifier
@@ -548,9 +506,6 @@ private fun SettingsViewPreview() {
             onDiaryDayStartTapped = {},
             onDiaryDayStartDialogDismissed = {},
             onDiaryDayStartHourSelected = {},
-            onTimezoneAdaptationTapped = {},
-            onTimezoneAdaptationDialogDismissed = {},
-            onTimezoneAdaptationHoursSelected = {},
             onAutoPhotoRecognitionToggled = {},
             onQuickPickConfirmationToggled = {},
             onExportSettingTapped = {},

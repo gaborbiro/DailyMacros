@@ -48,12 +48,11 @@ need a short rolling list of `(instant, zoneId)` pairs, which fits as a small
 JSON blob exactly like `getManuallyAddedMediaStoreIds()` already does for a
 `Set<Long>` in the same file.
 
-**Retention**: prune anything older than
-`max(getTimezoneAdaptationHours(), 72h) + 1 day`, hard-capped at 14 days
-regardless of the configured threshold. This is provably enough — the
-adaptation baseline logic (`computeAdaptationBaselines`) never needs to look
-back further than the configured threshold, and once a day has a real logged
-record again, the existing record-driven zone chain takes back over anyway.
+**Retention**: prune anything older than 14 days (matching
+`OverviewViewModel.PAGE_SIZE`, the window of records the overview actually
+pages in at a time) — there's no need to keep it longer, since a day that far
+back either already has real logged records (the existing record-driven zone
+chain takes back over) or isn't currently rendered anyway.
 
 ## Plan
 
@@ -82,8 +81,8 @@ record again, the existing record-driven zone chain takes back over anyway.
   event's zone/instant) for any calendar day that has *both* zero records
   *and* a detected zone-change event landing in it. Merge these into the
   existing chronological day list.
-- `computeAdaptationBaselines`, `effectiveTravelDelta`, `buildTimezoneInfo`,
-  and target scaling already operate generically on `TravelDay` regardless of
+- `computeTimezoneAnchors`, `effectiveTravelDelta`, `buildTimezoneInfo`, and
+  target scaling already operate generically on `TravelDay` regardless of
   whether `records` is empty — no changes needed there.
 - `computeDailyTotals` (weekly averages/adherence) already skips days with no
   records (`if (r.isEmpty()) return@mapNotNull null`), so phantom days won't

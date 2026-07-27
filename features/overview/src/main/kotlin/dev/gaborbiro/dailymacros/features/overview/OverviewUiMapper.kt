@@ -23,7 +23,6 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import java.time.Duration
-import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
@@ -69,11 +68,7 @@ class OverviewUiMapper @Inject constructor(
 
         val grouped = records.groupByWallClockDay(dayStart)
         var previousRecord: Record? = null
-        val adaptationBaselines = computeAdaptationBaselines(
-            days = grouped,
-            thresholdHours = settingsRepository.getTimezoneAdaptationHours(),
-            today = today,
-        )
+        val timezoneAnchors = computeTimezoneAnchors(days = grouped, today = today)
 
         grouped.forEachIndexed { index, travelDay ->
             currentWeek += travelDay
@@ -82,7 +77,7 @@ class OverviewUiMapper @Inject constructor(
                     previousRecord = record
                 }
             }
-            result += mapDailyNutrientProgressTable(travelDay, adaptationBaselines[index], targets)
+            result += mapDailyNutrientProgressTable(travelDay, timezoneAnchors[index], targets)
 
             val lookAhead = grouped.getOrNull(index + 1)
             val weekEnded =
@@ -109,7 +104,7 @@ class OverviewUiMapper @Inject constructor(
 
     private fun mapDailyNutrientProgressTable(
         day: TravelDay,
-        adaptationBaseline: ZoneId?,
+        timezoneAnchor: ZoneId?,
         targets: Targets,
     ): ListUiModelDailySummary {
         val records = day.records
@@ -126,7 +121,7 @@ class OverviewUiMapper @Inject constructor(
         val totalSalt = records.sumOf { it.template.nutrients.salt?.toDouble() ?: 0.0 }.toFloat()
         val totalFibre = records.sumOf { it.template.nutrients.fibre?.toDouble() ?: 0.0 }.toFloat()
 
-        val travelDelta = effectiveTravelDelta(day, adaptationBaseline)
+        val travelDelta = effectiveTravelDelta(day, timezoneAnchor)
         val effectiveTargets = if (travelDelta != null) {
             targets.scale((24.0 + travelDelta) / 24.0)
         } else {
@@ -289,88 +284,44 @@ class OverviewUiMapper @Inject constructor(
     }
 
     /**
-     * Walks [days] (chronological order) and works out, for each day, which zone should be
-     * treated as the "settled" adaptation baseline for that day's own [effectiveTravelDelta] —
-     * i.e. the last zone the user actually dwelled in for at least [thresholdHours] continuous
-     * hours (per their own logs). A stop shorter than that (a technical layover, a connecting
-     * flight) doesn't reset the baseline: the day keeps comparing back to whatever zone
-     * preceded it, so a short layover in an intermediate zone doesn't mask the true cumulative
-     * shift from where the user was last genuinely settled.
+     * Chains a "significant zone" anchor across [days] (chronological order): each day's own
+     * shift is measured against the last zone that produced a *significant* shift (see
+     * [effectiveTravelDelta]'s >2hr threshold), not simply "yesterday's zone" — so a small,
+     * noisy zone blip (e.g. the phone's zone catching up gradually mid-flight, or a brief
+     * technical layover barely off the previous zone) doesn't get banked as a real waypoint.
+     * The moment a day's shift against the anchor IS significant, that day's own end zone
+     * becomes the new anchor for the day after — so each leg of a multi-leg trip is measured
+     * on its own marginal terms (e.g. a 3hr first leg, then a 6hr second leg) rather than
+     * repeating the whole cumulative shift from the original departure zone on every
+     * subsequent leg, which would double-count the earlier legs.
      *
-     * A day where a *new* candidate zone first appears always shows its own shift against the
-     * existing baseline, no matter the threshold — you can't already be "settled" on the very
-     * day a new zone shows up. But a day that's merely *continuing* an existing candidate can
-     * clear the threshold on its own account: if this day's own cumulative dwell in that zone
-     * crosses [thresholdHours] by its own last log, it's already settled by the end of that same
-     * day, rather than only from the day after. Without this, a day that fully qualifies partway
-     * through still shows a stale repeat of the old baseline's shift, and the fix only visibly
-     * lands one calendar day late.
-     *
-     * Returns one entry per day in [days], being the settled zone as of [day]'s own banner
-     * (null for the very first day, which has no history to anchor to).
+     * Returns one entry per day in [days]: the anchor zone used for that day's own
+     * [effectiveTravelDelta] (null only for the very first day, which falls back to its own
+     * start zone).
      */
-    private fun computeAdaptationBaselines(
-        days: List<TravelDay>,
-        thresholdHours: Int,
-        today: LocalDate,
-    ): List<ZoneId?> {
-        val baselines = mutableListOf<ZoneId?>()
-        var settledZone: ZoneId? = null
-        var candidateZone: ZoneId? = null
-        var candidateEnteredAt: Instant? = null
+    private fun computeTimezoneAnchors(days: List<TravelDay>, today: LocalDate): List<ZoneId?> {
+        val anchors = mutableListOf<ZoneId?>()
+        var anchorZone: ZoneId? = null
 
         days.forEach { day ->
-            val dayEndZone = if (day.day == today) ZoneId.systemDefault() else day.endZone
-            val dayEndInstant = if (day.day == today) Instant.now() else day.lastLog.toInstant()
-
-            if (settledZone == null) {
-                settledZone = day.startZone
+            if (anchorZone == null) {
+                anchorZone = day.startZone
             }
+            anchors += anchorZone
 
-            when {
-                dayEndZone == settledZone -> {
-                    baselines += settledZone
-                    candidateZone = null
-                    candidateEnteredAt = null
-                }
-
-                candidateZone == dayEndZone -> {
-                    val dwellHours = Duration.between(candidateEnteredAt, dayEndInstant).toHours()
-                    if (dwellHours >= thresholdHours) {
-                        settledZone = candidateZone
-                        candidateZone = null
-                        candidateEnteredAt = null
-                    }
-                    baselines += settledZone
-                }
-
-                else -> {
-                    baselines += settledZone
-                    candidateZone = dayEndZone
-                    candidateEnteredAt = day.records
-                        .filter { it.timestamp.zone == dayEndZone }
-                        .minByOrNull { it.timestamp.toInstant() }
-                        ?.timestamp
-                        ?.toInstant()
-                        ?: day.firstLog.toInstant()
-                    val dwellHours = Duration.between(candidateEnteredAt, dayEndInstant).toHours()
-                    if (dwellHours >= thresholdHours) {
-                        settledZone = candidateZone
-                        candidateZone = null
-                        candidateEnteredAt = null
-                    }
-                }
+            if (effectiveTravelDelta(day, anchorZone) != null) {
+                anchorZone = if (day.day == today) ZoneId.systemDefault() else day.endZone
             }
         }
-        return baselines
+        return anchors
     }
 
     /** Returns deltaHours (negative = shorter/eastbound, positive = longer/westbound),
-     *  or null if the day has no significant timezone shift. [baselineZone] is the settled
-     *  adaptation baseline as of the start of [day] (see [computeAdaptationBaselines]),
-     *  falling back to the day's own first-record zone when there's no prior history. */
-    private fun effectiveTravelDelta(day: TravelDay, baselineZone: ZoneId?): Long? {
-        val startZone = baselineZone ?: day.startZone
+     *  or null if the day has no significant (>2hr) timezone shift. [anchorZone] is the last
+     *  significant-shift zone as of [day] (see [computeTimezoneAnchors]), falling back to the
+     *  day's own first-record zone when there's no prior history. */
+    private fun effectiveTravelDelta(day: TravelDay, anchorZone: ZoneId?): Long? {
+        val startZone = anchorZone ?: day.startZone
         val endZone = if (day.day == LocalDate.now(ZoneId.systemDefault())) {
             ZoneId.systemDefault()
         } else {
