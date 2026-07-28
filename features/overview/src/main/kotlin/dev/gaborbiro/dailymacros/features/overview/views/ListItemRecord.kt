@@ -139,11 +139,11 @@ private fun RecordTextContent(modifier: Modifier, record: ListUiModelRecord) {
         if (record.showLoadingIndicator) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    painter = painterResource(CommonR.drawable.ic_ai_borg),
-                    contentDescription = null,
                     modifier = Modifier
                         .padding(end = PaddingQuarter)
-                        .size(14.dp),
+                        .size(20.dp),
+                    painter = painterResource(CommonR.drawable.ic_ai_borg),
+                    contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                 )
                 Text(
