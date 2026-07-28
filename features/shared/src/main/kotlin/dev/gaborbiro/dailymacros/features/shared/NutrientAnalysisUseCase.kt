@@ -102,8 +102,8 @@ class NutrientAnalysisUseCase @Inject constructor(
                         macroResultsNotificationSender.showMacroResultsNotification(
                             id = 123000L + recordId,
                             recordId = recordId,
-                            title = name.ellipsize(50) ?: appContext.getString(R.string.shared_content_analysis_success_title_fallback),
-                            message = appContext.getString(R.string.shared_content_analysis_completed),
+                            title = appContext.getString(R.string.shared_content_analysis_completed),
+                            message = name.ellipsize(50) ?: appContext.getString(R.string.shared_content_analysis_success_title_fallback),
                             isError = false,
                         )
                     }
