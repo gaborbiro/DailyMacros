@@ -278,16 +278,28 @@ fun ColumnScope.RecordDetailsView(
         }
 
         if (view.showLoadingIndicator) {
-            Text(
+            Row(
                 modifier = Modifier
                     .padding(horizontal = PaddingDefault)
                     .padding(top = 16.dp)
                     .fillMaxWidth(),
-                text = stringResource(R.string.record_details_analyzing),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontStyle = FontStyle.Italic,
-            )
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    painter = painterResource(CommonR.drawable.ic_ai_borg),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(end = PaddingHalf)
+                        .size(20.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+                Text(
+                    text = stringResource(R.string.record_details_analyzing),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontStyle = FontStyle.Italic,
+                )
+            }
         }
 
         if (!view.showLoadingIndicator && nutrientBreakdown?.hasDisplayableContent == true) {
