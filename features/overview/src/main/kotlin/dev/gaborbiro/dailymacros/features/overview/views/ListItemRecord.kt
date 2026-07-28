@@ -25,9 +25,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.gaborbiro.dailymacros.features.common.R as CommonR
 import dev.gaborbiro.dailymacros.features.overview.R
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
@@ -135,13 +137,23 @@ private fun RecordTextContent(modifier: Modifier, record: ListUiModelRecord) {
             )
         }
         if (record.showLoadingIndicator) {
-            Text(
-                text = stringResource(R.string.overview_content_analyzing),
-                maxLines = 1,
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
-                fontStyle = FontStyle.Italic,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    modifier = Modifier
+                        .padding(end = PaddingQuarter)
+                        .size(20.dp),
+                    painter = painterResource(CommonR.drawable.ic_ai_borg),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+                Text(
+                    text = stringResource(R.string.overview_content_analyzing),
+                    maxLines = 1,
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontStyle = FontStyle.Italic,
+                )
+            }
         } else {
             record.nutrients?.let { nutrients ->
                 CompactMacroNutrientsGrid(

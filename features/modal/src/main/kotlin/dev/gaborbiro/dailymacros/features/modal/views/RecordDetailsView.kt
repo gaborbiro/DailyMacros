@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,10 +19,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -49,7 +52,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
@@ -65,6 +70,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.features.modal.R
+import dev.gaborbiro.dailymacros.features.common.R as CommonR
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
@@ -291,87 +297,110 @@ fun ColumnScope.RecordDetailsView(
             )
 
             val macroFadeSpec = tween<Float>(durationMillis = 400)
-            Surface(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = PaddingHalf)
-                    .let {
-                        if (macrosExpanded) {
-                            it
-                        } else {
-                            it.clickable { macrosExpanded = true }
-                        }
-                    },
-                color = Color.Transparent,
-                shape = MaterialTheme.shapes.small,
-                border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.primary.copy(alpha = .45f)),
+                    .padding(horizontal = PaddingHalf),
             ) {
-                Column(
+                Surface(
                     modifier = Modifier
-                        .animateContentSize(animationSpec = tween(durationMillis = 280)),
-                ) {
-                    AnimatedContent(
-                        targetState = macrosExpanded,
-                        transitionSpec = {
-                            fadeIn(macroFadeSpec) togetherWith fadeOut(macroFadeSpec)
+                        .fillMaxWidth()
+                        .let {
+                            if (macrosExpanded) {
+                                it
+                            } else {
+                                it.clickable { macrosExpanded = true }
+                            }
                         },
-                        label = "mealDetailsMacrosExpand",
-                    ) { expanded ->
-                        if (expanded) {
-                            NutrientsIndentedList(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(PaddingHalf),
-                                nutrientBreakdown = nutrientBreakdown
+                    color = Color.Transparent,
+                    shape = MaterialTheme.shapes.small,
+                    border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.primary.copy(alpha = .45f)),
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .padding(top = PaddingHalf)
+                            .animateContentSize(animationSpec = tween(durationMillis = 280)),
+                    ) {
+                        AnimatedContent(
+                            targetState = macrosExpanded,
+                            transitionSpec = {
+                                fadeIn(macroFadeSpec) togetherWith fadeOut(macroFadeSpec)
+                            },
+                            label = "mealDetailsMacrosExpand",
+                        ) { expanded ->
+                            if (expanded) {
+                                NutrientsIndentedList(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(PaddingHalf),
+                                    nutrientBreakdown = nutrientBreakdown
+                                )
+                            } else {
+                                CompactMacroNutrientsGrid(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(PaddingHalf),
+                                    nutrients = view.compactNutrients,
+                                )
+                            }
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .height(28.dp)
+                                .fillMaxWidth()
+                                .let {
+                                    if (macrosExpanded) {
+                                        it.clickable { macrosExpanded = false }
+                                    } else {
+                                        it
+                                    }
+                                },
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = if (macrosExpanded) {
+                                    stringResource(R.string.meal_details_collapse)
+                                } else {
+                                    stringResource(R.string.meal_details_expand)
+                                },
+                                style = MaterialTheme.typography.labelLarge,
                             )
-                        } else {
-                            CompactMacroNutrientsGrid(
+
+                            Spacer(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(PaddingHalf),
-                                nutrients = view.compactNutrients,
+                                    .size(6.dp)
+                            )
+
+                            Icon(
+                                imageVector = if (macrosExpanded) {
+                                    Icons.Filled.KeyboardArrowUp
+                                } else {
+                                    Icons.Filled.KeyboardArrowDown
+                                },
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
                             )
                         }
                     }
+                }
 
-                    Row(
-                        modifier = Modifier
-                            .height(28.dp)
-                            .fillMaxWidth()
-                            .let {
-                                if (macrosExpanded) {
-                                    it.clickable { macrosExpanded = false }
-                                } else {
-                                    it
-                                }
-                            },
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = if (macrosExpanded) {
-                                stringResource(R.string.meal_details_collapse)
-                            } else {
-                                stringResource(R.string.meal_details_expand)
-                            },
-                            style = MaterialTheme.typography.labelLarge,
-                        )
-
-                        Spacer(
-                            modifier = Modifier
-                                .size(6.dp)
-                        )
-
-                        Icon(
-                            imageVector = if (macrosExpanded) {
-                                Icons.Filled.KeyboardArrowUp
-                            } else {
-                                Icons.Filled.KeyboardArrowDown
-                            },
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    }
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .offset(y = (-11).dp)
+                        .size(22.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surface),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        painter = painterResource(CommonR.drawable.ic_ai_borg),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
                 }
             }
         } else if (!view.showLoadingIndicator && view.compactNutrients.hasAnyVisibleMacro()) {

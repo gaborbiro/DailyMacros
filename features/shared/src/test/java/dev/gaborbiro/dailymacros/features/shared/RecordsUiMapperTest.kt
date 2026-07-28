@@ -76,4 +76,49 @@ class RecordsUiMapperTest {
         val ui = mapper.map(record(stubTemplate(1L, false, null)))
         assertFalse(ui.showOtherLoggedVariantsIcon)
     }
+
+    @Test
+    fun `no timezone label when previous record is null`() {
+        val ui = mapper.map(record(stubTemplate(1L, false, null)), timeOnly = true)
+        assertEquals("14:07", ui.timestamp)
+    }
+
+    @Test
+    fun `no timezone label when previous record has same zone`() {
+        val previous = record(stubTemplate(1L, false, null))
+        val ui = mapper.map(record(stubTemplate(1L, false, null)), timeOnly = true, previousRecord = previous)
+        assertEquals("14:07", ui.timestamp)
+    }
+
+    @Test
+    fun `adds positive offset label when zone jumps forward`() {
+        val previous = Record(
+            recordId = 4L,
+            timestamp = ZonedDateTime.of(2024, 3, 15, 10, 0, 0, 0, ZoneId.of("Europe/Lisbon")),
+            template = stubTemplate(1L, false, null),
+        )
+        val current = Record(
+            recordId = 5L,
+            timestamp = ZonedDateTime.of(2024, 3, 15, 14, 0, 0, 0, ZoneId.of("Asia/Dubai")),
+            template = stubTemplate(1L, false, null),
+        )
+        val ui = mapper.map(current, timeOnly = true, previousRecord = previous)
+        assertEquals("14:00 (+4h)", ui.timestamp)
+    }
+
+    @Test
+    fun `adds negative offset label with hours and minutes when zone jumps backward`() {
+        val previous = Record(
+            recordId = 4L,
+            timestamp = ZonedDateTime.of(2024, 3, 15, 10, 0, 0, 0, ZoneId.of("Asia/Kolkata")),
+            template = stubTemplate(1L, false, null),
+        )
+        val current = Record(
+            recordId = 5L,
+            timestamp = ZonedDateTime.of(2024, 3, 15, 14, 0, 0, 0, ZoneId.of("Europe/Lisbon")),
+            template = stubTemplate(1L, false, null),
+        )
+        val ui = mapper.map(current, timeOnly = true, previousRecord = previous)
+        assertEquals("14:00 (-5h30m)", ui.timestamp)
+    }
 }

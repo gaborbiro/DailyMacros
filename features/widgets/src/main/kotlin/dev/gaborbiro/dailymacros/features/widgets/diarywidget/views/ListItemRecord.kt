@@ -1,7 +1,11 @@
 package dev.gaborbiro.dailymacros.features.widgets.diarywidget.views
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.dp
+import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
+import androidx.glance.Image
+import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.action.Action
 import androidx.glance.action.action
@@ -21,6 +25,7 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.text.Text
 import dev.gaborbiro.dailymacros.design.PaddingWidgetDefault
+import dev.gaborbiro.dailymacros.features.common.R as CommonR
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.widgets.R
@@ -74,11 +79,21 @@ fun ListItemRecord(
                 style = TitleTextStyle,
             )
             if (record.showLoadingIndicator) {
-                Text(
-                    text = context.getString(R.string.widgets_content_analyzing),
-                    maxLines = 1,
-                    style = LoadingTextStyle,
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Image(
+                        provider = ImageProvider(resId = CommonR.drawable.ic_ai_borg),
+                        contentDescription = null,
+                        modifier = GlanceModifier
+                            .size(20.dp)
+                            .padding(end = 4.dp),
+                        colorFilter = ColorFilter.tint(LoadingTextStyle.color),
+                    )
+                    Text(
+                        text = context.getString(R.string.widgets_content_analyzing),
+                        maxLines = 1,
+                        style = LoadingTextStyle,
+                    )
+                }
             } else {
                 val nutrient = record.nutrients?.calories?.let { " ($it)" } ?: ""
                 Text(
