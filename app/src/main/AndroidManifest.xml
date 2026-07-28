@@ -6,12 +6,17 @@
 
     <!--
        Firebase Analytics transitively depends on play-services-measurement-api,
-       which declares this permission in its own manifest so it can collect the
-       advertising ID for ad-attribution features. This app doesn't use ads or
-       ad personalisation, so the permission is stripped here to keep the Play
-       Console "Advertising ID" data-safety answer ("No") accurate.
+       which declares this permission (and its Android 13+ AdServices
+       equivalent, ACCESS_ADSERVICES_AD_ID) in its own manifest so it can
+       collect the advertising ID for ad-attribution features. This app
+       doesn't use ads or ad personalisation, so both are stripped here to
+       keep the Play Console "Advertising ID" data-safety answer ("No")
+       accurate. Removing only the legacy permission isn't enough - Play's
+       upload check also flags ACCESS_ADSERVICES_AD_ID as an advertising-ID
+       permission.
     -->
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
+    <uses-permission android:name="android.permission.ACCESS_ADSERVICES_AD_ID" tools:node="remove" />
     <!--
        READ_MEDIA_IMAGES / READ_EXTERNAL_STORAGE are intentionally NOT declared.
        The visible app adds meal photos via the Android Photo Picker
