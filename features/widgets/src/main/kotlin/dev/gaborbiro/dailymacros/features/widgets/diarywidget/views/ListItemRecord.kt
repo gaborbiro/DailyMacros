@@ -84,7 +84,7 @@ fun ListItemRecord(
                         provider = ImageProvider(resId = CommonR.drawable.ic_ai_borg),
                         contentDescription = null,
                         modifier = GlanceModifier
-                            .size(12.dp)
+                            .size(20.dp)
                             .padding(end = 4.dp),
                         colorFilter = ColorFilter.tint(LoadingTextStyle.color),
                     )

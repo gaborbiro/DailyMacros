@@ -398,7 +398,7 @@ fun ColumnScope.RecordDetailsView(
                     Icon(
                         painter = painterResource(CommonR.drawable.ic_ai_borg),
                         contentDescription = null,
-                        modifier = Modifier.size(14.dp),
+                        modifier = Modifier.size(20.dp),
                         tint = MaterialTheme.colorScheme.primary,
                     )
                 }
