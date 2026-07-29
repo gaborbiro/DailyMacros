@@ -38,7 +38,7 @@
     <string name="meal_details_close_unsaved_discard">Discard</string>
     <string name="meal_details_close_unsaved_keep_editing">@string/meal_details_switch_variant_cancel</string>
     <plurals name="meal_details_update_linked_records">
-        <item quantity="other">Update %d meals</item>
+        <item quantity="other">Update %d entries</item>
     </plurals>
     <string name="quick_pick_confirm_log_again">Log meal again</string>
     <string name="quick_pick_confirm_open_details">Open details</string>
