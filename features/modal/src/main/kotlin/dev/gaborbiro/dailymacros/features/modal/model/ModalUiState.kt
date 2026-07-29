@@ -103,6 +103,8 @@ sealed class DialogHandle {
             val editStartedAt: ZonedDateTime? = null,
             /** When this record actually happened; user-editable via [EditTimestampDialog]. */
             val timestamp: ZonedDateTime,
+            /** Wall-clock hour a new food diary day begins; used to label [timestamp] as Today/Yesterday. */
+            val diaryDayStartHour: Int = 0,
         ) : RecordDetailsDialog(
             titleHint = titleHint,
             titleValidationError = titleValidationError,

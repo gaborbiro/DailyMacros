@@ -725,9 +725,10 @@ class ModalViewModel @Inject constructor(
     ): DialogHandle.RecordDetailsDialog.View {
         val existing = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View
         val base = buildRecordDetailsViewDialogUseCase.execute(record, edit, templateDetailsMode)
+        val diaryDayStartHour = settingsRepository.getDiaryDayStartHour()
         val variantList = listMealVariantsForTemplateUseCase.execute(record.template.dbId)
         val options = variantList?.takeIf { it.hasOtherVariants }
-            ?.toPickerOptions(settingsRepository.getDiaryDayStartHour())
+            ?.toPickerOptions(diaryDayStartHour)
         val starred = resolveQuickPickStarred(record.template)
         val linkedCount = recordsRepository.countRecordsForTemplate(record.template.dbId)
         return if (existing != null && existing.recordId == record.recordId && existing.isEditing) {
@@ -735,6 +736,7 @@ class ModalViewModel @Inject constructor(
                 variantPickerOptions = options,
                 quickPickStarred = starred,
                 linkedRecordCountForTemplate = linkedCount,
+                diaryDayStartHour = diaryDayStartHour,
                 isEditing = true,
                 title = existing.title,
                 description = existing.description,
@@ -748,6 +750,7 @@ class ModalViewModel @Inject constructor(
                 variantPickerOptions = options,
                 quickPickStarred = starred,
                 linkedRecordCountForTemplate = linkedCount,
+                diaryDayStartHour = diaryDayStartHour,
             )
         }
     }

@@ -73,6 +73,9 @@ import dev.gaborbiro.dailymacros.features.modal.R
 import dev.gaborbiro.dailymacros.features.common.R as CommonR
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
+import dev.gaborbiro.dailymacros.features.common.utils.diaryDayStartTime
+import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryDate
+import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryToday
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.MealVariantPickerOption
@@ -243,7 +246,10 @@ fun ColumnScope.RecordDetailsView(
                 style = MaterialTheme.typography.titleMedium,
             )
             if (showQuickPickStar) {
-                IconButton(onClick = onQuickPickStarToggled) {
+                IconButton(
+                    modifier = Modifier.size(28.dp),
+                    onClick = onQuickPickStarToggled,
+                ) {
                     Icon(
                         imageVector = if (quickPickStarred) Icons.Filled.Star else Icons.Outlined.StarBorder,
                         contentDescription = if (quickPickStarred) {
@@ -283,8 +289,17 @@ fun ColumnScope.RecordDetailsView(
                 },
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            val dayStart = diaryDayStartTime(view.diaryDayStartHour)
+            val recordDiaryDate = view.timestamp.logicalDiaryDate(dayStart)
+            val today = logicalDiaryToday(view.timestamp.zone, dayStart)
+            val relativeDayLabel = when (recordDiaryDate) {
+                today -> stringResource(R.string.edit_timestamp_day_today)
+                today.minusDays(1) -> stringResource(R.string.edit_timestamp_day_yesterday)
+                else -> null
+            }
+            val formattedTimestamp = view.timestamp.format(recordTimestampFormatter)
             Text(
-                text = view.timestamp.format(recordTimestampFormatter),
+                text = relativeDayLabel?.let { "$it, $formattedTimestamp" } ?: formattedTimestamp,
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
