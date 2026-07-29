@@ -28,13 +28,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.StarBorder
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -75,6 +73,9 @@ import dev.gaborbiro.dailymacros.features.modal.R
 import dev.gaborbiro.dailymacros.features.common.R as CommonR
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
+import dev.gaborbiro.dailymacros.features.common.utils.diaryDayStartTime
+import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryDate
+import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryToday
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.MealVariantPickerOption
@@ -114,7 +115,6 @@ fun ColumnScope.RecordDetailsView(
     showQuickPickStar: Boolean,
     quickPickStarred: Boolean,
     onQuickPickStarToggled: () -> Unit,
-    onBeginViewEdit: () -> Unit,
     onEditTimestampTapped: () -> Unit = {},
 ) {
     val browseMode = !view.isEditing
@@ -152,45 +152,24 @@ fun ColumnScope.RecordDetailsView(
         }
     }
 
-    Box(
+    ImageStrip(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 12.dp)
             .padding(bottom = 12.dp),
-    ) {
-        ImageStrip(
-            modifier = Modifier.fillMaxWidth(),
-            showAddPhotoButtons = showImageControls,
-            showImageDeleteButton = showImageControls,
-            showImageReorderButtons = showImageControls,
-            showInfoButton = showImageControls,
-            imageFilenames = imageFilenames,
-            onImageTapped = onImageTapped,
-            onImageDeleteTapped = onImageDeleteTapped,
-            onImageMoveLeftTapped = onImageMoveLeftTapped,
-            onImageMoveRightTapped = onImageMoveRightTapped,
-            onAddImageViaCameraTapped = onAddImageViaCameraTapped,
-            onAddImageViaPickerTapped = onAddImageViaPickerTapped,
-            onInfoButtonTapped = onImagesInfoButtonTapped,
-        )
-        if (browseInteractive) {
-            IconButton(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(end = PaddingDefault),
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = Color.Gray.copy(alpha = .8f),
-                    contentColor = Color.White,
-                ),
-                onClick = onBeginViewEdit,
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Edit,
-                    contentDescription = stringResource(R.string.meal_details_begin_edit_cd),
-                )
-            }
-        }
-    }
+        showAddPhotoButtons = showImageControls,
+        showImageDeleteButton = showImageControls,
+        showImageReorderButtons = showImageControls,
+        showInfoButton = showImageControls,
+        imageFilenames = imageFilenames,
+        onImageTapped = onImageTapped,
+        onImageDeleteTapped = onImageDeleteTapped,
+        onImageMoveLeftTapped = onImageMoveLeftTapped,
+        onImageMoveRightTapped = onImageMoveRightTapped,
+        onAddImageViaCameraTapped = onAddImageViaCameraTapped,
+        onAddImageViaPickerTapped = onAddImageViaPickerTapped,
+        onInfoButtonTapped = onImagesInfoButtonTapped,
+    )
 
     if (view.isEditing) {
         TextField(
@@ -258,36 +237,6 @@ fun ColumnScope.RecordDetailsView(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(top = 12.dp)
-                .fillMaxWidth()
-                .let {
-                    if (browseInteractive) it.clickable { onEditTimestampTapped() } else it
-                },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = view.timestamp.format(recordTimestampFormatter),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (browseInteractive) {
-                IconButton(
-                    modifier = Modifier.size(28.dp),
-                    onClick = onEditTimestampTapped,
-                ) {
-                    Icon(
-                        modifier = Modifier.size(16.dp),
-                        imageVector = Icons.Outlined.DateRange,
-                        contentDescription = stringResource(R.string.meal_details_edit_timestamp_cd),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-        }
-
-        Row(
-            modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(top = 4.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -297,7 +246,10 @@ fun ColumnScope.RecordDetailsView(
                 style = MaterialTheme.typography.titleMedium,
             )
             if (showQuickPickStar) {
-                IconButton(onClick = onQuickPickStarToggled) {
+                IconButton(
+                    modifier = Modifier.size(28.dp),
+                    onClick = onQuickPickStarToggled,
+                ) {
                     Icon(
                         imageVector = if (quickPickStarred) Icons.Filled.Star else Icons.Outlined.StarBorder,
                         contentDescription = if (quickPickStarred) {
@@ -325,6 +277,45 @@ fun ColumnScope.RecordDetailsView(
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+
+        Row(
+            modifier = Modifier
+                .padding(horizontal = PaddingDefault)
+                .padding(top = 12.dp)
+                .fillMaxWidth()
+                .let {
+                    if (browseInteractive) it.clickable { onEditTimestampTapped() } else it
+                },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            val dayStart = diaryDayStartTime(view.diaryDayStartHour)
+            val recordDiaryDate = view.timestamp.logicalDiaryDate(dayStart)
+            val today = logicalDiaryToday(view.timestamp.zone, dayStart)
+            val relativeDayLabel = when (recordDiaryDate) {
+                today -> stringResource(R.string.edit_timestamp_day_today)
+                today.minusDays(1) -> stringResource(R.string.edit_timestamp_day_yesterday)
+                else -> null
+            }
+            val formattedTimestamp = view.timestamp.format(recordTimestampFormatter)
+            Text(
+                text = relativeDayLabel?.let { "$it, $formattedTimestamp" } ?: formattedTimestamp,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (browseInteractive) {
+                IconButton(
+                    modifier = Modifier.size(28.dp),
+                    onClick = onEditTimestampTapped,
+                ) {
+                    Icon(
+                        modifier = Modifier.size(16.dp),
+                        imageVector = Icons.Filled.Edit,
+                        contentDescription = stringResource(R.string.meal_details_edit_timestamp_cd),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
         }
 
         if (view.showLoadingIndicator) {
@@ -634,7 +625,6 @@ private fun RecordDetailsViewPreviewBrowse() {
             showQuickPickStar = true,
             quickPickStarred = false,
             onQuickPickStarToggled = {},
-            onBeginViewEdit = {},
         )
     }
 }
@@ -689,7 +679,6 @@ private fun RecordDetailsViewPreviewBrowseExpanded() {
             showQuickPickStar = true,
             quickPickStarred = false,
             onQuickPickStarToggled = {},
-            onBeginViewEdit = {},
             macrosExpanded = true,
         )
     }
@@ -745,7 +734,6 @@ private fun RecordDetailsViewPreviewEditing() {
             showQuickPickStar = false,
             quickPickStarred = false,
             onQuickPickStarToggled = {},
-            onBeginViewEdit = {},
         )
     }
 }
@@ -813,7 +801,6 @@ private fun RecordDetailsViewPreviewVariantPicker() {
             showQuickPickStar = true,
             quickPickStarred = true,
             onQuickPickStarToggled = {},
-            onBeginViewEdit = {},
         )
     }
 }
