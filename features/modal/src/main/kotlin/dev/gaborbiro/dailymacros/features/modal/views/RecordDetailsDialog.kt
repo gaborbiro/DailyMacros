@@ -2,11 +2,17 @@ package dev.gaborbiro.dailymacros.features.modal.views
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
@@ -57,6 +63,7 @@ internal fun RecordDetailsDialog(
     val ui = deconstructDialogHandle(dialogHandle)
     val viewDialog = dialogHandle as? DialogHandle.RecordDetailsDialog.View
     val showCloseOnly = dialogHandle is DialogHandle.RecordDetailsDialog.View && !dialogHandle.allowEdit
+    val showRecordEditAction = viewDialog != null && viewDialog.allowEdit && !viewDialog.isEditing && !showCloseOnly
     val showKeyboardOnOpen = remember(dialogHandle) { ui.showKeyboardOnOpen }
     val showPhotoManagement = when (dialogHandle) {
         is DialogHandle.RecordDetailsDialog.Edit -> true
@@ -106,11 +113,26 @@ internal fun RecordDetailsDialog(
                 showQuickPickStar = viewDialog != null && viewDialog.allowEdit,
                 quickPickStarred = viewDialog?.quickPickStarred == true,
                 onQuickPickStarToggled = onQuickPickStarToggled,
-                onBeginViewEdit = onRecordDetailsEditStarted,
                 onEditTimestampTapped = onEditTimestampTapped,
             )
         },
         errorMessages = errorMessages,
+        topEndAction = if (showRecordEditAction) {
+            {
+                IconButton(
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = Color.Gray.copy(alpha = .8f),
+                        contentColor = Color.White,
+                    ),
+                    onClick = onRecordDetailsEditStarted,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Edit,
+                        contentDescription = stringResource(R.string.meal_details_begin_edit_cd),
+                    )
+                }
+            }
+        } else null,
         footer = {
             when (dialogHandle) {
                 is DialogHandle.RecordDetailsDialog.Edit -> {
@@ -223,7 +245,6 @@ internal fun ColumnScope.RecordDetailsDialogContent(
     showQuickPickStar: Boolean = false,
     quickPickStarred: Boolean = false,
     onQuickPickStarToggled: () -> Unit = { },
-    onBeginViewEdit: () -> Unit = { },
     onEditTimestampTapped: () -> Unit = { },
 ) {
     when (dialogHandle) {
@@ -275,7 +296,6 @@ internal fun ColumnScope.RecordDetailsDialogContent(
                 showQuickPickStar = showQuickPickStar,
                 quickPickStarred = quickPickStarred,
                 onQuickPickStarToggled = onQuickPickStarToggled,
-                onBeginViewEdit = onBeginViewEdit,
                 onEditTimestampTapped = onEditTimestampTapped,
             )
     }

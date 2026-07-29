@@ -28,13 +28,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.StarBorder
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -114,7 +112,6 @@ fun ColumnScope.RecordDetailsView(
     showQuickPickStar: Boolean,
     quickPickStarred: Boolean,
     onQuickPickStarToggled: () -> Unit,
-    onBeginViewEdit: () -> Unit,
     onEditTimestampTapped: () -> Unit = {},
 ) {
     val browseMode = !view.isEditing
@@ -152,45 +149,24 @@ fun ColumnScope.RecordDetailsView(
         }
     }
 
-    Box(
+    ImageStrip(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 12.dp)
             .padding(bottom = 12.dp),
-    ) {
-        ImageStrip(
-            modifier = Modifier.fillMaxWidth(),
-            showAddPhotoButtons = showImageControls,
-            showImageDeleteButton = showImageControls,
-            showImageReorderButtons = showImageControls,
-            showInfoButton = showImageControls,
-            imageFilenames = imageFilenames,
-            onImageTapped = onImageTapped,
-            onImageDeleteTapped = onImageDeleteTapped,
-            onImageMoveLeftTapped = onImageMoveLeftTapped,
-            onImageMoveRightTapped = onImageMoveRightTapped,
-            onAddImageViaCameraTapped = onAddImageViaCameraTapped,
-            onAddImageViaPickerTapped = onAddImageViaPickerTapped,
-            onInfoButtonTapped = onImagesInfoButtonTapped,
-        )
-        if (browseInteractive) {
-            IconButton(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(end = PaddingDefault),
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = Color.Gray.copy(alpha = .8f),
-                    contentColor = Color.White,
-                ),
-                onClick = onBeginViewEdit,
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Edit,
-                    contentDescription = stringResource(R.string.meal_details_begin_edit_cd),
-                )
-            }
-        }
-    }
+        showAddPhotoButtons = showImageControls,
+        showImageDeleteButton = showImageControls,
+        showImageReorderButtons = showImageControls,
+        showInfoButton = showImageControls,
+        imageFilenames = imageFilenames,
+        onImageTapped = onImageTapped,
+        onImageDeleteTapped = onImageDeleteTapped,
+        onImageMoveLeftTapped = onImageMoveLeftTapped,
+        onImageMoveRightTapped = onImageMoveRightTapped,
+        onAddImageViaCameraTapped = onAddImageViaCameraTapped,
+        onAddImageViaPickerTapped = onAddImageViaPickerTapped,
+        onInfoButtonTapped = onImagesInfoButtonTapped,
+    )
 
     if (view.isEditing) {
         TextField(
@@ -634,7 +610,6 @@ private fun RecordDetailsViewPreviewBrowse() {
             showQuickPickStar = true,
             quickPickStarred = false,
             onQuickPickStarToggled = {},
-            onBeginViewEdit = {},
         )
     }
 }
@@ -689,7 +664,6 @@ private fun RecordDetailsViewPreviewBrowseExpanded() {
             showQuickPickStar = true,
             quickPickStarred = false,
             onQuickPickStarToggled = {},
-            onBeginViewEdit = {},
             macrosExpanded = true,
         )
     }
@@ -745,7 +719,6 @@ private fun RecordDetailsViewPreviewEditing() {
             showQuickPickStar = false,
             quickPickStarred = false,
             onQuickPickStarToggled = {},
-            onBeginViewEdit = {},
         )
     }
 }
@@ -813,7 +786,6 @@ private fun RecordDetailsViewPreviewVariantPicker() {
             showQuickPickStar = true,
             quickPickStarred = true,
             onQuickPickStarToggled = {},
-            onBeginViewEdit = {},
         )
     }
 }

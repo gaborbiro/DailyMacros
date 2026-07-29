@@ -55,6 +55,8 @@ internal fun ScrollableContentDialog(
      * When false, outside taps are consumed so only explicit actions (e.g. Cancel / system back) close.
      */
     dismissOnOutsideTap: Boolean = true,
+    /** Pinned to the card's top-right corner, above the scrollable content — unaffected by scroll position. */
+    topEndAction: (@Composable () -> Unit)? = null,
 ) {
     Dialog(
         onDismissRequest = onDismissRequested,
@@ -117,56 +119,64 @@ internal fun ScrollableContentDialog(
                     shape = MaterialTheme.shapes.medium,
                     shadowElevation = 6.dp,
                 ) {
-                    Column {
-                        Box(
-                            modifier = Modifier
-                                .weight(1f, fill = false)
-                        ) {
-                            val scrollState = rememberScrollState()
-                            Column(
-                                modifier = Modifier
-                                    .verticalScrollWithBar(
-                                        scrollState = scrollState,
-                                        autoFade = false,
-                                    )
-                                    .padding(bottom = PaddingDefault),
-                            ) {
-                                content()
-                            }
-
-                            val shadowHeight: Dp = 12.dp
-                            val fadeDistance: Dp =
-                                32.dp // px range over which the shadow ramps up/down
-                            val maxShadowAlpha = 0.16f
-                            val fadePx = with(LocalDensity.current) { fadeDistance.toPx() }
-
-                            val targetBottom = remember {
-                                derivedStateOf {
-                                    val remaining =
-                                        (scrollState.maxValue - scrollState.value).toFloat().coerceAtLeast(0f)
-                                    val d = min(remaining, fadePx)
-                                    (d / fadePx) * maxShadowAlpha
-                                }
-                            }
-
+                    Box {
+                        Column {
                             Box(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .align(Alignment.BottomCenter)
-                                    .height(shadowHeight)
-                                    .graphicsLayer { alpha = targetBottom.value }
-                                    .background(
-                                        Brush.verticalGradient(
-                                            0f to Color.Transparent,
-                                            1f to Color.Black // final opacity controlled by graphicsLayer alpha
+                                modifier = Modifier
+                                    .weight(1f, fill = false)
+                            ) {
+                                val scrollState = rememberScrollState()
+                                Column(
+                                    modifier = Modifier
+                                        .verticalScrollWithBar(
+                                            scrollState = scrollState,
+                                            autoFade = false,
                                         )
-                                    )
-                            )
+                                        .padding(bottom = PaddingDefault),
+                                ) {
+                                    content()
+                                }
+
+                                val shadowHeight: Dp = 12.dp
+                                val fadeDistance: Dp =
+                                    32.dp // px range over which the shadow ramps up/down
+                                val maxShadowAlpha = 0.16f
+                                val fadePx = with(LocalDensity.current) { fadeDistance.toPx() }
+
+                                val targetBottom = remember {
+                                    derivedStateOf {
+                                        val remaining =
+                                            (scrollState.maxValue - scrollState.value).toFloat().coerceAtLeast(0f)
+                                        val d = min(remaining, fadePx)
+                                        (d / fadePx) * maxShadowAlpha
+                                    }
+                                }
+
+                                Box(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .align(Alignment.BottomCenter)
+                                        .height(shadowHeight)
+                                        .graphicsLayer { alpha = targetBottom.value }
+                                        .background(
+                                            Brush.verticalGradient(
+                                                0f to Color.Transparent,
+                                                1f to Color.Black // final opacity controlled by graphicsLayer alpha
+                                            )
+                                        )
+                                )
+                            }
+
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+                            footer()
                         }
 
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-
-                        footer()
+                        if (topEndAction != null) {
+                            Box(modifier = Modifier.align(Alignment.TopEnd)) {
+                                topEndAction()
+                            }
+                        }
                     }
                 }
             }

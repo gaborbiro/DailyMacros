@@ -118,7 +118,6 @@ internal fun RecordDetailsDialogPreview(
                 showQuickPickStar = viewDialog != null && viewDialog.allowEdit,
                 quickPickStarred = viewDialog?.quickPickStarred == true,
                 onQuickPickStarToggled = {},
-                onBeginViewEdit = {},
             )
             when (dialogHandle) {
                 is DialogHandle.RecordDetailsDialog.Edit -> {
