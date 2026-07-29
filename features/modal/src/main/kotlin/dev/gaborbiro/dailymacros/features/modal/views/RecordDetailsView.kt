@@ -32,7 +32,9 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.StarBorder
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -80,6 +82,10 @@ import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.RecordDetailsPristineSnapshot
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.shared.views.CompactMacroNutrientsGrid
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+
+private val recordTimestampFormatter = DateTimeFormatter.ofPattern("dd MMM, H:mm")
 
 @Composable
 fun ColumnScope.RecordDetailsView(
@@ -109,6 +115,7 @@ fun ColumnScope.RecordDetailsView(
     quickPickStarred: Boolean,
     onQuickPickStarToggled: () -> Unit,
     onBeginViewEdit: () -> Unit,
+    onEditTimestampTapped: () -> Unit = {},
 ) {
     val browseMode = !view.isEditing
     val browseInteractive = browseMode && view.allowEdit && !showCloseOnly
@@ -145,24 +152,45 @@ fun ColumnScope.RecordDetailsView(
         }
     }
 
-    ImageStrip(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 12.dp)
             .padding(bottom = 12.dp),
-        showAddPhotoButtons = showImageControls,
-        showImageDeleteButton = showImageControls,
-        showImageReorderButtons = showImageControls,
-        showInfoButton = showImageControls,
-        imageFilenames = imageFilenames,
-        onImageTapped = onImageTapped,
-        onImageDeleteTapped = onImageDeleteTapped,
-        onImageMoveLeftTapped = onImageMoveLeftTapped,
-        onImageMoveRightTapped = onImageMoveRightTapped,
-        onAddImageViaCameraTapped = onAddImageViaCameraTapped,
-        onAddImageViaPickerTapped = onAddImageViaPickerTapped,
-        onInfoButtonTapped = onImagesInfoButtonTapped,
-    )
+    ) {
+        ImageStrip(
+            modifier = Modifier.fillMaxWidth(),
+            showAddPhotoButtons = showImageControls,
+            showImageDeleteButton = showImageControls,
+            showImageReorderButtons = showImageControls,
+            showInfoButton = showImageControls,
+            imageFilenames = imageFilenames,
+            onImageTapped = onImageTapped,
+            onImageDeleteTapped = onImageDeleteTapped,
+            onImageMoveLeftTapped = onImageMoveLeftTapped,
+            onImageMoveRightTapped = onImageMoveRightTapped,
+            onAddImageViaCameraTapped = onAddImageViaCameraTapped,
+            onAddImageViaPickerTapped = onAddImageViaPickerTapped,
+            onInfoButtonTapped = onImagesInfoButtonTapped,
+        )
+        if (browseInteractive) {
+            IconButton(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(end = PaddingDefault),
+                colors = IconButtonDefaults.filledIconButtonColors(
+                    containerColor = Color.Gray.copy(alpha = .8f),
+                    contentColor = Color.White,
+                ),
+                onClick = onBeginViewEdit,
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Edit,
+                    contentDescription = stringResource(R.string.meal_details_begin_edit_cd),
+                )
+            }
+        }
+    }
 
     if (view.isEditing) {
         TextField(
@@ -230,6 +258,36 @@ fun ColumnScope.RecordDetailsView(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(top = 12.dp)
+                .fillMaxWidth()
+                .let {
+                    if (browseInteractive) it.clickable { onEditTimestampTapped() } else it
+                },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = view.timestamp.format(recordTimestampFormatter),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (browseInteractive) {
+                IconButton(
+                    modifier = Modifier.size(28.dp),
+                    onClick = onEditTimestampTapped,
+                ) {
+                    Icon(
+                        modifier = Modifier.size(16.dp),
+                        imageVector = Icons.Outlined.DateRange,
+                        contentDescription = stringResource(R.string.meal_details_edit_timestamp_cd),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+
+        Row(
+            modifier = Modifier
+                .padding(horizontal = PaddingDefault)
+                .padding(top = 4.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -252,14 +310,6 @@ fun ColumnScope.RecordDetailsView(
                         } else {
                             MaterialTheme.colorScheme.onSurfaceVariant
                         },
-                    )
-                }
-            }
-            if (browseInteractive) {
-                IconButton(onClick = onBeginViewEdit) {
-                    Icon(
-                        imageVector = Icons.Filled.Edit,
-                        contentDescription = stringResource(R.string.meal_details_begin_edit_cd),
                     )
                 }
             }
@@ -556,6 +606,7 @@ private fun RecordDetailsViewPreviewBrowse() {
             imageFilenames = listOf("1", "2"),
         ),
         linkedRecordCountForTemplate = 3,
+        timestamp = ZonedDateTime.now(),
     )
     ViewPreviewContext {
         RecordDetailsView(
@@ -610,6 +661,7 @@ private fun RecordDetailsViewPreviewBrowseExpanded() {
             imageFilenames = listOf("1", "2"),
         ),
         linkedRecordCountForTemplate = 3,
+        timestamp = ZonedDateTime.now(),
     )
     ViewPreviewContext {
         RecordDetailsView(
@@ -665,6 +717,7 @@ private fun RecordDetailsViewPreviewEditing() {
             description = "I ate an apple",
             imageFilenames = listOf("1", "2"),
         ),
+        timestamp = ZonedDateTime.now(),
     )
     ViewPreviewContext {
         RecordDetailsView(
@@ -732,6 +785,7 @@ private fun RecordDetailsViewPreviewVariantPicker() {
             description = "",
             imageFilenames = listOf("1"),
         ),
+        timestamp = ZonedDateTime.now(),
     )
     ViewPreviewContext {
         RecordDetailsView(

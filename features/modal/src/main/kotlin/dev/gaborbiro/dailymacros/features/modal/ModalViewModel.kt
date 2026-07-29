@@ -61,6 +61,8 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.seconds
 
@@ -136,6 +138,7 @@ class ModalViewModel @Inject constructor(
                     description = TextFieldValue(),
                     imageFilenames = listOf(imageFilename),
                 ),
+                startedAt = ZonedDateTime.now(ZoneId.systemDefault()),
             )
         )
     }
@@ -199,7 +202,10 @@ class ModalViewModel @Inject constructor(
     private fun logMealFromTemplate(templateId: Long) {
         viewModelScope.launch {
             try {
-                val recordId = createRecordFromTemplateUseCase.execute(templateId)
+                val recordId = createRecordFromTemplateUseCase.execute(
+                    templateId,
+                    ZonedDateTime.now(ZoneId.systemDefault()),
+                )
                 scheduleMacroAnalysisForRecordIfTemplateIncomplete(recordId, templateId)
                 _uiUpdates.emit(
                     ModalUiUpdates.ShowToast(application.getString(R.string.quick_pick_confirm_logged_toast))
@@ -265,6 +271,7 @@ class ModalViewModel @Inject constructor(
                                 description = TextFieldValue(),
                                 imageFilenames = persistedFilenames,
                             ),
+                            startedAt = ZonedDateTime.now(ZoneId.systemDefault()),
                         )
                     )
                     runFoodRecognition(persistedFilenames)
@@ -293,6 +300,7 @@ class ModalViewModel @Inject constructor(
                         description = TextFieldValue(),
                         imageFilenames = persistedFilenames,
                     ),
+                    startedAt = ZonedDateTime.now(ZoneId.systemDefault()),
                 )
             )
             runFoodRecognition(persistedFilenames)
@@ -333,7 +341,7 @@ class ModalViewModel @Inject constructor(
 
     fun onRecordDetailsEditStarted() {
         updateRoot<DialogHandle.RecordDetailsDialog.View> {
-            it.copy(isEditing = true)
+            it.copy(isEditing = true, editStartedAt = ZonedDateTime.now(ZoneId.systemDefault()))
         }
     }
 
@@ -351,6 +359,7 @@ class ModalViewModel @Inject constructor(
                     description = TextFieldValue(desc, selection = TextRange(desc.length)),
                     imageFilenames = p.imageFilenames,
                     titleValidationError = null,
+                    editStartedAt = null,
                 )
             }
         }
@@ -598,9 +607,27 @@ class ModalViewModel @Inject constructor(
             DialogHandle.InfoDialog(
                 "You can add multiple photos.\nPhotos of nutritional labels are especially helpful." +
                         "\n\nYou can edit the entry later. You don’t need to collect all details up front." +
-                        "\n\nLogging the meal is more important than the exact time. Just don’t leave it for the next day - dates can’t be changed retroactively."
+                        "\n\nLogging the meal is more important than the exact time — you can always fix the date and time afterwards."
             )
         )
+    }
+
+    fun onEditTimestampTapped() {
+        val root = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return
+        if (!root.allowEdit) return
+        pushOverlay(DialogHandle.EditTimestampDialog(recordId = root.recordId, timestamp = root.timestamp))
+    }
+
+    fun onTimestampPicked(timestamp: ZonedDateTime) {
+        val overlay = _uiState.value.overlayDialog as? DialogHandle.EditTimestampDialog ?: return
+        popOverlay()
+        runSafely("Couldn't update the date and time") {
+            val record = recordsRepository.get(overlay.recordId) ?: return@runSafely
+            recordsRepository.updateRecord(record.copy(timestamp = timestamp))
+            updateRoot<DialogHandle.RecordDetailsDialog.View> {
+                if (it.recordId == overlay.recordId) it.copy(timestamp = timestamp) else it
+            }
+        }
     }
 
     fun onRunAIButtonTapped() {
@@ -804,6 +831,7 @@ class ModalViewModel @Inject constructor(
                     imageFilenames = imageFilenames,
                     title = title,
                     description = description,
+                    timestamp = dialogHandle.startedAt,
                 )
                 NutrientAnalysisWorker.setWorkRequest(
                     appContext = application,
@@ -901,7 +929,10 @@ class ModalViewModel @Inject constructor(
         // duplicates the entry (macro analysis is rescheduled if the template is still incomplete).
         if (!dialogHandle.hasUnsavedEdits) {
             val templateId = dialogHandle.templateDbId
-            val secondRecordId = createRecordFromTemplateUseCase.execute(templateId)
+            val secondRecordId = createRecordFromTemplateUseCase.execute(
+                templateId,
+                ZonedDateTime.now(ZoneId.systemDefault()),
+            )
             scheduleMacroAnalysisForRecordIfTemplateIncomplete(secondRecordId, templateId)
             closeAll()
             return
@@ -923,7 +954,10 @@ class ModalViewModel @Inject constructor(
                     description = description,
                     parentTemplateId = dialogHandle.templateDbId,
                 )
-                val secondRecordId = createRecordFromTemplateUseCase.execute(newTemplateId)
+                val secondRecordId = createRecordFromTemplateUseCase.execute(
+                    newTemplateId,
+                    dialogHandle.editStartedAt ?: ZonedDateTime.now(ZoneId.systemDefault()),
+                )
                 NutrientAnalysisWorker.setWorkRequest(
                     appContext = application,
                     recordId = secondRecordId,
@@ -947,7 +981,10 @@ class ModalViewModel @Inject constructor(
         val anchor = dialogHandle.variabilityAnchorTemplateDbId
 
         if (!dialogHandle.hasUnsavedEdits) {
-            val recordId = createRecordFromTemplateUseCase.execute(anchor)
+            val recordId = createRecordFromTemplateUseCase.execute(
+                anchor,
+                ZonedDateTime.now(ZoneId.systemDefault()),
+            )
             scheduleMacroAnalysisForRecordIfTemplateIncomplete(recordId, anchor)
             closeAll()
             return
@@ -969,6 +1006,7 @@ class ModalViewModel @Inject constructor(
                     imageFilenames = imageFilenames,
                     title = title,
                     description = description,
+                    timestamp = dialogHandle.editStartedAt ?: ZonedDateTime.now(ZoneId.systemDefault()),
                     parentTemplateId = anchor,
                 )
                 val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return
@@ -1054,6 +1092,7 @@ class ModalViewModel @Inject constructor(
             description = TextFieldValue(),
             imageFilenames = emptyList(),
         ),
+        startedAt = ZonedDateTime.now(ZoneId.systemDefault()),
     )
 
     private fun recomputeHasUnsavedEdits() {
