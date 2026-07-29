@@ -10,7 +10,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
-import dev.gaborbiro.dailymacros.features.modal.model.ChangeImagesTarget
 import dev.gaborbiro.dailymacros.features.modal.model.CloseSignal
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
@@ -18,7 +17,6 @@ import dev.gaborbiro.dailymacros.features.modal.model.ModalUiState
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
 import dev.gaborbiro.dailymacros.features.modal.model.recordDetailsEditPristineSnapshot
 import dev.gaborbiro.dailymacros.features.modal.model.toPickerOptions
-import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyConfirmedSharedTemplateEditUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.BuildRecordDetailsViewDialogUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
@@ -88,7 +86,6 @@ class ModalViewModel @Inject constructor(
     private val getTemplateImageUseCase: GetTemplateImageUseCase,
     private val foodRecognitionUseCase: FoodRecognitionUseCase,
     private val applyQuickPickOverrideAndReloadWidgetUseCase: ApplyQuickPickOverrideAndReloadWidgetUseCase,
-    private val applyConfirmedSharedTemplateEditUseCase: ApplyConfirmedSharedTemplateEditUseCase,
     private val analyticsLogger: AnalyticsLogger,
     private val errorUiMapper: ErrorUiMapper,
 ) : AndroidViewModel(application) {
@@ -637,26 +634,6 @@ class ModalViewModel @Inject constructor(
                 title = TextFieldValue()
             )
         }
-    }
-
-    fun onEditTargetConfirmed(target: ChangeImagesTarget) {
-        (_uiState.value.overlayDialog as? DialogHandle.EditTargetConfirmationDialog)
-            ?.let {
-                val recordId = it.recordId
-                val imageFilenames = it.imageFilenames
-                val title = it.title
-                val description = it.description
-                runSafely("Couldn't apply your changes") {
-                    applyConfirmedSharedTemplateEditUseCase.execute(
-                        target = target,
-                        recordId = recordId,
-                        imageFilenames = imageFilenames,
-                        title = title,
-                        description = description,
-                    )
-                    closeAll()
-                }
-            }
     }
 
     private fun runFoodRecognition(imageFilenames: List<String>, withDelay: Boolean = true) {

@@ -22,14 +22,6 @@ enum class CloseSignal {
 }
 
 sealed class DialogHandle {
-    data class EditTargetConfirmationDialog(
-        val recordId: Long,
-        val count: Int,
-        val imageFilenames: List<String>,
-        val title: String,
-        val description: String,
-    ) : DialogHandle()
-
     data class ViewImageDialog(
         val title: String,
         val imageFilenames: List<String>,

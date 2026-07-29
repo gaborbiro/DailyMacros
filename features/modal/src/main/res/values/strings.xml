@@ -38,7 +38,7 @@
     <string name="meal_details_close_unsaved_discard">Discard</string>
     <string name="meal_details_close_unsaved_keep_editing">@string/meal_details_switch_variant_cancel</string>
     <plurals name="meal_details_update_linked_records">
-        <item quantity="other">Update %d meals</item>
+        <item quantity="other">Update %d entries</item>
     </plurals>
     <string name="quick_pick_confirm_log_again">Log meal again</string>
     <string name="quick_pick_confirm_open_details">Open details</string>
@@ -49,11 +49,6 @@
     <!-- NutrientsIndentedList -->
     <string name="modal_content_ai_notes">AI notes:</string>
     <string name="modal_content_components">Components:</string>
-    <!-- EditTargetConfirmationDialogContent -->
-    <string name="modal_dialog_edit_target_message">Update all %1$d linked entries (including this one), or only this one?</string>
-    <string name="modal_dialog_edit_target_cancel_cd">Cancel</string>
-    <string name="modal_dialog_edit_target_save_new">Save as new</string>
-    <string name="modal_dialog_edit_target_update_all">Update all entries</string>
     <!-- RecordDetailsCreateView -->
     <string name="modal_content_run_ai_cd">Run image recognition</string>
     <string name="modal_content_running_ai_placeholder">Running image recognition…</string>
