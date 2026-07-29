@@ -43,6 +43,7 @@ import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates.ShareImage
 import dev.gaborbiro.dailymacros.features.modal.views.EditTargetConfirmationDialog
+import dev.gaborbiro.dailymacros.features.modal.views.EditTimestampBottomSheet
 import dev.gaborbiro.dailymacros.features.modal.views.ImageDialog
 import dev.gaborbiro.dailymacros.features.modal.views.ConfirmSwitchTemplateDialog
 import dev.gaborbiro.dailymacros.features.modal.views.QuickPickWidgetConfirmDialog
@@ -281,6 +282,13 @@ class ModalActivity : AppCompatActivity() {
                 onQuickPickStarToggled = viewModel::onQuickPickStarToggled,
                 onRecordDetailsEditStarted = viewModel::onRecordDetailsEditStarted,
                 onRecordDetailsEditCancelled = viewModel::onRecordDetailsEditCancelled,
+                onEditTimestampTapped = viewModel::onEditTimestampTapped,
+            )
+
+            is DialogHandle.EditTimestampDialog -> EditTimestampBottomSheet(
+                initial = dialogHandle.timestamp,
+                onConfirm = viewModel::onTimestampPicked,
+                onDismissRequested = onDismissRequested,
             )
 
             is DialogHandle.ConfirmSwitchTemplateDialog -> ConfirmSwitchTemplateDialog(

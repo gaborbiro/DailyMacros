@@ -316,6 +316,46 @@ class ModalViewModelTest {
         }
 
     @Test
+    fun `editing timestamp persists the new value and updates the dialog state`() = runTest(testDispatcher) {
+        var updatedRecord: Record? = null
+        val tpl = ModalRecordFixtures.template(dbId = 7L, name = "Soup")
+        val rec = ModalRecordFixtures.record(5L, tpl)
+        val repo = object : BaseRecordsRepositoryStub() {
+            override fun observe(recordId: Long) = flowOf(rec)
+            override suspend fun get(recordId: Long) = rec.takeIf { it.recordId == recordId }
+            override suspend fun countRecordsForTemplate(templateId: Long) = 1
+            override suspend fun getRecordsByTemplate(templateId: Long) = listOf(rec)
+            override suspend fun getTemplateIdsInSameVariantFamily(templateId: Long) = listOf(templateId)
+            override suspend fun getTemplate(templateId: Long) = tpl
+            override suspend fun updateRecord(record: Record) {
+                updatedRecord = record
+            }
+        }
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        val originalTimestamp =
+            (vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View).timestamp
+        vm.onEditTimestampTapped()
+        advanceUntilIdle()
+        val overlay = vm.uiState.value.overlayDialog as DialogHandle.EditTimestampDialog
+        assertEquals(5L, overlay.recordId)
+        assertEquals(originalTimestamp, overlay.timestamp)
+
+        val newTimestamp = originalTimestamp.minusDays(1).withHour(8).withMinute(30)
+        vm.onTimestampPicked(newTimestamp)
+        advanceUntilIdle()
+
+        assertEquals(newTimestamp, updatedRecord?.timestamp)
+        assertEquals(5L, updatedRecord?.recordId)
+        assertNull(vm.uiState.value.overlayDialog)
+        assertEquals(
+            newTimestamp,
+            (vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View).timestamp,
+        )
+    }
+
+    @Test
     fun `record details save with no edits closes without persisting`() = runTest(testDispatcher) {
         var updateRecordCalls = 0
         var updateTemplateCalls = 0

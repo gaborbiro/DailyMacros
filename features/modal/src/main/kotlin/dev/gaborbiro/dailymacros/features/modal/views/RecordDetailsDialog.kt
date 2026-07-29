@@ -52,6 +52,7 @@ internal fun RecordDetailsDialog(
     onQuickPickStarToggled: () -> Unit,
     onRecordDetailsEditStarted: () -> Unit,
     onRecordDetailsEditCancelled: () -> Unit,
+    onEditTimestampTapped: () -> Unit,
 ) {
     val ui = deconstructDialogHandle(dialogHandle)
     val viewDialog = dialogHandle as? DialogHandle.RecordDetailsDialog.View
@@ -106,6 +107,7 @@ internal fun RecordDetailsDialog(
                 quickPickStarred = viewDialog?.quickPickStarred == true,
                 onQuickPickStarToggled = onQuickPickStarToggled,
                 onBeginViewEdit = onRecordDetailsEditStarted,
+                onEditTimestampTapped = onEditTimestampTapped,
             )
         },
         errorMessages = errorMessages,
@@ -222,6 +224,7 @@ internal fun ColumnScope.RecordDetailsDialogContent(
     quickPickStarred: Boolean = false,
     onQuickPickStarToggled: () -> Unit = { },
     onBeginViewEdit: () -> Unit = { },
+    onEditTimestampTapped: () -> Unit = { },
 ) {
     when (dialogHandle) {
         is DialogHandle.RecordDetailsDialog.Edit ->
@@ -273,6 +276,7 @@ internal fun ColumnScope.RecordDetailsDialogContent(
                 quickPickStarred = quickPickStarred,
                 onQuickPickStarToggled = onQuickPickStarToggled,
                 onBeginViewEdit = onBeginViewEdit,
+                onEditTimestampTapped = onEditTimestampTapped,
             )
     }
 }
@@ -318,6 +322,7 @@ private fun NoteInputDialogContentPreviewView() {
                 imageFilenames = listOf("1", "2"),
             ),
             linkedRecordCountForTemplate = 3,
+            timestamp = ZonedDateTime.now(ZoneId.systemDefault()),
         ),
     )
 }

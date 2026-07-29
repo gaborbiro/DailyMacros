@@ -80,6 +80,10 @@ import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.RecordDetailsPristineSnapshot
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.shared.views.CompactMacroNutrientsGrid
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+
+private val recordTimestampFormatter = DateTimeFormatter.ofPattern("dd MMM, H:mm")
 
 @Composable
 fun ColumnScope.RecordDetailsView(
@@ -109,6 +113,7 @@ fun ColumnScope.RecordDetailsView(
     quickPickStarred: Boolean,
     onQuickPickStarToggled: () -> Unit,
     onBeginViewEdit: () -> Unit,
+    onEditTimestampTapped: () -> Unit = {},
 ) {
     val browseMode = !view.isEditing
     val browseInteractive = browseMode && view.allowEdit && !showCloseOnly
@@ -230,6 +235,36 @@ fun ColumnScope.RecordDetailsView(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(top = 12.dp)
+                .fillMaxWidth()
+                .let {
+                    if (browseInteractive) it.clickable { onEditTimestampTapped() } else it
+                },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = view.timestamp.format(recordTimestampFormatter),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (browseInteractive) {
+                IconButton(
+                    modifier = Modifier.size(28.dp),
+                    onClick = onEditTimestampTapped,
+                ) {
+                    Icon(
+                        modifier = Modifier.size(16.dp),
+                        imageVector = Icons.Filled.Edit,
+                        contentDescription = stringResource(R.string.meal_details_edit_timestamp_cd),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+
+        Row(
+            modifier = Modifier
+                .padding(horizontal = PaddingDefault)
+                .padding(top = 4.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -556,6 +591,7 @@ private fun RecordDetailsViewPreviewBrowse() {
             imageFilenames = listOf("1", "2"),
         ),
         linkedRecordCountForTemplate = 3,
+        timestamp = ZonedDateTime.now(),
     )
     ViewPreviewContext {
         RecordDetailsView(
@@ -610,6 +646,7 @@ private fun RecordDetailsViewPreviewBrowseExpanded() {
             imageFilenames = listOf("1", "2"),
         ),
         linkedRecordCountForTemplate = 3,
+        timestamp = ZonedDateTime.now(),
     )
     ViewPreviewContext {
         RecordDetailsView(
@@ -665,6 +702,7 @@ private fun RecordDetailsViewPreviewEditing() {
             description = "I ate an apple",
             imageFilenames = listOf("1", "2"),
         ),
+        timestamp = ZonedDateTime.now(),
     )
     ViewPreviewContext {
         RecordDetailsView(
@@ -732,6 +770,7 @@ private fun RecordDetailsViewPreviewVariantPicker() {
             description = "",
             imageFilenames = listOf("1"),
         ),
+        timestamp = ZonedDateTime.now(),
     )
     ViewPreviewContext {
         RecordDetailsView(

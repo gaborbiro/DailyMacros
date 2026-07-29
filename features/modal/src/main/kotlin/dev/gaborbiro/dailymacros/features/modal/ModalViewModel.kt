@@ -597,9 +597,27 @@ class ModalViewModel @Inject constructor(
             DialogHandle.InfoDialog(
                 "You can add multiple photos.\nPhotos of nutritional labels are especially helpful." +
                         "\n\nYou can edit the entry later. You don’t need to collect all details up front." +
-                        "\n\nLogging the meal is more important than the exact time. Just don’t leave it for the next day - dates can’t be changed retroactively."
+                        "\n\nLogging the meal is more important than the exact time — you can always fix the date and time afterwards."
             )
         )
+    }
+
+    fun onEditTimestampTapped() {
+        val root = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return
+        if (!root.allowEdit) return
+        pushOverlay(DialogHandle.EditTimestampDialog(recordId = root.recordId, timestamp = root.timestamp))
+    }
+
+    fun onTimestampPicked(timestamp: ZonedDateTime) {
+        val overlay = _uiState.value.overlayDialog as? DialogHandle.EditTimestampDialog ?: return
+        popOverlay()
+        runSafely("Couldn't update the date and time") {
+            val record = recordsRepository.get(overlay.recordId) ?: return@runSafely
+            recordsRepository.updateRecord(record.copy(timestamp = timestamp))
+            updateRoot<DialogHandle.RecordDetailsDialog.View> {
+                if (it.recordId == overlay.recordId) it.copy(timestamp = timestamp) else it
+            }
+        }
     }
 
     fun onRunAIButtonTapped() {

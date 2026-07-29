@@ -101,6 +101,8 @@ sealed class DialogHandle {
             override val hasUnsavedEdits: Boolean = false,
             /** When the user started editing; used as the new record's timestamp for "log meal again with edits". */
             val editStartedAt: ZonedDateTime? = null,
+            /** When this record actually happened; user-editable via [EditTimestampDialog]. */
+            val timestamp: ZonedDateTime,
         ) : RecordDetailsDialog(
             titleHint = titleHint,
             titleValidationError = titleValidationError,
@@ -133,6 +135,11 @@ sealed class DialogHandle {
         val templateId: Long,
         val templateName: String,
         val dontShowAgain: Boolean = false,
+    ) : DialogHandle()
+
+    data class EditTimestampDialog(
+        val recordId: Long,
+        val timestamp: ZonedDateTime,
     ) : DialogHandle()
 }
 

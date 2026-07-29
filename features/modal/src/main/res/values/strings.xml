@@ -14,6 +14,17 @@
     <string name="meal_details_expand">More details</string>
     <string name="meal_details_collapse">Collapse</string>
     <string name="meal_details_begin_edit_cd">Edit meal details</string>
+    <string name="meal_details_edit_timestamp_cd">Edit date and time</string>
+    <string name="edit_timestamp_sheet_title">When did this happen?</string>
+    <string name="edit_timestamp_day_today">Today</string>
+    <string name="edit_timestamp_day_yesterday">Yesterday</string>
+    <string name="edit_timestamp_day_pick_date">Pick a date</string>
+    <string name="edit_timestamp_date_picker_confirm">OK</string>
+    <string name="edit_timestamp_nudge_minus_hour">-1h</string>
+    <string name="edit_timestamp_nudge_minus_15">-15m</string>
+    <string name="edit_timestamp_nudge_plus_15">+15m</string>
+    <string name="edit_timestamp_nudge_plus_hour">+1h</string>
+    <string name="edit_timestamp_confirm">Save</string>
     <string name="meal_details_description_placeholder">Notes, ingredients, or how you made it</string>
     <string name="meal_details_quick_pick_star_cd">Add meal to Quick Picks</string>
     <string name="meal_details_quick_pick_unstar_cd">Remove meal from Quick Picks</string>
