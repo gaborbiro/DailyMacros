@@ -302,6 +302,14 @@ class ModalViewModel @Inject constructor(
     fun onNoImageSelected() {
         if (_uiState.value.overlayDialog is DialogHandle.ImageInput) {
             popOverlay()
+            (_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.Edit)?.let { edit ->
+                // Tapping the add-photo buttons cancels any in-flight recognition as a signal that
+                // more photos are coming. Backing out without picking one leaves it interrupted -
+                // resume it here so the AI button/spinner don't stay stuck hidden.
+                if (!edit.showRunAIButton && !edit.showProgressIndicator && edit.imageFilenames.isNotEmpty()) {
+                    runFoodRecognition(edit.imageFilenames)
+                }
+            }
         } else {
             closeAll()
         }
