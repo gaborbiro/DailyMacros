@@ -8,7 +8,6 @@ import androidx.test.core.app.ApplicationProvider
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
-import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyConfirmedSharedTemplateEditUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.BaseRecordsRepositoryStub
 import dev.gaborbiro.dailymacros.features.modal.usecase.BuildRecordDetailsViewDialogUseCase
@@ -178,11 +177,6 @@ class ModalViewModelTest {
             getTemplateImageUseCase = GetTemplateImageUseCase(repo),
             foodRecognitionUseCase = FoodRecognitionUseCase(imageStore, VmFakeChatGpt(), testSettingsRepository),
             applyQuickPickOverrideAndReloadWidgetUseCase = ApplyQuickPickOverrideAndReloadWidgetUseCase(repo),
-            applyConfirmedSharedTemplateEditUseCase = ApplyConfirmedSharedTemplateEditUseCase(
-                updateRecordWithNewTemplateUseCase = updateRec,
-                recordsRepository = repo,
-                appContext = app,
-            ),
             analyticsLogger = AnalyticsLogger(),
             errorUiMapper = ErrorUiMapper(app, testSettingsRepository),
         ).also { activeViewModels.add(it) }

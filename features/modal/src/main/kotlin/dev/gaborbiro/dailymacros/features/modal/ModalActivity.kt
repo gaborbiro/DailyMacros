@@ -42,7 +42,6 @@ import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates.ShareImage
-import dev.gaborbiro.dailymacros.features.modal.views.EditTargetConfirmationDialog
 import dev.gaborbiro.dailymacros.features.modal.views.EditTimestampBottomSheet
 import dev.gaborbiro.dailymacros.features.modal.views.ImageDialog
 import dev.gaborbiro.dailymacros.features.modal.views.ConfirmSwitchTemplateDialog
@@ -294,12 +293,6 @@ class ModalActivity : AppCompatActivity() {
             is DialogHandle.ConfirmSwitchTemplateDialog -> ConfirmSwitchTemplateDialog(
                 onConfirm = viewModel::onConfirmSwitchTemplateDespiteEdits,
                 onDismiss = onDismissRequested,
-            )
-
-            is DialogHandle.EditTargetConfirmationDialog -> EditTargetConfirmationDialog(
-                dialogHandle = dialogHandle,
-                onEditTargetConfirmed = viewModel::onEditTargetConfirmed,
-                onDismissRequested = onDismissRequested,
             )
 
             is DialogHandle.ViewImageDialog -> ImageDialog(

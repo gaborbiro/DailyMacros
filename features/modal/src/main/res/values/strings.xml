@@ -49,11 +49,6 @@
     <!-- NutrientsIndentedList -->
     <string name="modal_content_ai_notes">AI notes:</string>
     <string name="modal_content_components">Components:</string>
-    <!-- EditTargetConfirmationDialogContent -->
-    <string name="modal_dialog_edit_target_message">Update all %1$d linked entries (including this one), or only this one?</string>
-    <string name="modal_dialog_edit_target_cancel_cd">Cancel</string>
-    <string name="modal_dialog_edit_target_save_new">Save as new</string>
-    <string name="modal_dialog_edit_target_update_all">Update all entries</string>
     <!-- RecordDetailsCreateView -->
     <string name="modal_content_run_ai_cd">Run image recognition</string>
     <string name="modal_content_running_ai_placeholder">Running image recognition…</string>
