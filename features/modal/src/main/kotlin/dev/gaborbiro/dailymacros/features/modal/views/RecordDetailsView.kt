@@ -30,8 +30,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -234,36 +234,6 @@ fun ColumnScope.RecordDetailsView(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(top = 12.dp)
-                .fillMaxWidth()
-                .let {
-                    if (browseInteractive) it.clickable { onEditTimestampTapped() } else it
-                },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = view.timestamp.format(recordTimestampFormatter),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (browseInteractive) {
-                IconButton(
-                    modifier = Modifier.size(28.dp),
-                    onClick = onEditTimestampTapped,
-                ) {
-                    Icon(
-                        modifier = Modifier.size(16.dp),
-                        imageVector = Icons.Outlined.DateRange,
-                        contentDescription = stringResource(R.string.meal_details_edit_timestamp_cd),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-        }
-
-        Row(
-            modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(top = 4.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -301,6 +271,36 @@ fun ColumnScope.RecordDetailsView(
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+
+        Row(
+            modifier = Modifier
+                .padding(horizontal = PaddingDefault)
+                .padding(top = 12.dp)
+                .fillMaxWidth()
+                .let {
+                    if (browseInteractive) it.clickable { onEditTimestampTapped() } else it
+                },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = view.timestamp.format(recordTimestampFormatter),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (browseInteractive) {
+                IconButton(
+                    modifier = Modifier.size(28.dp),
+                    onClick = onEditTimestampTapped,
+                ) {
+                    Icon(
+                        modifier = Modifier.size(16.dp),
+                        imageVector = Icons.Filled.Edit,
+                        contentDescription = stringResource(R.string.meal_details_edit_timestamp_cd),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
         }
 
         if (view.showLoadingIndicator) {

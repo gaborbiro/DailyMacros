@@ -12,11 +12,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
+import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.modal.R
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.MealVariantPickerOption
@@ -120,6 +123,7 @@ internal fun RecordDetailsDialog(
         topEndAction = if (showRecordEditAction) {
             {
                 IconButton(
+                    modifier = Modifier.padding(top = PaddingDefault, end = PaddingDefault),
                     colors = IconButtonDefaults.filledIconButtonColors(
                         containerColor = Color.Gray.copy(alpha = .8f),
                         contentColor = Color.White,
