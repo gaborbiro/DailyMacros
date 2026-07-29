@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -43,6 +42,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
@@ -80,14 +80,19 @@ internal fun EditTimestampBottomSheet(
                 .padding(bottom = 16.dp),
         ) {
             Text(
+                modifier = Modifier.fillMaxWidth(),
                 text = stringResource(R.string.edit_timestamp_sheet_title),
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.headlineSmall,
+                textAlign = TextAlign.Center,
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+            ) {
                 FilterChip(
                     selected = selected.toLocalDate() == today,
                     onClick = { selected = selected.withDate(today) },
@@ -137,26 +142,6 @@ internal fun EditTimestampBottomSheet(
                 )
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-            ) {
-                NudgeChip(stringResource(R.string.edit_timestamp_nudge_minus_hour)) {
-                    selected = selected.minusHours(1)
-                }
-                NudgeChip(stringResource(R.string.edit_timestamp_nudge_minus_15)) {
-                    selected = selected.minusMinutes(15)
-                }
-                NudgeChip(stringResource(R.string.edit_timestamp_nudge_plus_15)) {
-                    selected = selected.plusMinutes(15)
-                }
-                NudgeChip(stringResource(R.string.edit_timestamp_nudge_plus_hour)) {
-                    selected = selected.plusHours(1)
-                }
-            }
-
             Spacer(modifier = Modifier.height(24.dp))
 
             Row(modifier = Modifier.fillMaxWidth()) {
@@ -203,14 +188,6 @@ internal fun EditTimestampBottomSheet(
             DatePicker(state = datePickerState)
         }
     }
-}
-
-@Composable
-private fun NudgeChip(label: String, onClick: () -> Unit) {
-    AssistChip(
-        onClick = onClick,
-        label = { Text(label) },
-    )
 }
 
 /**
