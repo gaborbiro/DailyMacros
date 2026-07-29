@@ -32,7 +32,9 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.StarBorder
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -150,24 +152,45 @@ fun ColumnScope.RecordDetailsView(
         }
     }
 
-    ImageStrip(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 12.dp)
             .padding(bottom = 12.dp),
-        showAddPhotoButtons = showImageControls,
-        showImageDeleteButton = showImageControls,
-        showImageReorderButtons = showImageControls,
-        showInfoButton = showImageControls,
-        imageFilenames = imageFilenames,
-        onImageTapped = onImageTapped,
-        onImageDeleteTapped = onImageDeleteTapped,
-        onImageMoveLeftTapped = onImageMoveLeftTapped,
-        onImageMoveRightTapped = onImageMoveRightTapped,
-        onAddImageViaCameraTapped = onAddImageViaCameraTapped,
-        onAddImageViaPickerTapped = onAddImageViaPickerTapped,
-        onInfoButtonTapped = onImagesInfoButtonTapped,
-    )
+    ) {
+        ImageStrip(
+            modifier = Modifier.fillMaxWidth(),
+            showAddPhotoButtons = showImageControls,
+            showImageDeleteButton = showImageControls,
+            showImageReorderButtons = showImageControls,
+            showInfoButton = showImageControls,
+            imageFilenames = imageFilenames,
+            onImageTapped = onImageTapped,
+            onImageDeleteTapped = onImageDeleteTapped,
+            onImageMoveLeftTapped = onImageMoveLeftTapped,
+            onImageMoveRightTapped = onImageMoveRightTapped,
+            onAddImageViaCameraTapped = onAddImageViaCameraTapped,
+            onAddImageViaPickerTapped = onAddImageViaPickerTapped,
+            onInfoButtonTapped = onImagesInfoButtonTapped,
+        )
+        if (browseInteractive) {
+            IconButton(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(end = PaddingDefault),
+                colors = IconButtonDefaults.filledIconButtonColors(
+                    containerColor = Color.Gray.copy(alpha = .8f),
+                    contentColor = Color.White,
+                ),
+                onClick = onBeginViewEdit,
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Edit,
+                    contentDescription = stringResource(R.string.meal_details_begin_edit_cd),
+                )
+            }
+        }
+    }
 
     if (view.isEditing) {
         TextField(
@@ -253,7 +276,7 @@ fun ColumnScope.RecordDetailsView(
                 ) {
                     Icon(
                         modifier = Modifier.size(16.dp),
-                        imageVector = Icons.Filled.Edit,
+                        imageVector = Icons.Outlined.DateRange,
                         contentDescription = stringResource(R.string.meal_details_edit_timestamp_cd),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -287,14 +310,6 @@ fun ColumnScope.RecordDetailsView(
                         } else {
                             MaterialTheme.colorScheme.onSurfaceVariant
                         },
-                    )
-                }
-            }
-            if (browseInteractive) {
-                IconButton(onClick = onBeginViewEdit) {
-                    Icon(
-                        imageVector = Icons.Filled.Edit,
-                        contentDescription = stringResource(R.string.meal_details_begin_edit_cd),
                     )
                 }
             }
