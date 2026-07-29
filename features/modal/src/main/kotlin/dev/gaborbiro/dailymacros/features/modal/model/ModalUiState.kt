@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.features.modal.model
 
 import androidx.compose.ui.text.input.TextFieldValue
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
+import java.time.ZonedDateTime
 
 data class ModalUiState(
     val rootDialog: DialogHandle? = null,
@@ -55,6 +56,8 @@ sealed class DialogHandle {
             val recognisedFood: RecognisedFood?,
             val pristineSnapshot: RecordDetailsPristineSnapshot,
             override val hasUnsavedEdits: Boolean = false,
+            /** When the user started assembling this record — the record's saved timestamp, not save time. */
+            val startedAt: ZonedDateTime,
         ) : RecordDetailsDialog(
             titleHint = titleHint,
             titleValidationError = titleValidationError,
@@ -96,6 +99,8 @@ sealed class DialogHandle {
             val linkedRecordCountForTemplate: Int = 0,
             val pristineSnapshot: RecordDetailsPristineSnapshot,
             override val hasUnsavedEdits: Boolean = false,
+            /** When the user started editing; used as the new record's timestamp for "log meal again with edits". */
+            val editStartedAt: ZonedDateTime? = null,
         ) : RecordDetailsDialog(
             titleHint = titleHint,
             titleValidationError = titleValidationError,

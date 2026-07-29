@@ -22,6 +22,8 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.RecordDetailsDialogPrevi
 import dev.gaborbiro.dailymacros.features.modal.usecase.deconstructDialogHandle
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import kotlinx.coroutines.flow.Flow
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 private sealed class PendingRecordDetailsDiscard {
     data object CloseDialog : PendingRecordDetailsDiscard()
@@ -339,6 +341,7 @@ private fun NoteInputDialogContentPreviewSuggestion() {
                 description = TextFieldValue(),
                 imageFilenames = listOf("1", "2"),
             ),
+            startedAt = ZonedDateTime.now(ZoneId.systemDefault()),
         ),
     )
 }
@@ -360,6 +363,7 @@ private fun NoteInputDialogContentPreview() {
                 description = TextFieldValue(),
                 imageFilenames = listOf("1", "2"),
             ),
+            startedAt = ZonedDateTime.now(ZoneId.systemDefault()),
         ),
     )
 }
@@ -384,6 +388,7 @@ private fun NoteInputDialogContentPreviewError() {
                 description = TextFieldValue(),
                 imageFilenames = listOf("1", "2"),
             ),
+            startedAt = ZonedDateTime.now(ZoneId.systemDefault()),
         ),
     )
 }

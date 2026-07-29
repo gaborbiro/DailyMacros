@@ -292,6 +292,30 @@ class ModalViewModelTest {
     }
 
     @Test
+    fun `submit uses the timestamp captured when record creation started, not when it's saved`() =
+        runTest(testDispatcher) {
+            var savedAt: ZonedDateTime? = null
+            val repo = object : BaseRecordsRepositoryStub() {
+                override suspend fun saveTemplate(templateToSave: TemplateToSave) = 42L
+                override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
+                    savedAt = timestamp
+                    return 99L
+                }
+            }
+            val vm = viewModel(repo)
+            vm.onCreateRecordWithTextDeeplinkReceived()
+            val startedAt =
+                (vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.Edit).startedAt
+            // Simulate the app being backgrounded for a while between opening the create-record
+            // screen and finally submitting it.
+            Thread.sleep(50)
+            vm.onTitleChanged(TextFieldValue("Lunch"))
+            vm.onSubmitButtonTapped()
+            advanceUntilIdle()
+            assertEquals(startedAt, savedAt)
+        }
+
+    @Test
     fun `record details save with no edits closes without persisting`() = runTest(testDispatcher) {
         var updateRecordCalls = 0
         var updateTemplateCalls = 0

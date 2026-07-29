@@ -33,6 +33,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.days
 
@@ -144,7 +146,7 @@ class OverviewViewModel @Inject constructor(
     fun onRepeatMenuItemTapped(recordId: Long) {
         viewModelScope.launch {
             val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return@launch
-            createRecordFromTemplateUseCase.execute(templateId)
+            createRecordFromTemplateUseCase.execute(templateId, ZonedDateTime.now(ZoneId.systemDefault()))
         }
     }
 

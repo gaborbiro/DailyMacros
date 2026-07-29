@@ -5,6 +5,8 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSav
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 class CreateRecordWithNewTemplateUseCaseTest {
 
@@ -21,6 +23,7 @@ class CreateRecordWithNewTemplateUseCaseTest {
             imageFilenames = emptyList(),
             title = "Meal",
             description = "Note",
+            timestamp = ZonedDateTime.now(ZoneId.systemDefault()),
         )
         assertEquals(555L, id)
     }
