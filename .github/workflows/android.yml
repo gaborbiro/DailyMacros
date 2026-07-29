@@ -50,6 +50,9 @@ jobs:
       with:
         tag_name: build-${{ env.GIT_SHORT_SHA }}
         name: "Master #${{ github.run_number }} (${{ env.GIT_SHORT_SHA }})"
+        # Without this, the tag defaults to master's tip at release-creation time, which can have
+        # already moved past BUILD_SHA if another push/merge lands while this run is still going.
+        target_commitish: ${{ env.BUILD_SHA }}
         generate_release_notes: true
         # assembleDebug renames the APK (see app/build.gradle.kts); there is no app-debug.apk.
         files: app/build/outputs/apk/debug/*.apk
@@ -65,6 +68,10 @@ jobs:
         name: "PR #${{ github.event.pull_request.number }} (${{ env.GIT_SHORT_SHA }})"
         prerelease: true
         make_latest: false
+        # Without this, the tag defaults to master's tip at release-creation time rather than the
+        # PR's actual head commit — wrong whenever another PR merges to master while this one's
+        # workflow is still running.
+        target_commitish: ${{ env.BUILD_SHA }}
         generate_release_notes: true
         files: app/build/outputs/apk/debug/*.apk
       env:
