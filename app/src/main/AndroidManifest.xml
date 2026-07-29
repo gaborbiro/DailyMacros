@@ -5,6 +5,13 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!--
+       Required for Google Play Billing. Play Console gates subscription/
+       product creation on detecting this permission in an uploaded build,
+       independently of whether the app already implements a purchase flow.
+    -->
+    <uses-permission android:name="com.android.vending.BILLING" />
+
+    <!--
        Firebase Analytics transitively depends on play-services-measurement-api,
        which declares this permission (and its Android 13+ AdServices
        equivalent, ACCESS_ADSERVICES_AD_ID) in its own manifest so it can
