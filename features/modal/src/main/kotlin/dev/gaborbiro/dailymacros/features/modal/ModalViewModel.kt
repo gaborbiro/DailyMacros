@@ -302,6 +302,16 @@ class ModalViewModel @Inject constructor(
     fun onNoImageSelected() {
         if (_uiState.value.overlayDialog is DialogHandle.ImageInput) {
             popOverlay()
+            (_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.Edit)?.let { edit ->
+                // Auto-recognition only ever runs for the first photo. Tapping an add-photo button
+                // cancels it as a signal that a second photo is coming; if the user backs out of
+                // that without picking one, the first photo's recognition is left interrupted with
+                // no button shown - resume it here. Backing out of a *third+* photo should do
+                // nothing: by then recognition already ran its course and the AI button is available.
+                if (edit.imageFilenames.size == 1 && !edit.showRunAIButton && !edit.showProgressIndicator) {
+                    runFoodRecognition(edit.imageFilenames)
+                }
+            }
         } else {
             closeAll()
         }
