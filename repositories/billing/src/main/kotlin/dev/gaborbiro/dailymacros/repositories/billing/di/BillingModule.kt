@@ -15,12 +15,18 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 internal object BillingModule {
 
+    // Only for VerifyPurchaseWorker, which is @AssistedInject-constructed and so must
+    // resolve every non-@Assisted parameter from the graph. BillingRepositoryImpl
+    // deliberately does NOT take FirebaseAuth as a constructor param (see its own
+    // lazy property) — resolving the repository itself (e.g. App.onCreate()'s
+    // refresh() call) must never force FirebaseAuth.getInstance() to run.
+    @Provides
+    @Singleton
+    fun firebaseAuth(): FirebaseAuth = FirebaseAuth.getInstance()
+
     @Provides
     @Singleton
     fun subscriptionRepository(
         @ApplicationContext context: Context,
-    ): SubscriptionRepository = BillingRepositoryImpl(
-        context = context,
-        firebaseAuth = FirebaseAuth.getInstance(),
-    )
+    ): SubscriptionRepository = BillingRepositoryImpl(context = context)
 }
