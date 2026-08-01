@@ -27,8 +27,6 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCas
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.ErrorUiMapper
 import dev.gaborbiro.dailymacros.features.shared.TemplateUiMapper
-import dev.gaborbiro.dailymacros.repositories.billing.domain.SubscriptionRepository
-import dev.gaborbiro.dailymacros.repositories.billing.domain.model.SubscriptionState
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
@@ -98,15 +96,6 @@ class ModalViewModelTest {
         override suspend fun write(filename: String, bitmap: Bitmap) = Unit
 
         override suspend fun delete(filename: String) = Unit
-    }
-
-    private class VmFakeSubscriptionRepository(
-        private val state: SubscriptionState = SubscriptionState.Active,
-    ) : SubscriptionRepository {
-        override fun observeState() = flowOf(state)
-        override fun currentState() = state
-        override fun refresh() = Unit
-        override fun launchPurchaseFlow(activity: android.app.Activity) = Unit
     }
 
     private class VmFakeChatGpt : ChatGPTRepository {
@@ -190,7 +179,6 @@ class ModalViewModelTest {
             applyQuickPickOverrideAndReloadWidgetUseCase = ApplyQuickPickOverrideAndReloadWidgetUseCase(repo),
             analyticsLogger = AnalyticsLogger(),
             errorUiMapper = ErrorUiMapper(app, testSettingsRepository),
-            subscriptionRepository = VmFakeSubscriptionRepository(),
         ).also { activeViewModels.add(it) }
     }
 

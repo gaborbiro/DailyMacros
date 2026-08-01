@@ -16,7 +16,6 @@ dependencies {
     implementation(project(":core:design"))
     implementation(project(":core:featureFlags"))
     implementation(project(":repositories:common"))
-    implementation(project(":repositories:billing:domain"))
     implementation(project(":repositories:chatgpt:domain"))
     implementation(project(":repositories:records:domain"))
     implementation(project(":repositories:settings:domain"))
