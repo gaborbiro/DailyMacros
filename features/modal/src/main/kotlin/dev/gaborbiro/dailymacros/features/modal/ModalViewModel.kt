@@ -36,7 +36,11 @@ import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.ErrorUiMapper
 import dev.gaborbiro.dailymacros.features.shared.ListMealVariantsForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.NutrientAnalysisWorker
+import dev.gaborbiro.dailymacros.repositories.billing.domain.SubscriptionRepository
+import dev.gaborbiro.dailymacros.repositories.billing.domain.model.SubscriptionState
 import dev.gaborbiro.dailymacros.repositories.common.model.DomainError
+import dev.gaborbiro.dailymacros.repositories.common.model.UsageLimitException
+import dev.gaborbiro.dailymacros.repositories.common.model.UsageLimitKind
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
@@ -88,6 +92,7 @@ class ModalViewModel @Inject constructor(
     private val applyQuickPickOverrideAndReloadWidgetUseCase: ApplyQuickPickOverrideAndReloadWidgetUseCase,
     private val analyticsLogger: AnalyticsLogger,
     private val errorUiMapper: ErrorUiMapper,
+    private val subscriptionRepository: SubscriptionRepository,
 ) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(ModalUiState())
@@ -639,6 +644,15 @@ class ModalViewModel @Inject constructor(
     private fun runFoodRecognition(imageFilenames: List<String>, withDelay: Boolean = true) {
         recogniseFoodJob?.cancel()
         recogniseFoodJob = runSafely("Image recognition failed. Please try again later.") {
+            // Soft, local-only gate: pure UX (skip the wasted round trip when we
+            // already know there's no subscription). The real, unbypassable gate is
+            // openaiProxy's server-side check; throwing the same DomainError shape
+            // here reuses its exact error-mapping/display pipeline.
+            if (subscriptionRepository.currentState() == SubscriptionState.NotSubscribed) {
+                throw DomainError.DisplayMessageToUser.OperationFailed(
+                    cause = UsageLimitException(UsageLimitKind.SUBSCRIPTION_REQUIRED),
+                )
+            }
             if (withDelay) delay(1.3.seconds)
             updateRoot<DialogHandle.RecordDetailsDialog.Edit> {
                 it.copy(showProgressIndicator = true)

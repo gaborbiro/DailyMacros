@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":features:shared"))
     implementation(project(":repositories:common"))
     implementation(project(":repositories:backup:domain"))
+    implementation(project(":repositories:billing:domain"))
     implementation(project(":repositories:settings:domain"))
     implementation(project(":repositories:records:domain"))
     implementation(project(":repositories:chatgpt:domain"))

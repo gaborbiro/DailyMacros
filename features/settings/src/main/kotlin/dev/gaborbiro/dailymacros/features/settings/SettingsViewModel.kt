@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.settings
 
 import android.Manifest
+import android.app.Activity
 import android.app.Application
 import android.content.pm.PackageManager
 import android.os.Build
@@ -32,6 +33,7 @@ import dev.gaborbiro.dailymacros.features.settings.export.useCases.SyncDatabaseU
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
 import dev.gaborbiro.dailymacros.repositories.backup.domain.CloudSyncRepository
+import dev.gaborbiro.dailymacros.repositories.billing.domain.SubscriptionRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.BackupInterval
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
@@ -60,6 +62,7 @@ class SettingsViewModel @Inject constructor(
     private val restoreFromDriveUseCase: RestoreFromDriveUseCase,
     private val cloudSyncRepository: CloudSyncRepository,
     private val featureFlagStore: FeatureFlagStore,
+    private val subscriptionRepository: SubscriptionRepository,
 ) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(
@@ -82,6 +85,18 @@ class SettingsViewModel @Inject constructor(
 
     private val _uiUpdates = MutableSharedFlow<SettingsUiUpdates>()
     val uiUpdates: SharedFlow<SettingsUiUpdates> = _uiUpdates.asSharedFlow()
+
+    init {
+        viewModelScope.launch {
+            subscriptionRepository.observeState().collect { state ->
+                _uiState.update { it.copy(subscriptionState = state) }
+            }
+        }
+    }
+
+    fun onSubscribeRowTapped(activity: Activity) {
+        subscriptionRepository.launchPurchaseFlow(activity)
+    }
 
     /**
      * Called after each auto-sync attempt. Re-reads the persisted timestamp, then refreshes the

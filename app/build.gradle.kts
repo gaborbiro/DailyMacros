@@ -143,6 +143,8 @@ dependencies {
     implementation(project(":features:trends"))
     implementation(project(":features:widgets"))
     implementation(project(":repositories:backup"))
+    implementation(project(":repositories:billing"))
+    implementation(project(":repositories:billing:domain"))
     implementation(project(":repositories:chatgpt"))
     implementation(project(":repositories:chatgpt:domain"))
     implementation(project(":repositories:records:domain"))
@@ -192,7 +194,6 @@ dependencies {
     implementation(libs.accompanist.navigation.animation)
 
     implementation(libs.google.play.services.auth)
-    implementation(libs.google.play.billing.ktx)
 
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.google.mlkit.image.labeling)

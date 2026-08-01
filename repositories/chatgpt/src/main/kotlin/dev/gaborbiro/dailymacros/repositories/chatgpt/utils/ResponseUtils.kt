@@ -120,5 +120,6 @@ private fun proxyCodeToKind(code: String?): UsageLimitKind? = when (code) {
     "daily_cap" -> UsageLimitKind.DAILY
     "monthly_budget" -> UsageLimitKind.MONTHLY
     "kill_switch" -> UsageLimitKind.UNAVAILABLE
+    "subscription_required" -> UsageLimitKind.SUBSCRIPTION_REQUIRED
     else -> null
 }
