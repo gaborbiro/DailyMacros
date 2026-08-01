@@ -21,9 +21,13 @@
 - Remaining: add the final URL to the Play Console listing.
 
 ### 2. Play Store listing materials *(required, ~1 day)*
-- Short description (80 chars), long description (~4000 chars)
-- Screenshots: 2–8 phone screenshots (Pixel-sized, 9:16)
-- Feature graphic: 1024×500px banner
+- Short description (80 chars), long description (~4000 chars): drafted in
+  `docs/play-store-listing.md`.
+- Screenshots: done — 4 captioned marketing screenshots in `docs/screenshots/`
+  (`screenshot_1_diary.png` … `screenshot_4_detail.png`), replacing the earlier
+  plain `1.png`–`4.png`.
+- Feature graphic: 1024×500px banner — still TODO, needs a design tool (not
+  code). See `docs/play-store-listing.md` for notes.
 
 ### 3. Data safety form *(required, ~2 hrs)*
 - Manual form in Play Console — no code
