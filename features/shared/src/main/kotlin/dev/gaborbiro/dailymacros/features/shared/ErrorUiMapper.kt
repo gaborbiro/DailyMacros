@@ -22,6 +22,7 @@ class ErrorUiMapper @Inject constructor(
                     UsageLimitKind.DAILY -> R.string.shared_content_usage_limit_daily
                     UsageLimitKind.MONTHLY -> R.string.shared_content_usage_limit_monthly
                     UsageLimitKind.UNAVAILABLE -> R.string.shared_content_usage_limit_unavailable
+                    UsageLimitKind.SUBSCRIPTION_REQUIRED -> R.string.shared_content_usage_limit_subscription_required
                 }
             )
             else -> defaultMessage

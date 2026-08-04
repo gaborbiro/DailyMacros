@@ -8,7 +8,6 @@ import androidx.test.core.app.ApplicationProvider
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
-import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyConfirmedSharedTemplateEditUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.BaseRecordsRepositoryStub
 import dev.gaborbiro.dailymacros.features.modal.usecase.BuildRecordDetailsViewDialogUseCase
@@ -178,11 +177,6 @@ class ModalViewModelTest {
             getTemplateImageUseCase = GetTemplateImageUseCase(repo),
             foodRecognitionUseCase = FoodRecognitionUseCase(imageStore, VmFakeChatGpt(), testSettingsRepository),
             applyQuickPickOverrideAndReloadWidgetUseCase = ApplyQuickPickOverrideAndReloadWidgetUseCase(repo),
-            applyConfirmedSharedTemplateEditUseCase = ApplyConfirmedSharedTemplateEditUseCase(
-                updateRecordWithNewTemplateUseCase = updateRec,
-                recordsRepository = repo,
-                appContext = app,
-            ),
             analyticsLogger = AnalyticsLogger(),
             errorUiMapper = ErrorUiMapper(app, testSettingsRepository),
         ).also { activeViewModels.add(it) }
@@ -289,6 +283,70 @@ class ModalViewModelTest {
         assertEquals(1, saveTemplateCalls)
         assertEquals(1, saveRecordCalls)
         assertNull(vm.uiState.value.rootDialog)
+    }
+
+    @Test
+    fun `submit uses the timestamp captured when record creation started, not when it's saved`() =
+        runTest(testDispatcher) {
+            var savedAt: ZonedDateTime? = null
+            val repo = object : BaseRecordsRepositoryStub() {
+                override suspend fun saveTemplate(templateToSave: TemplateToSave) = 42L
+                override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
+                    savedAt = timestamp
+                    return 99L
+                }
+            }
+            val vm = viewModel(repo)
+            vm.onCreateRecordWithTextDeeplinkReceived()
+            val startedAt =
+                (vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.Edit).startedAt
+            // Simulate the app being backgrounded for a while between opening the create-record
+            // screen and finally submitting it.
+            Thread.sleep(50)
+            vm.onTitleChanged(TextFieldValue("Lunch"))
+            vm.onSubmitButtonTapped()
+            advanceUntilIdle()
+            assertEquals(startedAt, savedAt)
+        }
+
+    @Test
+    fun `editing timestamp persists the new value and updates the dialog state`() = runTest(testDispatcher) {
+        var updatedRecord: Record? = null
+        val tpl = ModalRecordFixtures.template(dbId = 7L, name = "Soup")
+        val rec = ModalRecordFixtures.record(5L, tpl)
+        val repo = object : BaseRecordsRepositoryStub() {
+            override fun observe(recordId: Long) = flowOf(rec)
+            override suspend fun get(recordId: Long) = rec.takeIf { it.recordId == recordId }
+            override suspend fun countRecordsForTemplate(templateId: Long) = 1
+            override suspend fun getRecordsByTemplate(templateId: Long) = listOf(rec)
+            override suspend fun getTemplateIdsInSameVariantFamily(templateId: Long) = listOf(templateId)
+            override suspend fun getTemplate(templateId: Long) = tpl
+            override suspend fun updateRecord(record: Record) {
+                updatedRecord = record
+            }
+        }
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        val originalTimestamp =
+            (vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View).timestamp
+        vm.onEditTimestampTapped()
+        advanceUntilIdle()
+        val overlay = vm.uiState.value.overlayDialog as DialogHandle.EditTimestampDialog
+        assertEquals(5L, overlay.recordId)
+        assertEquals(originalTimestamp, overlay.timestamp)
+
+        val newTimestamp = originalTimestamp.minusDays(1).withHour(8).withMinute(30)
+        vm.onTimestampPicked(newTimestamp)
+        advanceUntilIdle()
+
+        assertEquals(newTimestamp, updatedRecord?.timestamp)
+        assertEquals(5L, updatedRecord?.recordId)
+        assertNull(vm.uiState.value.overlayDialog)
+        assertEquals(
+            newTimestamp,
+            (vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View).timestamp,
+        )
     }
 
     @Test

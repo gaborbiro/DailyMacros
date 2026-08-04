@@ -18,4 +18,5 @@
     <string name="shared_content_usage_limit_daily">You’ve reached today’s limit. Please try again tomorrow.</string>
     <string name="shared_content_usage_limit_monthly">Daily Macros is at capacity right now. Please try again later.</string>
     <string name="shared_content_usage_limit_unavailable">AI analysis is temporarily unavailable. Please try again later.</string>
+    <string name="shared_content_usage_limit_subscription_required">Subscribe to keep using AI analysis. Open Settings to subscribe.</string>
 </resources>

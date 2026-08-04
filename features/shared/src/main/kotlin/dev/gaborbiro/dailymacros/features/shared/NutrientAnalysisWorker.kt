@@ -13,6 +13,8 @@ import androidx.work.WorkerParameters
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
+import dev.gaborbiro.dailymacros.repositories.common.model.DomainError
+import dev.gaborbiro.dailymacros.repositories.common.model.UsageLimitException
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.toJavaDuration
 
@@ -26,6 +28,12 @@ class NutrientAnalysisWorker @AssistedInject constructor(
 
     companion object {
         private const val ARGS_RECORD_ID = "record_id"
+
+        /**
+         * Shared by every instance so a single usage-limit hit can cancel retries
+         * for all pending records at once, not just the one that hit the limit.
+         */
+        private const val WORK_TAG = "nutrient_analysis"
 
         fun setWorkRequest(
             appContext: Context,
@@ -50,6 +58,7 @@ class NutrientAnalysisWorker @AssistedInject constructor(
                         .putLong(ARGS_RECORD_ID, recordId)
                         .build()
                 )
+                .addTag(WORK_TAG)
                 .build()
             WorkManager.getInstance(appContext)
                 .enqueueUniquePeriodicWork(getWorkName(recordId), policy, workRequest)
@@ -57,6 +66,15 @@ class NutrientAnalysisWorker @AssistedInject constructor(
 
         fun cancelWorkRequest(appContext: Context, recordId: Long) {
             WorkManager.getInstance(appContext).cancelUniqueWork(getWorkName(recordId))
+        }
+
+        /**
+         * Stops every scheduled/retrying analysis job, not just the one that failed.
+         * Used when a usage limit is hit so the remaining jobs don't keep re-hitting
+         * it every 15 minutes; the user can still re-trigger analysis per entry.
+         */
+        fun cancelAllWorkRequests(appContext: Context) {
+            WorkManager.getInstance(appContext).cancelAllWorkByTag(WORK_TAG)
         }
 
         private fun getWorkName(recordId: Long): String = "nutrient_analysis_$recordId"
@@ -81,6 +99,9 @@ class NutrientAnalysisWorker @AssistedInject constructor(
             }
         } catch (t: Throwable) {
             analyticsLogger.logError(t)
+            if (t is DomainError.DisplayMessageToUser.OperationFailed && t.cause is UsageLimitException) {
+                cancelAllWorkRequests(applicationContext)
+            }
             Result.failure()
         }
     }

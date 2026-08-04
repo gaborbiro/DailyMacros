@@ -14,6 +14,13 @@
     <string name="meal_details_expand">More details</string>
     <string name="meal_details_collapse">Collapse</string>
     <string name="meal_details_begin_edit_cd">Edit meal details</string>
+    <string name="meal_details_edit_timestamp_cd">Edit date and time</string>
+    <string name="edit_timestamp_sheet_title">When did this happen?</string>
+    <string name="edit_timestamp_day_today">Today</string>
+    <string name="edit_timestamp_day_yesterday">Yesterday</string>
+    <string name="edit_timestamp_day_pick_date">Pick a date</string>
+    <string name="edit_timestamp_date_picker_confirm">OK</string>
+    <string name="edit_timestamp_confirm">Save</string>
     <string name="meal_details_description_placeholder">Notes, ingredients, or how you made it</string>
     <string name="meal_details_quick_pick_star_cd">Add meal to Quick Picks</string>
     <string name="meal_details_quick_pick_unstar_cd">Remove meal from Quick Picks</string>
@@ -31,7 +38,7 @@
     <string name="meal_details_close_unsaved_discard">Discard</string>
     <string name="meal_details_close_unsaved_keep_editing">@string/meal_details_switch_variant_cancel</string>
     <plurals name="meal_details_update_linked_records">
-        <item quantity="other">Update %d meals</item>
+        <item quantity="other">Update %d entries</item>
     </plurals>
     <string name="quick_pick_confirm_log_again">Log meal again</string>
     <string name="quick_pick_confirm_open_details">Open details</string>
@@ -42,11 +49,6 @@
     <!-- NutrientsIndentedList -->
     <string name="modal_content_ai_notes">AI notes:</string>
     <string name="modal_content_components">Components:</string>
-    <!-- EditTargetConfirmationDialogContent -->
-    <string name="modal_dialog_edit_target_message">Update all %1$d linked entries (including this one), or only this one?</string>
-    <string name="modal_dialog_edit_target_cancel_cd">Cancel</string>
-    <string name="modal_dialog_edit_target_save_new">Save as new</string>
-    <string name="modal_dialog_edit_target_update_all">Update all entries</string>
     <!-- RecordDetailsCreateView -->
     <string name="modal_content_run_ai_cd">Run image recognition</string>
     <string name="modal_content_running_ai_placeholder">Running image recognition…</string>

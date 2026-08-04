@@ -2,6 +2,8 @@ package dev.gaborbiro.dailymacros.features.shared
 
 import androidx.annotation.UiThread
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 import javax.inject.Inject
 
@@ -16,6 +18,6 @@ class RepeatRecordUseCase @Inject constructor(
     ): Long {
         val record = recordsRepository.get(recordId)!!
         val templateId = record.template.dbId
-        return createRecordFromTemplateUseCase.execute(templateId)
+        return createRecordFromTemplateUseCase.execute(templateId, ZonedDateTime.now(ZoneId.systemDefault()))
     }
 }

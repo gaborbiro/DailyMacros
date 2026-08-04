@@ -12,16 +12,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.time.Duration
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
 class CreateRecordFromTemplateUseCaseTest {
 
     @Test
-    fun `execute saves record with current timestamp and returns new id`() = runBlocking {
+    fun `execute saves record with the given timestamp and returns new id`() = runBlocking {
         var savedTemplateId: Long? = null
         var savedAt: ZonedDateTime? = null
         val repo = object : StubRecordsRepository() {
@@ -31,15 +29,11 @@ class CreateRecordFromTemplateUseCaseTest {
                 return 42L
             }
         }
-        val before = ZonedDateTime.now(ZoneId.systemDefault())
-        val id = CreateRecordFromTemplateUseCase(repo).execute(7L)
-        val after = ZonedDateTime.now(ZoneId.systemDefault())
+        val timestamp = ZonedDateTime.of(2024, 1, 1, 12, 0, 0, 0, ZoneId.systemDefault())
+        val id = CreateRecordFromTemplateUseCase(repo).execute(7L, timestamp)
         assertEquals(42L, id)
         assertEquals(7L, savedTemplateId)
-        val ts = requireNotNull(savedAt)
-        val delta = Duration.between(before, ts).abs()
-        assertTrue(delta.toMillis() < 5000)
-        assertTrue(!ts.isBefore(before) && !ts.isAfter(after))
+        assertEquals(timestamp, savedAt)
     }
 
     private open class StubRecordsRepository : RecordsRepository {

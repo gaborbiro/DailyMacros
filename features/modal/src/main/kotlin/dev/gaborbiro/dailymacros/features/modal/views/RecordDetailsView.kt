@@ -28,9 +28,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.DropdownMenu
@@ -73,6 +73,9 @@ import dev.gaborbiro.dailymacros.features.modal.R
 import dev.gaborbiro.dailymacros.features.common.R as CommonR
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
+import dev.gaborbiro.dailymacros.features.common.utils.diaryDayStartTime
+import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryDate
+import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryToday
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.MealVariantPickerOption
@@ -80,6 +83,10 @@ import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.RecordDetailsPristineSnapshot
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.shared.views.CompactMacroNutrientsGrid
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+
+private val recordTimestampFormatter = DateTimeFormatter.ofPattern("dd MMM, H:mm")
 
 @Composable
 fun ColumnScope.RecordDetailsView(
@@ -108,7 +115,7 @@ fun ColumnScope.RecordDetailsView(
     showQuickPickStar: Boolean,
     quickPickStarred: Boolean,
     onQuickPickStarToggled: () -> Unit,
-    onBeginViewEdit: () -> Unit,
+    onEditTimestampTapped: () -> Unit = {},
 ) {
     val browseMode = !view.isEditing
     val browseInteractive = browseMode && view.allowEdit && !showCloseOnly
@@ -239,7 +246,10 @@ fun ColumnScope.RecordDetailsView(
                 style = MaterialTheme.typography.titleMedium,
             )
             if (showQuickPickStar) {
-                IconButton(onClick = onQuickPickStarToggled) {
+                IconButton(
+                    modifier = Modifier.size(28.dp),
+                    onClick = onQuickPickStarToggled,
+                ) {
                     Icon(
                         imageVector = if (quickPickStarred) Icons.Filled.Star else Icons.Outlined.StarBorder,
                         contentDescription = if (quickPickStarred) {
@@ -255,14 +265,6 @@ fun ColumnScope.RecordDetailsView(
                     )
                 }
             }
-            if (browseInteractive) {
-                IconButton(onClick = onBeginViewEdit) {
-                    Icon(
-                        imageVector = Icons.Filled.Edit,
-                        contentDescription = stringResource(R.string.meal_details_begin_edit_cd),
-                    )
-                }
-            }
         }
 
         if (description.text.isNotBlank()) {
@@ -275,6 +277,45 @@ fun ColumnScope.RecordDetailsView(
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+
+        Row(
+            modifier = Modifier
+                .padding(horizontal = PaddingDefault)
+                .padding(top = 12.dp)
+                .fillMaxWidth()
+                .let {
+                    if (browseInteractive) it.clickable { onEditTimestampTapped() } else it
+                },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            val dayStart = diaryDayStartTime(view.diaryDayStartHour)
+            val recordDiaryDate = view.timestamp.logicalDiaryDate(dayStart)
+            val today = logicalDiaryToday(view.timestamp.zone, dayStart)
+            val relativeDayLabel = when (recordDiaryDate) {
+                today -> stringResource(R.string.edit_timestamp_day_today)
+                today.minusDays(1) -> stringResource(R.string.edit_timestamp_day_yesterday)
+                else -> null
+            }
+            val formattedTimestamp = view.timestamp.format(recordTimestampFormatter)
+            Text(
+                text = relativeDayLabel?.let { "$it, $formattedTimestamp" } ?: formattedTimestamp,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (browseInteractive) {
+                IconButton(
+                    modifier = Modifier.size(28.dp),
+                    onClick = onEditTimestampTapped,
+                ) {
+                    Icon(
+                        modifier = Modifier.size(16.dp),
+                        imageVector = Icons.Filled.Edit,
+                        contentDescription = stringResource(R.string.meal_details_edit_timestamp_cd),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
         }
 
         if (view.showLoadingIndicator) {
@@ -556,6 +597,7 @@ private fun RecordDetailsViewPreviewBrowse() {
             imageFilenames = listOf("1", "2"),
         ),
         linkedRecordCountForTemplate = 3,
+        timestamp = ZonedDateTime.now(),
     )
     ViewPreviewContext {
         RecordDetailsView(
@@ -583,7 +625,6 @@ private fun RecordDetailsViewPreviewBrowse() {
             showQuickPickStar = true,
             quickPickStarred = false,
             onQuickPickStarToggled = {},
-            onBeginViewEdit = {},
         )
     }
 }
@@ -610,6 +651,7 @@ private fun RecordDetailsViewPreviewBrowseExpanded() {
             imageFilenames = listOf("1", "2"),
         ),
         linkedRecordCountForTemplate = 3,
+        timestamp = ZonedDateTime.now(),
     )
     ViewPreviewContext {
         RecordDetailsView(
@@ -637,7 +679,6 @@ private fun RecordDetailsViewPreviewBrowseExpanded() {
             showQuickPickStar = true,
             quickPickStarred = false,
             onQuickPickStarToggled = {},
-            onBeginViewEdit = {},
             macrosExpanded = true,
         )
     }
@@ -665,6 +706,7 @@ private fun RecordDetailsViewPreviewEditing() {
             description = "I ate an apple",
             imageFilenames = listOf("1", "2"),
         ),
+        timestamp = ZonedDateTime.now(),
     )
     ViewPreviewContext {
         RecordDetailsView(
@@ -692,7 +734,6 @@ private fun RecordDetailsViewPreviewEditing() {
             showQuickPickStar = false,
             quickPickStarred = false,
             onQuickPickStarToggled = {},
-            onBeginViewEdit = {},
         )
     }
 }
@@ -732,6 +773,7 @@ private fun RecordDetailsViewPreviewVariantPicker() {
             description = "",
             imageFilenames = listOf("1"),
         ),
+        timestamp = ZonedDateTime.now(),
     )
     ViewPreviewContext {
         RecordDetailsView(
@@ -759,7 +801,6 @@ private fun RecordDetailsViewPreviewVariantPicker() {
             showQuickPickStar = true,
             quickPickStarred = true,
             onQuickPickStarToggled = {},
-            onBeginViewEdit = {},
         )
     }
 }

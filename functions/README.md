@@ -59,6 +59,43 @@ These steps need your Firebase login and can only be done by you.
 
 ---
 
+## Subscription verification setup (one-time, for `verifySubscription`)
+
+`verifySubscription` independently confirms Play Billing purchases with
+Google's own Play Developer API before `openaiProxy` will trust them — never
+the client's own claim. Unlike `OPENAI_KEY`, no secret/key file is involved:
+the function runs as its own dedicated GCP service account, and Application
+Default Credentials pick that identity up automatically.
+
+1. **Enable the Android Publisher API** on this GCP project: Cloud Console →
+   APIs & Services → Library → "Google Play Android Developer API" → Enable.
+2. **Create the dedicated service account** (no key export needed):
+   ```bash
+   gcloud iam service-accounts create play-developer-api \
+     --project=dailymacros-9fab8 \
+     --display-name="Play Developer API (verifySubscription)"
+   ```
+3. **Grant it Firestore write access** (Admin SDK writes still go through IAM
+   even though `firestore.rules` denies client access):
+   ```bash
+   gcloud projects add-iam-policy-binding dailymacros-9fab8 \
+     --member="serviceAccount:play-developer-api@dailymacros-9fab8.iam.gserviceaccount.com" \
+     --role="roles/datastore.user"
+   ```
+4. **Play Console → Users and permissions → Invite new user**: paste
+   `play-developer-api@dailymacros-9fab8.iam.gserviceaccount.com`, grant "View
+   app information (read-only)" + "View financial data", scoped to the
+   DailyMacros app only.
+5. **Play Console**: internal testing track + add yourself as a license
+   tester. Purchases only complete against a signed, un-suffixed
+   `applicationId` build — the `.debug`/`.qa` build types can never complete
+   a real purchase.
+
+Enforcement itself stays off until you flip `config/limits.subscriptionGateEnabled`
+to `true` in Firestore (no redeploy needed) — see `index.js`'s header comment.
+
+---
+
 ## Deploy
 
 ```bash
@@ -98,6 +135,9 @@ client is wired to send its Firebase ID token — that's the follow-up step.
 
 - **Tune caps:** edit `config/limits` in Firestore. Takes effect on the next
   request; no redeploy.
+- **Turn on subscription enforcement:** set `config/limits.subscriptionGateEnabled = true`.
+  Until then the code path exists but nobody is actually gated on having a
+  subscription.
 - **Emergency stop:** set `config/limits.killSwitch = true`. All proxied
   requests immediately return 503 until you flip it back.
 - **See usage:** `usage/global` holds the current month's count;

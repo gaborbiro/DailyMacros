@@ -56,6 +56,7 @@ import dev.gaborbiro.dailymacros.features.common.utils.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.features.settings.R
 import dev.gaborbiro.dailymacros.features.settings.export.pdf.PdfRangeSelection
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
+import dev.gaborbiro.dailymacros.repositories.billing.domain.model.SubscriptionState
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.BackupInterval
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PdfExportOptions
@@ -95,6 +96,7 @@ internal fun SettingsView(
     onAutoBackupIntervalDialogDismissed: () -> Unit,
     onOverwriteConfirmed: () -> Unit,
     onOverwriteDialogDismissed: () -> Unit,
+    onSubscribeTapped: () -> Unit,
 ) {
 
     if (viewState.showDiaryDayStartDialog) {
@@ -364,6 +366,17 @@ internal fun SettingsView(
                 )
             }
 
+            SettingSectionHeader(title = stringResource(R.string.settings_content_subscription_section))
+            SettingRow(
+                title = if (viewState.subscriptionState == SubscriptionState.Active) {
+                    stringResource(R.string.settings_content_subscription_row_subscribed)
+                } else {
+                    stringResource(R.string.settings_content_subscription_row_not_subscribed)
+                },
+                enabled = viewState.subscriptionState != SubscriptionState.Active,
+                onTapped = onSubscribeTapped,
+            )
+
             SettingSectionHeader(title = stringResource(R.string.settings_privacy_section))
             Text(
                 modifier = Modifier
@@ -526,6 +539,7 @@ private fun SettingsViewPreview() {
             onAutoBackupIntervalDialogDismissed = {},
             onOverwriteConfirmed = {},
             onOverwriteDialogDismissed = {},
+            onSubscribeTapped = {},
         )
     }
 }

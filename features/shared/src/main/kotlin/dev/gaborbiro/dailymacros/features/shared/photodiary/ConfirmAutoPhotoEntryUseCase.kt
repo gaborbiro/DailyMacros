@@ -6,6 +6,8 @@ import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.NutrientAnalysisWorker
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import javax.inject.Inject
 
 class ConfirmAutoPhotoEntryUseCase @Inject constructor(
@@ -23,7 +25,10 @@ class ConfirmAutoPhotoEntryUseCase @Inject constructor(
                 parentTemplateId = null,
             )
         )
-        val recordId = createRecordFromTemplateUseCase.execute(templateId)
+        val recordId = createRecordFromTemplateUseCase.execute(
+            templateId,
+            ZonedDateTime.now(ZoneId.systemDefault()),
+        )
         NutrientAnalysisWorker.setWorkRequest(appContext, recordId, force = true)
     }
 }

@@ -7,10 +7,17 @@
  * Flow for a normal request:
  *   1. Verify the caller's Firebase ID token (anonymous auth is fine) -> uid.
  *   2. In one Firestore transaction, check the kill switch, the global monthly
- *      request budget, and the per-user daily cap. Increment both counters.
+ *      request budget, the subscription gate, and the per-user daily cap.
+ *      Increment both counters.
  *   3. Forward the JSON body verbatim to OpenAI's /v1/responses with the real
  *      key and return OpenAI's status + body unchanged, so the Android client's
  *      existing response/error parsing keeps working.
+ *
+ * Subscription gate: config/limits.subscriptionGateEnabled (boolean, default
+ * false) turns on requiring an active/grace/still-in-paid-period subscription
+ * (subscriptions/{uid}, written by verifySubscription in subscriptions.js) for
+ * everyone not on the unlimitedClientIds allowlist. Ships disabled so the code
+ * can land ahead of the business decision to actually start enforcing it.
  *
  * Metering is by REQUEST COUNT (a tripwire), not exact token cost: ~3000
  * requests/month ~= $30 at ~$0.01/call. Tune the numbers live in Firestore at
@@ -45,6 +52,8 @@ const admin = require("firebase-admin");
 
 admin.initializeApp();
 const db = admin.firestore();
+
+exports.verifySubscription = require("./subscriptions").verifySubscription;
 
 // Set with: firebase functions:secrets:set OPENAI_KEY
 const OPENAI_KEY = defineSecret("OPENAI_KEY");
@@ -111,14 +120,16 @@ exports.openaiProxy = onRequest(
     const configRef = db.doc("config/limits");
     const globalRef = db.doc("usage/global");
     const userRef = db.doc(`usage_users/${uid}`);
+    const subRef = db.doc(`subscriptions/${uid}`);
 
     let decision;
     try {
       decision = await db.runTransaction(async (tx) => {
-        const [configSnap, globalSnap, userSnap] = await Promise.all([
+        const [configSnap, globalSnap, userSnap, subSnap] = await Promise.all([
           tx.get(configRef),
           tx.get(globalRef),
           tx.get(userRef),
+          tx.get(subRef),
         ]);
 
         const cfg = configSnap.data() || {};
@@ -135,11 +146,30 @@ exports.openaiProxy = onRequest(
           return { allow: false, status: 503, code: "monthly_budget", message: "Service is at capacity for this month. Please try again later." };
         }
 
+        // Allowlisted clients skip both the daily cap (checked below) and the
+        // subscription gate (developer testing, reviewers) — still counted,
+        // still bounded by the global monthly budget checked above. The
+        // subscription gate itself is behind config/limits.subscriptionGateEnabled
+        // so the code can ship ahead of the business decision to actually
+        // start enforcing it.
+        const isUnlimited = clientId != null && unlimitedClientIds.includes(clientId);
+        if (cfg.subscriptionGateEnabled === true && !isUnlimited) {
+          const sub = subSnap.data();
+          const nowMillis = Date.now();
+          const entitled = !!sub && (
+            sub.state === "active" ||
+            sub.state === "grace" ||
+            (sub.state === "canceled" && sub.expiryTimeMillis > nowMillis)
+          );
+          if (!entitled) {
+            return { allow: false, status: 403, code: "subscription_required", message: "A subscription is required to continue using AI analysis." };
+          }
+        }
+
         const u = userSnap.data() || {};
         const userCount = u.utcDay === utcDayKey ? u.count || 0 : 0;
         // Allowlisted clients skip the per-user daily cap (still counted below,
         // still bounded by the global monthly budget checked above).
-        const isUnlimited = clientId != null && unlimitedClientIds.includes(clientId);
         if (!isUnlimited && userCount >= perUserDailyCap) {
           return { allow: false, status: 429, code: "daily_cap", message: "You've reached today's analysis limit. Please try again tomorrow." };
         }

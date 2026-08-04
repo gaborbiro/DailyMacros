@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import dev.gaborbiro.dailymacros.features.common.SettingsRowId
@@ -35,6 +36,7 @@ fun SettingsScreen(
 ) {
     val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
     val createPublicDocumentUseCase = rememberCreatePublicDocumentUseCase()
     val openPublicDocumentUseCase = rememberOpenPublicDocumentUseCase()
 
@@ -98,6 +100,7 @@ fun SettingsScreen(
         onAutoBackupIntervalDialogDismissed = settingsViewModel::onAutoBackupIntervalDialogDismissed,
         onOverwriteConfirmed = settingsViewModel::onOverwriteConfirmed,
         onOverwriteDialogDismissed = settingsViewModel::onOverwriteDialogDismissed,
+        onSubscribeTapped = { context.findActivity()?.let(settingsViewModel::onSubscribeRowTapped) },
     )
 
     if (settingsUiState.showTargetsSettings) {

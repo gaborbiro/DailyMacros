@@ -49,6 +49,7 @@ class BuildRecordDetailsViewDialogUseCase @Inject constructor(
                 imageFilenames = tmpl.imageFilenames,
             ),
             isEditing = false,
+            timestamp = record.timestamp,
         )
     }
 }

@@ -12,6 +12,7 @@ import dagger.hilt.android.HiltAndroidApp
 import dagger.hilt.components.SingletonComponent
 import dev.gaborbiro.dailymacros.features.shared.photodiary.PhotoMonitorWorker
 import dev.gaborbiro.dailymacros.features.widgets.WidgetAutoReloader
+import dev.gaborbiro.dailymacros.repositories.billing.domain.SubscriptionRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.util.createNotificationChannels
 
@@ -26,6 +27,7 @@ interface AppWorkerFactoryEntryPoint {
 interface AppBootstrapEntryPoint {
     fun widgetAutoReloader(): WidgetAutoReloader
     fun settingsRepository(): SettingsRepository
+    fun subscriptionRepository(): SubscriptionRepository
 }
 
 @HiltAndroidApp
@@ -62,5 +64,9 @@ class App : Application(), Configuration.Provider {
         if (bootstrap.settingsRepository().getAutoPhotoRecognitionEnabled()) {
             PhotoMonitorWorker.enqueue(this)
         }
+        // Stand-in for "next check-in" given RTDN is deferred: a subscription
+        // cancelled/expired since last launch is only caught here or on the next
+        // purchase event, not immediately.
+        bootstrap.subscriptionRepository().refresh()
     }
 }

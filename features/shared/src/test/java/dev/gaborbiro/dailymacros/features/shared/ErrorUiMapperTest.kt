@@ -81,6 +81,19 @@ class ErrorUiMapperTest {
     }
 
     @Test
+    fun `mapErrorMessage subscription required shows its own string`() {
+        assertEquals(
+            context.getString(R.string.shared_content_usage_limit_subscription_required),
+            mapperWithoutApiKey.mapErrorMessage(
+                DomainError.DisplayMessageToUser.OperationFailed(
+                    cause = UsageLimitException(UsageLimitKind.SUBSCRIPTION_REQUIRED),
+                ),
+                defaultMessage = "default",
+            ),
+        )
+    }
+
+    @Test
     fun `mapErrorMessage force technical message always shows`() {
         assertEquals(
             "API quota exceeded",
