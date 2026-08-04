@@ -17,8 +17,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -44,26 +44,40 @@ class WidgetAutoReloader @Inject constructor(
 ) {
 
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private var job: Job? = null
+    private var diaryJob: Job? = null
+    private var quickPickJob: Job? = null
 
     @OptIn(FlowPreview::class)
     fun start() {
-        if (job?.isActive == true) return
-        job = scope.launch {
-            combine(
-                recordsRepository.observeRecords(searchTerm = null, sinceEpochMillis = 0L),
-                recordsRepository.observeQuickPicks(DiaryWidgetScreen.QUICK_PICK_COUNT),
-            ) { _, _ -> Unit }
-                // Skip the initial "current state" emission so we only react to changes.
-                .drop(1)
-                // Coalesce bursts of writes (e.g. saving a record cascades to multiple tables).
-                .debounce(DEBOUNCE_MS)
-                .onEach { reloadWidgets() }
-                .collect {}
+        if (diaryJob?.isActive != true) {
+            diaryJob = scope.launch {
+                recordsRepository.observeRecords(searchTerm = null, sinceEpochMillis = 0L)
+                    // Skip the initial "current state" emission so we only react to changes.
+                    .drop(1)
+                    // Coalesce bursts of writes (e.g. saving a record cascades to multiple tables).
+                    .debounce(DEBOUNCE_MS)
+                    .onEach { reloadDiaryWidget() }
+                    .collect {}
+            }
+        }
+        if (quickPickJob?.isActive != true) {
+            quickPickJob = scope.launch {
+                recordsRepository.observeQuickPicks(DiaryWidgetScreen.QUICK_PICK_COUNT)
+                    // Room re-runs this query on any write to the underlying tables (templates,
+                    // macros, template images), even ones unrelated to the quick pick ranking
+                    // (e.g. an unrelated record's AI analysis completing). Only react when the
+                    // actual quick pick list content changed, so Quick Pick widgets don't
+                    // needlessly flicker.
+                    .distinctUntilChanged()
+                    .drop(1)
+                    .debounce(DEBOUNCE_MS)
+                    .onEach { reloadQuickPickWidgets() }
+                    .collect {}
+            }
         }
     }
 
-    private suspend fun reloadWidgets() {
+    private suspend fun reloadDiaryWidget() {
         val manager = GlanceAppWidgetManager(appContext)
 
         val diaryIds = manager.getGlanceIds(DiaryWidgetScreen::class.java)
@@ -85,6 +99,10 @@ class WidgetAutoReloader @Inject constructor(
             }
             DiaryWidgetScreen().updateAll(appContext)
         }
+    }
+
+    private suspend fun reloadQuickPickWidgets() {
+        val manager = GlanceAppWidgetManager(appContext)
 
         val quickPickIds = manager.getGlanceIds(QuickPickWidgetScreen::class.java)
         if (quickPickIds.isNotEmpty()) {
