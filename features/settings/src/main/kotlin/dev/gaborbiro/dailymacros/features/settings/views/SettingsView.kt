@@ -79,6 +79,8 @@ internal fun SettingsView(
     onDiaryDayStartHourSelected: (Int) -> Unit,
     onAutoPhotoRecognitionToggled: (Boolean) -> Unit,
     onQuickPickConfirmationToggled: (Boolean) -> Unit,
+    onWifiOnlyBackupToggled: (Boolean) -> Unit,
+    onWifiOnlyAnalysisToggled: (Boolean) -> Unit,
     onExportSettingTapped: () -> Unit,
     onPdfExportDismissed: () -> Unit,
     onPdfExportConfirmed: (PdfRangeSelection, PdfExportOptions) -> Unit,
@@ -364,6 +366,17 @@ internal fun SettingsView(
                     enabled = cloudSyncIdle,
                     onTapped = onRestoreFromDriveTapped,
                 )
+                SettingRow(
+                    title = stringResource(R.string.settings_wifi_only_backup_row),
+                    subtitle = stringResource(R.string.settings_wifi_only_backup_subtitle),
+                    onTapped = { onWifiOnlyBackupToggled(!viewState.wifiOnlyBackupEnabled) },
+                    trailing = {
+                        Switch(
+                            checked = viewState.wifiOnlyBackupEnabled,
+                            onCheckedChange = onWifiOnlyBackupToggled,
+                        )
+                    },
+                )
             }
 
             SettingSectionHeader(title = stringResource(R.string.settings_content_subscription_section))
@@ -375,6 +388,19 @@ internal fun SettingsView(
                 },
                 enabled = viewState.subscriptionState != SubscriptionState.Active,
                 onTapped = onSubscribeTapped,
+            )
+
+            SettingSectionHeader(title = stringResource(R.string.settings_content_data_usage_section))
+            SettingRow(
+                title = stringResource(R.string.settings_wifi_only_analysis_row),
+                subtitle = stringResource(R.string.settings_wifi_only_analysis_subtitle),
+                onTapped = { onWifiOnlyAnalysisToggled(!viewState.wifiOnlyAnalysisEnabled) },
+                trailing = {
+                    Switch(
+                        checked = viewState.wifiOnlyAnalysisEnabled,
+                        onCheckedChange = onWifiOnlyAnalysisToggled,
+                    )
+                },
             )
 
             SettingSectionHeader(title = stringResource(R.string.settings_privacy_section))
@@ -522,6 +548,8 @@ private fun SettingsViewPreview() {
             onDiaryDayStartHourSelected = {},
             onAutoPhotoRecognitionToggled = {},
             onQuickPickConfirmationToggled = {},
+            onWifiOnlyBackupToggled = {},
+            onWifiOnlyAnalysisToggled = {},
             onExportSettingTapped = {},
             onPdfExportDismissed = {},
             onPdfExportConfirmed = { _, _ -> },

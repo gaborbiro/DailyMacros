@@ -6,6 +6,7 @@ import com.google.android.gms.auth.GoogleAuthUtil
 import com.google.android.gms.auth.UserRecoverableAuthException
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.gaborbiro.dailymacros.features.common.utils.isConnectedToWifi
 import dev.gaborbiro.dailymacros.features.settings.DRIVE_SCOPE_TOKEN
 import dev.gaborbiro.dailymacros.features.settings.R
 import dev.gaborbiro.dailymacros.repositories.backup.domain.CloudSyncRepository
@@ -40,6 +41,8 @@ class AutoSyncUseCase @Inject constructor(
         val lastAttempt = settingsRepository.getLastBackupAttemptEpochMs()
         val now = System.currentTimeMillis()
         if (lastAttempt != null && (now - lastAttempt) < interval.toMillis()) return Result.Skipped
+
+        if (settingsRepository.getWifiOnlyBackupEnabled() && !context.isConnectedToWifi()) return Result.Skipped
 
         return try {
             val token = getDriveAccessToken()

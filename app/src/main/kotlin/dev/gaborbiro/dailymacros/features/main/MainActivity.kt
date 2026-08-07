@@ -53,6 +53,7 @@ import android.widget.Toast
 import dev.gaborbiro.dailymacros.features.widgets.diarywidget.DiaryWidgetReceiver
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.AutoSyncUseCase
 import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusRepository
+import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.util.cancelAutoSyncNotifications
 import dev.gaborbiro.dailymacros.util.showAutoSyncConflictNotification
 import dev.gaborbiro.dailymacros.util.showAutoSyncFailureNotification
@@ -80,6 +81,9 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var autoSyncUseCase: AutoSyncUseCase
 
+    @Inject
+    lateinit var settingsRepository: SettingsRepository
+
     // Same instance as the hiltViewModel() in setContent: both are scoped to this Activity.
     private val settingsViewModel: SettingsViewModel by viewModels()
 
@@ -95,6 +99,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        EndOfDayAutoSyncWorker.schedule(applicationContext, settingsRepository)
         lifecycleScope.launch {
             when (val result = autoSyncUseCase.execute()) {
                 is AutoSyncUseCase.Result.ConflictDetected ->

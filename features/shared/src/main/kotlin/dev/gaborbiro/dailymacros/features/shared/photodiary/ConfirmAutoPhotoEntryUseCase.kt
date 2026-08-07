@@ -29,6 +29,6 @@ class ConfirmAutoPhotoEntryUseCase @Inject constructor(
             templateId,
             ZonedDateTime.now(ZoneId.systemDefault()),
         )
-        NutrientAnalysisWorker.setWorkRequest(appContext, recordId, force = true)
+        NutrientAnalysisWorker.setWorkRequest(appContext, recordId, force = true, wifiOnly = false)
     }
 }

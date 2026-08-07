@@ -225,6 +225,20 @@ class SettingsRepositoryImpl @Inject constructor(
         prefs.edit { putBoolean(KEY_QUICK_PICK_CONFIRMATION, enabled) }
     }
 
+    override fun getWifiOnlyBackupEnabled(): Boolean =
+        prefs.getBoolean(KEY_WIFI_ONLY_BACKUP, false)
+
+    override fun setWifiOnlyBackupEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean(KEY_WIFI_ONLY_BACKUP, enabled) }
+    }
+
+    override fun getWifiOnlyAnalysisEnabled(): Boolean =
+        prefs.getBoolean(KEY_WIFI_ONLY_ANALYSIS, false)
+
+    override fun setWifiOnlyAnalysisEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean(KEY_WIFI_ONLY_ANALYSIS, enabled) }
+    }
+
     override fun getLastProcessedMediaStoreId(): Long =
         prefs.getLong(KEY_LAST_PROCESSED_MEDIA_STORE_ID, -1L)
 
@@ -320,5 +334,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private const val KEY_AUTO_SYNC_ERROR = "auto_sync_error"
         private const val KEY_AUTO_SYNC_ERROR_NOTIFIED_EPOCH_MS = "auto_sync_error_notified_epoch_ms"
         private const val KEY_PDF_EXPORT_OPTIONS = "pdf_export_options_json"
+        private const val KEY_WIFI_ONLY_BACKUP = "wifi_only_backup_enabled"
+        private const val KEY_WIFI_ONLY_ANALYSIS = "wifi_only_analysis_enabled"
     }
 }
