@@ -39,7 +39,7 @@ class NutrientAnalysisWorker @AssistedInject constructor(
          * @param wifiOnly Whether this request should wait for Wi-Fi. Callers pass true only for
          * the automatic retry scheduled after a connectivity failure (gated by the user's "Wi-Fi
          * only for macro analysis" setting); every direct user action (saving/editing a record,
-         * tapping "Analyse macros", confirming an auto-detected photo entry) passes false so it
+         * tapping "Re-run nutrient analysis", confirming an auto-detected photo entry) passes false so it
          * fires on any connection.
          */
         fun setWorkRequest(
