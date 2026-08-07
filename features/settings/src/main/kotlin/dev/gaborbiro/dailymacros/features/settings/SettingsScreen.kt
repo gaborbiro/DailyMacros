@@ -81,6 +81,8 @@ fun SettingsScreen(
         onDiaryDayStartHourSelected = settingsViewModel::onDiaryDayStartHourSelected,
         onAutoPhotoRecognitionToggled = settingsViewModel::onAutoPhotoRecognitionToggled,
         onQuickPickConfirmationToggled = settingsViewModel::onQuickPickConfirmationToggled,
+        onWifiOnlyBackupToggled = settingsViewModel::onWifiOnlyBackupToggled,
+        onWifiOnlyAnalysisToggled = settingsViewModel::onWifiOnlyAnalysisToggled,
         onExportSettingTapped = settingsViewModel::onExportSettingsTapped,
         onPdfExportDismissed = settingsViewModel::onPdfExportDialogDismissed,
         onPdfExportConfirmed = { selection, options ->

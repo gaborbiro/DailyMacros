@@ -763,6 +763,7 @@ class ModalViewModel @Inject constructor(
                 appContext = application,
                 recordId = recordId,
                 force = true,
+                wifiOnly = false,
             )
         }
     }
@@ -773,6 +774,7 @@ class ModalViewModel @Inject constructor(
                 appContext = application,
                 recordId = record.recordId,
                 force = true,
+                wifiOnly = false,
             )
         }
     }
@@ -817,6 +819,7 @@ class ModalViewModel @Inject constructor(
                     appContext = application,
                     recordId = recordId,
                     force = true,
+                    wifiOnly = false,
                 )
                 closeAllRequestingNotificationPermission()
             }
@@ -886,6 +889,7 @@ class ModalViewModel @Inject constructor(
                                 appContext = application,
                                 recordId = dialogHandle.recordId,
                                 force = true,
+                                wifiOnly = false,
                             )
                         }
                     }
@@ -942,6 +946,7 @@ class ModalViewModel @Inject constructor(
                     appContext = application,
                     recordId = secondRecordId,
                     force = true,
+                    wifiOnly = false,
                 )
                 closeAll()
             }
