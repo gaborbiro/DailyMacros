@@ -50,7 +50,7 @@ import dev.gaborbiro.dailymacros.features.overview.views.WelcomeBullet
 import kotlinx.coroutines.launch
 import dev.gaborbiro.dailymacros.features.overview.R as OverviewR
 
-private const val PAGE_COUNT = 2
+private const val PAGE_COUNT = 3
 
 @Composable
 internal fun OnboardingView(
@@ -76,7 +76,8 @@ internal fun OnboardingView(
                 modifier = Modifier.weight(1f),
             ) { page ->
                 when (page) {
-                    0 -> OnboardingWelcomePage(onAddWidget = onAddWidget, onRestoreFromCloud = onRestoreFromCloud)
+                    0 -> OnboardingIntroPage()
+                    1 -> OnboardingSetupPage(onAddWidget = onAddWidget, onRestoreFromCloud = onRestoreFromCloud)
                     else -> OnboardingTrialPage(onStartTrialTapped = onStartTrialTapped, onSkipTapped = onSkipTapped)
                 }
             }
@@ -89,8 +90,9 @@ internal fun OnboardingView(
             ) {
                 PageIndicator(pageCount = PAGE_COUNT, currentPage = pagerState.currentPage)
                 Spacer(modifier = Modifier.weight(1f))
-                if (pagerState.currentPage == 0) {
-                    Button(onClick = { coroutineScope.launch { pagerState.animateScrollToPage(1) } }) {
+                if (pagerState.currentPage < PAGE_COUNT - 1) {
+                    val nextPage = pagerState.currentPage + 1
+                    Button(onClick = { coroutineScope.launch { pagerState.animateScrollToPage(nextPage) } }) {
                         Text(stringResource(R.string.onboarding_next))
                     }
                 }
@@ -121,11 +123,7 @@ private fun PageIndicator(pageCount: Int, currentPage: Int) {
  * spread their own content out) and tight on short ones, without ever needing to scroll.
  */
 @Composable
-private fun OnboardingWelcomePage(
-    onAddWidget: () -> Unit,
-    onRestoreFromCloud: () -> Unit,
-) {
-    val onBackground = MaterialTheme.colorScheme.onBackground
+private fun OnboardingIntroPage() {
     val extraColors = LocalExtraColorScheme.current
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -186,43 +184,57 @@ private fun OnboardingWelcomePage(
                     Spacer(modifier = Modifier.height(8.dp))
                     WelcomeBullet(text = stringResource(OverviewR.string.welcome_bullet_track))
                 }
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                AddWidgetButton(onClick = onAddWidget)
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = stringResource(OverviewR.string.welcome_widget_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = onBackground.copy(alpha = 0.5f),
-                    textAlign = TextAlign.Center,
-                )
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                Text(
-                    modifier = Modifier.clickable(onClick = onRestoreFromCloud),
-                    text = stringResource(OverviewR.string.welcome_restore_from_cloud),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    textAlign = TextAlign.Center,
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                val uriHandler = LocalUriHandler.current
-                val privacyPolicyUrl = stringResource(OverviewR.string.welcome_privacy_policy_url)
-                Text(
-                    modifier = Modifier.clickable { uriHandler.openUri(privacyPolicyUrl) },
-                    text = stringResource(OverviewR.string.welcome_privacy_policy_link),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    textAlign = TextAlign.Center,
-                )
             }
         }
+    }
+}
+
+@Composable
+private fun OnboardingSetupPage(
+    onAddWidget: () -> Unit,
+    onRestoreFromCloud: () -> Unit,
+) {
+    val onBackground = MaterialTheme.colorScheme.onBackground
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 28.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        AddWidgetButton(onClick = onAddWidget)
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = stringResource(OverviewR.string.welcome_widget_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = onBackground.copy(alpha = 0.5f),
+            textAlign = TextAlign.Center,
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Text(
+            modifier = Modifier.clickable(onClick = onRestoreFromCloud),
+            text = stringResource(OverviewR.string.welcome_restore_from_cloud),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Center,
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        val uriHandler = LocalUriHandler.current
+        val privacyPolicyUrl = stringResource(OverviewR.string.welcome_privacy_policy_url)
+        Text(
+            modifier = Modifier.clickable { uriHandler.openUri(privacyPolicyUrl) },
+            text = stringResource(OverviewR.string.welcome_privacy_policy_link),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
