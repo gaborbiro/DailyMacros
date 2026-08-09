@@ -97,6 +97,7 @@ internal fun SettingsView(
     onOverwriteConfirmed: () -> Unit,
     onOverwriteDialogDismissed: () -> Unit,
     onSubscribeTapped: () -> Unit,
+    onShowOnboardingTapped: () -> Unit = {},
 ) {
 
     if (viewState.showDiaryDayStartDialog) {
@@ -394,6 +395,14 @@ internal fun SettingsView(
                 onTapped = { uriHandler.openUri(privacyPolicyUrl) },
             )
 
+            if (viewState.isDebugBuild) {
+                SettingSectionHeader(title = stringResource(R.string.settings_debug_section))
+                SettingRow(
+                    title = stringResource(R.string.settings_debug_show_onboarding_row),
+                    onTapped = onShowOnboardingTapped,
+                )
+            }
+
             SelectionContainer {
                 Text(
                     modifier = Modifier
@@ -540,6 +549,7 @@ private fun SettingsViewPreview() {
             onOverwriteConfirmed = {},
             onOverwriteDialogDismissed = {},
             onSubscribeTapped = {},
+            onShowOnboardingTapped = {},
         )
     }
 }

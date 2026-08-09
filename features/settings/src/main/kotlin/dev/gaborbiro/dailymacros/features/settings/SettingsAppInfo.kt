@@ -6,4 +6,5 @@ package dev.gaborbiro.dailymacros.features.settings
  */
 interface SettingsAppInfo {
     val versionLabel: String
+    val isDebugBuild: Boolean
 }

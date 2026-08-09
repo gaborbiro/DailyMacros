@@ -24,7 +24,6 @@ fun OverviewScreen(
     modalNavigator: ModalNavigator,
     navController: NavHostController,
     onAddWidget: () -> Unit = {},
-    onRestoreFromCloud: () -> Unit = {},
 ) {
     val viewModel: OverviewViewModel = hiltViewModel()
     val context = LocalContext.current
@@ -58,7 +57,6 @@ fun OverviewScreen(
         onSearchTermChanged = viewModel::onSearchTermChanged,
         onSettingsButtonTapped = viewModel::onSettingsButtonTapped,
         onAddWidget = onAddWidget,
-        onRestoreFromCloud = onRestoreFromCloud,
         onSetTargetsTapped = {
             navController.navigate("$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_ROW_ARG=${SettingsRowId.TARGETS.name}")
         },

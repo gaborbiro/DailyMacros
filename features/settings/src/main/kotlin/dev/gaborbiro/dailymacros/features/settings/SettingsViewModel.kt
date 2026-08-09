@@ -79,6 +79,7 @@ class SettingsViewModel @Inject constructor(
             autoPhotoRecognitionVisible = featureFlagStore.isEnabled(FeatureFlagStore.Key.AUTO_PHOTO_RECOGNITION_ENABLED),
             quickPickConfirmationEnabled = settingsRepository.getQuickPickConfirmationEnabled(),
             autoBackupInterval = settingsRepository.getAutoBackupInterval(),
+            isDebugBuild = appInfo.isDebugBuild,
         ),
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
