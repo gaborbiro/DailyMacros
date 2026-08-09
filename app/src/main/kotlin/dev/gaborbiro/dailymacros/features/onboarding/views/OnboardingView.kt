@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -90,11 +91,16 @@ internal fun OnboardingView(
             ) {
                 PageIndicator(pageCount = PAGE_COUNT, currentPage = pagerState.currentPage)
                 Spacer(modifier = Modifier.weight(1f))
-                if (pagerState.currentPage < PAGE_COUNT - 1) {
-                    val nextPage = pagerState.currentPage + 1
-                    Button(onClick = { coroutineScope.launch { pagerState.animateScrollToPage(nextPage) } }) {
-                        Text(stringResource(R.string.onboarding_next))
-                    }
+                // Always rendered (just invisible on the last page) so the row's height - and
+                // therefore its vertical position - never shifts between pages.
+                val isLastPage = pagerState.currentPage == PAGE_COUNT - 1
+                val nextPage = pagerState.currentPage + 1
+                Button(
+                    modifier = Modifier.alpha(if (isLastPage) 0f else 1f),
+                    enabled = !isLastPage,
+                    onClick = { coroutineScope.launch { pagerState.animateScrollToPage(nextPage) } },
+                ) {
+                    Text(stringResource(R.string.onboarding_next))
                 }
             }
         }
@@ -196,40 +202,44 @@ private fun OnboardingSetupPage(
 ) {
     val onBackground = MaterialTheme.colorScheme.onBackground
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 28.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
     ) {
-        AddWidgetButton(onClick = onAddWidget)
+        Column(
+            modifier = Modifier.align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            AddWidgetButton(onClick = onAddWidget)
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Text(
-            text = stringResource(OverviewR.string.welcome_widget_hint),
-            style = MaterialTheme.typography.bodySmall,
-            color = onBackground.copy(alpha = 0.5f),
-            textAlign = TextAlign.Center,
-        )
+            Text(
+                text = stringResource(OverviewR.string.welcome_widget_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = onBackground.copy(alpha = 0.5f),
+                textAlign = TextAlign.Center,
+            )
 
-        Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-        Text(
-            modifier = Modifier.clickable(onClick = onRestoreFromCloud),
-            text = stringResource(OverviewR.string.welcome_restore_from_cloud),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                modifier = Modifier.clickable(onClick = onRestoreFromCloud),
+                text = stringResource(OverviewR.string.welcome_restore_from_cloud),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+            )
+        }
 
         val uriHandler = LocalUriHandler.current
         val privacyPolicyUrl = stringResource(OverviewR.string.welcome_privacy_policy_url)
         Text(
-            modifier = Modifier.clickable { uriHandler.openUri(privacyPolicyUrl) },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 16.dp)
+                .clickable { uriHandler.openUri(privacyPolicyUrl) },
             text = stringResource(OverviewR.string.welcome_privacy_policy_link),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.primary,
