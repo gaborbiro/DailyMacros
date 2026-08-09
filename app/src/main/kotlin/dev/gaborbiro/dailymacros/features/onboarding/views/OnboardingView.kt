@@ -5,14 +5,20 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -60,7 +66,11 @@ internal fun OnboardingView(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background,
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.systemBars),
+        ) {
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.weight(1f),
@@ -80,7 +90,7 @@ internal fun OnboardingView(
                 PageIndicator(pageCount = PAGE_COUNT, currentPage = pagerState.currentPage)
                 Spacer(modifier = Modifier.weight(1f))
                 if (pagerState.currentPage == 0) {
-                    TextButton(onClick = { coroutineScope.launch { pagerState.animateScrollToPage(1) } }) {
+                    Button(onClick = { coroutineScope.launch { pagerState.animateScrollToPage(1) } }) {
                         Text(stringResource(R.string.onboarding_next))
                     }
                 }
@@ -105,6 +115,11 @@ private fun PageIndicator(pageCount: Int, currentPage: Int) {
     }
 }
 
+/**
+ * The heading sits between two equally weighted halves, so any slack vertical space splits
+ * evenly above and below it: it stays centered on tall screens (where the halves have room to
+ * spread their own content out) and tight on short ones, without ever needing to scroll.
+ */
 @Composable
 private fun OnboardingWelcomePage(
     onAddWidget: () -> Unit,
@@ -113,90 +128,101 @@ private fun OnboardingWelcomePage(
     val onBackground = MaterialTheme.colorScheme.onBackground
     val extraColors = LocalExtraColorScheme.current
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScrollWithBar()
-            .padding(horizontal = 28.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Spacer(modifier = Modifier.height(24.dp))
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val compact = maxWidth < 360.dp
+        val hPadding = if (compact) 16.dp else 28.dp
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            PhoneIllustration(primaryColor = MaterialTheme.colorScheme.primary)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = hPadding),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    PhoneIllustration(primaryColor = MaterialTheme.colorScheme.primary)
+
+                    Column(
+                        modifier = Modifier.padding(start = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        MacroChip(label = stringResource(OverviewR.string.welcome_chip_protein), color = extraColors.proteinColor)
+                        MacroChip(label = stringResource(OverviewR.string.welcome_chip_carbs), color = extraColors.carbsColor)
+                        MacroChip(label = stringResource(OverviewR.string.welcome_chip_fat), color = extraColors.fatColor)
+                        MacroChip(label = stringResource(OverviewR.string.welcome_chip_calories), color = extraColors.caloriesColor)
+                    }
+                }
+            }
+
+            Text(
+                text = stringResource(OverviewR.string.welcome_heading),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+            )
 
             Column(
-                modifier = Modifier.padding(start = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
             ) {
-                MacroChip(label = stringResource(OverviewR.string.welcome_chip_protein), color = extraColors.proteinColor)
-                MacroChip(label = stringResource(OverviewR.string.welcome_chip_carbs), color = extraColors.carbsColor)
-                MacroChip(label = stringResource(OverviewR.string.welcome_chip_fat), color = extraColors.fatColor)
-                MacroChip(label = stringResource(OverviewR.string.welcome_chip_calories), color = extraColors.caloriesColor)
+                Column(
+                    // Sized to the widest bullet line, then centered as a block by the parent -
+                    // each bullet stays left-aligned to that block's edge, not to the screen.
+                    modifier = Modifier.width(IntrinsicSize.Max),
+                    horizontalAlignment = Alignment.Start,
+                ) {
+                    WelcomeBullet(text = stringResource(OverviewR.string.welcome_bullet_snap))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    WelcomeBullet(text = stringResource(OverviewR.string.welcome_bullet_ai))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    WelcomeBullet(text = stringResource(OverviewR.string.welcome_bullet_track))
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                AddWidgetButton(onClick = onAddWidget)
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = stringResource(OverviewR.string.welcome_widget_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = onBackground.copy(alpha = 0.5f),
+                    textAlign = TextAlign.Center,
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                Text(
+                    modifier = Modifier.clickable(onClick = onRestoreFromCloud),
+                    text = stringResource(OverviewR.string.welcome_restore_from_cloud),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center,
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                val uriHandler = LocalUriHandler.current
+                val privacyPolicyUrl = stringResource(OverviewR.string.welcome_privacy_policy_url)
+                Text(
+                    modifier = Modifier.clickable { uriHandler.openUri(privacyPolicyUrl) },
+                    text = stringResource(OverviewR.string.welcome_privacy_policy_link),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center,
+                )
             }
         }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Text(
-            text = stringResource(OverviewR.string.welcome_heading),
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        WelcomeBullet(text = stringResource(OverviewR.string.welcome_bullet_snap))
-        Spacer(modifier = Modifier.height(8.dp))
-        WelcomeBullet(text = stringResource(OverviewR.string.welcome_bullet_ai))
-        Spacer(modifier = Modifier.height(8.dp))
-        WelcomeBullet(text = stringResource(OverviewR.string.welcome_bullet_track))
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        AddWidgetButton(onClick = onAddWidget)
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = stringResource(OverviewR.string.welcome_widget_hint),
-            style = MaterialTheme.typography.bodySmall,
-            color = onBackground.copy(alpha = 0.5f),
-            textAlign = TextAlign.Center,
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Text(
-            modifier = Modifier.clickable(onClick = onRestoreFromCloud),
-            text = stringResource(OverviewR.string.welcome_restore_from_cloud),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        val uriHandler = LocalUriHandler.current
-        val privacyPolicyUrl = stringResource(OverviewR.string.welcome_privacy_policy_url)
-        Text(
-            text = stringResource(OverviewR.string.welcome_privacy_notice),
-            style = MaterialTheme.typography.bodySmall,
-            color = onBackground.copy(alpha = 0.5f),
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            modifier = Modifier.clickable { uriHandler.openUri(privacyPolicyUrl) },
-            text = stringResource(OverviewR.string.welcome_privacy_policy_link),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
