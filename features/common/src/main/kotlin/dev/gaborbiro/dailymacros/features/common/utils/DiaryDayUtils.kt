@@ -29,3 +29,9 @@ fun logicalDiaryToday(zone: ZoneId, dayStart: LocalTime): LocalDate =
 fun diaryDayWindowStart(day: LocalDate, dayStart: LocalTime, zone: ZoneId): ZonedDateTime =
     if (dayStart == LocalTime.MIDNIGHT) day.atStartOfDay(zone)
     else ZonedDateTime.of(day, dayStart, zone)
+
+/** First instant of the diary day *after* [now]'s - i.e. when [now]'s "today" ends. */
+fun nextDiaryDayBoundary(now: ZonedDateTime, dayStart: LocalTime): ZonedDateTime {
+    val today = now.logicalDiaryDate(dayStart)
+    return diaryDayWindowStart(today.plusDays(1), dayStart, now.zone)
+}

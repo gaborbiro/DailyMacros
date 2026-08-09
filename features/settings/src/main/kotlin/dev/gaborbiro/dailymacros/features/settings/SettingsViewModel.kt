@@ -79,6 +79,8 @@ class SettingsViewModel @Inject constructor(
             autoPhotoRecognitionVisible = featureFlagStore.isEnabled(FeatureFlagStore.Key.AUTO_PHOTO_RECOGNITION_ENABLED),
             quickPickConfirmationEnabled = settingsRepository.getQuickPickConfirmationEnabled(),
             autoBackupInterval = settingsRepository.getAutoBackupInterval(),
+            wifiOnlyBackupEnabled = settingsRepository.getWifiOnlyBackupEnabled(),
+            wifiOnlyAnalysisEnabled = settingsRepository.getWifiOnlyAnalysisEnabled(),
             isDebugBuild = appInfo.isDebugBuild,
         ),
     )
@@ -502,6 +504,16 @@ class SettingsViewModel @Inject constructor(
     fun onQuickPickConfirmationToggled(enabled: Boolean) {
         settingsRepository.setQuickPickConfirmationEnabled(enabled)
         _uiState.update { it.copy(quickPickConfirmationEnabled = enabled) }
+    }
+
+    fun onWifiOnlyBackupToggled(enabled: Boolean) {
+        settingsRepository.setWifiOnlyBackupEnabled(enabled)
+        _uiState.update { it.copy(wifiOnlyBackupEnabled = enabled) }
+    }
+
+    fun onWifiOnlyAnalysisToggled(enabled: Boolean) {
+        settingsRepository.setWifiOnlyAnalysisEnabled(enabled)
+        _uiState.update { it.copy(wifiOnlyAnalysisEnabled = enabled) }
     }
 
     fun onAutoPhotoPermissionsGranted() {

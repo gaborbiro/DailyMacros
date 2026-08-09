@@ -68,6 +68,7 @@ class NutrientAnalysisUseCase @Inject constructor(
                             appContext = appContext,
                             recordId = recordId,
                             force = false,
+                            wifiOnly = settingsRepository.getWifiOnlyAnalysisEnabled(),
                         )
                     }
                     throw it
