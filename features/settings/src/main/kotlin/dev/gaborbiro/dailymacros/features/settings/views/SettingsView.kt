@@ -366,18 +366,18 @@ internal fun SettingsView(
                     enabled = cloudSyncIdle,
                     onTapped = onRestoreFromDriveTapped,
                 )
-                SettingRow(
-                    title = stringResource(R.string.settings_wifi_only_backup_row),
-                    subtitle = stringResource(R.string.settings_wifi_only_backup_subtitle),
-                    onTapped = { onWifiOnlyBackupToggled(!viewState.wifiOnlyBackupEnabled) },
-                    trailing = {
-                        Switch(
-                            checked = viewState.wifiOnlyBackupEnabled,
-                            onCheckedChange = onWifiOnlyBackupToggled,
-                        )
-                    },
-                )
             }
+            SettingRow(
+                title = stringResource(R.string.settings_wifi_only_backup_row),
+                subtitle = stringResource(R.string.settings_wifi_only_backup_subtitle),
+                onTapped = { onWifiOnlyBackupToggled(!viewState.wifiOnlyBackupEnabled) },
+                trailing = {
+                    Switch(
+                        checked = viewState.wifiOnlyBackupEnabled,
+                        onCheckedChange = onWifiOnlyBackupToggled,
+                    )
+                },
+            )
 
             SettingSectionHeader(title = stringResource(R.string.settings_content_subscription_section))
             SettingRow(
