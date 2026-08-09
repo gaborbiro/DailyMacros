@@ -18,6 +18,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -55,28 +56,33 @@ internal fun OnboardingView(
     val pagerState = rememberPagerState(pageCount = { PAGE_COUNT })
     val coroutineScope = rememberCoroutineScope()
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.weight(1f),
-        ) { page ->
-            when (page) {
-                0 -> OnboardingWelcomePage(onAddWidget = onAddWidget, onRestoreFromCloud = onRestoreFromCloud)
-                else -> OnboardingTrialPage(onStartTrialTapped = onStartTrialTapped, onSkipTapped = onSkipTapped)
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background,
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.weight(1f),
+            ) { page ->
+                when (page) {
+                    0 -> OnboardingWelcomePage(onAddWidget = onAddWidget, onRestoreFromCloud = onRestoreFromCloud)
+                    else -> OnboardingTrialPage(onStartTrialTapped = onStartTrialTapped, onSkipTapped = onSkipTapped)
+                }
             }
-        }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            PageIndicator(pageCount = PAGE_COUNT, currentPage = pagerState.currentPage)
-            Spacer(modifier = Modifier.weight(1f))
-            if (pagerState.currentPage == 0) {
-                TextButton(onClick = { coroutineScope.launch { pagerState.animateScrollToPage(1) } }) {
-                    Text(stringResource(R.string.onboarding_next))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                PageIndicator(pageCount = PAGE_COUNT, currentPage = pagerState.currentPage)
+                Spacer(modifier = Modifier.weight(1f))
+                if (pagerState.currentPage == 0) {
+                    TextButton(onClick = { coroutineScope.launch { pagerState.animateScrollToPage(1) } }) {
+                        Text(stringResource(R.string.onboarding_next))
+                    }
                 }
             }
         }
