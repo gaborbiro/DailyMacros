@@ -338,7 +338,7 @@ internal fun SettingsView(
 
             SettingRow(
                 title = stringResource(R.string.settings_content_account_row),
-                subtitle = if (isSignedIn) viewState.cloudSyncEmail + "${lastSyncedText?.let { "\n$it" }}" else stringResource(R.string.settings_content_sign_in_subtitle),
+                subtitle = if (isSignedIn) viewState.cloudSyncEmail + (lastSyncedText?.let { "\n$it" } ?: "") else stringResource(R.string.settings_content_sign_in_subtitle),
                 enabled = cloudSyncIdle,
                 onTapped = onCloudSyncTapped,
                 trailing = {

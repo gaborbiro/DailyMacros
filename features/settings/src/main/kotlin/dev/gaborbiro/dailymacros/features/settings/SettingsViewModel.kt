@@ -310,11 +310,13 @@ class SettingsViewModel @Inject constructor(
     fun onRestoreFromDriveTappedFromOverview() {
         viewModelScope.launch {
             _uiState.update { it.copy(cloudSyncInProgress = true) }
+            val token = getDriveAccessToken()
+            if (token == null) {
+                _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Not signed in. Tap Cloud sync to sign in."))
+                _uiState.update { it.copy(cloudSyncInProgress = false) }
+                return@launch
+            }
             runCatching {
-                val token = getDriveAccessToken() ?: run {
-                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Not signed in. Tap Cloud sync to sign in."))
-                    return@launch
-                }
                 val info = cloudSyncRepository.getBackupInfo(token)
                 if (info == null) {
                     _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("No backup found on Google Drive."))
@@ -344,11 +346,13 @@ class SettingsViewModel @Inject constructor(
     fun onSyncTapped() {
         viewModelScope.launch {
             _uiState.update { it.copy(cloudSyncInProgress = true) }
+            val token = getDriveAccessToken()
+            if (token == null) {
+                _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Not signed in. Tap Cloud sync to sign in."))
+                _uiState.update { it.copy(cloudSyncInProgress = false) }
+                return@launch
+            }
             runCatching {
-                val token = getDriveAccessToken() ?: run {
-                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Not signed in. Tap Cloud sync to sign in."))
-                    return@launch
-                }
                 val driveInfo = cloudSyncRepository.getBackupInfo(token)
                 if (driveInfo != null) {
                     // Display-only, like onAutoSyncFinished: must not be persisted, or conflict
@@ -379,11 +383,13 @@ class SettingsViewModel @Inject constructor(
         _uiState.update { it.copy(showOverwriteConfirmDialog = false) }
         viewModelScope.launch {
             _uiState.update { it.copy(cloudSyncInProgress = true) }
+            val token = getDriveAccessToken()
+            if (token == null) {
+                _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Not signed in. Tap Cloud sync to sign in."))
+                _uiState.update { it.copy(cloudSyncInProgress = false) }
+                return@launch
+            }
             runCatching {
-                val token = getDriveAccessToken() ?: run {
-                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Not signed in. Tap Cloud sync to sign in."))
-                    return@launch
-                }
                 uploadBackup(token)
             }.onFailure { t ->
                 Log.e("CloudSync", "Backup failed", t)
@@ -407,11 +413,13 @@ class SettingsViewModel @Inject constructor(
     fun onRestoreFromDriveTapped() {
         viewModelScope.launch {
             _uiState.update { it.copy(cloudSyncInProgress = true) }
+            val token = getDriveAccessToken()
+            if (token == null) {
+                _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Not signed in. Tap Cloud sync to sign in."))
+                _uiState.update { it.copy(cloudSyncInProgress = false) }
+                return@launch
+            }
             runCatching {
-                val token = getDriveAccessToken() ?: run {
-                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Not signed in. Tap Cloud sync to sign in."))
-                    return@launch
-                }
                 val info = cloudSyncRepository.getBackupInfo(token)
                 if (info == null) {
                     _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("No backup found on Google Drive."))
@@ -438,11 +446,13 @@ class SettingsViewModel @Inject constructor(
         val state = _uiState.value
         _uiState.update { it.copy(showRestoreConfirmDialog = false, cloudSyncInProgress = true) }
         viewModelScope.launch {
+            val token = getDriveAccessToken()
+            if (token == null) {
+                _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Not signed in."))
+                _uiState.update { it.copy(cloudSyncInProgress = false) }
+                return@launch
+            }
             runCatching {
-                val token = getDriveAccessToken() ?: run {
-                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Not signed in."))
-                    return@launch
-                }
                 when (restoreFromDriveUseCase.execute(token, state.restoreDialogFileId, state.restoreDialogModifiedAtMs)) {
                     ImportSqliteDatabaseResult.RestartPending ->
                         _uiUpdates.emit(SettingsUiUpdates.RestartApplication)
