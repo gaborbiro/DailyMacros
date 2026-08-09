@@ -155,6 +155,7 @@ class OverviewViewModel @Inject constructor(
             appContext = application,
             recordId = recordId,
             force = true,
+            wifiOnly = false,
         )
     }
 
