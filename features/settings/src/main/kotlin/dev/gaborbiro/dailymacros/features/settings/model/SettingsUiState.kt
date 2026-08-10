@@ -28,10 +28,13 @@ data class SettingsUiState(
     val quickPickConfirmationEnabled: Boolean = true,
     val autoBackupInterval: BackupInterval = BackupInterval.NEVER,
     val showAutoBackupIntervalDialog: Boolean = false,
+    val wifiOnlyBackupEnabled: Boolean = false,
+    val wifiOnlyAnalysisEnabled: Boolean = false,
     val showOverwriteConfirmDialog: Boolean = false,
     val overwriteDialogDriveModifiedAtMs: Long = 0L,
     val showPdfExportDialog: Boolean = false,
     val pdfExportOptions: PdfExportOptions = PdfExportOptions(),
     val pdfExportInProgress: Boolean = false,
     val subscriptionState: SubscriptionState = SubscriptionState.Unknown,
+    val isDebugBuild: Boolean = false,
 )

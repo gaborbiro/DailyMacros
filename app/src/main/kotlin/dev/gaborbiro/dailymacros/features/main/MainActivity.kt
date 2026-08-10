@@ -40,6 +40,8 @@ import dev.gaborbiro.dailymacros.design.AppTheme
 import dev.gaborbiro.dailymacros.features.common.SettingsRowId
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
+import dev.gaborbiro.dailymacros.features.onboarding.OnboardingScreen
+import dev.gaborbiro.dailymacros.features.common.ONBOARDING_ROUTE
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
@@ -53,6 +55,7 @@ import android.widget.Toast
 import dev.gaborbiro.dailymacros.features.widgets.diarywidget.DiaryWidgetReceiver
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.AutoSyncUseCase
 import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusRepository
+import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.util.cancelAutoSyncNotifications
 import dev.gaborbiro.dailymacros.util.showAutoSyncConflictNotification
 import dev.gaborbiro.dailymacros.util.showAutoSyncFailureNotification
@@ -80,6 +83,9 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var autoSyncUseCase: AutoSyncUseCase
 
+    @Inject
+    lateinit var settingsRepository: SettingsRepository
+
     // Same instance as the hiltViewModel() in setContent: both are scoped to this Activity.
     private val settingsViewModel: SettingsViewModel by viewModels()
 
@@ -95,6 +101,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        EndOfDayAutoSyncWorker.schedule(applicationContext, settingsRepository)
         lifecycleScope.launch {
             when (val result = autoSyncUseCase.execute()) {
                 is AutoSyncUseCase.Result.ConflictDetected ->
@@ -137,10 +144,29 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                val onAddWidget: () -> Unit = {
+                    val mgr = AppWidgetManager.getInstance(this@MainActivity)
+                    val provider = ComponentName(this@MainActivity, DiaryWidgetReceiver::class.java)
+                    if (mgr.isRequestPinAppWidgetSupported) {
+                        mgr.requestPinAppWidget(provider, null, null)
+                    } else {
+                        Toast.makeText(this@MainActivity, "Pinning widgets is not supported on this launcher", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
                 NavHost(
                     navController = navController,
-                    startDestination = OVERVIEW_ROUTE,
+                    startDestination = if (appPrefs.hasCompletedOnboarding) OVERVIEW_ROUTE else ONBOARDING_ROUTE,
                 ) {
+                    composable(
+                        route = ONBOARDING_ROUTE,
+                    ) {
+                        OnboardingScreen(
+                            navController = navController,
+                            onAddWidget = onAddWidget,
+                            onRestoreFromCloud = settingsViewModel::onCloudSyncForRestoreTapped,
+                        )
+                    }
                     composable(
                         route = OVERVIEW_ROUTE,
                     ) {
@@ -148,16 +174,7 @@ class MainActivity : ComponentActivity() {
                             OverviewScreen(
                                 modalNavigator = modalNavigator,
                                 navController = navController,
-                                onRestoreFromCloud = settingsViewModel::onCloudSyncForRestoreTapped,
-                                onAddWidget = {
-                                    val mgr = AppWidgetManager.getInstance(this@MainActivity)
-                                    val provider = ComponentName(this@MainActivity, DiaryWidgetReceiver::class.java)
-                                    if (mgr.isRequestPinAppWidgetSupported) {
-                                        mgr.requestPinAppWidget(provider, null, null)
-                                    } else {
-                                        Toast.makeText(this@MainActivity, "Pinning widgets is not supported on this launcher", Toast.LENGTH_SHORT).show()
-                                    }
-                                },
+                                onAddWidget = onAddWidget,
                             )
                         }
                     }

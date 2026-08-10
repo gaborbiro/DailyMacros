@@ -35,22 +35,31 @@ class NutrientAnalysisWorker @AssistedInject constructor(
          */
         private const val WORK_TAG = "nutrient_analysis"
 
+        /**
+         * @param wifiOnly Whether this request should wait for Wi-Fi. Callers pass true only for
+         * the automatic retry scheduled after a connectivity failure (gated by the user's "Wi-Fi
+         * only for macro analysis" setting); every direct user action (saving/editing a record,
+         * tapping "Re-run nutrient analysis", confirming an auto-detected photo entry) passes false so it
+         * fires on any connection.
+         */
         fun setWorkRequest(
             appContext: Context,
             recordId: Long,
             force: Boolean,
+            wifiOnly: Boolean,
         ) {
             val policy = if (force) {
                 ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE
             } else {
                 ExistingPeriodicWorkPolicy.KEEP
             }
+            val networkType = if (wifiOnly) NetworkType.UNMETERED else NetworkType.CONNECTED
             val workRequest = PeriodicWorkRequestBuilder<NutrientAnalysisWorker>(
                 repeatInterval = 15.minutes.toJavaDuration()
             )
                 .setConstraints(
                     Constraints.Builder()
-                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .setRequiredNetworkType(networkType)
                         .build()
                 )
                 .setInputData(

@@ -4,7 +4,6 @@ import android.content.res.Configuration
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -35,13 +34,11 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.design.LocalExtraColorScheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.common.utils.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
@@ -51,11 +48,8 @@ import dev.gaborbiro.dailymacros.features.overview.R
 internal fun WelcomeView(
     modifier: Modifier = Modifier,
     onAddWidget: () -> Unit = {},
-    onRestoreFromCloud: () -> Unit = {},
 ) {
-    val primary = MaterialTheme.colorScheme.primary
     val onBackground = MaterialTheme.colorScheme.onBackground
-    val extraColors = LocalExtraColorScheme.current
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val compact = maxWidth < 360.dp
@@ -69,52 +63,14 @@ internal fun WelcomeView(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                PhoneIllustration(primaryColor = primary)
-
-                Column(
-                    modifier = Modifier.padding(start = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    MacroChip(
-                        label = stringResource(R.string.welcome_chip_protein),
-                        color = extraColors.proteinColor,
-                    )
-                    MacroChip(
-                        label = stringResource(R.string.welcome_chip_carbs),
-                        color = extraColors.carbsColor,
-                    )
-                    MacroChip(
-                        label = stringResource(R.string.welcome_chip_fat),
-                        color = extraColors.fatColor,
-                    )
-                    MacroChip(
-                        label = stringResource(R.string.welcome_chip_calories),
-                        color = extraColors.caloriesColor,
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
             Text(
-                text = stringResource(R.string.welcome_heading),
-                style = MaterialTheme.typography.headlineMedium,
+                text = stringResource(R.string.overview_content_empty_diary_title),
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            WelcomeBullet(text = stringResource(R.string.welcome_bullet_snap))
-            Spacer(modifier = Modifier.height(8.dp))
-            WelcomeBullet(text = stringResource(R.string.welcome_bullet_ai))
-            Spacer(modifier = Modifier.height(8.dp))
-            WelcomeBullet(text = stringResource(R.string.welcome_bullet_track))
-
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             AddWidgetButton(onClick = onAddWidget)
 
@@ -126,43 +82,12 @@ internal fun WelcomeView(
                 color = onBackground.copy(alpha = 0.5f),
                 textAlign = TextAlign.Center,
             )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Text(
-                modifier = Modifier.clickable(onClick = onRestoreFromCloud),
-                text = stringResource(R.string.welcome_restore_from_cloud),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center,
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            val uriHandler = LocalUriHandler.current
-            val privacyPolicyUrl = stringResource(R.string.welcome_privacy_policy_url)
-            Text(
-                text = stringResource(R.string.welcome_privacy_notice),
-                style = MaterialTheme.typography.bodySmall,
-                color = onBackground.copy(alpha = 0.5f),
-                textAlign = TextAlign.Center,
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                modifier = Modifier.clickable { uriHandler.openUri(privacyPolicyUrl) },
-                text = stringResource(R.string.welcome_privacy_policy_link),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center,
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
 
 @Composable
-private fun PhoneIllustration(primaryColor: Color) {
+fun PhoneIllustration(primaryColor: Color) {
     val surface = MaterialTheme.colorScheme.surface
     val background = MaterialTheme.colorScheme.background
 
@@ -208,7 +133,7 @@ private fun PhoneIllustration(primaryColor: Color) {
 }
 
 @Composable
-private fun MacroChip(label: String, color: Color) {
+fun MacroChip(label: String, color: Color) {
     Surface(
         shape = RoundedCornerShape(50),
         color = color.copy(alpha = 0.15f),
@@ -235,7 +160,7 @@ private fun MacroChip(label: String, color: Color) {
 }
 
 @Composable
-private fun WelcomeBullet(text: String) {
+fun WelcomeBullet(text: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,

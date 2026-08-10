@@ -87,6 +87,14 @@ interface SettingsRepository {
     fun getAutoBackupInterval(): BackupInterval = BackupInterval.NEVER
     fun setAutoBackupInterval(interval: BackupInterval) {}
 
+    /** Whether automatic (non-user-initiated) backup sync should be skipped unless on Wi-Fi. */
+    fun getWifiOnlyBackupEnabled(): Boolean = false
+    fun setWifiOnlyBackupEnabled(enabled: Boolean) {}
+
+    /** Whether automatic (non-user-initiated) macro analysis retries should wait for Wi-Fi. */
+    fun getWifiOnlyAnalysisEnabled(): Boolean = false
+    fun setWifiOnlyAnalysisEnabled(enabled: Boolean) {}
+
     fun getAutoSyncErrorStatus(): AutoSyncErrorStatus? = null
     fun setAutoSyncErrorStatus(status: AutoSyncErrorStatus?) {}
 

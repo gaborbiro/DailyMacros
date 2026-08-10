@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import dev.gaborbiro.dailymacros.features.common.ONBOARDING_ROUTE
 import dev.gaborbiro.dailymacros.features.common.SettingsRowId
 import dev.gaborbiro.dailymacros.features.settings.export.rememberCreatePublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.rememberOpenPublicDocumentUseCase
@@ -81,6 +82,8 @@ fun SettingsScreen(
         onDiaryDayStartHourSelected = settingsViewModel::onDiaryDayStartHourSelected,
         onAutoPhotoRecognitionToggled = settingsViewModel::onAutoPhotoRecognitionToggled,
         onQuickPickConfirmationToggled = settingsViewModel::onQuickPickConfirmationToggled,
+        onWifiOnlyBackupToggled = settingsViewModel::onWifiOnlyBackupToggled,
+        onWifiOnlyAnalysisToggled = settingsViewModel::onWifiOnlyAnalysisToggled,
         onExportSettingTapped = settingsViewModel::onExportSettingsTapped,
         onPdfExportDismissed = settingsViewModel::onPdfExportDialogDismissed,
         onPdfExportConfirmed = { selection, options ->
@@ -101,6 +104,7 @@ fun SettingsScreen(
         onOverwriteConfirmed = settingsViewModel::onOverwriteConfirmed,
         onOverwriteDialogDismissed = settingsViewModel::onOverwriteDialogDismissed,
         onSubscribeTapped = { context.findActivity()?.let(settingsViewModel::onSubscribeRowTapped) },
+        onShowOnboardingTapped = { navController.navigate(ONBOARDING_ROUTE) },
     )
 
     if (settingsUiState.showTargetsSettings) {

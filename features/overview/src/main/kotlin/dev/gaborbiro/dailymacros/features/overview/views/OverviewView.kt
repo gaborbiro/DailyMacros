@@ -55,7 +55,6 @@ internal fun OverviewView(
     onSetTargetsTapped: () -> Unit,
     onSummaryTapped: () -> Unit,
     onAddWidget: () -> Unit = {},
-    onRestoreFromCloud: () -> Unit = {},
     onLoadMore: () -> Unit = {},
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -132,7 +131,6 @@ internal fun OverviewView(
                         .fillMaxSize()
                         .padding(paddingValues),
                     onAddWidget = onAddWidget,
-                    onRestoreFromCloud = onRestoreFromCloud,
                 )
             }
 
