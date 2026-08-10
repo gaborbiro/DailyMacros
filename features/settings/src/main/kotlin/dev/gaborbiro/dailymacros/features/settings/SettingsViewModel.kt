@@ -81,6 +81,7 @@ class SettingsViewModel @Inject constructor(
             autoBackupInterval = settingsRepository.getAutoBackupInterval(),
             wifiOnlyBackupEnabled = settingsRepository.getWifiOnlyBackupEnabled(),
             wifiOnlyAnalysisEnabled = settingsRepository.getWifiOnlyAnalysisEnabled(),
+            isDebugBuild = appInfo.isDebugBuild,
         ),
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()

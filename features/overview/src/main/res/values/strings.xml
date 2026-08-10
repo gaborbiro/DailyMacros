@@ -1,16 +1,15 @@
 <resources>
-    <string name="welcome_heading">Welcome to your\nAI nutrition companion</string>
+    <string name="welcome_heading">Welcome to your\nnutrition companion</string>
     <string name="welcome_bullet_snap">Snap a photo of your meal</string>
     <string name="welcome_bullet_ai">AI reads the macros for you</string>
     <string name="welcome_bullet_track">Track protein, carbs, fat and more</string>
-    <string name="welcome_next">Next</string>
     <string name="welcome_widget_hint">Add the widget to your home screen to start logging meals</string>
+    <string name="overview_content_empty_diary_title">No meals logged yet</string>
     <string name="welcome_restore_from_cloud">Restore from cloud backup</string>
     <string name="welcome_chip_protein">Protein</string>
     <string name="welcome_chip_carbs">Carbs</string>
     <string name="welcome_chip_fat">Fat</string>
     <string name="welcome_chip_calories">Calories</string>
-    <string name="welcome_privacy_notice">Meal photos and descriptions you add are sent to OpenAI to estimate nutrition. Your food diary stays on your device.</string>
     <string name="welcome_privacy_policy_link">Privacy policy</string>
     <string name="welcome_privacy_policy_url">https://github.com/gaborbiro/DailyMacros/blob/master/PRIVACY.md</string>
     <string name="record_title_has_other_versions_a11y">Other logged versions of this meal exist</string>

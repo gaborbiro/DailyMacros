@@ -10,9 +10,8 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,7 +36,7 @@ internal fun OverviewListTopActions(
             .padding(top = topContentPadding),
     ) {
         val buttonsOffset by animateDpAsState(
-            targetValue = if (listAtTop) 0.dp else 72.dp,
+            targetValue = if (listAtTop) 0.dp else 88.dp,
             animationSpec = tween(
                 durationMillis = 220,
                 easing = FastOutSlowInEasing,
@@ -52,11 +51,9 @@ internal fun OverviewListTopActions(
                 .offset(x = buttonsOffset),
         ) {
             if (showSettingsButton) {
-                IconButton(
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    ),
+                FloatingActionButton(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                     onClick = onSettingsButtonTapped,
                 ) {
                     Icon(

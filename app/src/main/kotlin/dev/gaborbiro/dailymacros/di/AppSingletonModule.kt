@@ -29,6 +29,8 @@ object AppSingletonModule {
         object : SettingsAppInfo {
             override val versionLabel: String
                 get() = "${BuildConfig.VERSION_NAME}\nUserID: ${appPrefs.userUUID}"
+            override val isDebugBuild: Boolean
+                get() = BuildConfig.DEBUG
         }
 
     // Same source as the "UserID" shown on the Settings screen above, so the id

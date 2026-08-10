@@ -36,4 +36,5 @@ data class SettingsUiState(
     val pdfExportOptions: PdfExportOptions = PdfExportOptions(),
     val pdfExportInProgress: Boolean = false,
     val subscriptionState: SubscriptionState = SubscriptionState.Unknown,
+    val isDebugBuild: Boolean = false,
 )

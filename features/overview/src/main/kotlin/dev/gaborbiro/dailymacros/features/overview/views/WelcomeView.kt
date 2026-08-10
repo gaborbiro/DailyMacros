@@ -4,7 +4,6 @@ import android.content.res.Configuration
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -18,8 +17,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -27,7 +24,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,231 +34,60 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.design.LocalExtraColorScheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.common.utils.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
 import dev.gaborbiro.dailymacros.features.overview.R
-import kotlinx.coroutines.launch
-
-private const val WELCOME_PAGE_COUNT = 2
 
 @Composable
 internal fun WelcomeView(
     modifier: Modifier = Modifier,
     onAddWidget: () -> Unit = {},
-    onRestoreFromCloud: () -> Unit = {},
 ) {
-    val pagerState = rememberPagerState(pageCount = { WELCOME_PAGE_COUNT })
-    val scope = rememberCoroutineScope()
+    val onBackground = MaterialTheme.colorScheme.onBackground
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val compact = maxWidth < 360.dp
         val hPadding = if (compact) 16.dp else 28.dp
 
-        Column(modifier = Modifier.fillMaxSize()) {
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.weight(1f),
-            ) { page ->
-                when (page) {
-                    0 -> WelcomeIntroPage(
-                        hPadding = hPadding,
-                        onNextTapped = {
-                            scope.launch { pagerState.animateScrollToPage(1) }
-                        },
-                    )
-
-                    else -> WelcomeSetupPage(
-                        hPadding = hPadding,
-                        onAddWidget = onAddWidget,
-                        onRestoreFromCloud = onRestoreFromCloud,
-                    )
-                }
-            }
-
-            PageIndicator(
-                pageCount = WELCOME_PAGE_COUNT,
-                currentPage = pagerState.currentPage,
-            )
-        }
-    }
-}
-
-@Composable
-private fun WelcomeIntroPage(
-    hPadding: Dp,
-    onNextTapped: () -> Unit,
-) {
-    val primary = MaterialTheme.colorScheme.primary
-    val extraColors = LocalExtraColorScheme.current
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScrollWithBar()
-            .padding(horizontal = hPadding),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            PhoneIllustration(primaryColor = primary)
-
-            Column(
-                modifier = Modifier.padding(start = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                MacroChip(
-                    label = stringResource(R.string.welcome_chip_protein),
-                    color = extraColors.proteinColor,
-                )
-                MacroChip(
-                    label = stringResource(R.string.welcome_chip_carbs),
-                    color = extraColors.carbsColor,
-                )
-                MacroChip(
-                    label = stringResource(R.string.welcome_chip_fat),
-                    color = extraColors.fatColor,
-                )
-                MacroChip(
-                    label = stringResource(R.string.welcome_chip_calories),
-                    color = extraColors.caloriesColor,
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Text(
-            text = stringResource(R.string.welcome_heading),
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        WelcomeBullet(text = stringResource(R.string.welcome_bullet_snap))
-        Spacer(modifier = Modifier.height(8.dp))
-        WelcomeBullet(text = stringResource(R.string.welcome_bullet_ai))
-        Spacer(modifier = Modifier.height(8.dp))
-        WelcomeBullet(text = stringResource(R.string.welcome_bullet_track))
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Button(
+        Column(
             modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(top = PaddingDefault),
-            onClick = onNextTapped,
+                .fillMaxSize()
+                .verticalScrollWithBar()
+                .padding(horizontal = hPadding),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
         ) {
             Text(
-                text = stringResource(R.string.welcome_next),
+                text = stringResource(R.string.overview_content_empty_diary_title),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            AddWidgetButton(onClick = onAddWidget)
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = stringResource(R.string.welcome_widget_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = onBackground.copy(alpha = 0.5f),
                 textAlign = TextAlign.Center,
             )
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
 @Composable
-private fun WelcomeSetupPage(
-    hPadding: Dp,
-    onAddWidget: () -> Unit,
-    onRestoreFromCloud: () -> Unit,
-) {
-    val onBackground = MaterialTheme.colorScheme.onBackground
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScrollWithBar()
-            .padding(horizontal = hPadding),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Spacer(modifier = Modifier.height(24.dp))
-
-        AddWidgetButton(onClick = onAddWidget)
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = stringResource(R.string.welcome_widget_hint),
-            style = MaterialTheme.typography.bodySmall,
-            color = onBackground.copy(alpha = 0.5f),
-            textAlign = TextAlign.Center,
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Text(
-            modifier = Modifier.clickable(onClick = onRestoreFromCloud),
-            text = stringResource(R.string.welcome_restore_from_cloud),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        val uriHandler = LocalUriHandler.current
-        val privacyPolicyUrl = stringResource(R.string.welcome_privacy_policy_url)
-        Text(
-            text = stringResource(R.string.welcome_privacy_notice),
-            style = MaterialTheme.typography.bodySmall,
-            color = onBackground.copy(alpha = 0.5f),
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            modifier = Modifier.clickable { uriHandler.openUri(privacyPolicyUrl) },
-            text = stringResource(R.string.welcome_privacy_policy_link),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-    }
-}
-
-@Composable
-private fun PageIndicator(
-    pageCount: Int,
-    currentPage: Int,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        val primary = MaterialTheme.colorScheme.primary
-        repeat(pageCount) { index ->
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(primary.copy(alpha = if (index == currentPage) 1f else 0.25f)),
-            )
-        }
-    }
-}
-
-@Composable
-private fun PhoneIllustration(primaryColor: Color) {
+fun PhoneIllustration(primaryColor: Color) {
     val surface = MaterialTheme.colorScheme.surface
     val background = MaterialTheme.colorScheme.background
 
@@ -308,7 +133,7 @@ private fun PhoneIllustration(primaryColor: Color) {
 }
 
 @Composable
-private fun MacroChip(label: String, color: Color) {
+fun MacroChip(label: String, color: Color) {
     Surface(
         shape = RoundedCornerShape(50),
         color = color.copy(alpha = 0.15f),
@@ -335,7 +160,7 @@ private fun MacroChip(label: String, color: Color) {
 }
 
 @Composable
-private fun WelcomeBullet(text: String) {
+fun WelcomeBullet(text: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -442,18 +267,5 @@ fun AddWidgetButton(onClick: () -> Unit) {
 private fun WelcomeViewPreview() {
     PreviewContext {
         WelcomeView()
-    }
-}
-
-@Preview
-@Composable
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-private fun WelcomeSetupPagePreview() {
-    PreviewContext {
-        WelcomeSetupPage(
-            hPadding = 28.dp,
-            onAddWidget = {},
-            onRestoreFromCloud = {},
-        )
     }
 }

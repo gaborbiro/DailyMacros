@@ -15,9 +15,15 @@ class AppPrefs @Inject constructor(
 
     companion object {
         private const val KEY_USER_UUID = "user_uuid_3"
+        private const val KEY_ONBOARDING_COMPLETE = "onboarding_complete"
     }
 
     private val prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+
+    // Read before anything else can call `userUUID` and lazily create that key, so this
+    // stays true only for installs that already existed before onboarding shipped -
+    // those should never be sent through it retroactively.
+    private val isPreExistingInstall = prefs.getString(KEY_USER_UUID, null) != null
 
     @OptIn(ExperimentalUuidApi::class)
     val userUUID: String
@@ -29,4 +35,8 @@ class AppPrefs @Inject constructor(
             prefs.edit { putString(KEY_USER_UUID, newUuid) }
             return newUuid
         }
+
+    var hasCompletedOnboarding: Boolean
+        get() = prefs.getBoolean(KEY_ONBOARDING_COMPLETE, isPreExistingInstall)
+        set(value) = prefs.edit { putBoolean(KEY_ONBOARDING_COMPLETE, value) }
 }

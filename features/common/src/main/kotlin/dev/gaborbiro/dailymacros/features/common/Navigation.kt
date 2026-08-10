@@ -4,6 +4,7 @@ const val OVERVIEW_ROUTE = "overview"
 const val SETTINGS_ROUTE = "settings"
 const val SETTINGS_HIGHLIGHT_ROW_ARG = "hr"
 const val TRENDS_ROUTE = "trends"
+const val ONBOARDING_ROUTE = "onboarding"
 
 /**
  * Identifies a row in the Settings screen that can be scrolled to and highlighted,
