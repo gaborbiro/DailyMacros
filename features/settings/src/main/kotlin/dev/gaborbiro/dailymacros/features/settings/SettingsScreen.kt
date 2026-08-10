@@ -7,7 +7,6 @@ import android.content.ContextWrapper
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,11 +51,9 @@ fun SettingsScreen(
         settingsViewModel.uiUpdates.collect { event ->
             when (event) {
                 SettingsUiUpdates.NavigateBack -> navController.popBackStack()
-                is SettingsUiUpdates.ShowSnackbar -> snackbarHostState.showSnackbar(
-                    event.message,
-                    withDismissAction = true,
-                    duration = SnackbarDuration.Indefinite,
-                )
+                // ShowSnackbar is handled globally by SettingsEffectHandler, which stays
+                // mounted across every screen (including onboarding, which has no Scaffold
+                // of its own) - handling it here too would show it twice on this screen.
                 SettingsUiUpdates.RequestPhotoPermissions -> {
                     val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         Manifest.permission.READ_MEDIA_IMAGES

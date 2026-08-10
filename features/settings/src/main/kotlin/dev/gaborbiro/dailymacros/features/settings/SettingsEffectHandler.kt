@@ -1,6 +1,11 @@
 package dev.gaborbiro.dailymacros.features.settings
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -9,14 +14,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import dev.gaborbiro.dailymacros.features.settings.export.ProcessRestarter
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
 
+// Mounted once at the app root regardless of the current screen (including onboarding,
+// which has no Scaffold/snackbar of its own), so this is the single place cloud
+// sync/restore feedback surfaces.
 @Composable
-fun SettingsEffectHandler(settingsViewModel: SettingsViewModel) {
+fun SettingsEffectHandler(
+    settingsViewModel: SettingsViewModel,
+    onRestartApplication: () -> Unit = {},
+) {
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val signInLauncher = rememberGoogleSignInLauncher(
         onSuccess = settingsViewModel::onGoogleSignInSuccess,
@@ -32,13 +46,28 @@ fun SettingsEffectHandler(settingsViewModel: SettingsViewModel) {
             when (event) {
                 SettingsUiUpdates.RequestGoogleSignIn ->
                     launchGoogleSignIn(context, signInLauncher)
-                SettingsUiUpdates.RestartApplication ->
+                SettingsUiUpdates.RestartApplication -> {
+                    onRestartApplication()
                     ProcessRestarter.restartApplication(context.findActivity()!!)
+                }
                 is SettingsUiUpdates.RestoreConfirmNeeded ->
                     restoreConfirmEvent = event
+                is SettingsUiUpdates.ShowSnackbar ->
+                    snackbarHostState.showSnackbar(
+                        event.message,
+                        withDismissAction = true,
+                        duration = SnackbarDuration.Indefinite,
+                    )
                 else -> Unit
             }
         }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter),
+        )
     }
 
     restoreConfirmEvent?.let { event ->

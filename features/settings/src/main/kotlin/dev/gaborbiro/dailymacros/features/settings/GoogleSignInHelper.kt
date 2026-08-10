@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.settings
 
 import android.content.Context
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -31,12 +32,18 @@ fun rememberGoogleSignInLauncher(
     rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        val data = result.data ?: return@rememberLauncherForActivityResult
+        val data = result.data
+        if (data == null) {
+            Log.w("CloudSync", "Google sign-in returned no data (resultCode=${result.resultCode})")
+            onFailure("Sign-in was cancelled.")
+            return@rememberLauncherForActivityResult
+        }
         val task = GoogleSignIn.getSignedInAccountFromIntent(data)
         try {
             val email = task.getResult(ApiException::class.java)?.email
             if (email != null) onSuccess(email) else onFailure("No email returned")
         } catch (e: ApiException) {
+            Log.w("CloudSync", "Google sign-in failed", e)
             onFailure(e.message ?: e.statusCode.toString())
         }
     }
