@@ -38,5 +38,7 @@ class AppPrefs @Inject constructor(
 
     var hasCompletedOnboarding: Boolean
         get() = prefs.getBoolean(KEY_ONBOARDING_COMPLETE, isPreExistingInstall)
-        set(value) = prefs.edit { putBoolean(KEY_ONBOARDING_COMPLETE, value) }
+        // Written synchronously: callers that set this immediately trigger a process
+        // restart (Runtime.getRuntime().exit), which would race an async apply() write.
+        set(value) = prefs.edit(commit = true) { putBoolean(KEY_ONBOARDING_COMPLETE, value) }
 }

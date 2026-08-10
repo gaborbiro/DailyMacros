@@ -135,8 +135,6 @@ class MainActivity : ComponentActivity() {
                 val promptEditorViewModel: PromptEditorViewModel = hiltViewModel()
                 val trendsViewModel: TrendsViewModel = hiltViewModel()
 
-                SettingsEffectHandler(settingsViewModel)
-
                 LaunchedEffect(pendingHighlightRowId) {
                     pendingHighlightRowId?.let { rowId ->
                         navController.navigate("$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_ROW_ARG=${rowId.name}")
@@ -236,6 +234,13 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 }
+
+                // Rendered after the NavHost so its snackbar overlay draws on top of
+                // whichever screen (including onboarding) triggered the feedback.
+                SettingsEffectHandler(
+                    settingsViewModel = settingsViewModel,
+                    onRestartApplication = { appPrefs.hasCompletedOnboarding = true },
+                )
             }
         }
 
