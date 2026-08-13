@@ -29,6 +29,16 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
+    # On PRs, the checkout's HEAD is a synthetic merge commit (not in git log) rather than the
+    # PR branch's actual tip. Resolve the real head SHA so tags/target_commitish are accurate.
+    - name: Resolve build SHA
+      run: |
+        if [ "${{ github.event_name }}" = "pull_request" ]; then
+          echo "BUILD_SHA=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
+        else
+          echo "BUILD_SHA=${GITHUB_SHA}" >> "$GITHUB_ENV"
+        fi
+
     - name: Run unit tests
       run: ./gradlew testDebugUnitTest --stacktrace
 
@@ -75,8 +85,9 @@ jobs:
     # throwaway prerelease tag distinct from the real v<version> tag used on an actual merge.
     - name: Set release tag/name
       run: |
+        SHORT_SHA=${BUILD_SHA:0:7}
         if [ "${{ github.event_name }}" = "pull_request" ]; then
-          echo "RELEASE_TAG=pr-${{ github.event.pull_request.number }}-$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
+          echo "RELEASE_TAG=pr-${{ github.event.pull_request.number }}-$SHORT_SHA" >> "$GITHUB_ENV"
           echo "RELEASE_NAME=PR #${{ github.event.pull_request.number }} signed build (${{ env.APP_VERSION_NAME }})" >> "$GITHUB_ENV"
         else
           echo "RELEASE_TAG=v${{ env.APP_VERSION_NAME }}" >> "$GITHUB_ENV"
@@ -92,6 +103,9 @@ jobs:
       with:
         tag_name: ${{ env.RELEASE_TAG }}
         name: ${{ env.RELEASE_NAME }}
+        # Without this, the tag defaults to release's tip at release-creation time, which is
+        # wrong for a PR build and can drift on push if another merge lands mid-run.
+        target_commitish: ${{ env.BUILD_SHA }}
         draft: false
         prerelease: ${{ github.event_name == 'pull_request' }}
         make_latest: ${{ github.event_name == 'push' }}
