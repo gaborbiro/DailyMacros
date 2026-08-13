@@ -71,26 +71,30 @@ jobs:
         cp app/build/outputs/bundle/release/DailyMacros-*.aab release-artifacts/ 2>/dev/null || true
         ls -lh release-artifacts/
 
-    # PRs against `release` only validate that the signed build succeeds. Upload it as a
-    # workflow artifact for review, but stop short of cutting a public release or publishing.
-    - name: Upload signed build (PR check)
-      if: github.event_name == 'pull_request'
-      uses: actions/upload-artifact@v4
-      with:
-        name: signed-release-build
-        path: release-artifacts/*
-        retention-days: 7
+    # PRs against `release` only validate that the signed build succeeds, so they get a
+    # throwaway prerelease tag distinct from the real v<version> tag used on an actual merge.
+    - name: Set release tag/name
+      run: |
+        if [ "${{ github.event_name }}" = "pull_request" ]; then
+          echo "RELEASE_TAG=pr-${{ github.event.pull_request.number }}-$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
+          echo "RELEASE_NAME=PR #${{ github.event.pull_request.number }} signed build (${{ env.APP_VERSION_NAME }})" >> "$GITHUB_ENV"
+        else
+          echo "RELEASE_TAG=v${{ env.APP_VERSION_NAME }}" >> "$GITHUB_ENV"
+          echo "RELEASE_NAME=v${{ env.APP_VERSION_NAME }}" >> "$GITHUB_ENV"
+        fi
 
     # ── GitHub Release ─────────────────────────────────────────
-    # Only on an actual merge to `release` — never on a PR build.
-
+    # On push, this is the real release. On a same-repo PR, it's a prerelease so the signed
+    # AAB/APK can be downloaded directly (no zip) without publishing to Google Play.
     - name: Create GitHub Release
-      if: github.event_name == 'push'
+      if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: v${{ env.APP_VERSION_NAME }}
-        name: v${{ env.APP_VERSION_NAME }}
+        tag_name: ${{ env.RELEASE_TAG }}
+        name: ${{ env.RELEASE_NAME }}
         draft: false
+        prerelease: ${{ github.event_name == 'pull_request' }}
+        make_latest: ${{ github.event_name == 'push' }}
         generate_release_notes: true
         files: release-artifacts/*
       env:
