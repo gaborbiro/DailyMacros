@@ -3,6 +3,8 @@ name: Release
 on:
   push:
     branches: [ "release" ]
+  pull_request:
+    branches: [ "release" ]
 
 jobs:
   release:
@@ -41,13 +43,13 @@ jobs:
       run: |
         echo "$RELEASE_KEYSTORE_BASE64" | base64 --decode > /tmp/release-keystore.jks
 
-    - name: Build signed release AAB
+    - name: Build signed release AAB and APK
       env:
         RELEASE_KEYSTORE_PATH: /tmp/release-keystore.jks
         RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
         RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
         RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
-      run: ./gradlew bundleRelease
+      run: ./gradlew bundleRelease assembleRelease
 
     # ── Collect artifacts ──────────────────────────────────────
     # Tag matches app/build.gradle.kts (appVersionName); Gradle writes app/build/release-version-name.txt
@@ -61,12 +63,25 @@ jobs:
         echo "APP_VERSION_NAME=$VERSION" >> "$GITHUB_ENV"
         mkdir -p release-artifacts
         cp app/build/outputs/apk/debug/DailyMacros-*.apk release-artifacts/ 2>/dev/null || true
+        cp app/build/outputs/apk/release/DailyMacros-*.apk release-artifacts/ 2>/dev/null || true
         cp app/build/outputs/bundle/release/DailyMacros-*.aab release-artifacts/ 2>/dev/null || true
         ls -lh release-artifacts/
 
+    # PRs against `release` only validate that the signed build succeeds. Upload it as a
+    # workflow artifact for review, but stop short of cutting a public release or publishing.
+    - name: Upload signed build (PR check)
+      if: github.event_name == 'pull_request'
+      uses: actions/upload-artifact@v4
+      with:
+        name: signed-release-build
+        path: release-artifacts/*
+        retention-days: 7
+
     # ── GitHub Release ─────────────────────────────────────────
+    # Only on an actual merge to `release` — never on a PR build.
 
     - name: Create GitHub Release
+      if: github.event_name == 'push'
       uses: softprops/action-gh-release@v2
       with:
         tag_name: v${{ env.APP_VERSION_NAME }}
@@ -78,7 +93,9 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     # ── Google Play Store ──────────────────────────────────────
+    # Only on an actual merge to `release` — never on a PR build.
     - name: Upload to Google Play (internal testing)
+      if: github.event_name == 'push'
       uses: r0adkll/upload-google-play@v1
       with:
         serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
