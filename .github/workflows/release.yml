@@ -49,7 +49,11 @@ jobs:
         RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
         RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
         RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
-      run: ./gradlew bundleRelease assembleRelease
+      # Scoped to :app — the unqualified "assembleRelease" lifecycle task exists in every
+      # subproject, so running it bare fans out into the library modules too and fails: their
+      # standalone release resource verification can't resolve theme attrs (e.g.
+      # ?attr/colorControlNormal) that only resolve once merged into the app's own theme.
+      run: ./gradlew bundleRelease :app:assembleRelease
 
     # ── Collect artifacts ──────────────────────────────────────
     # Tag matches app/build.gradle.kts (appVersionName); Gradle writes app/build/release-version-name.txt
