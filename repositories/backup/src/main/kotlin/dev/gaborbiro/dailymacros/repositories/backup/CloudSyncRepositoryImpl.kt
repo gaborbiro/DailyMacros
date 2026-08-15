@@ -29,30 +29,42 @@ class CloudSyncRepositoryImpl @Inject constructor(
 
     private val gson = Gson()
 
+    /**
+     * Per-variant name, so debug/qa/release builds (which share one appDataFolder because
+     * their OAuth clients belong to the same GCP project) no longer clobber each other's backup.
+     */
+    private val namespacedBackupFileName: String
+        get() = "${BACKUP_FILE_NAME_PREFIX}_${appContext.packageName}$BACKUP_FILE_EXTENSION"
+
     override suspend fun getBackupInfo(accessToken: String): DriveBackupInfo? =
         withContext(Dispatchers.IO) {
-            val request = Request.Builder()
-                .url("$FILES_URL?spaces=appDataFolder&fields=files(id,name,modifiedTime,size)&q=name='$BACKUP_FILE_NAME'")
-                .header("Authorization", "Bearer $accessToken")
-                .get()
-                .build()
-            okHttpClient.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) throw driveApiException(response.code, response.body?.string())
-                val body = response.body?.string() ?: return@use null
-                val list = gson.fromJson(body, DriveFileListResponse::class.java)
-                list.files.firstOrNull()?.toDriveBackupInfo()
-            }
+            findBackupByName(accessToken, namespacedBackupFileName)
+                ?: findBackupByName(accessToken, LEGACY_BACKUP_FILE_NAME)
         }
 
     override suspend fun uploadBackup(accessToken: String, tarFile: File): DriveBackupInfo =
         withContext(Dispatchers.IO) {
-            val existing = getBackupInfo(accessToken)
+            val existing = findBackupByName(accessToken, namespacedBackupFileName)
             if (existing != null) {
                 updateFile(accessToken, existing.fileId, tarFile)
             } else {
                 createFile(accessToken, tarFile)
             }
         }
+
+    private fun findBackupByName(accessToken: String, name: String): DriveBackupInfo? {
+        val request = Request.Builder()
+            .url("$FILES_URL?spaces=appDataFolder&fields=files(id,name,modifiedTime,size)&q=name='$name'")
+            .header("Authorization", "Bearer $accessToken")
+            .get()
+            .build()
+        return okHttpClient.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) throw driveApiException(response.code, response.body?.string())
+            val body = response.body?.string() ?: return@use null
+            val list = gson.fromJson(body, DriveFileListResponse::class.java)
+            list.files.firstOrNull()?.toDriveBackupInfo()
+        }
+    }
 
     override suspend fun downloadBackupToTempFile(accessToken: String, fileId: String): File =
         withContext(Dispatchers.IO) {
@@ -71,7 +83,7 @@ class CloudSyncRepositoryImpl @Inject constructor(
         }
 
     private fun createFile(accessToken: String, tarFile: File): DriveBackupInfo {
-        val metadata = """{"name":"$BACKUP_FILE_NAME","parents":["appDataFolder"]}"""
+        val metadata = """{"name":"$namespacedBackupFileName","parents":["appDataFolder"]}"""
         val body = MultipartBody.Builder()
             .setType("multipart/related".toMediaType())
             .addPart(metadata.toRequestBody("application/json; charset=UTF-8".toMediaType()))
@@ -131,6 +143,8 @@ class CloudSyncRepositoryImpl @Inject constructor(
     private companion object {
         const val FILES_URL = "https://www.googleapis.com/drive/v3/files"
         const val UPLOAD_URL = "https://www.googleapis.com/upload/drive/v3/files"
-        const val BACKUP_FILE_NAME = "daily_macros_backup.tar"
+        const val LEGACY_BACKUP_FILE_NAME = "daily_macros_backup.tar"
+        const val BACKUP_FILE_NAME_PREFIX = "daily_macros_backup"
+        const val BACKUP_FILE_EXTENSION = ".tar"
     }
 }
