@@ -145,7 +145,10 @@ class MainActivity : ComponentActivity() {
 
                 LaunchedEffect(pendingHighlightRowId) {
                     pendingHighlightRowId?.let { rowId ->
-                        navController.navigate("$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_ROW_ARG=${rowId.name}")
+                        navController.navigate("$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_ROW_ARG=${rowId.name}") {
+                            launchSingleTop = true
+                            popUpTo(SETTINGS_ROUTE_PATTERN) { inclusive = true }
+                        }
                         pendingHighlightRowId = null
                     }
                 }
@@ -192,7 +195,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     composable(
-                        route = "$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_ROW_ARG={$SETTINGS_HIGHLIGHT_ROW_ARG}",
+                        route = SETTINGS_ROUTE_PATTERN,
                         arguments = listOf(
                             navArgument(SETTINGS_HIGHLIGHT_ROW_ARG) {
                                 type = NavType.StringType

@@ -14,6 +14,7 @@ import androidx.navigation.NavHostController
 import dev.gaborbiro.dailymacros.features.common.PAYWALL_ROUTE
 import dev.gaborbiro.dailymacros.features.common.SETTINGS_HIGHLIGHT_ROW_ARG
 import dev.gaborbiro.dailymacros.features.common.SETTINGS_ROUTE
+import dev.gaborbiro.dailymacros.features.common.SETTINGS_ROUTE_PATTERN
 import dev.gaborbiro.dailymacros.features.common.SettingsRowId
 import dev.gaborbiro.dailymacros.features.common.TRENDS_ROUTE
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiUpdates
@@ -33,7 +34,10 @@ fun OverviewScreen(
             when (event) {
                 is OverviewUiUpdates.EditRecord -> modalNavigator.launchViewRecordDetails(context, event.recordId)
                 is OverviewUiUpdates.ViewImage -> modalNavigator.launchToShowRecordImage(context, event.recordId)
-                OverviewUiUpdates.OpenSettingsScreen -> navController.navigate(SETTINGS_ROUTE)
+                OverviewUiUpdates.OpenSettingsScreen -> navController.navigate(SETTINGS_ROUTE) {
+                    launchSingleTop = true
+                    popUpTo(SETTINGS_ROUTE_PATTERN) { inclusive = true }
+                }
                 OverviewUiUpdates.OpenTrendsScreen -> navController.navigate(TRENDS_ROUTE)
                 OverviewUiUpdates.OpenPaywallScreen -> navController.navigate(PAYWALL_ROUTE)
             }
@@ -62,7 +66,10 @@ fun OverviewScreen(
         onSubscribeBannerDismissed = viewModel::onSubscribeBannerDismissed,
         onAddWidget = onAddWidget,
         onSetTargetsTapped = {
-            navController.navigate("$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_ROW_ARG=${SettingsRowId.TARGETS.name}")
+            navController.navigate("$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_ROW_ARG=${SettingsRowId.TARGETS.name}") {
+                launchSingleTop = true
+                popUpTo(SETTINGS_ROUTE_PATTERN) { inclusive = true }
+            }
         },
         onSummaryTapped = viewModel::onTrendsButtonTapped,
         onLoadMore = viewModel::onLoadMore,
