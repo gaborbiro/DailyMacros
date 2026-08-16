@@ -1,19 +1,11 @@
 name: Deploy Firebase functions
 
-# Fires automatically once a merge to master actually touches the proxy or
-# Firestore rules (the `paths` filter below) - this deploys the live OpenAI
-# proxy and subscription-verification functions, which can change real
-# enforcement behavior for real users (see functions/README.md), so it's
-# scoped tightly on purpose: master only, and only when the relevant files
-# changed. `workflow_dispatch` stays available as a manual escape hatch (e.g.
-# re-running after fixing a secret) but is no longer the primary trigger.
+# Manual only, on purpose: this deploys the live OpenAI proxy and
+# subscription-verification functions, which can change real enforcement
+# behavior for real users (see functions/README.md). Trigger it yourself from
+# the Actions tab -> "Deploy Firebase functions" -> Run workflow, whenever
+# you've decided a deploy should happen. No path-based auto-detection.
 on:
-  push:
-    branches: [ "master" ]
-    paths:
-      - 'functions/**'
-      - 'firestore.rules'
-      - '.github/workflows/firebase-deploy.yml'
   workflow_dispatch:
     inputs:
       targets:
@@ -60,5 +52,5 @@ jobs:
 
       - name: Deploy
         env:
-          TARGETS: ${{ inputs.targets || 'functions,firestore:rules' }}
+          TARGETS: ${{ inputs.targets }}
         run: firebase deploy --only "$TARGETS" --project dailymacros-9fab8 --non-interactive

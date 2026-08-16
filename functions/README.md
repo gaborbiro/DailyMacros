@@ -110,15 +110,15 @@ cd functions && npm install && cd ..
 firebase deploy --only functions,firestore:rules
 ```
 
-### CI/CD: automatic deploy on merge
+### Deploy from GitHub (no local `firebase login`)
 
 `.github/workflows/firebase-deploy.yml` runs this same deploy non-interactively,
-authenticated as a service account instead of a personal Google login (no browser
-available in CI, or in an agent session, to complete `firebase login`). It fires
-**automatically** on every push to `master` that touches `functions/**` or
-`firestore.rules` — i.e. as soon as a PR with those changes merges, no one has to
-remember to deploy. `workflow_dispatch` also stays available in the Actions tab as
-a manual fallback (e.g. re-running after fixing a secret).
+authenticated as a service account instead of a personal Google login. It's
+**manual only, by design** — no path-based auto-detection on merge, since a
+functions deploy changes real enforcement behavior and that's a call worth
+making deliberately each time, not inferring from which files a PR happened to
+touch. Trigger it yourself: Actions tab → "Deploy Firebase functions" → Run
+workflow → pick `functions`, `firestore:rules`, or both.
 
 One-time setup (needs your GCP/GitHub access; nobody else can do this part):
 
@@ -151,10 +151,8 @@ One-time setup (needs your GCP/GitHub access; nobody else can do this part):
    ```
    Paste the file's contents as the secret value, then delete the local key file.
 
-That's it — once the secret exists, merging any PR that touches `functions/**` or
-`firestore.rules` into `master` deploys it automatically. To deploy without a
-qualifying file change (or to retry a failed run), use the Actions tab →
-"Deploy Firebase functions" → Run workflow.
+That's it — once the secret exists, the workflow is ready to run from the Actions
+tab whenever you want to deploy.
 
 The deploy prints the function URL, e.g.
 `https://us-central1-dailymacros-9fab8.cloudfunctions.net/openaiProxy`.
