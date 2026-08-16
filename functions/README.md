@@ -110,14 +110,17 @@ cd functions && npm install && cd ..
 firebase deploy --only functions,firestore:rules
 ```
 
-### From an agent session (no interactive `firebase login`)
+### CI/CD: automatic deploy on merge
 
-`.github/workflows/firebase-deploy.yml` is a `workflow_dispatch`-only GitHub Action
-that runs this same deploy non-interactively, authenticated as a service account
-instead of your personal Google login. It's the way an agent (which has no browser
-to complete `firebase login`) can trigger a deploy — via the GitHub Actions API —
-without ever holding a long-lived credential itself. One-time setup (needs your
-GCP/GitHub access; an agent can't do this part):
+`.github/workflows/firebase-deploy.yml` runs this same deploy non-interactively,
+authenticated as a service account instead of a personal Google login (no browser
+available in CI, or in an agent session, to complete `firebase login`). It fires
+**automatically** on every push to `master` that touches `functions/**` or
+`firestore.rules` — i.e. as soon as a PR with those changes merges, no one has to
+remember to deploy. `workflow_dispatch` also stays available in the Actions tab as
+a manual fallback (e.g. re-running after fixing a secret).
+
+One-time setup (needs your GCP/GitHub access; nobody else can do this part):
 
 1. **Create the service account:**
    ```bash
@@ -147,9 +150,11 @@ GCP/GitHub access; an agent can't do this part):
      --iam-account="$SA"
    ```
    Paste the file's contents as the secret value, then delete the local key file.
-4. **Trigger it**: Actions tab → "Deploy Firebase functions" → Run workflow (pick
-   `functions`, `firestore:rules`, or both) — or an agent with GitHub tool access
-   can fire the same `workflow_dispatch` event.
+
+That's it — once the secret exists, merging any PR that touches `functions/**` or
+`firestore.rules` into `master` deploys it automatically. To deploy without a
+qualifying file change (or to retry a failed run), use the Actions tab →
+"Deploy Firebase functions" → Run workflow.
 
 The deploy prints the function URL, e.g.
 `https://us-central1-dailymacros-9fab8.cloudfunctions.net/openaiProxy`.
