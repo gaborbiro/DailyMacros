@@ -3,9 +3,9 @@ package dev.gaborbiro.dailymacros.repositories.common.model
 /**
  * Which server-side usage limit an AI request ran into. These originate at the
  * Firebase proxy layer (not the AI model): a per-user daily cap, the global
- * monthly budget, the manual kill switch, or (once
- * config/limits.subscriptionGateEnabled is turned on) a lapsed/missing
- * subscription.
+ * monthly budget, the manual kill switch, or a lapsed/missing subscription
+ * (including a pre-subscription allowance for new users being exhausted -
+ * see functions/index.js).
  */
 enum class UsageLimitKind { DAILY, MONTHLY, UNAVAILABLE, SUBSCRIPTION_REQUIRED }
 

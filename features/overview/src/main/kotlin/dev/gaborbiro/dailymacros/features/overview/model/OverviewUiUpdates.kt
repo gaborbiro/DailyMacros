@@ -5,4 +5,5 @@ sealed class OverviewUiUpdates {
     data class ViewImage(val recordId: Long) : OverviewUiUpdates()
     data object OpenSettingsScreen : OverviewUiUpdates()
     data object OpenTrendsScreen : OverviewUiUpdates()
+    data object OpenPaywallScreen : OverviewUiUpdates()
 }

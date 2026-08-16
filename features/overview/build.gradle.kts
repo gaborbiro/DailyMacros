@@ -23,6 +23,7 @@ dependencies {
     implementation(project(":repositories:common"))
     implementation(project(":repositories:records:domain"))
     implementation(project(":repositories:settings:domain"))
+    implementation(project(":repositories:billing:domain"))
     implementation(project(":data:image"))
 
     implementation(libs.androidx.core.ktx)

@@ -53,8 +53,9 @@ object AppSingletonModule {
                 title: String?,
                 message: String,
                 isError: Boolean,
+                subscriptionRequired: Boolean,
             ) {
-                context.showMacroResultsNotification(id, recordId, title, message, isError)
+                context.showMacroResultsNotification(id, recordId, title, message, isError, subscriptionRequired)
             }
         }
 }
