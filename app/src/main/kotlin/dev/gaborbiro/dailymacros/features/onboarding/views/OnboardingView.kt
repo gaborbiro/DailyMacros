@@ -23,6 +23,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -57,6 +58,7 @@ private const val PAGE_COUNT = 3
 internal fun OnboardingView(
     onAddWidget: () -> Unit = {},
     onRestoreFromCloud: () -> Unit = {},
+    restoreFromCloudInProgress: Boolean = false,
     onStartTrialTapped: () -> Unit = {},
     onSkipTapped: () -> Unit = {},
 ) {
@@ -78,7 +80,11 @@ internal fun OnboardingView(
             ) { page ->
                 when (page) {
                     0 -> OnboardingIntroPage()
-                    1 -> OnboardingSetupPage(onAddWidget = onAddWidget, onRestoreFromCloud = onRestoreFromCloud)
+                    1 -> OnboardingSetupPage(
+                        onAddWidget = onAddWidget,
+                        onRestoreFromCloud = onRestoreFromCloud,
+                        restoreFromCloudInProgress = restoreFromCloudInProgress,
+                    )
                     else -> OnboardingTrialPage(onStartTrialTapped = onStartTrialTapped, onSkipTapped = onSkipTapped)
                 }
             }
@@ -97,7 +103,7 @@ internal fun OnboardingView(
                 val nextPage = pagerState.currentPage + 1
                 Button(
                     modifier = Modifier.alpha(if (isLastPage) 0f else 1f),
-                    enabled = !isLastPage,
+                    enabled = !isLastPage && !restoreFromCloudInProgress,
                     onClick = { coroutineScope.launch { pagerState.animateScrollToPage(nextPage) } },
                 ) {
                     Text(stringResource(R.string.onboarding_next))
@@ -199,6 +205,7 @@ private fun OnboardingIntroPage() {
 private fun OnboardingSetupPage(
     onAddWidget: () -> Unit,
     onRestoreFromCloud: () -> Unit,
+    restoreFromCloudInProgress: Boolean = false,
 ) {
     val onBackground = MaterialTheme.colorScheme.onBackground
 
@@ -224,13 +231,25 @@ private fun OnboardingSetupPage(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Text(
-                modifier = Modifier.clickable(onClick = onRestoreFromCloud),
-                text = stringResource(OverviewR.string.welcome_restore_from_cloud),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    modifier = Modifier.clickable(
+                        enabled = !restoreFromCloudInProgress,
+                        onClick = onRestoreFromCloud,
+                    ),
+                    text = stringResource(OverviewR.string.welcome_restore_from_cloud),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = if (restoreFromCloudInProgress) 0.5f else 1f),
+                    textAlign = TextAlign.Center,
+                )
+                if (restoreFromCloudInProgress) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(14.dp),
+                        strokeWidth = 2.dp,
+                    )
+                }
+            }
         }
 
         val uriHandler = LocalUriHandler.current
