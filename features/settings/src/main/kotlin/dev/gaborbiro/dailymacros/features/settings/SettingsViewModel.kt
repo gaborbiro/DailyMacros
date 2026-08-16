@@ -39,6 +39,7 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.model.BackupInterv
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PdfExportOptions
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -561,13 +562,33 @@ class SettingsViewModel @Inject constructor(
     private suspend fun getDriveAccessToken(): String? = withContext(Dispatchers.IO) {
         val app = getApplication<Application>()
         val account = GoogleSignIn.getLastSignedInAccount(app) ?: return@withContext null
-        try {
-            GoogleAuthUtil.getToken(app, account.account!!, DRIVE_SCOPE_TOKEN)
-        } catch (e: UserRecoverableAuthException) {
-            null
-        } catch (e: GoogleAuthException) {
+        fetchDriveAccessToken(app, account, retryOnRecoverableAuth = true)
+    }
+
+    private suspend fun fetchDriveAccessToken(
+        app: Application,
+        account: com.google.android.gms.auth.api.signin.GoogleSignInAccount,
+        retryOnRecoverableAuth: Boolean,
+    ): String? = try {
+        GoogleAuthUtil.getToken(app, account.account!!, DRIVE_SCOPE_TOKEN)
+    } catch (e: UserRecoverableAuthException) {
+        if (retryOnRecoverableAuth) {
+            // Right after a fresh sign-in, AccountManager can take a moment to propagate the
+            // just-granted Drive scope, so the first token request can fail transiently. Retry
+            // once after a short delay instead of surfacing a confusing "not signed in" error.
+            Log.w("CloudSync", "Drive token needs consent on first attempt, retrying once", e)
+            delay(1000)
+            fetchDriveAccessToken(app, account, retryOnRecoverableAuth = false)
+        } else {
+            Log.w("CloudSync", "Drive token unavailable: user consent required", e)
             null
         }
+    } catch (e: GoogleAuthException) {
+        Log.w("CloudSync", "Drive token unavailable", e)
+        null
+    } catch (e: java.io.IOException) {
+        Log.w("CloudSync", "Drive token fetch failed (network)", e)
+        null
     }
 
 }
