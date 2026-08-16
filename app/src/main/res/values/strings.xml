@@ -9,4 +9,10 @@
     <string name="onboarding_trial_body">AI meal recognition runs on a subscription. Start a free trial now — you won\'t be charged until it ends, and you can cancel any time in Google Play.</string>
     <string name="onboarding_start_trial_button">Start free trial</string>
     <string name="onboarding_skip_button">Maybe later</string>
+    <!-- Paywall -->
+    <string name="paywall_back_cd">Back</string>
+    <string name="paywall_heading">Subscribe to keep using AI</string>
+    <string name="paywall_body">AI meal recognition and macro analysis run on a subscription. You can cancel any time in Google Play.</string>
+    <string name="paywall_subscribe_button">Subscribe</string>
+    <string name="paywall_subscribed_heading">You\'re subscribed — thanks!</string>
 </resources>

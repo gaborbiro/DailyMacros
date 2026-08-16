@@ -11,6 +11,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import dev.gaborbiro.dailymacros.features.common.PAYWALL_ROUTE
 import dev.gaborbiro.dailymacros.features.common.SETTINGS_HIGHLIGHT_ROW_ARG
 import dev.gaborbiro.dailymacros.features.common.SETTINGS_ROUTE
 import dev.gaborbiro.dailymacros.features.common.SettingsRowId
@@ -34,6 +35,7 @@ fun OverviewScreen(
                 is OverviewUiUpdates.ViewImage -> modalNavigator.launchToShowRecordImage(context, event.recordId)
                 OverviewUiUpdates.OpenSettingsScreen -> navController.navigate(SETTINGS_ROUTE)
                 OverviewUiUpdates.OpenTrendsScreen -> navController.navigate(TRENDS_ROUTE)
+                OverviewUiUpdates.OpenPaywallScreen -> navController.navigate(PAYWALL_ROUTE)
             }
         }
     }
@@ -56,6 +58,8 @@ fun OverviewScreen(
         onUndoDeleteSnackbarShown = viewModel::onUndoDeleteSnackbarShown,
         onSearchTermChanged = viewModel::onSearchTermChanged,
         onSettingsButtonTapped = viewModel::onSettingsButtonTapped,
+        onSubscribeBannerTapped = viewModel::onSubscribeBannerTapped,
+        onSubscribeBannerDismissed = viewModel::onSubscribeBannerDismissed,
         onAddWidget = onAddWidget,
         onSetTargetsTapped = {
             navController.navigate("$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_ROW_ARG=${SettingsRowId.TARGETS.name}")

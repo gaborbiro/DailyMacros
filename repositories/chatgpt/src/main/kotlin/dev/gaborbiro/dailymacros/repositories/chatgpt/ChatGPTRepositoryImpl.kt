@@ -50,6 +50,7 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.prompts.toWeeklyInsightsRe
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.ChatGPTService
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.AiRequestError
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ChatGPTResponse
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ReportOutcomeRequest
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptType
 import dev.gaborbiro.dailymacros.repositories.chatgpt.utils.parse
@@ -72,11 +73,16 @@ internal class ChatGPTRepositoryImpl(
         return mappingApiErrors {
             runCatching(logTag = "recogniseFood") {
                 val response = service.callResponses(
+                    feature = PromptType.RECOGNITION,
                     request = request.toApiModel(),
                 )
                 val parsed = parse(response)
                 recordUsage(PromptType.RECOGNITION, parsed)
-                return@runCatching parsed.toFoodRecognitionResult()
+                val result = parsed.toFoodRecognitionResult()
+                if (result.error == null && !result.title.isNullOrBlank()) {
+                    reportOutcome(PromptType.RECOGNITION)
+                }
+                return@runCatching result
             }
         }
     }
@@ -85,12 +91,17 @@ internal class ChatGPTRepositoryImpl(
         return mappingApiErrors {
             runCatching(logTag = "analyseNutrients") {
                 val response = service.callResponses(
+                    feature = PromptType.ANALYSIS,
                     request = request.toApiModel(),
                 )
                 val imageCount = request.base64Images.size
                 val parsed = parse(response)
                 recordUsage(PromptType.ANALYSIS, parsed)
-                return@runCatching mapper.map(parsed.toNutrientAnalysisResponse(), imageCount)
+                val result = mapper.map(parsed.toNutrientAnalysisResponse(), imageCount)
+                if (result.nutrients != null) {
+                    reportOutcome(PromptType.ANALYSIS)
+                }
+                return@runCatching result
             }
         }
     }
@@ -98,7 +109,7 @@ internal class ChatGPTRepositoryImpl(
     override suspend fun getWeeklyInsights(request: WeeklyInsightsRequest): WeeklyInsightsResult {
         return mappingApiErrors {
             runCatching(logTag = "getWeeklyInsights") {
-                val response = service.callResponses(request = request.toApiModel())
+                val response = service.callResponses(feature = PromptType.WEEKLY_INSIGHTS, request = request.toApiModel())
                 val parsed = parse(response)
                 recordUsage(PromptType.WEEKLY_INSIGHTS, parsed)
                 return@runCatching parsed.toWeeklyInsightsResponse()
@@ -109,7 +120,7 @@ internal class ChatGPTRepositoryImpl(
     override suspend fun getOngoingInsights(request: OngoingWeekInsightsRequest): OngoingWeekInsightsResult {
         return mappingApiErrors {
             runCatching(logTag = "getOngoingWeekInsights") {
-                val response = service.callResponses(request = request.toApiModel())
+                val response = service.callResponses(feature = PromptType.ONGOING_WEEK_INSIGHTS, request = request.toApiModel())
                 val parsed = parse(response)
                 recordUsage(PromptType.ONGOING_WEEK_INSIGHTS, parsed)
                 return@runCatching parsed.toOngoingInsightsResult()
@@ -238,6 +249,20 @@ internal class ChatGPTRepositoryImpl(
         // Stats are best-effort bookkeeping; never fail the query over them
         try {
             settingsRepository.recordPromptUsage(type, response.usage.totalTokens.toLong())
+        } catch (t: Throwable) {
+        }
+    }
+
+    /**
+     * Self-reports to the proxy that a pre-subscription call for [feature]
+     * (RECOGNITION or ANALYSIS) actually produced something useful, so it
+     * counts toward that feature's success cap (see functions/index.js). Once
+     * the user is subscribed this call still fires but the count it feeds is
+     * unused. Best-effort: a failure here must never fail the caller's result.
+     */
+    private suspend fun reportOutcome(feature: String) {
+        try {
+            service.reportOutcome(body = ReportOutcomeRequest(feature = feature))
         } catch (t: Throwable) {
         }
     }

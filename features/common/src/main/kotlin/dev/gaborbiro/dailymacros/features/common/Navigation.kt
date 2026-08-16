@@ -5,6 +5,7 @@ const val SETTINGS_ROUTE = "settings"
 const val SETTINGS_HIGHLIGHT_ROW_ARG = "hr"
 const val TRENDS_ROUTE = "trends"
 const val ONBOARDING_ROUTE = "onboarding"
+const val PAYWALL_ROUTE = "paywall"
 
 /**
  * Identifies a row in the Settings screen that can be scrolled to and highlighted,
@@ -16,4 +17,5 @@ enum class SettingsRowId {
     AUTO_BACKUP,
     BACKUP_NOW,
     PRIVACY_POLICY,
+    SUBSCRIPTION,
 }

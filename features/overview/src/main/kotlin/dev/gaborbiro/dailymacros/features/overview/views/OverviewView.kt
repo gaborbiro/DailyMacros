@@ -3,6 +3,8 @@ package dev.gaborbiro.dailymacros.features.overview.views
 import android.content.res.Configuration
 import android.util.Range
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.ime
@@ -28,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.features.overview.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.overview.model.DailySummaryEntry
@@ -54,6 +57,8 @@ internal fun OverviewView(
     onSettingsButtonTapped: () -> Unit,
     onSetTargetsTapped: () -> Unit,
     onSummaryTapped: () -> Unit,
+    onSubscribeBannerTapped: () -> Unit = {},
+    onSubscribeBannerDismissed: () -> Unit = {},
     onAddWidget: () -> Unit = {},
     onLoadMore: () -> Unit = {},
 ) {
@@ -110,36 +115,53 @@ internal fun OverviewView(
             )
         },
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize()) {
-            if (viewState.items.isNotEmpty()) {
-                OverviewList(
-                    viewState = viewState,
-                    listState = listState,
-                    paddingValues = paddingValues,
-                    onRepeatMenuItemTapped = onRepeatMenuItemTapped,
-                    onAnalyseMacrosMenuItemTapped = onAnalyseMacrosMenuItemTapped,
-                    onDeleteMenuItemTapped = onDeleteMenuItemTapped,
-                    onRecordImageTapped = onRecordImageTapped,
-                    onRecordBodyTapped = onRecordBodyTapped,
-                    onSetTargetsTapped = onSetTargetsTapped,
-                    onSummaryTapped = onSummaryTapped,
-                    onLoadMore = onLoadMore,
-                )
-            } else if (viewState.showAddWidgetButton) {
-                WelcomeView(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    onAddWidget = onAddWidget,
+        // The top system-bar inset is consumed once here (Column), so the banner sits below
+        // the status bar and the Box below starts at y=0 of its own bounds - remainingPadding
+        // passes only the bottom inset onward, and OverviewListTopActions gets topContentPadding
+        // = 0 since it no longer needs to skip a status bar it's not adjacent to.
+        val remainingPadding = PaddingValues(bottom = paddingValues.calculateBottomPadding())
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = paddingValues.calculateTopPadding()),
+        ) {
+            if (viewState.showSubscribeBanner) {
+                SubscribeBanner(
+                    onSubscribeTapped = onSubscribeBannerTapped,
+                    onDismissed = onSubscribeBannerDismissed,
                 )
             }
+            Box(modifier = Modifier.weight(1f)) {
+                if (viewState.items.isNotEmpty()) {
+                    OverviewList(
+                        viewState = viewState,
+                        listState = listState,
+                        paddingValues = remainingPadding,
+                        onRepeatMenuItemTapped = onRepeatMenuItemTapped,
+                        onAnalyseMacrosMenuItemTapped = onAnalyseMacrosMenuItemTapped,
+                        onDeleteMenuItemTapped = onDeleteMenuItemTapped,
+                        onRecordImageTapped = onRecordImageTapped,
+                        onRecordBodyTapped = onRecordBodyTapped,
+                        onSetTargetsTapped = onSetTargetsTapped,
+                        onSummaryTapped = onSummaryTapped,
+                        onLoadMore = onLoadMore,
+                    )
+                } else if (viewState.showAddWidgetButton) {
+                    WelcomeView(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(remainingPadding),
+                        onAddWidget = onAddWidget,
+                    )
+                }
 
-            OverviewListTopActions(
-                showSettingsButton = viewState.showSettingsButton,
-                listAtTop = listAtTop,
-                topContentPadding = paddingValues.calculateTopPadding(),
-                onSettingsButtonTapped = onSettingsButtonTapped,
-            )
+                OverviewListTopActions(
+                    showSettingsButton = viewState.showSettingsButton,
+                    listAtTop = listAtTop,
+                    topContentPadding = 0.dp,
+                    onSettingsButtonTapped = onSettingsButtonTapped,
+                )
+            }
         }
     }
 }

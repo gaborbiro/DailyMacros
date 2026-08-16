@@ -239,6 +239,13 @@ class SettingsRepositoryImpl @Inject constructor(
         prefs.edit { putBoolean(KEY_WIFI_ONLY_ANALYSIS, enabled) }
     }
 
+    override fun getSubscribeBannerDismissed(): Boolean =
+        prefs.getBoolean(KEY_SUBSCRIBE_BANNER_DISMISSED, false)
+
+    override fun setSubscribeBannerDismissed(dismissed: Boolean) {
+        prefs.edit { putBoolean(KEY_SUBSCRIBE_BANNER_DISMISSED, dismissed) }
+    }
+
     override fun getLastProcessedMediaStoreId(): Long =
         prefs.getLong(KEY_LAST_PROCESSED_MEDIA_STORE_ID, -1L)
 
@@ -336,5 +343,6 @@ class SettingsRepositoryImpl @Inject constructor(
         private const val KEY_PDF_EXPORT_OPTIONS = "pdf_export_options_json"
         private const val KEY_WIFI_ONLY_BACKUP = "wifi_only_backup_enabled"
         private const val KEY_WIFI_ONLY_ANALYSIS = "wifi_only_analysis_enabled"
+        private const val KEY_SUBSCRIBE_BANNER_DISMISSED = "subscribe_banner_dismissed"
     }
 }
