@@ -110,6 +110,47 @@ cd functions && npm install && cd ..
 firebase deploy --only functions,firestore:rules
 ```
 
+### From an agent session (no interactive `firebase login`)
+
+`.github/workflows/firebase-deploy.yml` is a `workflow_dispatch`-only GitHub Action
+that runs this same deploy non-interactively, authenticated as a service account
+instead of your personal Google login. It's the way an agent (which has no browser
+to complete `firebase login`) can trigger a deploy — via the GitHub Actions API —
+without ever holding a long-lived credential itself. One-time setup (needs your
+GCP/GitHub access; an agent can't do this part):
+
+1. **Create the service account:**
+   ```bash
+   gcloud iam service-accounts create firebase-deployer \
+     --project=dailymacros-9fab8 \
+     --display-name="Firebase deploy (GitHub Actions)"
+   ```
+2. **Grant it the roles `firebase deploy` needs** (functions + Firestore rules,
+   2nd-gen Cloud Functions build via Cloud Build/Artifact Registry):
+   ```bash
+   SA="firebase-deployer@dailymacros-9fab8.iam.gserviceaccount.com"
+   for ROLE in roles/firebase.admin roles/cloudfunctions.admin \
+               roles/cloudbuild.builds.editor roles/artifactregistry.admin \
+               roles/iam.serviceAccountUser roles/storage.admin; do
+     gcloud projects add-iam-policy-binding dailymacros-9fab8 \
+       --member="serviceAccount:$SA" --role="$ROLE"
+   done
+   ```
+   If a deploy still fails on a missing permission, the error names the exact
+   role to add — GCP IAM for 2nd-gen functions is finicky enough that this list
+   may need a follow-up grant.
+3. **Generate a key and add it as a GitHub secret** named
+   `FIREBASE_SERVICE_ACCOUNT_JSON` (repo → Settings → Secrets and variables →
+   Actions):
+   ```bash
+   gcloud iam service-accounts keys create /tmp/firebase-deployer-key.json \
+     --iam-account="$SA"
+   ```
+   Paste the file's contents as the secret value, then delete the local key file.
+4. **Trigger it**: Actions tab → "Deploy Firebase functions" → Run workflow (pick
+   `functions`, `firestore:rules`, or both) — or an agent with GitHub tool access
+   can fire the same `workflow_dispatch` event.
+
 The deploy prints the function URL, e.g.
 `https://us-central1-dailymacros-9fab8.cloudfunctions.net/openaiProxy`.
 Note it — the Android client will point at it.
