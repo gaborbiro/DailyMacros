@@ -42,7 +42,9 @@ import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
 import dev.gaborbiro.dailymacros.features.onboarding.OnboardingScreen
 import dev.gaborbiro.dailymacros.features.common.ONBOARDING_ROUTE
+import dev.gaborbiro.dailymacros.features.common.PAYWALL_ROUTE
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
+import dev.gaborbiro.dailymacros.features.paywall.PaywallScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel
@@ -93,10 +95,15 @@ class MainActivity : ComponentActivity() {
     // once the NavHost exists, since a PendingIntent can't target a Compose nav route directly.
     private var pendingHighlightRowId by mutableStateOf<SettingsRowId?>(null)
 
+    // Same idea as [pendingHighlightRowId], for the failed-AI-analysis notification, which
+    // deep-links straight to the paywall rather than to Settings (see Notifications.kt).
+    private var pendingOpenPaywall by mutableStateOf(false)
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         pendingHighlightRowId = intent.highlightRowIdExtra()
+        pendingOpenPaywall = intent.openPaywallExtra()
     }
 
     override fun onResume() {
@@ -127,6 +134,7 @@ class MainActivity : ComponentActivity() {
             requestStatusRepository.deleteStale()
         }
         pendingHighlightRowId = intent.highlightRowIdExtra()
+        pendingOpenPaywall = intent.openPaywallExtra()
 
         setContent {
             AppTheme {
@@ -139,6 +147,13 @@ class MainActivity : ComponentActivity() {
                     pendingHighlightRowId?.let { rowId ->
                         navController.navigate("$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_ROW_ARG=${rowId.name}")
                         pendingHighlightRowId = null
+                    }
+                }
+
+                LaunchedEffect(pendingOpenPaywall) {
+                    if (pendingOpenPaywall) {
+                        navController.navigate(PAYWALL_ROUTE)
+                        pendingOpenPaywall = false
                     }
                 }
 
@@ -212,6 +227,23 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     composable(
+                        route = PAYWALL_ROUTE,
+                        enterTransition = {
+                            slideInHorizontally(
+                                initialOffsetX = { fullWidth -> fullWidth },
+                                animationSpec = tween(600, easing = FastOutSlowInEasing)
+                            )
+                        },
+                        exitTransition = {
+                            slideOutHorizontally(
+                                targetOffsetX = { fullWidth -> fullWidth },
+                                animationSpec = tween(600, easing = FastOutSlowInEasing)
+                            )
+                        },
+                    ) {
+                        PaywallScreen(navController = navController)
+                    }
+                    composable(
                         route = TRENDS_ROUTE,
                         // Same horizontal slide as Settings: Trends enters from the right and exits to the right.
                         enterTransition = {
@@ -248,6 +280,7 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         const val EXTRA_HIGHLIGHT_ROW_ID = "highlight_row_id"
+        const val EXTRA_OPEN_PAYWALL = "open_paywall"
     }
 }
 
@@ -255,3 +288,6 @@ private fun Intent.highlightRowIdExtra(): SettingsRowId? =
     getStringExtra(MainActivity.EXTRA_HIGHLIGHT_ROW_ID)?.let { name ->
         runCatching { SettingsRowId.valueOf(name) }.getOrNull()
     }
+
+private fun Intent.openPaywallExtra(): Boolean =
+    getBooleanExtra(MainActivity.EXTRA_OPEN_PAYWALL, false)

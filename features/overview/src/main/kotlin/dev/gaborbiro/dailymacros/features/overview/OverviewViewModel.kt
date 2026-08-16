@@ -5,7 +5,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.gaborbiro.dailymacros.features.common.utils.combine
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiState
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiUpdates
 import dev.gaborbiro.dailymacros.features.overview.usecase.CancelMacrosAnalysisForRecordUseCase
@@ -17,6 +16,8 @@ import dev.gaborbiro.dailymacros.features.shared.ListMealVariantsForTemplateUseC
 import dev.gaborbiro.dailymacros.features.shared.NutrientAnalysisWorker
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
+import dev.gaborbiro.dailymacros.repositories.billing.domain.SubscriptionRepository
+import dev.gaborbiro.dailymacros.repositories.billing.domain.model.SubscriptionState
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
@@ -29,6 +30,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.update
@@ -51,6 +53,7 @@ class OverviewViewModel @Inject constructor(
     private val cancelMacrosAnalysisForRecord: CancelMacrosAnalysisForRecordUseCase,
     private val listMealVariantsForTemplateUseCase: ListMealVariantsForTemplateUseCase,
     private val createRecordFromTemplateUseCase: CreateRecordFromTemplateUseCase,
+    private val subscriptionRepository: SubscriptionRepository,
 ) : AndroidViewModel(application) {
 
     private val _viewState: MutableStateFlow<OverviewUiState> =
@@ -90,17 +93,25 @@ class OverviewViewModel @Inject constructor(
         collectionJob = viewModelScope.launch {
             val searchBlank = search.isNullOrBlank()
             val sinceMillis = resolveObserveSinceEpochMillis.execute(searchBlank, sinceEpochMillis)
-            recordsRepository.observeRecords(search, sinceEpochMillis = sinceMillis)
-                .combine(flowOf(settingsRepository.getTargets()))
-                .mapLatest { (records: List<Record>, targets: Targets) ->
+            combine(
+                recordsRepository.observeRecords(search, sinceEpochMillis = sinceMillis),
+                flowOf(settingsRepository.getTargets()),
+                subscriptionRepository.observeState(),
+            ) { records: List<Record>, targets: Targets, subscriptionState: SubscriptionState ->
+                Triple(records, targets, subscriptionState)
+            }
+                .mapLatest { (records: List<Record>, targets: Targets, subscriptionState: SubscriptionState) ->
                     val items = if (searchBlank) {
                         uiMapper.map(records, targets)
                     } else {
                         uiMapper.mapSearchResults(records)
                     }
-                    enrichRecordRowsWithOtherVariantsIcon(items)
+                    val showSubscribeBanner = records.isNotEmpty() &&
+                        subscriptionState == SubscriptionState.NotSubscribed &&
+                        !settingsRepository.getSubscribeBannerDismissed()
+                    enrichRecordRowsWithOtherVariantsIcon(items) to showSubscribeBanner
                 }
-                .collect { records: List<ListUiModelBase> ->
+                .collect { (records: List<ListUiModelBase>, showSubscribeBanner: Boolean) ->
                     val hasMore = computeHasMoreItems.execute(
                         isSearchActive = !searchBlank,
                         previousItemCount = previousRecordCount,
@@ -116,6 +127,7 @@ class OverviewViewModel @Inject constructor(
                                 isLoadingMore = false,
                                 hasMoreData = hasMore,
                                 showSettingsButton = notSearching,
+                                showSubscribeBanner = notSearching && showSubscribeBanner,
                             )
                         } else {
                             it.copy(
@@ -124,6 +136,7 @@ class OverviewViewModel @Inject constructor(
                                 hasMoreData = hasMore,
                                 showAddWidgetButton = notSearching,
                                 showSettingsButton = false,
+                                showSubscribeBanner = false,
                             )
                         }
                     }
@@ -214,6 +227,17 @@ class OverviewViewModel @Inject constructor(
         viewModelScope.launch {
             _uiUpdates.emit(OverviewUiUpdates.OpenTrendsScreen)
         }
+    }
+
+    fun onSubscribeBannerTapped() {
+        viewModelScope.launch {
+            _uiUpdates.emit(OverviewUiUpdates.OpenPaywallScreen)
+        }
+    }
+
+    fun onSubscribeBannerDismissed() {
+        settingsRepository.setSubscribeBannerDismissed(true)
+        _viewState.update { it.copy(showSubscribeBanner = false) }
     }
 
     private fun deleteUnusedTemplateAfterUndo(templateId: Long) {

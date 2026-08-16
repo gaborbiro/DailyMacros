@@ -53,9 +53,13 @@ These steps need your Firebase login and can only be done by you.
    | `monthlyRequestBudget` | number | `3000` |
    | `killSwitch` | boolean | `false` |
    | `unlimitedClientIds` | array (optional) | `[]` |
+   | `preSubRecognitionTotalCap` | number (optional) | `6` |
+   | `preSubRecognitionSuccessCap` | number (optional) | `3` |
+   | `preSubAnalysisTotalCap` | number (optional) | `6` |
+   | `preSubAnalysisSuccessCap` | number (optional) | `3` |
 
    (If you skip this, the function falls back to 15 / 3000 / off / no
-   unlimited clients.)
+   unlimited clients / 6+3 per pre-subscription feature.)
 
 ---
 
@@ -91,8 +95,11 @@ Default Credentials pick that identity up automatically.
    `applicationId` build — the `.debug`/`.qa` build types can never complete
    a real purchase.
 
-Enforcement itself stays off until you flip `config/limits.subscriptionGateEnabled`
-to `true` in Firestore (no redeploy needed) — see `index.js`'s header comment.
+Enforcement is always on: every caller needs an active/grace/still-in-paid-period
+subscription, except for the small pre-subscription allowance described in
+`index.js`'s header comment (the `recognition`/`analysis` features only, each
+gated by its own total-attempts and success caps) and the `unlimitedClientIds`
+allowlist (use this for your own test devices — see "Operating it" below).
 
 ---
 
@@ -134,10 +141,15 @@ client is wired to send its Firebase ID token — that's the follow-up step.
 ## Operating it
 
 - **Tune caps:** edit `config/limits` in Firestore. Takes effect on the next
-  request; no redeploy.
-- **Turn on subscription enforcement:** set `config/limits.subscriptionGateEnabled = true`.
-  Until then the code path exists but nobody is actually gated on having a
-  subscription.
+  request; no redeploy. This includes the four `preSub*Cap` fields that
+  control how much a not-yet-subscribed user can use `recognition` and
+  `analysis` before being asked to subscribe (see `index.js`'s header
+  comment) — a user's own progress toward those caps lives on their
+  `usage_users/{uid}` doc (`preSubRecognitionTotal`/`Success`,
+  `preSubAnalysisTotal`/`Success`).
+- **Unlock a test device from subscription enforcement entirely:** add its
+  three-word id to `config/limits.unlimitedClientIds` (see below) — cleaner
+  than watching it burn through the pre-subscription allowance.
 - **Emergency stop:** set `config/limits.killSwitch = true`. All proxied
   requests immediately return 503 until you flip it back.
 - **See usage:** `usage/global` holds the current month's count;

@@ -10,6 +10,8 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ForImageUploadChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repositories.common.model.DomainError
+import dev.gaborbiro.dailymacros.repositories.common.model.UsageLimitException
+import dev.gaborbiro.dailymacros.repositories.common.model.UsageLimitKind
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.ComponentConfidence
@@ -140,6 +142,9 @@ class NutrientAnalysisUseCase @Inject constructor(
         } catch (domainError: DomainError) {
             if (notifyOnFailure) {
                 val foodName = record.template.name.takeIf { it.isNotBlank() }
+                val subscriptionRequired = (domainError as? DomainError.DisplayMessageToUser.OperationFailed)
+                    ?.cause?.let { it as? UsageLimitException }
+                    ?.kind == UsageLimitKind.SUBSCRIPTION_REQUIRED
                 macroResultsNotificationSender.showMacroResultsNotification(
                     id = 123000L + recordId,
                     recordId = recordId,
@@ -148,6 +153,7 @@ class NutrientAnalysisUseCase @Inject constructor(
                         ?: appContext.getString(R.string.shared_content_macros_error_title_unknown),
                     message = errorUiMapper.mapErrorMessage(domainError, appContext.getString(R.string.shared_content_please_try_again)),
                     isError = true,
+                    subscriptionRequired = subscriptionRequired,
                 )
             }
             throw domainError

@@ -57,11 +57,12 @@ fun Context.showMacroResultsNotification(
     title: String?,
     message: String,
     isError: Boolean,
+    subscriptionRequired: Boolean = false,
 ) {
     val channelId = if (isError) CHANNEL_ID_ERROR else CHANNEL_ID_GENERAL
     var builder = NotificationCompat.Builder(this, channelId)
         .setSmallIcon(R.drawable.ic_nutrition)
-        .setContentIntent(openOverviewIntent())
+        .setContentIntent(if (subscriptionRequired) openPaywallIntent(id.toInt()) else openOverviewIntent())
     title?.takeIf { it.isNotBlank() }?.let {
         builder = builder.setContentTitle(it)
     }
@@ -144,6 +145,20 @@ fun Context.showAutoSyncFailureNotification() {
         .setAutoCancel(true)
         .setContentIntent(openSettingsIntent(NOTIFICATION_ID_AUTO_SYNC_FAILURE, SettingsRowId.BACKUP_NOW))
     getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID_AUTO_SYNC_FAILURE, builder.build())
+}
+
+// See the requestCode comment on openSettingsIntent below - same reasoning applies here.
+private fun Context.openPaywallIntent(requestCode: Int): PendingIntent? {
+    val intent = Intent(this, MainActivity::class.java).apply {
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        putExtra(MainActivity.EXTRA_OPEN_PAYWALL, true)
+    }
+    return PendingIntent.getActivity(
+        this,
+        requestCode,
+        intent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
 }
 
 private fun Context.openOverviewIntent(): PendingIntent? {

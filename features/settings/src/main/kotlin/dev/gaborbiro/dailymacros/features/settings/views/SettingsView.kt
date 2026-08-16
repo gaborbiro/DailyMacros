@@ -388,6 +388,7 @@ internal fun SettingsView(
                     stringResource(R.string.settings_content_subscription_row_not_subscribed)
                 },
                 enabled = viewState.subscriptionState != SubscriptionState.Active,
+                rowId = SettingsRowId.SUBSCRIPTION,
                 onTapped = onSubscribeTapped,
             )
 

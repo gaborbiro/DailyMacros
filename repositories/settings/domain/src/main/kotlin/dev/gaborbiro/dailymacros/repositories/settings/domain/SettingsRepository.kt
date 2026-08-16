@@ -101,4 +101,13 @@ interface SettingsRepository {
     /** Last content options chosen for the PDF food-diary export. */
     fun getPdfExportOptions(): PdfExportOptions = PdfExportOptions()
     fun setPdfExportOptions(options: PdfExportOptions) {}
+
+    /**
+     * Whether the user has dismissed Overview's proactive "subscribe" banner (shown once
+     * they have at least one record and aren't subscribed yet). Sticky until subscribed -
+     * dismissing it doesn't mean "never again", so it isn't wired to reappear on its own;
+     * the notification/paywall entry points remain reachable regardless.
+     */
+    fun getSubscribeBannerDismissed(): Boolean = false
+    fun setSubscribeBannerDismissed(dismissed: Boolean) {}
 }
