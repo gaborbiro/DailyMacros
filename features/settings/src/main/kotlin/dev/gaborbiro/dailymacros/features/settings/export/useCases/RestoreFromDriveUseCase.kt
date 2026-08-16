@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.features.settings.export.useCases
 
+import android.util.Log
 import dev.gaborbiro.dailymacros.repositories.backup.domain.BackupRepository
 import dev.gaborbiro.dailymacros.repositories.backup.domain.CloudSyncRepository
 import dev.gaborbiro.dailymacros.repositories.backup.domain.model.DatabaseBackupImportResult
@@ -22,10 +23,19 @@ class RestoreFromDriveUseCase @Inject constructor(
             when (result) {
                 DatabaseBackupImportResult.ReplacementApplied -> ImportSqliteDatabaseResult.RestartPending
                 DatabaseBackupImportResult.InvalidFile -> ImportSqliteDatabaseResult.InvalidFile
-                is DatabaseBackupImportResult.IoFailure -> ImportSqliteDatabaseResult.Error(result.message)
+                is DatabaseBackupImportResult.IoFailure -> {
+                    // The DB is already closed at this point; on-disk state was rolled back
+                    // but the in-memory singleton is unusable. We must restart regardless.
+                    Log.w(TAG, "Database swap failed; restart required: ${result.message}")
+                    ImportSqliteDatabaseResult.RestartPending
+                }
             }
         } finally {
             tempFile.delete()
         }
+    }
+
+    private companion object {
+        private const val TAG = "RestoreFromDrive"
     }
 }
