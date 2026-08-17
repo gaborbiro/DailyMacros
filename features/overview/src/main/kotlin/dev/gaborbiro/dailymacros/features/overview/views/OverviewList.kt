@@ -35,7 +35,6 @@ import dev.gaborbiro.dailymacros.features.common.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.overview.model.DailySummaryEntry
 import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelDailySummary
-import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelSetTargetsCta
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelWeeklySummary
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
@@ -55,7 +54,6 @@ internal fun OverviewList(
     onDeleteMenuItemTapped: (recordId: Long) -> Unit,
     onRecordImageTapped: (recordId: Long) -> Unit,
     onRecordBodyTapped: (recordId: Long) -> Unit,
-    onSetTargetsTapped: () -> Unit,
     onSummaryTapped: () -> Unit,
     onLoadMore: () -> Unit = {},
 ) {
@@ -157,12 +155,6 @@ internal fun OverviewList(
                         ListItemWeeklySummary(
                             model = item,
                             onTapped = onSummaryTapped,
-                        )
-                    }
-
-                    is ListUiModelSetTargetsCta -> {
-                        ListItemSetTargetsCta(
-                            onTapped = onSetTargetsTapped,
                         )
                     }
                 }
@@ -358,7 +350,6 @@ private fun OverviewListPreview() {
             onRecordImageTapped = {},
             onRecordBodyTapped = {},
             onAnalyseMacrosMenuItemTapped = {},
-            onSetTargetsTapped = {},
             onSummaryTapped = {},
             onLoadMore = {},
         )

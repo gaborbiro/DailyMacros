@@ -22,8 +22,6 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -83,12 +81,6 @@ internal fun OverviewView(
     }
 
     val listState = rememberLazyListState()
-    val listAtTop by remember {
-        derivedStateOf {
-            listState.firstVisibleItemIndex == 0 &&
-                listState.firstVisibleItemScrollOffset == 0
-        }
-    }
 
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
@@ -142,7 +134,6 @@ internal fun OverviewView(
                         onDeleteMenuItemTapped = onDeleteMenuItemTapped,
                         onRecordImageTapped = onRecordImageTapped,
                         onRecordBodyTapped = onRecordBodyTapped,
-                        onSetTargetsTapped = onSetTargetsTapped,
                         onSummaryTapped = onSummaryTapped,
                         onLoadMore = onLoadMore,
                     )
@@ -157,9 +148,10 @@ internal fun OverviewView(
 
                 OverviewListTopActions(
                     showSettingsButton = viewState.showSettingsButton,
-                    listAtTop = listAtTop,
+                    showSetTargetsCta = viewState.showSetTargetsCta,
                     topContentPadding = 0.dp,
                     onSettingsButtonTapped = onSettingsButtonTapped,
+                    onSetTargetsTapped = onSetTargetsTapped,
                 )
             }
         }
