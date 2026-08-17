@@ -244,9 +244,17 @@ class ModalViewModel @Inject constructor(
             when (val root = _uiState.value.rootDialog) {
                 is DialogHandle.RecordDetailsDialog.Edit -> {
                     val updatedImages = root.imageFilenames + persistedFilenames
-                    setRoot(root.copy(imageFilenames = updatedImages, recognisedFood = null))
+                    val titleAlreadySet = root.title.text.isNotBlank()
+                    setRoot(
+                        root.copy(
+                            imageFilenames = updatedImages,
+                            recognisedFood = if (titleAlreadySet) root.recognisedFood else null,
+                        )
+                    )
                     recomputeHasUnsavedEdits()
-                    runFoodRecognition(updatedImages)
+                    if (!titleAlreadySet) {
+                        runFoodRecognition(updatedImages)
+                    }
                 }
 
                 is DialogHandle.RecordDetailsDialog.View -> {

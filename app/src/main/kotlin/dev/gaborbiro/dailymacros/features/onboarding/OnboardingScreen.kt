@@ -16,6 +16,7 @@ fun OnboardingScreen(
     navController: NavHostController,
     onAddWidget: () -> Unit = {},
     onRestoreFromCloud: () -> Unit = {},
+    restoreFromCloudInProgress: Boolean = false,
 ) {
     val viewModel: OnboardingViewModel = hiltViewModel()
     val context = LocalContext.current
@@ -35,6 +36,7 @@ fun OnboardingScreen(
     OnboardingView(
         onAddWidget = onAddWidget,
         onRestoreFromCloud = onRestoreFromCloud,
+        restoreFromCloudInProgress = restoreFromCloudInProgress,
         onStartTrialTapped = {
             context.findActivity()?.let(viewModel::onStartTrialTapped)
             finishOnboarding()

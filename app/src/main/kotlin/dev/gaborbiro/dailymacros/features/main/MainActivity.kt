@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -145,7 +146,10 @@ class MainActivity : ComponentActivity() {
 
                 LaunchedEffect(pendingHighlightRowId) {
                     pendingHighlightRowId?.let { rowId ->
-                        navController.navigate("$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_ROW_ARG=${rowId.name}")
+                        navController.navigate("$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_ROW_ARG=${rowId.name}") {
+                            launchSingleTop = true
+                            popUpTo(SETTINGS_ROUTE_PATTERN) { inclusive = true }
+                        }
                         pendingHighlightRowId = null
                     }
                 }
@@ -174,10 +178,12 @@ class MainActivity : ComponentActivity() {
                     composable(
                         route = ONBOARDING_ROUTE,
                     ) {
+                        val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
                         OnboardingScreen(
                             navController = navController,
                             onAddWidget = onAddWidget,
                             onRestoreFromCloud = settingsViewModel::onCloudSyncForRestoreTapped,
+                            restoreFromCloudInProgress = settingsUiState.cloudSyncInProgress,
                         )
                     }
                     composable(
@@ -192,7 +198,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     composable(
-                        route = "$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_ROW_ARG={$SETTINGS_HIGHLIGHT_ROW_ARG}",
+                        route = SETTINGS_ROUTE_PATTERN,
                         arguments = listOf(
                             navArgument(SETTINGS_HIGHLIGHT_ROW_ARG) {
                                 type = NavType.StringType
