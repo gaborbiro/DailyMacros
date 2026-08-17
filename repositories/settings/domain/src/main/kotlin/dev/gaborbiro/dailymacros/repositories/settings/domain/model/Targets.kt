@@ -16,3 +16,7 @@ data class Target(
     val min: Int? = null,
     val max: Int? = null,
 )
+
+fun Targets.hasAnyEnabled(): Boolean =
+    calories.enabled || protein.enabled || fat.enabled || carbs.enabled ||
+        salt.enabled || fibre.enabled || ofWhichSaturated.enabled || ofWhichSugar.enabled

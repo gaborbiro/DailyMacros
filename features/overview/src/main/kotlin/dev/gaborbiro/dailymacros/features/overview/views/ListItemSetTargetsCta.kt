@@ -4,11 +4,12 @@ import android.content.res.Configuration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,30 +24,37 @@ import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 
+/**
+ * Compact CTA pointing at the Settings button (see [OverviewListTopActions]), shown whenever
+ * the user hasn't set any daily targets yet. Pinned next to the button itself rather than the
+ * scrolling list so its position - and the button it points at - are never affected by scroll.
+ */
 @Composable
 internal fun ListItemSetTargetsCta(
     modifier: Modifier = Modifier,
     onTapped: () -> Unit,
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onTapped)
-            .padding(horizontal = PaddingDefault, vertical = PaddingHalf),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(PaddingHalf),
+    Card(
+        modifier = modifier.clickable(onClick = onTapped),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
     ) {
-        Text(
-            text = stringResource(R.string.overview_content_set_targets_title),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
-        )
-        Icon(
-            modifier = Modifier.size(16.dp),
-            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-        )
+        Row(
+            modifier = Modifier.padding(horizontal = PaddingDefault, vertical = PaddingHalf),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(PaddingHalf),
+        ) {
+            Text(
+                text = stringResource(R.string.overview_content_set_targets_title),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+            Icon(
+                modifier = Modifier.size(16.dp),
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+        }
     }
 }
 

@@ -14,7 +14,6 @@ import dev.gaborbiro.dailymacros.features.overview.model.ChangeDirection
 import dev.gaborbiro.dailymacros.features.overview.model.ChangeIndicator
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelDailySummary
-import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelSetTargetsCta
 import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelWeeklySummary
 import dev.gaborbiro.dailymacros.features.overview.model.NutrientSummaryStatEntry
 import dev.gaborbiro.dailymacros.features.shared.model.TravelDay
@@ -22,6 +21,7 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.hasAnyEnabled
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalTime
@@ -381,13 +381,11 @@ class OverviewUiMapper @Inject constructor(
     ): ListUiModelBase? {
         if (week.isEmpty()) return null
 
-        val hasTargets = targets.run {
-            calories.enabled || protein.enabled || fat.enabled || carbs.enabled ||
-                salt.enabled || fibre.enabled || ofWhichSaturated.enabled || ofWhichSugar.enabled
-        }
-        if (!hasTargets) {
-            val weekStart = week.minOf { it.day }
-            return ListUiModelSetTargetsCta(listItemId = weekStart.toEpochDay())
+        if (!targets.hasAnyEnabled()) {
+            // No targets set: the persistent "Set your daily targets" CTA (anchored to the
+            // Settings button in OverviewListTopActions) covers this, so there's nothing to
+            // show inline for this week.
+            return null
         }
 
         // 1. Compute total macros per day for a given week
