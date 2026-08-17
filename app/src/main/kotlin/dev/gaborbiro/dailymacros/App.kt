@@ -13,6 +13,7 @@ import dagger.hilt.components.SingletonComponent
 import dev.gaborbiro.dailymacros.features.shared.photodiary.PhotoMonitorWorker
 import dev.gaborbiro.dailymacros.features.widgets.WidgetAutoReloader
 import dev.gaborbiro.dailymacros.repositories.billing.domain.SubscriptionRepository
+import dev.gaborbiro.dailymacros.repositories.settings.domain.PendingDriveSyncInfoStore
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.util.createNotificationChannels
 
@@ -28,6 +29,7 @@ interface AppBootstrapEntryPoint {
     fun widgetAutoReloader(): WidgetAutoReloader
     fun settingsRepository(): SettingsRepository
     fun subscriptionRepository(): SubscriptionRepository
+    fun pendingDriveSyncInfoStore(): PendingDriveSyncInfoStore
 }
 
 @HiltAndroidApp
@@ -57,6 +59,14 @@ class App : Application(), Configuration.Provider {
         appContext = this
         createNotificationChannels()
         val bootstrap = EntryPointAccessors.fromApplication(this, AppBootstrapEntryPoint::class.java)
+        // Applies bookkeeping staged by RestoreFromDriveUseCase, if a cloud restore restarted
+        // the app since the last launch. Must run before anything else touches
+        // SettingsRepository, since it's the first read/write of the (now freshly restored)
+        // prefs file in this process.
+        bootstrap.pendingDriveSyncInfoStore().consumeIfPresent()?.let { epochMs ->
+            bootstrap.settingsRepository().setLastSyncedEpochMs(epochMs)
+            bootstrap.settingsRepository().setAutoSyncErrorStatus(null)
+        }
         bootstrap.widgetAutoReloader().start()
         // The photo monitor chain can die if a run is killed before it re-enqueues itself
         // (process death, force-stop). Re-arm on every process start; KEEP makes this a no-op
