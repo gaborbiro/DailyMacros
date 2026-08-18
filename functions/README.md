@@ -103,6 +103,117 @@ allowlist (use this for your own test devices — see "Operating it" below).
 
 ---
 
+## Real-time developer notifications (RTDN) setup (one-time)
+
+`verifySubscription` only runs when the client sees a purchase token it
+hasn't verified before — which happens once, at initial purchase. Nothing
+client-side ever re-checks a purchase it already thinks it verified, so
+without RTDN a `users/{uid}` doc's subscription fields go stale the moment the user
+cancels, lapses, enters a grace period, or renews — `openaiProxy` would keep
+trusting that frozen snapshot indefinitely. RTDN closes that gap: Play
+publishes a Pub/Sub message on every subscription lifecycle event, and
+`onSubscriptionNotification` re-verifies with Play and refreshes the doc in
+response.
+
+These steps need your GCP/Play Console access; nobody else can do them.
+
+1. **Create the Pub/Sub topic** (name must match `PLAY_RTDN_TOPIC` in
+   `subscriptions.js`):
+   ```bash
+   gcloud pubsub topics create play-rtdn --project=dailymacros-9fab8
+   ```
+2. **Let Play publish to it.** Google publishes RTDN messages from a single
+   fixed service account shared by every Play developer:
+   ```bash
+   gcloud pubsub topics add-iam-policy-binding play-rtdn \
+     --project=dailymacros-9fab8 \
+     --member="serviceAccount:google-play-developer-notifications@system.gserviceaccount.com" \
+     --role="roles/pubsub.publisher"
+   ```
+3. **Play Console → your app → Monetize → Monetization setup → Real-time
+   developer notifications**: paste the full topic name,
+   `projects/dailymacros-9fab8/topics/play-rtdn`, save, then click **Send
+   test notification** — a `testNotification` payload should show up in this
+   function's logs once deployed (step 4).
+4. **Deploy** (see below). `onSubscriptionNotification`'s Pub/Sub trigger
+   provisions its own subscription on the `play-rtdn` topic automatically;
+   there's nothing extra to wire up on the GCP side.
+
+No Android app changes are needed — RTDN is entirely server-side.
+
+### Refunds and chargebacks (not covered by RTDN)
+
+Play has **no push notification** for a voided purchase (refund/chargeback)
+— RTDN only ever carries `subscriptionNotification`, `oneTimeProductNotification`,
+or `testNotification`. Catching refunds needs a separate pull:
+`checkVoidedPurchases` polls the Voided Purchases API every 6 hours and
+revokes `users/{uid}`'s subscription for any purchase token that got voided
+(only if that's still the uid's *current* token — a stale void can't clobber
+a newer, legitimate resubscription).
+
+No manual GCP/Play Console setup is needed for this one beyond what's
+already granted to `play-developer-api` above — `firebase deploy` creates
+its own Cloud Scheduler job automatically. **Do** test it against a real
+refunded test purchase (Play Console → Order management → refund a test
+order) before trusting it — the Voided Purchases API's field/enum names in
+the code are per Google's documented shape but haven't been exercised
+against a live response here.
+
+### Recovering a lost `users/{uid}` doc
+
+If a subscriber's `users/{uid}` doc is ever lost (an accidental Firestore
+delete, most likely) they'd look like a brand-new user to `openaiProxy`.
+Two separate durable mappings (each its own collection, unaffected by
+`users/{uid}` being deleted) exist specifically so this is recoverable:
+`purchaseTokens/{token} -> {uid}` and `clientIds/{clientId} -> {uid}` — the
+first recovers the uid → purchase token link, the second means even just a
+support email quoting a three-word id is enough to find the uid at all.
+
+- **Automatic**: `openaiProxy` self-heals the first time it sees a
+  not-yet-entitled request from a uid whose doc doesn't exist at all — it
+  checks `purchaseTokens` for a token on file, and if found, re-verifies with
+  Play and retries the same request before denying it. No waiting required,
+  but it only fires when that uid happens to make a request.
+- **Manual**: `repairSubscription`, an on-demand HTTP endpoint, for fixing a
+  specific user immediately (e.g. right after you notice you deleted the
+  wrong doc, or from a support email) instead of waiting for them to call in.
+  Gated by a shared secret rather than per-user auth — there's no admin-role
+  concept in this app, and this is a developer tool, not an in-app feature.
+  One-time setup — the secret needs setting in **two** places, same value in
+  both (Firebase's Secret Manager, so the function can check incoming calls
+  against it; a GitHub Actions repo secret, so the workflow below can supply
+  it without you ever typing it in at call time):
+  ```bash
+  firebase functions:secrets:set ADMIN_REPAIR_KEY
+  # paste a random secret string when prompted
+  ```
+  Then repo → Settings → Secrets and variables → Actions → New repository
+  secret → name it `ADMIN_REPAIR_KEY`, same value as above.
+
+  **Trigger it:** Actions tab → "Repair subscription" → Run workflow → fill
+  in either `uid` or `client_id` → Run. Works from the GitHub mobile app just
+  as well as a desktop — the whole point, since this needs no phone-side HTTP
+  client or manually-copied secret. See
+  `.github/workflows/repair-subscription.yml`.
+
+  Or call the endpoint directly if you'd rather:
+  ```bash
+  curl -s -X POST \
+    "https://us-central1-dailymacros-9fab8.cloudfunctions.net/repairSubscription" \
+    -H "X-Admin-Key: <the secret you set above>" \
+    -H "Content-Type: application/json" \
+    -d '{"clientId": "apple-fox-moon"}'
+  # or: -d '{"uid": "<their Firebase auth uid>"}'
+  ```
+
+  Either way, returns `404 not_found` if `clientIds`/`purchaseTokens` has
+  nothing on file (never subscribed, or the mapping itself was also lost —
+  this can't help with that case). `clientId` → uid isn't guaranteed unique
+  at scale (see `repairSubscription`'s doc comment) — double-check with the
+  user if a repair looks like it hit the wrong account.
+
+---
+
 ## Deploy
 
 ```bash
@@ -189,7 +300,7 @@ client is wired to send its Firebase ID token — that's the follow-up step.
   control how much a not-yet-subscribed user can use `recognition` and
   `analysis` before being asked to subscribe (see `index.js`'s header
   comment) — a user's own progress toward those caps lives on their
-  `usage_users/{uid}` doc (`preSubRecognitionTotal`/`Success`,
+  `users/{uid}` doc (`preSubRecognitionTotal`/`Success`,
   `preSubAnalysisTotal`/`Success`).
 - **Unlock a test device from subscription enforcement entirely:** add its
   three-word id to `config/limits.unlimitedClientIds` (see below) — cleaner
@@ -197,20 +308,34 @@ client is wired to send its Firebase ID token — that's the follow-up step.
 - **Emergency stop:** set `config/limits.killSwitch = true`. All proxied
   requests immediately return 503 until you flip it back.
 - **See usage:** `usage/global` holds the current month's count;
-  `usage_users/{uid}` holds each device's daily count, plus `clientId` (the
-  three-word id shown in the app's Settings) and `lastSeen`.
+  `users/{uid}` holds each device's daily count (`dailyCapCount`, valid for
+  the UTC date in `dailyCapUtcDate`), plus `clientId` (the
+  three-word id shown in the app's Settings), `lastSeen`, and that same
+  user's subscription fields (`subscriptionState`, `subscriptionProductId`,
+  `subscriptionExpiryTimeMillis`, `subscriptionPurchaseToken`,
+  `subscriptionUpdatedAt`, and `subscriptionVoidedAt` if ever revoked) — one
+  doc holds the full picture for a given uid, usage and subscription alike.
+  `subscriptionState` is Google's own `subscriptionState` value verbatim
+  (lowercased, prefix stripped) — `active`, `pending`, `paused`,
+  `in_grace_period`, `on_hold`, `canceled`, `expired`, `unspecified` — plus
+  the synthetic `revoked` written only by `checkVoidedPurchases`.
 - **Find a user from a support email:** they quote their three-word id (e.g.
-  `apple-fox-moon`). Console → Firestore → `usage_users` → query where
-  `clientId == apple-fox-moon`. The document id is their Firebase auth uid; the
-  fields show today's count and last-seen time.
+  `apple-fox-moon`). Console → Firestore → `clientIds/apple-fox-moon` — a
+  direct doc lookup, no query needed, and it works even if `users/{uid}` was
+  lost (that's the reason this mapping exists as its own collection instead
+  of only living on the profile doc). Its one field, `uid`, is the Firebase
+  auth uid; open `users/{uid}` from there for today's count, last-seen time,
+  and subscription state. (Not guaranteed unique at scale — see
+  `repairSubscription`'s doc comment in `subscriptions.js`.)
 - **Unlock yourself permanently:** add your own three-word id to
   `config/limits.unlimitedClientIds`. Those clients skip the per-user daily cap
   (they're still counted and still bounded by the global monthly budget).
-- **Give a user more room today:** open their `usage_users/{uid}` doc (found via
-  `clientId` above) and edit `count`. Set it to `0` to restore their full daily
-  allowance, or to a negative number (e.g. `-10`) to grant that many extra
-  requests on top of the cap. It resets to normal at the next UTC day; takes
-  effect on their next request, no redeploy. (Only meaningful when `utcDay` is
-  today — if `utcDay` is stale they already have a fresh allowance.)
+- **Give a user more room today:** open their `users/{uid}` doc (found via
+  `clientId` above) and edit `dailyCapCount`. Set it to `0` to restore their
+  full daily allowance, or to a negative number (e.g. `-10`) to grant that
+  many extra requests on top of the cap. It resets to normal at the next UTC
+  day; takes effect on their next request, no redeploy. (Only meaningful when
+  `dailyCapUtcDate` is today — if it's stale they already have a fresh
+  allowance.)
 - **Watch cost:** the Blaze budget alert (step 2) plus your OpenAI account's
   own hard usage limit are the outer backstops behind the in-function cap.

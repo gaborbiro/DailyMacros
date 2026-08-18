@@ -1,0 +1,60 @@
+name: Repair subscription
+
+# Manual only: re-verifies a specific user's subscription with Play and
+# rewrites their users/{uid} doc (see functions/subscriptions.js's
+# repairSubscription and functions/README.md's "Recovering a lost
+# users/{uid} doc" section). Trigger from the Actions tab -> "Repair
+# subscription" -> Run workflow -> fill in either uid or client_id (whichever
+# you have - e.g. from a support email quoting their three-word id). Works
+# just as well from the GitHub mobile app as from a desktop, which is the
+# point: no phone-side HTTP client or manually-copied secret needed, the
+# ADMIN_REPAIR_KEY secret lives only in this repo's Actions secrets and in
+# Firebase's Secret Manager, never typed anywhere by hand at call time.
+on:
+  workflow_dispatch:
+    inputs:
+      uid:
+        description: 'Firebase auth uid to repair (leave blank if using client_id)'
+        required: false
+      client_id:
+        description: 'Three-word client id to repair, e.g. apple-fox-moon (leave blank if using uid)'
+        required: false
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate input
+        run: |
+          if [ -z "${{ inputs.uid }}" ] && [ -z "${{ inputs.client_id }}" ]; then
+            echo "::error::Provide either uid or client_id."
+            exit 1
+          fi
+
+      - name: Call repairSubscription
+        env:
+          UID_INPUT: ${{ inputs.uid }}
+          CLIENT_ID_INPUT: ${{ inputs.client_id }}
+          ADMIN_KEY: ${{ secrets.ADMIN_REPAIR_KEY }}
+        run: |
+          if [ -n "$UID_INPUT" ]; then
+            BODY=$(jq -n --arg uid "$UID_INPUT" '{uid: $uid}')
+          else
+            BODY=$(jq -n --arg clientId "$CLIENT_ID_INPUT" '{clientId: $clientId}')
+          fi
+
+          HTTP_STATUS=$(curl -sS -o response.json -w "%{http_code}" -X POST \
+            "https://us-central1-dailymacros-9fab8.cloudfunctions.net/repairSubscription" \
+            -H "X-Admin-Key: $ADMIN_KEY" \
+            -H "Content-Type: application/json" \
+            -d "$BODY")
+
+          echo "HTTP status: $HTTP_STATUS"
+          cat response.json
+          echo
+
+          if [ "$HTTP_STATUS" -ge 300 ]; then
+            echo "::error::repairSubscription returned $HTTP_STATUS"
+            exit 1
+          fi
