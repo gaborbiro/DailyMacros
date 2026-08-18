@@ -50,16 +50,20 @@ function sendError(res, status, code, message) {
 }
 
 /**
- * Maps a Play `subscriptionState` (see purchases.subscriptionsv2.get) to the
- * state we persist. A canceled subscription still counts as entitled until
- * its paid period actually runs out — `openaiProxy`'s gate checks
- * expiryTimeMillis for exactly this reason.
+ * Turns a Play `subscriptionState` (see purchases.subscriptionsv2.get) into
+ * the string we persist — mechanically (strip the enum prefix, lowercase),
+ * not via a hand-maintained lookup. That's deliberate: a state Google adds in
+ * the future still shows up honestly instead of silently defaulting into the
+ * wrong bucket. Google's current states: active, pending, paused,
+ * in_grace_period, on_hold, canceled, expired, unspecified. (The separate
+ * `"revoked"` state, written directly by `checkVoidedPurchases`, is not part
+ * of this enum at all — a voided purchase is a distinct signal from Play's
+ * own subscription lifecycle.)
  */
-function toEntitlementState(subscriptionState) {
-  if (subscriptionState === "SUBSCRIPTION_STATE_ACTIVE") return "active";
-  if (subscriptionState === "SUBSCRIPTION_STATE_IN_GRACE_PERIOD") return "grace";
-  if (subscriptionState === "SUBSCRIPTION_STATE_CANCELED") return "canceled";
-  return "expired";
+function toStoredState(subscriptionState) {
+  return (subscriptionState || "SUBSCRIPTION_STATE_UNSPECIFIED")
+    .replace(/^SUBSCRIPTION_STATE_/, "")
+    .toLowerCase();
 }
 
 /**
@@ -70,8 +74,8 @@ function toEntitlementState(subscriptionState) {
  *
  * Also (re)writes `purchaseTokens/{purchaseToken} -> { uid }`: an RTDN
  * message only carries the purchase token, never the Firebase uid, so this
- * is how `onSubscriptionNotification` finds whose `subscriptions/{uid}` doc
- * to refresh.
+ * is how `onSubscriptionNotification` finds whose `users/{uid}` doc to
+ * refresh.
  */
 async function verifyAndStore(uid, purchaseToken, productIdHint) {
   const authClient = await androidPublisherAuth.getClient();
@@ -87,16 +91,16 @@ async function verifyAndStore(uid, purchaseToken, productIdHint) {
     throw new Error("Play response had no line items.");
   }
   const expiryTimeMillis = new Date(lineItem.expiryTime).getTime();
-  const state = toEntitlementState(subscription.subscriptionState);
+  const state = toStoredState(subscription.subscriptionState);
 
   await Promise.all([
-    db.doc(`subscriptions/${uid}`).set(
+    db.doc(`users/${uid}`).set(
       {
-        state,
-        productId: lineItem.productId || productIdHint,
-        expiryTimeMillis,
-        purchaseToken,
-        updatedAt: Date.now(),
+        subscriptionState: state,
+        subscriptionProductId: lineItem.productId || productIdHint,
+        subscriptionExpiryTimeMillis: expiryTimeMillis,
+        subscriptionPurchaseToken: purchaseToken,
+        subscriptionUpdatedAt: Date.now(),
       },
       { merge: true },
     ),
@@ -158,10 +162,10 @@ exports.verifySubscription = onRequest(
 /**
  * Play's Real-Time Developer Notifications: fires on every subscription
  * lifecycle event (renewed, canceled, entered/left grace, on hold, expired,
- * ...) so `subscriptions/{uid}` stays current without depending on the
- * client ever reopening the app or re-verifying a purchase token it already
- * thinks it has verified. See functions/README.md for the one-time Pub/Sub
- * topic + Play Console wiring this depends on.
+ * ...) so `users/{uid}` stays current without depending on the client ever
+ * reopening the app or re-verifying a purchase token it already thinks it
+ * has verified. See functions/README.md for the one-time Pub/Sub topic +
+ * Play Console wiring this depends on.
  *
  * Deliberately ignores `notificationType` beyond routing — Google's own
  * guidance is to treat any subscriptionNotification as "go re-fetch the
@@ -199,7 +203,7 @@ exports.onSubscriptionNotification = onMessagePublished(
       // Most likely this is the very first notification for a brand-new
       // purchase and the client's own verifySubscription call (which creates
       // this mapping) just hasn't landed yet. Nothing to refresh yet; the
-      // client-triggered verify will populate subscriptions/{uid} shortly.
+      // client-triggered verify will populate users/{uid} shortly.
       logger.warn("RTDN for unknown purchaseToken, skipping", { notificationType });
       return;
     }
@@ -228,10 +232,10 @@ const VOIDED_PURCHASES_LOOKBACK_MILLIS = 3 * 24 * 60 * 60 * 1000; // 3 days
  * separate Voided Purchases API, which is what this does (Google's own
  * guidance is to check it at least daily; this runs every 6 hours).
  *
- * A voided purchase only revokes `subscriptions/{uid}` if that uid's stored
- * `purchaseToken` still matches the voided one — if the user has since
- * bought a fresh subscription with a new token, this old void is stale news
- * and must not clobber the new, legitimate purchase.
+ * A voided purchase only revokes `users/{uid}` if that uid's stored
+ * `subscriptionPurchaseToken` still matches the voided one — if the user has
+ * since bought a fresh subscription with a new token, this old void is stale
+ * news and must not clobber the new, legitimate purchase.
  *
  * NOTE: field/enum names below (`type`, `productType`, `tokenPagination`)
  * are per Google's documented Voided Purchases API shape at the time this
@@ -276,12 +280,17 @@ exports.checkVoidedPurchases = onSchedule(
         if (!mapping.exists) continue; // never verified this token, nothing to revoke
 
         const { uid } = mapping.data();
-        const subRef = db.doc(`subscriptions/${uid}`);
-        const subSnap = await subRef.get();
-        const sub = subSnap.data();
-        if (sub && sub.purchaseToken === purchaseToken) {
-          await subRef.set(
-            { state: "revoked", expiryTimeMillis: 0, voidedAt: Date.now(), updatedAt: Date.now() },
+        const userRef = db.doc(`users/${uid}`);
+        const userSnap = await userRef.get();
+        const sub = userSnap.data();
+        if (sub && sub.subscriptionPurchaseToken === purchaseToken) {
+          await userRef.set(
+            {
+              subscriptionState: "revoked",
+              subscriptionExpiryTimeMillis: 0,
+              subscriptionVoidedAt: Date.now(),
+              subscriptionUpdatedAt: Date.now(),
+            },
             { merge: true },
           );
           revoked++;

@@ -108,7 +108,7 @@ allowlist (use this for your own test devices — see "Operating it" below).
 `verifySubscription` only runs when the client sees a purchase token it
 hasn't verified before — which happens once, at initial purchase. Nothing
 client-side ever re-checks a purchase it already thinks it verified, so
-without RTDN a `subscriptions/{uid}` doc goes stale the moment the user
+without RTDN a `users/{uid}` doc's subscription fields go stale the moment the user
 cancels, lapses, enters a grace period, or renews — `openaiProxy` would keep
 trusting that frozen snapshot indefinitely. RTDN closes that gap: Play
 publishes a Pub/Sub message on every subscription lifecycle event, and
@@ -147,9 +147,9 @@ Play has **no push notification** for a voided purchase (refund/chargeback)
 — RTDN only ever carries `subscriptionNotification`, `oneTimeProductNotification`,
 or `testNotification`. Catching refunds needs a separate pull:
 `checkVoidedPurchases` polls the Voided Purchases API every 6 hours and
-revokes `subscriptions/{uid}` for any purchase token that got voided (only
-if that's still the uid's *current* token — a stale void can't clobber a
-newer, legitimate resubscription).
+revokes `users/{uid}`'s subscription for any purchase token that got voided
+(only if that's still the uid's *current* token — a stale void can't clobber
+a newer, legitimate resubscription).
 
 No manual GCP/Play Console setup is needed for this one beyond what's
 already granted to `play-developer-api` above — `firebase deploy` creates
@@ -247,7 +247,7 @@ client is wired to send its Firebase ID token — that's the follow-up step.
   control how much a not-yet-subscribed user can use `recognition` and
   `analysis` before being asked to subscribe (see `index.js`'s header
   comment) — a user's own progress toward those caps lives on their
-  `usage_users/{uid}` doc (`preSubRecognitionTotal`/`Success`,
+  `users/{uid}` doc (`preSubRecognitionTotal`/`Success`,
   `preSubAnalysisTotal`/`Success`).
 - **Unlock a test device from subscription enforcement entirely:** add its
   three-word id to `config/limits.unlimitedClientIds` (see below) — cleaner
@@ -255,16 +255,24 @@ client is wired to send its Firebase ID token — that's the follow-up step.
 - **Emergency stop:** set `config/limits.killSwitch = true`. All proxied
   requests immediately return 503 until you flip it back.
 - **See usage:** `usage/global` holds the current month's count;
-  `usage_users/{uid}` holds each device's daily count, plus `clientId` (the
-  three-word id shown in the app's Settings) and `lastSeen`.
+  `users/{uid}` holds each device's daily count, plus `clientId` (the
+  three-word id shown in the app's Settings), `lastSeen`, and that same
+  user's subscription fields (`subscriptionState`, `subscriptionProductId`,
+  `subscriptionExpiryTimeMillis`, `subscriptionPurchaseToken`,
+  `subscriptionUpdatedAt`, and `subscriptionVoidedAt` if ever revoked) — one
+  doc holds the full picture for a given uid, usage and subscription alike.
+  `subscriptionState` is Google's own `subscriptionState` value verbatim
+  (lowercased, prefix stripped) — `active`, `pending`, `paused`,
+  `in_grace_period`, `on_hold`, `canceled`, `expired`, `unspecified` — plus
+  the synthetic `revoked` written only by `checkVoidedPurchases`.
 - **Find a user from a support email:** they quote their three-word id (e.g.
-  `apple-fox-moon`). Console → Firestore → `usage_users` → query where
+  `apple-fox-moon`). Console → Firestore → `users` → query where
   `clientId == apple-fox-moon`. The document id is their Firebase auth uid; the
-  fields show today's count and last-seen time.
+  fields show today's count, last-seen time, and their subscription state.
 - **Unlock yourself permanently:** add your own three-word id to
   `config/limits.unlimitedClientIds`. Those clients skip the per-user daily cap
   (they're still counted and still bounded by the global monthly budget).
-- **Give a user more room today:** open their `usage_users/{uid}` doc (found via
+- **Give a user more room today:** open their `users/{uid}` doc (found via
   `clientId` above) and edit `count`. Set it to `0` to restore their full daily
   allowance, or to a negative number (e.g. `-10`) to grant that many extra
   requests on top of the cap. It resets to normal at the next UTC day; takes

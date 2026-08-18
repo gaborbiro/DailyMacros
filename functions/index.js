@@ -14,7 +14,7 @@
  *      key and return OpenAI's status + body unchanged, so the Android client's
  *      existing response/error parsing keeps working.
  *
- * Subscription gate: a subscription (subscriptions/{uid}, written by
+ * Subscription gate: a subscription (users/{uid}.subscription*, written by
  * verifySubscription in subscriptions.js) is ALWAYS required, for everyone
  * not on the unlimitedClientIds allowlist, with one exception: a brand-new,
  * not-yet-subscribed user gets a small pre-subscription allowance for the
@@ -24,7 +24,7 @@
  * requires a subscription unconditionally.
  *
  * Pre-subscription allowance: each gated feature has two independent,
- * lifetime (never-reset) per-user caps in usage_users/{uid}:
+ * lifetime (never-reset) per-user caps in users/{uid}:
  *   - a TOTAL-attempts cap, incremented server-side before every allowed
  *     call (same "count it even if it fails" philosophy as the caps below) -
  *     this is the real ceiling and is never trusted to the client.
@@ -52,14 +52,14 @@
  *     counted and still subject to the global monthly budget. Use it to
  *     permanently unlock yourself: put your own three-word id (from the app's
  *     Settings screen) here once.
- *   - To give one user more room today, edit their usage_users/{uid}.count:
- *     0 restores their full daily allowance, a negative value (e.g. -10) grants
+ *   - To give one user more room today, edit their users/{uid}.count: 0
+ *     restores their full daily allowance, a negative value (e.g. -10) grants
  *     that many extra requests on top of the cap. It resets to normal at the
  *     next UTC day.
  *
  * Every request records the caller's three-word client id (X-Client-Id header)
- * and last-seen time on usage_users/{uid}, so a support email that quotes the
- * id maps to a row: query usage_users where clientId == "apple-fox-moon".
+ * and last-seen time on users/{uid}, so a support email that quotes the id
+ * maps to a row: query users where clientId == "apple-fox-moon".
  *
  * Counters are incremented BEFORE the upstream call, so a failed OpenAI call
  * still consumes quota. That is intentional for a safety cap: we would rather
@@ -88,6 +88,12 @@ const OPENAI_URL = "https://api.openai.com/v1/responses";
 // Fallbacks used only if config/limits is missing a field.
 const DEFAULT_PER_USER_DAILY_CAP = 15;
 const DEFAULT_MONTHLY_REQUEST_BUDGET = 3000;
+
+// subscriptionState values (see subscriptions.js's toStoredState) that count
+// as entitled, alongside the expiryTimeMillis check below. Everything else
+// Google can report (on_hold, paused, pending, unspecified, expired) is
+// deliberately excluded here rather than folded into some catch-all state.
+const ENTITLED_STATES = new Set(["active", "in_grace_period", "canceled"]);
 
 /**
  * The only two features a not-yet-subscribed user may use at all, and how to
@@ -168,7 +174,7 @@ exports.openaiProxy = onRequest(
         return;
       }
       try {
-        await db.doc(`usage_users/${uid}`).set(
+        await db.doc(`users/${uid}`).set(
           { [PRESUB_FEATURES[feature].successField]: admin.firestore.FieldValue.increment(1) },
           { merge: true },
         );
@@ -196,17 +202,15 @@ exports.openaiProxy = onRequest(
 
     const configRef = db.doc("config/limits");
     const globalRef = db.doc("usage/global");
-    const userRef = db.doc(`usage_users/${uid}`);
-    const subRef = db.doc(`subscriptions/${uid}`);
+    const userRef = db.doc(`users/${uid}`);
 
     let decision;
     try {
       decision = await db.runTransaction(async (tx) => {
-        const [configSnap, globalSnap, userSnap, subSnap] = await Promise.all([
+        const [configSnap, globalSnap, userSnap] = await Promise.all([
           tx.get(configRef),
           tx.get(globalRef),
           tx.get(userRef),
-          tx.get(subRef),
         ]);
 
         const cfg = configSnap.data() || {};
@@ -231,18 +235,14 @@ exports.openaiProxy = onRequest(
         const isUnlimited = clientId != null && unlimitedClientIds.includes(clientId);
         let preSubIncrementField = null;
         if (!isUnlimited) {
-          const sub = subSnap.data();
           const nowMillis = Date.now();
           // expiryTimeMillis is checked for every state, not just "canceled":
           // onSubscriptionNotification (RTDN) refreshes this doc on every
           // real lifecycle event, so a stale expiry is a signal something's
           // wrong (a missed notification, a lapsed client that never
           // re-verified) rather than something to trust indefinitely.
-          const entitled = !!sub && sub.expiryTimeMillis > nowMillis && (
-            sub.state === "active" ||
-            sub.state === "grace" ||
-            sub.state === "canceled"
-          );
+          const entitled = u.subscriptionExpiryTimeMillis > nowMillis
+            && ENTITLED_STATES.has(u.subscriptionState);
           if (!entitled) {
             const feature = PRESUB_FEATURES[featureKey];
             if (!feature) {
