@@ -103,6 +103,46 @@ allowlist (use this for your own test devices — see "Operating it" below).
 
 ---
 
+## Real-time developer notifications (RTDN) setup (one-time)
+
+`verifySubscription` only runs when the client sees a purchase token it
+hasn't verified before — which happens once, at initial purchase. Nothing
+client-side ever re-checks a purchase it already thinks it verified, so
+without RTDN a `subscriptions/{uid}` doc goes stale the moment the user
+cancels, lapses, enters a grace period, or renews — `openaiProxy` would keep
+trusting that frozen snapshot indefinitely. RTDN closes that gap: Play
+publishes a Pub/Sub message on every subscription lifecycle event, and
+`onSubscriptionNotification` re-verifies with Play and refreshes the doc in
+response.
+
+These steps need your GCP/Play Console access; nobody else can do them.
+
+1. **Create the Pub/Sub topic** (name must match `PLAY_RTDN_TOPIC` in
+   `subscriptions.js`):
+   ```bash
+   gcloud pubsub topics create play-rtdn --project=dailymacros-9fab8
+   ```
+2. **Let Play publish to it.** Google publishes RTDN messages from a single
+   fixed service account shared by every Play developer:
+   ```bash
+   gcloud pubsub topics add-iam-policy-binding play-rtdn \
+     --project=dailymacros-9fab8 \
+     --member="serviceAccount:google-play-developer-notifications@system.gserviceaccount.com" \
+     --role="roles/pubsub.publisher"
+   ```
+3. **Play Console → your app → Monetize → Monetization setup → Real-time
+   developer notifications**: paste the full topic name,
+   `projects/dailymacros-9fab8/topics/play-rtdn`, save, then click **Send
+   test notification** — a `testNotification` payload should show up in this
+   function's logs once deployed (step 4).
+4. **Deploy** (see below). `onSubscriptionNotification`'s Pub/Sub trigger
+   provisions its own subscription on the `play-rtdn` topic automatically;
+   there's nothing extra to wire up on the GCP side.
+
+No Android app changes are needed — RTDN is entirely server-side.
+
+---
+
 ## Deploy
 
 ```bash

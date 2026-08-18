@@ -4,9 +4,13 @@
  * Purpose: independently confirm a Play Billing purchase with Google (never
  * trusting whatever the client claims about its own subscription state), and
  * record the verified result in Firestore so `openaiProxy` can gate requests
- * on it. See docs/play-store-release-plan.md item #4 and the plan this
- * shipped from for the full design rationale (why this is a separate
- * function from openaiProxy, why RTDN is deferred, etc).
+ * on it. Two entry points write that verified state: `verifySubscription`
+ * (an explicit client call, right after a purchase) and
+ * `onSubscriptionNotification` (Play's Real-Time Developer Notifications,
+ * firing on every later lifecycle event — renewal, cancellation, grace,
+ * expiry — so the record doesn't go stale between client-triggered checks).
+ * See docs/play-store-release-plan.md item #4 for the original design this
+ * shipped from, and functions/README.md for the RTDN setup.
  *
  * Auth: this function runs as its own dedicated service account
  * (play-developer-api@<project>.iam.gserviceaccount.com, configured via the
@@ -18,6 +22,7 @@
  */
 
 const { onRequest } = require("firebase-functions/v2/https");
+const { onMessagePublished } = require("firebase-functions/v2/pubsub");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const { GoogleAuth } = require("google-auth-library");
@@ -28,6 +33,13 @@ const db = admin.firestore();
 const PACKAGE_NAME = "dev.gaborbiro.dailymacros";
 const PLAY_SERVICE_ACCOUNT = "play-developer-api@dailymacros-9fab8.iam.gserviceaccount.com";
 
+// Pub/Sub topic Play Console's "Real-time developer notifications" setting
+// publishes to. The topic and the IAM grant letting Play's publishing service
+// account post to it are one-time manual setup (see functions/README.md) —
+// deploying `onSubscriptionNotification` only provisions the subscription
+// that reads from it.
+const PLAY_RTDN_TOPIC = "play-rtdn";
+
 const androidPublisherAuth = new GoogleAuth({
   scopes: ["https://www.googleapis.com/auth/androidpublisher"],
 });
@@ -37,18 +49,60 @@ function sendError(res, status, code, message) {
 }
 
 /**
- * Maps a Play `subscriptionState` (see purchases.subscriptionsv2.get) plus the
- * line item's expiry to the state we persist. A canceled subscription still
- * counts as entitled until its paid period actually runs out — this makes
- * `openaiProxy`'s gate self-healing against natural expiry without needing a
- * fresh verify call at expiry time (see plan's "Why this is still correct
- * without RTDN").
+ * Maps a Play `subscriptionState` (see purchases.subscriptionsv2.get) to the
+ * state we persist. A canceled subscription still counts as entitled until
+ * its paid period actually runs out — `openaiProxy`'s gate checks
+ * expiryTimeMillis for exactly this reason.
  */
-function toEntitlementState(subscriptionState, expiryTimeMillis) {
+function toEntitlementState(subscriptionState) {
   if (subscriptionState === "SUBSCRIPTION_STATE_ACTIVE") return "active";
   if (subscriptionState === "SUBSCRIPTION_STATE_IN_GRACE_PERIOD") return "grace";
   if (subscriptionState === "SUBSCRIPTION_STATE_CANCELED") return "canceled";
   return "expired";
+}
+
+/**
+ * The one place that calls the Play Developer API and persists the result.
+ * Used by both the client-triggered `verifySubscription` HTTP call and
+ * `onSubscriptionNotification` (RTDN), so every path that can learn a
+ * purchase changed goes through the same lookup + storage logic.
+ *
+ * Also (re)writes `purchaseTokens/{purchaseToken} -> { uid }`: an RTDN
+ * message only carries the purchase token, never the Firebase uid, so this
+ * is how `onSubscriptionNotification` finds whose `subscriptions/{uid}` doc
+ * to refresh.
+ */
+async function verifyAndStore(uid, purchaseToken, productIdHint) {
+  const authClient = await androidPublisherAuth.getClient();
+  const androidPublisher = google.androidpublisher({ version: "v3", auth: authClient });
+  const response = await androidPublisher.purchases.subscriptionsv2.get({
+    packageName: PACKAGE_NAME,
+    token: purchaseToken,
+  });
+  const subscription = response.data;
+
+  const lineItem = (subscription.lineItems || [])[0];
+  if (!lineItem) {
+    throw new Error("Play response had no line items.");
+  }
+  const expiryTimeMillis = new Date(lineItem.expiryTime).getTime();
+  const state = toEntitlementState(subscription.subscriptionState);
+
+  await Promise.all([
+    db.doc(`subscriptions/${uid}`).set(
+      {
+        state,
+        productId: lineItem.productId || productIdHint,
+        expiryTimeMillis,
+        purchaseToken,
+        updatedAt: Date.now(),
+      },
+      { merge: true },
+    ),
+    db.doc(`purchaseTokens/${purchaseToken}`).set({ uid }, { merge: true }),
+  ]);
+
+  return { state, expiryTimeMillis };
 }
 
 exports.verifySubscription = onRequest(
@@ -87,45 +141,75 @@ exports.verifySubscription = onRequest(
       return;
     }
 
-    let subscription;
+    let result;
     try {
-      const authClient = await androidPublisherAuth.getClient();
-      const androidPublisher = google.androidpublisher({ version: "v3", auth: authClient });
-      const response = await androidPublisher.purchases.subscriptionsv2.get({
-        packageName: PACKAGE_NAME,
-        token: purchaseToken,
-      });
-      subscription = response.data;
+      result = await verifyAndStore(uid, purchaseToken, productId);
     } catch (e) {
-      logger.error("Play Developer API lookup failed", e);
+      logger.error("Subscription verification failed", e);
       sendError(res, 502, "play_api_error", "Could not verify purchase with Play.");
       return;
     }
 
-    const lineItem = (subscription.lineItems || [])[0];
-    if (!lineItem) {
-      sendError(res, 502, "play_api_error", "Play response had no line items.");
+    res.status(200).json(result);
+  },
+);
+
+/**
+ * Play's Real-Time Developer Notifications: fires on every subscription
+ * lifecycle event (renewed, canceled, entered/left grace, on hold, expired,
+ * ...) so `subscriptions/{uid}` stays current without depending on the
+ * client ever reopening the app or re-verifying a purchase token it already
+ * thinks it has verified. See functions/README.md for the one-time Pub/Sub
+ * topic + Play Console wiring this depends on.
+ *
+ * Deliberately ignores `notificationType` beyond routing — Google's own
+ * guidance is to treat any subscriptionNotification as "go re-fetch the
+ * current truth from the Play Developer API", not to infer state from the
+ * type code.
+ */
+exports.onSubscriptionNotification = onMessagePublished(
+  { topic: PLAY_RTDN_TOPIC, region: "us-central1", serviceAccount: PLAY_SERVICE_ACCOUNT },
+  async (event) => {
+    let payload;
+    try {
+      payload = event.data.message.json;
+    } catch (e) {
+      logger.error("RTDN message was not valid JSON", e);
       return;
     }
-    const expiryTimeMillis = new Date(lineItem.expiryTime).getTime();
-    const state = toEntitlementState(subscription.subscriptionState, expiryTimeMillis);
+
+    if (payload.testNotification) {
+      logger.info("RTDN test notification received", payload.testNotification);
+      return;
+    }
+    if (payload.packageName && payload.packageName !== PACKAGE_NAME) {
+      logger.warn("RTDN for unexpected package, ignoring", { packageName: payload.packageName });
+      return;
+    }
+    const notification = payload.subscriptionNotification;
+    if (!notification) {
+      logger.info("RTDN with no subscriptionNotification, ignoring", payload);
+      return;
+    }
+
+    const { purchaseToken, subscriptionId, notificationType } = notification;
+    const mapping = await db.doc(`purchaseTokens/${purchaseToken}`).get();
+    if (!mapping.exists) {
+      // Most likely this is the very first notification for a brand-new
+      // purchase and the client's own verifySubscription call (which creates
+      // this mapping) just hasn't landed yet. Nothing to refresh yet; the
+      // client-triggered verify will populate subscriptions/{uid} shortly.
+      logger.warn("RTDN for unknown purchaseToken, skipping", { notificationType });
+      return;
+    }
+    const { uid } = mapping.data();
 
     try {
-      await db.doc(`subscriptions/${uid}`).set(
-        {
-          state,
-          productId: lineItem.productId || productId,
-          expiryTimeMillis,
-          updatedAt: Date.now(),
-        },
-        { merge: true },
-      );
+      await verifyAndStore(uid, purchaseToken, subscriptionId);
+      logger.info("RTDN processed", { uid, notificationType });
     } catch (e) {
-      logger.error("Failed to persist subscription state", e);
-      sendError(res, 500, "storage_error", "Could not store verified subscription state.");
-      return;
+      logger.error("RTDN re-verify failed", e);
+      throw e; // Let Pub/Sub retry delivery.
     }
-
-    res.status(200).json({ state, expiryTimeMillis });
   },
 );

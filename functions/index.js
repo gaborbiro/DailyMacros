@@ -77,6 +77,7 @@ admin.initializeApp();
 const db = admin.firestore();
 
 exports.verifySubscription = require("./subscriptions").verifySubscription;
+exports.onSubscriptionNotification = require("./subscriptions").onSubscriptionNotification;
 
 // Set with: firebase functions:secrets:set OPENAI_KEY
 const OPENAI_KEY = defineSecret("OPENAI_KEY");
@@ -231,10 +232,15 @@ exports.openaiProxy = onRequest(
         if (!isUnlimited) {
           const sub = subSnap.data();
           const nowMillis = Date.now();
-          const entitled = !!sub && (
+          // expiryTimeMillis is checked for every state, not just "canceled":
+          // onSubscriptionNotification (RTDN) refreshes this doc on every
+          // real lifecycle event, so a stale expiry is a signal something's
+          // wrong (a missed notification, a lapsed client that never
+          // re-verified) rather than something to trust indefinitely.
+          const entitled = !!sub && sub.expiryTimeMillis > nowMillis && (
             sub.state === "active" ||
             sub.state === "grace" ||
-            (sub.state === "canceled" && sub.expiryTimeMillis > nowMillis)
+            sub.state === "canceled"
           );
           if (!entitled) {
             const feature = PRESUB_FEATURES[featureKey];
