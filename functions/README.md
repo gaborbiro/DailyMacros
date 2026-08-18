@@ -177,12 +177,26 @@ support email quoting a three-word id is enough to find the uid at all.
 - **Manual**: `repairSubscription`, an on-demand HTTP endpoint, for fixing a
   specific user immediately (e.g. right after you notice you deleted the
   wrong doc, or from a support email) instead of waiting for them to call in.
-  One-time setup:
+  Gated by a shared secret rather than per-user auth — there's no admin-role
+  concept in this app, and this is a developer tool, not an in-app feature.
+  One-time setup — the secret needs setting in **two** places, same value in
+  both (Firebase's Secret Manager, so the function can check incoming calls
+  against it; a GitHub Actions repo secret, so the workflow below can supply
+  it without you ever typing it in at call time):
   ```bash
   firebase functions:secrets:set ADMIN_REPAIR_KEY
   # paste a random secret string when prompted
   ```
-  Then call it with either a uid or the three-word id a user quoted to you:
+  Then repo → Settings → Secrets and variables → Actions → New repository
+  secret → name it `ADMIN_REPAIR_KEY`, same value as above.
+
+  **Trigger it:** Actions tab → "Repair subscription" → Run workflow → fill
+  in either `uid` or `client_id` → Run. Works from the GitHub mobile app just
+  as well as a desktop — the whole point, since this needs no phone-side HTTP
+  client or manually-copied secret. See
+  `.github/workflows/repair-subscription.yml`.
+
+  Or call the endpoint directly if you'd rather:
   ```bash
   curl -s -X POST \
     "https://us-central1-dailymacros-9fab8.cloudfunctions.net/repairSubscription" \
@@ -191,9 +205,8 @@ support email quoting a three-word id is enough to find the uid at all.
     -d '{"clientId": "apple-fox-moon"}'
   # or: -d '{"uid": "<their Firebase auth uid>"}'
   ```
-  Gated by that shared secret rather than per-user auth — there's no
-  admin-role concept in this app, and this is a developer tool, not an
-  in-app feature. Returns `404 not_found` if `clientIds`/`purchaseTokens` has
+
+  Either way, returns `404 not_found` if `clientIds`/`purchaseTokens` has
   nothing on file (never subscribed, or the mapping itself was also lost —
   this can't help with that case). `clientId` → uid isn't guaranteed unique
   at scale (see `repairSubscription`'s doc comment) — double-check with the
