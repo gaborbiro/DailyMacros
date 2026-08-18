@@ -23,6 +23,7 @@
 
 const { onRequest } = require("firebase-functions/v2/https");
 const { onMessagePublished } = require("firebase-functions/v2/pubsub");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const { GoogleAuth } = require("google-auth-library");
@@ -211,5 +212,86 @@ exports.onSubscriptionNotification = onMessagePublished(
       logger.error("RTDN re-verify failed", e);
       throw e; // Let Pub/Sub retry delivery.
     }
+  },
+);
+
+// How far back to look each run. Re-scanning this window every run (rather
+// than tracking a "since last run" cursor) means a missed/failed run just
+// gets picked up by the next one — simpler and self-healing, at the cost of
+// re-processing a few days of already-handled entries each time (harmless:
+// revoking an already-revoked doc is a no-op write).
+const VOIDED_PURCHASES_LOOKBACK_MILLIS = 3 * 24 * 60 * 60 * 1000; // 3 days
+
+/**
+ * Refunds and chargebacks are NOT covered by RTDN — Play has no push
+ * notification for them. The only way to learn about one is to poll the
+ * separate Voided Purchases API, which is what this does (Google's own
+ * guidance is to check it at least daily; this runs every 6 hours).
+ *
+ * A voided purchase only revokes `subscriptions/{uid}` if that uid's stored
+ * `purchaseToken` still matches the voided one — if the user has since
+ * bought a fresh subscription with a new token, this old void is stale news
+ * and must not clobber the new, legitimate purchase.
+ *
+ * NOTE: field/enum names below (`type`, `productType`, `tokenPagination`)
+ * are per Google's documented Voided Purchases API shape at the time this
+ * was written — verify against the current Play Developer API docs and test
+ * against a real refunded test purchase (Play Console → Order management →
+ * refund) before relying on this in production.
+ */
+exports.checkVoidedPurchases = onSchedule(
+  {
+    schedule: "every 6 hours",
+    region: "us-central1",
+    serviceAccount: PLAY_SERVICE_ACCOUNT,
+    timeoutSeconds: 120,
+  },
+  async () => {
+    const authClient = await androidPublisherAuth.getClient();
+    const androidPublisher = google.androidpublisher({ version: "v3", auth: authClient });
+
+    const now = Date.now();
+    const startTime = String(now - VOIDED_PURCHASES_LOOKBACK_MILLIS);
+    const endTime = String(now);
+
+    let pageToken;
+    let revoked = 0;
+    let seen = 0;
+    do {
+      const response = await androidPublisher.purchases.voidedpurchases.list({
+        packageName: PACKAGE_NAME,
+        startTime,
+        endTime,
+        type: 2, // subscriptions only
+        token: pageToken,
+      });
+
+      const voidedPurchases = response.data.voidedPurchases || [];
+      for (const voided of voidedPurchases) {
+        seen++;
+        const purchaseToken = voided.purchaseToken;
+        if (!purchaseToken) continue;
+
+        const mapping = await db.doc(`purchaseTokens/${purchaseToken}`).get();
+        if (!mapping.exists) continue; // never verified this token, nothing to revoke
+
+        const { uid } = mapping.data();
+        const subRef = db.doc(`subscriptions/${uid}`);
+        const subSnap = await subRef.get();
+        const sub = subSnap.data();
+        if (sub && sub.purchaseToken === purchaseToken) {
+          await subRef.set(
+            { state: "revoked", expiryTimeMillis: 0, voidedAt: Date.now(), updatedAt: Date.now() },
+            { merge: true },
+          );
+          revoked++;
+          logger.info("Revoked subscription for voided purchase", { uid, purchaseToken });
+        }
+      }
+
+      pageToken = response.data.tokenPagination && response.data.tokenPagination.nextPageToken;
+    } while (pageToken);
+
+    logger.info("checkVoidedPurchases run complete", { seen, revoked });
   },
 );

@@ -141,6 +141,24 @@ These steps need your GCP/Play Console access; nobody else can do them.
 
 No Android app changes are needed — RTDN is entirely server-side.
 
+### Refunds and chargebacks (not covered by RTDN)
+
+Play has **no push notification** for a voided purchase (refund/chargeback)
+— RTDN only ever carries `subscriptionNotification`, `oneTimeProductNotification`,
+or `testNotification`. Catching refunds needs a separate pull:
+`checkVoidedPurchases` polls the Voided Purchases API every 6 hours and
+revokes `subscriptions/{uid}` for any purchase token that got voided (only
+if that's still the uid's *current* token — a stale void can't clobber a
+newer, legitimate resubscription).
+
+No manual GCP/Play Console setup is needed for this one beyond what's
+already granted to `play-developer-api` above — `firebase deploy` creates
+its own Cloud Scheduler job automatically. **Do** test it against a real
+refunded test purchase (Play Console → Order management → refund a test
+order) before trusting it — the Voided Purchases API's field/enum names in
+the code are per Google's documented shape but haven't been exercised
+against a live response here.
+
 ---
 
 ## Deploy

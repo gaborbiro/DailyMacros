@@ -78,6 +78,7 @@ const db = admin.firestore();
 
 exports.verifySubscription = require("./subscriptions").verifySubscription;
 exports.onSubscriptionNotification = require("./subscriptions").onSubscriptionNotification;
+exports.checkVoidedPurchases = require("./subscriptions").checkVoidedPurchases;
 
 // Set with: firebase functions:secrets:set OPENAI_KEY
 const OPENAI_KEY = defineSecret("OPENAI_KEY");
