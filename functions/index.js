@@ -58,8 +58,11 @@
  *     next UTC day.
  *
  * Every request records the caller's three-word client id (X-Client-Id header)
- * and last-seen time on users/{uid}, so a support email that quotes the id
- * maps to a row: query users where clientId == "apple-fox-moon".
+ * and last-seen time on users/{uid} - AND writes it to a separate
+ * clientIds/{clientId} -> {uid} doc, unconditionally, before any allow/deny
+ * decision. That second write is the one that matters for support: it's a
+ * direct-by-id lookup (no query needed), and unlike the copy on users/{uid}
+ * it survives that doc being lost entirely - the whole reason it exists.
  *
  * Self-healing a lost users/{uid} doc: if a subscriber's doc is ever missing
  * (e.g. an accidental Firestore delete) they'd otherwise be treated as a
@@ -222,6 +225,16 @@ exports.openaiProxy = onRequest(
         tx.get(globalRef),
         tx.get(userRef),
       ]);
+
+      // Written unconditionally, before any allow/deny decision below, so it
+      // survives even on a denied request and even a users/{uid} delete: a
+      // separate document (mirrors purchaseTokens) is the only way a
+      // support agent who's just been told a three-word id, and nothing
+      // else, can ever get back to a uid once the profile doc holding
+      // clientId is gone.
+      if (clientId != null) {
+        tx.set(db.doc(`clientIds/${clientId}`), { uid }, { merge: true });
+      }
 
       const cfg = configSnap.data() || {};
       const perUserDailyCap = cfg.perUserDailyCap ?? DEFAULT_PER_USER_DAILY_CAP;

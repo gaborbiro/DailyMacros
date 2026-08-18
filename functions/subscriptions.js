@@ -332,11 +332,21 @@ exports.checkVoidedPurchases = onSchedule(
  * request, but this exists for when you want to fix it immediately without
  * waiting for them to call in, or to investigate a specific uid directly).
  *
- * Looks up the uid's purchase token via `findPurchaseTokenForUid` (the same
- * `purchaseTokens` reverse lookup `openaiProxy`'s self-heal path uses) and
- * re-verifies it with Play. Gated by a shared secret rather than any
- * per-user auth, since there's no admin-role concept in this app — this is a
- * developer tool, not an end-user or in-app feature.
+ * Accepts either `uid` or `clientId` (the three-word id a user would quote
+ * in a support message — resolved to a uid via `clientIds/{clientId}`, a
+ * durable mapping unaffected by users/{uid} being lost, same idea as
+ * purchaseTokens). Looks up the uid's purchase token via
+ * `findPurchaseTokenForUid` (the same lookup `openaiProxy`'s self-heal path
+ * uses) and re-verifies it with Play. Gated by a shared secret rather than
+ * any per-user auth, since there's no admin-role concept in this app — this
+ * is a developer tool, not an end-user or in-app feature.
+ *
+ * NOTE: clientId → uid is not guaranteed unique (see ThreeWordId.kt's
+ * ~535,680-combination keyspace) — at meaningful install counts, two
+ * different users can land on the same three-word id, and this mapping only
+ * remembers whichever one wrote to it most recently. If a repair looks
+ * wrong, double-check the id with the user rather than trusting a match
+ * blindly.
  */
 exports.repairSubscription = onRequest(
   {
@@ -357,9 +367,18 @@ exports.repairSubscription = onRequest(
       return;
     }
 
-    const uid = req.body && req.body.uid;
+    let uid = req.body && req.body.uid;
+    const clientId = req.body && req.body.clientId;
+    if (!uid && clientId) {
+      const clientIdDoc = await db.doc(`clientIds/${clientId}`).get();
+      if (!clientIdDoc.exists) {
+        sendError(res, 404, "not_found", "No uid on file for this clientId.");
+        return;
+      }
+      uid = clientIdDoc.data().uid;
+    }
     if (!uid) {
-      sendError(res, 400, "invalid_request", "uid is required.");
+      sendError(res, 400, "invalid_request", "uid or clientId is required.");
       return;
     }
 
