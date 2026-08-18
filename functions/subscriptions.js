@@ -24,6 +24,7 @@
 const { onRequest } = require("firebase-functions/v2/https");
 const { onMessagePublished } = require("firebase-functions/v2/pubsub");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
+const { defineSecret } = require("firebase-functions/params");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const { GoogleAuth } = require("google-auth-library");
@@ -33,6 +34,9 @@ const db = admin.firestore();
 
 const PACKAGE_NAME = "dev.gaborbiro.dailymacros";
 const PLAY_SERVICE_ACCOUNT = "play-developer-api@dailymacros-9fab8.iam.gserviceaccount.com";
+
+// Set with: firebase functions:secrets:set ADMIN_REPAIR_KEY
+const ADMIN_REPAIR_KEY = defineSecret("ADMIN_REPAIR_KEY");
 
 // Pub/Sub topic Play Console's "Real-time developer notifications" setting
 // publishes to. The topic and the IAM grant letting Play's publishing service
@@ -109,6 +113,22 @@ async function verifyAndStore(uid, purchaseToken, productIdHint) {
 
   return { state, expiryTimeMillis };
 }
+
+/**
+ * Reverse lookup: given a uid, find the purchase token `verifyAndStore` last
+ * recorded for it, by querying `purchaseTokens` (keyed by token, not uid) for
+ * a matching `uid` field. This is what makes recovery possible after a
+ * `users/{uid}` doc is lost — that document is gone, but `purchaseTokens`
+ * entries are separate documents and survive it untouched. Returns null if
+ * no token is on file (a genuinely new/never-subscribed uid, not an anomaly).
+ */
+async function findPurchaseTokenForUid(uid) {
+  const snapshot = await db.collection("purchaseTokens").where("uid", "==", uid).limit(1).get();
+  return snapshot.empty ? null : snapshot.docs[0].id;
+}
+
+exports.verifyAndStore = verifyAndStore;
+exports.findPurchaseTokenForUid = findPurchaseTokenForUid;
 
 exports.verifySubscription = onRequest(
   {
@@ -302,5 +322,59 @@ exports.checkVoidedPurchases = onSchedule(
     } while (pageToken);
 
     logger.info("checkVoidedPurchases run complete", { seen, revoked });
+  },
+);
+
+/**
+ * Manual, on-demand repair for a uid whose `users/{uid}` doc is missing or
+ * has lost its subscription fields (e.g. an accidental Firestore delete —
+ * `openaiProxy` self-heals this automatically the next time that uid makes a
+ * request, but this exists for when you want to fix it immediately without
+ * waiting for them to call in, or to investigate a specific uid directly).
+ *
+ * Looks up the uid's purchase token via `findPurchaseTokenForUid` (the same
+ * `purchaseTokens` reverse lookup `openaiProxy`'s self-heal path uses) and
+ * re-verifies it with Play. Gated by a shared secret rather than any
+ * per-user auth, since there's no admin-role concept in this app — this is a
+ * developer tool, not an end-user or in-app feature.
+ */
+exports.repairSubscription = onRequest(
+  {
+    region: "us-central1",
+    serviceAccount: PLAY_SERVICE_ACCOUNT,
+    secrets: [ADMIN_REPAIR_KEY],
+    timeoutSeconds: 30,
+    memory: "256MiB",
+    cors: false,
+  },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      sendError(res, 405, "method_not_allowed", "Only POST is supported.");
+      return;
+    }
+    if (req.get("X-Admin-Key") !== ADMIN_REPAIR_KEY.value()) {
+      sendError(res, 401, "unauthenticated", "Invalid admin key.");
+      return;
+    }
+
+    const uid = req.body && req.body.uid;
+    if (!uid) {
+      sendError(res, 400, "invalid_request", "uid is required.");
+      return;
+    }
+
+    const purchaseToken = await findPurchaseTokenForUid(uid);
+    if (!purchaseToken) {
+      sendError(res, 404, "not_found", "No purchase token on file for this uid.");
+      return;
+    }
+
+    try {
+      const result = await verifyAndStore(uid, purchaseToken, null);
+      res.status(200).json({ uid, purchaseToken, ...result });
+    } catch (e) {
+      logger.error("Manual repair failed", e);
+      sendError(res, 502, "play_api_error", "Could not verify purchase with Play.");
+    }
   },
 );

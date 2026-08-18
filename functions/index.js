@@ -61,6 +61,16 @@
  * and last-seen time on users/{uid}, so a support email that quotes the id
  * maps to a row: query users where clientId == "apple-fox-moon".
  *
+ * Self-healing a lost users/{uid} doc: if a subscriber's doc is ever missing
+ * (e.g. an accidental Firestore delete) they'd otherwise be treated as a
+ * brand-new user until their next real Play lifecycle event triggers RTDN.
+ * Instead, the first time we see !userSnap.exists on a not-entitled request,
+ * we check the separate (delete-immune) purchaseTokens collection for a
+ * token on file for this uid; if found, we re-verify with Play and retry the
+ * same request once with fresh data rather than denying it. See
+ * subscriptions.js's repairSubscription for the manual, on-demand version of
+ * the same repair.
+ *
  * Counters are incremented BEFORE the upstream call, so a failed OpenAI call
  * still consumes quota. That is intentional for a safety cap: we would rather
  * slightly over-count than let retries slip past the ceiling.
@@ -76,9 +86,11 @@ const admin = require("firebase-admin");
 admin.initializeApp();
 const db = admin.firestore();
 
-exports.verifySubscription = require("./subscriptions").verifySubscription;
-exports.onSubscriptionNotification = require("./subscriptions").onSubscriptionNotification;
-exports.checkVoidedPurchases = require("./subscriptions").checkVoidedPurchases;
+const subscriptions = require("./subscriptions");
+exports.verifySubscription = subscriptions.verifySubscription;
+exports.onSubscriptionNotification = subscriptions.onSubscriptionNotification;
+exports.checkVoidedPurchases = subscriptions.checkVoidedPurchases;
+exports.repairSubscription = subscriptions.repairSubscription;
 
 // Set with: firebase functions:secrets:set OPENAI_KEY
 const OPENAI_KEY = defineSecret("OPENAI_KEY");
@@ -204,75 +216,113 @@ exports.openaiProxy = onRequest(
     const globalRef = db.doc("usage/global");
     const userRef = db.doc(`users/${uid}`);
 
+    const runCapCheck = async (tx) => {
+      const [configSnap, globalSnap, userSnap] = await Promise.all([
+        tx.get(configRef),
+        tx.get(globalRef),
+        tx.get(userRef),
+      ]);
+
+      const cfg = configSnap.data() || {};
+      const perUserDailyCap = cfg.perUserDailyCap ?? DEFAULT_PER_USER_DAILY_CAP;
+      const monthlyBudget = cfg.monthlyRequestBudget ?? DEFAULT_MONTHLY_REQUEST_BUDGET;
+      const unlimitedClientIds = Array.isArray(cfg.unlimitedClientIds) ? cfg.unlimitedClientIds : [];
+      if (cfg.killSwitch === true) {
+        return { allow: false, status: 503, code: "kill_switch", message: "Service temporarily unavailable." };
+      }
+
+      const g = globalSnap.data();
+      const globalCount = g && g.month === monthKey ? g.count || 0 : 0;
+      if (globalCount >= monthlyBudget) {
+        return { allow: false, status: 503, code: "monthly_budget", message: "Service is at capacity for this month. Please try again later." };
+      }
+
+      const u = userSnap.data() || {};
+
+      // Allowlisted clients skip both the daily cap (checked below) and the
+      // subscription gate entirely (developer testing, reviewers) - still
+      // counted, still bounded by the global monthly budget checked above.
+      const isUnlimited = clientId != null && unlimitedClientIds.includes(clientId);
+      let preSubIncrementField = null;
+      if (!isUnlimited) {
+        const nowMillis = Date.now();
+        // expiryTimeMillis is checked for every state, not just "canceled":
+        // onSubscriptionNotification (RTDN) refreshes this doc on every
+        // real lifecycle event, so a stale expiry is a signal something's
+        // wrong (a missed notification, a lapsed client that never
+        // re-verified) rather than something to trust indefinitely.
+        const entitled = u.subscriptionExpiryTimeMillis > nowMillis
+          && ENTITLED_STATES.has(u.subscriptionState);
+        if (!entitled) {
+          // !userSnap.exists means this uid has never completed a single
+          // allowed request (the only place userRef is ever written is
+          // below, on success) - either a genuinely brand-new user, or a
+          // uid whose record was lost (e.g. an accidental Firestore
+          // delete). Tell them apart via purchaseTokens, a separate
+          // document unaffected by users/{uid} being wiped, before
+          // treating this as "never subscribed". Only worth the extra read
+          // on this rare, bounded case - not on every denied request from a
+          // real never-subscribed user (their doc exists once they've had
+          // any allowed call, so this doesn't recur for them).
+          if (!userSnap.exists) {
+            const tokenQuery = await tx.get(
+              db.collection("purchaseTokens").where("uid", "==", uid).limit(1),
+            );
+            if (!tokenQuery.empty) {
+              return { allow: false, code: "self_heal", selfHealPurchaseToken: tokenQuery.docs[0].id };
+            }
+          }
+          const feature = PRESUB_FEATURES[featureKey];
+          if (!feature) {
+            return { allow: false, status: 403, code: "subscription_required", message: "A subscription is required to continue using AI analysis." };
+          }
+          const totalCap = cfg[feature.totalCapField] ?? feature.defaultTotalCap;
+          const successCap = cfg[feature.successCapField] ?? feature.defaultSuccessCap;
+          const totalCount = u[feature.totalField] || 0;
+          const successCount = u[feature.successField] || 0;
+          if (totalCount >= totalCap || successCount >= successCap) {
+            return { allow: false, status: 403, code: "subscription_required", message: "A subscription is required to continue using AI analysis." };
+          }
+          preSubIncrementField = feature.totalField;
+        }
+      }
+
+      // Allowlisted clients skip the per-user daily cap (still counted below,
+      // still bounded by the global monthly budget checked above).
+      const userCount = u.dailyCapUtcDate === dailyCapUtcDateKey ? u.dailyCapCount || 0 : 0;
+      if (!isUnlimited && userCount >= perUserDailyCap) {
+        return { allow: false, status: 429, code: "daily_cap", message: "You've reached today's analysis limit. Please try again tomorrow." };
+      }
+
+      tx.set(globalRef, { month: monthKey, count: globalCount + 1 }, { merge: true });
+      const userUpdate = { dailyCapUtcDate: dailyCapUtcDateKey, dailyCapCount: userCount + 1, lastSeen: now.toISOString() };
+      if (clientId != null) userUpdate.clientId = clientId;
+      if (preSubIncrementField != null) userUpdate[preSubIncrementField] = (u[preSubIncrementField] || 0) + 1;
+      tx.set(userRef, userUpdate, { merge: true });
+      return { allow: true };
+    };
+
     let decision;
     try {
-      decision = await db.runTransaction(async (tx) => {
-        const [configSnap, globalSnap, userSnap] = await Promise.all([
-          tx.get(configRef),
-          tx.get(globalRef),
-          tx.get(userRef),
-        ]);
-
-        const cfg = configSnap.data() || {};
-        const perUserDailyCap = cfg.perUserDailyCap ?? DEFAULT_PER_USER_DAILY_CAP;
-        const monthlyBudget = cfg.monthlyRequestBudget ?? DEFAULT_MONTHLY_REQUEST_BUDGET;
-        const unlimitedClientIds = Array.isArray(cfg.unlimitedClientIds) ? cfg.unlimitedClientIds : [];
-        if (cfg.killSwitch === true) {
-          return { allow: false, status: 503, code: "kill_switch", message: "Service temporarily unavailable." };
+      decision = await db.runTransaction(runCapCheck);
+      if (decision.code === "self_heal") {
+        logger.warn("users/{uid} missing but a purchase token is on file, self-healing", { uid, purchaseToken: decision.selfHealPurchaseToken });
+        let healed = false;
+        try {
+          await subscriptions.verifyAndStore(uid, decision.selfHealPurchaseToken, null);
+          healed = true;
+        } catch (e) {
+          logger.error("Self-heal verify failed", e);
         }
-
-        const g = globalSnap.data();
-        const globalCount = g && g.month === monthKey ? g.count || 0 : 0;
-        if (globalCount >= monthlyBudget) {
-          return { allow: false, status: 503, code: "monthly_budget", message: "Service is at capacity for this month. Please try again later." };
+        if (healed) {
+          decision = await db.runTransaction(runCapCheck);
         }
-
-        const u = userSnap.data() || {};
-
-        // Allowlisted clients skip both the daily cap (checked below) and the
-        // subscription gate entirely (developer testing, reviewers) - still
-        // counted, still bounded by the global monthly budget checked above.
-        const isUnlimited = clientId != null && unlimitedClientIds.includes(clientId);
-        let preSubIncrementField = null;
-        if (!isUnlimited) {
-          const nowMillis = Date.now();
-          // expiryTimeMillis is checked for every state, not just "canceled":
-          // onSubscriptionNotification (RTDN) refreshes this doc on every
-          // real lifecycle event, so a stale expiry is a signal something's
-          // wrong (a missed notification, a lapsed client that never
-          // re-verified) rather than something to trust indefinitely.
-          const entitled = u.subscriptionExpiryTimeMillis > nowMillis
-            && ENTITLED_STATES.has(u.subscriptionState);
-          if (!entitled) {
-            const feature = PRESUB_FEATURES[featureKey];
-            if (!feature) {
-              return { allow: false, status: 403, code: "subscription_required", message: "A subscription is required to continue using AI analysis." };
-            }
-            const totalCap = cfg[feature.totalCapField] ?? feature.defaultTotalCap;
-            const successCap = cfg[feature.successCapField] ?? feature.defaultSuccessCap;
-            const totalCount = u[feature.totalField] || 0;
-            const successCount = u[feature.successField] || 0;
-            if (totalCount >= totalCap || successCount >= successCap) {
-              return { allow: false, status: 403, code: "subscription_required", message: "A subscription is required to continue using AI analysis." };
-            }
-            preSubIncrementField = feature.totalField;
-          }
+        if (decision.code === "self_heal") {
+          // Repair didn't stick (Play API failure, or something odd) - don't
+          // leak the internal retry signal to the client, just deny normally.
+          decision = { allow: false, status: 403, code: "subscription_required", message: "A subscription is required to continue using AI analysis." };
         }
-
-        // Allowlisted clients skip the per-user daily cap (still counted below,
-        // still bounded by the global monthly budget checked above).
-        const userCount = u.dailyCapUtcDate === dailyCapUtcDateKey ? u.dailyCapCount || 0 : 0;
-        if (!isUnlimited && userCount >= perUserDailyCap) {
-          return { allow: false, status: 429, code: "daily_cap", message: "You've reached today's analysis limit. Please try again tomorrow." };
-        }
-
-        tx.set(globalRef, { month: monthKey, count: globalCount + 1 }, { merge: true });
-        const userUpdate = { dailyCapUtcDate: dailyCapUtcDateKey, dailyCapCount: userCount + 1, lastSeen: now.toISOString() };
-        if (clientId != null) userUpdate.clientId = clientId;
-        if (preSubIncrementField != null) userUpdate[preSubIncrementField] = (u[preSubIncrementField] || 0) + 1;
-        tx.set(userRef, userUpdate, { merge: true });
-        return { allow: true };
-      });
+      }
     } catch (e) {
       logger.error("Cap transaction failed", e);
       sendError(res, 500, "cap_check_failed", "Could not verify usage limits.");

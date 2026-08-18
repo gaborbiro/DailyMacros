@@ -159,6 +159,44 @@ order) before trusting it — the Voided Purchases API's field/enum names in
 the code are per Google's documented shape but haven't been exercised
 against a live response here.
 
+### Recovering a lost `users/{uid}` doc
+
+If a subscriber's `users/{uid}` doc is ever lost (an accidental Firestore
+delete, most likely) they'd look like a brand-new user to `openaiProxy`. Two
+independent things guard against that, both relying on `purchaseTokens`
+(a separate collection, keyed by purchase token, unaffected by `users/{uid}`
+being deleted) to recover the lost uid → purchase token link:
+
+- **Automatic**: `openaiProxy` self-heals the first time it sees a
+  not-yet-entitled request from a uid whose doc doesn't exist at all — it
+  checks `purchaseTokens` for a token on file, and if found, re-verifies with
+  Play and retries the same request before denying it. No waiting required,
+  but it only fires when that uid happens to make a request.
+- **Manual**: `repairSubscription`, an on-demand HTTP endpoint, for fixing a
+  specific uid immediately (e.g. right after you notice you deleted the
+  wrong doc) instead of waiting for them to call in. One-time setup:
+  ```bash
+  firebase functions:secrets:set ADMIN_REPAIR_KEY
+  # paste a random secret string when prompted
+  ```
+  Then call it:
+  ```bash
+  curl -s -X POST \
+    "https://us-central1-dailymacros-9fab8.cloudfunctions.net/repairSubscription" \
+    -H "X-Admin-Key: <the secret you set above>" \
+    -H "Content-Type: application/json" \
+    -d '{"uid": "<their Firebase auth uid>"}'
+  ```
+  Gated by that shared secret rather than per-user auth — there's no
+  admin-role concept in this app, and this is a developer tool, not an
+  in-app feature. Returns `404 not_found` if `purchaseTokens` has no token
+  for that uid (either they never subscribed, or `purchaseTokens` itself was
+  also lost — this can't help with that case).
+
+Neither path can recover a uid you don't already know — if you need to find
+it first, you're back to whatever's stored outside Firestore (Firebase Auth
+logs, the app's local device, a support email).
+
 ---
 
 ## Deploy
