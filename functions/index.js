@@ -52,8 +52,8 @@
  *     counted and still subject to the global monthly budget. Use it to
  *     permanently unlock yourself: put your own three-word id (from the app's
  *     Settings screen) here once.
- *   - To give one user more room today, edit their users/{uid}.count: 0
- *     restores their full daily allowance, a negative value (e.g. -10) grants
+ *   - To give one user more room today, edit their users/{uid}.dailyCapCount:
+ *     0 restores their full daily allowance, a negative value (e.g. -10) grants
  *     that many extra requests on top of the cap. It resets to normal at the
  *     next UTC day.
  *
@@ -198,7 +198,7 @@ exports.openaiProxy = onRequest(
     // 2. Enforce caps atomically.
     const now = new Date();
     const monthKey = now.toISOString().slice(0, 7); // YYYY-MM (UTC)
-    const utcDayKey = now.toISOString().slice(0, 10); // YYYY-MM-DD (UTC)
+    const dailyCapUtcDateKey = now.toISOString().slice(0, 10); // YYYY-MM-DD (UTC)
 
     const configRef = db.doc("config/limits");
     const globalRef = db.doc("usage/global");
@@ -261,13 +261,13 @@ exports.openaiProxy = onRequest(
 
         // Allowlisted clients skip the per-user daily cap (still counted below,
         // still bounded by the global monthly budget checked above).
-        const userCount = u.utcDay === utcDayKey ? u.count || 0 : 0;
+        const userCount = u.dailyCapUtcDate === dailyCapUtcDateKey ? u.dailyCapCount || 0 : 0;
         if (!isUnlimited && userCount >= perUserDailyCap) {
           return { allow: false, status: 429, code: "daily_cap", message: "You've reached today's analysis limit. Please try again tomorrow." };
         }
 
         tx.set(globalRef, { month: monthKey, count: globalCount + 1 }, { merge: true });
-        const userUpdate = { utcDay: utcDayKey, count: userCount + 1, lastSeen: now.toISOString() };
+        const userUpdate = { dailyCapUtcDate: dailyCapUtcDateKey, dailyCapCount: userCount + 1, lastSeen: now.toISOString() };
         if (clientId != null) userUpdate.clientId = clientId;
         if (preSubIncrementField != null) userUpdate[preSubIncrementField] = (u[preSubIncrementField] || 0) + 1;
         tx.set(userRef, userUpdate, { merge: true });

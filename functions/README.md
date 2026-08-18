@@ -255,7 +255,8 @@ client is wired to send its Firebase ID token — that's the follow-up step.
 - **Emergency stop:** set `config/limits.killSwitch = true`. All proxied
   requests immediately return 503 until you flip it back.
 - **See usage:** `usage/global` holds the current month's count;
-  `users/{uid}` holds each device's daily count, plus `clientId` (the
+  `users/{uid}` holds each device's daily count (`dailyCapCount`, valid for
+  the UTC date in `dailyCapUtcDate`), plus `clientId` (the
   three-word id shown in the app's Settings), `lastSeen`, and that same
   user's subscription fields (`subscriptionState`, `subscriptionProductId`,
   `subscriptionExpiryTimeMillis`, `subscriptionPurchaseToken`,
@@ -273,10 +274,11 @@ client is wired to send its Firebase ID token — that's the follow-up step.
   `config/limits.unlimitedClientIds`. Those clients skip the per-user daily cap
   (they're still counted and still bounded by the global monthly budget).
 - **Give a user more room today:** open their `users/{uid}` doc (found via
-  `clientId` above) and edit `count`. Set it to `0` to restore their full daily
-  allowance, or to a negative number (e.g. `-10`) to grant that many extra
-  requests on top of the cap. It resets to normal at the next UTC day; takes
-  effect on their next request, no redeploy. (Only meaningful when `utcDay` is
-  today — if `utcDay` is stale they already have a fresh allowance.)
+  `clientId` above) and edit `dailyCapCount`. Set it to `0` to restore their
+  full daily allowance, or to a negative number (e.g. `-10`) to grant that
+  many extra requests on top of the cap. It resets to normal at the next UTC
+  day; takes effect on their next request, no redeploy. (Only meaningful when
+  `dailyCapUtcDate` is today — if it's stale they already have a fresh
+  allowance.)
 - **Watch cost:** the Blaze budget alert (step 2) plus your OpenAI account's
   own hard usage limit are the outer backstops behind the in-function cap.
