@@ -31,15 +31,15 @@ at all.
 ## Storage: no DB table needed
 
 Checked how backups actually work in this repo before deciding:
-- `BackupRepositoryImpl` (the app's own Drive cloud sync) only ever reads/writes
-  the Room DB file (`databases/daily_macros_db`) — it doesn't touch
-  SharedPreferences at all.
+- `BackupRepositoryImpl` (the app's own Drive/local export) copies the whole
+  `shared_prefs/` folder alongside the Room DB, excluding only
+  `secure_settings.xml` and `local_only_prefs.xml` by name.
 - `app/src/main/res/xml/backup_rules.xml` and `data_extraction_rules.xml`
-  already exclude `settings2.xml` (the prefs file `SettingsRepositoryImpl`
-  uses for every setting) from Android's own OS-level auto-backup and
-  device-transfer.
+  exclude the same two files from Android's own OS-level auto-backup and
+  device-transfer. `prefs.xml` (the file `SettingsRepositoryImpl` uses for
+  every setting) is not excluded from either path.
 
-So storing this data in the existing `settings2` prefs file keeps it out of
+So storing this data in the existing `prefs` file keeps it in step with
 every backup path that exists today, with zero new exclusion rules. A Room
 table would mean a schema bump (risky — the DB currently uses
 `fallbackToDestructiveMigration()`), a new DAO, and re-litigating what the
@@ -62,7 +62,7 @@ chain takes back over) or isn't currently rendered anyway.
 - `recordTimezoneEvent(zoneId: String, epochMs: Long)` — appends, then prunes
   per the retention rule above. Skips the append entirely if the new zone
   equals the most recently stored one (the OS can refire redundantly).
-- Persisted as Gson JSON in the existing `settings2` prefs, new key.
+- Persisted as Gson JSON in the existing `settings` prefs, new key.
 
 ### 2. Capture — a new receiver
 - `TimezoneChangeReceiver : BroadcastReceiver`, `@AndroidEntryPoint` with

@@ -86,10 +86,11 @@ class BackupRepositoryImpl @Inject constructor(
                 if (sharedPrefsRoot.exists()) {
                     sharedPrefsRoot.walkTopDown()
                         .filter { it.isFile }
-                        // Never export the encrypted API-key store: its ciphertext is bound to
-                        // this device's Keystore and cannot be decrypted after restore, and it
-                        // is a credential we keep on-device only.
-                        .filter { it.name != SECURE_PREFS_FILE_NAME }
+                        // Never export the encrypted API-key store, the local-only PII prefs, or
+                        // the per-install analytics UUID (see SecureApiKeyStore, LocalOnlyPrefsStore,
+                        // AppPrefs) — this mirrors data_extraction_rules.xml's OS-backup exclusions,
+                        // since this in-app path doesn't consult that file.
+                        .filter { it.name !in EXCLUDED_PREFS_FILE_NAMES }
                         .forEach { file ->
                             val rel = file.relativeTo(sharedPrefsRoot).invariantSeparatorsPath
                             val entryName = "$SHARED_PREFS_TAR_PREFIX/$rel"
@@ -411,8 +412,14 @@ class BackupRepositoryImpl @Inject constructor(
         const val LEGACY_PUBLIC_TAR_PREFIX = "files/public"
         const val SHARED_PREFS_TAR_PREFIX = "shared_prefs"
 
-        // Encrypted API-key store (see SecureApiKeyStore); excluded from export.
-        const val SECURE_PREFS_FILE_NAME = "secure_settings.xml"
+        // Prefs files excluded from export - credentials, PII, or per-install identity that
+        // must not travel with a restore. Mirrors data_extraction_rules.xml's OS-backup
+        // exclusions (see SecureApiKeyStore, LocalOnlyPrefsStore, AppPrefs).
+        val EXCLUDED_PREFS_FILE_NAMES = setOf(
+            "secure_settings.xml",
+            "local_only_prefs.xml",
+            "local_only_app_prefs.xml",
+        )
     }
 }
 

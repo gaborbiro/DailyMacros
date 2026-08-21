@@ -5,10 +5,12 @@
    sync for completeness. See
    https://developer.android.com/guide/topics/data/autobackup
 
-   Exclude the shared-preferences files that hold credentials or PII (the
-   encrypted BYO OpenAI key and the cloud-sync email / legacy plaintext key).
+   Exclude the shared-preferences files that hold credentials, PII, or
+   per-install identity (the encrypted BYO OpenAI key, PII such as the
+   cloud-sync email, and the per-install analytics UUID).
 -->
 <full-backup-content>
     <exclude domain="sharedpref" path="secure_settings.xml" />
-    <exclude domain="sharedpref" path="settings2.xml" />
+    <exclude domain="sharedpref" path="local_only_prefs.xml" />
+    <exclude domain="sharedpref" path="local_only_app_prefs.xml" />
 </full-backup-content>
