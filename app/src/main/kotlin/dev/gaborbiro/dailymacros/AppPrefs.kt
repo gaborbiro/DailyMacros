@@ -20,19 +20,28 @@ class AppPrefs @Inject constructor(
 
     private val prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
 
+    // Separate, backup-excluded file: this UUID identifies *this install* for analytics
+    // (see MainActivity's analyticsLogger.setUserId call). It must never travel via OS
+    // auto-backup, device transfer, or the in-app Drive/local backup - restoring it onto
+    // a different install would make analytics think a fresh install is a continuation of
+    // the old one. Kept separate from repositories/settings' local_only_prefs since that
+    // file belongs to a different module/class - sharing a file across module boundaries
+    // is how key collisions happen.
+    private val localOnlyPrefs = context.getSharedPreferences("local_only_app_prefs", Context.MODE_PRIVATE)
+
     // Read before anything else can call `userUUID` and lazily create that key, so this
     // stays true only for installs that already existed before onboarding shipped -
     // those should never be sent through it retroactively.
-    private val isPreExistingInstall = prefs.getString(KEY_USER_UUID, null) != null
+    private val isPreExistingInstall = localOnlyPrefs.getString(KEY_USER_UUID, null) != null
 
     @OptIn(ExperimentalUuidApi::class)
     val userUUID: String
         get() {
-            val existing = prefs.getString(KEY_USER_UUID, null)
+            val existing = localOnlyPrefs.getString(KEY_USER_UUID, null)
             if (existing != null) return existing
 
             val newUuid = ThreeWordId.random()
-            prefs.edit { putString(KEY_USER_UUID, newUuid) }
+            localOnlyPrefs.edit { putString(KEY_USER_UUID, newUuid) }
             return newUuid
         }
 
