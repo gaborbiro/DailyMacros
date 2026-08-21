@@ -8,7 +8,7 @@ plugins {
 }
 
 // Bump here; GitHub release tag v{versionName} uses :app:printAppReleaseVersionName in CI.
-private val baseVersion = "1.12.7"
+private val baseVersion = "1.12.8"
 
 android {
     namespace = "dev.gaborbiro.dailymacros"
