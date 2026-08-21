@@ -59,6 +59,8 @@ internal fun OnboardingView(
     onAddWidget: () -> Unit = {},
     onRestoreFromCloud: () -> Unit = {},
     restoreFromCloudInProgress: Boolean = false,
+    onRestoreFromLocalBackup: () -> Unit = {},
+    restoreFromLocalBackupInProgress: Boolean = false,
     onStartTrialTapped: () -> Unit = {},
     onSkipTapped: () -> Unit = {},
 ) {
@@ -84,6 +86,8 @@ internal fun OnboardingView(
                         onAddWidget = onAddWidget,
                         onRestoreFromCloud = onRestoreFromCloud,
                         restoreFromCloudInProgress = restoreFromCloudInProgress,
+                        onRestoreFromLocalBackup = onRestoreFromLocalBackup,
+                        restoreFromLocalBackupInProgress = restoreFromLocalBackupInProgress,
                     )
                     else -> OnboardingTrialPage(onStartTrialTapped = onStartTrialTapped, onSkipTapped = onSkipTapped)
                 }
@@ -103,7 +107,7 @@ internal fun OnboardingView(
                 val nextPage = pagerState.currentPage + 1
                 Button(
                     modifier = Modifier.alpha(if (isLastPage) 0f else 1f),
-                    enabled = !isLastPage && !restoreFromCloudInProgress,
+                    enabled = !isLastPage && !restoreFromCloudInProgress && !restoreFromLocalBackupInProgress,
                     onClick = { coroutineScope.launch { pagerState.animateScrollToPage(nextPage) } },
                 ) {
                     Text(stringResource(R.string.onboarding_next))
@@ -206,6 +210,8 @@ private fun OnboardingSetupPage(
     onAddWidget: () -> Unit,
     onRestoreFromCloud: () -> Unit,
     restoreFromCloudInProgress: Boolean = false,
+    onRestoreFromLocalBackup: () -> Unit = {},
+    restoreFromLocalBackupInProgress: Boolean = false,
 ) {
     val onBackground = MaterialTheme.colorScheme.onBackground
 
@@ -243,6 +249,28 @@ private fun OnboardingSetupPage(
                     textAlign = TextAlign.Center,
                 )
                 if (restoreFromCloudInProgress) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(14.dp),
+                        strokeWidth = 2.dp,
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    modifier = Modifier.clickable(
+                        enabled = !restoreFromLocalBackupInProgress,
+                        onClick = onRestoreFromLocalBackup,
+                    ),
+                    text = stringResource(OverviewR.string.welcome_restore_from_local_backup),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = if (restoreFromLocalBackupInProgress) 0.5f else 1f),
+                    textAlign = TextAlign.Center,
+                )
+                if (restoreFromLocalBackupInProgress) {
                     Spacer(modifier = Modifier.width(8.dp))
                     CircularProgressIndicator(
                         modifier = Modifier.size(14.dp),
