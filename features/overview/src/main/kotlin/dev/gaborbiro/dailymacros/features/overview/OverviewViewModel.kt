@@ -22,6 +22,7 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.hasAnyEnabled
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -109,9 +110,9 @@ class OverviewViewModel @Inject constructor(
                     val showSubscribeBanner = records.isNotEmpty() &&
                         subscriptionState == SubscriptionState.NotSubscribed &&
                         !settingsRepository.getSubscribeBannerDismissed()
-                    enrichRecordRowsWithOtherVariantsIcon(items) to showSubscribeBanner
+                    Triple(enrichRecordRowsWithOtherVariantsIcon(items), showSubscribeBanner, targets.hasAnyEnabled())
                 }
-                .collect { (records: List<ListUiModelBase>, showSubscribeBanner: Boolean) ->
+                .collect { (records: List<ListUiModelBase>, showSubscribeBanner: Boolean, hasTargets: Boolean) ->
                     val hasMore = computeHasMoreItems.execute(
                         isSearchActive = !searchBlank,
                         previousItemCount = previousRecordCount,
@@ -127,6 +128,7 @@ class OverviewViewModel @Inject constructor(
                                 isLoadingMore = false,
                                 hasMoreData = hasMore,
                                 showSettingsButton = notSearching,
+                                showSetTargetsCta = notSearching && !hasTargets,
                                 showSubscribeBanner = notSearching && showSubscribeBanner,
                             )
                         } else {
@@ -136,6 +138,7 @@ class OverviewViewModel @Inject constructor(
                                 hasMoreData = hasMore,
                                 showAddWidgetButton = notSearching,
                                 showSettingsButton = false,
+                                showSetTargetsCta = false,
                                 showSubscribeBanner = false,
                             )
                         }
