@@ -25,9 +25,25 @@ class SettingsRepositoryImpl @Inject constructor(
     private val mapper: SettingsMapper,
 ) : SettingsRepository {
 
-    private val prefs = context.getSharedPreferences("settings2", Context.MODE_PRIVATE)
+    private val prefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE)
     private val gson = Gson()
     private val secureApiKeyStore = SecureApiKeyStore(context)
+    private val localOnlyPrefsStore = LocalOnlyPrefsStore(context)
+
+    init {
+        // Migrate any legacy plaintext key eagerly (rather than on first getApiKeyOverride()
+        // call) so it can never linger in `prefs` — which now backs up via the OS and the
+        // in-app export, unlike the old settings2.xml/settings.xml this replaced.
+        migrateLegacyApiKeyOverrideIfPresent()
+    }
+
+    private fun migrateLegacyApiKeyOverrideIfPresent() {
+        val legacy = prefs.getString(KEY_API_KEY_OVERRIDE, null)?.takeIf { it.isNotBlank() }
+        if (legacy != null) {
+            secureApiKeyStore.set(legacy)
+            prefs.edit { remove(KEY_API_KEY_OVERRIDE) }
+        }
+    }
 
     override fun setTargets(targets: Targets) {
         val json = mapper.map(targets)
@@ -166,27 +182,14 @@ class SettingsRepositoryImpl @Inject constructor(
             if (keyType == type && version != null) version to stats else null
         }.toMap()
 
-    override fun getApiKeyOverride(): String? {
-        secureApiKeyStore.get()?.let { return it }
-        // Migrate a legacy plaintext key (stored before at-rest encryption existed)
-        // into the encrypted store, then scrub it from the plaintext prefs.
-        val legacy = prefs.getString(KEY_API_KEY_OVERRIDE, null)?.takeIf { it.isNotBlank() }
-        if (legacy != null) {
-            secureApiKeyStore.set(legacy)
-            prefs.edit { remove(KEY_API_KEY_OVERRIDE) }
-        }
-        return legacy
-    }
+    override fun getApiKeyOverride(): String? = secureApiKeyStore.get()
 
     override fun setApiKeyOverride(key: String) {
         secureApiKeyStore.set(key)
-        // Ensure no plaintext copy lingers from a pre-encryption install.
-        prefs.edit { remove(KEY_API_KEY_OVERRIDE) }
     }
 
     override fun clearApiKeyOverride() {
         secureApiKeyStore.clear()
-        prefs.edit { remove(KEY_API_KEY_OVERRIDE) }
     }
 
     override fun getCloudSyncProvider(): CloudSyncProvider =
@@ -198,10 +201,10 @@ class SettingsRepositoryImpl @Inject constructor(
         prefs.edit { putString(KEY_CLOUD_SYNC_PROVIDER, provider.name) }
     }
 
-    override fun getCloudSyncEmail(): String? = prefs.getString(KEY_CLOUD_SYNC_EMAIL, null)
+    override fun getCloudSyncEmail(): String? = localOnlyPrefsStore.cloudSyncEmail
 
     override fun setCloudSyncEmail(email: String?) {
-        prefs.edit { if (email != null) putString(KEY_CLOUD_SYNC_EMAIL, email) else remove(KEY_CLOUD_SYNC_EMAIL) }
+        localOnlyPrefsStore.cloudSyncEmail = email
     }
 
     override fun getLastSyncedEpochMs(): Long? =
@@ -329,7 +332,6 @@ class SettingsRepositoryImpl @Inject constructor(
         private const val KEY_PROMPT_USAGE_STATS = "prompt_usage_stats_json"
         private const val KEY_API_KEY_OVERRIDE = "api_key_override"
         private const val KEY_CLOUD_SYNC_PROVIDER = "cloud_sync_provider"
-        private const val KEY_CLOUD_SYNC_EMAIL = "cloud_sync_email"
         private const val KEY_LAST_SYNCED_EPOCH_MS = "last_synced_epoch_ms"
         private const val KEY_AUTO_PHOTO_RECOGNITION = "auto_photo_recognition"
         private const val KEY_QUICK_PICK_CONFIRMATION = "quick_pick_confirmation_enabled"

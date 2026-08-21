@@ -4,24 +4,25 @@
    See https://developer.android.com/about/versions/12/backup-restore#xml-changes
 
    We exclude the shared-preferences files that hold credentials or PII:
-   - secure_settings.xml : the encrypted BYO OpenAI key. Its ciphertext is bound
-     to this device's Keystore master key, which is non-exportable, so a restored
-     copy could never be decrypted on another device — and it is a credential, so
-     it must not leave the device regardless.
-   - settings2.xml : holds the cloud-sync email and, on installs that predate the
-     encrypted-key migration, a plaintext copy of the OpenAI key.
+   - secure_settings.xml : the encrypted BYO OpenAI key (see SecureApiKeyStore).
+     Its ciphertext is bound to this device's Keystore master key, which is
+     non-exportable, so a restored copy could never be decrypted on another
+     device — and it is a credential, so it must not leave the device regardless.
+   - local_only_prefs.xml : PII that isn't a device setting, e.g. the cloud-sync
+     email (see LocalOnlyPrefsStore).
 
-   Everything else (the food/health database, thumbnails) still backs up to the
-   user's own Google account, matching the trust boundary of the in-app Drive
-   backup and enabling restore on a new device.
+   `prefs.xml` (app settings, targets, trends, etc.) is NOT excluded and backs up
+   normally, along with the food/health database and thumbnails, matching the
+   trust boundary of the in-app Drive backup and enabling restore on a new device.
+   BackupRepositoryImpl (the in-app path) mirrors these same two exclusions.
 -->
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="sharedpref" path="secure_settings.xml" />
-        <exclude domain="sharedpref" path="settings2.xml" />
+        <exclude domain="sharedpref" path="local_only_prefs.xml" />
     </cloud-backup>
     <device-transfer>
         <exclude domain="sharedpref" path="secure_settings.xml" />
-        <exclude domain="sharedpref" path="settings2.xml" />
+        <exclude domain="sharedpref" path="local_only_prefs.xml" />
     </device-transfer>
 </data-extraction-rules>

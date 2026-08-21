@@ -57,6 +57,7 @@ import android.content.ComponentName
 import android.widget.Toast
 import dev.gaborbiro.dailymacros.features.widgets.diarywidget.DiaryWidgetReceiver
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.AutoSyncUseCase
+import dev.gaborbiro.dailymacros.features.settings.export.rememberOpenPublicDocumentUseCase
 import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.util.cancelAutoSyncNotifications
@@ -179,11 +180,14 @@ class MainActivity : ComponentActivity() {
                         route = ONBOARDING_ROUTE,
                     ) {
                         val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
+                        val openPublicDocumentUseCase = rememberOpenPublicDocumentUseCase()
                         OnboardingScreen(
                             navController = navController,
                             onAddWidget = onAddWidget,
                             onRestoreFromCloud = settingsViewModel::onCloudSyncForRestoreTapped,
                             restoreFromCloudInProgress = settingsUiState.cloudSyncInProgress,
+                            onRestoreFromLocalBackup = { settingsViewModel.onImportDbTapped(openPublicDocumentUseCase) },
+                            restoreFromLocalBackupInProgress = settingsUiState.importDataInProgress,
                         )
                     }
                     composable(
