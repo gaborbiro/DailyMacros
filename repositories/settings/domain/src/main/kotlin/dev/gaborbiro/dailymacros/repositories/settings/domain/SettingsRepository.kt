@@ -8,12 +8,17 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptUsageS
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.TimezoneEvent
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 interface SettingsRepository {
 
     fun getTargets(): Targets
 
     fun setTargets(targets: Targets)
+
+    /** Reactive equivalent of [getTargets] - emits the current value and again whenever it changes. */
+    fun observeTargets(): Flow<Targets> = flowOf(getTargets())
 
     /** Hour of day (0–23) when the food diary day rolls over; 0 means midnight. */
     fun getDiaryDayStartHour(): Int
