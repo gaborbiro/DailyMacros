@@ -42,6 +42,7 @@ import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiState
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 @Composable
 internal fun OverviewList(
@@ -54,7 +55,8 @@ internal fun OverviewList(
     onDeleteMenuItemTapped: (recordId: Long) -> Unit,
     onRecordImageTapped: (recordId: Long) -> Unit,
     onRecordBodyTapped: (recordId: Long) -> Unit,
-    onSummaryTapped: () -> Unit,
+    onDailySummaryTapped: (epochDay: Long) -> Unit,
+    onWeeklySummaryTapped: (epochDay: Long) -> Unit,
     onLoadMore: () -> Unit = {},
 ) {
     // Detect when the user scrolls near the end of the list
@@ -141,7 +143,7 @@ internal fun OverviewList(
                         }
                         ListItemDailySummary(
                             model = item,
-                            onTapped = onSummaryTapped,
+                            onTapped = remember(item.listItemId) { { onDailySummaryTapped(item.day.toEpochDay()) } },
                         )
                     }
 
@@ -154,7 +156,7 @@ internal fun OverviewList(
                         }
                         ListItemWeeklySummary(
                             model = item,
-                            onTapped = onSummaryTapped,
+                            onTapped = remember(item.listItemId) { { onWeeklySummaryTapped(item.weekStart.toEpochDay()) } },
                         )
                     }
                 }
@@ -251,6 +253,7 @@ private fun OverviewListPreview() {
                 items = listOf(
                     ListUiModelDailySummary(
                         listItemId = 1L,
+                        day = LocalDate.now(),
                         dayTitle = "Yesterday",
                         entries = listOf(
                             DailySummaryEntry(
@@ -350,7 +353,8 @@ private fun OverviewListPreview() {
             onRecordImageTapped = {},
             onRecordBodyTapped = {},
             onAnalyseMacrosMenuItemTapped = {},
-            onSummaryTapped = {},
+            onDailySummaryTapped = {},
+            onWeeklySummaryTapped = {},
             onLoadMore = {},
         )
     }

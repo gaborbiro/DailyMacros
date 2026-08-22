@@ -5,6 +5,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.gaborbiro.dailymacros.features.common.utils.diaryDayStartTime
+import dev.gaborbiro.dailymacros.features.common.utils.diaryDayWindowStart
+import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelDailySummary
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiState
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiUpdates
 import dev.gaborbiro.dailymacros.features.overview.usecase.CancelMacrosAnalysisForRecordUseCase
@@ -35,9 +38,13 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import javax.inject.Inject
+import kotlin.math.abs
 import kotlin.time.Duration.Companion.days
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -77,6 +84,9 @@ class OverviewViewModel @Inject constructor(
         // genuinely nothing - generous enough to cover months of inactivity
         // (20 * 14 days ≈ 9 months) while still bounded for a truly-empty diary.
         const val MAX_CATCH_UP_WIDENS = 20
+
+        val SCROLL_TARGET_DATE_FORMATTER: DateTimeFormatter =
+            DateTimeFormatter.ofPattern("d MMM", Locale.getDefault())
     }
 
     private var sinceEpochMillis: Long = System.currentTimeMillis() - PAGE_SIZE.inWholeMilliseconds
@@ -84,8 +94,20 @@ class OverviewViewModel @Inject constructor(
     private var collectionJob: Job? = null
     private var previousRecordCount: Int = -1
     private var autoCatchUpWidens: Int = 0
+    private var pendingScrollToEpochDay: Long? = null
+
+    init {
+        // The one-time initial load. Deliberately not triggered by OverviewScreen's
+        // "clear any stale search" LaunchedEffect(Unit) call to onSearchTermChanged(null) below -
+        // that runs on *every* re-entry to the Overview screen (e.g. returning from Trends via
+        // back navigation), not just the first one, and used to unconditionally reset
+        // sinceEpochMillis back to "now" each time, silently discarding any widened window (e.g.
+        // from a Trends-triggered scroll-to-date) the moment the user navigated away and back.
+        resubscribe(currentSearch)
+    }
 
     fun onSearchTermChanged(search: String?) {
+        if (search == currentSearch) return
         currentSearch = search
         // Reset paging window when the search term changes
         sinceEpochMillis = System.currentTimeMillis() - PAGE_SIZE.inWholeMilliseconds
@@ -134,18 +156,45 @@ class OverviewViewModel @Inject constructor(
                     previousRecordCount = records.size
 
                     val notSearching = searchBlank
+                    // See MAX_CATCH_UP_WIDENS above: an empty page here doesn't yet mean "no
+                    // data" - the auto-widen loop below may still be about to look further
+                    // back. Deciding showAddWidgetButton from this page alone would flash the
+                    // "add a widget" empty state on every cold start whose first (most recent)
+                    // page happens to be empty, only for it to be replaced moments later once
+                    // an older page turns up real records - which reads as the app being
+                    // broken on every launch after any inactivity.
+                    val willAutoWiden = records.isEmpty() && notSearching && autoCatchUpWidens < MAX_CATCH_UP_WIDENS
+
                     _viewState.update {
-                        if (records.isNotEmpty()) {
-                            it.copy(
+                        when {
+                            records.isNotEmpty() -> it.copy(
                                 items = records,
                                 isLoadingMore = false,
                                 hasMoreData = hasMore,
+                                // Reset explicitly - once records exist there's no "add a
+                                // widget" empty state to show, but a prior empty page (e.g.
+                                // from the auto-widen catch-up loop below finding nothing
+                                // until it looks back far enough) could have left this true,
+                                // and it would otherwise never get cleared since it isn't
+                                // touched anywhere else once data starts flowing. That stuck
+                                // "true" also permanently hid the Search FAB, which is gated
+                                // on this same flag.
+                                showAddWidgetButton = false,
                                 showSettingsButton = notSearching,
                                 showSetTargetsCta = notSearching && !hasTargets,
                                 showSubscribeBanner = notSearching && showSubscribeBanner,
                             )
-                        } else {
-                            it.copy(
+
+                            willAutoWiden -> it.copy(
+                                // Still probing further back - leave showAddWidgetButton (and
+                                // the rest of the empty-state flags) as they were rather than
+                                // flashing the empty state only to immediately replace it.
+                                items = records,
+                                isLoadingMore = false,
+                                hasMoreData = hasMore,
+                            )
+
+                            else -> it.copy(
                                 items = records,
                                 isLoadingMore = false,
                                 hasMoreData = hasMore,
@@ -157,26 +206,61 @@ class OverviewViewModel @Inject constructor(
                         }
                     }
 
-                    // See MAX_CATCH_UP_WIDENS above. Deliberately NOT gated on
-                    // `hasMore`: computeHasMoreItems already flips that false
-                    // after just one more empty page (it's tuned to stop
-                    // normal pagination, not to keep searching back through
-                    // however many empty weeks/months of inactivity it takes
-                    // to find the first real record) - autoCatchUpWidens is
-                    // this loop's own, more patient bound instead. Launched
-                    // as a separate coroutine rather than calling resubscribe
-                    // directly, since this callback is itself running inside
-                    // collectionJob - cancelling it from within its own body
-                    // would be reentrant.
-                    if (records.isEmpty() && notSearching && autoCatchUpWidens < MAX_CATCH_UP_WIDENS) {
+                    // Launched as a separate coroutine rather than calling resubscribe
+                    // directly, since this callback is itself running inside collectionJob -
+                    // cancelling it from within its own body would be reentrant.
+                    if (willAutoWiden) {
                         autoCatchUpWidens++
                         sinceEpochMillis -= PAGE_SIZE.inWholeMilliseconds
                         viewModelScope.launch { resubscribe(currentSearch) }
                     } else if (records.isNotEmpty()) {
                         autoCatchUpWidens = 0
                     }
+
+                    attemptPendingScroll()
                 }
         }
+    }
+
+    /**
+     * Called when the user taps a Trends chart point (see TrendsScreen.kt /
+     * OVERVIEW_SCROLL_TO_EPOCH_DAY_KEY): widens the paging window if [epochDay] predates it,
+     * then asks the view to scroll to the closest matching day card once it's loaded (see
+     * [attemptPendingScroll]).
+     */
+    fun onScrollToDateRequested(epochDay: Long) {
+        pendingScrollToEpochDay = epochDay
+        val targetDate = LocalDate.ofEpochDay(epochDay)
+        _viewState.update {
+            it.copy(pendingScrollDateLabel = targetDate.format(SCROLL_TARGET_DATE_FORMATTER))
+        }
+        val dayStart = diaryDayStartTime(settingsRepository.getDiaryDayStartHour())
+        val targetWindowStartMillis = diaryDayWindowStart(targetDate, dayStart, ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+        if (targetWindowStartMillis < sinceEpochMillis) {
+            sinceEpochMillis = targetWindowStartMillis - PAGE_SIZE.inWholeMilliseconds
+            resubscribe(currentSearch)
+        } else {
+            attemptPendingScroll()
+        }
+    }
+
+    /** Best-effort match against whatever day cards are currently loaded - there's no
+     *  guarantee the exact target day itself has a card (e.g. it wasn't logged), so this
+     *  picks the closest one rather than requiring an exact hit. */
+    private fun attemptPendingScroll() {
+        val targetEpochDay = pendingScrollToEpochDay ?: return
+        val match = _viewState.value.items
+            .filterIsInstance<ListUiModelDailySummary>()
+            .minByOrNull { abs(it.day.toEpochDay() - targetEpochDay) }
+            ?: return
+        pendingScrollToEpochDay = null
+        _viewState.update { it.copy(scrollToListItemId = match.listItemId) }
+    }
+
+    fun onScrollHandled() {
+        _viewState.update { it.copy(scrollToListItemId = null, pendingScrollDateLabel = null) }
     }
 
     private suspend fun enrichRecordRowsWithOtherVariantsIcon(items: List<ListUiModelBase>): List<ListUiModelBase> =
@@ -258,9 +342,17 @@ class OverviewViewModel @Inject constructor(
         }
     }
 
-    fun onTrendsButtonTapped() {
+    /** Tapping a day card opens Trends in the Days view, pre-scrolled to that day. */
+    fun onDailySummaryTapped(epochDay: Long) {
         viewModelScope.launch {
-            _uiUpdates.emit(OverviewUiUpdates.OpenTrendsScreen)
+            _uiUpdates.emit(OverviewUiUpdates.OpenTrendsScreen(scrollToEpochDay = epochDay, timescale = "DAYS"))
+        }
+    }
+
+    /** Tapping a week card opens Trends in the Weeks view, pre-scrolled to that week. */
+    fun onWeeklySummaryTapped(epochDay: Long) {
+        viewModelScope.launch {
+            _uiUpdates.emit(OverviewUiUpdates.OpenTrendsScreen(scrollToEpochDay = epochDay, timescale = "WEEKS"))
         }
     }
 

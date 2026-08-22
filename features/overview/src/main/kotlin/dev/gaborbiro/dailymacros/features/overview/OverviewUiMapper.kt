@@ -156,6 +156,7 @@ class OverviewUiMapper @Inject constructor(
             listItemId = diaryDayWindowStart(day.day, day.diaryDayStart, day.startZone)
                 .toInstant()
                 .toEpochMilli(),
+            day = day.day,
             dayTitle = mapDayTitleTimestamp(day.day),
             infoMessage = infoMessage,
             entries = progressItems,
@@ -492,6 +493,7 @@ class OverviewUiMapper @Inject constructor(
 
         return ListUiModelWeeklySummary(
             listItemId = weekStart.toEpochDay(),
+            weekStart = weekStart,
             entries = buildWeeklySummaryEntries(avgDayTotal, targets, previousWeekMacros),
             averageAdherence100Percentage = (avgAdherence * 100).roundToInt(),
             adherenceChange = calculateChangeIndicator(avgAdherence, prevWeekAvgAdherence),

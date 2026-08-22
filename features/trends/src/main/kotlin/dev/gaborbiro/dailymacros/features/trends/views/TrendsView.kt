@@ -47,6 +47,7 @@ import dev.gaborbiro.dailymacros.features.trends.R
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
+import dev.gaborbiro.dailymacros.features.trends.WEEKS_AXIS_LABEL_SPACING
 import dev.gaborbiro.dailymacros.features.trends.model.ChartDataPoint
 import dev.gaborbiro.dailymacros.features.trends.model.ChartDataset
 import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
@@ -70,6 +71,9 @@ internal fun TrendsView(
     onTargetsSettingTapped: () -> Unit,
     onGetInsightsTapped: () -> Unit,
     onGetOngoingInsightsTapped: () -> Unit,
+    onDataPointTapped: (epochDay: Long) -> Unit = {},
+    initialTimescale: Timescale = Timescale.DAYS,
+    onChartScrollHandled: () -> Unit = {},
 ) {
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
@@ -98,7 +102,7 @@ internal fun TrendsView(
         },
     ) { paddingValues ->
         var timescale by remember {
-            mutableStateOf(Timescale.DAYS)
+            mutableStateOf(initialTimescale)
         }
 
         Column(
@@ -169,8 +173,11 @@ internal fun TrendsView(
                 )
             }
 
+            // WEEKS_AXIS_LABEL_SPACING is shared with TrendsUiMapper.weekLabel, which needs to
+            // know the exact same spacing to decide whether a month-change week's label would
+            // be skipped by it - keep the two in sync rather than hardcoding 2 twice.
             val showEveryXLabel = when (timescale) {
-                Timescale.WEEKS -> 2
+                Timescale.WEEKS -> WEEKS_AXIS_LABEL_SPACING
                 else -> 1
             }
 
@@ -308,9 +315,23 @@ internal fun TrendsView(
                 }
 
                 if (chartsVisible) {
+                    // Captured once, not read reactively: Vico resolves a Scroll.Absolute value
+                    // lazily, whenever it next lays out the chart, so baking the target index into
+                    // initialScroll (like the pre-existing Scroll.Absolute.End default already
+                    // did) lands correctly regardless of whether the underlying chart model has
+                    // finished its own async transaction yet. An imperative scrollState.scroll(...)
+                    // call from a separate LaunchedEffect raced that transaction instead - it could
+                    // run before the model had this chart's data, silently landing nowhere.
+                    val initialScrollTarget = remember { viewState.scrollToChartIndex }
                     val scrollState = rememberVicoScrollState(
-                        initialScroll = Scroll.Absolute.End,
+                        initialScroll = initialScrollTarget
+                            ?.let { Scroll.Absolute.x(it.toDouble(), bias = 0.3f) }
+                            ?: Scroll.Absolute.End,
                     )
+
+                    LaunchedEffect(Unit) {
+                        if (initialScrollTarget != null) onChartScrollHandled()
+                    }
 
                     viewState.charts.forEach { chartData ->
                         TrendsChart(
@@ -319,6 +340,8 @@ internal fun TrendsView(
                             chartData = chartData,
                             scrollState = scrollState,
                             showEveryXLabel = showEveryXLabel,
+                            timescale = timescale,
+                            onScrollToDateConfirmed = onDataPointTapped,
                         )
                         if (timescale == Timescale.WEEKS && viewState.aiInsightsEnabled) {
                             viewState.weeklyInsights[chartData.title]?.let { insight ->
@@ -387,10 +410,10 @@ private val previewData = listOf(
                 name = "Chart",
                 color = androidx.compose.ui.graphics.Color.Blue,
                 set = listOf(
-                    ChartDataPoint(1, "test", 1.0),
-                    ChartDataPoint(2, "test", 2.0)
+                    ChartDataPoint(1, "test", 1.0, epochDay = 1L),
+                    ChartDataPoint(2, "test", 2.0, epochDay = 2L)
                 ),
-                current = ChartDataPoint(3, "test", 3.0),
+                current = ChartDataPoint(3, "test", 3.0, epochDay = 3L),
             ),
         )
     ),
@@ -401,10 +424,10 @@ private val previewData = listOf(
                 name = "Chart2",
                 color = androidx.compose.ui.graphics.Color.Red,
                 set = listOf(
-                    ChartDataPoint(1, "test", 3.0),
-                    ChartDataPoint(2, "test", 2.0)
+                    ChartDataPoint(1, "test", 3.0, epochDay = 1L),
+                    ChartDataPoint(2, "test", 2.0, epochDay = 2L)
                 ),
-                current = ChartDataPoint(3, "test", 1.0),
+                current = ChartDataPoint(3, "test", 1.0, epochDay = 3L),
             )
         )
     )

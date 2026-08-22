@@ -18,6 +18,10 @@ data class TrendsUiState(
     val weeklyInsightsFetchedAtLabel: String? = null,
     val ongoingInsightsFetchedAtLabel: String? = null,
     val weeklyInsightsWeekAssessment: String? = null,
+    /** One-shot: set once a pending scroll request (see TrendsViewModel.onInitialScrollRequested)
+     *  resolves to an index in the currently loaded [charts] - the view scrolls all charts to it
+     *  and clears it via onChartScrollHandled(). */
+    val scrollToChartIndex: Int? = null,
 )
 
 enum class Timescale { DAYS, WEEKS, MONTHS }
@@ -37,7 +41,10 @@ data class ChartDataset(
     /** Daily target upper bound (same Y unit as the series), when enabled in settings. */
     val targetMaxY: Double? = null,
 )
-data class ChartDataPoint(val index: Int, val label: String, val value: Double?)
+/** [epochDay] is the calendar day this point represents: the day itself for a DAYS chart, the
+ *  week's start day for WEEKS, the month's first day for MONTHS - see TrendsUiMapper. Lets a tap
+ *  on this point resolve to a real date to jump to in Overview. */
+data class ChartDataPoint(val index: Int, val label: String, val value: Double?, val epochDay: Long)
 
 sealed class TrendsSettingsUIModel {
     data object Hidden : TrendsSettingsUIModel()

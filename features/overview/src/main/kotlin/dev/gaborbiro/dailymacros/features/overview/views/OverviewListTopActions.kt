@@ -1,5 +1,10 @@
 package dev.gaborbiro.dailymacros.features.overview.views
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -19,13 +24,15 @@ import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.overview.R
 
 /**
- * Always-visible actions pinned to the top of the Overview screen, independent of the list's
- * scroll position - a FAB (or a CTA pointing at it) that slid away on scroll could end up
- * stuck off-screen if the list's scroll-anchoring shifted its reported index (e.g. a new
- * record prepended while backgrounded), so nothing here reacts to scroll state.
+ * Actions pinned to the top of the Overview screen. [visible] is driven by
+ * listState.lastScrolledForward/Backward (see OverviewView.kt), not listState.firstVisibleItemIndex -
+ * an earlier index-based version of this could end up stuck off-screen if the list's
+ * scroll-anchoring shifted its reported "top" index (e.g. a new record prepended while
+ * backgrounded), so it was removed.
  */
 @Composable
 internal fun OverviewListTopActions(
+    visible: Boolean,
     showSettingsButton: Boolean,
     showSetTargetsCta: Boolean,
     topContentPadding: Dp,
@@ -37,26 +44,31 @@ internal fun OverviewListTopActions(
             .fillMaxWidth()
             .padding(top = topContentPadding),
     ) {
-        Row(
-            modifier = Modifier
-                .padding(PaddingHalf)
-                .align(Alignment.TopEnd),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(PaddingHalf),
+        AnimatedVisibility(
+            visible = visible,
+            modifier = Modifier.align(Alignment.TopEnd),
+            enter = slideInVertically(initialOffsetY = { -it * 2 }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { -it * 2 }) + fadeOut(),
         ) {
-            if (showSettingsButton && showSetTargetsCta) {
-                ListItemSetTargetsCta(onTapped = onSetTargetsTapped)
-            }
-            if (showSettingsButton) {
-                FloatingActionButton(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    onClick = onSettingsButtonTapped,
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = stringResource(R.string.overview_content_settings_cd),
-                    )
+            Row(
+                modifier = Modifier.padding(PaddingHalf),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(PaddingHalf),
+            ) {
+                if (showSettingsButton && showSetTargetsCta) {
+                    ListItemSetTargetsCta(onTapped = onSetTargetsTapped)
+                }
+                if (showSettingsButton) {
+                    FloatingActionButton(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        onClick = onSettingsButtonTapped,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = stringResource(R.string.overview_content_settings_cd),
+                        )
+                    }
                 }
             }
         }

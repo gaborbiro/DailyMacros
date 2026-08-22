@@ -4,9 +4,13 @@ import android.util.Range
 import androidx.compose.ui.graphics.Color
 import dev.gaborbiro.dailymacros.design.ExtraColorScheme
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
+import java.time.LocalDate
 
 internal data class ListUiModelWeeklySummary(
     override val listItemId: Long,
+    /** The first calendar day of this week, so tapping the card can open Trends' Weeks view
+     *  pre-scrolled to it - see OverviewViewModel.onWeeklySummaryTapped. */
+    val weekStart: LocalDate,
     val entries: List<NutrientSummaryStatEntry>,
     val averageAdherence100Percentage: Int,
     val adherenceChange: ChangeIndicator?,

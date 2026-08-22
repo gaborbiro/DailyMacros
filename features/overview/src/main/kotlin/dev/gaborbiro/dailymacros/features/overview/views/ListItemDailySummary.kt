@@ -23,6 +23,7 @@ import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.overview.model.DailySummaryEntry
 import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelDailySummary
+import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -124,6 +125,7 @@ private fun ListItemDailySummaryPreview() {
                 .background(MaterialTheme.colorScheme.background),
             model = ListUiModelDailySummary(
                 listItemId = 1L,
+                day = LocalDate.now(),
                 dayTitle = "Yesterday",
                 infoMessage = "\uD83D\uDCA1Due to timezone change, you now have 6 hours left of this day. To help your stomach adjust, consider smaller meals, spread out evenly.",
                 entries = listOf(
