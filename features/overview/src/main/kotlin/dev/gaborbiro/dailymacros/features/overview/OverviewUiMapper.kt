@@ -23,10 +23,12 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.hasAnyEnabled
 import java.time.Duration
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.time.temporal.WeekFields
 import java.util.Locale
 import kotlin.math.absoluteValue
@@ -40,6 +42,12 @@ class OverviewUiMapper @Inject constructor(
     private val templateUiMapper: TemplateUiMapper,
     private val settingsRepository: SettingsRepository,
 ) {
+
+    private companion object {
+        /** How many days a timezone-shift anchor stays "fresh" before a newly logged day is
+         *  treated as too late for the jet-lag advisory to be useful -- see [effectiveTravelDelta]. */
+        const val STALE_ANCHOR_GAP_DAYS = 2L
+    }
 
     fun mapSearchResults(
         records: List<Record>,
@@ -66,7 +74,9 @@ class OverviewUiMapper @Inject constructor(
         val dayStart = diaryDayStartTime(settingsRepository.getDiaryDayStartHour())
         val today = logicalDiaryToday(ZoneId.systemDefault(), dayStart)
 
-        val grouped = records.groupByWallClockDay(dayStart)
+        val loggedDays = records.groupByWallClockDay(dayStart)
+        val phantomDays = buildPhantomTravelDays(dayStart, loggedDays.map { it.day }.toSet())
+        val grouped = (loggedDays + phantomDays).sortedBy { it.day }
         var previousRecord: Record? = null
         val timezoneAnchors = computeTimezoneAnchors(days = grouped, today = today)
 
@@ -104,7 +114,7 @@ class OverviewUiMapper @Inject constructor(
 
     private fun mapDailyNutrientProgressTable(
         day: TravelDay,
-        timezoneAnchor: ZoneId?,
+        timezoneAnchor: TimezoneAnchor?,
         targets: Targets,
     ): ListUiModelDailySummary {
         val records = day.records
@@ -283,10 +293,15 @@ class OverviewUiMapper @Inject constructor(
         }
     }
 
+    /** The last zone that produced a *significant* shift (see [rawTravelDelta]'s >2hr
+     *  threshold), and the day that shift was measured on -- [day] is what lets
+     *  [effectiveTravelDelta] tell a fresh shift from a stale one (see its doc). */
+    private data class TimezoneAnchor(val zone: ZoneId, val day: LocalDate)
+
     /**
      * Chains a "significant zone" anchor across [days] (chronological order): each day's own
      * shift is measured against the last zone that produced a *significant* shift (see
-     * [effectiveTravelDelta]'s >2hr threshold), not simply "yesterday's zone" — so a small,
+     * [rawTravelDelta]'s >2hr threshold), not simply "yesterday's zone" — so a small,
      * noisy zone blip (e.g. the phone's zone catching up gradually mid-flight, or a brief
      * technical layover barely off the previous zone) doesn't get banked as a real waypoint.
      * The moment a day's shift against the anchor IS significant, that day's own end zone
@@ -295,32 +310,35 @@ class OverviewUiMapper @Inject constructor(
      * repeating the whole cumulative shift from the original departure zone on every
      * subsequent leg, which would double-count the earlier legs.
      *
-     * Returns one entry per day in [days]: the anchor zone used for that day's own
+     * Returns one entry per day in [days]: the anchor used for that day's own
      * [effectiveTravelDelta] (null only for the very first day, which falls back to its own
      * start zone).
      */
-    private fun computeTimezoneAnchors(days: List<TravelDay>, today: LocalDate): List<ZoneId?> {
-        val anchors = mutableListOf<ZoneId?>()
-        var anchorZone: ZoneId? = null
+    private fun computeTimezoneAnchors(days: List<TravelDay>, today: LocalDate): List<TimezoneAnchor?> {
+        val anchors = mutableListOf<TimezoneAnchor?>()
+        var anchor: TimezoneAnchor? = null
 
         days.forEach { day ->
-            if (anchorZone == null) {
-                anchorZone = day.startZone
+            if (anchor == null) {
+                anchor = TimezoneAnchor(day.startZone, day.day)
             }
-            anchors += anchorZone
+            anchors += anchor
 
-            if (effectiveTravelDelta(day, anchorZone) != null) {
-                anchorZone = if (day.day == today) ZoneId.systemDefault() else day.endZone
+            if (rawTravelDelta(day, anchor.zone) != null) {
+                val newZone = if (day.day == today) ZoneId.systemDefault() else day.endZone
+                anchor = TimezoneAnchor(newZone, day.day)
             }
         }
         return anchors
     }
 
     /** Returns deltaHours (negative = shorter/eastbound, positive = longer/westbound),
-     *  or null if the day has no significant (>2hr) timezone shift. [anchorZone] is the last
-     *  significant-shift zone as of [day] (see [computeTimezoneAnchors]), falling back to the
-     *  day's own first-record zone when there's no prior history. */
-    private fun effectiveTravelDelta(day: TravelDay, anchorZone: ZoneId?): Long? {
+     *  or null if the day has no significant (>2hr) timezone shift, purely from the zones
+     *  involved -- see [effectiveTravelDelta] for the version that also accounts for how long
+     *  ago the anchor was set. [anchorZone] is the last significant-shift zone as of [day]
+     *  (see [computeTimezoneAnchors]), falling back to the day's own first-record zone when
+     *  there's no prior history. */
+    private fun rawTravelDelta(day: TravelDay, anchorZone: ZoneId?): Long? {
         val startZone = anchorZone ?: day.startZone
         val endZone = if (day.day == LocalDate.now(ZoneId.systemDefault())) {
             ZoneId.systemDefault()
@@ -334,6 +352,22 @@ class OverviewUiMapper @Inject constructor(
         )
         val deltaHours = duration.toHours() - 24
         return if (deltaHours.absoluteValue > 2) deltaHours else null
+    }
+
+    /**
+     * Same as [rawTravelDelta], but also suppresses the result once the gap since [anchor] was
+     * set exceeds [STALE_ANCHOR_GAP_DAYS] days. A logging gap that long almost always means the
+     * user simply didn't log anything for a while after arriving, not that the shift itself is
+     * still fresh -- by the time they log again, the body has typically already re-adjusted, so
+     * a jet-lag advisory at that point reads as stale/confusing rather than useful (see the
+     * "why did I see this notice days after I got back" report this guarded against). The
+     * anchor chain in [computeTimezoneAnchors] still snaps to the new zone regardless (it calls
+     * [rawTravelDelta] directly), so the stale shift isn't repeated on the days after.
+     */
+    private fun effectiveTravelDelta(day: TravelDay, anchor: TimezoneAnchor?): Long? {
+        val delta = rawTravelDelta(day, anchor?.zone) ?: return null
+        val gapDays = anchor?.let { ChronoUnit.DAYS.between(it.day, day.day) } ?: 0L
+        return if (gapDays > STALE_ANCHOR_GAP_DAYS) null else delta
     }
 
     private fun buildTimezoneInfo(day: TravelDay, deltaHours: Long?): String? {
@@ -688,6 +722,36 @@ class OverviewUiMapper @Inject constructor(
         val fibre: Float? = null,
         val duration: Duration,
     )
+
+    /**
+     * Synthesizes a zero-record [TravelDay] for any calendar day that has no logged meals but
+     * does have a detected OS timezone-change event (see [SettingsRepository.getRecentTimezoneEvents]),
+     * so the jet-lag advisory can still fire on travel days the user didn't happen to log
+     * anything on -- rather than silently carrying a stale anchor forward to whichever day they
+     * next log a meal. [existingDays] are the days already covered by real records, which are
+     * left untouched (their zone comes from the records themselves, as before).
+     */
+    private fun buildPhantomTravelDays(dayStart: LocalTime, existingDays: Set<LocalDate>): List<TravelDay> {
+        val events = settingsRepository.getRecentTimezoneEvents()
+        if (events.isEmpty()) return emptyList()
+
+        return events
+            .mapNotNull { event ->
+                val zone = runCatching { ZoneId.of(event.zoneId) }.getOrNull() ?: return@mapNotNull null
+                Instant.ofEpochMilli(event.epochMs).atZone(zone)
+            }
+            .groupBy { it.logicalDiaryDate(dayStart) }
+            .filterKeys { it !in existingDays }
+            .map { (day, timestamps) ->
+                TravelDay(
+                    records = emptyList(),
+                    day = day,
+                    firstLog = timestamps.minBy { it.toInstant() },
+                    lastLog = timestamps.maxBy { it.toInstant() },
+                    diaryDayStart = dayStart,
+                )
+            }
+    }
 
     private fun List<Record>.groupByWallClockDay(dayStart: LocalTime): List<TravelDay> {
         return this
