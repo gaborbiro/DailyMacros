@@ -13,9 +13,6 @@ import javax.inject.Inject
  * app already uses for BOOT_COMPLETED/MY_PACKAGE_REPLACED (see `WidgetBootReceiver`).
  * ACTION_TIMEZONE_CHANGED is exempt from the Android 8+ implicit-broadcast background
  * restrictions, so no extra runtime registration is needed.
- *
- * Recording is opt-in (see [SettingsRepository.getTimezoneChangeTrackingEnabled]) since it's a
- * standing log of the phone's zone over time, even though it isn't backed up anywhere.
  */
 @AndroidEntryPoint
 class TimezoneChangeReceiver : BroadcastReceiver() {
@@ -24,7 +21,6 @@ class TimezoneChangeReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Intent.ACTION_TIMEZONE_CHANGED) return
-        if (!settingsRepository.getTimezoneChangeTrackingEnabled()) return
         settingsRepository.recordTimezoneEvent(TimeZone.getDefault().id, System.currentTimeMillis())
     }
 }
