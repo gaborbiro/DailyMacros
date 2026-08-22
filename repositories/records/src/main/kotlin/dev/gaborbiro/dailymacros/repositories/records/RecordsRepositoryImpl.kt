@@ -97,8 +97,8 @@ class RecordsRepositoryImpl @Inject constructor(
         return recordsDAO.getById(recordId)?.let(mapper::map)
     }
 
-    override fun observe(recordId: Long): Flow<Record> {
-        return recordsDAO.observe(recordId).map(mapper::map)
+    override fun observe(recordId: Long): Flow<Record?> {
+        return recordsDAO.observe(recordId).map { it?.let(mapper::map) }
     }
 
     override suspend fun getTemplate(templateId: Long): Template = templatesDAO

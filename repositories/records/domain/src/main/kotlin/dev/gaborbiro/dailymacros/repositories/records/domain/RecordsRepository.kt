@@ -36,7 +36,8 @@ interface RecordsRepository {
 
     suspend fun get(recordId: Long): Record?
 
-    fun observe(recordId: Long): Flow<Record>
+    // Null when recordId doesn't (or no longer) exist - see RecordsDAO.observe.
+    fun observe(recordId: Long): Flow<Record?>
 
     suspend fun getTemplate(templateId: Long): Template
 
