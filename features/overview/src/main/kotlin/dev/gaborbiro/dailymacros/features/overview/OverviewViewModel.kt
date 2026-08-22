@@ -32,7 +32,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -110,7 +109,7 @@ class OverviewViewModel @Inject constructor(
             val sinceMillis = resolveObserveSinceEpochMillis.execute(searchBlank, sinceEpochMillis)
             combine(
                 recordsRepository.observeRecords(search, sinceEpochMillis = sinceMillis),
-                flowOf(settingsRepository.getTargets()),
+                settingsRepository.observeTargets(),
                 subscriptionRepository.observeState(),
             ) { records: List<Record>, targets: Targets, subscriptionState: SubscriptionState ->
                 Triple(records, targets, subscriptionState)

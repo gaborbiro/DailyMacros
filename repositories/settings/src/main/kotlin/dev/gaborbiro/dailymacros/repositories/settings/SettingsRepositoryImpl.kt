@@ -19,6 +19,9 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.model.TimezoneEven
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.collections.emptyMap
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 @Singleton
 class SettingsRepositoryImpl @Inject constructor(
@@ -51,6 +54,7 @@ class SettingsRepositoryImpl @Inject constructor(
         prefs.edit {
             putString(KEY_TARGETS, json)
         }
+        targetsFlow.value = targets
     }
 
     private val defaultTargets = Targets(
@@ -64,10 +68,16 @@ class SettingsRepositoryImpl @Inject constructor(
         ofWhichSugar = Target(enabled = false)
     )
 
-    override fun getTargets(): Targets {
+    private fun loadTargets(): Targets {
         val json = prefs.getString(KEY_TARGETS, null) ?: return defaultTargets
         return mapper.map(json)
     }
+
+    private val targetsFlow = MutableStateFlow(loadTargets())
+
+    override fun getTargets(): Targets = targetsFlow.value
+
+    override fun observeTargets(): Flow<Targets> = targetsFlow.asStateFlow()
 
     override fun getDiaryDayStartHour(): Int =
         prefs.getInt(KEY_DIARY_DAY_START_HOUR, DEFAULT_DIARY_DAY_START_HOUR)

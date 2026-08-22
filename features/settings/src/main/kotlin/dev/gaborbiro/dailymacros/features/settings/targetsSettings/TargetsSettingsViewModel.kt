@@ -71,7 +71,7 @@ class TargetsSettingsViewModel @Inject constructor(
             FieldErrors(minError = minErr, maxError = maxErr)
         }
 
-        val dirty = current != savedTargets
+        val dirty = targets != savedTargets?.targets
         val updated = TargetsSettingsUiState(
             targets = targets,
             canReset = dirty,
