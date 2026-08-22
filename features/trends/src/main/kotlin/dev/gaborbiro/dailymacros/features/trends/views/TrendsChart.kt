@@ -298,13 +298,23 @@ internal fun TrendsChart(
     var tappedPointEpochDay by remember(chartData) { mutableStateOf<Long?>(null) }
     val markerController = CartesianMarkerController.rememberToggleOnTap()
     val markerVisibilityListener = remember(chartData) {
+        fun resolveEpochDay(targets: List<CartesianMarker.Target>): Long? {
+            val index = targets.firstOrNull()?.x?.roundToInt() ?: return null
+            return chartData.datasets.firstNotNullOfOrNull { dataset ->
+                dataset.set.firstOrNull { it.index == index }?.epochDay
+                    ?: dataset.current?.takeIf { it.index == index }?.epochDay
+            }
+        }
         object : CartesianMarkerVisibilityListener {
             override fun onShown(marker: CartesianMarker, targets: List<CartesianMarker.Target>) {
-                val index = targets.firstOrNull()?.x?.roundToInt() ?: return
-                tappedPointEpochDay = chartData.datasets.firstNotNullOfOrNull { dataset ->
-                    dataset.set.firstOrNull { it.index == index }?.epochDay
-                        ?: dataset.current?.takeIf { it.index == index }?.epochDay
-                }
+                tappedPointEpochDay = resolveEpochDay(targets)
+            }
+
+            // With ToggleOnTap, tapping a different point while the marker is already shown
+            // updates it in place rather than hiding and re-showing it - onShown alone missed
+            // that transition, which is why the pill's date used to get stuck on the first tap.
+            override fun onUpdated(marker: CartesianMarker, targets: List<CartesianMarker.Target>) {
+                tappedPointEpochDay = resolveEpochDay(targets)
             }
 
             override fun onHidden(marker: CartesianMarker) {

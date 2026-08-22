@@ -151,6 +151,15 @@ class OverviewViewModel @Inject constructor(
                                 items = records,
                                 isLoadingMore = false,
                                 hasMoreData = hasMore,
+                                // Reset explicitly - once records exist there's no "add a
+                                // widget" empty state to show, but a prior empty page (e.g.
+                                // from the auto-widen catch-up loop below finding nothing
+                                // until it looks back far enough) could have left this true,
+                                // and it would otherwise never get cleared since it isn't
+                                // touched anywhere else once data starts flowing. That stuck
+                                // "true" also permanently hid the Search FAB, which is gated
+                                // on this same flag.
+                                showAddWidgetButton = false,
                                 showSettingsButton = notSearching,
                                 showSetTargetsCta = notSearching && !hasTargets,
                                 showSubscribeBanner = notSearching && showSubscribeBanner,

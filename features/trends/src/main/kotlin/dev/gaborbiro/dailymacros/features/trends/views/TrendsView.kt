@@ -311,18 +311,22 @@ internal fun TrendsView(
                 }
 
                 if (chartsVisible) {
+                    // Captured once, not read reactively: Vico resolves a Scroll.Absolute value
+                    // lazily, whenever it next lays out the chart, so baking the target index into
+                    // initialScroll (like the pre-existing Scroll.Absolute.End default already
+                    // did) lands correctly regardless of whether the underlying chart model has
+                    // finished its own async transaction yet. An imperative scrollState.scroll(...)
+                    // call from a separate LaunchedEffect raced that transaction instead - it could
+                    // run before the model had this chart's data, silently landing nowhere.
+                    val initialScrollTarget = remember { viewState.scrollToChartIndex }
                     val scrollState = rememberVicoScrollState(
-                        initialScroll = Scroll.Absolute.End,
+                        initialScroll = initialScrollTarget
+                            ?.let { Scroll.Absolute.x(it.toDouble(), bias = 0.3f) }
+                            ?: Scroll.Absolute.End,
                     )
 
-                    // Resolved once by TrendsViewModel.attemptPendingChartScroll() when Trends was
-                    // opened from a daily/weekly summary tap in Overview - jumps straight there
-                    // (no animation, matching Overview's own immediate scroll-to-date) since all
-                    // charts share one scrollState, this positions every chart on this tab at once.
-                    LaunchedEffect(viewState.scrollToChartIndex) {
-                        val index = viewState.scrollToChartIndex ?: return@LaunchedEffect
-                        scrollState.scroll(Scroll.Absolute.x(index.toDouble(), bias = 0.3f))
-                        onChartScrollHandled()
+                    LaunchedEffect(Unit) {
+                        if (initialScrollTarget != null) onChartScrollHandled()
                     }
 
                     viewState.charts.forEach { chartData ->
