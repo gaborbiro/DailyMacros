@@ -81,6 +81,7 @@ internal fun SettingsView(
     onQuickPickConfirmationToggled: (Boolean) -> Unit,
     onWifiOnlyBackupToggled: (Boolean) -> Unit,
     onWifiOnlyAnalysisToggled: (Boolean) -> Unit,
+    onTimezoneChangeTrackingToggled: (Boolean) -> Unit,
     onExportSettingTapped: () -> Unit,
     onPdfExportDismissed: () -> Unit,
     onPdfExportConfirmed: (PdfRangeSelection, PdfExportOptions) -> Unit,
@@ -404,6 +405,17 @@ internal fun SettingsView(
                     )
                 },
             )
+            SettingRow(
+                title = stringResource(R.string.settings_timezone_change_tracking_row),
+                subtitle = stringResource(R.string.settings_timezone_change_tracking_subtitle),
+                onTapped = { onTimezoneChangeTrackingToggled(!viewState.timezoneChangeTrackingEnabled) },
+                trailing = {
+                    Switch(
+                        checked = viewState.timezoneChangeTrackingEnabled,
+                        onCheckedChange = onTimezoneChangeTrackingToggled,
+                    )
+                },
+            )
 
             SettingSectionHeader(title = stringResource(R.string.settings_privacy_section))
             Text(
@@ -560,6 +572,7 @@ private fun SettingsViewPreview() {
             onQuickPickConfirmationToggled = {},
             onWifiOnlyBackupToggled = {},
             onWifiOnlyAnalysisToggled = {},
+            onTimezoneChangeTrackingToggled = {},
             onExportSettingTapped = {},
             onPdfExportDismissed = {},
             onPdfExportConfirmed = { _, _ -> },

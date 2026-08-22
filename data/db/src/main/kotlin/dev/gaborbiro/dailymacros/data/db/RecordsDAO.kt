@@ -65,9 +65,14 @@ interface RecordsDAO {
     @Query("SELECT * FROM records WHERE _id=:id")
     suspend fun getById(id: Long): RecordJoined?
 
+    // Nullable, not RecordJoined: a non-null singular Flow<T> tells Room to
+    // throw IllegalStateException if the query ever returns zero rows (e.g.
+    // this id was deleted, or - see the widget/deep-link crash this fixed -
+    // never existed at all after a restore swapped in a different database).
+    // Nullable lets a vanished/nonexistent row just emit null instead.
     @Transaction
     @Query("SELECT * FROM records WHERE _id=:id")
-    fun observe(id: Long): Flow<RecordJoined>
+    fun observe(id: Long): Flow<RecordJoined?>
 
     @Transaction
     @Query("DELETE FROM records WHERE _id = :id")

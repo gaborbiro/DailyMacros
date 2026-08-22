@@ -131,6 +131,17 @@ class MainActivity : ComponentActivity() {
         )
         super.onCreate(savedInstanceState)
 
+        // Set by ProcessRestarter.restartApplication right after a local/cloud
+        // restore (see its EXTRA_JUST_RESTORED doc comment - string literal
+        // duplicated here since that constant lives in a different module).
+        // Reading/writing appPrefs.hasCompletedOnboarding here, on this fresh
+        // process's first-ever access to that SharedPreferences file, means
+        // it reflects the just-restored file's real on-disk content rather
+        // than some stale in-memory snapshot from before the restore.
+        if (intent.getBooleanExtra("dev.gaborbiro.dailymacros.EXTRA_JUST_RESTORED", false)) {
+            appPrefs.hasCompletedOnboarding = true
+        }
+
         analyticsLogger.setUserId(appPrefs.userUUID)
         lifecycleScope.launch {
             requestStatusRepository.deleteStale()
@@ -281,7 +292,6 @@ class MainActivity : ComponentActivity() {
                 // whichever screen (including onboarding) triggered the feedback.
                 SettingsEffectHandler(
                     settingsViewModel = settingsViewModel,
-                    onRestartApplication = { appPrefs.hasCompletedOnboarding = true },
                 )
             }
         }

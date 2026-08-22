@@ -15,6 +15,7 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptUsageS
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.TimezoneEvent
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.collections.emptyMap
@@ -322,6 +323,29 @@ class SettingsRepositoryImpl @Inject constructor(
         prefs.edit { putString(KEY_PDF_EXPORT_OPTIONS, gson.toJson(options)) }
     }
 
+    override fun getTimezoneChangeTrackingEnabled(): Boolean =
+        prefs.getBoolean(KEY_TIMEZONE_CHANGE_TRACKING, false)
+
+    override fun setTimezoneChangeTrackingEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean(KEY_TIMEZONE_CHANGE_TRACKING, enabled) }
+    }
+
+    override fun getRecentTimezoneEvents(): List<TimezoneEvent> {
+        val json = prefs.getString(KEY_TIMEZONE_EVENTS, null) ?: return emptyList()
+        val type = object : TypeToken<List<TimezoneEvent>>() {}.type
+        return runCatching { gson.fromJson<List<TimezoneEvent>>(json, type) }.getOrDefault(emptyList())
+    }
+
+    override fun recordTimezoneEvent(zoneId: String, epochMs: Long) {
+        val existing = getRecentTimezoneEvents()
+        if (existing.lastOrNull()?.zoneId == zoneId) return
+        val cutoff = epochMs - TIMEZONE_EVENT_RETENTION_MS
+        val updated = (existing + TimezoneEvent(epochMs, zoneId))
+            .filter { it.epochMs >= cutoff }
+            .sortedBy { it.epochMs }
+        prefs.edit { putString(KEY_TIMEZONE_EVENTS, gson.toJson(updated)) }
+    }
+
     companion object {
         private const val KEY_TARGETS = "targets_json"
         private const val KEY_DIARY_DAY_START_HOUR = "diary_day_start_hour"
@@ -346,5 +370,11 @@ class SettingsRepositoryImpl @Inject constructor(
         private const val KEY_WIFI_ONLY_BACKUP = "wifi_only_backup_enabled"
         private const val KEY_WIFI_ONLY_ANALYSIS = "wifi_only_analysis_enabled"
         private const val KEY_SUBSCRIBE_BANNER_DISMISSED = "subscribe_banner_dismissed"
+        private const val KEY_TIMEZONE_CHANGE_TRACKING = "timezone_change_tracking_enabled"
+        private const val KEY_TIMEZONE_EVENTS = "timezone_events_json"
+
+        /** Matches OverviewViewModel.PAGE_SIZE, the window of records the overview actually
+         *  pages in at a time -- no need to keep events longer than that. */
+        private val TIMEZONE_EVENT_RETENTION_MS = java.time.Duration.ofDays(14).toMillis()
     }
 }

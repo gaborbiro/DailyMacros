@@ -27,7 +27,6 @@ import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
 @Composable
 fun SettingsEffectHandler(
     settingsViewModel: SettingsViewModel,
-    onRestartApplication: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -46,10 +45,8 @@ fun SettingsEffectHandler(
             when (event) {
                 SettingsUiUpdates.RequestGoogleSignIn ->
                     launchGoogleSignIn(context, signInLauncher)
-                SettingsUiUpdates.RestartApplication -> {
-                    onRestartApplication()
+                SettingsUiUpdates.RestartApplication ->
                     ProcessRestarter.restartApplication(context.findActivity()!!)
-                }
                 is SettingsUiUpdates.RestoreConfirmNeeded ->
                     restoreConfirmEvent = event
                 is SettingsUiUpdates.ShowSnackbar ->
