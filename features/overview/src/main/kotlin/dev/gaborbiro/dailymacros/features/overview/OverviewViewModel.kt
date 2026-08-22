@@ -96,7 +96,18 @@ class OverviewViewModel @Inject constructor(
     private var autoCatchUpWidens: Int = 0
     private var pendingScrollToEpochDay: Long? = null
 
+    init {
+        // The one-time initial load. Deliberately not triggered by OverviewScreen's
+        // "clear any stale search" LaunchedEffect(Unit) call to onSearchTermChanged(null) below -
+        // that runs on *every* re-entry to the Overview screen (e.g. returning from Trends via
+        // back navigation), not just the first one, and used to unconditionally reset
+        // sinceEpochMillis back to "now" each time, silently discarding any widened window (e.g.
+        // from a Trends-triggered scroll-to-date) the moment the user navigated away and back.
+        resubscribe(currentSearch)
+    }
+
     fun onSearchTermChanged(search: String?) {
+        if (search == currentSearch) return
         currentSearch = search
         // Reset paging window when the search term changes
         sinceEpochMillis = System.currentTimeMillis() - PAGE_SIZE.inWholeMilliseconds
