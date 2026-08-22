@@ -20,6 +20,8 @@ import dev.gaborbiro.dailymacros.features.common.SETTINGS_ROUTE
 import dev.gaborbiro.dailymacros.features.common.SETTINGS_ROUTE_PATTERN
 import dev.gaborbiro.dailymacros.features.common.SettingsRowId
 import dev.gaborbiro.dailymacros.features.common.TRENDS_ROUTE
+import dev.gaborbiro.dailymacros.features.common.TRENDS_SCROLL_EPOCH_DAY_ARG
+import dev.gaborbiro.dailymacros.features.common.TRENDS_TIMESCALE_ARG
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiUpdates
 import dev.gaborbiro.dailymacros.features.overview.views.OverviewView
 import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
@@ -41,7 +43,14 @@ fun OverviewScreen(
                     launchSingleTop = true
                     popUpTo(SETTINGS_ROUTE_PATTERN) { inclusive = true }
                 }
-                OverviewUiUpdates.OpenTrendsScreen -> navController.navigate(TRENDS_ROUTE)
+                is OverviewUiUpdates.OpenTrendsScreen -> {
+                    val query = if (event.scrollToEpochDay != null && event.timescale != null) {
+                        "?$TRENDS_SCROLL_EPOCH_DAY_ARG=${event.scrollToEpochDay}&$TRENDS_TIMESCALE_ARG=${event.timescale}"
+                    } else {
+                        ""
+                    }
+                    navController.navigate("$TRENDS_ROUTE$query")
+                }
                 OverviewUiUpdates.OpenPaywallScreen -> navController.navigate(PAYWALL_ROUTE)
             }
         }
@@ -89,7 +98,8 @@ fun OverviewScreen(
                 popUpTo(SETTINGS_ROUTE_PATTERN) { inclusive = true }
             }
         },
-        onSummaryTapped = viewModel::onTrendsButtonTapped,
+        onDailySummaryTapped = viewModel::onDailySummaryTapped,
+        onWeeklySummaryTapped = viewModel::onWeeklySummaryTapped,
         onLoadMore = viewModel::onLoadMore,
         onScrollHandled = viewModel::onScrollHandled,
     )

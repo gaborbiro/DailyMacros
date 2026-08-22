@@ -13,6 +13,20 @@ const val SETTINGS_HIGHLIGHT_ROW_ARG = "hr"
  */
 const val SETTINGS_ROUTE_PATTERN = "$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_ROW_ARG={$SETTINGS_HIGHLIGHT_ROW_ARG}"
 const val TRENDS_ROUTE = "trends"
+const val TRENDS_SCROLL_EPOCH_DAY_ARG = "trendsScrollEpochDay"
+const val TRENDS_TIMESCALE_ARG = "trendsTimescale"
+
+/**
+ * The route pattern Trends is registered under, taking two optional args: opening from a
+ * daily/weekly summary tap in Overview passes the tapped date and which timescale to open in,
+ * pre-scrolling Trends' charts to it - see OverviewScreen.kt / TrendsScreen.kt. Plain "View
+ * trends" entry points navigate to [TRENDS_ROUTE] with neither arg, which resolve to their
+ * `null` defaults. [TRENDS_TIMESCALE_ARG]'s value must be one of Trends' own Timescale enum
+ * entry names ("DAYS"/"WEEKS") - passed as a plain string rather than a shared enum type since
+ * Overview has no reason to otherwise depend on Trends' model classes.
+ */
+const val TRENDS_ROUTE_PATTERN =
+    "$TRENDS_ROUTE?$TRENDS_SCROLL_EPOCH_DAY_ARG={$TRENDS_SCROLL_EPOCH_DAY_ARG}&$TRENDS_TIMESCALE_ARG={$TRENDS_TIMESCALE_ARG}"
 
 /**
  * Key used to pass a target date back from Trends to Overview via the Overview back-stack

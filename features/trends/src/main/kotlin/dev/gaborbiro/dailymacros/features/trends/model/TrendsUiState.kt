@@ -18,6 +18,10 @@ data class TrendsUiState(
     val weeklyInsightsFetchedAtLabel: String? = null,
     val ongoingInsightsFetchedAtLabel: String? = null,
     val weeklyInsightsWeekAssessment: String? = null,
+    /** One-shot: set once a pending scroll request (see TrendsViewModel.onInitialScrollRequested)
+     *  resolves to an index in the currently loaded [charts] - the view scrolls all charts to it
+     *  and clears it via onChartScrollHandled(). */
+    val scrollToChartIndex: Int? = null,
 )
 
 enum class Timescale { DAYS, WEEKS, MONTHS }

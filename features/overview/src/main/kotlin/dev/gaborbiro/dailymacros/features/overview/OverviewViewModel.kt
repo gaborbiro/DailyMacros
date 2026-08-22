@@ -41,6 +41,8 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import javax.inject.Inject
 import kotlin.math.abs
 import kotlin.time.Duration.Companion.days
@@ -82,6 +84,9 @@ class OverviewViewModel @Inject constructor(
         // genuinely nothing - generous enough to cover months of inactivity
         // (20 * 14 days ≈ 9 months) while still bounded for a truly-empty diary.
         const val MAX_CATCH_UP_WIDENS = 20
+
+        val SCROLL_TARGET_DATE_FORMATTER: DateTimeFormatter =
+            DateTimeFormatter.ofPattern("d MMM", Locale.getDefault())
     }
 
     private var sinceEpochMillis: Long = System.currentTimeMillis() - PAGE_SIZE.inWholeMilliseconds
@@ -196,6 +201,9 @@ class OverviewViewModel @Inject constructor(
     fun onScrollToDateRequested(epochDay: Long) {
         pendingScrollToEpochDay = epochDay
         val targetDate = LocalDate.ofEpochDay(epochDay)
+        _viewState.update {
+            it.copy(pendingScrollDateLabel = targetDate.format(SCROLL_TARGET_DATE_FORMATTER))
+        }
         val dayStart = diaryDayStartTime(settingsRepository.getDiaryDayStartHour())
         val targetWindowStartMillis = diaryDayWindowStart(targetDate, dayStart, ZoneId.systemDefault())
             .toInstant()
@@ -222,7 +230,7 @@ class OverviewViewModel @Inject constructor(
     }
 
     fun onScrollHandled() {
-        _viewState.update { it.copy(scrollToListItemId = null) }
+        _viewState.update { it.copy(scrollToListItemId = null, pendingScrollDateLabel = null) }
     }
 
     private suspend fun enrichRecordRowsWithOtherVariantsIcon(items: List<ListUiModelBase>): List<ListUiModelBase> =
@@ -304,9 +312,17 @@ class OverviewViewModel @Inject constructor(
         }
     }
 
-    fun onTrendsButtonTapped() {
+    /** Tapping a day card opens Trends in the Days view, pre-scrolled to that day. */
+    fun onDailySummaryTapped(epochDay: Long) {
         viewModelScope.launch {
-            _uiUpdates.emit(OverviewUiUpdates.OpenTrendsScreen)
+            _uiUpdates.emit(OverviewUiUpdates.OpenTrendsScreen(scrollToEpochDay = epochDay, timescale = "DAYS"))
+        }
+    }
+
+    /** Tapping a week card opens Trends in the Weeks view, pre-scrolled to that week. */
+    fun onWeeklySummaryTapped(epochDay: Long) {
+        viewModelScope.launch {
+            _uiUpdates.emit(OverviewUiUpdates.OpenTrendsScreen(scrollToEpochDay = epochDay, timescale = "WEEKS"))
         }
     }
 

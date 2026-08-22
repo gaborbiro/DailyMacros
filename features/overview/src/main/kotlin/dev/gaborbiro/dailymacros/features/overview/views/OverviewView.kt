@@ -2,28 +2,35 @@ package dev.gaborbiro.dailymacros.features.overview.views
 
 import android.content.res.Configuration
 import android.util.Range
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.FabPosition
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -43,6 +51,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.features.overview.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
+import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.overview.model.DailySummaryEntry
 import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelDailySummary
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
@@ -67,7 +76,8 @@ internal fun OverviewView(
     onSearchTermChanged: (String?) -> Unit,
     onSettingsButtonTapped: () -> Unit,
     onSetTargetsTapped: () -> Unit,
-    onSummaryTapped: () -> Unit,
+    onDailySummaryTapped: (epochDay: Long) -> Unit,
+    onWeeklySummaryTapped: (epochDay: Long) -> Unit,
     onSubscribeBannerTapped: () -> Unit = {},
     onSubscribeBannerDismissed: () -> Unit = {},
     onAddWidget: () -> Unit = {},
@@ -121,36 +131,13 @@ internal fun OverviewView(
         val targetId = viewState.scrollToListItemId ?: return@LaunchedEffect
         val index = viewState.items.indexOfFirst { it.listItemId == targetId }
         if (index >= 0) {
-            listState.animateScrollToItem(index)
+            listState.scrollToItem(index)
             onScrollHandled()
         }
     }
 
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
-        floatingActionButton = {
-            if (!viewState.showAddWidgetButton) {
-                val coroutineScope = rememberCoroutineScope()
-                AnimatedVisibility(
-                    visible = fabsVisible,
-                    enter = slideInVertically(initialOffsetY = { it * 2 }) + fadeIn(),
-                    exit = slideOutVertically(targetOffsetY = { it * 2 }) + fadeOut(),
-                ) {
-                    SearchFAB(
-                        onSearch = {
-                            onSearchTermChanged(it)
-                        },
-                        onSearchCleared = {
-                            coroutineScope.launch {
-                                delay(200)
-                                listState.scrollToItem(0)
-                            }
-                        }
-                    )
-                }
-            }
-        },
-        floatingActionButtonPosition = FabPosition.End,
         snackbarHost = {
             SnackbarHost(
                 hostState = snackbarHostState,
@@ -188,7 +175,8 @@ internal fun OverviewView(
                         onDeleteMenuItemTapped = onDeleteMenuItemTapped,
                         onRecordImageTapped = onRecordImageTapped,
                         onRecordBodyTapped = onRecordBodyTapped,
-                        onSummaryTapped = onSummaryTapped,
+                        onDailySummaryTapped = onDailySummaryTapped,
+                        onWeeklySummaryTapped = onWeeklySummaryTapped,
                         onLoadMore = onLoadMore,
                     )
                 } else if (viewState.showAddWidgetButton) {
@@ -208,6 +196,68 @@ internal fun OverviewView(
                     onSettingsButtonTapped = onSettingsButtonTapped,
                     onSetTargetsTapped = onSetTargetsTapped,
                 )
+
+                if (!viewState.showAddWidgetButton) {
+                    val coroutineScope = rememberCoroutineScope()
+                    // Fully qualified: an implicit ColumnScope receiver is in scope here (from
+                    // the enclosing Column further up), which would otherwise shadow the
+                    // top-level AnimatedVisibility with ColumnScope's extension overload.
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = fabsVisible,
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            // Scaffold used to inset the FAB from the nav bar/gesture area
+                            // itself (via contentWindowInsets); now that this is a manual
+                            // overlay, that has to be applied explicitly.
+                            .padding(WindowInsets.navigationBars.asPaddingValues())
+                            .padding(PaddingHalf),
+                        enter = slideInVertically(initialOffsetY = { it * 2 }) + fadeIn(),
+                        exit = slideOutVertically(targetOffsetY = { it * 2 }) + fadeOut(),
+                    ) {
+                        SearchFAB(
+                            onSearch = {
+                                onSearchTermChanged(it)
+                            },
+                            onSearchCleared = {
+                                coroutineScope.launch {
+                                    delay(200)
+                                    listState.scrollToItem(0)
+                                }
+                            }
+                        )
+                    }
+                }
+
+                // Shown for as long as a Trends-triggered scroll is pending (see
+                // OverviewViewModel.onScrollToDateRequested) - widening the paging window and
+                // reloading from Room before the target day is available can take a moment,
+                // which otherwise reads as the tap having done nothing.
+                viewState.pendingScrollDateLabel?.let { dateLabel ->
+                    Surface(
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(top = 64.dp),
+                        shape = RoundedCornerShape(50),
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        shadowElevation = 4.dp,
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = PaddingDefault, vertical = PaddingHalf),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(PaddingHalf),
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp,
+                            )
+                            Text(
+                                text = stringResource(R.string.overview_content_scrolling_to_date, dateLabel),
+                                style = MaterialTheme.typography.labelMedium,
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -329,7 +379,8 @@ private fun OverviewListPreview() {
             onAnalyseMacrosMenuItemTapped = {},
             onSettingsButtonTapped = {},
             onSetTargetsTapped = {},
-            onSummaryTapped = {},
+            onDailySummaryTapped = {},
+            onWeeklySummaryTapped = {},
             onLoadMore = {},
         )
     }
@@ -356,7 +407,8 @@ private fun OverviewListPreviewEmpty() {
             onAnalyseMacrosMenuItemTapped = {},
             onSettingsButtonTapped = {},
             onSetTargetsTapped = {},
-            onSummaryTapped = {},
+            onDailySummaryTapped = {},
+            onWeeklySummaryTapped = {},
             onLoadMore = {},
         )
     }

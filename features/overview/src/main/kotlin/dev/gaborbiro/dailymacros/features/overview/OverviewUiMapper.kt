@@ -493,6 +493,7 @@ class OverviewUiMapper @Inject constructor(
 
         return ListUiModelWeeklySummary(
             listItemId = weekStart.toEpochDay(),
+            weekStart = weekStart,
             entries = buildWeeklySummaryEntries(avgDayTotal, targets, previousWeekMacros),
             averageAdherence100Percentage = (avgAdherence * 100).roundToInt(),
             adherenceChange = calculateChangeIndicator(avgAdherence, prevWeekAvgAdherence),

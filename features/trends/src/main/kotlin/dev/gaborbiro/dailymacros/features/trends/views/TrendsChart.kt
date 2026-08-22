@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.features.trends.views
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -7,14 +8,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.VicoScrollState
@@ -44,8 +52,13 @@ import com.patrykandpatrick.vico.compose.common.component.ShapeComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
+import dev.gaborbiro.dailymacros.features.trends.R
 import dev.gaborbiro.dailymacros.features.trends.model.ChartDataPoint
+import dev.gaborbiro.dailymacros.features.trends.model.Timescale
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsChartUiModel
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlin.math.roundToInt
 
 @Composable
@@ -54,7 +67,8 @@ internal fun TrendsChart(
     chartData: TrendsChartUiModel,
     scrollState: VicoScrollState,
     showEveryXLabel: Int,
-    onPointTapped: (index: Int) -> Unit = {},
+    timescale: Timescale,
+    onScrollToDateConfirmed: (epochDay: Long) -> Unit = {},
 ) {
     val verticalItemPlacer = remember(chartData.pinnedMaxY) {
         if (chartData.pinnedMaxY != null) VerticalAxis.ItemPlacer.count(count = { 4 })
@@ -276,15 +290,25 @@ internal fun TrendsChart(
         )
     }
 
-    // Tapping a point both shows its value marker and reports the tapped index upwards (see
-    // TrendsView.kt), so a tap can be resolved to a real date and used to jump to it in
-    // Overview. rememberToggleOnTap distinguishes a discrete tap from a scrub/drag gesture,
-    // so dragging across the chart to preview values doesn't also fire onPointTapped.
+    // Tapping a point shows its value marker as before, and also resolves to a real date shown
+    // in a "Scroll to <date>" pill below the chart - tapping THAT (not the dot itself) is what
+    // actually navigates to Overview, so a tap only previews the value like it always did and
+    // never jumps you away by accident. rememberToggleOnTap distinguishes a discrete tap from a
+    // scrub/drag gesture, so dragging across the chart to preview values doesn't also surface it.
+    var tappedPointEpochDay by remember(chartData) { mutableStateOf<Long?>(null) }
     val markerController = CartesianMarkerController.rememberToggleOnTap()
-    val markerVisibilityListener = remember(onPointTapped) {
+    val markerVisibilityListener = remember(chartData) {
         object : CartesianMarkerVisibilityListener {
             override fun onShown(marker: CartesianMarker, targets: List<CartesianMarker.Target>) {
-                targets.firstOrNull()?.x?.let { onPointTapped(it.roundToInt()) }
+                val index = targets.firstOrNull()?.x?.roundToInt() ?: return
+                tappedPointEpochDay = chartData.datasets.firstNotNullOfOrNull { dataset ->
+                    dataset.set.firstOrNull { it.index == index }?.epochDay
+                        ?: dataset.current?.takeIf { it.index == index }?.epochDay
+                }
+            }
+
+            override fun onHidden(marker: CartesianMarker) {
+                tappedPointEpochDay = null
             }
         }
     }
@@ -331,5 +355,45 @@ internal fun TrendsChart(
             animationSpec = null,
             animateIn = false,
         )
+
+        tappedPointEpochDay?.let { epochDay ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                ) {
+                    Text(
+                        text = stringResource(
+                            R.string.trends_content_scroll_to_date,
+                            formatScrollToDateLabel(epochDay, timescale),
+                        ),
+                        modifier = Modifier
+                            .clickable { onScrollToDateConfirmed(epochDay) }
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        textDecoration = TextDecoration.Underline,
+                    )
+                }
+            }
+        }
+    }
+}
+
+private val SCROLL_TO_DATE_DAY_FORMATTER = DateTimeFormatter.ofPattern("EEE, d MMM", Locale.getDefault())
+private val SCROLL_TO_DATE_WEEK_START_FORMATTER = DateTimeFormatter.ofPattern("d MMM", Locale.getDefault())
+private val SCROLL_TO_DATE_MONTH_FORMATTER = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())
+
+private fun formatScrollToDateLabel(epochDay: Long, timescale: Timescale): String {
+    val date = LocalDate.ofEpochDay(epochDay)
+    return when (timescale) {
+        Timescale.DAYS -> date.format(SCROLL_TO_DATE_DAY_FORMATTER)
+        Timescale.WEEKS -> "week of ${date.format(SCROLL_TO_DATE_WEEK_START_FORMATTER)}"
+        Timescale.MONTHS -> date.format(SCROLL_TO_DATE_MONTH_FORMATTER)
     }
 }

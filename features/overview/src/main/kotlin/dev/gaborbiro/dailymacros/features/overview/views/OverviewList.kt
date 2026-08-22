@@ -55,7 +55,8 @@ internal fun OverviewList(
     onDeleteMenuItemTapped: (recordId: Long) -> Unit,
     onRecordImageTapped: (recordId: Long) -> Unit,
     onRecordBodyTapped: (recordId: Long) -> Unit,
-    onSummaryTapped: () -> Unit,
+    onDailySummaryTapped: (epochDay: Long) -> Unit,
+    onWeeklySummaryTapped: (epochDay: Long) -> Unit,
     onLoadMore: () -> Unit = {},
 ) {
     // Detect when the user scrolls near the end of the list
@@ -142,7 +143,7 @@ internal fun OverviewList(
                         }
                         ListItemDailySummary(
                             model = item,
-                            onTapped = onSummaryTapped,
+                            onTapped = remember(item.listItemId) { { onDailySummaryTapped(item.day.toEpochDay()) } },
                         )
                     }
 
@@ -155,7 +156,7 @@ internal fun OverviewList(
                         }
                         ListItemWeeklySummary(
                             model = item,
-                            onTapped = onSummaryTapped,
+                            onTapped = remember(item.listItemId) { { onWeeklySummaryTapped(item.weekStart.toEpochDay()) } },
                         )
                     }
                 }
@@ -352,7 +353,8 @@ private fun OverviewListPreview() {
             onRecordImageTapped = {},
             onRecordBodyTapped = {},
             onAnalyseMacrosMenuItemTapped = {},
-            onSummaryTapped = {},
+            onDailySummaryTapped = {},
+            onWeeklySummaryTapped = {},
             onLoadMore = {},
         )
     }

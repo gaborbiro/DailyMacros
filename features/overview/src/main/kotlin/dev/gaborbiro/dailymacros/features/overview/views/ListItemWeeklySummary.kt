@@ -28,6 +28,7 @@ import dev.gaborbiro.dailymacros.features.overview.model.ChangeDirection
 import dev.gaborbiro.dailymacros.features.overview.model.ChangeIndicator
 import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelWeeklySummary
 import dev.gaborbiro.dailymacros.features.overview.model.NutrientSummaryStatEntry
+import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -151,6 +152,7 @@ private fun ListItemWeeklySummaryPreview() {
                 .background(MaterialTheme.colorScheme.background),
             model = ListUiModelWeeklySummary(
                 listItemId = 1L,
+                weekStart = LocalDate.now(),
                 entries = listOf(
                     NutrientSummaryStatEntry(
                         title = "Calories",

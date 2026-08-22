@@ -71,6 +71,8 @@ internal fun TrendsView(
     onGetInsightsTapped: () -> Unit,
     onGetOngoingInsightsTapped: () -> Unit,
     onDataPointTapped: (epochDay: Long) -> Unit = {},
+    initialTimescale: Timescale = Timescale.DAYS,
+    onChartScrollHandled: () -> Unit = {},
 ) {
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
@@ -99,7 +101,7 @@ internal fun TrendsView(
         },
     ) { paddingValues ->
         var timescale by remember {
-            mutableStateOf(Timescale.DAYS)
+            mutableStateOf(initialTimescale)
         }
 
         Column(
@@ -313,6 +315,16 @@ internal fun TrendsView(
                         initialScroll = Scroll.Absolute.End,
                     )
 
+                    // Resolved once by TrendsViewModel.attemptPendingChartScroll() when Trends was
+                    // opened from a daily/weekly summary tap in Overview - jumps straight there
+                    // (no animation, matching Overview's own immediate scroll-to-date) since all
+                    // charts share one scrollState, this positions every chart on this tab at once.
+                    LaunchedEffect(viewState.scrollToChartIndex) {
+                        val index = viewState.scrollToChartIndex ?: return@LaunchedEffect
+                        scrollState.scroll(Scroll.Absolute.x(index.toDouble(), bias = 0.3f))
+                        onChartScrollHandled()
+                    }
+
                     viewState.charts.forEach { chartData ->
                         TrendsChart(
                             modifier = Modifier
@@ -320,9 +332,8 @@ internal fun TrendsView(
                             chartData = chartData,
                             scrollState = scrollState,
                             showEveryXLabel = showEveryXLabel,
-                            onPointTapped = { index ->
-                                chartData.epochDayAt(index)?.let(onDataPointTapped)
-                            },
+                            timescale = timescale,
+                            onScrollToDateConfirmed = onDataPointTapped,
                         )
                         if (timescale == Timescale.WEEKS && viewState.aiInsightsEnabled) {
                             viewState.weeklyInsights[chartData.title]?.let { insight ->
@@ -359,15 +370,6 @@ internal fun TrendsView(
             )
         }
     }
-}
-
-/** Finds the [ChartDataPoint] tapped at [index] (in either the historical set or the current
- *  partial point) and returns the date it represents, so a chart tap can be resolved to a real
- *  date to jump to in Overview. */
-private fun TrendsChartUiModel.epochDayAt(index: Int): Long? {
-    val dataset = datasets.firstOrNull() ?: return null
-    return dataset.set.firstOrNull { it.index == index }?.epochDay
-        ?: dataset.current?.takeIf { it.index == index }?.epochDay
 }
 
 @Preview
