@@ -81,7 +81,6 @@ fun SettingsScreen(
         onQuickPickConfirmationToggled = settingsViewModel::onQuickPickConfirmationToggled,
         onWifiOnlyBackupToggled = settingsViewModel::onWifiOnlyBackupToggled,
         onWifiOnlyAnalysisToggled = settingsViewModel::onWifiOnlyAnalysisToggled,
-        onTimezoneChangeTrackingToggled = settingsViewModel::onTimezoneChangeTrackingToggled,
         onExportSettingTapped = settingsViewModel::onExportSettingsTapped,
         onPdfExportDismissed = settingsViewModel::onPdfExportDialogDismissed,
         onPdfExportConfirmed = { selection, options ->

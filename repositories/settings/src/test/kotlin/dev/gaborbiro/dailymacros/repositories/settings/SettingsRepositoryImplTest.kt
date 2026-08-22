@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.google.gson.Gson
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -58,16 +57,5 @@ class SettingsRepositoryImplTest {
 
         assertEquals(1, events.size)
         assertEquals("Europe/Lisbon", events.single().zoneId)
-    }
-
-    @Test
-    fun `timezone change tracking is opt-in and defaults to off`() {
-        val repository = newRepository()
-
-        assertEquals(false, repository.getTimezoneChangeTrackingEnabled())
-
-        repository.setTimezoneChangeTrackingEnabled(true)
-
-        assertTrue(repository.getTimezoneChangeTrackingEnabled())
     }
 }

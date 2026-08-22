@@ -333,13 +333,6 @@ class SettingsRepositoryImpl @Inject constructor(
         prefs.edit { putString(KEY_PDF_EXPORT_OPTIONS, gson.toJson(options)) }
     }
 
-    override fun getTimezoneChangeTrackingEnabled(): Boolean =
-        prefs.getBoolean(KEY_TIMEZONE_CHANGE_TRACKING, false)
-
-    override fun setTimezoneChangeTrackingEnabled(enabled: Boolean) {
-        prefs.edit { putBoolean(KEY_TIMEZONE_CHANGE_TRACKING, enabled) }
-    }
-
     override fun getRecentTimezoneEvents(): List<TimezoneEvent> {
         val json = prefs.getString(KEY_TIMEZONE_EVENTS, null) ?: return emptyList()
         val type = object : TypeToken<List<TimezoneEvent>>() {}.type
@@ -380,7 +373,6 @@ class SettingsRepositoryImpl @Inject constructor(
         private const val KEY_WIFI_ONLY_BACKUP = "wifi_only_backup_enabled"
         private const val KEY_WIFI_ONLY_ANALYSIS = "wifi_only_analysis_enabled"
         private const val KEY_SUBSCRIBE_BANNER_DISMISSED = "subscribe_banner_dismissed"
-        private const val KEY_TIMEZONE_CHANGE_TRACKING = "timezone_change_tracking_enabled"
         private const val KEY_TIMEZONE_EVENTS = "timezone_events_json"
 
         /** Matches OverviewViewModel.PAGE_SIZE, the window of records the overview actually

@@ -117,12 +117,6 @@ interface SettingsRepository {
     fun getSubscribeBannerDismissed(): Boolean = false
     fun setSubscribeBannerDismissed(dismissed: Boolean) {}
 
-    /** Whether the app tracks OS timezone-change broadcasts so the jet-lag advisory can fire
-     *  on travel days with no logged meals, not just on the next day a meal happens to be
-     *  logged. Opt-in, default off, since it's a standing log of the phone's zone over time. */
-    fun getTimezoneChangeTrackingEnabled(): Boolean = false
-    fun setTimezoneChangeTrackingEnabled(enabled: Boolean) {}
-
     /** Recent device timezone-change events, oldest first, pruned to the last 14 days. */
     fun getRecentTimezoneEvents(): List<TimezoneEvent> = emptyList()
 
