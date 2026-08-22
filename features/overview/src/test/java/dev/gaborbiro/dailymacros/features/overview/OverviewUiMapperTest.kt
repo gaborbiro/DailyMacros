@@ -338,4 +338,40 @@ class OverviewUiMapperTest {
         // Exactly one summary card per day -- the event didn't spawn a duplicate phantom day.
         assertEquals(2, out.size)
     }
+
+    @Test
+    fun `a large gap with no logged records suppresses the stale advisory but still resets the anchor`() {
+        val home = ZoneOffset.UTC
+        val dest = ZoneOffset.ofHours(9)
+
+        val day1 = stubRecordAt(1L, 300, ZonedDateTime.of(2024, 5, 10, 20, 0, 0, 0, home))
+        // Nothing logged for several days -- the next record is 5 days later, already in the
+        // new zone (mirrors: log in Australia, go quiet, next log is back home days later).
+        val day2 = stubRecordAt(2L, 300, ZonedDateTime.of(2024, 5, 15, 9, 0, 0, 0, dest))
+        val day3 = stubRecordAt(3L, 300, ZonedDateTime.of(2024, 5, 16, 9, 0, 0, 0, dest))
+
+        val day2Summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day2.timestamp.toLocalDate())
+        val day3Summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day3.timestamp.toLocalDate())
+
+        // Too much time passed since the last log for the notice to still be useful.
+        assertNull(day2Summary.infoMessage)
+        // The anchor still resets to the new zone though -- day 3 doesn't get a delayed re-fire
+        // of the same stale shift.
+        assertNull(day3Summary.infoMessage)
+    }
+
+    @Test
+    fun `a short gap still surfaces the advisory`() {
+        val home = ZoneOffset.UTC
+        val dest = ZoneOffset.ofHours(9)
+
+        val day1 = stubRecordAt(1L, 300, ZonedDateTime.of(2024, 5, 10, 20, 0, 0, 0, home))
+        // A 2-day gap (e.g. landing at night, first proper meal the day after next) is still
+        // within the "fresh" window and should surface the advisory as before.
+        val day2 = stubRecordAt(2L, 300, ZonedDateTime.of(2024, 5, 12, 9, 0, 0, 0, dest))
+
+        val day2Summary = dailySummaryFor(listOf(day1, day2), caloriesOnlyTargets, day2.timestamp.toLocalDate())
+
+        assertTrue(day2Summary.infoMessage.orEmpty().contains("9 hrs behind"))
+    }
 }
