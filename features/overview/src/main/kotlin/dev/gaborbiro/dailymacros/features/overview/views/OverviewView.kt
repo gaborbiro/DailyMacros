@@ -196,10 +196,12 @@ internal fun OverviewView(
                         visible = fabsVisible,
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
-                            // Scaffold used to inset the FAB from the nav bar/gesture area
-                            // itself (via contentWindowInsets); now that this is a manual
-                            // overlay, that has to be applied explicitly.
-                            .padding(WindowInsets.navigationBars.asPaddingValues())
+                            // Scaffold used to inset the FAB from the nav bar/gesture area (and,
+                            // once expanded into a search field, lift it above the keyboard)
+                            // itself via contentWindowInsets; now that this is a manual overlay,
+                            // that has to be applied explicitly - navigationBars alone left the
+                            // expanded search field stuck behind the IME.
+                            .padding(WindowInsets.navigationBars.union(WindowInsets.ime).asPaddingValues())
                             .padding(PaddingHalf),
                         enter = slideInVertically(initialOffsetY = { it * 2 }) + fadeIn(),
                         exit = slideOutVertically(targetOffsetY = { it * 2 }) + fadeOut(),
@@ -225,8 +227,7 @@ internal fun OverviewView(
                 viewState.pendingScrollDateLabel?.let { dateLabel ->
                     Surface(
                         modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .padding(top = 64.dp),
+                            .align(Alignment.Center),
                         shape = RoundedCornerShape(50),
                         color = MaterialTheme.colorScheme.secondaryContainer,
                         contentColor = MaterialTheme.colorScheme.onSecondaryContainer,

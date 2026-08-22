@@ -156,9 +156,18 @@ class OverviewViewModel @Inject constructor(
                     previousRecordCount = records.size
 
                     val notSearching = searchBlank
+                    // See MAX_CATCH_UP_WIDENS above: an empty page here doesn't yet mean "no
+                    // data" - the auto-widen loop below may still be about to look further
+                    // back. Deciding showAddWidgetButton from this page alone would flash the
+                    // "add a widget" empty state on every cold start whose first (most recent)
+                    // page happens to be empty, only for it to be replaced moments later once
+                    // an older page turns up real records - which reads as the app being
+                    // broken on every launch after any inactivity.
+                    val willAutoWiden = records.isEmpty() && notSearching && autoCatchUpWidens < MAX_CATCH_UP_WIDENS
+
                     _viewState.update {
-                        if (records.isNotEmpty()) {
-                            it.copy(
+                        when {
+                            records.isNotEmpty() -> it.copy(
                                 items = records,
                                 isLoadingMore = false,
                                 hasMoreData = hasMore,
@@ -175,8 +184,17 @@ class OverviewViewModel @Inject constructor(
                                 showSetTargetsCta = notSearching && !hasTargets,
                                 showSubscribeBanner = notSearching && showSubscribeBanner,
                             )
-                        } else {
-                            it.copy(
+
+                            willAutoWiden -> it.copy(
+                                // Still probing further back - leave showAddWidgetButton (and
+                                // the rest of the empty-state flags) as they were rather than
+                                // flashing the empty state only to immediately replace it.
+                                items = records,
+                                isLoadingMore = false,
+                                hasMoreData = hasMore,
+                            )
+
+                            else -> it.copy(
                                 items = records,
                                 isLoadingMore = false,
                                 hasMoreData = hasMore,
@@ -188,18 +206,10 @@ class OverviewViewModel @Inject constructor(
                         }
                     }
 
-                    // See MAX_CATCH_UP_WIDENS above. Deliberately NOT gated on
-                    // `hasMore`: computeHasMoreItems already flips that false
-                    // after just one more empty page (it's tuned to stop
-                    // normal pagination, not to keep searching back through
-                    // however many empty weeks/months of inactivity it takes
-                    // to find the first real record) - autoCatchUpWidens is
-                    // this loop's own, more patient bound instead. Launched
-                    // as a separate coroutine rather than calling resubscribe
-                    // directly, since this callback is itself running inside
-                    // collectionJob - cancelling it from within its own body
-                    // would be reentrant.
-                    if (records.isEmpty() && notSearching && autoCatchUpWidens < MAX_CATCH_UP_WIDENS) {
+                    // Launched as a separate coroutine rather than calling resubscribe
+                    // directly, since this callback is itself running inside collectionJob -
+                    // cancelling it from within its own body would be reentrant.
+                    if (willAutoWiden) {
                         autoCatchUpWidens++
                         sinceEpochMillis -= PAGE_SIZE.inWholeMilliseconds
                         viewModelScope.launch { resubscribe(currentSearch) }
