@@ -698,7 +698,10 @@ class ModalViewModel @Inject constructor(
             recordsRepository.observe(recordId)
                 .drop(1)
                 .collect { record ->
-                    setRoot(buildEnrichedView(record, edit, templateDetailsMode = false))
+                    // null: recordId doesn't/no longer exists (e.g. a stale
+                    // widget row after a restore swapped in a different
+                    // database) - nothing to update the dialog with.
+                    record?.let { setRoot(buildEnrichedView(it, edit, templateDetailsMode = false)) }
                 }
         }
     }

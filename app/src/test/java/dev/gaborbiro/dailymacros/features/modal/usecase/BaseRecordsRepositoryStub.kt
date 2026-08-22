@@ -24,7 +24,7 @@ open class BaseRecordsRepositoryStub : RecordsRepository {
     override suspend fun countRecordsForTemplate(templateId: Long): Int = 0
     override fun observeRecords(searchTerm: String?, sinceEpochMillis: Long) = emptyFlow<List<Record>>()
     override suspend fun get(recordId: Long): Record? = null
-    override fun observe(recordId: Long): Flow<Record> = emptyFlow()
+    override fun observe(recordId: Long): Flow<Record?> = emptyFlow()
     override suspend fun getTemplate(templateId: Long): Template = error("not used")
     override suspend fun saveTemplate(templateToSave: TemplateToSave) = 0L
     override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime) = 0L
