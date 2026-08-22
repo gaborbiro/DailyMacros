@@ -30,10 +30,6 @@ jobs:
     - name: Run unit tests
       run: ./gradlew testDebugUnitTest --stacktrace
 
-    # ── Debug APK ──────────────────────────────────────────────
-    - name: Build debug APK
-      run: ./gradlew assembleDebug
-
     # ── Release AAB (signed) ───────────────────────────────────
     - name: Decode release keystore
       env:
@@ -60,7 +56,6 @@ jobs:
         fi
         echo "APP_VERSION_NAME=$VERSION" >> "$GITHUB_ENV"
         mkdir -p release-artifacts
-        cp app/build/outputs/apk/debug/DailyMacros-*.apk release-artifacts/ 2>/dev/null || true
         cp app/build/outputs/bundle/release/DailyMacros-*.aab release-artifacts/ 2>/dev/null || true
         ls -lh release-artifacts/
 
