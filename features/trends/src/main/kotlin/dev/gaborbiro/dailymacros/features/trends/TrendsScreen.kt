@@ -5,6 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import dev.gaborbiro.dailymacros.features.common.OVERVIEW_SCROLL_TO_EPOCH_DAY_KEY
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsViewModel
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiState
@@ -21,6 +22,12 @@ fun TrendsScreen(
         trendsViewModel.uiUpdates.collect { event ->
             when (event) {
                 TrendsUiUpdates.NavigateBack -> navController.popBackStack()
+                is TrendsUiUpdates.NavigateToOverviewDate -> {
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set(OVERVIEW_SCROLL_TO_EPOCH_DAY_KEY, event.epochDay)
+                    navController.popBackStack()
+                }
             }
         }
     }
@@ -44,6 +51,7 @@ fun TrendsScreen(
         onTargetsSettingTapped = trendsViewModel::onDailyTargetsFromTrendsSettingsTapped,
         onGetInsightsTapped = trendsViewModel::onGetInsightsTapped,
         onGetOngoingInsightsTapped = trendsViewModel::onGetOngoingInsightsTapped,
+        onDataPointTapped = trendsViewModel::onChartDataPointTapped,
     )
 
     if (state.showTargetsSettings) {

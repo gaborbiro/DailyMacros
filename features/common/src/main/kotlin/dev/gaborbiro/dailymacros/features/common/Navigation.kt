@@ -13,6 +13,16 @@ const val SETTINGS_HIGHLIGHT_ROW_ARG = "hr"
  */
 const val SETTINGS_ROUTE_PATTERN = "$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_ROW_ARG={$SETTINGS_HIGHLIGHT_ROW_ARG}"
 const val TRENDS_ROUTE = "trends"
+
+/**
+ * Key used to pass a target date back from Trends to Overview via the Overview back-stack
+ * entry's SavedStateHandle, when the user taps a chart data point - see TrendsScreen.kt and
+ * OverviewScreen.kt. A plain nav argument doesn't fit here: Overview is already on the back
+ * stack (Trends was pushed on top of it, not launched as a fresh instance), so returning to it
+ * via popBackStack() re-enters the *same* screen/ViewModel instance rather than a new
+ * destination that could take a route argument.
+ */
+const val OVERVIEW_SCROLL_TO_EPOCH_DAY_KEY = "scrollToEpochDay"
 const val ONBOARDING_ROUTE = "onboarding"
 const val PAYWALL_ROUTE = "paywall"
 

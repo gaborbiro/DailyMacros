@@ -2,6 +2,11 @@ package dev.gaborbiro.dailymacros.features.overview.views
 
 import android.content.res.Configuration
 import android.util.Range
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -22,9 +27,16 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,6 +51,7 @@ import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 @Composable
 internal fun OverviewView(
@@ -59,6 +72,7 @@ internal fun OverviewView(
     onSubscribeBannerDismissed: () -> Unit = {},
     onAddWidget: () -> Unit = {},
     onLoadMore: () -> Unit = {},
+    onScrollHandled: () -> Unit = {},
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val recordDeletedMessage = stringResource(R.string.overview_content_record_deleted)
@@ -82,22 +96,58 @@ internal fun OverviewView(
 
     val listState = rememberLazyListState()
 
+    // Slide the FABs out while the user scrolls towards the past (older entries further down
+    // the reversed list) and back in as soon as they scroll back towards the top, even a
+    // little. Driven by scroll delta rather than listState.firstVisibleItemIndex - an
+    // index-based version of this used to strand the FAB off-screen when a new record got
+    // prepended while the app was backgrounded and Compose's scroll-anchoring shifted the
+    // reported "top" index (see OverviewListTopActions.kt history).
+    var fabsVisible by remember { mutableStateOf(true) }
+    val fabsScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (available.y < -2f) fabsVisible = false
+                else if (available.y > 2f) fabsVisible = true
+                return Offset.Zero
+            }
+        }
+    }
+
+    // A tap on a Trends chart point resolves to a day already loaded here (see
+    // OverviewViewModel.onScrollToDateRequested) and is surfaced as a one-shot listItemId to
+    // scroll to; once acted on, onScrollHandled() clears it so it doesn't fire again on an
+    // unrelated recomposition (e.g. a new record arriving).
+    LaunchedEffect(viewState.scrollToListItemId, viewState.items) {
+        val targetId = viewState.scrollToListItemId ?: return@LaunchedEffect
+        val index = viewState.items.indexOfFirst { it.listItemId == targetId }
+        if (index >= 0) {
+            listState.animateScrollToItem(index)
+            onScrollHandled()
+        }
+    }
+
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
         floatingActionButton = {
             if (!viewState.showAddWidgetButton) {
                 val coroutineScope = rememberCoroutineScope()
-                SearchFAB(
-                    onSearch = {
-                        onSearchTermChanged(it)
-                    },
-                    onSearchCleared = {
-                        coroutineScope.launch {
-                            delay(200)
-                            listState.scrollToItem(0)
+                AnimatedVisibility(
+                    visible = fabsVisible,
+                    enter = slideInVertically(initialOffsetY = { it * 2 }) + fadeIn(),
+                    exit = slideOutVertically(targetOffsetY = { it * 2 }) + fadeOut(),
+                ) {
+                    SearchFAB(
+                        onSearch = {
+                            onSearchTermChanged(it)
+                        },
+                        onSearchCleared = {
+                            coroutineScope.launch {
+                                delay(200)
+                                listState.scrollToItem(0)
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
         },
         floatingActionButtonPosition = FabPosition.End,
@@ -123,7 +173,11 @@ internal fun OverviewView(
                     onDismissed = onSubscribeBannerDismissed,
                 )
             }
-            Box(modifier = Modifier.weight(1f)) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .nestedScroll(fabsScrollConnection),
+            ) {
                 if (viewState.items.isNotEmpty()) {
                     OverviewList(
                         viewState = viewState,
@@ -147,6 +201,7 @@ internal fun OverviewView(
                 }
 
                 OverviewListTopActions(
+                    visible = fabsVisible,
                     showSettingsButton = viewState.showSettingsButton,
                     showSetTargetsCta = viewState.showSetTargetsCta,
                     topContentPadding = 0.dp,
@@ -168,6 +223,7 @@ private fun OverviewListPreview() {
                 items = listOf(
                     ListUiModelDailySummary(
                         listItemId = 1L,
+                        day = LocalDate.now(),
                         dayTitle = "Yesterday",
                         entries = listOf(
                             DailySummaryEntry(

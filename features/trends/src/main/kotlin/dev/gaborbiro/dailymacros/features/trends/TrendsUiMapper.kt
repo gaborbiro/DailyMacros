@@ -85,6 +85,7 @@ class TrendsUiMapper @Inject constructor(
                 isCurrentPeriod = { it == today }
             ),
             labelProvider = ::dayLabel,
+            periodStartEpochDayProvider = LocalDate::toEpochDay,
             targets = targets,
         )
     }
@@ -155,6 +156,7 @@ class TrendsUiMapper @Inject constructor(
             contributingDaysProvider = contributingDaysProvider,
             currentPeriodCalculationMode = currentPeriodMode,
             labelProvider = ::weekLabel,
+            periodStartEpochDayProvider = LocalDate::toEpochDay,
             targets = targets,
         ) + listOf(
             adherenceChart(
@@ -163,6 +165,7 @@ class TrendsUiMapper @Inject constructor(
                 contributingDaysProvider = contributingDaysProvider,
                 currentPeriodCalculationMode = currentPeriodMode,
                 labelProvider = ::weekLabel,
+                periodStartEpochDayProvider = LocalDate::toEpochDay,
                 targets = targets,
             )
         )
@@ -220,6 +223,7 @@ class TrendsUiMapper @Inject constructor(
             contributingDaysProvider = contributingDaysProvider,
             currentPeriodCalculationMode = currentPeriodMode,
             labelProvider = ::monthLabel,
+            periodStartEpochDayProvider = { ym -> ym.atDay(1).toEpochDay() },
             targets = targets,
         ) + listOf(
             adherenceChart(
@@ -228,6 +232,7 @@ class TrendsUiMapper @Inject constructor(
                 contributingDaysProvider = contributingDaysProvider,
                 currentPeriodCalculationMode = currentPeriodMode,
                 labelProvider = ::monthLabel,
+                periodStartEpochDayProvider = { ym -> ym.atDay(1).toEpochDay() },
                 targets = targets,
             )
         )
@@ -239,6 +244,7 @@ class TrendsUiMapper @Inject constructor(
         contributingDaysProvider: (K) -> List<LocalDate>,
         currentPeriodCalculationMode: CurrentPeriodCalculationMode<K>,
         labelProvider: (K) -> String,
+        periodStartEpochDayProvider: (K) -> Long,
         targets: Targets,
     ): List<TrendsChartUiModel> {
 
@@ -250,6 +256,7 @@ class TrendsUiMapper @Inject constructor(
                 currentPeriodCalculationMode = currentPeriodCalculationMode,
                 valueProvider = valueProvider,
                 labelProvider = labelProvider,
+                periodStartEpochDayProvider = periodStartEpochDayProvider,
             )
 
         val noTarget = Target(enabled = false)
@@ -341,6 +348,7 @@ class TrendsUiMapper @Inject constructor(
         currentPeriodCalculationMode: CurrentPeriodCalculationMode<K>,
         valueProvider: (Record) -> Float?,
         labelProvider: (K) -> String,
+        periodStartEpochDayProvider: (K) -> Long,
     ): Pair<List<ChartDataPoint>, ChartDataPoint?> {
         val points: List<Pair<K, ChartDataPoint>> = timeRange.mapIndexed { index, key ->
             val dailySums: Map<LocalDate, Float> =
@@ -384,6 +392,7 @@ class TrendsUiMapper @Inject constructor(
                 index = index,
                 label = labelProvider(key),
                 value = avg,
+                epochDay = periodStartEpochDayProvider(key),
             )
         }
 
@@ -442,6 +451,7 @@ class TrendsUiMapper @Inject constructor(
         contributingDaysProvider: (K) -> List<LocalDate>,
         currentPeriodCalculationMode: CurrentPeriodCalculationMode<K>,
         labelProvider: (K) -> String,
+        periodStartEpochDayProvider: (K) -> Long,
         targets: Targets,
     ): TrendsChartUiModel {
         fun adherenceForDays(key: K, days: List<LocalDate>): Double? {
@@ -479,6 +489,7 @@ class TrendsUiMapper @Inject constructor(
                 index = index,
                 label = labelProvider(key),
                 value = avg?.times(100.0),
+                epochDay = periodStartEpochDayProvider(key),
             )
         }
 

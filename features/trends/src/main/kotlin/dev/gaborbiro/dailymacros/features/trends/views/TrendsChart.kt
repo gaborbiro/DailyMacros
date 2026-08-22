@@ -31,6 +31,9 @@ import com.patrykandpatrick.vico.compose.cartesian.data.lineSeries
 import com.patrykandpatrick.vico.compose.common.data.ExtraStore
 import com.patrykandpatrick.vico.compose.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
+import com.patrykandpatrick.vico.compose.cartesian.marker.CartesianMarker
+import com.patrykandpatrick.vico.compose.cartesian.marker.CartesianMarkerController
+import com.patrykandpatrick.vico.compose.cartesian.marker.CartesianMarkerVisibilityListener
 import com.patrykandpatrick.vico.compose.cartesian.marker.DefaultCartesianMarker
 import com.patrykandpatrick.vico.compose.cartesian.marker.LineCartesianLayerMarkerTarget
 import com.patrykandpatrick.vico.compose.cartesian.marker.rememberDefaultCartesianMarker
@@ -51,6 +54,7 @@ internal fun TrendsChart(
     chartData: TrendsChartUiModel,
     scrollState: VicoScrollState,
     showEveryXLabel: Int,
+    onPointTapped: (index: Int) -> Unit = {},
 ) {
     val verticalItemPlacer = remember(chartData.pinnedMaxY) {
         if (chartData.pinnedMaxY != null) VerticalAxis.ItemPlacer.count(count = { 4 })
@@ -272,6 +276,19 @@ internal fun TrendsChart(
         )
     }
 
+    // Tapping a point both shows its value marker and reports the tapped index upwards (see
+    // TrendsView.kt), so a tap can be resolved to a real date and used to jump to it in
+    // Overview. rememberToggleOnTap distinguishes a discrete tap from a scrub/drag gesture,
+    // so dragging across the chart to preview values doesn't also fire onPointTapped.
+    val markerController = CartesianMarkerController.rememberToggleOnTap()
+    val markerVisibilityListener = remember(onPointTapped) {
+        object : CartesianMarkerVisibilityListener {
+            override fun onShown(marker: CartesianMarker, targets: List<CartesianMarker.Target>) {
+                targets.firstOrNull()?.x?.let { onPointTapped(it.roundToInt()) }
+            }
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -305,6 +322,8 @@ internal fun TrendsChart(
                     itemPlacer = itemPlacer,
                 ),
                 marker = marker,
+                markerVisibilityListener = markerVisibilityListener,
+                markerController = markerController,
             ),
             modelProducer = modelProducer,
             scrollState = scrollState,

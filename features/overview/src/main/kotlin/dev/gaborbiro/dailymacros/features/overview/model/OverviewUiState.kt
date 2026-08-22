@@ -14,4 +14,8 @@ data class OverviewUiState(
     val showSettingsButton: Boolean = false,
     val showSetTargetsCta: Boolean = false,
     val showSubscribeBanner: Boolean = false,
+    /** One-shot: set when a tap on a Trends chart point resolved to a day card already present
+     *  in [items], asking the view to scroll to it - see OverviewViewModel.onScrollToDateRequested.
+     *  Cleared via onScrollHandled() once the view has acted on it. */
+    val scrollToListItemId: Long? = null,
 )

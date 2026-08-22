@@ -70,6 +70,7 @@ internal fun TrendsView(
     onTargetsSettingTapped: () -> Unit,
     onGetInsightsTapped: () -> Unit,
     onGetOngoingInsightsTapped: () -> Unit,
+    onDataPointTapped: (epochDay: Long) -> Unit = {},
 ) {
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
@@ -319,6 +320,9 @@ internal fun TrendsView(
                             chartData = chartData,
                             scrollState = scrollState,
                             showEveryXLabel = showEveryXLabel,
+                            onPointTapped = { index ->
+                                chartData.epochDayAt(index)?.let(onDataPointTapped)
+                            },
                         )
                         if (timescale == Timescale.WEEKS && viewState.aiInsightsEnabled) {
                             viewState.weeklyInsights[chartData.title]?.let { insight ->
@@ -357,6 +361,15 @@ internal fun TrendsView(
     }
 }
 
+/** Finds the [ChartDataPoint] tapped at [index] (in either the historical set or the current
+ *  partial point) and returns the date it represents, so a chart tap can be resolved to a real
+ *  date to jump to in Overview. */
+private fun TrendsChartUiModel.epochDayAt(index: Int): Long? {
+    val dataset = datasets.firstOrNull() ?: return null
+    return dataset.set.firstOrNull { it.index == index }?.epochDay
+        ?: dataset.current?.takeIf { it.index == index }?.epochDay
+}
+
 @Preview
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
@@ -387,10 +400,10 @@ private val previewData = listOf(
                 name = "Chart",
                 color = androidx.compose.ui.graphics.Color.Blue,
                 set = listOf(
-                    ChartDataPoint(1, "test", 1.0),
-                    ChartDataPoint(2, "test", 2.0)
+                    ChartDataPoint(1, "test", 1.0, epochDay = 1L),
+                    ChartDataPoint(2, "test", 2.0, epochDay = 2L)
                 ),
-                current = ChartDataPoint(3, "test", 3.0),
+                current = ChartDataPoint(3, "test", 3.0, epochDay = 3L),
             ),
         )
     ),
@@ -401,10 +414,10 @@ private val previewData = listOf(
                 name = "Chart2",
                 color = androidx.compose.ui.graphics.Color.Red,
                 set = listOf(
-                    ChartDataPoint(1, "test", 3.0),
-                    ChartDataPoint(2, "test", 2.0)
+                    ChartDataPoint(1, "test", 3.0, epochDay = 1L),
+                    ChartDataPoint(2, "test", 2.0, epochDay = 2L)
                 ),
-                current = ChartDataPoint(3, "test", 1.0),
+                current = ChartDataPoint(3, "test", 1.0, epochDay = 3L),
             )
         )
     )

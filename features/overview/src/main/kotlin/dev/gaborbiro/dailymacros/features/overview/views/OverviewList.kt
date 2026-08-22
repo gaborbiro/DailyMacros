@@ -42,6 +42,7 @@ import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiState
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 @Composable
 internal fun OverviewList(
@@ -251,6 +252,7 @@ private fun OverviewListPreview() {
                 items = listOf(
                     ListUiModelDailySummary(
                         listItemId = 1L,
+                        day = LocalDate.now(),
                         dayTitle = "Yesterday",
                         entries = listOf(
                             DailySummaryEntry(

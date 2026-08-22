@@ -156,6 +156,7 @@ class OverviewUiMapper @Inject constructor(
             listItemId = diaryDayWindowStart(day.day, day.diaryDayStart, day.startZone)
                 .toInstant()
                 .toEpochMilli(),
+            day = day.day,
             dayTitle = mapDayTitleTimestamp(day.day),
             infoMessage = infoMessage,
             entries = progressItems,

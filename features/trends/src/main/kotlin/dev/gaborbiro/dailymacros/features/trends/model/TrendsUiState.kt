@@ -37,7 +37,10 @@ data class ChartDataset(
     /** Daily target upper bound (same Y unit as the series), when enabled in settings. */
     val targetMaxY: Double? = null,
 )
-data class ChartDataPoint(val index: Int, val label: String, val value: Double?)
+/** [epochDay] is the calendar day this point represents: the day itself for a DAYS chart, the
+ *  week's start day for WEEKS, the month's first day for MONTHS - see TrendsUiMapper. Lets a tap
+ *  on this point resolve to a real date to jump to in Overview. */
+data class ChartDataPoint(val index: Int, val label: String, val value: Double?, val epochDay: Long)
 
 sealed class TrendsSettingsUIModel {
     data object Hidden : TrendsSettingsUIModel()

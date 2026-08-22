@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -11,6 +13,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import dev.gaborbiro.dailymacros.features.common.OVERVIEW_SCROLL_TO_EPOCH_DAY_KEY
 import dev.gaborbiro.dailymacros.features.common.PAYWALL_ROUTE
 import dev.gaborbiro.dailymacros.features.common.SETTINGS_HIGHLIGHT_ROW_ARG
 import dev.gaborbiro.dailymacros.features.common.SETTINGS_ROUTE
@@ -48,6 +51,21 @@ fun OverviewScreen(
         viewModel.onSearchTermChanged(search = null)
     }
 
+    // Set by TrendsScreen (via OVERVIEW_SCROLL_TO_EPOCH_DAY_KEY) just before popping back to
+    // this screen, when the user tapped a Trends chart point - see Navigation.kt for why this
+    // goes through the back-stack entry's SavedStateHandle rather than a nav route argument.
+    val scrollRequestHandle = navController.currentBackStackEntry?.savedStateHandle
+    val requestedScrollEpochDay by scrollRequestHandle
+        ?.getStateFlow<Long?>(OVERVIEW_SCROLL_TO_EPOCH_DAY_KEY, null)
+        ?.collectAsStateWithLifecycle()
+        ?: remember { mutableStateOf(null) }
+    LaunchedEffect(requestedScrollEpochDay) {
+        requestedScrollEpochDay?.let { epochDay ->
+            viewModel.onScrollToDateRequested(epochDay)
+            scrollRequestHandle?.remove<Long>(OVERVIEW_SCROLL_TO_EPOCH_DAY_KEY)
+        }
+    }
+
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()
 
     OverviewView(
@@ -73,6 +91,7 @@ fun OverviewScreen(
         },
         onSummaryTapped = viewModel::onTrendsButtonTapped,
         onLoadMore = viewModel::onLoadMore,
+        onScrollHandled = viewModel::onScrollHandled,
     )
 
     val lifecycleOwner = LocalLifecycleOwner.current

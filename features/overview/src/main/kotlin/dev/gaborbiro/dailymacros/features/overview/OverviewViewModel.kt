@@ -5,6 +5,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.gaborbiro.dailymacros.features.common.utils.diaryDayStartTime
+import dev.gaborbiro.dailymacros.features.common.utils.diaryDayWindowStart
+import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelDailySummary
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiState
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiUpdates
 import dev.gaborbiro.dailymacros.features.overview.usecase.CancelMacrosAnalysisForRecordUseCase
@@ -35,9 +38,11 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import javax.inject.Inject
+import kotlin.math.abs
 import kotlin.time.Duration.Companion.days
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -84,6 +89,7 @@ class OverviewViewModel @Inject constructor(
     private var collectionJob: Job? = null
     private var previousRecordCount: Int = -1
     private var autoCatchUpWidens: Int = 0
+    private var pendingScrollToEpochDay: Long? = null
 
     fun onSearchTermChanged(search: String?) {
         currentSearch = search
@@ -175,8 +181,48 @@ class OverviewViewModel @Inject constructor(
                     } else if (records.isNotEmpty()) {
                         autoCatchUpWidens = 0
                     }
+
+                    attemptPendingScroll()
                 }
         }
+    }
+
+    /**
+     * Called when the user taps a Trends chart point (see TrendsScreen.kt /
+     * OVERVIEW_SCROLL_TO_EPOCH_DAY_KEY): widens the paging window if [epochDay] predates it,
+     * then asks the view to scroll to the closest matching day card once it's loaded (see
+     * [attemptPendingScroll]).
+     */
+    fun onScrollToDateRequested(epochDay: Long) {
+        pendingScrollToEpochDay = epochDay
+        val targetDate = LocalDate.ofEpochDay(epochDay)
+        val dayStart = diaryDayStartTime(settingsRepository.getDiaryDayStartHour())
+        val targetWindowStartMillis = diaryDayWindowStart(targetDate, dayStart, ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+        if (targetWindowStartMillis < sinceEpochMillis) {
+            sinceEpochMillis = targetWindowStartMillis - PAGE_SIZE.inWholeMilliseconds
+            resubscribe(currentSearch)
+        } else {
+            attemptPendingScroll()
+        }
+    }
+
+    /** Best-effort match against whatever day cards are currently loaded - there's no
+     *  guarantee the exact target day itself has a card (e.g. it wasn't logged), so this
+     *  picks the closest one rather than requiring an exact hit. */
+    private fun attemptPendingScroll() {
+        val targetEpochDay = pendingScrollToEpochDay ?: return
+        val match = _viewState.value.items
+            .filterIsInstance<ListUiModelDailySummary>()
+            .minByOrNull { abs(it.day.toEpochDay() - targetEpochDay) }
+            ?: return
+        pendingScrollToEpochDay = null
+        _viewState.update { it.copy(scrollToListItemId = match.listItemId) }
+    }
+
+    fun onScrollHandled() {
+        _viewState.update { it.copy(scrollToListItemId = null) }
     }
 
     private suspend fun enrichRecordRowsWithOtherVariantsIcon(items: List<ListUiModelBase>): List<ListUiModelBase> =

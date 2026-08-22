@@ -101,6 +101,12 @@ class TrendsViewModel @Inject constructor(
         }
     }
 
+    fun onChartDataPointTapped(epochDay: Long) {
+        viewModelScope.launch {
+            _uiUpdates.emit(TrendsUiUpdates.NavigateToOverviewDate(epochDay))
+        }
+    }
+
     fun onSettingsActionButtonClicked() {
         _uiState.update {
             it.copy(
