@@ -69,14 +69,6 @@ internal fun TrendsChart(
     showEveryXLabel: Int,
     timescale: Timescale,
     onScrollToDateConfirmed: (epochDay: Long) -> Unit = {},
-    /** Shows this point's marker as if the user had tapped it - e.g. when Trends is opened
-     *  from a daily/weekly summary tap in Overview - without the "Scroll to <date>" pill,
-     *  since there's nowhere further to navigate to from here. Uses Vico's persistentMarkers,
-     *  which bypasses the tap-driven markerController/markerVisibilityListener entirely, so it
-     *  doesn't touch tappedPointEpochDay below - and, left alone, would stay shown forever
-     *  regardless of any real tap. showPersistentHighlight is the bridge that lets an actual
-     *  interactive tap (anywhere on the chart) dismiss it. */
-    highlightedIndex: Int? = null,
 ) {
     val verticalItemPlacer = remember(chartData.pinnedMaxY) {
         if (chartData.pinnedMaxY != null) VerticalAxis.ItemPlacer.count(count = { 4 })
@@ -304,13 +296,6 @@ internal fun TrendsChart(
     // never jumps you away by accident. rememberToggleOnTap distinguishes a discrete tap from a
     // scrub/drag gesture, so dragging across the chart to preview values doesn't also surface it.
     var tappedPointEpochDay by remember(chartData) { mutableStateOf<Long?>(null) }
-    // Whether the programmatic highlight (see highlightedIndex/persistentMarkers below) is
-    // still showing. persistentMarkers bypasses markerController/markerVisibilityListener
-    // entirely - it's not part of the tap-toggle system at all - so without this, no tap
-    // (on that dot, on a different one, anywhere) could ever make it go away. Any real
-    // interactive marker event means the user has started tapping around, so that's the
-    // signal to drop the programmatic one and let the normal toggle system take over fully.
-    var showPersistentHighlight by remember(chartData, highlightedIndex) { mutableStateOf(highlightedIndex != null) }
     val markerController = CartesianMarkerController.rememberToggleOnTap()
     val markerVisibilityListener = remember(chartData) {
         fun resolveEpochDay(targets: List<CartesianMarker.Target>): Long? {
@@ -322,7 +307,6 @@ internal fun TrendsChart(
         }
         object : CartesianMarkerVisibilityListener {
             override fun onShown(marker: CartesianMarker, targets: List<CartesianMarker.Target>) {
-                showPersistentHighlight = false
                 tappedPointEpochDay = resolveEpochDay(targets)
             }
 
@@ -330,12 +314,10 @@ internal fun TrendsChart(
             // updates it in place rather than hiding and re-showing it - onShown alone missed
             // that transition, which is why the pill's date used to get stuck on the first tap.
             override fun onUpdated(marker: CartesianMarker, targets: List<CartesianMarker.Target>) {
-                showPersistentHighlight = false
                 tappedPointEpochDay = resolveEpochDay(targets)
             }
 
             override fun onHidden(marker: CartesianMarker) {
-                showPersistentHighlight = false
                 tappedPointEpochDay = null
             }
         }
@@ -376,9 +358,6 @@ internal fun TrendsChart(
                 marker = marker,
                 markerVisibilityListener = markerVisibilityListener,
                 markerController = markerController,
-                persistentMarkers = {
-                    if (showPersistentHighlight && highlightedIndex != null) marker at highlightedIndex.toDouble()
-                },
             ),
             modelProducer = modelProducer,
             scrollState = scrollState,
