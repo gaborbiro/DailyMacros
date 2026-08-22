@@ -69,6 +69,12 @@ internal fun TrendsChart(
     showEveryXLabel: Int,
     timescale: Timescale,
     onScrollToDateConfirmed: (epochDay: Long) -> Unit = {},
+    /** Shows this point's marker as if the user had tapped it - e.g. when Trends is opened
+     *  from a daily/weekly summary tap in Overview - without the "Scroll to <date>" pill,
+     *  since there's nowhere further to navigate to from here. Uses Vico's persistentMarkers,
+     *  which bypasses the tap-driven markerController/markerVisibilityListener entirely, so it
+     *  doesn't touch tappedPointEpochDay below. */
+    highlightedIndex: Int? = null,
 ) {
     val verticalItemPlacer = remember(chartData.pinnedMaxY) {
         if (chartData.pinnedMaxY != null) VerticalAxis.ItemPlacer.count(count = { 4 })
@@ -358,6 +364,9 @@ internal fun TrendsChart(
                 marker = marker,
                 markerVisibilityListener = markerVisibilityListener,
                 markerController = markerController,
+                persistentMarkers = {
+                    if (highlightedIndex != null) marker at highlightedIndex.toDouble()
+                },
             ),
             modelProducer = modelProducer,
             scrollState = scrollState,

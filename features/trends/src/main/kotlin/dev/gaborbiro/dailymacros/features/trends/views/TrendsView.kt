@@ -338,6 +338,10 @@ internal fun TrendsView(
                             showEveryXLabel = showEveryXLabel,
                             timescale = timescale,
                             onScrollToDateConfirmed = onDataPointTapped,
+                            // Same one-shot target as the pre-scroll above - highlights the
+                            // point the user tapped in Overview as if they'd tapped it here too,
+                            // without the "Scroll to <date>" pill (there's nowhere further to go).
+                            highlightedIndex = initialScrollTarget,
                         )
                         if (timescale == Timescale.WEEKS && viewState.aiInsightsEnabled) {
                             viewState.weeklyInsights[chartData.title]?.let { insight ->
