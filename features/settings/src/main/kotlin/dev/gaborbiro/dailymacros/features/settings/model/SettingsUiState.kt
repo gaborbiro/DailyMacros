@@ -30,6 +30,7 @@ data class SettingsUiState(
     val showAutoBackupIntervalDialog: Boolean = false,
     val wifiOnlyBackupEnabled: Boolean = false,
     val wifiOnlyAnalysisEnabled: Boolean = false,
+    val timezoneChangeTrackingEnabled: Boolean = false,
     val showOverwriteConfirmDialog: Boolean = false,
     val overwriteDialogDriveModifiedAtMs: Long = 0L,
     val showPdfExportDialog: Boolean = false,

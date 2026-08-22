@@ -12,6 +12,7 @@ import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.TimezoneEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -35,6 +36,10 @@ class OverviewUiMapperTest {
     private val disabledTarget = Target(enabled = false)
 
     private val testSettingsRepository = object : SettingsRepository {
+        var timezoneEvents: List<TimezoneEvent> = emptyList()
+
+        override fun getRecentTimezoneEvents(): List<TimezoneEvent> = timezoneEvents
+
         override fun getTargets(): Targets = Targets(
             calories = disabledTarget,
             protein = disabledTarget,
@@ -282,5 +287,55 @@ class OverviewUiMapperTest {
 
         assertTrue(day2Summary.infoMessage.orEmpty().contains("9 hrs behind"))
         assertNull(day3Summary.infoMessage)
+    }
+
+    @Test
+    fun `a detected timezone event surfaces the advisory on a day with no logged meals`() {
+        val home = ZoneOffset.UTC
+        val dest = ZoneOffset.ofHours(9)
+
+        val day1 = stubRecordAt(1L, 300, ZonedDateTime.of(2024, 5, 10, 20, 0, 0, 0, home))
+        // Nothing logged on day 2 (the actual travel day) -- only a detected OS timezone event.
+        testSettingsRepository.timezoneEvents = listOf(
+            TimezoneEvent(
+                epochMs = ZonedDateTime.of(2024, 5, 11, 9, 0, 0, 0, dest).toInstant().toEpochMilli(),
+                zoneId = dest.id,
+            )
+        )
+        val day3 = stubRecordAt(3L, 300, ZonedDateTime.of(2024, 5, 12, 17, 0, 0, 0, dest))
+
+        val phantomDaySummary = dailySummaryFor(
+            listOf(day1, day3),
+            caloriesOnlyTargets,
+            java.time.LocalDate.of(2024, 5, 11),
+        )
+        val day3Summary = dailySummaryFor(listOf(day1, day3), caloriesOnlyTargets, day3.timestamp.toLocalDate())
+
+        assertTrue(phantomDaySummary.infoMessage.orEmpty().contains("9 hrs behind"))
+        // Day 3's shift is now measured from the phantom day's zone, not re-triggering the
+        // already-anchored 9hr jump.
+        assertNull(day3Summary.infoMessage)
+    }
+
+    @Test
+    fun `a timezone event landing on an already-logged day is ignored`() {
+        val home = ZoneOffset.UTC
+        val dest = ZoneOffset.ofHours(9)
+
+        val day1 = stubRecordAt(1L, 300, ZonedDateTime.of(2024, 5, 10, 20, 0, 0, 0, home))
+        val day2 = stubRecordAt(2L, 300, ZonedDateTime.of(2024, 5, 11, 9, 0, 0, 0, dest))
+        // A redundant event landing on a day that already has a real record.
+        testSettingsRepository.timezoneEvents = listOf(
+            TimezoneEvent(
+                epochMs = ZonedDateTime.of(2024, 5, 11, 12, 0, 0, 0, dest).toInstant().toEpochMilli(),
+                zoneId = dest.id,
+            )
+        )
+
+        val out = mapper.map(listOf(day1, day2), caloriesOnlyTargets)
+            .filterIsInstance<ListUiModelDailySummary>()
+
+        // Exactly one summary card per day -- the event didn't spawn a duplicate phantom day.
+        assertEquals(2, out.size)
     }
 }

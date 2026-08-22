@@ -7,6 +7,7 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PdfExportOpt
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptUsageStats
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
+import dev.gaborbiro.dailymacros.repositories.settings.domain.model.TimezoneEvent
 
 interface SettingsRepository {
 
@@ -110,4 +111,17 @@ interface SettingsRepository {
      */
     fun getSubscribeBannerDismissed(): Boolean = false
     fun setSubscribeBannerDismissed(dismissed: Boolean) {}
+
+    /** Whether the app tracks OS timezone-change broadcasts so the jet-lag advisory can fire
+     *  on travel days with no logged meals, not just on the next day a meal happens to be
+     *  logged. Opt-in, default off, since it's a standing log of the phone's zone over time. */
+    fun getTimezoneChangeTrackingEnabled(): Boolean = false
+    fun setTimezoneChangeTrackingEnabled(enabled: Boolean) {}
+
+    /** Recent device timezone-change events, oldest first, pruned to the last 14 days. */
+    fun getRecentTimezoneEvents(): List<TimezoneEvent> = emptyList()
+
+    /** Appends a timezone-change event and prunes anything older than 14 days from [epochMs].
+     *  A no-op if [zoneId] equals the most recently stored zone (the OS can refire redundantly). */
+    fun recordTimezoneEvent(zoneId: String, epochMs: Long) {}
 }

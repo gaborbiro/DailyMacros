@@ -82,6 +82,7 @@ class SettingsViewModel @Inject constructor(
             autoBackupInterval = settingsRepository.getAutoBackupInterval(),
             wifiOnlyBackupEnabled = settingsRepository.getWifiOnlyBackupEnabled(),
             wifiOnlyAnalysisEnabled = settingsRepository.getWifiOnlyAnalysisEnabled(),
+            timezoneChangeTrackingEnabled = settingsRepository.getTimezoneChangeTrackingEnabled(),
             isDebugBuild = appInfo.isDebugBuild,
         ),
     )
@@ -525,6 +526,11 @@ class SettingsViewModel @Inject constructor(
     fun onWifiOnlyAnalysisToggled(enabled: Boolean) {
         settingsRepository.setWifiOnlyAnalysisEnabled(enabled)
         _uiState.update { it.copy(wifiOnlyAnalysisEnabled = enabled) }
+    }
+
+    fun onTimezoneChangeTrackingToggled(enabled: Boolean) {
+        settingsRepository.setTimezoneChangeTrackingEnabled(enabled)
+        _uiState.update { it.copy(timezoneChangeTrackingEnabled = enabled) }
     }
 
     fun onAutoPhotoPermissionsGranted() {

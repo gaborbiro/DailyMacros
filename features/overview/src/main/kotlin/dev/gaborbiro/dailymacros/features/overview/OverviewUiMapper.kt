@@ -23,6 +23,7 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.hasAnyEnabled
 import java.time.Duration
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
@@ -66,7 +67,9 @@ class OverviewUiMapper @Inject constructor(
         val dayStart = diaryDayStartTime(settingsRepository.getDiaryDayStartHour())
         val today = logicalDiaryToday(ZoneId.systemDefault(), dayStart)
 
-        val grouped = records.groupByWallClockDay(dayStart)
+        val loggedDays = records.groupByWallClockDay(dayStart)
+        val phantomDays = buildPhantomTravelDays(dayStart, loggedDays.map { it.day }.toSet())
+        val grouped = (loggedDays + phantomDays).sortedBy { it.day }
         var previousRecord: Record? = null
         val timezoneAnchors = computeTimezoneAnchors(days = grouped, today = today)
 
@@ -688,6 +691,36 @@ class OverviewUiMapper @Inject constructor(
         val fibre: Float? = null,
         val duration: Duration,
     )
+
+    /**
+     * Synthesizes a zero-record [TravelDay] for any calendar day that has no logged meals but
+     * does have a detected OS timezone-change event (see [SettingsRepository.getRecentTimezoneEvents]),
+     * so the jet-lag advisory can still fire on travel days the user didn't happen to log
+     * anything on -- rather than silently carrying a stale anchor forward to whichever day they
+     * next log a meal. [existingDays] are the days already covered by real records, which are
+     * left untouched (their zone comes from the records themselves, as before).
+     */
+    private fun buildPhantomTravelDays(dayStart: LocalTime, existingDays: Set<LocalDate>): List<TravelDay> {
+        val events = settingsRepository.getRecentTimezoneEvents()
+        if (events.isEmpty()) return emptyList()
+
+        return events
+            .mapNotNull { event ->
+                val zone = runCatching { ZoneId.of(event.zoneId) }.getOrNull() ?: return@mapNotNull null
+                Instant.ofEpochMilli(event.epochMs).atZone(zone)
+            }
+            .groupBy { it.logicalDiaryDate(dayStart) }
+            .filterKeys { it !in existingDays }
+            .map { (day, timestamps) ->
+                TravelDay(
+                    records = emptyList(),
+                    day = day,
+                    firstLog = timestamps.minBy { it.toInstant() },
+                    lastLog = timestamps.maxBy { it.toInstant() },
+                    diaryDayStart = dayStart,
+                )
+            }
+    }
 
     private fun List<Record>.groupByWallClockDay(dayStart: LocalTime): List<TravelDay> {
         return this
