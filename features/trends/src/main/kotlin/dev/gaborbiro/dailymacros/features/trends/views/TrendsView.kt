@@ -47,6 +47,7 @@ import dev.gaborbiro.dailymacros.features.trends.R
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
+import dev.gaborbiro.dailymacros.features.trends.WEEKS_AXIS_LABEL_SPACING
 import dev.gaborbiro.dailymacros.features.trends.model.ChartDataPoint
 import dev.gaborbiro.dailymacros.features.trends.model.ChartDataset
 import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
@@ -172,8 +173,11 @@ internal fun TrendsView(
                 )
             }
 
+            // WEEKS_AXIS_LABEL_SPACING is shared with TrendsUiMapper.weekLabel, which needs to
+            // know the exact same spacing to decide whether a month-change week's label would
+            // be skipped by it - keep the two in sync rather than hardcoding 2 twice.
             val showEveryXLabel = when (timescale) {
-                Timescale.WEEKS -> 2
+                Timescale.WEEKS -> WEEKS_AXIS_LABEL_SPACING
                 else -> 1
             }
 
