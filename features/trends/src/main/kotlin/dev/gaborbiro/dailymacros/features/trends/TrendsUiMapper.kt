@@ -481,9 +481,12 @@ class TrendsUiMapper @Inject constructor(
         fun adherenceForDays(key: K, days: List<LocalDate>): Double? {
             if (days.isEmpty()) return null
             val byDay: Map<LocalDate, List<Record>> = records[key].orEmpty().groupBy { it.diaryKeyDate() }
-            return days.map { day ->
-                calculateAdherence(byDay[day], targets).toDouble()
-            }.average()
+            // Days with no records at all carry no adherence information - excluding them
+            // avoids dragging the average down to a false "0% adherence" for unlogged days.
+            return days
+                .mapNotNull { day -> byDay[day]?.let { calculateAdherence(it, targets).toDouble() } }
+                .takeIf { it.isNotEmpty() }
+                ?.average()
         }
 
         val points = timeRange.mapIndexed { index, key ->
