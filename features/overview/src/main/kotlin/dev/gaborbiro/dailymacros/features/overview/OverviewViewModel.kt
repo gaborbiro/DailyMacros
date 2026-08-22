@@ -66,18 +66,32 @@ class OverviewViewModel @Inject constructor(
 
     private companion object {
         val PAGE_SIZE = 14.days
+
+        // The Overview screen only ever calls onLoadMore() by scrolling near
+        // the bottom of the rendered list, which never mounts while items is
+        // empty (see OverviewView.kt: WelcomeView shows instead). Without a
+        // separate, more patient retry here, anyone who hasn't opened the
+        // app (or restored a backup) in more than PAGE_SIZE gets permanently
+        // stuck on the empty state, even though older records exist just
+        // outside the current window. This bound is how far back the
+        // auto-widen below is willing to look before concluding there's
+        // genuinely nothing - generous enough to cover months of inactivity
+        // (20 * 14 days ≈ 9 months) while still bounded for a truly-empty diary.
+        const val MAX_CATCH_UP_WIDENS = 20
     }
 
     private var sinceEpochMillis: Long = System.currentTimeMillis() - PAGE_SIZE.inWholeMilliseconds
     private var currentSearch: String? = null
     private var collectionJob: Job? = null
     private var previousRecordCount: Int = -1
+    private var autoCatchUpWidens: Int = 0
 
     fun onSearchTermChanged(search: String?) {
         currentSearch = search
         // Reset paging window when the search term changes
         sinceEpochMillis = System.currentTimeMillis() - PAGE_SIZE.inWholeMilliseconds
         previousRecordCount = -1
+        autoCatchUpWidens = 0
         _viewState.update { it.copy(hasMoreData = true) }
         resubscribe(search)
     }
@@ -142,6 +156,25 @@ class OverviewViewModel @Inject constructor(
                                 showSubscribeBanner = false,
                             )
                         }
+                    }
+
+                    // See MAX_CATCH_UP_WIDENS above. Deliberately NOT gated on
+                    // `hasMore`: computeHasMoreItems already flips that false
+                    // after just one more empty page (it's tuned to stop
+                    // normal pagination, not to keep searching back through
+                    // however many empty weeks/months of inactivity it takes
+                    // to find the first real record) - autoCatchUpWidens is
+                    // this loop's own, more patient bound instead. Launched
+                    // as a separate coroutine rather than calling resubscribe
+                    // directly, since this callback is itself running inside
+                    // collectionJob - cancelling it from within its own body
+                    // would be reentrant.
+                    if (records.isEmpty() && notSearching && autoCatchUpWidens < MAX_CATCH_UP_WIDENS) {
+                        autoCatchUpWidens++
+                        sinceEpochMillis -= PAGE_SIZE.inWholeMilliseconds
+                        viewModelScope.launch { resubscribe(currentSearch) }
+                    } else if (records.isNotEmpty()) {
+                        autoCatchUpWidens = 0
                     }
                 }
         }
