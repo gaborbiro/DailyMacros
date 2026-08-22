@@ -24,12 +24,11 @@ import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.overview.R
 
 /**
- * Actions pinned to the top of the Overview screen. [visible] is driven by scroll *delta*
- * (see the nested scroll connection in OverviewView.kt), not by listState.firstVisibleItemIndex -
+ * Actions pinned to the top of the Overview screen. [visible] is driven by
+ * listState.lastScrolledForward/Backward (see OverviewView.kt), not listState.firstVisibleItemIndex -
  * an earlier index-based version of this could end up stuck off-screen if the list's
  * scroll-anchoring shifted its reported "top" index (e.g. a new record prepended while
- * backgrounded), so it was removed. Delta-based hiding doesn't have that failure mode: it only
- * ever reacts to an actual scroll gesture, never to the list's reported position.
+ * backgrounded), so it was removed.
  */
 @Composable
 internal fun OverviewListTopActions(
