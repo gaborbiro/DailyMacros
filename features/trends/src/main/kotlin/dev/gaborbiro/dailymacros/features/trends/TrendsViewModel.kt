@@ -42,6 +42,7 @@ import java.time.format.TextStyle
 import java.time.temporal.WeekFields
 import java.util.Date
 import java.util.Locale
+import kotlin.math.abs
 import javax.inject.Inject
 
 @HiltViewModel
@@ -56,6 +57,7 @@ class TrendsViewModel @Inject constructor(
 ) : AndroidViewModel(application) {
 
     private var recordsJob: Job
+    private var pendingScrollEpochDay: Long? = null
 
     private val _uiState = MutableStateFlow(
         TrendsUiState(aiInsightsEnabled = featureFlagStore.isEnabled(FeatureFlagStore.Key.AI_INSIGHTS_ENABLED))
@@ -95,9 +97,42 @@ class TrendsViewModel @Inject constructor(
         recordsJob = observeRecords(timescale)
     }
 
+    /**
+     * Called once, when Trends is opened from a daily/weekly summary tap in Overview (see
+     * OverviewViewModel.onDailySummaryTapped/onWeeklySummaryTapped): switches to the requested
+     * timescale and resolves [epochDay] to a chart index once that timescale's charts have
+     * loaded (see [attemptPendingChartScroll], invoked from [observeRecords]'s collector).
+     */
+    fun onInitialScrollRequested(epochDay: Long, timescale: Timescale) {
+        pendingScrollEpochDay = epochDay
+        onTimescaleSelected(timescale)
+    }
+
+    /** Best-effort match against whatever's currently loaded in [TrendsUiState.charts] - all
+     *  charts for a given timescale share the same index<->date mapping, so the first chart's
+     *  first dataset is enough to resolve it. */
+    private fun attemptPendingChartScroll() {
+        val targetEpochDay = pendingScrollEpochDay ?: return
+        val dataset = _uiState.value.charts.firstOrNull()?.datasets?.firstOrNull() ?: return
+        val allPoints = dataset.set + listOfNotNull(dataset.current)
+        val match = allPoints.minByOrNull { abs(it.epochDay - targetEpochDay) } ?: return
+        pendingScrollEpochDay = null
+        _uiState.update { it.copy(scrollToChartIndex = match.index) }
+    }
+
+    fun onChartScrollHandled() {
+        _uiState.update { it.copy(scrollToChartIndex = null) }
+    }
+
     fun onBackNavigate() {
         viewModelScope.launch {
             _uiUpdates.emit(TrendsUiUpdates.NavigateBack)
+        }
+    }
+
+    fun onChartDataPointTapped(epochDay: Long) {
+        viewModelScope.launch {
+            _uiUpdates.emit(TrendsUiUpdates.NavigateToOverviewDate(epochDay))
         }
     }
 
@@ -272,6 +307,7 @@ class TrendsViewModel @Inject constructor(
                         it.copy(charts = charts)
                     }
                 }
+                attemptPendingChartScroll()
             }
         }
     }

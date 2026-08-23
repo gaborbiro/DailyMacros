@@ -4,6 +4,8 @@
     <string name="trends_content_title">Trends</string>
     <string name="trends_content_back_cd">Back Button</string>
     <string name="trends_content_settings_cd">Settings</string>
+    <!-- TrendsChart: tap-to-navigate confirmation pill -->
+    <string name="trends_content_scroll_to_date">Scroll to %1$s</string>
     <string name="trends_content_empty_state">Trends will show up once you\'ve logged meals for a few days</string>
     <string name="trends_content_scale_days">Days</string>
     <string name="trends_content_scale_weeks">Weeks</string>

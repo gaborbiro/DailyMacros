@@ -265,7 +265,19 @@ class MainActivity : ComponentActivity() {
                         PaywallScreen(navController = navController)
                     }
                     composable(
-                        route = TRENDS_ROUTE,
+                        route = TRENDS_ROUTE_PATTERN,
+                        arguments = listOf(
+                            navArgument(TRENDS_SCROLL_EPOCH_DAY_ARG) {
+                                type = NavType.StringType
+                                nullable = true
+                                defaultValue = null
+                            },
+                            navArgument(TRENDS_TIMESCALE_ARG) {
+                                type = NavType.StringType
+                                nullable = true
+                                defaultValue = null
+                            },
+                        ),
                         // Same horizontal slide as Settings: Trends enters from the right and exits to the right.
                         enterTransition = {
                             slideInHorizontally(
@@ -279,11 +291,18 @@ class MainActivity : ComponentActivity() {
                                 animationSpec = tween(600, easing = FastOutSlowInEasing)
                             )
                         },
-                    ) {
+                    ) { backStackEntry ->
+                        val initialScrollEpochDay = backStackEntry.arguments
+                            ?.getString(TRENDS_SCROLL_EPOCH_DAY_ARG)
+                            ?.toLongOrNull()
+                        val initialTimescale = backStackEntry.arguments
+                            ?.getString(TRENDS_TIMESCALE_ARG)
                         TrendsScreen(
                             trendsViewModel = trendsViewModel,
                             targetsSettingsViewModel = targetsSettingsViewModel,
                             navController = navController,
+                            initialScrollEpochDay = initialScrollEpochDay,
+                            initialTimescale = initialTimescale,
                         )
                     }
                 }

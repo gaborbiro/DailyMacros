@@ -168,10 +168,6 @@ class ModalViewModel @Inject constructor(
         openRecordDetails(recordId, edit = true)
     }
 
-    fun onViewTemplateDetailsDeeplinkReceived(templateId: Long) {
-        onTemplateDetailsButtonTapped(templateId)
-    }
-
     fun onQuickPickWidgetConfirmDeeplinkReceived(templateId: Long, templateName: String) {
         if (settingsRepository.getQuickPickConfirmationEnabled().not()) {
             logMealFromTemplate(templateId)

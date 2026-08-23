@@ -20,8 +20,6 @@
     <string name="overview_content_add_widget_button">Tap here to\nadd a widget to your desktop</string>
     <!-- OverviewListTopActions -->
     <string name="overview_content_settings_cd">Settings Button</string>
-    <!-- ListItemSetTargetsCta -->
-    <string name="overview_content_set_targets_title">Set your Daily Targets</string>
     <!-- SubscribeBanner -->
     <string name="overview_content_subscribe_banner_title">Unlock AI meal recognition</string>
     <string name="overview_content_subscribe_banner_body">Snap a photo and get instant macros — subscribe to keep using it.</string>
@@ -29,6 +27,8 @@
     <string name="overview_content_subscribe_banner_dismiss_cd">Dismiss</string>
     <!-- ScrollToTopView -->
     <string name="overview_content_scroll_to_top">Scroll to top</string>
+    <!-- OverviewView: pending scroll-to-date indicator -->
+    <string name="overview_content_scrolling_to_date">Finding %1$s…</string>
     <!-- RowDropdownMenu -->
     <string name="overview_content_menu_more_cd">More Menu</string>
     <string name="overview_content_menu_log_again">Log meal again</string>

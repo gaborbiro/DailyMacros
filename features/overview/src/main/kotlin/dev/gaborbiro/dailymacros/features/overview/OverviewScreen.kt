@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -11,12 +13,13 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import dev.gaborbiro.dailymacros.features.common.OVERVIEW_SCROLL_TO_EPOCH_DAY_KEY
 import dev.gaborbiro.dailymacros.features.common.PAYWALL_ROUTE
-import dev.gaborbiro.dailymacros.features.common.SETTINGS_HIGHLIGHT_ROW_ARG
 import dev.gaborbiro.dailymacros.features.common.SETTINGS_ROUTE
 import dev.gaborbiro.dailymacros.features.common.SETTINGS_ROUTE_PATTERN
-import dev.gaborbiro.dailymacros.features.common.SettingsRowId
 import dev.gaborbiro.dailymacros.features.common.TRENDS_ROUTE
+import dev.gaborbiro.dailymacros.features.common.TRENDS_SCROLL_EPOCH_DAY_ARG
+import dev.gaborbiro.dailymacros.features.common.TRENDS_TIMESCALE_ARG
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiUpdates
 import dev.gaborbiro.dailymacros.features.overview.views.OverviewView
 import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
@@ -38,7 +41,14 @@ fun OverviewScreen(
                     launchSingleTop = true
                     popUpTo(SETTINGS_ROUTE_PATTERN) { inclusive = true }
                 }
-                OverviewUiUpdates.OpenTrendsScreen -> navController.navigate(TRENDS_ROUTE)
+                is OverviewUiUpdates.OpenTrendsScreen -> {
+                    val query = if (event.scrollToEpochDay != null && event.timescale != null) {
+                        "?$TRENDS_SCROLL_EPOCH_DAY_ARG=${event.scrollToEpochDay}&$TRENDS_TIMESCALE_ARG=${event.timescale}"
+                    } else {
+                        ""
+                    }
+                    navController.navigate("$TRENDS_ROUTE$query")
+                }
                 OverviewUiUpdates.OpenPaywallScreen -> navController.navigate(PAYWALL_ROUTE)
             }
         }
@@ -46,6 +56,21 @@ fun OverviewScreen(
 
     LaunchedEffect(key1 = Unit) {
         viewModel.onSearchTermChanged(search = null)
+    }
+
+    // Set by TrendsScreen (via OVERVIEW_SCROLL_TO_EPOCH_DAY_KEY) just before popping back to
+    // this screen, when the user tapped a Trends chart point - see Navigation.kt for why this
+    // goes through the back-stack entry's SavedStateHandle rather than a nav route argument.
+    val scrollRequestHandle = navController.currentBackStackEntry?.savedStateHandle
+    val requestedScrollEpochDay by scrollRequestHandle
+        ?.getStateFlow<Long?>(OVERVIEW_SCROLL_TO_EPOCH_DAY_KEY, null)
+        ?.collectAsStateWithLifecycle()
+        ?: remember { mutableStateOf(null) }
+    LaunchedEffect(requestedScrollEpochDay) {
+        requestedScrollEpochDay?.let { epochDay ->
+            viewModel.onScrollToDateRequested(epochDay)
+            scrollRequestHandle?.remove<Long>(OVERVIEW_SCROLL_TO_EPOCH_DAY_KEY)
+        }
     }
 
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()
@@ -65,14 +90,10 @@ fun OverviewScreen(
         onSubscribeBannerTapped = viewModel::onSubscribeBannerTapped,
         onSubscribeBannerDismissed = viewModel::onSubscribeBannerDismissed,
         onAddWidget = onAddWidget,
-        onSetTargetsTapped = {
-            navController.navigate("$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_ROW_ARG=${SettingsRowId.TARGETS.name}") {
-                launchSingleTop = true
-                popUpTo(SETTINGS_ROUTE_PATTERN) { inclusive = true }
-            }
-        },
-        onSummaryTapped = viewModel::onTrendsButtonTapped,
+        onDailySummaryTapped = viewModel::onDailySummaryTapped,
+        onWeeklySummaryTapped = viewModel::onWeeklySummaryTapped,
         onLoadMore = viewModel::onLoadMore,
+        onScrollHandled = viewModel::onScrollHandled,
     )
 
     val lifecycleOwner = LocalLifecycleOwner.current

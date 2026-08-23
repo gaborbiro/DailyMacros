@@ -4,21 +4,27 @@ import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.content.Intent
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import dev.gaborbiro.dailymacros.features.common.ONBOARDING_ROUTE
 import dev.gaborbiro.dailymacros.features.common.SettingsRowId
 import dev.gaborbiro.dailymacros.features.settings.export.rememberCreatePublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.rememberOpenPublicDocumentUseCase
+import dev.gaborbiro.dailymacros.features.settings.goalsQuestionnaire.GoalsQuestionnaireActivity
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorScreen
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel
@@ -81,7 +87,6 @@ fun SettingsScreen(
         onQuickPickConfirmationToggled = settingsViewModel::onQuickPickConfirmationToggled,
         onWifiOnlyBackupToggled = settingsViewModel::onWifiOnlyBackupToggled,
         onWifiOnlyAnalysisToggled = settingsViewModel::onWifiOnlyAnalysisToggled,
-        onTimezoneChangeTrackingToggled = settingsViewModel::onTimezoneChangeTrackingToggled,
         onExportSettingTapped = settingsViewModel::onExportSettingsTapped,
         onPdfExportDismissed = settingsViewModel::onPdfExportDialogDismissed,
         onPdfExportConfirmed = { selection, options ->
@@ -105,10 +110,31 @@ fun SettingsScreen(
         onShowOnboardingTapped = { navController.navigate(ONBOARDING_ROUTE) },
     )
 
+    // The goals questionnaire (reachable via onOpenGoalsQuestionnaire below) is a separate
+    // Activity, not a Dialog or nav route hosted here - both of those fought with the Targets
+    // sheet's own Dialog window (a visible jump on open, and the questionnaire reopening itself
+    // on the way back). It writes straight to the settings repository as the user completes it,
+    // so reloading whenever this screen resumes (including returning from that Activity) is
+    // enough to pick up whatever it saved.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            // Guarded on canReset so this never clobbers edits the user made in the Targets
+            // sheet itself but hasn't saved yet (e.g. backgrounding the app mid-edit) - only
+            // reload when there's nothing local to lose.
+            if (event == Lifecycle.Event.ON_RESUME && !targetsSettingsViewModel.uiState.value.canReset) {
+                targetsSettingsViewModel.reloadFromRepository()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
     if (settingsUiState.showTargetsSettings) {
         TargetsSettingsScreen(
             viewModel = targetsSettingsViewModel,
             onCloseRequested = settingsViewModel::onTargetsSettingsCloseRequested,
+            onOpenGoalsQuestionnaire = { context.startActivity(Intent(context, GoalsQuestionnaireActivity::class.java)) },
         )
     }
 

@@ -18,7 +18,6 @@ import dev.gaborbiro.dailymacros.features.modal.getShowRecordImageIntent
 import dev.gaborbiro.dailymacros.features.modal.getShowTemplateImageIntent
 import dev.gaborbiro.dailymacros.features.modal.getTextOnlyIntent
 import dev.gaborbiro.dailymacros.features.modal.getViewRecordDetailsIntent
-import dev.gaborbiro.dailymacros.features.modal.getViewTemplateDetailsIntent
 import dev.gaborbiro.dailymacros.features.widgets.WidgetNavigator
 import dev.gaborbiro.dailymacros.features.widgets.diarywidget.DiaryWidgetScreen
 import javax.inject.Inject
@@ -45,8 +44,8 @@ class WidgetNavigatorImpl @Inject constructor(
     override fun quickPickImageTapped(templateId: Long): Action =
         launchInNewStack(context.getShowTemplateImageIntent(templateId))
 
-    override fun quickPickBodyTapped(templateId: Long): Action =
-        launchInNewStack(context.getViewTemplateDetailsIntent(templateId))
+    override fun quickPickBodyTapped(templateId: Long, templateName: String): Action =
+        launchInNewStack(context.getQuickPickWidgetConfirmIntent(templateId, templateName))
 
     override fun quickPickWidgetTapped(templateId: Long, templateName: String): Action =
         launchInNewStack(context.getQuickPickWidgetConfirmIntent(templateId, templateName))

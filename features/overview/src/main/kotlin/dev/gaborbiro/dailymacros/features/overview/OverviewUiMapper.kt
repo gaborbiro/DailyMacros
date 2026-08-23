@@ -156,6 +156,7 @@ class OverviewUiMapper @Inject constructor(
             listItemId = diaryDayWindowStart(day.day, day.diaryDayStart, day.startZone)
                 .toInstant()
                 .toEpochMilli(),
+            day = day.day,
             dayTitle = mapDayTitleTimestamp(day.day),
             infoMessage = infoMessage,
             entries = progressItems,
@@ -416,9 +417,8 @@ class OverviewUiMapper @Inject constructor(
         if (week.isEmpty()) return null
 
         if (!targets.hasAnyEnabled()) {
-            // No targets set: the persistent "Set your daily targets" CTA (anchored to the
-            // Settings button in OverviewListTopActions) covers this, so there's nothing to
-            // show inline for this week.
+            // No targets set: nothing meaningful to compare this week's macros against, so
+            // there's nothing to show inline for this week.
             return null
         }
 
@@ -492,6 +492,7 @@ class OverviewUiMapper @Inject constructor(
 
         return ListUiModelWeeklySummary(
             listItemId = weekStart.toEpochDay(),
+            weekStart = weekStart,
             entries = buildWeeklySummaryEntries(avgDayTotal, targets, previousWeekMacros),
             averageAdherence100Percentage = (avgAdherence * 100).roundToInt(),
             adherenceChange = calculateChangeIndicator(avgAdherence, prevWeekAvgAdherence),

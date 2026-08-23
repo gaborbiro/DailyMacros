@@ -34,7 +34,7 @@ internal fun DiaryWidgetList(
     recordImageTapActionProvider: @Composable (recordId: Long) -> Action,
     recordBodyTapActionProvider: @Composable (recordId: Long) -> Action,
     quickPickImageTapActionProvider: @Composable (templateId: Long) -> Action,
-    quickPickBodyTapActionProvider: @Composable (templateId: Long) -> Action,
+    quickPickBodyTapActionProvider: @Composable (templateId: Long, templateName: String) -> Action,
 ) {
     LazyColumn(
         modifier = GlanceModifier
@@ -71,7 +71,7 @@ internal fun DiaryWidgetList(
                         ),
                     quickPickEntry = item,
                     imageTapActionProvider = quickPickImageTapActionProvider(item.templateId),
-                    bodyTapActionProvider = quickPickBodyTapActionProvider(item.templateId),
+                    bodyTapActionProvider = quickPickBodyTapActionProvider(item.templateId, item.title),
                 )
 
                 is ListUiModelQuickPickFooter -> Box(
@@ -197,7 +197,7 @@ private fun WidgetListPreview() {
             recordImageTapActionProvider = { action {} },
             recordBodyTapActionProvider = { action {} },
             quickPickImageTapActionProvider = { action {} },
-            quickPickBodyTapActionProvider = { action {} },
+            quickPickBodyTapActionProvider = { _, _ -> action {} },
         )
     }
 }

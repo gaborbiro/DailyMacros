@@ -20,7 +20,7 @@ interface WidgetNavigator {
 
     fun quickPickImageTapped(templateId: Long): Action
 
-    fun quickPickBodyTapped(templateId: Long): Action
+    fun quickPickBodyTapped(templateId: Long, templateName: String): Action
 
     fun quickPickWidgetTapped(templateId: Long, templateName: String): Action
 

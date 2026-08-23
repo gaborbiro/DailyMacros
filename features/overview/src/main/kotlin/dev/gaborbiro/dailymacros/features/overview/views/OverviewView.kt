@@ -2,28 +2,43 @@ package dev.gaborbiro.dailymacros.features.overview.views
 
 import android.content.res.Configuration
 import android.util.Range
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.FabPosition
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -31,6 +46,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.features.overview.R
 import dev.gaborbiro.dailymacros.design.PaddingDefault
+import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.overview.model.DailySummaryEntry
 import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelDailySummary
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
@@ -39,6 +55,7 @@ import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
 import dev.gaborbiro.dailymacros.features.overview.model.OverviewUiState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 @Composable
 internal fun OverviewView(
@@ -53,12 +70,13 @@ internal fun OverviewView(
     onUndoDeleteSnackbarShown: () -> Unit,
     onSearchTermChanged: (String?) -> Unit,
     onSettingsButtonTapped: () -> Unit,
-    onSetTargetsTapped: () -> Unit,
-    onSummaryTapped: () -> Unit,
+    onDailySummaryTapped: (epochDay: Long) -> Unit,
+    onWeeklySummaryTapped: (epochDay: Long) -> Unit,
     onSubscribeBannerTapped: () -> Unit = {},
     onSubscribeBannerDismissed: () -> Unit = {},
     onAddWidget: () -> Unit = {},
     onLoadMore: () -> Unit = {},
+    onScrollHandled: () -> Unit = {},
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val recordDeletedMessage = stringResource(R.string.overview_content_record_deleted)
@@ -82,25 +100,34 @@ internal fun OverviewView(
 
     val listState = rememberLazyListState()
 
+    // Slide the FABs out while the user scrolls towards the past (further down the reversed
+    // list, i.e. "forward" through it) and back in as soon as they scroll back towards the top
+    // ("backward"), even a little. lastScrolledForward/Backward are ScrollableState's own
+    // direction tracking, sticky until the next scroll in the other direction - exactly what's
+    // needed here, and driven by the list's actual scroll gestures rather than
+    // listState.firstVisibleItemIndex, whose "am I at the top" check an earlier version of this
+    // relied on: that could get permanently stuck if a new record prepended while backgrounded
+    // shifted Compose's scroll-anchoring so index 0 never reported "true" again (see
+    // OverviewListTopActions.kt history). A hand-rolled NestedScrollConnection reading raw
+    // pre-scroll deltas was tried here too and didn't reliably react to scrolling at all -
+    // this is the API Compose itself maintains for this exact "hide on scroll" pattern.
+    val fabsVisible by remember { derivedStateOf { !listState.lastScrolledForward } }
+
+    // A tap on a Trends chart point resolves to a day already loaded here (see
+    // OverviewViewModel.onScrollToDateRequested) and is surfaced as a one-shot listItemId to
+    // scroll to; once acted on, onScrollHandled() clears it so it doesn't fire again on an
+    // unrelated recomposition (e.g. a new record arriving).
+    LaunchedEffect(viewState.scrollToListItemId, viewState.items) {
+        val targetId = viewState.scrollToListItemId ?: return@LaunchedEffect
+        val index = viewState.items.indexOfFirst { it.listItemId == targetId }
+        if (index >= 0) {
+            listState.scrollToItem(index)
+            onScrollHandled()
+        }
+    }
+
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.ime),
-        floatingActionButton = {
-            if (!viewState.showAddWidgetButton) {
-                val coroutineScope = rememberCoroutineScope()
-                SearchFAB(
-                    onSearch = {
-                        onSearchTermChanged(it)
-                    },
-                    onSearchCleared = {
-                        coroutineScope.launch {
-                            delay(200)
-                            listState.scrollToItem(0)
-                        }
-                    }
-                )
-            }
-        },
-        floatingActionButtonPosition = FabPosition.End,
         snackbarHost = {
             SnackbarHost(
                 hostState = snackbarHostState,
@@ -123,7 +150,10 @@ internal fun OverviewView(
                     onDismissed = onSubscribeBannerDismissed,
                 )
             }
-            Box(modifier = Modifier.weight(1f)) {
+            Box(
+                modifier = Modifier
+                    .weight(1f),
+            ) {
                 if (viewState.items.isNotEmpty()) {
                     OverviewList(
                         viewState = viewState,
@@ -134,7 +164,8 @@ internal fun OverviewView(
                         onDeleteMenuItemTapped = onDeleteMenuItemTapped,
                         onRecordImageTapped = onRecordImageTapped,
                         onRecordBodyTapped = onRecordBodyTapped,
-                        onSummaryTapped = onSummaryTapped,
+                        onDailySummaryTapped = onDailySummaryTapped,
+                        onWeeklySummaryTapped = onWeeklySummaryTapped,
                         onLoadMore = onLoadMore,
                     )
                 } else if (viewState.showAddWidgetButton) {
@@ -147,12 +178,74 @@ internal fun OverviewView(
                 }
 
                 OverviewListTopActions(
+                    visible = fabsVisible,
                     showSettingsButton = viewState.showSettingsButton,
-                    showSetTargetsCta = viewState.showSetTargetsCta,
                     topContentPadding = 0.dp,
                     onSettingsButtonTapped = onSettingsButtonTapped,
-                    onSetTargetsTapped = onSetTargetsTapped,
                 )
+
+                if (!viewState.showAddWidgetButton) {
+                    val coroutineScope = rememberCoroutineScope()
+                    // Fully qualified: an implicit ColumnScope receiver is in scope here (from
+                    // the enclosing Column further up), which would otherwise shadow the
+                    // top-level AnimatedVisibility with ColumnScope's extension overload.
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = fabsVisible,
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            // Scaffold used to inset the FAB from the nav bar/gesture area (and,
+                            // once expanded into a search field, lift it above the keyboard)
+                            // itself via contentWindowInsets; now that this is a manual overlay,
+                            // that has to be applied explicitly - navigationBars alone left the
+                            // expanded search field stuck behind the IME.
+                            .padding(WindowInsets.navigationBars.union(WindowInsets.ime).asPaddingValues())
+                            .padding(PaddingHalf),
+                        enter = slideInVertically(initialOffsetY = { it * 2 }) + fadeIn(),
+                        exit = slideOutVertically(targetOffsetY = { it * 2 }) + fadeOut(),
+                    ) {
+                        SearchFAB(
+                            onSearch = {
+                                onSearchTermChanged(it)
+                            },
+                            onSearchCleared = {
+                                coroutineScope.launch {
+                                    delay(200)
+                                    listState.scrollToItem(0)
+                                }
+                            }
+                        )
+                    }
+                }
+
+                // Shown for as long as a Trends-triggered scroll is pending (see
+                // OverviewViewModel.onScrollToDateRequested) - widening the paging window and
+                // reloading from Room before the target day is available can take a moment,
+                // which otherwise reads as the tap having done nothing.
+                viewState.pendingScrollDateLabel?.let { dateLabel ->
+                    Surface(
+                        modifier = Modifier
+                            .align(Alignment.Center),
+                        shape = RoundedCornerShape(50),
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        shadowElevation = 4.dp,
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = PaddingDefault, vertical = PaddingHalf),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(PaddingHalf),
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp,
+                            )
+                            Text(
+                                text = stringResource(R.string.overview_content_scrolling_to_date, dateLabel),
+                                style = MaterialTheme.typography.labelMedium,
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -168,6 +261,7 @@ private fun OverviewListPreview() {
                 items = listOf(
                     ListUiModelDailySummary(
                         listItemId = 1L,
+                        day = LocalDate.now(),
                         dayTitle = "Yesterday",
                         entries = listOf(
                             DailySummaryEntry(
@@ -272,8 +366,8 @@ private fun OverviewListPreview() {
             onSearchTermChanged = {},
             onAnalyseMacrosMenuItemTapped = {},
             onSettingsButtonTapped = {},
-            onSetTargetsTapped = {},
-            onSummaryTapped = {},
+            onDailySummaryTapped = {},
+            onWeeklySummaryTapped = {},
             onLoadMore = {},
         )
     }
@@ -299,8 +393,8 @@ private fun OverviewListPreviewEmpty() {
             onSearchTermChanged = {},
             onAnalyseMacrosMenuItemTapped = {},
             onSettingsButtonTapped = {},
-            onSetTargetsTapped = {},
-            onSummaryTapped = {},
+            onDailySummaryTapped = {},
+            onWeeklySummaryTapped = {},
             onLoadMore = {},
         )
     }

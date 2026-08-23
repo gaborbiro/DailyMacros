@@ -24,6 +24,16 @@ import java.util.Locale
 import javax.inject.Inject
 import dev.gaborbiro.dailymacros.features.trends.R
 
+/**
+ * The Weeks chart's bottom axis only renders a label every Nth week (see TrendsView.kt's
+ * showEveryXLabel / HorizontalAxis.ItemPlacer.aligned(spacing = ...)), purely to avoid
+ * overcrowding - Vico's "aligned" placer shows exactly the weeks at index 0, this value,
+ * 2x this value, etc. TrendsUiMapper.weekLabel needs the same number to know whether a given
+ * week's own label will actually be rendered, or whether a month-change needs to be shown on
+ * the next (rendered) week instead - see weekLabel's monthChangeIndices.
+ */
+internal const val WEEKS_AXIS_LABEL_SPACING = 2
+
 class TrendsUiMapper @Inject constructor(
     @ApplicationContext private val context: Context,
     private val preferences: TrendsPreferences,
@@ -56,7 +66,7 @@ class TrendsUiMapper @Inject constructor(
         val first = weekFields.firstDayOfWeek
         val last = first.minus(1)
 
-        fun dayLabel(date: LocalDate): String {
+        fun dayLabel(@Suppress("UNUSED_PARAMETER") index: Int, date: LocalDate): String {
             val base = if (date.dayOfMonth == 1)
                 "${date.dayOfMonth}/${date.monthValue}"
             else
@@ -85,6 +95,7 @@ class TrendsUiMapper @Inject constructor(
                 isCurrentPeriod = { it == today }
             ),
             labelProvider = ::dayLabel,
+            periodStartEpochDayProvider = LocalDate::toEpochDay,
             targets = targets,
         )
     }
@@ -106,15 +117,29 @@ class TrendsUiMapper @Inject constructor(
             step = { it.plusWeeks(1) }
         )
 
-        fun weekLabel(start: LocalDate): String {
-            val end = start.plusDays(6)
-            val includesFirst = (0L..6).any { start.plusDays(it).dayOfMonth == 1 }
+        // A week whose days include the 1st of a month normally gets the month name appended
+        // (see weekLabel below) - but the axis only renders every WEEKS_AXIS_LABEL_SPACING-th
+        // week's label, so if that exact week lands on a skipped index, the month name would
+        // never actually reach the screen. Shifting it to the next index (guaranteed to be
+        // rendered, since only one index can be skipped between any two shown ones) means the
+        // reader still sees which month they've scrolled into, if one week "late".
+        val monthChangeIndices: Set<Int> = buildSet {
+            weeks.forEachIndexed { index, weekStart ->
+                val touchesMonthStart = (0L..6L).any { weekStart.plusDays(it).dayOfMonth == 1 }
+                if (touchesMonthStart) {
+                    val renderedIndex = if (index % WEEKS_AXIS_LABEL_SPACING == 0) index else index + 1
+                    add(renderedIndex)
+                }
+            }
+        }
 
-            return if (start.month == end.month && !includesFirst) {
-                "${start.dayOfMonth}-${end.dayOfMonth}"
-            } else {
+        fun weekLabel(index: Int, start: LocalDate): String {
+            val end = start.plusDays(6)
+            return if (index in monthChangeIndices) {
                 val month = end.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
                 "${start.dayOfMonth}-${end.dayOfMonth} $month"
+            } else {
+                "${start.dayOfMonth}-${end.dayOfMonth}"
             }
         }
 
@@ -155,6 +180,7 @@ class TrendsUiMapper @Inject constructor(
             contributingDaysProvider = contributingDaysProvider,
             currentPeriodCalculationMode = currentPeriodMode,
             labelProvider = ::weekLabel,
+            periodStartEpochDayProvider = LocalDate::toEpochDay,
             targets = targets,
         ) + listOf(
             adherenceChart(
@@ -163,6 +189,7 @@ class TrendsUiMapper @Inject constructor(
                 contributingDaysProvider = contributingDaysProvider,
                 currentPeriodCalculationMode = currentPeriodMode,
                 labelProvider = ::weekLabel,
+                periodStartEpochDayProvider = LocalDate::toEpochDay,
                 targets = targets,
             )
         )
@@ -181,7 +208,7 @@ class TrendsUiMapper @Inject constructor(
             step = { it.plusMonths(1) }
         )
 
-        fun monthLabel(ym: YearMonth): String =
+        fun monthLabel(@Suppress("UNUSED_PARAMETER") index: Int, ym: YearMonth): String =
             ym.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
 
         val todayDate = logicalToday()
@@ -220,6 +247,7 @@ class TrendsUiMapper @Inject constructor(
             contributingDaysProvider = contributingDaysProvider,
             currentPeriodCalculationMode = currentPeriodMode,
             labelProvider = ::monthLabel,
+            periodStartEpochDayProvider = { ym -> ym.atDay(1).toEpochDay() },
             targets = targets,
         ) + listOf(
             adherenceChart(
@@ -228,6 +256,7 @@ class TrendsUiMapper @Inject constructor(
                 contributingDaysProvider = contributingDaysProvider,
                 currentPeriodCalculationMode = currentPeriodMode,
                 labelProvider = ::monthLabel,
+                periodStartEpochDayProvider = { ym -> ym.atDay(1).toEpochDay() },
                 targets = targets,
             )
         )
@@ -238,7 +267,8 @@ class TrendsUiMapper @Inject constructor(
         records: Map<K, List<Record>>,
         contributingDaysProvider: (K) -> List<LocalDate>,
         currentPeriodCalculationMode: CurrentPeriodCalculationMode<K>,
-        labelProvider: (K) -> String,
+        labelProvider: (Int, K) -> String,
+        periodStartEpochDayProvider: (K) -> Long,
         targets: Targets,
     ): List<TrendsChartUiModel> {
 
@@ -250,6 +280,7 @@ class TrendsUiMapper @Inject constructor(
                 currentPeriodCalculationMode = currentPeriodCalculationMode,
                 valueProvider = valueProvider,
                 labelProvider = labelProvider,
+                periodStartEpochDayProvider = periodStartEpochDayProvider,
             )
 
         val noTarget = Target(enabled = false)
@@ -340,7 +371,8 @@ class TrendsUiMapper @Inject constructor(
         contributingDaysProvider: (K) -> List<LocalDate>,
         currentPeriodCalculationMode: CurrentPeriodCalculationMode<K>,
         valueProvider: (Record) -> Float?,
-        labelProvider: (K) -> String,
+        labelProvider: (Int, K) -> String,
+        periodStartEpochDayProvider: (K) -> Long,
     ): Pair<List<ChartDataPoint>, ChartDataPoint?> {
         val points: List<Pair<K, ChartDataPoint>> = timeRange.mapIndexed { index, key ->
             val dailySums: Map<LocalDate, Float> =
@@ -382,8 +414,9 @@ class TrendsUiMapper @Inject constructor(
 
             key to ChartDataPoint(
                 index = index,
-                label = labelProvider(key),
+                label = labelProvider(index, key),
                 value = avg,
+                epochDay = periodStartEpochDayProvider(key),
             )
         }
 
@@ -441,7 +474,8 @@ class TrendsUiMapper @Inject constructor(
         records: Map<K, List<Record>>,
         contributingDaysProvider: (K) -> List<LocalDate>,
         currentPeriodCalculationMode: CurrentPeriodCalculationMode<K>,
-        labelProvider: (K) -> String,
+        labelProvider: (Int, K) -> String,
+        periodStartEpochDayProvider: (K) -> Long,
         targets: Targets,
     ): TrendsChartUiModel {
         fun adherenceForDays(key: K, days: List<LocalDate>): Double? {
@@ -477,8 +511,9 @@ class TrendsUiMapper @Inject constructor(
 
             key to ChartDataPoint(
                 index = index,
-                label = labelProvider(key),
+                label = labelProvider(index, key),
                 value = avg?.times(100.0),
+                epochDay = periodStartEpochDayProvider(key),
             )
         }
 
