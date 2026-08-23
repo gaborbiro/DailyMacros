@@ -7,6 +7,7 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PdfExportOpt
 
 data class SettingsUiState(
     val showTargetsSettings: Boolean,
+    val showGoalsQuestionnaire: Boolean = false,
     val bottomLabel: String,
     val exportDataInProgress: Boolean = false,
     val importDataInProgress: Boolean = false,

@@ -15,11 +15,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import dev.gaborbiro.dailymacros.features.common.GOALS_QUESTIONNAIRE_ROUTE
 import dev.gaborbiro.dailymacros.features.common.ONBOARDING_ROUTE
 import dev.gaborbiro.dailymacros.features.common.SettingsRowId
 import dev.gaborbiro.dailymacros.features.settings.export.rememberCreatePublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.rememberOpenPublicDocumentUseCase
+import dev.gaborbiro.dailymacros.features.settings.goalsQuestionnaire.GoalsQuestionnaireScreen
+import dev.gaborbiro.dailymacros.features.settings.goalsQuestionnaire.GoalsQuestionnaireViewModel
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorScreen
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel
@@ -32,6 +33,7 @@ fun SettingsScreen(
     settingsViewModel: SettingsViewModel,
     targetsSettingsViewModel: TargetsSettingsViewModel,
     promptEditorViewModel: PromptEditorViewModel,
+    goalsQuestionnaireViewModel: GoalsQuestionnaireViewModel,
     navController: NavHostController,
     highlightRowId: SettingsRowId? = null,
 ) {
@@ -118,7 +120,19 @@ fun SettingsScreen(
         TargetsSettingsScreen(
             viewModel = targetsSettingsViewModel,
             onCloseRequested = settingsViewModel::onTargetsSettingsCloseRequested,
-            onOpenGoalsQuestionnaire = { navController.navigate(GOALS_QUESTIONNAIRE_ROUTE) },
+            onOpenGoalsQuestionnaire = settingsViewModel::onGoalsQuestionnaireTapped,
+        )
+    }
+
+    // Shown in place of (never alongside) the Targets sheet above - see onGoalsQuestionnaireTapped/
+    // onGoalsQuestionnaireCloseRequested, which toggle the two booleans together. Kept as a plain
+    // boolean-driven overlay rather than a nav route: a pushed/popped destination here fought with
+    // the Targets sheet's own Dialog window during the transition (a visible jump on open, and the
+    // Targets sheet reappearing then immediately reopening the questionnaire on the way back).
+    if (settingsUiState.showGoalsQuestionnaire) {
+        GoalsQuestionnaireScreen(
+            viewModel = goalsQuestionnaireViewModel,
+            onCloseRequested = settingsViewModel::onGoalsQuestionnaireCloseRequested,
         )
     }
 
