@@ -69,7 +69,7 @@ interface SettingsRepository {
     fun getAutoPhotoRecognitionEnabled(): Boolean = false
     fun setAutoPhotoRecognitionEnabled(enabled: Boolean) {}
 
-    /** Whether tapping a meal on the Quick Pick widget shows a confirmation dialog before logging. */
+    /** Whether tapping a Quick Pick, in the Quick Pick widget or in the main widget, shows a confirmation dialog before logging. */
     fun getQuickPickConfirmationEnabled(): Boolean = true
     fun setQuickPickConfirmationEnabled(enabled: Boolean) {}
 
@@ -94,11 +94,11 @@ interface SettingsRepository {
     fun setAutoBackupInterval(interval: BackupInterval) {}
 
     /** Whether automatic (non-user-initiated) backup sync should be skipped unless on Wi-Fi. */
-    fun getWifiOnlyBackupEnabled(): Boolean = false
+    fun getWifiOnlyBackupEnabled(): Boolean = true
     fun setWifiOnlyBackupEnabled(enabled: Boolean) {}
 
     /** Whether automatic (non-user-initiated) macro analysis retries should wait for Wi-Fi. */
-    fun getWifiOnlyAnalysisEnabled(): Boolean = false
+    fun getWifiOnlyAnalysisEnabled(): Boolean = true
     fun setWifiOnlyAnalysisEnabled(enabled: Boolean) {}
 
     fun getAutoSyncErrorStatus(): AutoSyncErrorStatus? = null

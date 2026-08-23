@@ -240,14 +240,14 @@ class SettingsRepositoryImpl @Inject constructor(
     }
 
     override fun getWifiOnlyBackupEnabled(): Boolean =
-        prefs.getBoolean(KEY_WIFI_ONLY_BACKUP, false)
+        prefs.getBoolean(KEY_WIFI_ONLY_BACKUP, true)
 
     override fun setWifiOnlyBackupEnabled(enabled: Boolean) {
         prefs.edit { putBoolean(KEY_WIFI_ONLY_BACKUP, enabled) }
     }
 
     override fun getWifiOnlyAnalysisEnabled(): Boolean =
-        prefs.getBoolean(KEY_WIFI_ONLY_ANALYSIS, false)
+        prefs.getBoolean(KEY_WIFI_ONLY_ANALYSIS, true)
 
     override fun setWifiOnlyAnalysisEnabled(enabled: Boolean) {
         prefs.edit { putBoolean(KEY_WIFI_ONLY_ANALYSIS, enabled) }

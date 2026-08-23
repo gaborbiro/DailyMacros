@@ -55,7 +55,7 @@
     <string name="settings_content_camera_section">Camera</string>
     <string name="settings_content_widgets_section">Widgets</string>
     <string name="settings_quick_pick_confirmation_row">Quick Pick confirmation</string>
-    <string name="settings_quick_pick_confirmation_subtitle">Show a confirmation dialog when tapping a meal on the Quick Pick widget. When off, meals are logged immediately.</string>
+    <string name="settings_quick_pick_confirmation_subtitle">When off, meals are logged immediately instead of showing a confirmation dialog when tapping a Quick Pick.</string>
     <string name="settings_content_data_usage_section">Data usage</string>
     <string name="settings_wifi_only_backup_row">Wi-Fi only for backup</string>
     <string name="settings_wifi_only_backup_subtitle">Automatic backup waits for Wi-Fi. Manually tapping \"Back up now\" or \"Restore\" always works.</string>

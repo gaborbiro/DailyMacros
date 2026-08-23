@@ -57,7 +57,7 @@ internal fun DiaryWidgetView(
                     recordImageTapActionProvider = { recordId -> navigator.recordImageTapped(recordId) },
                     recordBodyTapActionProvider = { recordId -> navigator.recordBodyTapped(recordId) },
                     quickPickImageTapActionProvider = { templateId -> navigator.quickPickImageTapped(templateId) },
-                    quickPickBodyTapActionProvider = { templateId -> navigator.quickPickBodyTapped(templateId) },
+                    quickPickBodyTapActionProvider = { templateId, templateName -> navigator.quickPickBodyTapped(templateId, templateName) },
                 )
             } else {
                 EmptyView()
