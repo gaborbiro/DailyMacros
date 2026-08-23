@@ -417,9 +417,8 @@ class OverviewUiMapper @Inject constructor(
         if (week.isEmpty()) return null
 
         if (!targets.hasAnyEnabled()) {
-            // No targets set: the persistent "Set your daily targets" CTA (anchored to the
-            // Settings button in OverviewListTopActions) covers this, so there's nothing to
-            // show inline for this week.
+            // No targets set: nothing meaningful to compare this week's macros against, so
+            // there's nothing to show inline for this week.
             return null
         }
 

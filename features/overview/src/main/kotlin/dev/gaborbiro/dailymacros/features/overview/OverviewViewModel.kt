@@ -145,9 +145,9 @@ class OverviewViewModel @Inject constructor(
                     val showSubscribeBanner = records.isNotEmpty() &&
                         subscriptionState == SubscriptionState.NotSubscribed &&
                         !settingsRepository.getSubscribeBannerDismissed()
-                    Triple(enrichRecordRowsWithOtherVariantsIcon(items), showSubscribeBanner, targets.hasAnyEnabled())
+                    enrichRecordRowsWithOtherVariantsIcon(items) to showSubscribeBanner
                 }
-                .collect { (records: List<ListUiModelBase>, showSubscribeBanner: Boolean, hasTargets: Boolean) ->
+                .collect { (records: List<ListUiModelBase>, showSubscribeBanner: Boolean) ->
                     val hasMore = computeHasMoreItems.execute(
                         isSearchActive = !searchBlank,
                         previousItemCount = previousRecordCount,
@@ -181,7 +181,6 @@ class OverviewViewModel @Inject constructor(
                                 // on this same flag.
                                 showAddWidgetButton = false,
                                 showSettingsButton = notSearching,
-                                showSetTargetsCta = notSearching && !hasTargets,
                                 showSubscribeBanner = notSearching && showSubscribeBanner,
                             )
 
@@ -200,7 +199,6 @@ class OverviewViewModel @Inject constructor(
                                 hasMoreData = hasMore,
                                 showAddWidgetButton = notSearching,
                                 showSettingsButton = false,
-                                showSetTargetsCta = false,
                                 showSubscribeBanner = false,
                             )
                         }
