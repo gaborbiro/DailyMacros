@@ -55,7 +55,7 @@ internal fun QuestionScaffold(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScrollWithBar()
+            .verticalScrollWithBar(autoFade = false)
             .padding(horizontal = 24.dp, vertical = 16.dp),
     ) {
         Text(
@@ -243,18 +243,29 @@ fun DietaryFocusPage(
     }
 }
 
-private val CORE_MACRO_ROWS = listOf(
-    Triple(MacroType.CALORIES, "Calories", NutrientDisplayLine.Calories.unit),
-    Triple(MacroType.PROTEIN, "Protein", NutrientDisplayLine.Protein.unit),
-    Triple(MacroType.CARBS, "Carbs", NutrientDisplayLine.Carb.unit),
-    Triple(MacroType.FAT, "Fat", NutrientDisplayLine.Fat.unit),
-)
+private data class MacroRowSpec(val type: MacroType, val label: String, val unit: String)
 
-private val EXTRA_MACRO_ROWS = listOf(
-    Triple(MacroType.SALT, "Salt", NutrientDisplayLine.Salt.unit),
-    Triple(MacroType.FIBRE, "Fibre", NutrientDisplayLine.Fibre.unit),
-    Triple(MacroType.SATURATED, "of which saturated", NutrientDisplayLine.OfWhichSaturated.unit),
-    Triple(MacroType.SUGAR, "of which sugar", NutrientDisplayLine.OfWhichSugar.unit),
+private val CALORIES_ROW = MacroRowSpec(MacroType.CALORIES, "Calories", NutrientDisplayLine.Calories.unit)
+private val PROTEIN_ROW = MacroRowSpec(MacroType.PROTEIN, "Protein", NutrientDisplayLine.Protein.unit)
+private val CARBS_ROW = MacroRowSpec(MacroType.CARBS, "Carbs", NutrientDisplayLine.Carb.unit)
+private val SUGAR_ROW = MacroRowSpec(MacroType.SUGAR, "of which sugar", NutrientDisplayLine.OfWhichSugar.unit)
+private val FAT_ROW = MacroRowSpec(MacroType.FAT, "Fat", NutrientDisplayLine.Fat.unit)
+private val SATURATED_ROW = MacroRowSpec(MacroType.SATURATED, "of which saturated", NutrientDisplayLine.OfWhichSaturated.unit)
+private val SALT_ROW = MacroRowSpec(MacroType.SALT, "Salt", NutrientDisplayLine.Salt.unit)
+private val FIBRE_ROW = MacroRowSpec(MacroType.FIBRE, "Fibre", NutrientDisplayLine.Fibre.unit)
+
+/**
+ * Sugar and saturated fat are always shown nested right under carbs/fat (never as a separate
+ * "also watching" group) since they're sub-quantities of those macros, not independent ones -
+ * splitting them out elsewhere would read as if they're unrelated to carbs/fat.
+ */
+private val RESULT_ROW_GROUPS = listOf(
+    CALORIES_ROW to null,
+    PROTEIN_ROW to null,
+    CARBS_ROW to SUGAR_ROW,
+    FAT_ROW to SATURATED_ROW,
+    SALT_ROW to null,
+    FIBRE_ROW to null,
 )
 
 @Composable
@@ -267,24 +278,20 @@ fun ResultPage(
         subtitle = stringResource(R.string.goals_questionnaire_result_subtitle),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-            CORE_MACRO_ROWS.forEach { (type, label, unit) ->
-                presetTargets[type]?.let { target ->
-                    ResultRow(label = label, unit = unit, target = target, onChange = { onPresetTargetChanged(type, it) })
-                }
-            }
+            RESULT_ROW_GROUPS.forEach { (main, nested) ->
+                val mainTarget = presetTargets[main.type]?.takeIf { it.enabled } ?: return@forEach
+                val nestedTarget = nested?.let { presetTargets[it.type]?.takeIf { t -> t.enabled } }
 
-            val enabledExtras = EXTRA_MACRO_ROWS.filter { (type, _, _) -> presetTargets[type]?.enabled == true }
-            if (enabledExtras.isNotEmpty()) {
-                Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                    Text(
-                        text = stringResource(R.string.goals_questionnaire_result_extras_heading),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                    )
-                    enabledExtras.forEach { (type, label, unit) ->
-                        presetTargets[type]?.let { target ->
-                            ResultRow(label = label, unit = unit, target = target, onChange = { onPresetTargetChanged(type, it) })
-                        }
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    ResultRow(label = main.label, unit = main.unit, target = mainTarget, onChange = { onPresetTargetChanged(main.type, it) })
+                    if (nested != null && nestedTarget != null) {
+                        ResultRow(
+                            label = nested.label,
+                            unit = nested.unit,
+                            target = nestedTarget,
+                            onChange = { onPresetTargetChanged(nested.type, it) },
+                            indented = true,
+                        )
                     }
                 }
             }
@@ -301,9 +308,19 @@ private fun ResultRow(
     unit: String,
     target: TargetUiModel,
     onChange: (TargetUiModel) -> Unit,
+    indented: Boolean = false,
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(text = "$label ($unit)", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = if (indented) 20.dp else 0.dp),
+    ) {
+        Text(
+            text = "$label ($unit)",
+            style = if (indented) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Medium,
+            color = if (indented) MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onBackground,
+        )
         Spacer(modifier = Modifier.height(4.dp))
         Row(modifier = Modifier.fillMaxWidth()) {
             OutlinedTextField(
