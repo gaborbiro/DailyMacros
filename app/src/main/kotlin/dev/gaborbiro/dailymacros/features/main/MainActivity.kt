@@ -42,14 +42,12 @@ import dev.gaborbiro.dailymacros.features.common.SettingsRowId
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
 import dev.gaborbiro.dailymacros.features.onboarding.OnboardingScreen
-import dev.gaborbiro.dailymacros.features.common.GOALS_QUESTIONNAIRE_ROUTE
 import dev.gaborbiro.dailymacros.features.common.ONBOARDING_ROUTE
 import dev.gaborbiro.dailymacros.features.common.PAYWALL_ROUTE
 import dev.gaborbiro.dailymacros.features.overview.OverviewScreen
 import dev.gaborbiro.dailymacros.features.paywall.PaywallScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsScreen
 import dev.gaborbiro.dailymacros.features.settings.SettingsViewModel
-import dev.gaborbiro.dailymacros.features.settings.goalsQuestionnaire.GoalsQuestionnaireScreen
 import dev.gaborbiro.dailymacros.features.settings.goalsQuestionnaire.GoalsQuestionnaireViewModel
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorViewModel
 import dev.gaborbiro.dailymacros.features.settings.targetsSettings.TargetsSettingsViewModel
@@ -157,6 +155,7 @@ class MainActivity : ComponentActivity() {
                 val navController: NavHostController = rememberNavController()
                 val targetsSettingsViewModel: TargetsSettingsViewModel = hiltViewModel()
                 val promptEditorViewModel: PromptEditorViewModel = hiltViewModel()
+                val goalsQuestionnaireViewModel: GoalsQuestionnaireViewModel = hiltViewModel()
                 val trendsViewModel: TrendsViewModel = hiltViewModel()
 
                 LaunchedEffect(pendingHighlightRowId) {
@@ -205,15 +204,6 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     composable(
-                        route = GOALS_QUESTIONNAIRE_ROUTE,
-                    ) {
-                        val goalsQuestionnaireViewModel: GoalsQuestionnaireViewModel = hiltViewModel()
-                        GoalsQuestionnaireScreen(
-                            viewModel = goalsQuestionnaireViewModel,
-                            onCloseRequested = { navController.popBackStack() },
-                        )
-                    }
-                    composable(
                         route = OVERVIEW_ROUTE,
                     ) {
                         CompositionLocalProvider(LocalImageStore provides imageStore) {
@@ -255,6 +245,7 @@ class MainActivity : ComponentActivity() {
                             settingsViewModel = settingsViewModel,
                             targetsSettingsViewModel = targetsSettingsViewModel,
                             promptEditorViewModel = promptEditorViewModel,
+                            goalsQuestionnaireViewModel = goalsQuestionnaireViewModel,
                             navController = navController,
                             highlightRowId = highlightRowId,
                         )
