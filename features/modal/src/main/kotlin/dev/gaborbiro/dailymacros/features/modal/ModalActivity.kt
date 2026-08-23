@@ -227,11 +227,6 @@ class ModalActivity : AppCompatActivity() {
                 }
             }
 
-            Action.VIEW_TEMPLATE_DETAILS -> {
-                val templateId = intent.getLongExtra(EXTRA_TEMPLATE_ID, -1L)
-                viewModel.onViewTemplateDetailsDeeplinkReceived(templateId)
-            }
-
             Action.QUICK_PICK_WIDGET_CONFIRM -> {
                 val templateId = intent.getLongExtra(EXTRA_TEMPLATE_ID, -1L)
                 val templateName = intent.getStringExtra(EXTRA_TEMPLATE_NAME) ?: ""

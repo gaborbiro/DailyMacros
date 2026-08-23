@@ -23,7 +23,7 @@ internal object PreviewWidgetNavigator : WidgetNavigator {
 
     override fun quickPickImageTapped(templateId: Long): Action = noopAction()
 
-    override fun quickPickBodyTapped(templateId: Long): Action = noopAction()
+    override fun quickPickBodyTapped(templateId: Long, templateName: String): Action = noopAction()
 
     override fun quickPickWidgetTapped(templateId: Long, templateName: String): Action = noopAction()
 

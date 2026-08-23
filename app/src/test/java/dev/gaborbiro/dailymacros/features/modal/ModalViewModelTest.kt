@@ -192,7 +192,7 @@ class ModalViewModelTest {
     }
 
     @Test
-    fun `view template details deeplink opens details for first record of template`() = runTest(testDispatcher) {
+    fun `template details button opens details for first record of template`() = runTest(testDispatcher) {
         val tpl = ModalRecordFixtures.template(dbId = 99L, name = "Snack")
         val rec = ModalRecordFixtures.record(3L, tpl)
         val repo = object : BaseRecordsRepositoryStub() {
@@ -208,7 +208,7 @@ class ModalViewModelTest {
                 tpl.takeIf { it.dbId == templateId } ?: error("unexpected template $templateId")
         }
         val vm = viewModel(repo)
-        vm.onViewTemplateDetailsDeeplinkReceived(99L)
+        vm.onTemplateDetailsButtonTapped(99L)
         advanceUntilIdle()
         val dlg = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
         assertEquals("Snack", dlg.title.text)

@@ -52,9 +52,6 @@ fun Context.getShowTemplateImageIntent(templateId: Long) =
 fun Context.getViewRecordDetailsIntent(recordId: Long) =
     getModalIntent(Action.VIEW_RECORD_DETAILS, EXTRA_RECORD_ID to recordId)
 
-fun Context.getViewTemplateDetailsIntent(templateId: Long) =
-    getModalIntent(Action.VIEW_TEMPLATE_DETAILS, EXTRA_TEMPLATE_ID to templateId)
-
 fun Context.getQuickPickWidgetConfirmIntent(templateId: Long, templateName: String) =
     getModalIntent(Action.QUICK_PICK_WIDGET_CONFIRM, EXTRA_TEMPLATE_ID to templateId, EXTRA_TEMPLATE_NAME to templateName)
 
@@ -103,7 +100,6 @@ enum class Action {
     BROWSE_IMAGES,
     TEXT_ONLY,
     VIEW_RECORD_DETAILS,
-    VIEW_TEMPLATE_DETAILS,
     VIEW_IMAGE,
     QUICK_PICK_WIDGET_CONFIRM,
     PHOTO_RECOGNITION_DETAILS,

@@ -70,7 +70,7 @@ private fun QuickPickWidgetViewWithTitlePreview() {
                 templateId = 0L,
                 nutrients = null,
             ),
-            onTapped = PreviewWidgetNavigator.quickPickBodyTapped(0L),
+            onTapped = PreviewWidgetNavigator.quickPickBodyTapped(0L, "Breakfast"),
         )
     }
 }
