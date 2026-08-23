@@ -137,16 +137,6 @@ class SettingsViewModel @Inject constructor(
         _uiState.update { it.copy(showTargetsSettings = false) }
     }
 
-    fun onGoalsQuestionnaireTapped() {
-        _uiState.update { it.copy(showTargetsSettings = false, showGoalsQuestionnaire = true) }
-    }
-
-    /** Reopens the Targets sheet underneath - see [onGoalsQuestionnaireTapped]. Its own
-     *  reload-on-show effect (in SettingsScreen) then picks up whatever the questionnaire saved. */
-    fun onGoalsQuestionnaireCloseRequested() {
-        _uiState.update { it.copy(showGoalsQuestionnaire = false, showTargetsSettings = true) }
-    }
-
     fun onPromptEditorTapped() {
         _uiState.update { it.copy(showPromptEditor = true) }
     }
