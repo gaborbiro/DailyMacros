@@ -17,14 +17,14 @@
  * Subscription gate: a subscription (users/{uid}.subscription*, written by
  * verifySubscription in subscriptions.js) is ALWAYS required, for everyone
  * not on the unlimitedClientIds allowlist, with one exception: a brand-new,
- * not-yet-subscribed user gets a small pre-subscription allowance for the
- * "recognition" and "analysis" features (see PRESUB_FEATURES below) so they
- * can experience real value before being asked to pay. Every other feature
- * (weekly/ongoing insights, or a request with no recognised X-Feature header)
- * requires a subscription unconditionally.
+ * not-yet-subscribed user gets a small pre-subscription allowance, shared
+ * across the "recognition" and "analysis" features (see PRESUB_ELIGIBLE_
+ * FEATURES below), so they can experience real value before being asked to
+ * pay. Every other feature (weekly/ongoing insights, or a request with no
+ * recognised X-Feature header) requires a subscription unconditionally.
  *
- * Pre-subscription allowance: each gated feature has two independent,
- * lifetime (never-reset) per-user caps in users/{uid}:
+ * Pre-subscription allowance: a single pool, shared between both eligible
+ * features, of two lifetime (never-reset) per-user caps in users/{uid}:
  *   - a TOTAL-attempts cap, incremented server-side before every allowed
  *     call (same "count it even if it fails" philosophy as the caps below) -
  *     this is the real ceiling and is never trusted to the client.
@@ -37,8 +37,10 @@
  *     server-verified TOTAL cap still bounds a lying client just the same,
  *     it just costs them their full total allowance instead of tripping
  *     the success cap first.
- * Once either cap is hit for a feature, that feature requires a real
- * subscription. Tune the caps live in Firestore at config/limits without
+ * A call to either feature counts against the same pool, so once either cap
+ * is hit, BOTH features require a real subscription from then on - there's
+ * no way to keep using one feature after exhausting the allowance on the
+ * other. Tune the caps live in Firestore at config/limits without
  * redeploying (see functions/README.md).
  *
  * Metering is by REQUEST COUNT (a tripwire), not exact token cost: ~3000
@@ -111,29 +113,19 @@ const DEFAULT_MONTHLY_REQUEST_BUDGET = 3000;
 const ENTITLED_STATES = new Set(["active", "in_grace_period", "canceled"]);
 
 /**
- * The only two features a not-yet-subscribed user may use at all, and how to
- * look up/store their allowance. Anything else (weekly insights, ongoing
- * insights, a request with no/unrecognised X-Feature header) has no
- * pre-subscription allowance - see the gate below.
+ * The only two features a not-yet-subscribed user may use at all. Anything
+ * else (weekly insights, ongoing insights, a request with no/unrecognised
+ * X-Feature header) has no pre-subscription allowance - see the gate below.
+ * Both features draw from the same shared pool (PRESUB_* fields below), so
+ * usage of one counts against the other's remaining allowance too.
  */
-const PRESUB_FEATURES = {
-  recognition: {
-    totalField: "preSubRecognitionTotal",
-    successField: "preSubRecognitionSuccess",
-    totalCapField: "preSubRecognitionTotalCap",
-    successCapField: "preSubRecognitionSuccessCap",
-    defaultTotalCap: 6,
-    defaultSuccessCap: 3,
-  },
-  analysis: {
-    totalField: "preSubAnalysisTotal",
-    successField: "preSubAnalysisSuccess",
-    totalCapField: "preSubAnalysisTotalCap",
-    successCapField: "preSubAnalysisSuccessCap",
-    defaultTotalCap: 6,
-    defaultSuccessCap: 3,
-  },
-};
+const PRESUB_ELIGIBLE_FEATURES = new Set(["recognition", "analysis"]);
+const PRESUB_TOTAL_FIELD = "preSubTotal";
+const PRESUB_SUCCESS_FIELD = "preSubSuccess";
+const PRESUB_TOTAL_CAP_FIELD = "preSubTotalCap";
+const PRESUB_SUCCESS_CAP_FIELD = "preSubSuccessCap";
+const PRESUB_DEFAULT_TOTAL_CAP = 9;
+const PRESUB_DEFAULT_SUCCESS_CAP = 6;
 
 /** OpenAI-shaped error envelope so the client's existing error parser handles it. */
 function sendError(res, status, code, message) {
@@ -179,18 +171,18 @@ exports.openaiProxy = onRequest(
     }
 
     // Self-reported "that pre-subscription call actually produced something
-    // useful" signal from the client (see PRESUB_FEATURES doc above) - not an
-    // OpenAI call, just a Firestore increment. Never trusted for the TOTAL
-    // cap, only for the softer SUCCESS cap.
+    // useful" signal from the client (see PRESUB_ELIGIBLE_FEATURES doc above)
+    // - not an OpenAI call, just a Firestore increment. Never trusted for the
+    // TOTAL cap, only for the softer SUCCESS cap.
     if (req.query.report !== undefined) {
       const feature = req.body && req.body.feature;
-      if (feature !== "recognition" && feature !== "analysis") {
+      if (!PRESUB_ELIGIBLE_FEATURES.has(feature)) {
         sendError(res, 400, "invalid_request", "feature must be 'recognition' or 'analysis'.");
         return;
       }
       try {
         await db.doc(`users/${uid}`).set(
-          { [PRESUB_FEATURES[feature].successField]: admin.firestore.FieldValue.increment(1) },
+          { [PRESUB_SUCCESS_FIELD]: admin.firestore.FieldValue.increment(1) },
           { merge: true },
         );
         res.status(200).json({ ok: true });
@@ -206,8 +198,8 @@ exports.openaiProxy = onRequest(
     // the document; null if absent (older app builds).
     const clientId = (req.get("X-Client-Id") || "").slice(0, 64) || null;
 
-    // Which AI feature this call is for (see PRESUB_FEATURES); null/unrecognised
-    // means "not eligible for a pre-subscription allowance".
+    // Which AI feature this call is for (see PRESUB_ELIGIBLE_FEATURES);
+    // null/unrecognised means "not eligible for a pre-subscription allowance".
     const featureKey = req.get("X-Feature") || null;
 
     // 2. Enforce caps atomically.
@@ -299,18 +291,17 @@ exports.openaiProxy = onRequest(
         if (selfHealPurchaseToken) {
           return { allow: false, code: "self_heal", selfHealPurchaseToken };
         }
-        const feature = PRESUB_FEATURES[featureKey];
-        if (!feature) {
+        if (!PRESUB_ELIGIBLE_FEATURES.has(featureKey)) {
           return { allow: false, status: 403, code: "subscription_required", message: "A subscription is required to continue using AI analysis." };
         }
-        const totalCap = cfg[feature.totalCapField] ?? feature.defaultTotalCap;
-        const successCap = cfg[feature.successCapField] ?? feature.defaultSuccessCap;
-        const totalCount = u[feature.totalField] || 0;
-        const successCount = u[feature.successField] || 0;
+        const totalCap = cfg[PRESUB_TOTAL_CAP_FIELD] ?? PRESUB_DEFAULT_TOTAL_CAP;
+        const successCap = cfg[PRESUB_SUCCESS_CAP_FIELD] ?? PRESUB_DEFAULT_SUCCESS_CAP;
+        const totalCount = u[PRESUB_TOTAL_FIELD] || 0;
+        const successCount = u[PRESUB_SUCCESS_FIELD] || 0;
         if (totalCount >= totalCap || successCount >= successCap) {
           return { allow: false, status: 403, code: "subscription_required", message: "A subscription is required to continue using AI analysis." };
         }
-        preSubIncrementField = feature.totalField;
+        preSubIncrementField = PRESUB_TOTAL_FIELD;
       }
 
       // Allowlisted clients skip the per-user daily cap (still counted below,

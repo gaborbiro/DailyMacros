@@ -24,7 +24,7 @@ internal interface ChatGPTService {
     // its doc comment) - the "?report=1" query param is how the function tells
     // this apart from a real OpenAI-bound call. Used only to self-report that a
     // pre-subscription call actually produced something useful; see
-    // functions/index.js's PRESUB_FEATURES doc comment for the trust model.
+    // functions/index.js's PRESUB_ELIGIBLE_FEATURES doc comment for the trust model.
     @Headers("Content-Type: application/json")
     @POST("v1/responses")
     suspend fun reportOutcome(
