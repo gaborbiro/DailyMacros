@@ -14,7 +14,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -76,19 +76,21 @@ fun GoalsQuestionnaireView(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {},
+                title = { Text(stringResource(R.string.goals_questionnaire_title)) },
                 navigationIcon = {
                     IconButton(onClick = onCloseTapped) {
                         Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = stringResource(R.string.goals_questionnaire_close_cd),
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.goals_questionnaire_back),
                         )
                     }
                 },
             )
         },
         bottomBar = {
-            BottomAppBar {
+            BottomAppBar(
+                containerColor = MaterialTheme.colorScheme.background,
+            ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -122,6 +124,7 @@ fun GoalsQuestionnaireView(
                 }
             }
         },
+        containerColor = MaterialTheme.colorScheme.background,
     ) { paddingValues ->
         HorizontalPager(
             state = pagerState,

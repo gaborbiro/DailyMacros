@@ -90,7 +90,7 @@
     <string name="settings_content_targets_error_min_max">min cannot be higher than max</string>
     <string name="settings_content_targets_retake_questionnaire">Retake goals questionnaire</string>
     <!-- GoalsQuestionnaireView -->
-    <string name="goals_questionnaire_close_cd">Close</string>
+    <string name="goals_questionnaire_title">Set your goals</string>
     <string name="goals_questionnaire_back">Back</string>
     <string name="goals_questionnaire_next">Next</string>
     <string name="goals_questionnaire_accept">Accept</string>
