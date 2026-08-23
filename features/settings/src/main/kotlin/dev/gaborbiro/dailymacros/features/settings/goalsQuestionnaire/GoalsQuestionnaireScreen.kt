@@ -21,6 +21,7 @@ fun GoalsQuestionnaireScreen(
         onAgeBracketSelected = viewModel::onAgeBracketSelected,
         onActivityLevelSelected = viewModel::onActivityLevelSelected,
         onDietaryFocusToggled = viewModel::onDietaryFocusToggled,
+        onDietaryFocusNoneTapped = viewModel::onDietaryFocusNoneTapped,
         onPresetTargetChanged = viewModel::onPresetTargetChanged,
         onAcceptTapped = viewModel::onAcceptTapped,
         onCloseTapped = onCloseRequested,

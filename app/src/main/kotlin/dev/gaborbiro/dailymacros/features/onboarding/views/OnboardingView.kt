@@ -49,10 +49,34 @@ import dev.gaborbiro.dailymacros.features.overview.views.AddWidgetButton
 import dev.gaborbiro.dailymacros.features.overview.views.MacroChip
 import dev.gaborbiro.dailymacros.features.overview.views.PhoneIllustration
 import dev.gaborbiro.dailymacros.features.overview.views.WelcomeBullet
+import dev.gaborbiro.dailymacros.features.settings.goalsQuestionnaire.model.ActivityLevel
+import dev.gaborbiro.dailymacros.features.settings.goalsQuestionnaire.model.AgeBracket
+import dev.gaborbiro.dailymacros.features.settings.goalsQuestionnaire.model.DietaryFocus
+import dev.gaborbiro.dailymacros.features.settings.goalsQuestionnaire.model.GOALS_QUESTIONNAIRE_PAGE_COUNT
+import dev.gaborbiro.dailymacros.features.settings.goalsQuestionnaire.model.Gender
+import dev.gaborbiro.dailymacros.features.settings.goalsQuestionnaire.model.Goal
+import dev.gaborbiro.dailymacros.features.settings.goalsQuestionnaire.model.GoalsQuestionnaireAnswers
+import dev.gaborbiro.dailymacros.features.settings.goalsQuestionnaire.model.canAdvanceFromQuestionnairePage
+import dev.gaborbiro.dailymacros.features.settings.goalsQuestionnaire.views.ActivityLevelPage
+import dev.gaborbiro.dailymacros.features.settings.goalsQuestionnaire.views.AgeBracketPage
+import dev.gaborbiro.dailymacros.features.settings.goalsQuestionnaire.views.DietaryFocusPage
+import dev.gaborbiro.dailymacros.features.settings.goalsQuestionnaire.views.GenderPage
+import dev.gaborbiro.dailymacros.features.settings.goalsQuestionnaire.views.GoalPage
+import dev.gaborbiro.dailymacros.features.settings.goalsQuestionnaire.views.ResultPage
+import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.MacroType
+import dev.gaborbiro.dailymacros.features.settings.targetsSettings.model.TargetUiModel
 import kotlinx.coroutines.launch
 import dev.gaborbiro.dailymacros.features.overview.R as OverviewR
 
-private const val PAGE_COUNT = 4
+// The goals questionnaire is flattened directly into onboarding's own pager, starting from its
+// 2nd page (index 1) - see the class doc on OnboardingScreen for why it's not a separate route
+// when reached this way (it still is one when opened from the Daily Targets screen).
+private const val INTRO_PAGE = 0
+private const val QUESTIONNAIRE_START_PAGE = 1
+private const val QUESTIONNAIRE_END_PAGE = QUESTIONNAIRE_START_PAGE + GOALS_QUESTIONNAIRE_PAGE_COUNT - 1
+private const val SETUP_PAGE = QUESTIONNAIRE_END_PAGE + 1
+private const val TRIAL_PAGE = SETUP_PAGE + 1
+private const val PAGE_COUNT = TRIAL_PAGE + 1
 
 @Composable
 internal fun OnboardingView(
@@ -61,14 +85,23 @@ internal fun OnboardingView(
     restoreFromCloudInProgress: Boolean = false,
     onRestoreFromLocalBackup: () -> Unit = {},
     restoreFromLocalBackupInProgress: Boolean = false,
-    onStartGoalsQuestionnaireTapped: () -> Unit = {},
+    goalsAnswers: GoalsQuestionnaireAnswers = GoalsQuestionnaireAnswers(),
+    goalsPresetTargets: Map<MacroType, TargetUiModel> = emptyMap(),
+    onGoalSelected: (Goal) -> Unit = {},
+    onGenderSelected: (Gender) -> Unit = {},
+    onAgeBracketSelected: (AgeBracket) -> Unit = {},
+    onActivityLevelSelected: (ActivityLevel) -> Unit = {},
+    onDietaryFocusToggled: (DietaryFocus) -> Unit = {},
+    onDietaryFocusNoneTapped: () -> Unit = {},
+    onPresetTargetChanged: (MacroType, TargetUiModel) -> Unit = { _, _ -> },
+    onPersistGoalsPresetTargets: () -> Unit = {},
     onStartTrialTapped: () -> Unit = {},
     onSkipTapped: () -> Unit = {},
 ) {
     val pagerState = rememberPagerState(pageCount = { PAGE_COUNT })
     val coroutineScope = rememberCoroutineScope()
-    val goToNextPage: () -> Unit = {
-        coroutineScope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
+    val goToPage: (Int) -> Unit = { page ->
+        coroutineScope.launch { pagerState.animateScrollToPage(page) }
     }
 
     Surface(
@@ -80,22 +113,47 @@ internal fun OnboardingView(
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.systemBars),
         ) {
+            // Reserves its height on every page (rather than only questionnaire ones) so the
+            // pager below never shifts size as the user moves back and forth.
+            val onQuestionnairePage = pagerState.currentPage in QUESTIONNAIRE_START_PAGE..QUESTIONNAIRE_END_PAGE
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                TextButton(
+                    modifier = Modifier.alpha(if (onQuestionnairePage) 1f else 0f),
+                    enabled = onQuestionnairePage,
+                    onClick = { goToPage(SETUP_PAGE) },
+                ) {
+                    Text(stringResource(R.string.onboarding_goals_skip_button))
+                }
+            }
+
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.weight(1f),
             ) { page ->
                 when (page) {
-                    0 -> OnboardingIntroPage()
-                    1 -> OnboardingSetupPage(
+                    INTRO_PAGE -> OnboardingIntroPage()
+                    QUESTIONNAIRE_START_PAGE -> GoalPage(selected = goalsAnswers.goal, onSelected = onGoalSelected)
+                    QUESTIONNAIRE_START_PAGE + 1 -> GenderPage(selected = goalsAnswers.gender, onSelected = onGenderSelected)
+                    QUESTIONNAIRE_START_PAGE + 2 -> AgeBracketPage(selected = goalsAnswers.ageBracket, onSelected = onAgeBracketSelected)
+                    QUESTIONNAIRE_START_PAGE + 3 -> ActivityLevelPage(selected = goalsAnswers.activityLevel, onSelected = onActivityLevelSelected)
+                    QUESTIONNAIRE_START_PAGE + 4 -> DietaryFocusPage(
+                        selected = goalsAnswers.dietaryFocus,
+                        reviewed = goalsAnswers.dietaryFocusReviewed,
+                        onToggled = onDietaryFocusToggled,
+                        onNoneTapped = onDietaryFocusNoneTapped,
+                    )
+                    QUESTIONNAIRE_END_PAGE -> ResultPage(presetTargets = goalsPresetTargets, onPresetTargetChanged = onPresetTargetChanged)
+                    SETUP_PAGE -> OnboardingSetupPage(
                         onAddWidget = onAddWidget,
                         onRestoreFromCloud = onRestoreFromCloud,
                         restoreFromCloudInProgress = restoreFromCloudInProgress,
                         onRestoreFromLocalBackup = onRestoreFromLocalBackup,
                         restoreFromLocalBackupInProgress = restoreFromLocalBackupInProgress,
-                    )
-                    2 -> OnboardingGoalsPromptPage(
-                        onStartQuestionnaireTapped = onStartGoalsQuestionnaireTapped,
-                        onSkipTapped = goToNextPage,
                     )
                     else -> OnboardingTrialPage(onStartTrialTapped = onStartTrialTapped, onSkipTapped = onSkipTapped)
                 }
@@ -112,10 +170,24 @@ internal fun OnboardingView(
                 // Always rendered (just invisible on the last page) so the row's height - and
                 // therefore its vertical position - never shifts between pages.
                 val isLastPage = pagerState.currentPage == PAGE_COUNT - 1
+                val canAdvance = if (onQuestionnairePage) {
+                    canAdvanceFromQuestionnairePage(
+                        localPage = pagerState.currentPage - QUESTIONNAIRE_START_PAGE,
+                        answers = goalsAnswers,
+                        presetTargets = goalsPresetTargets,
+                    )
+                } else {
+                    true
+                }
                 Button(
                     modifier = Modifier.alpha(if (isLastPage) 0f else 1f),
-                    enabled = !isLastPage && !restoreFromCloudInProgress && !restoreFromLocalBackupInProgress,
-                    onClick = goToNextPage,
+                    enabled = !isLastPage && canAdvance && !restoreFromCloudInProgress && !restoreFromLocalBackupInProgress,
+                    onClick = {
+                        if (pagerState.currentPage == QUESTIONNAIRE_END_PAGE) {
+                            onPersistGoalsPresetTargets()
+                        }
+                        goToPage(pagerState.currentPage + 1)
+                    },
                 ) {
                     Text(stringResource(R.string.onboarding_next))
                 }
@@ -299,54 +371,6 @@ private fun OnboardingSetupPage(
             color = MaterialTheme.colorScheme.primary,
             textAlign = TextAlign.Center,
         )
-    }
-}
-
-@Composable
-private fun OnboardingGoalsPromptPage(
-    onStartQuestionnaireTapped: () -> Unit,
-    onSkipTapped: () -> Unit,
-) {
-    val onBackground = MaterialTheme.colorScheme.onBackground
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScrollWithBar()
-            .padding(horizontal = 28.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            text = stringResource(R.string.onboarding_goals_prompt_heading),
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = stringResource(R.string.onboarding_goals_prompt_body),
-            style = MaterialTheme.typography.bodyLarge,
-            color = onBackground.copy(alpha = 0.8f),
-            textAlign = TextAlign.Center,
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Button(
-            modifier = Modifier.padding(horizontal = PaddingDefault),
-            onClick = onStartQuestionnaireTapped,
-        ) {
-            Text(stringResource(R.string.onboarding_goals_prompt_start_button))
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        TextButton(onClick = onSkipTapped) {
-            Text(stringResource(R.string.onboarding_goals_prompt_skip_button))
-        }
     }
 }
 
