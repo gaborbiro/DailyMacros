@@ -202,7 +202,6 @@ class MainActivity : ComponentActivity() {
                             restoreFromCloudInProgress = settingsUiState.cloudSyncInProgress,
                             onRestoreFromLocalBackup = { settingsViewModel.onImportDbTapped(openPublicDocumentUseCase) },
                             restoreFromLocalBackupInProgress = settingsUiState.importDataInProgress,
-                            onStartGoalsQuestionnaireTapped = { navController.navigate(GOALS_QUESTIONNAIRE_ROUTE) },
                         )
                     }
                     composable(

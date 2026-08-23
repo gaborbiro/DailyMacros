@@ -60,7 +60,13 @@ class GoalsQuestionnaireViewModel @Inject constructor(
             } else {
                 answers.dietaryFocus + focus
             }
-            answers.copy(dietaryFocus = focusSet)
+            answers.copy(dietaryFocus = focusSet, dietaryFocusReviewed = true)
+        }
+    }
+
+    fun onDietaryFocusNoneTapped() {
+        updateAnswersAndRecompute { answers ->
+            answers.copy(dietaryFocus = emptySet(), dietaryFocusReviewed = true)
         }
     }
 
@@ -71,13 +77,24 @@ class GoalsQuestionnaireViewModel @Inject constructor(
     }
 
     fun onAcceptTapped() {
-        val presetTargets = _uiState.value.presetTargets
-        if (presetTargets.isEmpty()) return
-
-        repo.setTargets(uiMapper.map(TargetsSettingsUiState(targets = presetTargets)))
+        if (!persistPresetTargets()) return
         viewModelScope.launch {
             _uiUpdates.emit(GoalsQuestionnaireUiUpdates.Finished)
         }
+    }
+
+    /**
+     * Persists the current preset targets to the repository, returning false (no-op) if there's
+     * nothing to save yet - e.g. the user swiped straight to the results page without completing
+     * the required questions first. Exposed separately from [onAcceptTapped] so onboarding, which
+     * flattens these same pages into its own pager instead of hosting this screen, can save and
+     * move on to its next page without going through this screen's own "finished" event.
+     */
+    fun persistPresetTargets(): Boolean {
+        val presetTargets = _uiState.value.presetTargets
+        if (presetTargets.isEmpty()) return false
+        repo.setTargets(uiMapper.map(TargetsSettingsUiState(targets = presetTargets)))
+        return true
     }
 
     private inline fun updateAnswersAndRecompute(

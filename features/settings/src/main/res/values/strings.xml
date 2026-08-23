@@ -118,6 +118,7 @@
     <string name="goals_questionnaire_dietary_salt">Salt</string>
     <string name="goals_questionnaire_dietary_saturated_fat">Saturated fat</string>
     <string name="goals_questionnaire_dietary_fibre">Fibre</string>
+    <string name="goals_questionnaire_dietary_none">None of these, thanks</string>
     <string name="goals_questionnaire_result_title">Here\'s a starting point 🎯</string>
     <string name="goals_questionnaire_result_subtitle">Just a ballpark — tweak anytime in Settings.</string>
     <string name="goals_questionnaire_result_extras_heading">Also watching</string>
