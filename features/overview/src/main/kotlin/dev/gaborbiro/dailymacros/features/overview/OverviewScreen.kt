@@ -15,10 +15,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import dev.gaborbiro.dailymacros.features.common.OVERVIEW_SCROLL_TO_EPOCH_DAY_KEY
 import dev.gaborbiro.dailymacros.features.common.PAYWALL_ROUTE
-import dev.gaborbiro.dailymacros.features.common.SETTINGS_HIGHLIGHT_ROW_ARG
 import dev.gaborbiro.dailymacros.features.common.SETTINGS_ROUTE
 import dev.gaborbiro.dailymacros.features.common.SETTINGS_ROUTE_PATTERN
-import dev.gaborbiro.dailymacros.features.common.SettingsRowId
 import dev.gaborbiro.dailymacros.features.common.TRENDS_ROUTE
 import dev.gaborbiro.dailymacros.features.common.TRENDS_SCROLL_EPOCH_DAY_ARG
 import dev.gaborbiro.dailymacros.features.common.TRENDS_TIMESCALE_ARG
@@ -92,12 +90,6 @@ fun OverviewScreen(
         onSubscribeBannerTapped = viewModel::onSubscribeBannerTapped,
         onSubscribeBannerDismissed = viewModel::onSubscribeBannerDismissed,
         onAddWidget = onAddWidget,
-        onSetTargetsTapped = {
-            navController.navigate("$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_ROW_ARG=${SettingsRowId.TARGETS.name}") {
-                launchSingleTop = true
-                popUpTo(SETTINGS_ROUTE_PATTERN) { inclusive = true }
-            }
-        },
         onDailySummaryTapped = viewModel::onDailySummaryTapped,
         onWeeklySummaryTapped = viewModel::onWeeklySummaryTapped,
         onLoadMore = viewModel::onLoadMore,

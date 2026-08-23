@@ -34,10 +34,8 @@ import dev.gaborbiro.dailymacros.features.overview.R
 internal fun OverviewListTopActions(
     visible: Boolean,
     showSettingsButton: Boolean,
-    showSetTargetsCta: Boolean,
     topContentPadding: Dp,
     onSettingsButtonTapped: () -> Unit,
-    onSetTargetsTapped: () -> Unit,
 ) {
     Box(
         modifier = Modifier
@@ -55,9 +53,6 @@ internal fun OverviewListTopActions(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(PaddingHalf),
             ) {
-                if (showSettingsButton && showSetTargetsCta) {
-                    ListItemSetTargetsCta(onTapped = onSetTargetsTapped)
-                }
                 if (showSettingsButton) {
                     FloatingActionButton(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,

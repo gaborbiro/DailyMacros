@@ -20,8 +20,6 @@
     <string name="overview_content_add_widget_button">Tap here to\nadd a widget to your desktop</string>
     <!-- OverviewListTopActions -->
     <string name="overview_content_settings_cd">Settings Button</string>
-    <!-- ListItemSetTargetsCta -->
-    <string name="overview_content_set_targets_title">Set your Daily Targets</string>
     <!-- SubscribeBanner -->
     <string name="overview_content_subscribe_banner_title">Unlock AI meal recognition</string>
     <string name="overview_content_subscribe_banner_body">Snap a photo and get instant macros — subscribe to keep using it.</string>

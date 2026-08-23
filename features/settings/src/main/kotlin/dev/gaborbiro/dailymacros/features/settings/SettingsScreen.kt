@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import dev.gaborbiro.dailymacros.features.common.GOALS_QUESTIONNAIRE_ROUTE
 import dev.gaborbiro.dailymacros.features.common.ONBOARDING_ROUTE
 import dev.gaborbiro.dailymacros.features.common.SettingsRowId
 import dev.gaborbiro.dailymacros.features.settings.export.rememberCreatePublicDocumentUseCase
@@ -104,10 +105,20 @@ fun SettingsScreen(
         onShowOnboardingTapped = { navController.navigate(ONBOARDING_ROUTE) },
     )
 
+    // Reloads whenever the Targets sheet (re)appears - including on returning from the goals
+    // questionnaire, which writes new targets straight to the repository rather than through
+    // this screen's own ViewModel (see onOpenGoalsQuestionnaire below).
+    LaunchedEffect(settingsUiState.showTargetsSettings) {
+        if (settingsUiState.showTargetsSettings) {
+            targetsSettingsViewModel.reloadFromRepository()
+        }
+    }
+
     if (settingsUiState.showTargetsSettings) {
         TargetsSettingsScreen(
             viewModel = targetsSettingsViewModel,
             onCloseRequested = settingsViewModel::onTargetsSettingsCloseRequested,
+            onOpenGoalsQuestionnaire = { navController.navigate(GOALS_QUESTIONNAIRE_ROUTE) },
         )
     }
 

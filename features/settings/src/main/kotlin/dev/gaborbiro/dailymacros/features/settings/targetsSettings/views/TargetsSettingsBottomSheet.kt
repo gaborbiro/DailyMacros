@@ -69,6 +69,7 @@ internal fun TargetsSettingsBottomSheet(
     onSaveTapped: () -> Unit,
     onUnsavedTargetsDiscardTapped: () -> Unit,
     onUnsavedTargetsDismissRequested: () -> Unit,
+    onRetakeQuestionnaireTapped: () -> Unit = {},
 ) {
     Dialog(
         onDismissRequest = onDismissRequested,
@@ -140,6 +141,15 @@ internal fun TargetsSettingsBottomSheet(
                                 onChange = { onTargetChanged(type, it) }
                             )
                         }
+                    }
+
+                    Spacer(Modifier.height(8.dp))
+
+                    TextButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = onRetakeQuestionnaireTapped,
+                    ) {
+                        Text(stringResource(R.string.settings_content_targets_retake_questionnaire))
                     }
                 }
             }

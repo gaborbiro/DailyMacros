@@ -39,6 +39,7 @@ const val TRENDS_ROUTE_PATTERN =
 const val OVERVIEW_SCROLL_TO_EPOCH_DAY_KEY = "scrollToEpochDay"
 const val ONBOARDING_ROUTE = "onboarding"
 const val PAYWALL_ROUTE = "paywall"
+const val GOALS_QUESTIONNAIRE_ROUTE = "goalsQuestionnaire"
 
 /**
  * Identifies a row in the Settings screen that can be scrolled to and highlighted,
