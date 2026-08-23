@@ -19,6 +19,7 @@ fun OnboardingScreen(
     restoreFromCloudInProgress: Boolean = false,
     onRestoreFromLocalBackup: () -> Unit = {},
     restoreFromLocalBackupInProgress: Boolean = false,
+    onStartGoalsQuestionnaireTapped: () -> Unit = {},
 ) {
     val viewModel: OnboardingViewModel = hiltViewModel()
     val context = LocalContext.current
@@ -41,6 +42,7 @@ fun OnboardingScreen(
         restoreFromCloudInProgress = restoreFromCloudInProgress,
         onRestoreFromLocalBackup = onRestoreFromLocalBackup,
         restoreFromLocalBackupInProgress = restoreFromLocalBackupInProgress,
+        onStartGoalsQuestionnaireTapped = onStartGoalsQuestionnaireTapped,
         onStartTrialTapped = {
             context.findActivity()?.let(viewModel::onStartTrialTapped)
             finishOnboarding()

@@ -5,6 +5,10 @@
     <string name="shortcut_text_name">Text only</string>
     <!-- Onboarding -->
     <string name="onboarding_next">Next</string>
+    <string name="onboarding_goals_prompt_heading">Want a starting point for your daily targets?</string>
+    <string name="onboarding_goals_prompt_body">Answer a few quick questions and we\'ll suggest daily calorie and macro targets you can fine-tune later.</string>
+    <string name="onboarding_goals_prompt_start_button">Set my goals</string>
+    <string name="onboarding_goals_prompt_skip_button">Skip for now</string>
     <string name="onboarding_trial_heading">Start your free trial</string>
     <string name="onboarding_trial_body">AI meal recognition runs on a subscription. Start a free trial now — you won\'t be charged until it ends, and you can cancel any time in Google Play.</string>
     <string name="onboarding_start_trial_button">Start free trial</string>

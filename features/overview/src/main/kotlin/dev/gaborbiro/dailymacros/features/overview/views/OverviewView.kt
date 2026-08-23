@@ -70,7 +70,6 @@ internal fun OverviewView(
     onUndoDeleteSnackbarShown: () -> Unit,
     onSearchTermChanged: (String?) -> Unit,
     onSettingsButtonTapped: () -> Unit,
-    onSetTargetsTapped: () -> Unit,
     onDailySummaryTapped: (epochDay: Long) -> Unit,
     onWeeklySummaryTapped: (epochDay: Long) -> Unit,
     onSubscribeBannerTapped: () -> Unit = {},
@@ -181,10 +180,8 @@ internal fun OverviewView(
                 OverviewListTopActions(
                     visible = fabsVisible,
                     showSettingsButton = viewState.showSettingsButton,
-                    showSetTargetsCta = viewState.showSetTargetsCta,
                     topContentPadding = 0.dp,
                     onSettingsButtonTapped = onSettingsButtonTapped,
-                    onSetTargetsTapped = onSetTargetsTapped,
                 )
 
                 if (!viewState.showAddWidgetButton) {
@@ -369,7 +366,6 @@ private fun OverviewListPreview() {
             onSearchTermChanged = {},
             onAnalyseMacrosMenuItemTapped = {},
             onSettingsButtonTapped = {},
-            onSetTargetsTapped = {},
             onDailySummaryTapped = {},
             onWeeklySummaryTapped = {},
             onLoadMore = {},
@@ -397,7 +393,6 @@ private fun OverviewListPreviewEmpty() {
             onSearchTermChanged = {},
             onAnalyseMacrosMenuItemTapped = {},
             onSettingsButtonTapped = {},
-            onSetTargetsTapped = {},
             onDailySummaryTapped = {},
             onWeeklySummaryTapped = {},
             onLoadMore = {},

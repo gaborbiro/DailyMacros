@@ -52,7 +52,7 @@ import dev.gaborbiro.dailymacros.features.overview.views.WelcomeBullet
 import kotlinx.coroutines.launch
 import dev.gaborbiro.dailymacros.features.overview.R as OverviewR
 
-private const val PAGE_COUNT = 3
+private const val PAGE_COUNT = 4
 
 @Composable
 internal fun OnboardingView(
@@ -61,11 +61,15 @@ internal fun OnboardingView(
     restoreFromCloudInProgress: Boolean = false,
     onRestoreFromLocalBackup: () -> Unit = {},
     restoreFromLocalBackupInProgress: Boolean = false,
+    onStartGoalsQuestionnaireTapped: () -> Unit = {},
     onStartTrialTapped: () -> Unit = {},
     onSkipTapped: () -> Unit = {},
 ) {
     val pagerState = rememberPagerState(pageCount = { PAGE_COUNT })
     val coroutineScope = rememberCoroutineScope()
+    val goToNextPage: () -> Unit = {
+        coroutineScope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -89,6 +93,10 @@ internal fun OnboardingView(
                         onRestoreFromLocalBackup = onRestoreFromLocalBackup,
                         restoreFromLocalBackupInProgress = restoreFromLocalBackupInProgress,
                     )
+                    2 -> OnboardingGoalsPromptPage(
+                        onStartQuestionnaireTapped = onStartGoalsQuestionnaireTapped,
+                        onSkipTapped = goToNextPage,
+                    )
                     else -> OnboardingTrialPage(onStartTrialTapped = onStartTrialTapped, onSkipTapped = onSkipTapped)
                 }
             }
@@ -104,11 +112,10 @@ internal fun OnboardingView(
                 // Always rendered (just invisible on the last page) so the row's height - and
                 // therefore its vertical position - never shifts between pages.
                 val isLastPage = pagerState.currentPage == PAGE_COUNT - 1
-                val nextPage = pagerState.currentPage + 1
                 Button(
                     modifier = Modifier.alpha(if (isLastPage) 0f else 1f),
                     enabled = !isLastPage && !restoreFromCloudInProgress && !restoreFromLocalBackupInProgress,
-                    onClick = { coroutineScope.launch { pagerState.animateScrollToPage(nextPage) } },
+                    onClick = goToNextPage,
                 ) {
                     Text(stringResource(R.string.onboarding_next))
                 }
@@ -292,6 +299,54 @@ private fun OnboardingSetupPage(
             color = MaterialTheme.colorScheme.primary,
             textAlign = TextAlign.Center,
         )
+    }
+}
+
+@Composable
+private fun OnboardingGoalsPromptPage(
+    onStartQuestionnaireTapped: () -> Unit,
+    onSkipTapped: () -> Unit,
+) {
+    val onBackground = MaterialTheme.colorScheme.onBackground
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScrollWithBar()
+            .padding(horizontal = 28.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            text = stringResource(R.string.onboarding_goals_prompt_heading),
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = stringResource(R.string.onboarding_goals_prompt_body),
+            style = MaterialTheme.typography.bodyLarge,
+            color = onBackground.copy(alpha = 0.8f),
+            textAlign = TextAlign.Center,
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Button(
+            modifier = Modifier.padding(horizontal = PaddingDefault),
+            onClick = onStartQuestionnaireTapped,
+        ) {
+            Text(stringResource(R.string.onboarding_goals_prompt_start_button))
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        TextButton(onClick = onSkipTapped) {
+            Text(stringResource(R.string.onboarding_goals_prompt_skip_button))
+        }
     }
 }
 

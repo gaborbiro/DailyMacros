@@ -11,6 +11,7 @@ import dev.gaborbiro.dailymacros.features.settings.targetsSettings.views.Targets
 fun TargetsSettingsScreen(
     viewModel: TargetsSettingsViewModel,
     onCloseRequested: () -> Unit,
+    onOpenGoalsQuestionnaire: () -> Unit = {},
 ) {
     val viewState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -22,6 +23,7 @@ fun TargetsSettingsScreen(
         onSaveTapped = viewModel::onSaveTapped,
         onUnsavedTargetsDiscardTapped = viewModel::onUnsavedTargetsDiscardTapped,
         onUnsavedTargetsDismissRequested = viewModel::onUnsavedTargetsDismissRequested,
+        onRetakeQuestionnaireTapped = onOpenGoalsQuestionnaire,
     )
 
     LaunchedEffect(viewModel) {
