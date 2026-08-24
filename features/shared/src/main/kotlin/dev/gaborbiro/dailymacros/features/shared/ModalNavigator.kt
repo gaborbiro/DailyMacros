@@ -9,6 +9,13 @@ interface ModalNavigator {
 
     fun launchViewRecordDetails(context: Context, recordId: Long)
 
+    fun viewRecordDetailsPendingIntent(
+        context: Context,
+        requestCode: Int,
+        recordId: Long,
+        notificationId: Int,
+    ): PendingIntent
+
     fun launchToAddRecordFromPhotoRecognition(context: Context, imageFilename: String, recognisedTitle: String)
 
     fun photoRecognitionDetailsPendingIntent(

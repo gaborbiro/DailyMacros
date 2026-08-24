@@ -9,6 +9,7 @@ import androidx.core.app.NotificationCompat
 import dev.gaborbiro.dailymacros.R
 import dev.gaborbiro.dailymacros.features.common.SettingsRowId
 import dev.gaborbiro.dailymacros.features.main.MainActivity
+import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
 import dev.gaborbiro.dailymacros.features.shared.notifications.CHANNEL_ID_FOREGROUND
 
 private const val CHANNEL_ID_GENERAL = "general"
@@ -57,12 +58,24 @@ fun Context.showMacroResultsNotification(
     title: String?,
     message: String,
     isError: Boolean,
+    modalNavigator: ModalNavigator,
     subscriptionRequired: Boolean = false,
 ) {
     val channelId = if (isError) CHANNEL_ID_ERROR else CHANNEL_ID_GENERAL
     var builder = NotificationCompat.Builder(this, channelId)
         .setSmallIcon(R.drawable.ic_nutrition)
-        .setContentIntent(if (subscriptionRequired) openPaywallIntent(id.toInt()) else openOverviewIntent())
+        .setContentIntent(
+            if (subscriptionRequired) {
+                openPaywallIntent(id.toInt())
+            } else {
+                modalNavigator.viewRecordDetailsPendingIntent(
+                    context = this,
+                    requestCode = id.toInt(),
+                    recordId = recordId,
+                    notificationId = id.toInt(),
+                )
+            }
+        )
     title?.takeIf { it.isNotBlank() }?.let {
         builder = builder.setContentTitle(it)
     }
@@ -156,18 +169,6 @@ private fun Context.openPaywallIntent(requestCode: Int): PendingIntent? {
     return PendingIntent.getActivity(
         this,
         requestCode,
-        intent,
-        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-    )
-}
-
-private fun Context.openOverviewIntent(): PendingIntent? {
-    val intent = Intent(this, MainActivity::class.java).apply {
-        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-    }
-    return PendingIntent.getActivity(
-        this,
-        0,
         intent,
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
