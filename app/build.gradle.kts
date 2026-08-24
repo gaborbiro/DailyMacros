@@ -119,14 +119,19 @@ private val sha = (System.getenv("BUILD_SHA") ?: System.getenv("GITHUB_SHA"))?.t
 // Single source of truth for versionCode: release gets the CI run number so Play Store
 // uploads always increase; every other build type gets Int.MAX_VALUE so debug/qa installs
 // from CI and laptop never collide and always win over whatever is already installed.
-// versionName is derived from the same resolved versionCode, so it never shows a
-// pipeline id that doesn't match what was actually shipped.
+// versionName mirrors that: release keeps just the plain version (what Play Console/users
+// see), while debug/qa append the versionCode and sha for disambiguating installs.
 androidComponents {
     onVariants { variant ->
         val versionCode = if (variant.buildType == "release") pipelineId else Int.MAX_VALUE
+        val versionName = if (variant.buildType == "release") {
+            baseVersion
+        } else {
+            "${baseVersion}(${versionCode})-${sha}"
+        }
         variant.outputs.forEach { output ->
             output.versionCode.set(versionCode)
-            output.versionName.set("${baseVersion}(${versionCode})-${sha}")
+            output.versionName.set(versionName)
         }
     }
 }
