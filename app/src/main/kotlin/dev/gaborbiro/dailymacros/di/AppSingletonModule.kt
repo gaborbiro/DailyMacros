@@ -10,6 +10,7 @@ import dagger.hilt.components.SingletonComponent
 import dev.gaborbiro.dailymacros.AppPrefs
 import dev.gaborbiro.dailymacros.BuildConfig
 import dev.gaborbiro.dailymacros.features.settings.SettingsAppInfo
+import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
 import dev.gaborbiro.dailymacros.features.shared.notifications.MacroResultsNotificationSender
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ClientIdProvider
 import dev.gaborbiro.dailymacros.util.showMacroResultsNotification
@@ -45,7 +46,10 @@ object AppSingletonModule {
 
     @Provides
     @Singleton
-    fun macroResultsNotificationSender(@ApplicationContext context: Context): MacroResultsNotificationSender =
+    fun macroResultsNotificationSender(
+        @ApplicationContext context: Context,
+        modalNavigator: ModalNavigator,
+    ): MacroResultsNotificationSender =
         object : MacroResultsNotificationSender {
             override fun showMacroResultsNotification(
                 id: Long,
@@ -55,7 +59,7 @@ object AppSingletonModule {
                 isError: Boolean,
                 subscriptionRequired: Boolean,
             ) {
-                context.showMacroResultsNotification(id, recordId, title, message, isError, subscriptionRequired)
+                context.showMacroResultsNotification(id, recordId, title, message, isError, modalNavigator, subscriptionRequired)
             }
         }
 }
