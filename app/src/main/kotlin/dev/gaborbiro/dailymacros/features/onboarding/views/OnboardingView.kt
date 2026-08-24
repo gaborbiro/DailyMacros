@@ -2,7 +2,6 @@ package dev.gaborbiro.dailymacros.features.onboarding.views
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -23,7 +22,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -34,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -45,7 +42,6 @@ import dev.gaborbiro.dailymacros.design.LocalExtraColorScheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.features.common.utils.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.features.common.views.PreviewContext
-import dev.gaborbiro.dailymacros.features.overview.views.AddWidgetButton
 import dev.gaborbiro.dailymacros.features.overview.views.MacroChip
 import dev.gaborbiro.dailymacros.features.overview.views.PhoneIllustration
 import dev.gaborbiro.dailymacros.features.overview.views.WelcomeBullet
@@ -74,17 +70,11 @@ import dev.gaborbiro.dailymacros.features.overview.R as OverviewR
 private const val INTRO_PAGE = 0
 private const val QUESTIONNAIRE_START_PAGE = 1
 private const val QUESTIONNAIRE_END_PAGE = QUESTIONNAIRE_START_PAGE + GOALS_QUESTIONNAIRE_PAGE_COUNT - 1
-private const val SETUP_PAGE = QUESTIONNAIRE_END_PAGE + 1
-private const val TRIAL_PAGE = SETUP_PAGE + 1
+private const val TRIAL_PAGE = QUESTIONNAIRE_END_PAGE + 1
 private const val PAGE_COUNT = TRIAL_PAGE + 1
 
 @Composable
 internal fun OnboardingView(
-    onAddWidget: () -> Unit = {},
-    onRestoreFromCloud: () -> Unit = {},
-    restoreFromCloudInProgress: Boolean = false,
-    onRestoreFromLocalBackup: () -> Unit = {},
-    restoreFromLocalBackupInProgress: Boolean = false,
     goalsAnswers: GoalsQuestionnaireAnswers = GoalsQuestionnaireAnswers(),
     goalsPresetTargets: Map<MacroType, TargetUiModel> = emptyMap(),
     onGoalSelected: (Goal) -> Unit = {},
@@ -125,7 +115,7 @@ internal fun OnboardingView(
                 TextButton(
                     modifier = Modifier.alpha(if (onQuestionnairePage) 1f else 0f),
                     enabled = onQuestionnairePage,
-                    onClick = { goToPage(SETUP_PAGE) },
+                    onClick = { goToPage(TRIAL_PAGE) },
                 ) {
                     Text(stringResource(R.string.onboarding_goals_skip_button))
                 }
@@ -148,13 +138,6 @@ internal fun OnboardingView(
                         onNoneTapped = onDietaryFocusNoneTapped,
                     )
                     QUESTIONNAIRE_END_PAGE -> ResultPage(presetTargets = goalsPresetTargets, onPresetTargetChanged = onPresetTargetChanged)
-                    SETUP_PAGE -> OnboardingSetupPage(
-                        onAddWidget = onAddWidget,
-                        onRestoreFromCloud = onRestoreFromCloud,
-                        restoreFromCloudInProgress = restoreFromCloudInProgress,
-                        onRestoreFromLocalBackup = onRestoreFromLocalBackup,
-                        restoreFromLocalBackupInProgress = restoreFromLocalBackupInProgress,
-                    )
                     else -> OnboardingTrialPage(onStartTrialTapped = onStartTrialTapped, onSkipTapped = onSkipTapped)
                 }
             }
@@ -181,7 +164,7 @@ internal fun OnboardingView(
                 }
                 Button(
                     modifier = Modifier.alpha(if (isLastPage) 0f else 1f),
-                    enabled = !isLastPage && canAdvance && !restoreFromCloudInProgress && !restoreFromLocalBackupInProgress,
+                    enabled = !isLastPage && canAdvance,
                     onClick = {
                         if (pagerState.currentPage == QUESTIONNAIRE_END_PAGE) {
                             onPersistGoalsPresetTargets()
@@ -281,96 +264,6 @@ private fun OnboardingIntroPage() {
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun OnboardingSetupPage(
-    onAddWidget: () -> Unit,
-    onRestoreFromCloud: () -> Unit,
-    restoreFromCloudInProgress: Boolean = false,
-    onRestoreFromLocalBackup: () -> Unit = {},
-    restoreFromLocalBackupInProgress: Boolean = false,
-) {
-    val onBackground = MaterialTheme.colorScheme.onBackground
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 28.dp),
-    ) {
-        Column(
-            modifier = Modifier.align(Alignment.Center),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            AddWidgetButton(onClick = onAddWidget)
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = stringResource(OverviewR.string.welcome_widget_hint),
-                style = MaterialTheme.typography.bodySmall,
-                color = onBackground.copy(alpha = 0.5f),
-                textAlign = TextAlign.Center,
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    modifier = Modifier.clickable(
-                        enabled = !restoreFromCloudInProgress,
-                        onClick = onRestoreFromCloud,
-                    ),
-                    text = stringResource(OverviewR.string.welcome_restore_from_cloud),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = if (restoreFromCloudInProgress) 0.5f else 1f),
-                    textAlign = TextAlign.Center,
-                )
-                if (restoreFromCloudInProgress) {
-                    Spacer(modifier = Modifier.width(8.dp))
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(14.dp),
-                        strokeWidth = 2.dp,
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    modifier = Modifier.clickable(
-                        enabled = !restoreFromLocalBackupInProgress,
-                        onClick = onRestoreFromLocalBackup,
-                    ),
-                    text = stringResource(OverviewR.string.welcome_restore_from_local_backup),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = if (restoreFromLocalBackupInProgress) 0.5f else 1f),
-                    textAlign = TextAlign.Center,
-                )
-                if (restoreFromLocalBackupInProgress) {
-                    Spacer(modifier = Modifier.width(8.dp))
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(14.dp),
-                        strokeWidth = 2.dp,
-                    )
-                }
-            }
-        }
-
-        val uriHandler = LocalUriHandler.current
-        val privacyPolicyUrl = stringResource(OverviewR.string.welcome_privacy_policy_url)
-        Text(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 16.dp)
-                .clickable { uriHandler.openUri(privacyPolicyUrl) },
-            text = stringResource(OverviewR.string.welcome_privacy_policy_link),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-        )
     }
 }
 

@@ -17,11 +17,6 @@ import dev.gaborbiro.dailymacros.features.settings.goalsQuestionnaire.GoalsQuest
 @Composable
 fun OnboardingScreen(
     navController: NavHostController,
-    onAddWidget: () -> Unit = {},
-    onRestoreFromCloud: () -> Unit = {},
-    restoreFromCloudInProgress: Boolean = false,
-    onRestoreFromLocalBackup: () -> Unit = {},
-    restoreFromLocalBackupInProgress: Boolean = false,
 ) {
     val viewModel: OnboardingViewModel = hiltViewModel()
     // Scoped to this screen's own nav back-stack entry, independent of the GoalsQuestionnaireViewModel
@@ -43,11 +38,6 @@ fun OnboardingScreen(
     }
 
     OnboardingView(
-        onAddWidget = onAddWidget,
-        onRestoreFromCloud = onRestoreFromCloud,
-        restoreFromCloudInProgress = restoreFromCloudInProgress,
-        onRestoreFromLocalBackup = onRestoreFromLocalBackup,
-        restoreFromLocalBackupInProgress = restoreFromLocalBackupInProgress,
         goalsAnswers = goalsQuestionnaireUiState.answers,
         goalsPresetTargets = goalsQuestionnaireUiState.presetTargets,
         onGoalSelected = goalsQuestionnaireViewModel::onGoalSelected,

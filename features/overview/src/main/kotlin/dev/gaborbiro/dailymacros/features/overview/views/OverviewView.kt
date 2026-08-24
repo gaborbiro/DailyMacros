@@ -75,6 +75,10 @@ internal fun OverviewView(
     onSubscribeBannerTapped: () -> Unit = {},
     onSubscribeBannerDismissed: () -> Unit = {},
     onAddWidget: () -> Unit = {},
+    onRestoreFromCloud: () -> Unit = {},
+    restoreFromCloudInProgress: Boolean = false,
+    onRestoreFromLocalBackup: () -> Unit = {},
+    restoreFromLocalBackupInProgress: Boolean = false,
     onLoadMore: () -> Unit = {},
     onScrollHandled: () -> Unit = {},
 ) {
@@ -174,6 +178,10 @@ internal fun OverviewView(
                             .fillMaxSize()
                             .padding(remainingPadding),
                         onAddWidget = onAddWidget,
+                        onRestoreFromCloud = onRestoreFromCloud,
+                        restoreFromCloudInProgress = restoreFromCloudInProgress,
+                        onRestoreFromLocalBackup = onRestoreFromLocalBackup,
+                        restoreFromLocalBackupInProgress = restoreFromLocalBackupInProgress,
                     )
                 }
 
