@@ -329,6 +329,11 @@ client is wired to send its Firebase ID token — that's the follow-up step.
 - **Unlock yourself permanently:** add your own three-word id to
   `config/limits.unlimitedClientIds`. Those clients skip the per-user daily cap
   (they're still counted and still bounded by the global monthly budget).
+- **Unlock someone else permanently, with a note:** add an object instead of a
+  bare string, e.g. `{ "clientId": "brave-tiger-dune", "note": "Jane, beta
+  tester recruited via Reddit" }`. The `note` field is never read by the
+  function — it's purely so the list is still legible to you months later.
+  Bare strings and note objects can be mixed freely in the same array.
 - **Give a user more room today:** open their `users/{uid}` doc (found via
   `clientId` above) and edit `dailyCapCount`. Set it to `0` to restore their
   full daily allowance, or to a negative number (e.g. `-10`) to grant that
