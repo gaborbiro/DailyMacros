@@ -283,28 +283,76 @@ class ModalViewModel @Inject constructor(
 
     fun onImagesShared(uris: List<Uri>) {
         runSafely("Couldn't process the shared images") {
-            if (uris.size > MAX_IMAGES) {
+            val existingCount = when (val root = _uiState.value.rootDialog) {
+                is DialogHandle.RecordDetailsDialog.Edit -> root.imageFilenames.size
+                is DialogHandle.RecordDetailsDialog.View -> if (root.isEditing) root.imageFilenames.size else 0
+                else -> 0
+            }
+            if (existingCount + uris.size > MAX_IMAGES) {
                 _uiUpdates.emit(ModalUiUpdates.ShowToast("Too many images selected. Maximum $MAX_IMAGES total."))
                 return@runSafely
             }
             val persistedFilenames = uris.map { saveImageUseCase.execute(it) }
 
-            setRoot(
-                DialogHandle.RecordDetailsDialog.Edit(
-                    title = TextFieldValue(),
-                    titleHint = "Title",
-                    description = TextFieldValue(),
-                    imageFilenames = persistedFilenames,
-                    recognisedFood = null,
-                    pristineSnapshot = recordDetailsEditPristineSnapshot(
-                        title = TextFieldValue(),
-                        description = TextFieldValue(),
-                        imageFilenames = persistedFilenames,
-                    ),
-                    startedAt = ZonedDateTime.now(ZoneId.systemDefault()),
-                )
-            )
-            runFoodRecognition(persistedFilenames)
+            when (val root = _uiState.value.rootDialog) {
+                is DialogHandle.RecordDetailsDialog.Edit -> {
+                    val updatedImages = root.imageFilenames + persistedFilenames
+                    val titleAlreadySet = root.title.text.isNotBlank()
+                    setRoot(
+                        root.copy(
+                            imageFilenames = updatedImages,
+                            recognisedFood = if (titleAlreadySet) root.recognisedFood else null,
+                        )
+                    )
+                    recomputeHasUnsavedEdits()
+                    if (!titleAlreadySet) {
+                        runFoodRecognition(updatedImages)
+                    }
+                }
+
+                is DialogHandle.RecordDetailsDialog.View -> {
+                    if (!root.isEditing) {
+                        setRoot(
+                            DialogHandle.RecordDetailsDialog.Edit(
+                                title = TextFieldValue(),
+                                titleHint = "Title",
+                                description = TextFieldValue(),
+                                imageFilenames = persistedFilenames,
+                                recognisedFood = null,
+                                pristineSnapshot = recordDetailsEditPristineSnapshot(
+                                    title = TextFieldValue(),
+                                    description = TextFieldValue(),
+                                    imageFilenames = persistedFilenames,
+                                ),
+                                startedAt = ZonedDateTime.now(ZoneId.systemDefault()),
+                            )
+                        )
+                        runFoodRecognition(persistedFilenames)
+                    } else {
+                        setRoot(root.copy(imageFilenames = root.imageFilenames + persistedFilenames))
+                        recomputeHasUnsavedEdits()
+                    }
+                }
+
+                else -> {
+                    setRoot(
+                        DialogHandle.RecordDetailsDialog.Edit(
+                            title = TextFieldValue(),
+                            titleHint = "Title",
+                            description = TextFieldValue(),
+                            imageFilenames = persistedFilenames,
+                            recognisedFood = null,
+                            pristineSnapshot = recordDetailsEditPristineSnapshot(
+                                title = TextFieldValue(),
+                                description = TextFieldValue(),
+                                imageFilenames = persistedFilenames,
+                            ),
+                            startedAt = ZonedDateTime.now(ZoneId.systemDefault()),
+                        )
+                    )
+                    runFoodRecognition(persistedFilenames)
+                }
+            }
         }
     }
 
