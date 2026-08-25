@@ -48,12 +48,16 @@
  * config/limits without redeploying.
  *
  * Overrides (all live in Firestore, no redeploy):
- *   - config/limits.unlimitedClientIds: [ "apple-fox-moon", ... ] — clients on
+ *   - config/limits.unlimitedClientIds: [ "apple-fox-moon", { "clientId":
+ *     "brave-tiger-dune", "note": "why they got this" }, ... ] — clients on
  *     this list bypass the per-user DAILY cap and the subscription gate
  *     (including the pre-subscription feature caps) entirely, but are still
- *     counted and still subject to the global monthly budget. Use it to
- *     permanently unlock yourself: put your own three-word id (from the app's
- *     Settings screen) here once.
+ *     counted and still subject to the global monthly budget. Entries can be
+ *     a bare three-word id, or an object with a "note" field to record who
+ *     the grant is for and why - the note is never read by this function, it's
+ *     just there so you can tell entries apart later. Use it to permanently
+ *     unlock yourself: put your own three-word id (from the app's Settings
+ *     screen) here once.
  *   - To give one user more room today, edit their users/{uid}.dailyCapCount:
  *     0 restores their full daily allowance, a negative value (e.g. -10) grants
  *     that many extra requests on top of the cap. It resets to normal at the
@@ -221,7 +225,11 @@ exports.openaiProxy = onRequest(
       const cfg = configSnap.data() || {};
       const perUserDailyCap = cfg.perUserDailyCap ?? DEFAULT_PER_USER_DAILY_CAP;
       const monthlyBudget = cfg.monthlyRequestBudget ?? DEFAULT_MONTHLY_REQUEST_BUDGET;
-      const unlimitedClientIds = Array.isArray(cfg.unlimitedClientIds) ? cfg.unlimitedClientIds : [];
+      // Each entry is either a bare three-word id, or { clientId, note } so you
+      // can record who a grant belongs to and why (see header comment above).
+      const unlimitedClientIds = Array.isArray(cfg.unlimitedClientIds)
+        ? cfg.unlimitedClientIds.map((entry) => (typeof entry === "string" ? entry : entry?.clientId))
+        : [];
 
       const u = userSnap.data() || {};
       // Allowlisted clients skip both the daily cap (checked below) and the
