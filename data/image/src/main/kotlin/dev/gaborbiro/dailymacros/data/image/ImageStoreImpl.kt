@@ -53,11 +53,23 @@ class ImageStoreImpl @Inject constructor(
     // ---------- Public API (suspend, main-safe) ----------
 
     override suspend fun open(filename: String, thumbnail: Boolean): InputStream = withContext(io) {
-        val store = if (thumbnail) thumbStore else fullSizeStore
-        val finalFilename = if (thumbnail) thumbName(filename) else filename
-        val path = store.resolveFilePath(finalFilename)
-        if (File(path).exists().not()) error("File not found: $path")
-        store.read(finalFilename)
+        if (thumbnail) {
+            val thumbFilename = thumbName(filename)
+            val path = thumbStore.resolveFilePath(thumbFilename)
+            if (File(path).exists().not()) error("File not found: $path")
+            thumbStore.read(thumbFilename)
+        } else {
+            val fullPath = fullSizeStore.resolveFilePath(filename)
+            if (File(fullPath).exists()) {
+                fullSizeStore.read(filename)
+            } else {
+                // Full-size lives in the ephemeral bucket and may have been evicted; fall back to thumbnail.
+                val thumbFilename = thumbName(filename)
+                val thumbPath = thumbStore.resolveFilePath(thumbFilename)
+                if (File(thumbPath).exists().not()) error("File not found: $fullPath")
+                thumbStore.read(thumbFilename)
+            }
+        }
     }
 
     private val inflight = ConcurrentHashMap<String, Deferred<Bitmap?>>()
