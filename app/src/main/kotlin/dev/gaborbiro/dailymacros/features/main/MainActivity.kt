@@ -190,25 +190,24 @@ class MainActivity : ComponentActivity() {
                     composable(
                         route = ONBOARDING_ROUTE,
                     ) {
-                        val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
-                        val openPublicDocumentUseCase = rememberOpenPublicDocumentUseCase()
                         OnboardingScreen(
                             navController = navController,
-                            onAddWidget = onAddWidget,
-                            onRestoreFromCloud = settingsViewModel::onCloudSyncForRestoreTapped,
-                            restoreFromCloudInProgress = settingsUiState.cloudSyncInProgress,
-                            onRestoreFromLocalBackup = { settingsViewModel.onImportDbTapped(openPublicDocumentUseCase) },
-                            restoreFromLocalBackupInProgress = settingsUiState.importDataInProgress,
                         )
                     }
                     composable(
                         route = OVERVIEW_ROUTE,
                     ) {
+                        val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
+                        val openPublicDocumentUseCase = rememberOpenPublicDocumentUseCase()
                         CompositionLocalProvider(LocalImageStore provides imageStore) {
                             OverviewScreen(
                                 modalNavigator = modalNavigator,
                                 navController = navController,
                                 onAddWidget = onAddWidget,
+                                onRestoreFromCloud = settingsViewModel::onCloudSyncForRestoreTapped,
+                                restoreFromCloudInProgress = settingsUiState.cloudSyncInProgress,
+                                onRestoreFromLocalBackup = { settingsViewModel.onImportDbTapped(openPublicDocumentUseCase) },
+                                restoreFromLocalBackupInProgress = settingsUiState.importDataInProgress,
                             )
                         }
                     }

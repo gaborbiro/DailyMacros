@@ -60,7 +60,7 @@
     <string name="settings_wifi_only_backup_row">Wi-Fi only for backup</string>
     <string name="settings_wifi_only_backup_subtitle">Automatic backup waits for Wi-Fi. Manually tapping \"Back up now\" or \"Restore\" always works.</string>
     <string name="settings_wifi_only_analysis_row">Wi-Fi only for macro analysis</string>
-    <string name="settings_wifi_only_analysis_subtitle">Retries after a failed analysis wait for Wi-Fi. Tapping \"Re-run nutrient analysis\" always works.</string>
+    <string name="settings_wifi_only_analysis_subtitle">Automatic retries wait for Wi-Fi after a failed analysis. Tapping \"Re-run nutrient analysis\" always works.</string>
     <string name="settings_content_local_sync_section">Local Backup</string>
     <string name="settings_content_backup_now_row">Back up now</string>
     <string name="settings_content_restore_backup_row">Restore from backup</string>

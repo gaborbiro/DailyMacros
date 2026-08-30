@@ -29,6 +29,10 @@ fun OverviewScreen(
     modalNavigator: ModalNavigator,
     navController: NavHostController,
     onAddWidget: () -> Unit = {},
+    onRestoreFromCloud: () -> Unit = {},
+    restoreFromCloudInProgress: Boolean = false,
+    onRestoreFromLocalBackup: () -> Unit = {},
+    restoreFromLocalBackupInProgress: Boolean = false,
 ) {
     val viewModel: OverviewViewModel = hiltViewModel()
     val context = LocalContext.current
@@ -90,6 +94,10 @@ fun OverviewScreen(
         onSubscribeBannerTapped = viewModel::onSubscribeBannerTapped,
         onSubscribeBannerDismissed = viewModel::onSubscribeBannerDismissed,
         onAddWidget = onAddWidget,
+        onRestoreFromCloud = onRestoreFromCloud,
+        restoreFromCloudInProgress = restoreFromCloudInProgress,
+        onRestoreFromLocalBackup = onRestoreFromLocalBackup,
+        restoreFromLocalBackupInProgress = restoreFromLocalBackupInProgress,
         onDailySummaryTapped = viewModel::onDailySummaryTapped,
         onWeeklySummaryTapped = viewModel::onWeeklySummaryTapped,
         onLoadMore = viewModel::onLoadMore,

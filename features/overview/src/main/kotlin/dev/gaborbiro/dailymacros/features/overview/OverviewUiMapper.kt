@@ -539,33 +539,33 @@ class OverviewUiMapper @Inject constructor(
                     )
                 )
             }
-            targets.salt.takeIf { it.enabled }?.let {
+            targets.fat.takeIf { it.enabled }?.let {
                 add(
                     NutrientSummaryStatEntry(
-                        title = context.getString(R.string.overview_content_nutrient_salt),
-                        progress0to1 = templateUiMapper.targetProgress(it, dayTotal.salt ?: 0f) ?: 0f,
-                        progressLabel = templateUiMapper.formatSalt(dayTotal.salt, withLabel = false),
+                        title = context.getString(R.string.overview_content_nutrient_fat),
+                        progress0to1 = templateUiMapper.targetProgress(it, dayTotal.fat ?: 0f) ?: 0f,
+                        progressLabel = templateUiMapper.formatFat(dayTotal.fat, saturated = null, withLabel = false),
                         targetRange0to1 = templateUiMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
-                            current = dayTotal.salt,
-                            previous = previousDayTotal?.salt,
+                            current = dayTotal.fat,
+                            previous = previousDayTotal?.fat,
                         ),
-                        color = { it.saltColor },
+                        color = { it.fatColor },
                     )
                 )
             }
-            targets.fibre.takeIf { it.enabled }?.let {
+            targets.ofWhichSaturated.takeIf { it.enabled }?.let {
                 add(
                     NutrientSummaryStatEntry(
-                        title = context.getString(R.string.overview_content_nutrient_fibre),
-                        progress0to1 = templateUiMapper.targetProgress(it, dayTotal.fibre ?: 0f) ?: 0f,
-                        progressLabel = templateUiMapper.formatFibre(dayTotal.fibre, withLabel = false),
+                        title = context.getString(R.string.overview_content_nutrient_saturated),
+                        progress0to1 = templateUiMapper.targetProgress(it, dayTotal.ofWhichSaturated ?: 0f) ?: 0f,
+                        progressLabel = templateUiMapper.formatSaturatedFat(dayTotal.ofWhichSaturated, withLabel = false),
                         targetRange0to1 = templateUiMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
-                            current = dayTotal.fibre,
-                            previous = previousDayTotal?.fibre,
+                            current = dayTotal.ofWhichSaturated,
+                            previous = previousDayTotal?.ofWhichSaturated,
                         ),
-                        color = { it.fibreColor },
+                        color = { it.fatColor },
                     )
                 )
             }
@@ -599,33 +599,33 @@ class OverviewUiMapper @Inject constructor(
                     )
                 )
             }
-            targets.fat.takeIf { it.enabled }?.let {
+            targets.salt.takeIf { it.enabled }?.let {
                 add(
                     NutrientSummaryStatEntry(
-                        title = context.getString(R.string.overview_content_nutrient_fat),
-                        progress0to1 = templateUiMapper.targetProgress(it, dayTotal.fat ?: 0f) ?: 0f,
-                        progressLabel = templateUiMapper.formatFat(dayTotal.fat, saturated = null, withLabel = false),
+                        title = context.getString(R.string.overview_content_nutrient_salt),
+                        progress0to1 = templateUiMapper.targetProgress(it, dayTotal.salt ?: 0f) ?: 0f,
+                        progressLabel = templateUiMapper.formatSalt(dayTotal.salt, withLabel = false),
                         targetRange0to1 = templateUiMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
-                            current = dayTotal.fat,
-                            previous = previousDayTotal?.fat,
+                            current = dayTotal.salt,
+                            previous = previousDayTotal?.salt,
                         ),
-                        color = { it.fatColor },
+                        color = { it.saltColor },
                     )
                 )
             }
-            targets.ofWhichSaturated.takeIf { it.enabled }?.let {
+            targets.fibre.takeIf { it.enabled }?.let {
                 add(
                     NutrientSummaryStatEntry(
-                        title = context.getString(R.string.overview_content_nutrient_saturated),
-                        progress0to1 = templateUiMapper.targetProgress(it, dayTotal.ofWhichSaturated ?: 0f) ?: 0f,
-                        progressLabel = templateUiMapper.formatSaturatedFat(dayTotal.ofWhichSaturated, withLabel = false),
+                        title = context.getString(R.string.overview_content_nutrient_fibre),
+                        progress0to1 = templateUiMapper.targetProgress(it, dayTotal.fibre ?: 0f) ?: 0f,
+                        progressLabel = templateUiMapper.formatFibre(dayTotal.fibre, withLabel = false),
                         targetRange0to1 = templateUiMapper.targetRange(it),
                         changeIndicator = calculateChangeIndicator(
-                            current = dayTotal.ofWhichSaturated,
-                            previous = previousDayTotal?.ofWhichSaturated,
+                            current = dayTotal.fibre,
+                            previous = previousDayTotal?.fibre,
                         ),
-                        color = { it.fatColor },
+                        color = { it.fibreColor },
                     )
                 )
             }

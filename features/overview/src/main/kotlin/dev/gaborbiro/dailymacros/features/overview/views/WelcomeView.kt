@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -34,6 +36,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -48,6 +51,10 @@ import dev.gaborbiro.dailymacros.features.overview.R
 internal fun WelcomeView(
     modifier: Modifier = Modifier,
     onAddWidget: () -> Unit = {},
+    onRestoreFromCloud: () -> Unit = {},
+    restoreFromCloudInProgress: Boolean = false,
+    onRestoreFromLocalBackup: () -> Unit = {},
+    restoreFromLocalBackupInProgress: Boolean = false,
 ) {
     val onBackground = MaterialTheme.colorScheme.onBackground
 
@@ -80,6 +87,62 @@ internal fun WelcomeView(
                 text = stringResource(R.string.welcome_widget_hint),
                 style = MaterialTheme.typography.bodySmall,
                 color = onBackground.copy(alpha = 0.5f),
+                textAlign = TextAlign.Center,
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    modifier = Modifier.clickable(
+                        enabled = !restoreFromCloudInProgress,
+                        onClick = onRestoreFromCloud,
+                    ),
+                    text = stringResource(R.string.welcome_restore_from_cloud),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = if (restoreFromCloudInProgress) 0.5f else 1f),
+                    textAlign = TextAlign.Center,
+                )
+                if (restoreFromCloudInProgress) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(14.dp),
+                        strokeWidth = 2.dp,
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    modifier = Modifier.clickable(
+                        enabled = !restoreFromLocalBackupInProgress,
+                        onClick = onRestoreFromLocalBackup,
+                    ),
+                    text = stringResource(R.string.welcome_restore_from_local_backup),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = if (restoreFromLocalBackupInProgress) 0.5f else 1f),
+                    textAlign = TextAlign.Center,
+                )
+                if (restoreFromLocalBackupInProgress) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(14.dp),
+                        strokeWidth = 2.dp,
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            val uriHandler = LocalUriHandler.current
+            val privacyPolicyUrl = stringResource(R.string.welcome_privacy_policy_url)
+            Text(
+                modifier = Modifier.clickable { uriHandler.openUri(privacyPolicyUrl) },
+                text = stringResource(R.string.welcome_privacy_policy_link),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.Center,
             )
         }

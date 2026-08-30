@@ -16,6 +16,21 @@ class ModalNavigatorImpl @Inject constructor() : ModalNavigator {
         context.launchActivity { it.getViewRecordDetailsIntent(recordId) }
     }
 
+    override fun viewRecordDetailsPendingIntent(
+        context: Context,
+        requestCode: Int,
+        recordId: Long,
+        notificationId: Int,
+    ): PendingIntent = PendingIntent.getActivity(
+        context,
+        requestCode,
+        context.getViewRecordDetailsIntent(recordId).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra(EXTRA_DISMISS_NOTIFICATION_ID, notificationId)
+        },
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+    )
+
     override fun launchToAddRecordFromPhotoRecognition(
         context: Context,
         imageFilename: String,
