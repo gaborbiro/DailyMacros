@@ -9,6 +9,7 @@ import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.appwidget.updateAll
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.features.widgets.diarywidget.DiaryWidgetScreen
 import dev.gaborbiro.dailymacros.features.widgets.quickpickwidget.QuickPickWidgetScreen
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
@@ -41,6 +42,7 @@ import javax.inject.Singleton
 class WidgetAutoReloader @Inject constructor(
     @param:ApplicationContext private val appContext: Context,
     private val recordsRepository: RecordsRepository,
+    private val analyticsLogger: AnalyticsLogger,
 ) {
 
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -113,10 +115,17 @@ class WidgetAutoReloader @Inject constructor(
                     .getAppWidgetState<Preferences>(appContext, glanceId)
                 val templateId = prefs[QuickPickWidgetScreen.templateIdKey(appWidgetId)]
                 if (templateId != null) {
-                    val template = recordsRepository.getTemplate(templateId)
-                    val json = PersistenceMapper.serializeTemplates(listOf(template))
-                    updateAppWidgetState(appContext, glanceId) { widgetPrefs ->
-                        widgetPrefs[QuickPickWidgetScreen.templateJsonKey(appWidgetId)] = json
+                    // The widget's chosen template may have been deleted since it was configured
+                    // (e.g. its last record was removed); skip refreshing this widget rather than
+                    // letting the DAO's "expected a single row" exception crash the app.
+                    val template = runCatching { recordsRepository.getTemplate(templateId) }
+                        .onFailure { analyticsLogger.logError(it) }
+                        .getOrNull()
+                    if (template != null) {
+                        val json = PersistenceMapper.serializeTemplates(listOf(template))
+                        updateAppWidgetState(appContext, glanceId) { widgetPrefs ->
+                            widgetPrefs[QuickPickWidgetScreen.templateJsonKey(appWidgetId)] = json
+                        }
                     }
                 }
             }

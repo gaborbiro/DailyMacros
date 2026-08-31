@@ -40,10 +40,17 @@ class QuickPickReloadWorker @AssistedInject constructor(
                     .getAppWidgetState<Preferences>(applicationContext, glanceId)
                 val templateId = prefs[QuickPickWidgetScreen.templateIdKey(appWidgetId)]
                 if (templateId != null) {
-                    val template = recordsRepository.getTemplate(templateId)
-                    val json = PersistenceMapper.serializeTemplates(listOf(template))
-                    updateAppWidgetState(applicationContext, glanceId) { widgetPrefs ->
-                        widgetPrefs[QuickPickWidgetScreen.templateJsonKey(appWidgetId)] = json
+                    // The widget's chosen template may have been deleted since it was configured
+                    // (e.g. its last record was removed); skip refreshing this widget rather than
+                    // letting the DAO's "expected a single row" exception fail the whole worker.
+                    val template = runCatching { recordsRepository.getTemplate(templateId) }
+                        .onFailure { analyticsLogger.logError(it) }
+                        .getOrNull()
+                    if (template != null) {
+                        val json = PersistenceMapper.serializeTemplates(listOf(template))
+                        updateAppWidgetState(applicationContext, glanceId) { widgetPrefs ->
+                            widgetPrefs[QuickPickWidgetScreen.templateJsonKey(appWidgetId)] = json
+                        }
                     }
                 }
             }
