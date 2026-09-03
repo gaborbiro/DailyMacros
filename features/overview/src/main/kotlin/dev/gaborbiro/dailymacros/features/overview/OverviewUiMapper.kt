@@ -49,17 +49,34 @@ class OverviewUiMapper @Inject constructor(
         const val STALE_ANCHOR_GAP_DAYS = 2L
     }
 
+    /**
+     * [searchTerm] is only used here to rank full-phrase matches above partial ones - [records]
+     * is expected to already be filtered to whatever counts as a match (currently: any
+     * individual word of the search term, see RecordsRepositoryImpl.observeRecords).
+     * previousRecord below is threaded through in the same chronological (ascending) order [map]
+     * uses, so timezoneShiftLabel keeps comparing each record against the one before it in time -
+     * the relevance-based reordering happens only afterwards, on the already-labelled rows.
+     */
     fun mapSearchResults(
         records: List<Record>,
+        searchTerm: String,
     ): List<ListUiModelBase> {
         var previousRecord: Record? = null
+        val phrase = searchTerm.trim().lowercase()
         return records
             .map { record ->
-                recordsUiMapper.map(record = record, previousRecord = previousRecord).also {
-                    previousRecord = record
-                }
+                val uiModel = recordsUiMapper.map(record = record, previousRecord = previousRecord)
+                previousRecord = record
+                record to uiModel
             }
-            .reversed()
+            .sortedWith(
+                compareByDescending<Pair<Record, ListUiModelBase>> { (record, _) ->
+                    phrase.isNotEmpty() && "${record.template.name} ${record.template.description}"
+                        .lowercase()
+                        .contains(phrase)
+                }.thenByDescending { (record, _) -> record.timestamp }
+            )
+            .map { (_, uiModel) -> uiModel }
     }
 
     fun map(

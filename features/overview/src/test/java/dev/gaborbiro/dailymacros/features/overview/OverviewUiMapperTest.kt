@@ -127,10 +127,10 @@ class OverviewUiMapperTest {
             .first { it.dayTitle.endsWith(day.format(java.time.format.DateTimeFormatter.ofPattern("dd MMM"))) }
 
     @Test
-    fun `mapSearchResults reverses mapped records`() {
+    fun `mapSearchResults orders most recent first when relevance ties`() {
         val r1 = stubRecord(1L, stubTemplate(10L, "First"), 8)
         val r2 = stubRecord(2L, stubTemplate(20L, "Second"), 9)
-        val out = mapper.mapSearchResults(listOf(r1, r2))
+        val out = mapper.mapSearchResults(listOf(r1, r2), "e")
         assertEquals(2, out.size)
         assertEquals(2L, out[0].listItemId)
         assertEquals(1L, out[1].listItemId)
@@ -148,9 +148,30 @@ class OverviewUiMapperTest {
             timestamp = ZonedDateTime.of(2024, 5, 10, 14, 0, 0, 0, ZoneId.of("Asia/Dubai")),
             template = stubTemplate(20L, "Second"),
         )
-        val out = mapper.mapSearchResults(listOf(r1, r2)).filterIsInstance<ListUiModelRecord>()
+        val out = mapper.mapSearchResults(listOf(r1, r2), "e").filterIsInstance<ListUiModelRecord>()
         val second = out.first { it.listItemId == 2L }
         assertTrue(second.timestamp.contains("(+3h)"))
+    }
+
+    @Test
+    fun `mapSearchResults ranks full-phrase matches above word-only matches regardless of recency`() {
+        // Older record matches the full typed phrase; newer one only matches one of its words.
+        val phraseMatch = stubRecord(1L, stubTemplate(10L, "Chicken rice"), 8)
+        val wordOnlyMatch = stubRecord(2L, stubTemplate(20L, "Chicken soup"), 9)
+        val out = mapper.mapSearchResults(listOf(phraseMatch, wordOnlyMatch), "chicken rice")
+        assertEquals(1L, out[0].listItemId)
+        assertEquals(2L, out[1].listItemId)
+    }
+
+    @Test
+    fun `mapSearchResults does not weigh matching more words more heavily within a tier`() {
+        // Neither matches the full phrase, so both sit in the word-only tier - the one matching
+        // two words should not outrank the one matching just one, only recency should.
+        val matchesOneWord = stubRecord(1L, stubTemplate(10L, "Chicken salad"), 9)
+        val matchesBothWords = stubRecord(2L, stubTemplate(20L, "Rice and chicken bowl"), 8)
+        val out = mapper.mapSearchResults(listOf(matchesBothWords, matchesOneWord), "chicken rice")
+        assertEquals(1L, out[0].listItemId)
+        assertEquals(2L, out[1].listItemId)
     }
 
     @Test

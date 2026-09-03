@@ -79,14 +79,26 @@ class RecordsRepositoryImpl @Inject constructor(
         sinceEpochMillis: Long, /* = 0L */
     ): Flow<List<Record>> {
         return try {
-            val raw: Flow<List<RecordJoined>> = if (searchTerm.isNullOrEmpty()) {
+            val trimmedSearch = searchTerm?.trim()
+            // A search spans the whole diary, not just the currently paged-in window - so
+            // sinceEpochMillis (the pagination cursor) only applies when there's no active search.
+            val raw: Flow<List<RecordJoined>> = if (trimmedSearch.isNullOrEmpty()) {
                 recordsDAO.getFlow(sinceEpochMillis)
             } else {
-                recordsDAO.getFlowBySearchTerm(searchTerm)
+                recordsDAO.getFlow(0L)
             }
             raw
                 .distinctUntilChanged()
-                .map(mapper::map)
+                .map { joined ->
+                    val records = mapper.map(joined)
+                    if (trimmedSearch.isNullOrEmpty()) {
+                        records
+                    } else {
+                        records.filter {
+                            matchesAnySearchWord(trimmedSearch, it.template.name, it.template.description)
+                        }
+                    }
+                }
         } catch (t: Throwable) {
             analyticsLogger.logError(t)
             flowOf(emptyList())
