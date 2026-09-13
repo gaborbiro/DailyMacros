@@ -82,6 +82,22 @@ class BackupRepositoryImpl @Inject constructor(
                             tout.closeArchiveEntry()
                         }
                 }
+                // Full-size photos live in the ephemeral cache bucket and may already have been
+                // evicted by the OS; whatever's still there is included so a restore isn't
+                // limited to thumbnail quality.
+                val photosRoot = File(appContext.cacheDir, "photos")
+                if (photosRoot.exists()) {
+                    photosRoot.walkTopDown()
+                        .filter { it.isFile }
+                        .forEach { file ->
+                            val rel = file.relativeTo(photosRoot).invariantSeparatorsPath
+                            val entryName = "$PHOTOS_TAR_PREFIX/$rel"
+                            val entry = TarArchiveEntry(file, entryName)
+                            tout.putArchiveEntry(entry)
+                            FileInputStream(file).use { it.copyTo(tout) }
+                            tout.closeArchiveEntry()
+                        }
+                }
                 val sharedPrefsRoot = File(appContext.filesDir.parentFile, "shared_prefs")
                 if (sharedPrefsRoot.exists()) {
                     sharedPrefsRoot.walkTopDown()
@@ -136,13 +152,32 @@ class BackupRepositoryImpl @Inject constructor(
                 ?: File(extractRoot, LEGACY_PUBLIC_TAR_PREFIX).takeIf { it.exists() }
             val stagedSharedPrefs = File(extractRoot, SHARED_PREFS_TAR_PREFIX)
             val sharedPrefsToRestore = if (stagedSharedPrefs.exists()) stagedSharedPrefs else null
-            return replaceDatabaseAndMaybeFiles(
+            val stagedPhotos = File(extractRoot, PHOTOS_TAR_PREFIX).takeIf { it.exists() }
+            val result = replaceDatabaseAndMaybeFiles(
                 stagedDb = stagedDb,
                 stagedThumbnailsDir = stagedThumbnails,
                 stagedSharedPrefsDir = sharedPrefsToRestore,
             )
+            if (result == DatabaseBackupImportResult.ReplacementApplied && stagedPhotos != null) {
+                restoreCachedPhotosBestEffort(stagedPhotos)
+            }
+            return result
         } finally {
             extractRoot.deleteRecursively()
+        }
+    }
+
+    /**
+     * The cache dir is OS-reclaimable and non-critical, so unlike the DB/thumbnails swap this
+     * isn't part of the atomic rollout: a failure here just leaves reads falling back to the
+     * restored thumbnail, same as before this photo was ever cached.
+     */
+    private fun restoreCachedPhotosBestEffort(stagedPhotos: File) {
+        try {
+            val photosLive = File(appContext.cacheDir, "photos")
+            photosLive.mkdirs()
+            stagedPhotos.copyRecursively(photosLive, overwrite = true)
+        } catch (_: Exception) {
         }
     }
 
@@ -410,6 +445,7 @@ class BackupRepositoryImpl @Inject constructor(
         const val BACKUP_MANIFEST_JSON = """{"format":1,"kind":"dailymacros-full"}"""
         const val THUMBNAILS_TAR_PREFIX = "files/thumbnails"
         const val LEGACY_PUBLIC_TAR_PREFIX = "files/public"
+        const val PHOTOS_TAR_PREFIX = "cache/photos"
         const val SHARED_PREFS_TAR_PREFIX = "shared_prefs"
 
         // Prefs files excluded from export - credentials, PII, or per-install identity that
