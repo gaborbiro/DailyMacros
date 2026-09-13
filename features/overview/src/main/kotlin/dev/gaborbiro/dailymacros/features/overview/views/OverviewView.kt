@@ -115,7 +115,18 @@ internal fun OverviewView(
     // OverviewListTopActions.kt history). A hand-rolled NestedScrollConnection reading raw
     // pre-scroll deltas was tried here too and didn't reliably react to scrolling at all -
     // this is the API Compose itself maintains for this exact "hide on scroll" pattern.
-    val fabsVisible by remember { derivedStateOf { !listState.lastScrolledForward } }
+    //
+    // searchActive keeps the search FAB pinned open regardless of scroll direction whenever a
+    // term is typed in: SearchFAB's expanded/text state is local to that composable, and the
+    // AnimatedVisibility below fully disposes it once its exit animation finishes - without this,
+    // scrolling forward mid-search would silently wipe out whatever the user had typed.
+    // Re-remembered on searchActive flips (not just the scroll direction change) since
+    // derivedStateOf only reacts to snapshot-state reads captured in its lambda, and a plain
+    // Boolean read from viewState wouldn't otherwise trigger a recompute of the remembered value.
+    val searchActive = !viewState.searchTerm.isNullOrBlank()
+    val fabsVisible by remember(searchActive) {
+        derivedStateOf { !listState.lastScrolledForward || searchActive }
+    }
 
     // A tap on a Trends chart point resolves to a day already loaded here (see
     // OverviewViewModel.onScrollToDateRequested) and is surfaced as a one-shot listItemId to

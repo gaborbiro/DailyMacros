@@ -22,4 +22,8 @@ data class OverviewUiState(
      *  page-widen + reload that can be needed when the target date isn't loaded yet, which is
      *  the "takes a while for the scrolling to start" gap this label's spinner is shown for. */
     val pendingScrollDateLabel: String? = null,
+    /** Mirrors OverviewViewModel's currentSearch, non-null/non-blank only while a search is
+     *  active - lets OverviewView keep the search bar pinned open regardless of scroll
+     *  direction (see fabsVisible there). */
+    val searchTerm: String? = null,
 )
