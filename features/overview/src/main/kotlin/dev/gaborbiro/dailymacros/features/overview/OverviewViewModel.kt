@@ -113,7 +113,10 @@ class OverviewViewModel @Inject constructor(
         sinceEpochMillis = System.currentTimeMillis() - PAGE_SIZE.inWholeMilliseconds
         previousRecordCount = -1
         autoCatchUpWidens = 0
-        _viewState.update { it.copy(hasMoreData = true) }
+        // Exposed so OverviewView can keep the search bar pinned open while a term is active,
+        // rather than letting scroll-direction alone decide (see OverviewView.fabsVisible) -
+        // SearchFAB's own text/expanded state is local and gets wiped if it's ever disposed.
+        _viewState.update { it.copy(hasMoreData = true, searchTerm = search) }
         resubscribe(search)
     }
 
@@ -140,7 +143,7 @@ class OverviewViewModel @Inject constructor(
                     val items = if (searchBlank) {
                         uiMapper.map(records, targets)
                     } else {
-                        uiMapper.mapSearchResults(records)
+                        uiMapper.mapSearchResults(records, search!!)
                     }
                     val showSubscribeBanner = records.isNotEmpty() &&
                         subscriptionState == SubscriptionState.NotSubscribed &&

@@ -47,21 +47,6 @@ interface RecordsDAO {
     ): Flow<List<RecordJoined>>
 
     @Transaction
-    @Query(
-        """
-        SELECT R.*
-        FROM records R
-        WHERE R.templateId IN (
-            SELECT T._id FROM templates T
-            WHERE T.name LIKE '%' || :search || '%'
-               OR T.description LIKE '%' || :search || '%'
-        )
-        ORDER BY R.epochMillis
-        """
-    )
-    fun getFlowBySearchTerm(search: String): Flow<List<RecordJoined>>
-
-    @Transaction
     @Query("SELECT * FROM records WHERE _id=:id")
     suspend fun getById(id: Long): RecordJoined?
 
