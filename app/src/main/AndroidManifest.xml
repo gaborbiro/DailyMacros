@@ -27,8 +27,8 @@
 
     <!--
        Write-only Health Connect permission for the experimental "Sync to Health Connect"
-       button (Settings > Experimental features, debug builds only). Samsung Health reads
-       from Health Connect on One UI devices, so this is how entries reach it.
+       button (Settings > Debug, debug builds only). Samsung Health reads from Health
+       Connect on One UI devices, so this is how entries reach it.
     -->
     <uses-permission android:name="android.permission.health.WRITE_NUTRITION" />
     <!--
