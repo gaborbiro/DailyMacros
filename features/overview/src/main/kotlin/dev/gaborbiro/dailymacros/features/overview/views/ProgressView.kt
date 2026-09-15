@@ -7,7 +7,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -32,15 +34,39 @@ fun ProgressView(
             size = size
         )
 
-        // Progress fill
+        // Progress fill — a top highlight fading into a bottom shadow gives the bar a
+        // raised, tube-like look, echoing how overlapping ring strokes shade themselves.
         val fraction = progress0to1 % 1f
         val progressWidth = fraction * size.width
-        drawRoundRect(
-            color = progressColor,
-            topLeft = Offset(0f, 0f),
-            size = Size(progressWidth, size.height),
-            cornerRadius = cornerRadius
-        )
+        if (progressWidth > 0f) {
+            drawRoundRect(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        lerp(progressColor, Color.White, 0.2f),
+                        progressColor,
+                        lerp(progressColor, Color.Black, 0.2f),
+                    ),
+                ),
+                topLeft = Offset(0f, 0f),
+                size = Size(progressWidth, size.height),
+                cornerRadius = cornerRadius
+            )
+
+            // Shadow the fill casts onto the track just past its leading edge, as if this
+            // layer sits above the one beneath it — the same overlap cue the rings use.
+            val shadowWidth = size.height.coerceAtMost(size.width - progressWidth)
+            if (shadowWidth > 0f) {
+                drawRect(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(Color.Black.copy(alpha = 0.3f), Color.Transparent),
+                        startX = progressWidth,
+                        endX = progressWidth + shadowWidth,
+                    ),
+                    topLeft = Offset(progressWidth, 0f),
+                    size = Size(shadowWidth, size.height),
+                )
+            }
+        }
 
         // Min target marker — green line, always on top, hidden only when min is unset (min0to1 == -1)
         if (min0to1 >= 0f) {
