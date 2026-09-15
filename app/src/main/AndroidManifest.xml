@@ -45,6 +45,14 @@
        See README.md → "Pending doc/text updates for hidden features".
     -->
 
+    <!--
+       Package-visibility declaration required by the Health Connect integration guide so the
+       app can reliably detect whether Health Connect is installed (HealthConnectClient.getSdkStatus)
+       and launch its permission screen, on Android 11+'s restricted package visibility.
+    -->
+    <queries>
+        <package android:name="com.google.android.apps.healthdata" />
+    </queries>
 
     <application
         android:name=".App"
