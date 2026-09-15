@@ -81,6 +81,29 @@
                 android:resource="@xml/shortcuts" />
         </activity>
 
+        <!--
+           Health Connect's required "permission rationale" for the experimental sync button
+           (see HealthConnectSyncUseCase / HealthConnectRationaleActivity): without these two
+           entries, Health Connect auto-denies the permission request with no dialog shown.
+        -->
+        <activity
+            android:name=".features.healthconnect.HealthConnectRationaleActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+            </intent-filter>
+        </activity>
+        <activity-alias
+            android:name=".features.healthconnect.ViewPermissionUsageActivity"
+            android:exported="true"
+            android:targetActivity=".features.healthconnect.HealthConnectRationaleActivity"
+            android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+            </intent-filter>
+        </activity-alias>
+
 <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
