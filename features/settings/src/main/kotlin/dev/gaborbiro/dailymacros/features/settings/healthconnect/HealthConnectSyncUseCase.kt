@@ -12,6 +12,8 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import java.time.ZonedDateTime
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.toJavaDuration
 
 sealed class HealthConnectSyncResult {
     data class Success(val count: Int) : HealthConnectSyncResult()
@@ -65,15 +67,19 @@ class HealthConnectSyncUseCase @Inject constructor(
  * of itemized components, so [Record.template]'s [Nutrients] totals are written as-is; a null
  * field is left unset rather than coerced to zero. [Nutrients.ofWhichAddedSugar] has no Health
  * Connect equivalent and is dropped. [Nutrients.salt] is converted to sodium (salt ÷ 2.5).
+ *
+ * Health Connect requires startTime to be strictly before endTime (equal instants are rejected
+ * with "startTime must be before endTime"), so this treats the meal as spanning one minute
+ * starting at the logged time rather than a true instant.
  */
 private fun Record.toNutritionRecord(): NutritionRecord {
-    val instant = timestamp.toInstant()
+    val startInstant = timestamp.toInstant()
     val zoneOffset = timestamp.offset
     val nutrients = template.nutrients
     return NutritionRecord(
-        startTime = instant,
+        startTime = startInstant,
         startZoneOffset = zoneOffset,
-        endTime = instant,
+        endTime = startInstant + 1.minutes.toJavaDuration(),
         endZoneOffset = zoneOffset,
         metadata = Metadata.manualEntry(),
         name = template.name.ifBlank { null },
