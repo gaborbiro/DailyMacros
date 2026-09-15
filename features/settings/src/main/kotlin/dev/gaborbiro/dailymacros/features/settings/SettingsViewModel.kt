@@ -20,6 +20,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.shared.photodiary.PhotoMonitorWorker
 import dev.gaborbiro.dailymacros.features.settings.export.OpenPublicDocumentUseCase
+import dev.gaborbiro.dailymacros.features.settings.healthconnect.HealthConnectSyncResult
+import dev.gaborbiro.dailymacros.features.settings.healthconnect.HealthConnectSyncUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.pdf.DiaryDateRange
 import dev.gaborbiro.dailymacros.features.settings.export.pdf.PdfRangeSelection
 import dev.gaborbiro.dailymacros.features.settings.export.pdf.computeRange
@@ -61,6 +63,7 @@ class SettingsViewModel @Inject constructor(
     private val importSqliteDatabaseUseCase: ImportSqliteDatabaseUseCase,
     private val syncDatabaseUseCase: SyncDatabaseUseCase,
     private val restoreFromDriveUseCase: RestoreFromDriveUseCase,
+    private val healthConnectSyncUseCase: HealthConnectSyncUseCase,
     private val cloudSyncRepository: CloudSyncRepository,
     private val featureFlagStore: FeatureFlagStore,
     private val subscriptionRepository: SubscriptionRepository,
@@ -535,6 +538,42 @@ class SettingsViewModel @Inject constructor(
         _uiState.update { it.copy(autoPhotoRecognitionEnabled = false) }
         viewModelScope.launch {
             _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Permission required to monitor camera photos."))
+        }
+    }
+
+    fun onHealthConnectSyncTapped() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(healthConnectSyncInProgress = true) }
+            val startOfToday = java.time.ZonedDateTime.now().toLocalDate().atStartOfDay(java.time.ZoneId.systemDefault())
+            when (val result = healthConnectSyncUseCase.execute(since = startOfToday)) {
+                is HealthConnectSyncResult.Success -> {
+                    val message = if (result.count == 0) {
+                        "No entries logged today."
+                    } else {
+                        "Synced ${result.count} ${if (result.count == 1) "entry" else "entries"} to Health Connect."
+                    }
+                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar(message))
+                }
+                HealthConnectSyncResult.NotAvailable ->
+                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Health Connect isn't available on this device."))
+                HealthConnectSyncResult.PermissionRequired ->
+                    _uiUpdates.emit(SettingsUiUpdates.RequestHealthConnectPermissions)
+                is HealthConnectSyncResult.Error -> {
+                    Log.e("HealthConnect", "Sync failed", RuntimeException(result.message))
+                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Sync failed: ${result.message}"))
+                }
+            }
+            _uiState.update { it.copy(healthConnectSyncInProgress = false) }
+        }
+    }
+
+    fun onHealthConnectPermissionsGranted() {
+        onHealthConnectSyncTapped()
+    }
+
+    fun onHealthConnectPermissionsDenied() {
+        viewModelScope.launch {
+            _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Permission required to sync with Health Connect."))
         }
     }
 

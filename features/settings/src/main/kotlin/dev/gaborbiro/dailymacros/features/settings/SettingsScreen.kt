@@ -9,6 +9,7 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.SnackbarHostState
+import androidx.health.connect.client.PermissionController
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -24,6 +25,7 @@ import dev.gaborbiro.dailymacros.features.common.ONBOARDING_ROUTE
 import dev.gaborbiro.dailymacros.features.common.SettingsRowId
 import dev.gaborbiro.dailymacros.features.settings.export.rememberCreatePublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.rememberOpenPublicDocumentUseCase
+import dev.gaborbiro.dailymacros.features.settings.healthconnect.HealthConnectSyncUseCase
 import dev.gaborbiro.dailymacros.features.settings.goalsQuestionnaire.GoalsQuestionnaireActivity
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorScreen
@@ -53,6 +55,16 @@ fun SettingsScreen(
         else settingsViewModel.onAutoPhotoPermissionsDenied()
     }
 
+    val healthConnectPermissionLauncher = rememberLauncherForActivityResult(
+        contract = PermissionController.createRequestPermissionResultContract()
+    ) { granted ->
+        if (granted.containsAll(HealthConnectSyncUseCase.PERMISSIONS)) {
+            settingsViewModel.onHealthConnectPermissionsGranted()
+        } else {
+            settingsViewModel.onHealthConnectPermissionsDenied()
+        }
+    }
+
     LaunchedEffect(settingsViewModel) {
         settingsViewModel.uiUpdates.collect { event ->
             when (event) {
@@ -67,6 +79,9 @@ fun SettingsScreen(
                         Manifest.permission.READ_EXTERNAL_STORAGE
                     }
                     photoPermissionLauncher.launch(permission)
+                }
+                SettingsUiUpdates.RequestHealthConnectPermissions -> {
+                    healthConnectPermissionLauncher.launch(HealthConnectSyncUseCase.PERMISSIONS)
                 }
                 else -> Unit
             }
@@ -108,6 +123,7 @@ fun SettingsScreen(
         onOverwriteDialogDismissed = settingsViewModel::onOverwriteDialogDismissed,
         onSubscribeTapped = { context.findActivity()?.let(settingsViewModel::onSubscribeRowTapped) },
         onShowOnboardingTapped = { navController.navigate(ONBOARDING_ROUTE) },
+        onHealthConnectSyncTapped = settingsViewModel::onHealthConnectSyncTapped,
     )
 
     // The goals questionnaire (reachable via onOpenGoalsQuestionnaire below) is a separate

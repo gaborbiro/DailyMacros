@@ -30,6 +30,7 @@ androidx-activity-compose = "1.13.0"
 androidx-appcompat = "1.7.1"
 androidx-work = "2.11.2"
 androidx-window = "1.5.1"
+androidx-health-connect = "1.1.0"
 androidx-camerax = "1.6.1"
 androidx-lifecycle = "2.11.0"
 # @pin
@@ -105,6 +106,10 @@ androidx-navigation-compose = { module = "androidx.navigation:navigation-compose
 # -------------------------------------------------------------------------------
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "androidx-work" }
 androidx-work-testing = { module = "androidx.work:work-testing", version.ref = "androidx-work" }
+# -------------------------------------------------------------------------------
+# --- Health Connect --------------------------------------------------------------
+# -------------------------------------------------------------------------------
+androidx-health-connect-client = { module = "androidx.health.connect:connect-client", version.ref = "androidx-health-connect" }
 # -------------------------------------------------------------------------------
 # --- CameraX -------------------------------------------------------------------
 # -------------------------------------------------------------------------------
