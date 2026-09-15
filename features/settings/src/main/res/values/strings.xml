@@ -160,4 +160,6 @@
     <!-- Debug -->
     <string name="settings_debug_section">Debug</string>
     <string name="settings_debug_show_onboarding_row">Show onboarding screens</string>
+    <string name="settings_health_connect_sync_row">Sync today\'s entries to Health Connect</string>
+    <string name="settings_health_connect_sync_subtitle">Writes today\'s meals as nutrition entries. Samsung Health reads from Health Connect on Samsung devices. Experimental: no dedup, re-tapping creates duplicates.</string>
 </resources>

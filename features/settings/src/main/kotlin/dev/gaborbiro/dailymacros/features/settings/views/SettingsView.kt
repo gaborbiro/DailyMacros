@@ -100,6 +100,7 @@ internal fun SettingsView(
     onOverwriteDialogDismissed: () -> Unit,
     onSubscribeTapped: () -> Unit,
     onShowOnboardingTapped: () -> Unit = {},
+    onHealthConnectSyncTapped: () -> Unit = {},
 ) {
 
     if (viewState.showDiaryDayStartDialog) {
@@ -426,6 +427,17 @@ internal fun SettingsView(
                 SettingRow(
                     title = stringResource(R.string.settings_debug_show_onboarding_row),
                     onTapped = onShowOnboardingTapped,
+                )
+                SettingRow(
+                    title = stringResource(R.string.settings_health_connect_sync_row),
+                    subtitle = stringResource(R.string.settings_health_connect_sync_subtitle),
+                    enabled = !viewState.healthConnectSyncInProgress,
+                    onTapped = onHealthConnectSyncTapped,
+                    trailing = {
+                        if (viewState.healthConnectSyncInProgress) {
+                            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                        }
+                    },
                 )
             }
 
