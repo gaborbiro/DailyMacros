@@ -42,30 +42,15 @@ fun ProgressView(
             drawRoundRect(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        lerp(progressColor, Color.White, 0.2f),
+                        lerp(progressColor, Color.White, 0.25f),
                         progressColor,
-                        lerp(progressColor, Color.Black, 0.2f),
+                        lerp(progressColor, Color.Black, 0.25f),
                     ),
                 ),
                 topLeft = Offset(0f, 0f),
                 size = Size(progressWidth, size.height),
                 cornerRadius = cornerRadius
             )
-
-            // Shadow the fill casts onto the track just past its leading edge, as if this
-            // layer sits above the one beneath it — the same overlap cue the rings use.
-            val shadowWidth = size.height.coerceAtMost(size.width - progressWidth)
-            if (shadowWidth > 0f) {
-                drawRect(
-                    brush = Brush.horizontalGradient(
-                        colors = listOf(Color.Black.copy(alpha = 0.3f), Color.Transparent),
-                        startX = progressWidth,
-                        endX = progressWidth + shadowWidth,
-                    ),
-                    topLeft = Offset(progressWidth, 0f),
-                    size = Size(shadowWidth, size.height),
-                )
-            }
         }
 
         // Min target marker — green line, always on top, hidden only when min is unset (min0to1 == -1)
