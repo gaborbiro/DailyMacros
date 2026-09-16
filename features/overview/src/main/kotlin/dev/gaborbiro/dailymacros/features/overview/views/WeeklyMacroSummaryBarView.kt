@@ -46,6 +46,12 @@ internal fun WeeklyMacroSummaryBarView(
         remember(totalRowCount) { initialPause + baseDuration + (totalRowCount - 1) * stagger }
 
     LaunchedEffect(model.progress0to1, totalRowCount) {
+        // The bar itself never draws past 100% width (see ProgressView), so animate only up to
+        // that cap -- otherwise a well-over-target value keeps this animation running for its
+        // full duration while the bar sits visually maxed out well before that, making it look
+        // like it snapped to full almost instantly compared to bars that stay under 100%.
+        val animationTarget = model.progress0to1.coerceAtMost(1f)
+
         // Delay for this row = pause + rowIndex * stagger
         delay(initialPause + rowIndex * stagger.toLong())
 
@@ -53,14 +59,14 @@ internal fun WeeklyMacroSummaryBarView(
         val timeLeft = totalAnimDuration - (initialPause + rowIndex * stagger)
         if (timeLeft > 0) {
             animated.animateTo(
-                targetValue = model.progress0to1,
+                targetValue = animationTarget,
                 animationSpec = tween(
                     durationMillis = timeLeft,
                     easing = OvershootInterpolatorEasing
                 )
             )
         } else {
-            animated.snapTo(model.progress0to1)
+            animated.snapTo(animationTarget)
         }
     }
 
@@ -68,8 +74,10 @@ internal fun WeeklyMacroSummaryBarView(
     val onBackground = MaterialTheme.colorScheme.onBackground
     val extraColors = LocalExtraColorScheme.current
 
-    val (barColor, trackColor) = remember(progress) {
-        layeredColors(progress0to1 = progress, base = model.color(extraColors), onBackground = onBackground)
+    // Colored by the final value, not the animating one -- a macro that's over its limit is red
+    // for the whole entrance animation, not just once the fill happens to reach 100%.
+    val (barColor, trackColor) = remember(model.progress0to1) {
+        progressColors(progress0to1 = model.progress0to1, base = model.color(extraColors), onBackground = onBackground)
     }
 
     Column(
@@ -91,9 +99,10 @@ internal fun WeeklyMacroSummaryBarView(
                 .padding(top = 2.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            val marks = severityMarks(model.progress0to1)
             Text(
                 modifier = Modifier.weight(1f),
-                text = model.progressLabel,
+                text = if (marks.isEmpty()) model.progressLabel else "${model.progressLabel} $marks",
                 style = MaterialTheme.typography.labelSmall,
                 color = if (model.progress0to1 > 1f) Color.Red else Color.Unspecified,
             )
