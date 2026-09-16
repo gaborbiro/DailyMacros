@@ -87,9 +87,10 @@ internal fun DailyMacroBarView(
             modifier = Modifier
                 .padding(top = 2.dp)
         ) {
+            val marks = severityMarks(model.progress0to1)
             Text(
                 modifier = Modifier.weight(1f),
-                text = model.progressLabel,
+                text = if (marks.isEmpty()) model.progressLabel else "${model.progressLabel} $marks",
                 style = MaterialTheme.typography.labelSmall,
                 color = if (model.progress0to1 > 1f) Color.Red else Color.Unspecified,
             )

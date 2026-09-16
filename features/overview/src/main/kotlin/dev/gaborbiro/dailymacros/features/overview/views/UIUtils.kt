@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.features.overview.views
 
 import androidx.compose.animation.core.Easing
 import androidx.compose.ui.graphics.Color
+import kotlin.math.floor
 
 fun layeredColors(
     progress0to1: Float,
@@ -29,6 +30,15 @@ fun layeredColors(
             Color(0xFFFF5252) to Color(0xFFFF1744)
         }
     }
+}
+
+/**
+ * "!" once a nutrient hits 2x its limit, "!!" at 3x, capped at "!!!" from 4x up. Simply being
+ * over (1x-2x) is already conveyed by the existing red color, so no mark yet at that point.
+ */
+fun severityMarks(progress0to1: Float): String {
+    val markCount = (floor(progress0to1).toInt() - 1).coerceIn(0, 3)
+    return "!".repeat(markCount)
 }
 
 /**
