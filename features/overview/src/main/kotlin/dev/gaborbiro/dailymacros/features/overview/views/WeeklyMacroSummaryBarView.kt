@@ -46,6 +46,12 @@ internal fun WeeklyMacroSummaryBarView(
         remember(totalRowCount) { initialPause + baseDuration + (totalRowCount - 1) * stagger }
 
     LaunchedEffect(model.progress0to1, totalRowCount) {
+        // The bar itself never draws past 100% width (see ProgressView), so animate only up to
+        // that cap -- otherwise a well-over-target value keeps this animation running for its
+        // full duration while the bar sits visually maxed out well before that, making it look
+        // like it snapped to full almost instantly compared to bars that stay under 100%.
+        val animationTarget = model.progress0to1.coerceAtMost(1f)
+
         // Delay for this row = pause + rowIndex * stagger
         delay(initialPause + rowIndex * stagger.toLong())
 
@@ -53,14 +59,14 @@ internal fun WeeklyMacroSummaryBarView(
         val timeLeft = totalAnimDuration - (initialPause + rowIndex * stagger)
         if (timeLeft > 0) {
             animated.animateTo(
-                targetValue = model.progress0to1,
+                targetValue = animationTarget,
                 animationSpec = tween(
                     durationMillis = timeLeft,
                     easing = OvershootInterpolatorEasing
                 )
             )
         } else {
-            animated.snapTo(model.progress0to1)
+            animated.snapTo(animationTarget)
         }
     }
 
