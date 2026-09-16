@@ -69,7 +69,7 @@ internal fun WeeklyMacroSummaryBarView(
     val extraColors = LocalExtraColorScheme.current
 
     val (barColor, trackColor) = remember(progress) {
-        layeredColors(progress0to1 = progress, base = model.color(extraColors), onBackground = onBackground)
+        progressColors(progress0to1 = progress, base = model.color(extraColors), onBackground = onBackground)
     }
 
     Column(

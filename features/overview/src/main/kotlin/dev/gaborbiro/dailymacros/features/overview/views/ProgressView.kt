@@ -36,7 +36,10 @@ fun ProgressView(
 
         // Progress fill — a top highlight fading into a bottom shadow gives the bar a
         // raised, tube-like look, echoing how overlapping ring strokes shade themselves.
-        val fraction = progress0to1 % 1f
+        // Capped at 100% width once over target: progressColor already switches to a fixed
+        // alert red at that point, and severityMarks conveys how far over, so the fill itself
+        // no longer needs to wrap or grow past a full bar to mean anything.
+        val fraction = progress0to1.coerceIn(0f, 1f)
         val progressWidth = fraction * size.width
         if (progressWidth > 0f) {
             drawRoundRect(
