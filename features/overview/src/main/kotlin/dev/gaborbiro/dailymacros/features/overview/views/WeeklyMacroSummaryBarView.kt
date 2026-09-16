@@ -74,8 +74,10 @@ internal fun WeeklyMacroSummaryBarView(
     val onBackground = MaterialTheme.colorScheme.onBackground
     val extraColors = LocalExtraColorScheme.current
 
-    val (barColor, trackColor) = remember(progress) {
-        progressColors(progress0to1 = progress, base = model.color(extraColors), onBackground = onBackground)
+    // Colored by the final value, not the animating one -- a macro that's over its limit is red
+    // for the whole entrance animation, not just once the fill happens to reach 100%.
+    val (barColor, trackColor) = remember(model.progress0to1) {
+        progressColors(progress0to1 = model.progress0to1, base = model.color(extraColors), onBackground = onBackground)
     }
 
     Column(
