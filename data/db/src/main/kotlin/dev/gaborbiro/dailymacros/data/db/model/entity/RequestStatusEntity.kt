@@ -30,7 +30,5 @@ data class RequestStatusEntity(
 
     enum class Status {
         PENDING,
-        SUCCESS,
-        FAILED,
     }
 }

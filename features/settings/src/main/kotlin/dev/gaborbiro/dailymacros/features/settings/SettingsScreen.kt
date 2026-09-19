@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -25,7 +26,7 @@ import dev.gaborbiro.dailymacros.features.common.ONBOARDING_ROUTE
 import dev.gaborbiro.dailymacros.features.common.SettingsRowId
 import dev.gaborbiro.dailymacros.features.settings.export.rememberCreatePublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.rememberOpenPublicDocumentUseCase
-import dev.gaborbiro.dailymacros.features.settings.healthconnect.HealthConnectSyncUseCase
+import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectSyncUseCase
 import dev.gaborbiro.dailymacros.features.settings.goalsQuestionnaire.GoalsQuestionnaireActivity
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorScreen
@@ -123,7 +124,8 @@ fun SettingsScreen(
         onOverwriteDialogDismissed = settingsViewModel::onOverwriteDialogDismissed,
         onSubscribeTapped = { context.findActivity()?.let(settingsViewModel::onSubscribeRowTapped) },
         onShowOnboardingTapped = { navController.navigate(ONBOARDING_ROUTE) },
-        onHealthConnectSyncTapped = settingsViewModel::onHealthConnectSyncTapped,
+        onHealthConnectSyncToggled = settingsViewModel::onHealthConnectSyncToggled,
+        onSuggestIntegrationTapped = { openSuggestIntegrationEmail(context) },
     )
 
     // The goals questionnaire (reachable via onOpenGoalsQuestionnaire below) is a separate
@@ -166,4 +168,13 @@ internal tailrec fun Context.findActivity(): Activity? = when (this) {
     is Activity -> this
     is ContextWrapper -> baseContext.findActivity()
     else -> null
+}
+
+private fun openSuggestIntegrationEmail(context: Context) {
+    val intent = Intent(Intent.ACTION_SENDTO).apply {
+        data = Uri.parse("mailto:")
+        putExtra(Intent.EXTRA_EMAIL, arrayOf("nomadworkz@gmail.com"))
+        putExtra(Intent.EXTRA_SUBJECT, "DailyMacros: sync integration suggestion")
+    }
+    runCatching { context.startActivity(intent) }
 }

@@ -100,7 +100,8 @@ internal fun SettingsView(
     onOverwriteDialogDismissed: () -> Unit,
     onSubscribeTapped: () -> Unit,
     onShowOnboardingTapped: () -> Unit = {},
-    onHealthConnectSyncTapped: () -> Unit = {},
+    onHealthConnectSyncToggled: (Boolean) -> Unit = {},
+    onSuggestIntegrationTapped: () -> Unit = {},
 ) {
 
     if (viewState.showDiaryDayStartDialog) {
@@ -422,22 +423,33 @@ internal fun SettingsView(
                 onTapped = { uriHandler.openUri(privacyPolicyUrl) },
             )
 
+            SettingSectionHeader(title = stringResource(R.string.settings_content_connected_services_section))
+            SettingRow(
+                title = stringResource(R.string.settings_health_connect_sync_row),
+                subtitle = stringResource(R.string.settings_health_connect_sync_subtitle),
+                enabled = !viewState.healthConnectSyncInProgress,
+                onTapped = { onHealthConnectSyncToggled(!viewState.healthConnectSyncEnabled) },
+                trailing = {
+                    if (viewState.healthConnectSyncInProgress) {
+                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                    } else {
+                        Switch(
+                            checked = viewState.healthConnectSyncEnabled,
+                            onCheckedChange = onHealthConnectSyncToggled,
+                        )
+                    }
+                },
+            )
+            SettingRow(
+                title = stringResource(R.string.settings_suggest_integration_row),
+                onTapped = onSuggestIntegrationTapped,
+            )
+
             if (viewState.isDebugBuild) {
                 SettingSectionHeader(title = stringResource(R.string.settings_debug_section))
                 SettingRow(
                     title = stringResource(R.string.settings_debug_show_onboarding_row),
                     onTapped = onShowOnboardingTapped,
-                )
-                SettingRow(
-                    title = stringResource(R.string.settings_health_connect_sync_row),
-                    subtitle = stringResource(R.string.settings_health_connect_sync_subtitle),
-                    enabled = !viewState.healthConnectSyncInProgress,
-                    onTapped = onHealthConnectSyncTapped,
-                    trailing = {
-                        if (viewState.healthConnectSyncInProgress) {
-                            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                        }
-                    },
                 )
             }
 

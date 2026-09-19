@@ -69,6 +69,10 @@ interface SettingsRepository {
     fun getAutoPhotoRecognitionEnabled(): Boolean = false
     fun setAutoPhotoRecognitionEnabled(enabled: Boolean) {}
 
+    /** Whether new/changed diary entries are pushed to Health Connect (Settings > Connected Services). */
+    fun getHealthConnectSyncEnabled(): Boolean = false
+    fun setHealthConnectSyncEnabled(enabled: Boolean) {}
+
     /** Whether tapping a Quick Pick, in the Quick Pick widget or in the main widget, shows a confirmation dialog before logging. */
     fun getQuickPickConfirmationEnabled(): Boolean = true
     fun setQuickPickConfirmationEnabled(enabled: Boolean) {}

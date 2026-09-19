@@ -10,6 +10,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.HiltAndroidApp
 import dagger.hilt.components.SingletonComponent
+import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectSyncCoordinator
 import dev.gaborbiro.dailymacros.features.shared.photodiary.PhotoMonitorWorker
 import dev.gaborbiro.dailymacros.features.widgets.WidgetAutoReloader
 import dev.gaborbiro.dailymacros.repositories.billing.domain.SubscriptionRepository
@@ -27,6 +28,7 @@ interface AppWorkerFactoryEntryPoint {
 @InstallIn(SingletonComponent::class)
 interface AppBootstrapEntryPoint {
     fun widgetAutoReloader(): WidgetAutoReloader
+    fun healthConnectSyncCoordinator(): HealthConnectSyncCoordinator
     fun settingsRepository(): SettingsRepository
     fun subscriptionRepository(): SubscriptionRepository
     fun pendingDriveSyncInfoStore(): PendingDriveSyncInfoStore
@@ -68,6 +70,7 @@ class App : Application(), Configuration.Provider {
             bootstrap.settingsRepository().setAutoSyncErrorStatus(null)
         }
         bootstrap.widgetAutoReloader().start()
+        bootstrap.healthConnectSyncCoordinator().start()
         // The photo monitor chain can die if a run is killed before it re-enqueues itself
         // (process death, force-stop). Re-arm on every process start; KEEP makes this a no-op
         // when the monitor is already scheduled.
