@@ -161,7 +161,9 @@
     <string name="settings_content_connected_services_section">Connected services</string>
     <string name="settings_health_connect_sync_row">Sync to Health Connect</string>
     <string name="settings_health_connect_sync_subtitle">Automatically shares new and updated meals with Health Connect. Samsung Health reads from Health Connect on Samsung devices.</string>
-    <string name="settings_suggest_integration_row">Any other service you\'d like to sync with? Drop me a message and I\'ll look into it</string>
+    <string name="settings_suggest_integration_row_question">Any other service you\'d like to sync with?</string>
+    <string name="settings_suggest_integration_row_cta">Drop me a message</string>
+    <string name="settings_suggest_integration_row_outro">and I\'ll look into it</string>
     <!-- Debug -->
     <string name="settings_debug_section">Debug</string>
     <string name="settings_debug_show_onboarding_row">Show onboarding screens</string>

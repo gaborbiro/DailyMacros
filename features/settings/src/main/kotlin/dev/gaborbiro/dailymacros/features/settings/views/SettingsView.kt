@@ -48,7 +48,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.features.common.SettingsRowId
@@ -441,7 +445,21 @@ internal fun SettingsView(
                 },
             )
             SettingRow(
-                title = stringResource(R.string.settings_suggest_integration_row),
+                titleContent = {
+                    val question = stringResource(R.string.settings_suggest_integration_row_question)
+                    val cta = stringResource(R.string.settings_suggest_integration_row_cta)
+                    val outro = stringResource(R.string.settings_suggest_integration_row_outro)
+                    val linkColor = MaterialTheme.colorScheme.primary
+                    Text(
+                        text = buildAnnotatedString {
+                            append("$question ")
+                            withStyle(SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline)) {
+                                append(cta)
+                            }
+                            append(" $outro")
+                        },
+                    )
+                },
                 onTapped = onSuggestIntegrationTapped,
             )
 
@@ -502,7 +520,8 @@ private val LocalSettingsHighlightRowId = compositionLocalOf<SettingsRowId?> { n
 
 @Composable
 private fun SettingRow(
-    title: String,
+    title: String? = null,
+    titleContent: (@Composable () -> Unit)? = null,
     subtitle: String? = null,
     enabled: Boolean = true,
     rowId: SettingsRowId? = null,
@@ -539,7 +558,11 @@ private fun SettingRow(
                 .weight(1f)
                 .padding(16.dp),
         ) {
-            Text(text = title)
+            if (titleContent != null) {
+                titleContent()
+            } else {
+                Text(text = title.orEmpty())
+            }
             if (subtitle != null) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
