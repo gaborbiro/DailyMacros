@@ -48,7 +48,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.features.common.SettingsRowId
@@ -100,6 +104,8 @@ internal fun SettingsView(
     onOverwriteDialogDismissed: () -> Unit,
     onSubscribeTapped: () -> Unit,
     onShowOnboardingTapped: () -> Unit = {},
+    onHealthConnectSyncToggled: (Boolean) -> Unit = {},
+    onSuggestIntegrationTapped: () -> Unit = {},
 ) {
 
     if (viewState.showDiaryDayStartDialog) {
@@ -421,6 +427,42 @@ internal fun SettingsView(
                 onTapped = { uriHandler.openUri(privacyPolicyUrl) },
             )
 
+            SettingSectionHeader(title = stringResource(R.string.settings_content_connected_services_section))
+            SettingRow(
+                title = stringResource(R.string.settings_health_connect_sync_row),
+                subtitle = stringResource(R.string.settings_health_connect_sync_subtitle),
+                enabled = !viewState.healthConnectSyncInProgress,
+                onTapped = { onHealthConnectSyncToggled(!viewState.healthConnectSyncEnabled) },
+                trailing = {
+                    if (viewState.healthConnectSyncInProgress) {
+                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                    } else {
+                        Switch(
+                            checked = viewState.healthConnectSyncEnabled,
+                            onCheckedChange = onHealthConnectSyncToggled,
+                        )
+                    }
+                },
+            )
+            SettingRow(
+                titleContent = {
+                    val question = stringResource(R.string.settings_suggest_integration_row_question)
+                    val cta = stringResource(R.string.settings_suggest_integration_row_cta)
+                    val outro = stringResource(R.string.settings_suggest_integration_row_outro)
+                    val linkColor = MaterialTheme.colorScheme.primary
+                    Text(
+                        text = buildAnnotatedString {
+                            append("$question ")
+                            withStyle(SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline)) {
+                                append(cta)
+                            }
+                            append(" $outro")
+                        },
+                    )
+                },
+                onTapped = onSuggestIntegrationTapped,
+            )
+
             if (viewState.isDebugBuild) {
                 SettingSectionHeader(title = stringResource(R.string.settings_debug_section))
                 SettingRow(
@@ -478,7 +520,8 @@ private val LocalSettingsHighlightRowId = compositionLocalOf<SettingsRowId?> { n
 
 @Composable
 private fun SettingRow(
-    title: String,
+    title: String? = null,
+    titleContent: (@Composable () -> Unit)? = null,
     subtitle: String? = null,
     enabled: Boolean = true,
     rowId: SettingsRowId? = null,
@@ -515,7 +558,11 @@ private fun SettingRow(
                 .weight(1f)
                 .padding(16.dp),
         ) {
-            Text(text = title)
+            if (titleContent != null) {
+                titleContent()
+            } else {
+                Text(text = title.orEmpty())
+            }
             if (subtitle != null) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(

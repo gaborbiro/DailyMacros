@@ -24,6 +24,13 @@
     -->
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
     <uses-permission android:name="android.permission.ACCESS_ADSERVICES_AD_ID" tools:node="remove" />
+
+    <!--
+       Write-only Health Connect permission for the experimental "Sync to Health Connect"
+       button (Settings > Debug, debug builds only). Samsung Health reads from Health
+       Connect on One UI devices, so this is how entries reach it.
+    -->
+    <uses-permission android:name="android.permission.health.WRITE_NUTRITION" />
     <!--
        READ_MEDIA_IMAGES / READ_EXTERNAL_STORAGE are intentionally NOT declared.
        The visible app adds meal photos via the Android Photo Picker
@@ -38,6 +45,14 @@
        See README.md → "Pending doc/text updates for hidden features".
     -->
 
+    <!--
+       Package-visibility declaration required by the Health Connect integration guide so the
+       app can reliably detect whether Health Connect is installed (HealthConnectClient.getSdkStatus)
+       and launch its permission screen, on Android 11+'s restricted package visibility.
+    -->
+    <queries>
+        <package android:name="com.google.android.apps.healthdata" />
+    </queries>
 
     <application
         android:name=".App"
@@ -65,6 +80,29 @@
                 android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts" />
         </activity>
+
+        <!--
+           Health Connect's required "permission rationale" for the experimental sync button
+           (see HealthConnectSyncUseCase / HealthConnectRationaleActivity): without these two
+           entries, Health Connect auto-denies the permission request with no dialog shown.
+        -->
+        <activity
+            android:name=".features.healthconnect.HealthConnectRationaleActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+            </intent-filter>
+        </activity>
+        <activity-alias
+            android:name=".features.healthconnect.ViewPermissionUsageActivity"
+            android:exported="true"
+            android:targetActivity=".features.healthconnect.HealthConnectRationaleActivity"
+            android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+            </intent-filter>
+        </activity-alias>
 
 <provider
             android:name="androidx.startup.InitializationProvider"

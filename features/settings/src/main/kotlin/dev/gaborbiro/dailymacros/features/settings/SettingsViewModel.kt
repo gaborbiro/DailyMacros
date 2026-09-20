@@ -20,6 +20,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.shared.photodiary.PhotoMonitorWorker
 import dev.gaborbiro.dailymacros.features.settings.export.OpenPublicDocumentUseCase
+import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectSyncResult
+import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectSyncUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.pdf.DiaryDateRange
 import dev.gaborbiro.dailymacros.features.settings.export.pdf.PdfRangeSelection
 import dev.gaborbiro.dailymacros.features.settings.export.pdf.computeRange
@@ -49,6 +51,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.ZonedDateTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -61,6 +64,7 @@ class SettingsViewModel @Inject constructor(
     private val importSqliteDatabaseUseCase: ImportSqliteDatabaseUseCase,
     private val syncDatabaseUseCase: SyncDatabaseUseCase,
     private val restoreFromDriveUseCase: RestoreFromDriveUseCase,
+    private val healthConnectSyncUseCase: HealthConnectSyncUseCase,
     private val cloudSyncRepository: CloudSyncRepository,
     private val featureFlagStore: FeatureFlagStore,
     private val subscriptionRepository: SubscriptionRepository,
@@ -83,6 +87,7 @@ class SettingsViewModel @Inject constructor(
             wifiOnlyBackupEnabled = settingsRepository.getWifiOnlyBackupEnabled(),
             wifiOnlyAnalysisEnabled = settingsRepository.getWifiOnlyAnalysisEnabled(),
             isDebugBuild = appInfo.isDebugBuild,
+            healthConnectSyncEnabled = settingsRepository.getHealthConnectSyncEnabled(),
         ),
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
@@ -538,6 +543,59 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun onHealthConnectSyncToggled(enabled: Boolean) {
+        if (!enabled) {
+            settingsRepository.setHealthConnectSyncEnabled(false)
+            _uiState.update { it.copy(healthConnectSyncEnabled = false) }
+            return
+        }
+        viewModelScope.launch {
+            if (healthConnectSyncUseCase.hasPermission()) {
+                enableHealthConnectSync()
+            } else {
+                _uiUpdates.emit(SettingsUiUpdates.RequestHealthConnectPermissions)
+            }
+        }
+    }
+
+    fun onHealthConnectPermissionsGranted() {
+        enableHealthConnectSync()
+    }
+
+    fun onHealthConnectPermissionsDenied() {
+        viewModelScope.launch {
+            _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Permission required to sync with Health Connect."))
+        }
+    }
+
+    /** Turns the setting on and immediately backfills recent entries, so the toggle feels responsive. */
+    private fun enableHealthConnectSync() {
+        settingsRepository.setHealthConnectSyncEnabled(true)
+        _uiState.update { it.copy(healthConnectSyncEnabled = true) }
+        viewModelScope.launch {
+            _uiState.update { it.copy(healthConnectSyncInProgress = true) }
+            val since = ZonedDateTime.now().minusDays(HEALTH_CONNECT_INITIAL_SYNC_WINDOW_DAYS)
+            when (val result = healthConnectSyncUseCase.execute(since = since)) {
+                is HealthConnectSyncResult.Success -> {
+                    val message = if (result.count == 0) {
+                        "Turned on. Nothing to sync yet."
+                    } else {
+                        "Turned on. Synced ${result.count} recent ${if (result.count == 1) "entry" else "entries"}."
+                    }
+                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar(message))
+                }
+                HealthConnectSyncResult.NotAvailable ->
+                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Health Connect isn't available on this device."))
+                HealthConnectSyncResult.PermissionRequired -> Unit // just granted; a stale check race, nothing to show
+                is HealthConnectSyncResult.Error -> {
+                    Log.e("HealthConnect", "Sync failed", RuntimeException(result.message))
+                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Sync failed: ${result.message}"))
+                }
+            }
+            _uiState.update { it.copy(healthConnectSyncInProgress = false) }
+        }
+    }
+
     private fun enableAutoPhotoRecognition() {
         settingsRepository.setAutoPhotoRecognitionEnabled(true)
         PhotoMonitorWorker.enqueue(getApplication())
@@ -591,4 +649,7 @@ class SettingsViewModel @Inject constructor(
         null
     }
 
+    private companion object {
+        private const val HEALTH_CONNECT_INITIAL_SYNC_WINDOW_DAYS = 30L
+    }
 }
