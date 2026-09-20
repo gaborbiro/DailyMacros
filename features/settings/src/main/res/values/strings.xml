@@ -154,12 +154,17 @@
     <string name="settings_content_subscription_row_not_subscribed">Subscribe</string>
     <!-- Privacy & data -->
     <string name="settings_privacy_section">Privacy &amp; data</string>
-    <string name="settings_privacy_disclosure">To recognise meals and estimate nutrition, the photos and descriptions you add are sent to OpenAI for analysis. Your food diary is stored on this device; the developer does not store your meal photos or entries. Cloud backup, if you enable it, goes to your own Google account.</string>
+    <string name="settings_privacy_disclosure">To recognise meals and estimate nutrition, the photos and descriptions you add are sent to OpenAI for analysis. Your food diary is stored on this device; the developer does not store your meal photos or entries. Cloud backup, if you enable it, goes to your own Google account. Health Connect sync, if you enable it, shares your meals\' names and nutrition figures (not photos) with Health Connect and any app you connect to it.</string>
     <string name="settings_privacy_policy_row">Privacy policy</string>
     <string name="settings_privacy_policy_url">https://github.com/gaborbiro/DailyMacros/blob/master/PRIVACY.md</string>
+    <!-- Connected services -->
+    <string name="settings_content_connected_services_section">Connected services</string>
+    <string name="settings_health_connect_sync_row">Sync to Health Connect</string>
+    <string name="settings_health_connect_sync_subtitle">Automatically shares new and updated meals with Health Connect. Samsung Health reads from Health Connect on Samsung devices.</string>
+    <string name="settings_suggest_integration_row_question">Any other service you\'d like to sync with?</string>
+    <string name="settings_suggest_integration_row_cta">Drop me a message</string>
+    <string name="settings_suggest_integration_row_outro">and I\'ll look into it</string>
     <!-- Debug -->
     <string name="settings_debug_section">Debug</string>
     <string name="settings_debug_show_onboarding_row">Show onboarding screens</string>
-    <string name="settings_health_connect_sync_row">Sync today\'s entries to Health Connect</string>
-    <string name="settings_health_connect_sync_subtitle">Writes today\'s meals as nutrition entries. Samsung Health reads from Health Connect on Samsung devices. Experimental: no dedup, re-tapping creates duplicates.</string>
 </resources>
