@@ -9,6 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dev.gaborbiro.dailymacros.AppPrefs
 import dev.gaborbiro.dailymacros.BuildConfig
+import dev.gaborbiro.dailymacros.core.featureflags.RemoteConfigClientIdProvider
 import dev.gaborbiro.dailymacros.features.settings.SettingsAppInfo
 import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
 import dev.gaborbiro.dailymacros.features.shared.notifications.MacroResultsNotificationSender
@@ -40,6 +41,17 @@ object AppSingletonModule {
     @Singleton
     fun clientIdProvider(appPrefs: AppPrefs): ClientIdProvider =
         object : ClientIdProvider {
+            override val clientId: String
+                get() = appPrefs.userUUID
+        }
+
+    // Same source as ClientIdProvider above and the "UserID" shown on the
+    // Settings screen, so Remote Config's custom-signal targeting matches
+    // exactly what a user reports in a support email.
+    @Provides
+    @Singleton
+    fun remoteConfigClientIdProvider(appPrefs: AppPrefs): RemoteConfigClientIdProvider =
+        object : RemoteConfigClientIdProvider {
             override val clientId: String
                 get() = appPrefs.userUUID
         }
