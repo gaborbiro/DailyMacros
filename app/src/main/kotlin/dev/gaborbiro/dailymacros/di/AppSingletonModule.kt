@@ -13,7 +13,7 @@ import dev.gaborbiro.dailymacros.core.featureflags.RemoteConfigClientIdProvider
 import dev.gaborbiro.dailymacros.features.settings.SettingsAppInfo
 import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
 import dev.gaborbiro.dailymacros.features.shared.notifications.MacroResultsNotificationSender
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ClientIdProvider
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.RepositoryClientIdProvider
 import dev.gaborbiro.dailymacros.util.showMacroResultsNotification
 import javax.inject.Singleton
 
@@ -35,19 +35,14 @@ object AppSingletonModule {
                 get() = BuildConfig.DEBUG
         }
 
-    // Same source as the "UserID" shown on the Settings screen above, so the id
-    // the proxy stores matches exactly what a user reports in a support email.
     @Provides
     @Singleton
-    fun clientIdProvider(appPrefs: AppPrefs): ClientIdProvider =
-        object : ClientIdProvider {
+    fun clientIdProvider(appPrefs: AppPrefs): RepositoryClientIdProvider =
+        object : RepositoryClientIdProvider {
             override val clientId: String
                 get() = appPrefs.userUUID
         }
 
-    // Same source as ClientIdProvider above and the "UserID" shown on the
-    // Settings screen, so Remote Config's custom-signal targeting matches
-    // exactly what a user reports in a support email.
     @Provides
     @Singleton
     fun remoteConfigClientIdProvider(appPrefs: AppPrefs): RemoteConfigClientIdProvider =

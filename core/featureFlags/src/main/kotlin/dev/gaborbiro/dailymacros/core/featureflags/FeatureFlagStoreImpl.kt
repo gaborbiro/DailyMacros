@@ -15,9 +15,6 @@ class FeatureFlagStoreImpl @Inject constructor(
         val defaults = FeatureFlagStore.Key.entries.associate { it.remoteKey to it.default }
         remoteConfig.setDefaultsAsync(defaults)
 
-        // Custom signals must be persisted before fetch for the console-side
-        // condition (matching CUSTOM_SIGNAL_CLIENT_ID) to see them, so chain
-        // the fetch off the signal write rather than firing both at once.
         val signals = customSignals { put(CUSTOM_SIGNAL_CLIENT_ID, clientIdProvider.clientId) }
         remoteConfig.setCustomSignals(signals).addOnCompleteListener {
             remoteConfig.fetchAndActivate()
