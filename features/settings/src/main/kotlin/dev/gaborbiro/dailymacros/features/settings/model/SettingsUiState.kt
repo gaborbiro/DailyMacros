@@ -39,4 +39,5 @@ data class SettingsUiState(
     val isDebugBuild: Boolean = false,
     val healthConnectSyncEnabled: Boolean = false,
     val healthConnectSyncInProgress: Boolean = false,
+    val healthConnectSyncVisible: Boolean = false,
 )

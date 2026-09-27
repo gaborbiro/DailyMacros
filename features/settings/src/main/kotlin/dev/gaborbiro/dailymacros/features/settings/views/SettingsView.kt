@@ -428,22 +428,24 @@ internal fun SettingsView(
             )
 
             SettingSectionHeader(title = stringResource(R.string.settings_content_connected_services_section))
-            SettingRow(
-                title = stringResource(R.string.settings_health_connect_sync_row),
-                subtitle = stringResource(R.string.settings_health_connect_sync_subtitle),
-                enabled = !viewState.healthConnectSyncInProgress,
-                onTapped = { onHealthConnectSyncToggled(!viewState.healthConnectSyncEnabled) },
-                trailing = {
-                    if (viewState.healthConnectSyncInProgress) {
-                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                    } else {
-                        Switch(
-                            checked = viewState.healthConnectSyncEnabled,
-                            onCheckedChange = onHealthConnectSyncToggled,
-                        )
-                    }
-                },
-            )
+            if (viewState.healthConnectSyncVisible) {
+                SettingRow(
+                    title = stringResource(R.string.settings_health_connect_sync_row),
+                    subtitle = stringResource(R.string.settings_health_connect_sync_subtitle),
+                    enabled = !viewState.healthConnectSyncInProgress,
+                    onTapped = { onHealthConnectSyncToggled(!viewState.healthConnectSyncEnabled) },
+                    trailing = {
+                        if (viewState.healthConnectSyncInProgress) {
+                            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                        } else {
+                            Switch(
+                                checked = viewState.healthConnectSyncEnabled,
+                                onCheckedChange = onHealthConnectSyncToggled,
+                            )
+                        }
+                    },
+                )
+            }
             SettingRow(
                 titleContent = {
                     val question = stringResource(R.string.settings_suggest_integration_row_question)

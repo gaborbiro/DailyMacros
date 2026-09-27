@@ -88,6 +88,7 @@ class SettingsViewModel @Inject constructor(
             wifiOnlyAnalysisEnabled = settingsRepository.getWifiOnlyAnalysisEnabled(),
             isDebugBuild = appInfo.isDebugBuild,
             healthConnectSyncEnabled = settingsRepository.getHealthConnectSyncEnabled(),
+            healthConnectSyncVisible = featureFlagStore.isEnabled(FeatureFlagStore.Key.HEALTH_CONNECT_SYNC_VISIBLE),
         ),
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()

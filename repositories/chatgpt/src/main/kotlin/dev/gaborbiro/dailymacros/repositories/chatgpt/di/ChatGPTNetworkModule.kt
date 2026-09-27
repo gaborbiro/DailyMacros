@@ -14,10 +14,10 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGPTMapper
 import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGPTRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGptOkHttpTimeouts
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ClientIdProvider
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGptClientGson
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ForImageUploadChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ForJsonBodyChatGpt
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.RepositoryClientIdProvider
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.ChatGPTService
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ContentEntry
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ContentEntryOutputContentDeserializer
@@ -74,7 +74,7 @@ internal object ChatGPTNetworkModule {
     @ForImageUploadChatGpt
     fun imageUploadOkHttp(
         settingsRepository: SettingsRepository,
-        clientIdProvider: ClientIdProvider,
+        clientIdProvider: RepositoryClientIdProvider,
     ): OkHttpClient {
         val logger = loggingInterceptor()
         val authInterceptor = AuthInterceptor(settingsRepository, FirebaseAuth.getInstance(), clientIdProvider)
@@ -92,7 +92,7 @@ internal object ChatGPTNetworkModule {
     @ForJsonBodyChatGpt
     fun jsonBodyOkHttp(
         settingsRepository: SettingsRepository,
-        clientIdProvider: ClientIdProvider,
+        clientIdProvider: RepositoryClientIdProvider,
     ): OkHttpClient {
         val logger = loggingInterceptor()
         val authInterceptor = AuthInterceptor(settingsRepository, FirebaseAuth.getInstance(), clientIdProvider)

@@ -2,7 +2,7 @@ package dev.gaborbiro.dailymacros.repositories.chatgpt
 
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ClientIdProvider
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.RepositoryClientIdProvider
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
@@ -18,14 +18,14 @@ import java.io.IOException
  * - Otherwise the request is routed to the [PROXY_URL] Cloud Function and
  *   authenticated with a Firebase ID token (anonymous auth). The OpenAI key no
  *   longer ships in the app; the proxy holds it and enforces the caps. The
- *   three-word client id ([ClientIdProvider]) is attached so the proxy can
+ *   three-word client id ([RepositoryClientIdProvider]) is attached so the proxy can
  *   record it on the usage document — that is the handle a user reports in a
  *   support email, letting you find their row and, if needed, grant a bonus.
  */
 class AuthInterceptor(
     private val settingsRepository: SettingsRepository,
     private val firebaseAuth: FirebaseAuth,
-    private val clientIdProvider: ClientIdProvider,
+    private val clientIdProvider: RepositoryClientIdProvider,
 ) : Interceptor {
 
     companion object {

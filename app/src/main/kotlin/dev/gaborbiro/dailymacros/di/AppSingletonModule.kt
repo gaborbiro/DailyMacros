@@ -9,10 +9,11 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dev.gaborbiro.dailymacros.AppPrefs
 import dev.gaborbiro.dailymacros.BuildConfig
+import dev.gaborbiro.dailymacros.core.featureflags.RemoteConfigClientIdProvider
 import dev.gaborbiro.dailymacros.features.settings.SettingsAppInfo
 import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
 import dev.gaborbiro.dailymacros.features.shared.notifications.MacroResultsNotificationSender
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ClientIdProvider
+import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.RepositoryClientIdProvider
 import dev.gaborbiro.dailymacros.util.showMacroResultsNotification
 import javax.inject.Singleton
 
@@ -34,12 +35,18 @@ object AppSingletonModule {
                 get() = BuildConfig.DEBUG
         }
 
-    // Same source as the "UserID" shown on the Settings screen above, so the id
-    // the proxy stores matches exactly what a user reports in a support email.
     @Provides
     @Singleton
-    fun clientIdProvider(appPrefs: AppPrefs): ClientIdProvider =
-        object : ClientIdProvider {
+    fun clientIdProvider(appPrefs: AppPrefs): RepositoryClientIdProvider =
+        object : RepositoryClientIdProvider {
+            override val clientId: String
+                get() = appPrefs.userUUID
+        }
+
+    @Provides
+    @Singleton
+    fun remoteConfigClientIdProvider(appPrefs: AppPrefs): RemoteConfigClientIdProvider =
+        object : RemoteConfigClientIdProvider {
             override val clientId: String
                 get() = appPrefs.userUUID
         }
