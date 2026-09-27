@@ -125,7 +125,7 @@ class ModalViewModel @Inject constructor(
         setRoot(
             DialogHandle.RecordDetailsDialog.Edit(
                 title = titleValue,
-                titleHint = "Title",
+                titleHint = "Title (optional)",
                 description = TextFieldValue(),
                 imageFilenames = listOf(imageFilename),
                 recognisedFood = null,
@@ -263,7 +263,7 @@ class ModalViewModel @Inject constructor(
                     setRoot(
                         DialogHandle.RecordDetailsDialog.Edit(
                             title = TextFieldValue(),
-                            titleHint = "Title",
+                            titleHint = "Title (optional)",
                             description = TextFieldValue(),
                             imageFilenames = persistedFilenames,
                             recognisedFood = null,
@@ -315,7 +315,7 @@ class ModalViewModel @Inject constructor(
                         setRoot(
                             DialogHandle.RecordDetailsDialog.Edit(
                                 title = TextFieldValue(),
-                                titleHint = "Title",
+                                titleHint = "Title (optional)",
                                 description = TextFieldValue(),
                                 imageFilenames = persistedFilenames,
                                 recognisedFood = null,
@@ -338,7 +338,7 @@ class ModalViewModel @Inject constructor(
                     setRoot(
                         DialogHandle.RecordDetailsDialog.Edit(
                             title = TextFieldValue(),
-                            titleHint = "Title",
+                            titleHint = "Title (optional)",
                             description = TextFieldValue(),
                             imageFilenames = persistedFilenames,
                             recognisedFood = null,
@@ -1123,7 +1123,7 @@ class ModalViewModel @Inject constructor(
 
     private fun emptyRecordDetailsEdit() = DialogHandle.RecordDetailsDialog.Edit(
         title = TextFieldValue(),
-        titleHint = "Title",
+        titleHint = "Title (optional)",
         description = TextFieldValue(),
         imageFilenames = emptyList(),
         recognisedFood = null,
