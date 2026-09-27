@@ -36,6 +36,13 @@
     user enters, and — for weekly insights — their recent diary and targets, are
     sent to OpenAI to provide meal recognition / nutrition analysis. Not stored
     by the developer.
+  - **Health and fitness data, shared with other apps (opt-in):** if the user
+    turns on Health Connect sync (Settings > Connected services, off by
+    default), logged meals' names and nutrition figures — not photos — are
+    written to Android Health Connect, readable by any app the user has
+    connected to it (e.g. Samsung Health). Requires declaring the
+    `health.WRITE_NUTRITION` permission in Play Console's Permissions
+    Declaration form, separate from this Data safety form.
   - **Collected by the developer (limited):** anonymous usage analytics and crash
     diagnostics via Firebase, plus a random per-device identifier and usage
     counters stored by the proxy in Firestore to enforce usage limits. None of

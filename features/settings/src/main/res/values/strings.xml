@@ -145,7 +145,7 @@
     <string name="settings_prompt_editor_version_delete_cd">Delete version %1$d</string>
     <string name="settings_prompt_editor_usage_stats">%1$d x %2$d tokens avg</string>
     <string name="settings_prompt_editor_info_enabled">Changes take effect on the next AI query.\nCustomising the prompts may cause the app to behave in unpredictable ways or even crash. Revert the query to its default version if needed.\nDrop a message to %1$s for any suggestions or questions.</string>
-    <string name="settings_prompt_editor_info_disabled">ℹ️ Using your own API key means you no longer need to subscribe to this app. Once unlocked, feel free to cancel your subscription in Play Store, or keep it if you\'d like to support the developer of this app.\nDrop a message to %1$s for any suggestions or questions.\nYou can also customise the AI prompts. This may cause the app to behave in unpredictable ways or even crash. Revert the query to its default version if needed.\nA heads-up on future plans: I intend to collect anonymised custom prompts to improve the app\'s AI features. I\'ll ask for your explicit consent before doing so.</string>
+    <string name="settings_prompt_editor_info_disabled">ℹ️ Using your own API key means you no longer need to subscribe to this app. Once unlocked, feel free to cancel your subscription in Play Store, or keep it if you\'d like to support the developer of this app.\nYou will need these permissions: api.model.read, api.responses.read\nDrop a message to %1$s for any suggestions or questions.\nYou can also customise the AI prompts. This may cause the app to behave in unpredictable ways or even crash. Revert the query to its default version if needed.\nA heads-up on future plans: I intend to collect anonymised custom prompts to improve the app\'s AI features. I\'ll ask for your explicit consent before doing so.</string>
     <!-- AutoSyncUseCase -->
     <string name="settings_content_not_signed_in_google">Not signed in to Google</string>
     <!-- Subscription -->
@@ -154,9 +154,16 @@
     <string name="settings_content_subscription_row_not_subscribed">Subscribe</string>
     <!-- Privacy & data -->
     <string name="settings_privacy_section">Privacy &amp; data</string>
-    <string name="settings_privacy_disclosure">To recognise meals and estimate nutrition, the photos and descriptions you add are sent to OpenAI for analysis. Your food diary is stored on this device; the developer does not store your meal photos or entries. Cloud backup, if you enable it, goes to your own Google account.</string>
+    <string name="settings_privacy_disclosure">To recognise meals and estimate nutrition, the photos and descriptions you add are sent to OpenAI for analysis. Your food diary is stored on this device; the developer does not store your meal photos or entries. Cloud backup, if you enable it, goes to your own Google account. Health Connect sync, if you enable it, shares your meals\' names and nutrition figures (not photos) with Health Connect and any app you connect to it.</string>
     <string name="settings_privacy_policy_row">Privacy policy</string>
     <string name="settings_privacy_policy_url">https://github.com/gaborbiro/DailyMacros/blob/master/PRIVACY.md</string>
+    <!-- Connected services -->
+    <string name="settings_content_connected_services_section">Connected services</string>
+    <string name="settings_health_connect_sync_row">Sync to Health Connect</string>
+    <string name="settings_health_connect_sync_subtitle">Automatically shares new and updated meals with Health Connect. Samsung Health reads from Health Connect on Samsung devices.</string>
+    <string name="settings_suggest_integration_row_question">Any other service you\'d like to sync with?</string>
+    <string name="settings_suggest_integration_row_cta">Drop me a message</string>
+    <string name="settings_suggest_integration_row_outro">and I\'ll look into it</string>
     <!-- Debug -->
     <string name="settings_debug_section">Debug</string>
     <string name="settings_debug_show_onboarding_row">Show onboarding screens</string>

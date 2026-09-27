@@ -1,6 +1,6 @@
 # Daily Macros — Privacy Policy
 
-_Last updated: 2026-07-21_
+_Last updated: 2026-09-19_
 
 Daily Macros is a nutrition diary. This policy explains what data the app
 handles, where it goes, and the choices you have. It describes the app's current
@@ -14,6 +14,9 @@ behaviour; if it changes materially, this document will be updated.
   sent to **OpenAI** for analysis. The developer does **not** keep a copy of
   your meal photos or diary entries.
 - Optional cloud backup goes to **your own Google Drive**, not to the developer.
+- If you turn on **Health Connect sync** (off by default), your logged meals'
+  names and nutrition figures are also written to Android Health Connect, where
+  other apps you've connected to it (e.g. Samsung Health) can read them.
 - The app sends **anonymous** usage and crash telemetry to Google Firebase, tied
   only to a randomly generated identifier — not to your name or email.
 
@@ -55,6 +58,22 @@ If you enable cloud backup, the app writes a backup of your diary to a private
 folder in **your own** Google Drive account. This data is under your control in
 your Google account; the developer cannot access it.
 
+## Optional Health Connect sync
+
+If you turn on Health Connect sync in Settings > Connected services (off by
+default), the app writes your logged meals — name, timestamp, and nutrition
+figures (calories, protein, fat, carbs, sugar, fibre, sodium) — to Android
+Health Connect on your device. Meal photos and descriptions are never sent to
+Health Connect, only the derived nutrition figures.
+
+Health Connect is a system component that mediates data between apps you've
+explicitly connected — the developer has no access to it. Any app you've
+granted read access to (for example Samsung Health) can read what's written
+there; managing that access is done in the Health Connect app itself, not in
+Daily Macros. Turning the sync off stops future writes but does not delete
+what was already written — remove it from Health Connect's own app if you want
+that.
+
 ## Analytics and crash reporting
 
 The app uses Google Firebase Analytics and Crashlytics to understand usage and
@@ -81,11 +100,16 @@ person.
 - **Photos / media (`READ_MEDIA_IMAGES`)** — to read the meal photos you add to
   your food diary.
 - **Notifications** — to show reminders and status notifications.
+- **Health Connect - write nutrition (`health.WRITE_NUTRITION`)** — only
+  requested if you turn on Health Connect sync in Settings; lets the app write
+  your logged meals' nutrition figures to Health Connect.
 
 ## Data retention and deletion
 
 - On-device data: removed when you uninstall the app.
 - Cloud backup: remove it from your Google Drive at any time.
+- Health Connect sync: turning the toggle off stops new writes; previously
+  synced entries stay in Health Connect until removed there.
 - Server-side usage counter: not tied to your identity and detaches from any
   device once the app is uninstalled.
 

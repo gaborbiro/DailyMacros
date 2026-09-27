@@ -52,6 +52,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -257,6 +258,37 @@ class ModalViewModelTest {
         advanceUntilIdle()
         root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
         assertEquals(listOf("b.jpg", "c.jpg", "a.jpg"), root.imageFilenames)
+    }
+
+    @Test
+    fun `cancelling edit mode clears unsaved edits flag`() = runTest(testDispatcher) {
+        val tpl = ModalRecordFixtures.template(
+            dbId = 7L,
+            name = "Soup",
+            imageFilenames = listOf("a.jpg", "b.jpg"),
+        )
+        val rec = ModalRecordFixtures.record(5L, tpl)
+        val repo = object : BaseRecordsRepositoryStub() {
+            override fun observe(recordId: Long) = flowOf(rec)
+            override suspend fun get(recordId: Long) = rec.takeIf { it.recordId == recordId }
+            override suspend fun countRecordsForTemplate(templateId: Long) = 1
+            override suspend fun getRecordsByTemplate(templateId: Long) = listOf(rec)
+            override suspend fun getTemplateIdsInSameVariantFamily(templateId: Long) = listOf(templateId)
+            override suspend fun getTemplate(templateId: Long) = tpl
+        }
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        vm.onRecordDetailsEditStarted()
+        vm.onImageDeleteTapped("a.jpg")
+        advanceUntilIdle()
+        var root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertTrue(root.hasUnsavedEdits)
+        vm.onRecordDetailsEditCancelled()
+        root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertFalse(root.isEditing)
+        assertEquals(listOf("a.jpg", "b.jpg"), root.imageFilenames)
+        assertFalse(root.hasUnsavedEdits)
     }
 
     @Test

@@ -232,6 +232,13 @@ class SettingsRepositoryImpl @Inject constructor(
         prefs.edit { putBoolean(KEY_AUTO_PHOTO_RECOGNITION, enabled) }
     }
 
+    override fun getHealthConnectSyncEnabled(): Boolean =
+        prefs.getBoolean(KEY_HEALTH_CONNECT_SYNC, false)
+
+    override fun setHealthConnectSyncEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean(KEY_HEALTH_CONNECT_SYNC, enabled) }
+    }
+
     override fun getQuickPickConfirmationEnabled(): Boolean =
         prefs.getBoolean(KEY_QUICK_PICK_CONFIRMATION, true)
 
@@ -361,6 +368,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private const val KEY_CLOUD_SYNC_PROVIDER = "cloud_sync_provider"
         private const val KEY_LAST_SYNCED_EPOCH_MS = "last_synced_epoch_ms"
         private const val KEY_AUTO_PHOTO_RECOGNITION = "auto_photo_recognition"
+        private const val KEY_HEALTH_CONNECT_SYNC = "health_connect_sync_enabled"
         private const val KEY_QUICK_PICK_CONFIRMATION = "quick_pick_confirmation_enabled"
         private const val KEY_LAST_PROCESSED_MEDIA_STORE_ID = "last_processed_media_store_id"
         private const val KEY_MANUALLY_ADDED_MEDIA_STORE_IDS = "manually_added_media_store_ids"

@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.repositories.chatgpt
 
+import android.util.Log
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionResult
@@ -66,6 +67,10 @@ internal class ChatGPTRepositoryImpl(
     private val mapper: ChatGPTMapper,
     private val settingsRepository: SettingsRepository,
 ) : ChatGPTRepository {
+
+    companion object {
+        private const val TAG = "ChatGPTRepository"
+    }
 
     private val validationClient by lazy { OkHttpClient() }
 
@@ -242,7 +247,17 @@ internal class ChatGPTRepositoryImpl(
             .url("https://api.openai.com/v1/models")
             .header("Authorization", "Bearer $apiKey")
             .build()
-        runCatching { validationClient.newCall(request).execute().use { it.code == 200 } }.getOrDefault(false)
+        runCatching {
+            validationClient.newCall(request).execute().use { response ->
+                if (response.code != 200) {
+                    Log.w(TAG, "validateApiKey: rejected, code=${response.code} body=${response.peekBody(2048).string()}")
+                }
+                response.code == 200
+            }
+        }.getOrElse { t ->
+            Log.e(TAG, "validateApiKey: request failed", t)
+            false
+        }
     }
 
     private fun recordUsage(type: String, response: ChatGPTResponse) {

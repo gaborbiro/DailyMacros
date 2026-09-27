@@ -41,6 +41,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
 
+    implementation(libs.androidx.health.connect.client)
     implementation(libs.network.gson)
     implementation(libs.google.play.services.auth)
     implementation(libs.pdfbox.android)

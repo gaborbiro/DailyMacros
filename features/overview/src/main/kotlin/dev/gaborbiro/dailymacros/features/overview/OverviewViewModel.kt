@@ -17,6 +17,7 @@ import dev.gaborbiro.dailymacros.features.overview.usecase.ResolveOverviewObserv
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.ListMealVariantsForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.NutrientAnalysisWorker
+import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectSyncUseCase
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.repositories.billing.domain.SubscriptionRepository
@@ -61,6 +62,7 @@ class OverviewViewModel @Inject constructor(
     private val listMealVariantsForTemplateUseCase: ListMealVariantsForTemplateUseCase,
     private val createRecordFromTemplateUseCase: CreateRecordFromTemplateUseCase,
     private val subscriptionRepository: SubscriptionRepository,
+    private val healthConnectSyncUseCase: HealthConnectSyncUseCase,
 ) : AndroidViewModel(application) {
 
     private val _viewState: MutableStateFlow<OverviewUiState> =
@@ -329,7 +331,7 @@ class OverviewViewModel @Inject constructor(
     }
 
     fun onUndoDeleteDismissed() {
-        deleteUnusedTemplateAfterUndo(_viewState.value.recordToUndelete!!.template.dbId)
+        deleteUnusedTemplateAfterUndo(_viewState.value.recordToUndelete!!)
         _viewState.update {
             it.copy(
                 recordToUndelete = null,
@@ -368,9 +370,12 @@ class OverviewViewModel @Inject constructor(
         _viewState.update { it.copy(showSubscribeBanner = false) }
     }
 
-    private fun deleteUnusedTemplateAfterUndo(templateId: Long) {
+    private fun deleteUnusedTemplateAfterUndo(record: Record) {
         viewModelScope.launch {
-            deleteUnusedTemplateIfOrphaned.execute(templateId)
+            deleteUnusedTemplateIfOrphaned.execute(record.template.dbId)
+            if (settingsRepository.getHealthConnectSyncEnabled()) {
+                healthConnectSyncUseCase.deleteRecord(record.recordId)
+            }
         }
     }
 
@@ -384,7 +389,7 @@ class OverviewViewModel @Inject constructor(
 
     fun finalizePendingUndos() {
         _viewState.value.recordToUndelete?.let {
-            deleteUnusedTemplateAfterUndo(it.template.dbId)
+            deleteUnusedTemplateAfterUndo(it)
         }
     }
 }

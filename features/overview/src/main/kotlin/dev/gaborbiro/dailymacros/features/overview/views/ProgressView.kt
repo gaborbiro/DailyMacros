@@ -7,7 +7,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -32,15 +34,27 @@ fun ProgressView(
             size = size
         )
 
-        // Progress fill
-        val fraction = progress0to1 % 1f
+        // Progress fill — a top highlight fading into a bottom shadow gives the bar a
+        // raised, tube-like look, echoing how overlapping ring strokes shade themselves.
+        // Capped at 100% width once over target: progressColor already switches to a fixed
+        // alert red at that point, and severityMarks conveys how far over, so the fill itself
+        // no longer needs to wrap or grow past a full bar to mean anything.
+        val fraction = progress0to1.coerceIn(0f, 1f)
         val progressWidth = fraction * size.width
-        drawRoundRect(
-            color = progressColor,
-            topLeft = Offset(0f, 0f),
-            size = Size(progressWidth, size.height),
-            cornerRadius = cornerRadius
-        )
+        if (progressWidth > 0f) {
+            drawRoundRect(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        lerp(progressColor, Color.White, 0.25f),
+                        progressColor,
+                        lerp(progressColor, Color.Black, 0.25f),
+                    ),
+                ),
+                topLeft = Offset(0f, 0f),
+                size = Size(progressWidth, size.height),
+                cornerRadius = cornerRadius
+            )
+        }
 
         // Min target marker — green line, always on top, hidden only when min is unset (min0to1 == -1)
         if (min0to1 >= 0f) {

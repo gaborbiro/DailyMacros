@@ -37,4 +37,7 @@ data class SettingsUiState(
     val pdfExportInProgress: Boolean = false,
     val subscriptionState: SubscriptionState = SubscriptionState.Unknown,
     val isDebugBuild: Boolean = false,
+    val healthConnectSyncEnabled: Boolean = false,
+    val healthConnectSyncInProgress: Boolean = false,
+    val healthConnectSyncVisible: Boolean = false,
 )
