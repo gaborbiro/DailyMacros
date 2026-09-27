@@ -152,24 +152,27 @@ fun ColumnScope.RecordDetailsView(
         }
     }
 
-    ImageStrip(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 12.dp)
-            .padding(bottom = 12.dp),
-        showAddPhotoButtons = showImageControls,
-        showImageDeleteButton = showImageControls,
-        showImageReorderButtons = showImageControls,
-        showInfoButton = showImageControls,
-        imageFilenames = imageFilenames,
-        onImageTapped = onImageTapped,
-        onImageDeleteTapped = onImageDeleteTapped,
-        onImageMoveLeftTapped = onImageMoveLeftTapped,
-        onImageMoveRightTapped = onImageMoveRightTapped,
-        onAddImageViaCameraTapped = onAddImageViaCameraTapped,
-        onAddImageViaPickerTapped = onAddImageViaPickerTapped,
-        onInfoButtonTapped = onImagesInfoButtonTapped,
-    )
+    val hasImages = imageFilenames.isNotEmpty()
+    if (hasImages || showImageControls) {
+        ImageStrip(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp)
+                .padding(bottom = 12.dp),
+            showAddPhotoButtons = showImageControls,
+            showImageDeleteButton = showImageControls,
+            showImageReorderButtons = showImageControls,
+            showInfoButton = showImageControls,
+            imageFilenames = imageFilenames,
+            onImageTapped = onImageTapped,
+            onImageDeleteTapped = onImageDeleteTapped,
+            onImageMoveLeftTapped = onImageMoveLeftTapped,
+            onImageMoveRightTapped = onImageMoveRightTapped,
+            onAddImageViaCameraTapped = onAddImageViaCameraTapped,
+            onAddImageViaPickerTapped = onAddImageViaPickerTapped,
+            onInfoButtonTapped = onImagesInfoButtonTapped,
+        )
+    }
 
     if (view.isEditing) {
         TextField(
@@ -233,10 +236,19 @@ fun ColumnScope.RecordDetailsView(
             onValueChange = { onDescriptionChanged(it) },
         )
     } else if (browseInteractive || browseReadOnly) {
+        val variantRowShown = browseMode && !variantPickerOptions.isNullOrEmpty()
+        // Without a photo strip, this row is the first thing in the dialog, right under the
+        // fixed edit-record button (RecordDetailsDialog's topEndAction). Clear its footprint
+        // (12dp top padding + 48dp default IconButton) so the star doesn't sit under it.
+        val titleRowTopPadding = if (browseInteractive && !hasImages && !showImageControls && !variantRowShown) {
+            60.dp
+        } else {
+            12.dp
+        }
         Row(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
-                .padding(top = 12.dp)
+                .padding(top = titleRowTopPadding)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
