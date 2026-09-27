@@ -408,6 +408,7 @@ class ModalViewModel @Inject constructor(
                     description = TextFieldValue(desc, selection = TextRange(desc.length)),
                     imageFilenames = p.imageFilenames,
                     titleValidationError = null,
+                    hasUnsavedEdits = false,
                     editStartedAt = null,
                 )
             }
