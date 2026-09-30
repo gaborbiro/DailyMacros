@@ -1,22 +1,22 @@
-name: Deploy Firebase functions
+name: Deploy Firebase web
 
-# Manual only, on purpose: this deploys the live OpenAI proxy and
-# subscription-verification functions, which can change real enforcement
-# behavior for real users (see functions/README.md). Trigger it yourself from
-# the Actions tab -> "Deploy Firebase functions" -> Run workflow, whenever
-# you've decided a deploy should happen. No path-based auto-detection.
+# Manual only, like the backend deploy: Actions tab -> "Deploy Firebase web" ->
+# Run workflow. Publishes the closed-test landing page (web/) to Firebase
+# Hosting. The page's /api/join rewrite points at the joinTest function, so the
+# default target deploys that function alongside Hosting; pick "hosting" alone
+# for page-only edits once joinTest is live. Uses the same service account
+# secret as the backend deploy (firebase.admin covers Hosting).
 on:
   workflow_dispatch:
     inputs:
       targets:
         description: 'firebase deploy --only <targets>'
         required: true
-        default: 'functions,firestore:rules'
+        default: 'hosting,functions:joinTest'
         type: choice
         options:
-          - functions,firestore:rules
-          - functions
-          - firestore:rules
+          - hosting,functions:joinTest
+          - hosting
 
 jobs:
   deploy:
@@ -30,9 +30,6 @@ jobs:
         with:
           node-version: 22
 
-      # Cheap smoke test before anything touches production - functions/ has no
-      # test suite (see functions/package.json), so this is the only automated
-      # gate standing between a typo and a live deploy.
       - name: Syntax-check functions
         working-directory: functions
         run: |
