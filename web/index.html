@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily Macros – join the Android test</title>
+<meta name="description" content="An AI food diary: snap a photo of your meal and Daily Macros identifies it, estimates the nutrition and logs it. Join the Android closed test.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#F57C00">
+<link rel="icon" href="/favicon.png">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Daily Macros – track what you eat, typing optional">
+<meta property="og:description" content="Snap a photo of your meal; AI does the logging. Join the Android test.">
+<meta property="og:url" content="https://dailymacros-9fab8.web.app/">
+<meta property="og:image" content="https://dailymacros-9fab8.web.app/img/og.png">
+<meta property="og:image:width" content="1024">
+<meta property="og:image:height" content="500">
+<meta name="twitter:card" content="summary_large_image">
+
+<style>
+  :root {
+    --orange: #F57C00;
+    --orange-dark: #C25E00;
+    --ink: #1F1A17;
+    --muted: #6B625B;
+    --bg: #FFF8F0;
+    --card: #FFFFFF;
+    --line: #EADFD3;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 20px; }
+  h1, h2 { line-height: 1.15; letter-spacing: -0.02em; margin: 0; }
+  h1 { font-size: clamp(2rem, 8vw, 3rem); }
+  h2 { font-size: 1.4rem; }
+  p { margin: 0; }
+
+  header { padding: 20px 0 0; }
+  .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 1.1rem; }
+  .brand img { width: 44px; height: 44px; border-radius: 11px; }
+
+  .hero { padding: 36px 20px 28px; display: grid; gap: 16px; }
+  .hero p { color: var(--muted); font-size: 1.1rem; max-width: 34em; }
+  .btn {
+    display: inline-block; border: 0; border-radius: 12px; cursor: pointer;
+    background: var(--orange); color: #fff; font: inherit; font-weight: 700;
+    padding: 14px 22px; text-decoration: none; text-align: center;
+  }
+  .btn:hover { background: var(--orange-dark); }
+  .btn[disabled] { opacity: .6; cursor: default; }
+  .hero .btn { justify-self: start; margin-top: 8px; }
+  .fine { font-size: .875rem; color: var(--muted); }
+
+  /* Screenshots: swipeable strip on phones, all four across on wider screens. */
+  .shots {
+    display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory;
+    padding: 4px 20px 16px; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  .shots::-webkit-scrollbar { display: none; }
+  .shots img {
+    flex: 0 0 68%; max-width: 260px; height: auto; aspect-ratio: 9 / 16;
+    border-radius: 18px; scroll-snap-align: center; background: #FFE2C2;
+    box-shadow: 0 6px 20px rgba(120, 60, 0, .18);
+  }
+  @media (min-width: 720px) {
+    .shots { display: grid; grid-template-columns: repeat(4, 1fr); max-width: 1080px; margin: 0 auto; overflow: visible; }
+    .shots img { width: 100%; max-width: none; }
+  }
+
+  section { padding: 28px 0; }
+  .tracks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .chip { border-radius: 999px; padding: 6px 14px; font-weight: 600; font-size: .9rem; color: #2B2118; }
+  .c-cal { background: #CFE8FF; } .c-pro { background: #C9F5E2; } .c-fat { background: #FFF1B8; }
+  .c-carb { background: #FFDCC2; } .c-salt { background: #E6D9FF; } .c-fib { background: #FFD9E3; }
+  .tracks + p { margin-top: 14px; color: var(--muted); }
+
+  .join {
+    background: var(--card); border: 1px solid var(--line); border-radius: 18px;
+    padding: 24px 20px; margin-bottom: 8px;
+  }
+  .steps { margin: 14px 0 22px; padding-left: 1.2em; color: var(--muted); }
+  .steps li { margin-bottom: 4px; }
+  label { display: block; font-weight: 700; margin-bottom: 4px; }
+  .hint { font-size: .9rem; color: var(--muted); margin-bottom: 10px; }
+  input[type=email] {
+    width: 100%; font: inherit; padding: 13px 14px; border: 1.5px solid #CDBFB0;
+    border-radius: 12px; background: #fff; color: var(--ink);
+  }
+  input[type=email]:focus { outline: 3px solid rgba(245, 124, 0, .35); border-color: var(--orange); }
+  form .btn { width: 100%; margin-top: 14px; }
+  .privacy { margin-top: 12px; }
+  .error { color: #B3261E; font-size: .95rem; margin-top: 10px; min-height: 1.2em; }
+  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+  .done h2 { margin-bottom: 10px; }
+  .done p + p { margin-top: 10px; }
+  .done .next { background: #FFF1DD; border-radius: 12px; padding: 12px 14px; margin-top: 14px; }
+  [hidden] { display: none !important; }
+
+  footer { padding: 24px 0 40px; }
+  footer a { color: inherit; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap brand">
+    <img src="/img/icon.png" alt="" width="44" height="44">
+    <span>Daily Macros</span>
+  </div>
+</header>
+
+<main>
+  <div class="wrap hero">
+    <h1>Track what you eat, typing optional.</h1>
+    <p>Take a photo of your meal and Daily Macros uses AI to identify the food, estimate its nutrition and add it to your diary.</p>
+    <a class="btn" href="#join">Join the Android test</a>
+    <p class="fine">Android only. Free to try while I'm testing it.</p>
+  </div>
+
+  <div class="shots" aria-label="App screenshots">
+    <img src="/img/diary.webp" width="540" height="960" alt="Daily diary showing calories and macros against targets, with each meal listed with its nutrition">
+    <img src="/img/trends.webp" width="540" height="960" alt="Trends screen showing calories and macros over days, weeks and months">
+    <img src="/img/widgets.webp" width="540" height="960" alt="Home screen widgets for logging favourite meals in one tap">
+    <img src="/img/detail.webp" width="540" height="960" alt="Full nutrition breakdown for a single meal">
+  </div>
+
+  <div class="wrap">
+    <section>
+      <h2>What it tracks</h2>
+      <div class="tracks">
+        <span class="chip c-cal">Calories</span>
+        <span class="chip c-pro">Protein</span>
+        <span class="chip c-carb">Carbs</span>
+        <span class="chip c-carb">Sugar &amp; added sugar</span>
+        <span class="chip c-fat">Fat</span>
+        <span class="chip c-fat">Saturated fat</span>
+        <span class="chip c-fib">Fibre</span>
+        <span class="chip c-salt">Salt</span>
+      </div>
+      <p>Every estimate is editable, and your diary stays on your phone.</p>
+    </section>
+
+    <section id="join">
+      <div class="join">
+        <div id="form-view">
+          <h2>Join the Android test</h2>
+          <ol class="steps">
+            <li>Enter your Google Play email below.</li>
+            <li>I add that account to the test and send you the link.</li>
+            <li>Install it and stay opted in for 14 days, which is what Google requires.</li>
+          </ol>
+          <form id="join-form" novalidate>
+            <label for="email">Google account email used in Play Store</label>
+            <p class="hint" id="email-hint">Use the Google account that is signed into Google Play on your Android phone. Google requires this account to be approved before you can install the test version.</p>
+            <input id="email" name="email" type="email" inputmode="email" autocomplete="email"
+                   autocapitalize="off" spellcheck="false" placeholder="you@gmail.com" required
+                   aria-describedby="email-hint email-error">
+            <div class="hp" aria-hidden="true">
+              <label for="website">Leave this empty</label>
+              <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
+            </div>
+            <div class="error" id="email-error" role="alert"></div>
+            <button class="btn" id="submit" type="submit">Join the Android test</button>
+            <p class="fine privacy">Your email will only be used to give you access to the Daily Macros test and contact you about testing.</p>
+          </form>
+        </div>
+
+        <div id="done-view" class="done" hidden tabindex="-1">
+          <h2>Thanks, I've got your email.</h2>
+          <p>I received <strong id="sent-email"></strong>.</p>
+          <p class="next"><strong>One more step, on my side:</strong> I still need to add that Google account to the Daily Macros closed test. You can't install the app until I do. Once you're added, I'll email you the Google Play testing link.</p>
+          <p class="fine" style="margin-top:14px">When you can install it, please stay opted in for 14 days. Google needs testers to remain enrolled for that long before the app can go public.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap fine">
+    Daily Macros is made by Gabor Biro. <a href="https://github.com/gaborbiro/DailyMacros/blob/master/PRIVACY.md" rel="noopener">Privacy policy</a>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var form = document.getElementById("join-form");
+  var input = document.getElementById("email");
+  var err = document.getElementById("email-error");
+  var btn = document.getElementById("submit");
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    err.textContent = "";
+    var email = input.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      err.textContent = "Please enter a valid email address.";
+      input.focus();
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = "Sending…";
+    fetch("/api/join", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email, website: document.getElementById("website").value })
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (data) { return { ok: r.ok, data: data }; });
+    }).then(function (res) {
+      if (res.ok && res.data.ok) {
+        document.getElementById("sent-email").textContent = email;
+        document.getElementById("form-view").hidden = true;
+        var done = document.getElementById("done-view");
+        done.hidden = false;
+        done.focus();
+        return;
+      }
+      throw new Error(res.data.message || "Something went wrong. Please try again.");
+    }).catch(function (ex) {
+      err.textContent = ex instanceof TypeError ? "Couldn't reach the server. Check your connection and try again." : ex.message;
+      btn.disabled = false;
+      btn.textContent = "Join the Android test";
+    });
+  });
+})();
+</script>
+</body>
+</html>

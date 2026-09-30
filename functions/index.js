@@ -101,6 +101,9 @@ exports.onSubscriptionNotification = subscriptions.onSubscriptionNotification;
 exports.checkVoidedPurchases = subscriptions.checkVoidedPurchases;
 exports.repairSubscription = subscriptions.repairSubscription;
 
+// Landing-page closed-test signup (see testers.js).
+exports.joinTest = require("./testers").joinTest;
+
 // Set with: firebase functions:secrets:set OPENAI_KEY
 const OPENAI_KEY = defineSecret("OPENAI_KEY");
 
