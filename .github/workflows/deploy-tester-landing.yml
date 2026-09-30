@@ -1,6 +1,6 @@
-name: Deploy Firebase web
+name: Deploy tester landing page
 
-# Manual only, like the backend deploy: Actions tab -> "Deploy Firebase web" ->
+# Manual only, like the backend deploy: Actions tab -> "Deploy tester landing page" ->
 # Run workflow. Publishes the closed-test landing page (web/) to Firebase
 # Hosting. The page's /api/join rewrite points at the joinTest function, so the
 # default target deploys that function alongside Hosting; pick "hosting" alone

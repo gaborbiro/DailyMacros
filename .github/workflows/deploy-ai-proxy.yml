@@ -1,9 +1,9 @@
-name: Deploy Firebase backend
+name: Deploy AI proxy & subscriptions
 
 # Manual only, on purpose: this deploys the live OpenAI proxy and
 # subscription-verification functions, which can change real enforcement
 # behavior for real users (see functions/README.md). Trigger it yourself from
-# the Actions tab -> "Deploy Firebase backend" -> Run workflow, whenever
+# the Actions tab -> "Deploy AI proxy & subscriptions" -> Run workflow, whenever
 # you've decided a deploy should happen. No path-based auto-detection.
 on:
   workflow_dispatch:

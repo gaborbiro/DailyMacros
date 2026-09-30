@@ -223,12 +223,12 @@ firebase deploy --only functions,firestore:rules
 
 ### Deploy from GitHub (no local `firebase login`)
 
-`.github/workflows/firebase-deploy-backend.yml` runs this same deploy non-interactively,
+`.github/workflows/deploy-ai-proxy.yml` runs this same deploy non-interactively,
 authenticated as a service account instead of a personal Google login. It's
 **manual only, by design** — no path-based auto-detection on merge, since a
 functions deploy changes real enforcement behavior and that's a call worth
 making deliberately each time, not inferring from which files a PR happened to
-touch. Trigger it yourself: Actions tab → "Deploy Firebase backend" → Run
+touch. Trigger it yourself: Actions tab → "Deploy AI proxy & subscriptions" → Run
 workflow → pick `functions`, `firestore:rules`, or both.
 
 One-time setup (needs your GCP/GitHub access; nobody else can do this part):
