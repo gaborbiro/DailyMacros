@@ -343,3 +343,25 @@ client is wired to send its Firebase ID token — that's the follow-up step.
   allowance.)
 - **Watch cost:** the Blaze budget alert (step 2) plus your OpenAI account's
   own hard usage limit are the outer backstops behind the in-function cap.
+
+---
+
+## Tester landing page signup alerts (`joinTest`)
+
+`joinTest` (see `testers.js`) writes `testers/{id}` docs for the closed-test
+landing page (`web/`) and emails you on every *new* signup (not duplicates).
+The email is best-effort: a mail failure never fails the signup, and if the
+secrets below are unset the function simply skips it locally.
+
+One-time setup (the deploy fails until both secrets exist):
+
+1. Turn on 2-step verification for the Gmail account, then create an **app
+   password** (Google Account → Security → App passwords).
+2. Store both as Secret Manager secrets — via `firebase functions:secrets:set`
+   or the GCP console (Secret Manager → Create secret):
+   - `NOTIFY_EMAIL` — the Gmail address that sends *and* receives the alert
+   - `NOTIFY_APP_PASSWORD` — the app password from step 1
+3. Deploy with the "Deploy tester landing page" workflow.
+
+Review signups in Firestore → `testers`; set `status` to `added` once the
+address is in Play Console.

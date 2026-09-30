@@ -13,12 +13,21 @@
  */
 
 const { onRequest } = require("firebase-functions/v2/https");
+const { defineSecret } = require("firebase-functions/params");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
 const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 
 const db = admin.firestore();
+
+// New-signup alert: a Gmail account emails itself. Both are Secret Manager
+// secrets (the address stays out of the public repo); the password is a Gmail
+// app password. Set with: firebase functions:secrets:set NOTIFY_EMAIL
+//                         firebase functions:secrets:set NOTIFY_APP_PASSWORD
+const NOTIFY_EMAIL = defineSecret("NOTIFY_EMAIL");
+const NOTIFY_APP_PASSWORD = defineSecret("NOTIFY_APP_PASSWORD");
 
 // Pragmatic: one @, no spaces, a dot in the domain. Real deliverability is
 // proven when you add the address to the Play Console list.
@@ -45,12 +54,40 @@ function dedupeKey(email) {
   return domain === "gmail.com" ? `${local.replace(/\./g, "")}@${domain}` : email;
 }
 
+/**
+ * Best-effort "someone signed up" email. Never throws: a mail problem must not
+ * fail (or slow down) the signup itself. `transport` is injectable for tests.
+ */
+async function notifyNewSignup(email, transport) {
+  try {
+    const to = NOTIFY_EMAIL.value();
+    const pass = NOTIFY_APP_PASSWORD.value();
+    if (!transport && (!to || !pass)) return;
+    const pending = (await db.collection("testers").where("status", "==", "pending").count().get()).data().count;
+    const mailer = transport || nodemailer.createTransport({
+      host: "smtp.gmail.com", port: 465, secure: true,
+      auth: { user: to, pass },
+      connectionTimeout: 8000, socketTimeout: 8000,
+    });
+    await mailer.sendMail({
+      from: `Daily Macros tests <${to}>`,
+      to,
+      subject: `New Daily Macros tester: ${email}`,
+      text: `${email} just signed up for the closed test.\n\n${pending} pending in total. ` +
+        `Add them in Play Console, then set status to "added" in Firestore (testers collection).`,
+    });
+  } catch (e) {
+    logger.warn("Signup notification failed", e);
+  }
+}
+
 exports.joinTest = onRequest(
   {
     region: "us-central1", // must match the Hosting rewrite in firebase.json.
     maxInstances: 3,
     memory: "256MiB",
-    timeoutSeconds: 15,
+    secrets: [NOTIFY_EMAIL, NOTIFY_APP_PASSWORD],
+    timeoutSeconds: 30,
     cors: false, // same-origin via Hosting; no cross-origin caller needed.
   },
   async (req, res) => {
@@ -83,6 +120,7 @@ exports.joinTest = onRequest(
         source: "landing-page",
         createdAt: FieldValue.serverTimestamp(),
       });
+      await notifyNewSignup(email);
       res.status(200).json({ ok: true });
     } catch (e) {
       // ALREADY_EXISTS (gRPC code 6): same person submitting twice. Treat as
@@ -97,4 +135,4 @@ exports.joinTest = onRequest(
   },
 );
 
-exports._test = { normalizeEmail, dedupeKey };
+exports._test = { normalizeEmail, dedupeKey, notifyNewSignup };
