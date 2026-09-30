@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Daily Macros – join the Android test</title>
-<meta name="description" content="An AI food diary: snap a photo of your meal and Daily Macros identifies it, estimates the nutrition and logs it. Join the Android closed test.">
+<title>Daily Macros – join the test</title>
+<meta name="description" content="An AI food diary: snap a photo of your meal and Daily Macros identifies it, estimates the nutrition and logs it. Join the test.">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#F57C00">
 <link rel="icon" href="/favicon.png">
 
 <meta property="og:type" content="website">
 <meta property="og:title" content="Daily Macros – track what you eat, typing optional">
-<meta property="og:description" content="Snap a photo of your meal; AI does the logging. Join the Android test.">
+<meta property="og:description" content="Snap a photo of your meal; AI does the logging. Join the test.">
 <meta property="og:url" content="https://dailymacros-9fab8.web.app/">
 <meta property="og:image" content="https://dailymacros-9fab8.web.app/img/og.png">
 <meta property="og:image:width" content="1024">
@@ -97,6 +97,13 @@
   .error { color: #B3261E; font-size: .95rem; margin-top: 10px; min-height: 1.2em; }
   .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: #F6ECE0; padding: 4px; border-radius: 12px; margin: 14px 0 18px; }
+  .seg label { position: relative; margin: 0; font-weight: 600; text-align: center; cursor: pointer; }
+  .seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .seg span { display: block; padding: 9px 0; border-radius: 9px; color: var(--muted); }
+  .seg input:checked + span { background: #fff; color: var(--ink); box-shadow: 0 1px 4px rgba(120, 60, 0, .18); }
+  .seg input:focus-visible + span { outline: 3px solid rgba(245, 124, 0, .45); }
+  .ios-note { margin: 0 0 18px; color: var(--muted); }
   .done h2 { margin-bottom: 10px; }
   .done p + p { margin-top: 10px; }
   .done .next { background: #FFF1DD; border-radius: 12px; padding: 12px 14px; margin-top: 14px; }
@@ -119,8 +126,8 @@
   <div class="wrap hero">
     <h1>Track what you eat, typing optional.</h1>
     <p>Take a photo of your meal and Daily Macros uses AI to identify the food, estimate its nutrition and add it to your diary.</p>
-    <a class="btn" href="#join">Join the Android test</a>
-    <p class="fine">Android only. Free to try while I'm testing it.</p>
+    <a class="btn" href="#join">Join the test</a>
+    <p class="fine">Free to try while I'm testing it.</p>
   </div>
 
   <div class="shots" aria-label="App screenshots">
@@ -149,14 +156,19 @@
     <section id="join">
       <div class="join">
         <div id="form-view">
-          <h2>Join the Android test</h2>
-          <ol class="steps">
+          <h2>Join the test</h2>
+          <div class="seg" role="radiogroup" aria-label="Your phone">
+            <label><input type="radio" name="platform" value="android" checked><span>Android</span></label>
+            <label><input type="radio" name="platform" value="ios"><span>iPhone</span></label>
+          </div>
+          <p class="ios-note" id="ios-note" hidden>An iPhone version is planned, but it isn't available yet. Leave your email and I'll contact you about it.</p>
+          <ol class="steps" id="android-steps">
             <li>Enter your Google Play email below.</li>
             <li>I add that account to the test and send you the link.</li>
             <li>Install it and stay opted in for 14 days, which is what Google requires.</li>
           </ol>
           <form id="join-form" novalidate>
-            <label for="email">Google account email used in Play Store</label>
+            <label for="email" id="email-label">Google account email used in Play Store</label>
             <p class="hint" id="email-hint">Use the Google account that is signed into Google Play on your Android phone. Google requires this account to be approved before you can install the test version.</p>
             <input id="email" name="email" type="email" inputmode="email" autocomplete="email"
                    autocapitalize="off" spellcheck="false" placeholder="you@gmail.com" required
@@ -167,15 +179,22 @@
             </div>
             <div class="error" id="email-error" role="alert"></div>
             <button class="btn" id="submit" type="submit">Join the Android test</button>
-            <p class="fine privacy">Your email will only be used to give you access to the Daily Macros test and contact you about testing.</p>
+            <p class="fine privacy" id="privacy">Your email will only be used to give you access to the Daily Macros test and contact you about testing.</p>
           </form>
         </div>
 
         <div id="done-view" class="done" hidden tabindex="-1">
-          <h2>Thanks, I've got your email.</h2>
-          <p>I received <strong id="sent-email"></strong>.</p>
-          <p class="next"><strong>One more step, on my side:</strong> I still need to add that Google account to the Daily Macros closed test. You can't install the app until I do. Once you're added, I'll email you the Google Play testing link.</p>
-          <p class="fine" style="margin-top:14px">When you can install it, please stay opted in for 14 days. Google needs testers to remain enrolled for that long before the app can go public.</p>
+          <div id="done-android">
+            <h2>Thanks, I've got your email.</h2>
+            <p>I received <strong id="sent-email"></strong>.</p>
+            <p class="next"><strong>One more step, on my side:</strong> I still need to add that Google account to the Daily Macros closed test. You can't install the app until I do. Once you're added, I'll email you the Google Play testing link.</p>
+            <p class="fine" style="margin-top:14px">When you can install it, please stay opted in for 14 days. Google needs testers to remain enrolled for that long before the app can go public.</p>
+          </div>
+          <div id="done-ios" hidden>
+            <h2>You're on the iPhone waitlist.</h2>
+            <p>I received <strong id="sent-email-ios"></strong>.</p>
+            <p class="next">There's no iPhone version yet, so there's nothing to install for now. I'll only use this email to contact you about it.</p>
+          </div>
         </div>
       </div>
     </section>
@@ -194,6 +213,44 @@
   var input = document.getElementById("email");
   var err = document.getElementById("email-error");
   var btn = document.getElementById("submit");
+  var radios = document.querySelectorAll('input[name="platform"]');
+
+  var COPY = {
+    android: {
+      label: "Google account email used in Play Store",
+      hint: "Use the Google account that is signed into Google Play on your Android phone. Google requires this account to be approved before you can install the test version.",
+      placeholder: "you@gmail.com",
+      cta: "Join the Android test",
+      privacy: "Your email will only be used to give you access to the Daily Macros test and contact you about testing."
+    },
+    ios: {
+      label: "Your email",
+      hint: "Any address you check. There's nothing to install on iPhone yet.",
+      placeholder: "you@example.com",
+      cta: "Join the iPhone waitlist",
+      privacy: "Your email will only be used to contact you about the Daily Macros iPhone version."
+    }
+  };
+
+  function platform() {
+    return document.querySelector('input[name="platform"]:checked').value;
+  }
+
+  function render() {
+    var p = platform(), c = COPY[p];
+    document.getElementById("email-label").textContent = c.label;
+    document.getElementById("email-hint").textContent = c.hint;
+    input.placeholder = c.placeholder;
+    btn.textContent = c.cta;
+    document.getElementById("privacy").textContent = c.privacy;
+    document.getElementById("android-steps").hidden = p !== "android";
+    document.getElementById("ios-note").hidden = p !== "ios";
+    err.textContent = "";
+  }
+
+  for (var i = 0; i < radios.length; i++) radios[i].addEventListener("change", render);
+  if (/iPhone|iPad|iPod/.test(navigator.userAgent)) document.querySelector('input[name="platform"][value="ios"]').checked = true;
+  render();
 
   form.addEventListener("submit", function (e) {
     e.preventDefault();
@@ -209,12 +266,15 @@
     fetch("/api/join", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email, website: document.getElementById("website").value })
+      body: JSON.stringify({ email: email, platform: platform(), website: document.getElementById("website").value })
     }).then(function (r) {
       return r.json().catch(function () { return {}; }).then(function (data) { return { ok: r.ok, data: data }; });
     }).then(function (res) {
       if (res.ok && res.data.ok) {
-        document.getElementById("sent-email").textContent = email;
+        var ios = platform() === "ios";
+        document.getElementById(ios ? "sent-email-ios" : "sent-email").textContent = email;
+        document.getElementById("done-android").hidden = ios;
+        document.getElementById("done-ios").hidden = !ios;
         document.getElementById("form-view").hidden = true;
         var done = document.getElementById("done-view");
         done.hidden = false;
@@ -225,7 +285,7 @@
     }).catch(function (ex) {
       err.textContent = ex instanceof TypeError ? "Couldn't reach the server. Check your connection and try again." : ex.message;
       btn.disabled = false;
-      btn.textContent = "Join the Android test";
+      btn.textContent = COPY[platform()].cta;
     });
   });
 })();
