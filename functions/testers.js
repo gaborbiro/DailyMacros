@@ -34,6 +34,10 @@ const NOTIFY_APP_PASSWORD = defineSecret("NOTIFY_APP_PASSWORD");
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const MAX_EMAIL_LENGTH = 254;
 
+// A missing platform means Android: the original page (and any cached copy of
+// it) never sent one. Existing Android docs also have no `platform` field.
+const PLATFORMS = new Set(["android", "ios"]);
+
 /** Trim + lowercase, and fold googlemail.com into gmail.com. Null if invalid. */
 function normalizeEmail(raw) {
   if (typeof raw !== "string") return null;
@@ -58,12 +62,13 @@ function dedupeKey(email) {
  * Best-effort "someone signed up" email. Never throws: a mail problem must not
  * fail (or slow down) the signup itself. `transport` is injectable for tests.
  */
-async function notifyNewSignup(email, transport) {
+async function notifyNewSignup(email, platform, transport) {
   try {
     const to = NOTIFY_EMAIL.value();
     const pass = NOTIFY_APP_PASSWORD.value();
     if (!transport && (!to || !pass)) return;
-    const pending = (await db.collection("testers").where("status", "==", "pending").count().get()).data().count;
+    const ios = platform === "ios";
+    const pending = ios ? null : (await db.collection("testers").where("status", "==", "pending").count().get()).data().count;
     const mailer = transport || nodemailer.createTransport({
       host: "smtp.gmail.com", port: 465, secure: true,
       auth: { user: to, pass },
@@ -72,9 +77,11 @@ async function notifyNewSignup(email, transport) {
     await mailer.sendMail({
       from: `Daily Macros tests <${to}>`,
       to,
-      subject: `New Daily Macros tester: ${email}`,
-      text: `${email} just signed up for the closed test.\n\n${pending} pending in total. ` +
-        `Add them in Play Console, then set status to "added" in Firestore (testers collection).`,
+      subject: ios ? `New Daily Macros iPhone waitlist signup: ${email}` : `New Daily Macros tester: ${email}`,
+      text: ios
+        ? `${email} joined the iPhone waitlist (no action needed; see testers with platform "ios" in Firestore).`
+        : `${email} just signed up for the closed test.\n\n${pending} pending in total. ` +
+          `Add them in Play Console, then set status to "added" in Firestore (testers collection).`,
     });
   } catch (e) {
     logger.warn("Signup notification failed", e);
@@ -112,15 +119,28 @@ exports.joinTest = onRequest(
       return;
     }
 
-    const id = crypto.createHash("sha256").update(dedupeKey(email)).digest("hex");
+    const platform = body.platform === undefined ? "android" : body.platform;
+    if (!PLATFORMS.has(platform)) {
+      res.status(400).json({ error: "invalid_platform", message: "Please choose Android or iPhone." });
+      return;
+    }
+    const ios = platform === "ios";
+
+    // Android ids stay exactly as before (existing docs keep de-duplicating);
+    // iOS ids are namespaced so one email can be on both lists.
+    const key = dedupeKey(email);
+    const id = crypto.createHash("sha256").update(ios ? `ios:${key}` : key).digest("hex");
     try {
       await db.doc(`testers/${id}`).create({
         email,
-        status: "pending", // you flip this to "added" once the address is in Play Console.
+        platform,
+        // Android: you flip "pending" to "added" once the address is in Play
+        // Console. iOS has nothing to approve, so it never counts as pending.
+        status: ios ? "waitlist" : "pending",
         source: "landing-page",
         createdAt: FieldValue.serverTimestamp(),
       });
-      await notifyNewSignup(email);
+      await notifyNewSignup(email, platform);
       res.status(200).json({ ok: true });
     } catch (e) {
       // ALREADY_EXISTS (gRPC code 6): same person submitting twice. Treat as

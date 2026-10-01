@@ -365,3 +365,8 @@ One-time setup (the deploy fails until both secrets exist):
 
 Review signups in Firestore → `testers`; set `status` to `added` once the
 address is in Play Console.
+
+Each doc has a `platform`: `android` (status `pending` → `added`) or `ios`
+(status `waitlist`, nothing to approve, never counted as pending). Docs from
+before the iPhone option have no `platform` field and are all Android. iOS ids
+are hashed with an `ios:` prefix, so one email can be on both lists.
