@@ -427,43 +427,48 @@ internal fun SettingsView(
                 onTapped = { uriHandler.openUri(privacyPolicyUrl) },
             )
 
-            SettingSectionHeader(title = stringResource(R.string.settings_content_connected_services_section))
-            if (viewState.healthConnectSyncVisible) {
-                SettingRow(
-                    title = stringResource(R.string.settings_health_connect_sync_row),
-                    subtitle = stringResource(R.string.settings_health_connect_sync_subtitle),
-                    enabled = !viewState.healthConnectSyncInProgress,
-                    onTapped = { onHealthConnectSyncToggled(!viewState.healthConnectSyncEnabled) },
-                    trailing = {
-                        if (viewState.healthConnectSyncInProgress) {
-                            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                        } else {
-                            Switch(
-                                checked = viewState.healthConnectSyncEnabled,
-                                onCheckedChange = onHealthConnectSyncToggled,
-                            )
-                        }
-                    },
-                )
-            }
-            SettingRow(
-                titleContent = {
-                    val question = stringResource(R.string.settings_suggest_integration_row_question)
-                    val cta = stringResource(R.string.settings_suggest_integration_row_cta)
-                    val outro = stringResource(R.string.settings_suggest_integration_row_outro)
-                    val linkColor = MaterialTheme.colorScheme.primary
-                    Text(
-                        text = buildAnnotatedString {
-                            append("$question ")
-                            withStyle(SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline)) {
-                                append(cta)
+            // The whole section hides when no integration is available. If you add an
+            // integration row here, also add its visibility flag to
+            // SettingsUiState.connectedServicesVisible.
+            if (viewState.connectedServicesVisible) {
+                SettingSectionHeader(title = stringResource(R.string.settings_content_connected_services_section))
+                if (viewState.healthConnectSyncVisible) {
+                    SettingRow(
+                        title = stringResource(R.string.settings_health_connect_sync_row),
+                        subtitle = stringResource(R.string.settings_health_connect_sync_subtitle),
+                        enabled = !viewState.healthConnectSyncInProgress,
+                        onTapped = { onHealthConnectSyncToggled(!viewState.healthConnectSyncEnabled) },
+                        trailing = {
+                            if (viewState.healthConnectSyncInProgress) {
+                                CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                            } else {
+                                Switch(
+                                    checked = viewState.healthConnectSyncEnabled,
+                                    onCheckedChange = onHealthConnectSyncToggled,
+                                )
                             }
-                            append(" $outro")
                         },
                     )
-                },
-                onTapped = onSuggestIntegrationTapped,
-            )
+                }
+                SettingRow(
+                    titleContent = {
+                        val question = stringResource(R.string.settings_suggest_integration_row_question)
+                        val cta = stringResource(R.string.settings_suggest_integration_row_cta)
+                        val outro = stringResource(R.string.settings_suggest_integration_row_outro)
+                        val linkColor = MaterialTheme.colorScheme.primary
+                        Text(
+                            text = buildAnnotatedString {
+                                append("$question ")
+                                withStyle(SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline)) {
+                                    append(cta)
+                                }
+                                append(" $outro")
+                            },
+                        )
+                    },
+                    onTapped = onSuggestIntegrationTapped,
+                )
+            }
 
             if (viewState.isDebugBuild) {
                 SettingSectionHeader(title = stringResource(R.string.settings_debug_section))

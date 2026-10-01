@@ -40,4 +40,17 @@ data class SettingsUiState(
     val healthConnectSyncEnabled: Boolean = false,
     val healthConnectSyncInProgress: Boolean = false,
     val healthConnectSyncVisible: Boolean = false,
-)
+) {
+
+    /**
+     * Whether the "Connected services" section is shown at all. The section is only worth
+     * showing if at least one integration inside it is visible.
+     *
+     * Adding a new integration to that section? Add its `...Visible` flag to this list, or the
+     * section will stay hidden whenever the new integration is the only one available.
+     */
+    val connectedServicesVisible: Boolean
+        get() = listOf(
+            healthConnectSyncVisible,
+        ).any { it }
+}
