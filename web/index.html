@@ -3,15 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Daily Macros – join the test</title>
-<meta name="description" content="An AI food diary: snap a photo of your meal and Daily Macros identifies it, estimates the nutrition and logs it. Join the test.">
-<meta name="robots" content="noindex">
+<title>Daily Macros – an easier way to track food</title>
+<meta name="description" content="A food diary that's actually easy to stick with: take a photo, AI estimates the calories and macros, and a home-screen widget means you barely need to open the app. Get notified when it launches.">
 <meta name="theme-color" content="#F57C00">
 <link rel="icon" href="/favicon.png">
 
 <meta property="og:type" content="website">
-<meta property="og:title" content="Daily Macros – track what you eat, typing optional">
-<meta property="og:description" content="Snap a photo of your meal; AI does the logging. Join the test.">
+<meta property="og:title" content="Daily Macros – a food diary that's actually easy to keep up">
+<meta property="og:description" content="Snap a photo of your meal; AI estimates the macros and logs it for you. Get notified when Daily Macros launches.">
 <meta property="og:url" content="https://dailymacros-9fab8.web.app/">
 <meta property="og:image" content="https://dailymacros-9fab8.web.app/img/og.png">
 <meta property="og:image:width" content="1024">
@@ -55,6 +54,7 @@
   .btn[disabled] { opacity: .6; cursor: default; }
   .hero .btn { justify-self: start; margin-top: 8px; }
   .fine { font-size: .875rem; color: var(--muted); }
+  .fine a { color: var(--orange-dark); }
 
   /* Screenshots: swipeable strip on phones, all four across on wider screens. */
   .shots {
@@ -144,10 +144,10 @@
 
 <main>
   <div class="wrap hero">
-    <h1>Track what you eat, typing optional.</h1>
-    <p>Take a photo of your meal and Daily Macros uses AI to identify the food, estimate its nutrition and add it to your diary.</p>
-    <a class="btn" href="#join">Join the test</a>
-    <p class="fine">Free to try while I'm testing it.</p>
+    <h1>A food diary easy enough to actually stick with.</h1>
+    <p>Take a photo of your meal — Daily Macros uses AI to estimate the calories and macros and logs it for you. Typing is optional, and a home-screen widget means you barely have to open the app.</p>
+    <a class="btn" href="#waitlist">Get notified when Daily Macros launches</a>
+    <p class="fine">Android first, with an iPhone version planned — join the waitlist either way.</p>
   </div>
 
   <div class="shots" aria-label="App screenshots">
@@ -158,6 +158,17 @@
   </div>
 
   <div class="wrap">
+    <section>
+      <h2>How it works</h2>
+      <ol class="steps">
+        <li>Photo — snap your meal, no searching a food database.</li>
+        <li>AI estimate — Daily Macros reads the photo and estimates the calories and macros in seconds.</li>
+        <li>Into your diary — the meal is logged; edit anything that's off.</li>
+        <li>Your daily totals update automatically, so you always know where you stand.</li>
+      </ol>
+      <p>Favourite meals get a one-tap home-screen widget, so most days you never need to open the app at all.</p>
+    </section>
+
     <section>
       <h2>What it tracks</h2>
       <div class="tracks">
@@ -171,6 +182,36 @@
         <span class="chip c-salt">Salt</span>
       </div>
       <p>Every estimate is editable, and your diary stays on your phone.</p>
+    </section>
+
+    <section id="waitlist">
+      <div class="join">
+        <div id="waitlist-form-view">
+          <h2>Get notified when Daily Macros launches</h2>
+          <form id="waitlist-form" novalidate>
+            <label for="waitlist-email">Email</label>
+            <p class="hint" id="waitlist-email-hint">Just a heads-up when it's ready, and about any major update before then. Not a test signup, no Google Play email needed.</p>
+            <input id="waitlist-email" name="email" type="email" inputmode="email" autocomplete="email"
+                   autocapitalize="off" spellcheck="false" placeholder="you@example.com" required
+                   aria-describedby="waitlist-email-hint waitlist-email-error">
+            <div class="hp" aria-hidden="true">
+              <label for="waitlist-website">Leave this empty</label>
+              <input id="waitlist-website" name="website" type="text" tabindex="-1" autocomplete="off">
+            </div>
+            <div class="error" id="waitlist-email-error" role="alert"></div>
+            <button class="btn" id="waitlist-submit" type="submit">Get notified</button>
+            <p class="fine privacy">Your email is only used to tell you about the Daily Macros launch and major updates.</p>
+          </form>
+          <p class="fine" style="margin-top:14px">Want to try it now? <a class="js-beta-cta" href="#join">Join the test</a> — Android testers need a Google Play email and a 14-day opt-in; iPhone can join a waitlist there instead.</p>
+        </div>
+
+        <div id="waitlist-done-view" class="done" hidden tabindex="-1">
+          <h2>You're on the list.</h2>
+          <p>I'll email <strong id="waitlist-sent-email"></strong> when Daily Macros launches, and about any major updates before then.</p>
+          <p class="fine" style="margin-top:14px">That's it — this is just a launch waitlist, nothing to install.</p>
+          <p class="fine" style="margin-top:10px">Want to try it now instead? <a class="js-beta-cta" href="#join">Join the test</a>.</p>
+        </div>
+      </div>
     </section>
 
     <section id="join">
@@ -276,6 +317,66 @@
     var dx = e.changedTouches[0].clientX - touchX;
     touchX = null;
     if (Math.abs(dx) > 50) show(current + (dx < 0 ? 1 : -1));
+  });
+})();
+</script>
+<script>
+(function () {
+  function sendEvent(type) {
+    try {
+      fetch("/api/event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: type }),
+        keepalive: true
+      }).catch(function () {});
+    } catch (e) {}
+  }
+  sendEvent("page_view");
+
+  var betaCtaLinks = document.querySelectorAll(".js-beta-cta");
+  for (var i = 0; i < betaCtaLinks.length; i++) {
+    betaCtaLinks[i].addEventListener("click", function () { sendEvent("beta_cta_click"); });
+  }
+
+  var waitlistForm = document.getElementById("waitlist-form");
+  var waitlistInput = document.getElementById("waitlist-email");
+  var waitlistErr = document.getElementById("waitlist-email-error");
+  var waitlistBtn = document.getElementById("waitlist-submit");
+  var waitlistHp = document.getElementById("waitlist-website");
+
+  waitlistForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    waitlistErr.textContent = "";
+    var email = waitlistInput.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      waitlistErr.textContent = "Please enter a valid email address.";
+      waitlistInput.focus();
+      return;
+    }
+    waitlistBtn.disabled = true;
+    waitlistBtn.textContent = "Sending…";
+    fetch("/api/waitlist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email, website: waitlistHp.value })
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (data) { return { ok: r.ok, data: data }; });
+    }).then(function (res) {
+      if (res.ok && res.data.ok) {
+        document.getElementById("waitlist-sent-email").textContent = email;
+        document.getElementById("waitlist-form-view").hidden = true;
+        var done = document.getElementById("waitlist-done-view");
+        done.hidden = false;
+        done.focus();
+        return;
+      }
+      throw new Error(res.data.message || "Something went wrong. Please try again.");
+    }).catch(function (ex) {
+      waitlistErr.textContent = ex instanceof TypeError ? "Couldn't reach the server. Check your connection and try again." : ex.message;
+      waitlistBtn.disabled = false;
+      waitlistBtn.textContent = "Get notified";
+    });
   });
 })();
 </script>

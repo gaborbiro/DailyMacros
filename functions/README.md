@@ -346,12 +346,25 @@ client is wired to send its Firebase ID token — that's the follow-up step.
 
 ---
 
-## Tester landing page signup alerts (`joinTest`)
+## Landing page signups and funnel stats (`joinWaitlist`, `joinTest`, `trackEvent`)
 
-`joinTest` (see `testers.js`) writes `testers/{id}` docs for the closed-test
-landing page (`web/`) and emails you on every *new* signup (not duplicates).
-The email is best-effort: a mail failure never fails the signup, and if the
-secrets below are unset the function simply skips it locally.
+The landing page (`web/`) has two signup forms:
+
+- `joinWaitlist` (see `waitlist.js`, built on the shared `lib/signupHandler.js`
+  + `lib/notifySignup.js`) — the primary "Get notified when Daily Macros
+  launches" CTA. Writes `waitlist/{id}` docs; email only, no Play Console
+  involvement.
+- `joinTest` (see `testers.js`, self-contained — predates the shared `lib/`
+  helpers) — the secondary "Join the Android beta" CTA. Writes `testers/{id}`
+  docs for the closed test, with a `platform` field (see below).
+
+Both email you on every *new* signup (not duplicates). The email is
+best-effort: a mail failure never fails the signup, and if the secrets below
+are unset the function simply skips it locally.
+
+`trackEvent` (see `stats.js`) increments `stats/counters.page_view` and
+`stats/counters.beta_cta_click` so you can see the funnel between a visit and
+each signup; it doesn't store any per-visitor data.
 
 One-time setup (the deploy fails until both secrets exist):
 
@@ -361,12 +374,12 @@ One-time setup (the deploy fails until both secrets exist):
    or the GCP console (Secret Manager → Create secret):
    - `NOTIFY_EMAIL` — the Gmail address that sends *and* receives the alert
    - `NOTIFY_APP_PASSWORD` — the app password from step 1
-3. Deploy with the "Deploy tester landing page" workflow.
+3. Deploy with the "Deploy landing page" workflow.
 
-Review signups in Firestore → `testers`; set `status` to `added` once the
-address is in Play Console.
+Review signups in Firestore → `waitlist` (email on launch) and `testers`
+(set `status` to `added` once the address is in Play Console).
 
-Each doc has a `platform`: `android` (status `pending` → `added`) or `ios`
-(status `waitlist`, nothing to approve, never counted as pending). Docs from
-before the iPhone option have no `platform` field and are all Android. iOS ids
-are hashed with an `ios:` prefix, so one email can be on both lists.
+Each `testers` doc has a `platform`: `android` (status `pending` → `added`) or
+`ios` (status `waitlist`, nothing to approve, never counted as pending). Docs
+from before the iPhone option have no `platform` field and are all Android.
+iOS ids are hashed with an `ios:` prefix, so one email can be on both lists.

@@ -1,21 +1,22 @@
-name: Deploy tester landing page
+name: Deploy landing page
 
-# Manual only, like the backend deploy: Actions tab -> "Deploy tester landing page" ->
-# Run workflow. Publishes the closed-test landing page (web/) to Firebase
-# Hosting. The page's /api/join rewrite points at the joinTest function, so the
-# default target deploys that function alongside Hosting; pick "hosting" alone
-# for page-only edits once joinTest is live. Uses the same service account
-# secret as the backend deploy (firebase.admin covers Hosting).
+# Manual only, like the backend deploy: Actions tab -> "Deploy landing page" ->
+# Run workflow. Publishes the landing page (web/) to Firebase Hosting. The
+# page's /api/waitlist, /api/join and /api/event rewrites point at the
+# joinWaitlist, joinTest and trackEvent functions, so the default target
+# deploys all three alongside Hosting; pick "hosting" alone for page-only
+# edits once they're live. Uses the same service account secret as the
+# backend deploy (firebase.admin covers Hosting).
 on:
   workflow_dispatch:
     inputs:
       targets:
         description: 'firebase deploy --only <targets>'
         required: true
-        default: 'hosting,functions:joinTest'
+        default: 'hosting,functions:joinWaitlist,functions:joinTest,functions:trackEvent'
         type: choice
         options:
-          - hosting,functions:joinTest
+          - hosting,functions:joinWaitlist,functions:joinTest,functions:trackEvent
           - hosting
 
 jobs:
@@ -33,7 +34,7 @@ jobs:
       - name: Syntax-check functions
         working-directory: functions
         run: |
-          for f in *.js; do node -c "$f"; done
+          for f in *.js lib/*.js; do node -c "$f"; done
 
       - name: Install function dependencies
         working-directory: functions
