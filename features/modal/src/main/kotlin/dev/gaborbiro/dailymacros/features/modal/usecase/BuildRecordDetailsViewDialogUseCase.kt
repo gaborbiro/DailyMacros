@@ -36,7 +36,7 @@ class BuildRecordDetailsViewDialogUseCase @Inject constructor(
             compactNutrients = uiMapper.mapCompactNutrients(record),
             showLoadingIndicator = tmpl.isPending,
             allowEdit = allowEdit,
-            titleHint = "Title",
+            titleHint = "Title (optional)",
             titleValidationError = null,
             openedFromTemplateDetailsOnly = templateDetailsMode,
             variantPickerOptions = null,
