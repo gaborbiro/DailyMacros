@@ -101,8 +101,13 @@ exports.onSubscriptionNotification = subscriptions.onSubscriptionNotification;
 exports.checkVoidedPurchases = subscriptions.checkVoidedPurchases;
 exports.repairSubscription = subscriptions.repairSubscription;
 
-// Landing-page closed-test signup (see testers.js).
+// Landing-page signups: launch waitlist (primary CTA, see waitlist.js) and
+// Android beta (secondary CTA, see testers.js).
+exports.joinWaitlist = require("./waitlist").joinWaitlist;
 exports.joinTest = require("./testers").joinTest;
+
+// Landing-page funnel counters (see stats.js).
+exports.trackEvent = require("./stats").trackEvent;
 
 // Set with: firebase functions:secrets:set OPENAI_KEY
 const OPENAI_KEY = defineSecret("OPENAI_KEY");

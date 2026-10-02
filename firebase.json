@@ -10,7 +10,9 @@
     "public": "web",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
-      { "source": "/api/join", "function": { "functionId": "joinTest", "region": "us-central1" } }
+      { "source": "/api/waitlist", "function": { "functionId": "joinWaitlist", "region": "us-central1" } },
+      { "source": "/api/join", "function": { "functionId": "joinTest", "region": "us-central1" } },
+      { "source": "/api/event", "function": { "functionId": "trackEvent", "region": "us-central1" } }
     ],
     "headers": [
       { "source": "/img/**", "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }] }
