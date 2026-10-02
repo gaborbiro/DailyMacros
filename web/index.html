@@ -62,15 +62,35 @@
     padding: 4px 20px 16px; -webkit-overflow-scrolling: touch; scrollbar-width: none;
   }
   .shots::-webkit-scrollbar { display: none; }
+  .shots button {
+    flex: 0 0 68%; max-width: 260px; padding: 0; border: 0; background: none;
+    scroll-snap-align: center; cursor: zoom-in; border-radius: 18px;
+  }
+  .shots button:focus-visible { outline: 3px solid rgba(245, 124, 0, .6); outline-offset: 2px; }
   .shots img {
-    flex: 0 0 68%; max-width: 260px; height: auto; aspect-ratio: 9 / 16;
-    border-radius: 18px; scroll-snap-align: center; background: #FFE2C2;
-    box-shadow: 0 6px 20px rgba(120, 60, 0, .18);
+    display: block; width: 100%; height: auto; aspect-ratio: 9 / 16;
+    border-radius: 18px; background: #FFE2C2; box-shadow: 0 6px 20px rgba(120, 60, 0, .18);
   }
   @media (min-width: 720px) {
     .shots { display: grid; grid-template-columns: repeat(4, 1fr); max-width: 1080px; margin: 0 auto; overflow: visible; }
-    .shots img { width: 100%; max-width: none; }
+    .shots button { flex: none; max-width: none; }
   }
+
+  /* Full-size screenshot viewer. */
+  .lb {
+    position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center;
+    background: rgba(24, 12, 0, .92); cursor: zoom-out;
+  }
+  .lb img { max-width: 94vw; max-height: 92vh; width: auto; height: auto; border-radius: 14px; cursor: default; }
+  .lb button {
+    position: absolute; width: 44px; height: 44px; border: 0; border-radius: 50%; cursor: pointer;
+    background: rgba(255, 255, 255, .16); color: #fff; font: 28px/1 system-ui, sans-serif;
+  }
+  .lb button:hover, .lb button:focus-visible { background: rgba(255, 255, 255, .3); outline: none; }
+  .lb-x { top: 14px; right: 14px; }
+  .lb-prev { left: 10px; top: 50%; margin-top: -22px; }
+  .lb-next { right: 10px; top: 50%; margin-top: -22px; }
+  body.lb-open { overflow: hidden; }
 
   section { padding: 28px 0; }
   .tracks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
@@ -131,10 +151,10 @@
   </div>
 
   <div class="shots" aria-label="App screenshots">
-    <img src="/img/diary.webp" width="540" height="960" alt="Daily diary showing calories and macros against targets, with each meal listed with its nutrition">
-    <img src="/img/trends.webp" width="540" height="960" alt="Trends screen showing calories and macros over days, weeks and months">
-    <img src="/img/widgets.webp" width="540" height="960" alt="Home screen widgets for logging favourite meals in one tap">
-    <img src="/img/detail.webp" width="540" height="960" alt="Full nutrition breakdown for a single meal">
+    <button type="button" data-full="/img/diary-full.webp"><img src="/img/diary.webp" width="720" height="1280" alt="Daily diary showing calories and macros against targets, with each meal listed with its nutrition"></button>
+    <button type="button" data-full="/img/trends-full.webp"><img src="/img/trends.webp" width="720" height="1280" alt="Trends screen showing calories and macros over days, weeks and months"></button>
+    <button type="button" data-full="/img/widgets-full.webp"><img src="/img/widgets.webp" width="720" height="1280" alt="Home screen widgets for logging favourite meals in one tap"></button>
+    <button type="button" data-full="/img/detail-full.webp"><img src="/img/detail.webp" width="720" height="1280" alt="Full nutrition breakdown for a single meal"></button>
   </div>
 
   <div class="wrap">
@@ -201,12 +221,64 @@
   </div>
 </main>
 
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Screenshot viewer" hidden>
+  <button type="button" class="lb-x" aria-label="Close">&times;</button>
+  <button type="button" class="lb-prev" aria-label="Previous screenshot">&#8249;</button>
+  <img alt="">
+  <button type="button" class="lb-next" aria-label="Next screenshot">&#8250;</button>
+</div>
+
 <footer>
   <div class="wrap fine">
     Daily Macros is made by Gabor Biro. <a href="https://github.com/gaborbiro/DailyMacros/blob/master/PRIVACY.md" rel="noopener">Privacy policy</a>
   </div>
 </footer>
 
+<script>
+(function () {
+  var shots = Array.prototype.slice.call(document.querySelectorAll(".shots button"));
+  var lb = document.getElementById("lb");
+  var lbImg = lb.querySelector("img");
+  var current = 0, opener = null, touchX = null;
+
+  function show(i) {
+    current = (i + shots.length) % shots.length;
+    lbImg.src = shots[current].getAttribute("data-full");
+    lbImg.alt = shots[current].querySelector("img").alt;
+  }
+  function open(i) {
+    opener = shots[i];
+    show(i);
+    lb.hidden = false;
+    document.body.classList.add("lb-open");
+    lb.querySelector(".lb-x").focus();
+  }
+  function close() {
+    lb.hidden = true;
+    document.body.classList.remove("lb-open");
+    if (opener) opener.focus();
+  }
+
+  shots.forEach(function (b, i) { b.addEventListener("click", function () { open(i); }); });
+  lb.addEventListener("click", function (e) { if (e.target === lb) close(); });
+  lb.querySelector(".lb-x").addEventListener("click", close);
+  lb.querySelector(".lb-prev").addEventListener("click", function () { show(current - 1); });
+  lb.querySelector(".lb-next").addEventListener("click", function () { show(current + 1); });
+  document.addEventListener("keydown", function (e) {
+    if (lb.hidden) return;
+    if (e.key === "Escape") close();
+    else if (e.key === "ArrowLeft") show(current - 1);
+    else if (e.key === "ArrowRight") show(current + 1);
+  });
+  lb.addEventListener("touchstart", function (e) { touchX = e.touches[0].clientX; }, { passive: true });
+  lb.addEventListener("touchend", function (e) {
+    if (touchX === null) return;
+    var dx = e.changedTouches[0].clientX - touchX;
+    touchX = null;
+    if (Math.abs(dx) > 50) show(current + (dx < 0 ? 1 : -1));
+  });
+})();
+</script>
 <script>
 (function () {
   var form = document.getElementById("join-form");
