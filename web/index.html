@@ -52,7 +52,9 @@
   }
   .btn:hover { background: var(--orange-dark); }
   .btn[disabled] { opacity: .6; cursor: default; }
-  .hero .btn { justify-self: start; margin-top: 8px; }
+  .btn-ghost { background: transparent; color: var(--orange-dark); border: 1.5px solid var(--orange); }
+  .btn-ghost:hover { background: rgba(245, 124, 0, .08); }
+  .hero-ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
   .fine { font-size: .875rem; color: var(--muted); }
   .fine a { color: var(--orange-dark); }
 
@@ -146,7 +148,10 @@
   <div class="wrap hero">
     <h1>A food diary easy enough to actually stick with.</h1>
     <p>Take a photo of your meal — Daily Macros uses AI to estimate the calories and macros and logs it for you. Typing is optional, and a home-screen widget means you barely have to open the app.</p>
-    <a class="btn" href="#waitlist">Get notified when Daily Macros launches</a>
+    <div class="hero-ctas">
+      <a class="btn" href="#waitlist">Get notified when Daily Macros launches</a>
+      <a class="btn btn-ghost js-beta-cta" href="#join">Join the test</a>
+    </div>
     <p class="fine">Android first, with an iPhone version planned — join the waitlist either way.</p>
   </div>
 
@@ -202,14 +207,12 @@
             <button class="btn" id="waitlist-submit" type="submit">Get notified</button>
             <p class="fine privacy">Your email is only used to tell you about the Daily Macros launch and major updates.</p>
           </form>
-          <p class="fine" style="margin-top:14px">Want to try it now? <a class="js-beta-cta" href="#join">Join the test</a> — Android testers need a Google Play email and a 14-day opt-in; iPhone can join a waitlist there instead.</p>
         </div>
 
         <div id="waitlist-done-view" class="done" hidden tabindex="-1">
           <h2>You're on the list.</h2>
           <p>I'll email <strong id="waitlist-sent-email"></strong> when Daily Macros launches, and about any major updates before then.</p>
           <p class="fine" style="margin-top:14px">That's it — this is just a launch waitlist, nothing to install.</p>
-          <p class="fine" style="margin-top:10px">Want to try it now instead? <a class="js-beta-cta" href="#join">Join the test</a>.</p>
         </div>
       </div>
     </section>
