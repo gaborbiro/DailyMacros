@@ -1,12 +1,24 @@
 name: Deploy landing page
 
-# Manual only, like the backend deploy: Actions tab -> "Deploy landing page" ->
-# Run workflow. Publishes the landing page (web/) to Firebase Hosting. The
-# page's /api/waitlist, /api/join and /api/event rewrites point at the
-# joinWaitlist, joinTest and trackEvent functions, so the default target
-# deploys all three alongside Hosting; pick "hosting" alone for page-only
-# edits once they're live. Uses the same service account secret as the
-# backend deploy (firebase.admin covers Hosting).
+# Manual only: Actions tab -> "Deploy landing page" -> Run workflow. You can
+# pick ANY branch to run this from via the "Use workflow from" dropdown on
+# that screen - that's a built-in GitHub Actions feature for workflow_dispatch,
+# nothing extra needed here. That's how you test-deploy a branch's Firebase
+# changes without merging first.
+#
+# `channel`: leave empty to deploy hosting to the LIVE site (the original
+# behavior). Set it to a short name (e.g. "test-waitlist") to instead deploy
+# hosting to a temporary preview channel - a separate URL, left untouched by
+# the live site, auto-expiring after 30 days - and get that URL back as this
+# run's job summary, so you can open it anywhere (e.g. your phone). `channel`
+# is ignored if `targets` doesn't include "hosting".
+#
+# Cloud Functions have no preview mode - there's only one live deployment per
+# function name - so whatever's listed in `targets` under functions: always
+# deploys live, on whichever branch you ran this from, regardless of `channel`.
+# That's the trade-off for testing real Firebase behavior (Firestore writes,
+# email alerts, etc.) before merging: the functions involved do go live, but
+# only when you explicitly run this, never automatically.
 on:
   workflow_dispatch:
     inputs:
@@ -18,6 +30,11 @@ on:
         options:
           - hosting,functions:joinWaitlist,functions:joinTest,functions:trackEvent
           - hosting
+      channel:
+        description: 'Preview channel name (leave empty to deploy hosting live)'
+        required: false
+        default: ''
+        type: string
 
 jobs:
   deploy:
@@ -51,4 +68,42 @@ jobs:
       - name: Deploy
         env:
           TARGETS: ${{ inputs.targets }}
-        run: firebase deploy --only "$TARGETS" --project dailymacros-9fab8 --non-interactive
+          CHANNEL: ${{ inputs.channel }}
+        run: |
+          set -e
+          IFS=',' read -ra PARTS <<< "$TARGETS"
+          FUNC_PARTS=()
+          HAS_HOSTING=false
+          for p in "${PARTS[@]}"; do
+            if [ "$p" = "hosting" ]; then
+              HAS_HOSTING=true
+            else
+              FUNC_PARTS+=("$p")
+            fi
+          done
+
+          if [ "${#FUNC_PARTS[@]}" -gt 0 ]; then
+            FUNC_TARGETS=$(IFS=,; echo "${FUNC_PARTS[*]}")
+            echo "Deploying functions: $FUNC_TARGETS"
+            firebase deploy --only "$FUNC_TARGETS" --project dailymacros-9fab8 --non-interactive
+          fi
+
+          if [ "$HAS_HOSTING" = true ]; then
+            if [ -n "$CHANNEL" ]; then
+              echo "Deploying hosting to preview channel: $CHANNEL"
+              RESULT=$(firebase hosting:channel:deploy "$CHANNEL" --project dailymacros-9fab8 --expires 30d --non-interactive --json)
+              echo "$RESULT"
+              URL=$(echo "$RESULT" | jq -r '.result | to_entries[0].value.url')
+              {
+                echo "### Preview URL"
+                echo ""
+                echo "**$URL**"
+                echo ""
+                echo "Branch: \`${GITHUB_REF_NAME}\`  "
+                echo "Channel: \`${CHANNEL}\` (expires in 30 days)"
+              } >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "Deploying hosting to the live site"
+              firebase deploy --only hosting --project dailymacros-9fab8 --non-interactive
+            fi
+          fi
