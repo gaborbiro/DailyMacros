@@ -172,5 +172,7 @@ data class NutrientBreakdownUiModel(
     val fibre: String?,
     val notes: String?,
     val components: List<String> = emptyList(),
+    /** Single-line rendition of [components] (e.g. "1 slice bread · ~1 tbsp marmalade") for the collapsed AI section. */
+    val componentsSummary: String? = null,
     val hasDisplayableContent: Boolean = false,
 )
