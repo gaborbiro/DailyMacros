@@ -24,7 +24,7 @@
 - Short description (80 chars), long description (~4000 chars): drafted in
   `docs/play-store-listing.md`.
 - Screenshots: done — 5 captioned marketing screenshots in `docs/screenshots/`
-  (`screenshot_1_diary.png` … `screenshot_5_widgets.png`), replacing the earlier
+  (`screenshot_1_diary.png` … `screenshot_5_trends.png`), replacing the earlier
   plain `1.png`–`4.png`.
 - Feature graphic: 1024×500px banner — still TODO, needs a design tool (not
   code). See `docs/play-store-listing.md` for notes.
