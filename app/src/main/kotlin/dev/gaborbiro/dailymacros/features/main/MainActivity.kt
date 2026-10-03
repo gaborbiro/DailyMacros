@@ -38,7 +38,6 @@ import dev.gaborbiro.dailymacros.AppPrefs
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.design.AppTheme
-import dev.gaborbiro.dailymacros.feedback.ShakeFeedback
 import dev.gaborbiro.dailymacros.features.common.SettingsRowId
 import dev.gaborbiro.dailymacros.features.common.views.LocalImageStore
 import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
@@ -157,7 +156,13 @@ class MainActivity : ComponentActivity() {
                 val promptEditorViewModel: PromptEditorViewModel = hiltViewModel()
                 val trendsViewModel: TrendsViewModel = hiltViewModel()
 
-                LaunchedEffect(navController) { ShakeFeedback.trackScreens(navController) }
+                // Firebase only auto-tracks Activities, and every screen here is a nav destination
+                // inside this one. Route pattern only, never its arguments.
+                LaunchedEffect(navController) {
+                    navController.currentBackStackEntryFlow.collect { entry ->
+                        entry.destination.route?.substringBefore('?')?.let(analyticsLogger::logScreenView)
+                    }
+                }
 
                 LaunchedEffect(pendingHighlightRowId) {
                     pendingHighlightRowId?.let { rowId ->

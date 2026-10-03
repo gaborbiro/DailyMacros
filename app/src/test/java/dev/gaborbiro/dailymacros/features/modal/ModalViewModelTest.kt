@@ -178,7 +178,7 @@ class ModalViewModelTest {
             getTemplateImageUseCase = GetTemplateImageUseCase(repo),
             foodRecognitionUseCase = FoodRecognitionUseCase(imageStore, VmFakeChatGpt(), testSettingsRepository),
             applyQuickPickOverrideAndReloadWidgetUseCase = ApplyQuickPickOverrideAndReloadWidgetUseCase(repo),
-            analyticsLogger = AnalyticsLogger(),
+            analyticsLogger = AnalyticsLogger(sinks = emptySet()),
             errorUiMapper = ErrorUiMapper(app, testSettingsRepository),
         ).also { activeViewModels.add(it) }
     }
