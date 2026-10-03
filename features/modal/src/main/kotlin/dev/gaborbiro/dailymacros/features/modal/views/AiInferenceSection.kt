@@ -41,6 +41,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -145,19 +146,29 @@ internal fun AiInferenceSection(
                             nutrientBreakdown = nutrientBreakdown,
                         )
                     } else {
-                        Text(
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(PaddingHalf)
-                                .let {
-                                    if (previewLayout.hasVisualOverflow) it.fadeLastLineBottom(previewLayout) else it
-                                },
-                            text = previewText,
-                            style = previewStyle,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = PreviewMaxLines,
-                            overflow = TextOverflow.Clip,
-                        )
+                                .padding(PaddingHalf),
+                        ) {
+                            Text(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .let {
+                                        if (previewLayout.hasVisualOverflow) it.fadeLastLineBottom(previewLayout) else it
+                                    },
+                                text = previewText,
+                                style = previewStyle,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = PreviewMaxLines,
+                                overflow = TextOverflow.Clip,
+                            )
+                            // Nothing more to expand into, so the footnote belongs here.
+                            if (!expandable) {
+                                Spacer(modifier = Modifier.height(PaddingDefault))
+                                MealDetailsFootnote(text = stringResource(R.string.record_details_ai_inferred_footnote))
+                            }
+                        }
                     }
                 }
 
@@ -228,7 +239,24 @@ private fun AiInferenceDetails(
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
+
+        Spacer(modifier = Modifier.height(PaddingDefault))
+        MealDetailsFootnote(text = stringResource(R.string.record_details_ai_inferred_footnote))
     }
+}
+
+/**
+ * Small italic note closing a meal details card.
+ */
+@Composable
+internal fun MealDetailsFootnote(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodySmall.copy(
+            fontStyle = FontStyle.Italic,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        ),
+    )
 }
 
 /**

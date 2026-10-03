@@ -14,6 +14,7 @@
     <string name="meal_details_collapse">Collapse</string>
     <string name="record_details_ai_inferred_title">What the AI inferred</string>
     <string name="record_details_ai_inferred_show_all">Show all</string>
+    <string name="record_details_ai_inferred_footnote">If something looks off, try another photo or add a clarification to the description. We’ll re-run the analysis.</string>
     <string name="meal_details_begin_edit_cd">Edit meal details</string>
     <string name="meal_details_edit_timestamp_cd">Edit date and time</string>
     <string name="edit_timestamp_sheet_title">When did this happen?</string>
