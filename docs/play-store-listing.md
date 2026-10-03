@@ -46,8 +46,8 @@ Marketing screenshots with captions, in `docs/screenshots/`:
 1. `screenshot_1_diary.png` — "Snap a photo, get instant macros" (daily diary + targets)
 2. `screenshot_2_nutrient_breakdown.png` — "Full nutrient breakdown, every time" (record detail)
 3. `screenshot_3_ai_inference.png` — "See the portions and assumptions behind the nutrient estimates" (what the AI inferred)
-4. `screenshot_4_trends.png` — "Watch your trends over time" (Trends screen)
-5. `screenshot_5_widgets.png` — "Pin your favourites as one-tap widgets" (widgets)
+4. `screenshot_4_widgets.png` — "Pin your favourites as one-tap widgets" (widgets)
+5. `screenshot_5_trends.png` — "Watch your trends over time" (Trends screen)
 
 These replace the earlier plain (uncaptioned) `1.png`–`4.png`.
 
