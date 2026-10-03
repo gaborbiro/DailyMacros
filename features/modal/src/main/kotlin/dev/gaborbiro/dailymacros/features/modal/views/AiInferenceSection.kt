@@ -62,6 +62,12 @@ internal val NutrientBreakdownUiModel.hasAiInference: Boolean
 private const val PreviewMaxLines = 2
 
 /**
+ * How much of the last preview line (from its bottom up) fades out. Text sits in the upper ~80% of its line box,
+ * so anything much below 1 only fades the descenders and is barely noticeable.
+ */
+private const val PreviewLastLineFadeFraction = 1f
+
+/**
  * Provenance for the nutrient estimate: what the AI read from the photo/title/description.
  * Collapsed, it previews the detected components (falling back to the notes) in at most two lines, fading out
  * the bottom of the last line when there is more. It only offers to expand when the preview hides something.
@@ -85,7 +91,9 @@ internal fun AiInferenceSection(
     ) {
         BoxWithConstraints {
             // Measured up front (rather than via onTextLayout) so the expand affordance is right on the first frame.
-            val previewWidthPx = with(LocalDensity.current) { (maxWidth - PaddingHalf * 2).roundToPx() }.coerceAtLeast(0)
+            // Mirrors the preview's horizontal padding, rounded the same way the padding modifier rounds it.
+            val previewWidthPx = (constraints.maxWidth - 2 * with(LocalDensity.current) { PaddingHalf.roundToPx() })
+                .coerceAtLeast(0)
             val previewLayout = remember(previewText, previewStyle, previewWidthPx) {
                 textMeasurer.measure(
                     text = previewText,
@@ -185,7 +193,8 @@ internal fun AiInferenceSection(
 }
 
 /**
- * Fades out the bottom quarter of the last visible line, hinting that the text continues.
+ * Fades out the last visible line towards its bottom (see [PreviewLastLineFadeFraction]), hinting that the text
+ * continues.
  */
 private fun Modifier.fadeLastLineBottom(layout: TextLayoutResult): Modifier = this
     .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
@@ -195,7 +204,7 @@ private fun Modifier.fadeLastLineBottom(layout: TextLayoutResult): Modifier = th
         if (lastLine < 0) return@drawWithContent
         val lineTop = layout.getLineTop(lastLine)
         val lineBottom = layout.getLineBottom(lastLine)
-        val fadeTop = lineBottom - (lineBottom - lineTop) * .25f
+        val fadeTop = lineBottom - (lineBottom - lineTop) * PreviewLastLineFadeFraction
         drawRect(
             brush = Brush.verticalGradient(
                 colors = listOf(Color.Transparent, Color.Black),
