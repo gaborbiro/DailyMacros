@@ -44,9 +44,10 @@ Whether you're counting calories, hitting a protein target, watching sugar and s
 
 Marketing screenshots with captions, in `docs/screenshots/`:
 1. `screenshot_1_diary.png` — "Snap a photo, get instant macros" (daily diary + targets)
-2. `screenshot_2_trends.png` — "Watch your trends over time" (Trends screen)
-3. `screenshot_3_widgets.png` — "Pin your favourites as one-tap widgets" (widgets)
-4. `screenshot_4_detail.png` — "Full nutrition breakdown, every time" (record detail)
+2. `screenshot_2_nutrient_breakdown.png` — "Full nutrient breakdown, every time" (record detail)
+3. `screenshot_3_ai_inference.png` — "See the portions and assumptions behind the nutrient estimates" (what the AI inferred)
+4. `screenshot_4_trends.png` — "Watch your trends over time" (Trends screen)
+5. `screenshot_5_widgets.png` — "Pin your favourites as one-tap widgets" (widgets)
 
 These replace the earlier plain (uncaptioned) `1.png`–`4.png`.
 

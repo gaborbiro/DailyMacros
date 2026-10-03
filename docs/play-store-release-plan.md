@@ -23,8 +23,8 @@
 ### 2. Play Store listing materials *(required, ~1 day)*
 - Short description (80 chars), long description (~4000 chars): drafted in
   `docs/play-store-listing.md`.
-- Screenshots: done — 4 captioned marketing screenshots in `docs/screenshots/`
-  (`screenshot_1_diary.png` … `screenshot_4_detail.png`), replacing the earlier
+- Screenshots: done — 5 captioned marketing screenshots in `docs/screenshots/`
+  (`screenshot_1_diary.png` … `screenshot_5_widgets.png`), replacing the earlier
   plain `1.png`–`4.png`.
 - Feature graphic: 1024×500px banner — still TODO, needs a design tool (not
   code). See `docs/play-store-listing.md` for notes.
