@@ -30,6 +30,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import dev.gaborbiro.dailymacros.features.modal.R
+import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.file.domain.FileStore
 import dev.gaborbiro.dailymacros.data.image.DefaultFoodPicExt
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
@@ -62,6 +63,9 @@ class ModalActivity : AppCompatActivity() {
     @FileStorePublicBucketEphemeral
     lateinit var cacheFileStore: FileStore
 
+    @Inject
+    lateinit var analyticsLogger: AnalyticsLogger
+
     private val viewModel: ModalViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -92,6 +96,11 @@ class ModalActivity : AppCompatActivity() {
 
         setContent {
             val viewState by viewModel.uiState.collectAsStateWithLifecycle()
+
+            val screen = viewState.toModalScreen()
+            LaunchedEffect(screen) {
+                screen?.let { analyticsLogger.logScreenView(it.name, it.args) }
+            }
 
             val notificationPermissionLauncher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.RequestPermission(),

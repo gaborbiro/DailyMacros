@@ -11,7 +11,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class AnalyticsLogger @Inject constructor() {
+class AnalyticsLogger @Inject constructor(
+    private val sinks: Set<@JvmSuppressWildcards AnalyticsSink>,
+) {
 
     private val analytics: FirebaseAnalytics by lazy { Firebase.analytics }
     private val crashlytics: FirebaseCrashlytics by lazy { Firebase.crashlytics }
@@ -23,11 +25,13 @@ class AnalyticsLogger @Inject constructor() {
 
     fun setCustomDataForNextReport(key: String, value: String) {
         crashlytics.setCustomKey(key, value)
+        sinks.forEach { it.onCustomData(key, value) }
     }
 
     fun logEvent(name: String, params: Bundle? = null) {
         val finalName = name.replace(Regex("[^a-zA-Z0-9_]"), "_").take(40)
         analytics.logEvent(finalName, params)
+        sinks.forEach { it.onEvent(name, params) }
     }
 
     fun logScreenView(screenName: String, args: Bundle? = null) {
@@ -37,10 +41,12 @@ class AnalyticsLogger @Inject constructor() {
                 param(key, args.get(key).toString())
             }
         }
+        sinks.forEach { it.onScreenView(screenName, args) }
     }
 
     fun logError(t: Throwable) {
         t.printStackTrace()
         crashlytics.recordException(t)
+        sinks.forEach { it.onError(t) }
     }
 }

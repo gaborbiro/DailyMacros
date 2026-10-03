@@ -2,8 +2,6 @@ package dev.gaborbiro.dailymacros.feedback
 
 import android.app.Application
 import android.util.Log
-import androidx.navigation.NavController
-import com.shakebugs.shake.LogLevel
 import com.shakebugs.shake.Shake
 import com.shakebugs.shake.ShakeScreen
 import dev.gaborbiro.dailymacros.BuildConfig
@@ -13,9 +11,10 @@ import dev.gaborbiro.dailymacros.BuildConfig
  * device shake) opens Shake's own "New ticket" screen with a screenshot, the last ~15s of screen
  * recording, activity history and device/app info already attached.
  *
- * Everything Shake-specific is kept here. Removing Shake = delete this file, its two call sites
- * (App.onCreate, MainActivity), the dependency/SHAKE_API_KEY wiring in app/build.gradle.kts, and
- * the READ_EXTERNAL_STORAGE removal in AndroidManifest.xml.
+ * Everything Shake-specific is kept in this package. Removing Shake = delete the package, its call
+ * site in App.onCreate, the dependency/SHAKE_API_KEY wiring in app/build.gradle.kts, and the
+ * READ_EXTERNAL_STORAGE removal in AndroidManifest.xml. Screen names, custom keys, events and
+ * non-fatal errors reach Shake through AnalyticsLogger (see ShakeAnalyticsSink).
  *
  * Meal photos/details are intentionally NOT masked (no Shake.addPrivateView / FLAG_SECURE):
  * when a tester says the macros are wrong, the photo and surrounding state are the evidence.
@@ -24,9 +23,9 @@ object ShakeFeedback {
 
     private const val TAG = "ShakeFeedback"
     private const val METADATA_CLIENT_ID = "clientId"
-    private const val METADATA_SCREEN = "screen"
 
-    private var started = false
+    var isStarted = false
+        private set
 
     fun start(application: Application, clientId: String) {
         val apiKey = BuildConfig.SHAKE_API_KEY
@@ -65,21 +64,6 @@ object ShakeFeedback {
 
         Shake.start(application, apiKey)
         Shake.setMetadata(METADATA_CLIENT_ID, clientId)
-        started = true
-    }
-
-    /**
-     * Shake only sees Activity changes, and almost every screen here is a Compose nav
-     * destination inside MainActivity. Reports the current route as ticket metadata and logs
-     * each navigation to the activity history. Only the route pattern is reported, never its
-     * arguments.
-     */
-    suspend fun trackScreens(navController: NavController) {
-        if (!started) return
-        navController.currentBackStackEntryFlow.collect { entry ->
-            val route = entry.destination.route?.substringBefore('?') ?: return@collect
-            Shake.setMetadata(METADATA_SCREEN, route)
-            Shake.log(LogLevel.INFO, "Navigated to $route")
-        }
+        isStarted = true
     }
 }
