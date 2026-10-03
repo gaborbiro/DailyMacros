@@ -126,6 +126,7 @@
   .seg span { display: block; padding: 9px 0; border-radius: 9px; color: var(--muted); }
   .seg input:checked + span { background: #fff; color: var(--ink); box-shadow: 0 1px 4px rgba(120, 60, 0, .18); }
   .seg input:focus-visible + span { outline: 3px solid rgba(245, 124, 0, .45); }
+  #waitlist-form { margin-top: 12px; }
   .ios-note { margin: 0 0 18px; color: var(--muted); }
   .done h2 { margin-bottom: 10px; }
   .done p + p { margin-top: 10px; }
@@ -195,9 +196,8 @@
         <div id="waitlist-form-view">
           <h2>Get notified when Daily Macros launches</h2>
           <form id="waitlist-form" novalidate>
-            <label for="waitlist-email">Email</label>
             <p class="hint" id="waitlist-email-hint">Just a heads-up when it's ready, and about any major update before then. Not a test signup, no Google Play email needed.</p>
-            <input id="waitlist-email" name="email" type="email" inputmode="email" autocomplete="email"
+            <input id="waitlist-email" name="email" type="email" inputmode="email" autocomplete="email" aria-label="Email"
                    autocapitalize="off" spellcheck="false" placeholder="you@example.com" required
                    aria-describedby="waitlist-email-hint waitlist-email-error">
             <div class="hp" aria-hidden="true">
