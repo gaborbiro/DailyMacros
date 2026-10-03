@@ -10,6 +10,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,10 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -39,13 +37,15 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
@@ -58,9 +58,12 @@ import dev.gaborbiro.dailymacros.features.common.R as CommonR
 internal val NutrientBreakdownUiModel.hasAiInference: Boolean
     get() = !notes.isNullOrBlank() || components.isNotEmpty()
 
+private const val PreviewMaxLines = 2
+
 /**
  * Provenance for the nutrient estimate: what the AI read from the photo/title/description.
- * Collapsed, it previews the detected components (falling back to the notes) in at most two faded lines.
+ * Collapsed, it previews the detected components (falling back to the notes) in at most two lines, fading out
+ * the bottom of the last line when there is more. It only offers to expand when the preview hides something.
  */
 @Composable
 internal fun AiInferenceSection(
@@ -70,114 +73,126 @@ internal fun AiInferenceSection(
     onExpandedChange: (Boolean) -> Unit,
 ) {
     val fadeSpec = tween<Float>(durationMillis = 400)
+    val previewText = nutrientBreakdown.componentsSummary ?: nutrientBreakdown.notes.orEmpty()
+    val previewStyle = MaterialTheme.typography.bodyMedium
+    val textMeasurer = rememberTextMeasurer()
     Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .let {
-                if (expanded) {
-                    it
-                } else {
-                    it.clickable { onExpandedChange(true) }
-                }
-            },
+        modifier = modifier.fillMaxWidth(),
         color = Color.Transparent,
         shape = MaterialTheme.shapes.small,
         border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.primary.copy(alpha = .45f)),
     ) {
-        Column(
-            modifier = Modifier
-                .padding(top = PaddingHalf)
-                .animateContentSize(animationSpec = tween(durationMillis = 280)),
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = PaddingHalf),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    painter = painterResource(CommonR.drawable.ic_ai_borg),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .padding(end = PaddingHalf)
-                        .size(20.dp),
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-                Text(
-                    text = stringResource(R.string.record_details_ai_inferred_title),
-                    style = MaterialTheme.typography.titleSmall,
+        BoxWithConstraints {
+            // Measured up front (rather than via onTextLayout) so the expand affordance is right on the first frame.
+            val previewWidthPx = with(LocalDensity.current) { (maxWidth - PaddingHalf * 2).roundToPx() }.coerceAtLeast(0)
+            val previewLayout = remember(previewText, previewStyle, previewWidthPx) {
+                textMeasurer.measure(
+                    text = previewText,
+                    style = previewStyle,
+                    overflow = TextOverflow.Clip,
+                    maxLines = PreviewMaxLines,
+                    constraints = Constraints(maxWidth = previewWidthPx),
                 )
             }
+            // Notes aren't part of the preview while it shows the components, so they'd be unreachable otherwise.
+            val notesHiddenByPreview = nutrientBreakdown.componentsSummary != null && !nutrientBreakdown.notes.isNullOrBlank()
+            val expandable = previewLayout.hasVisualOverflow || notesHiddenByPreview
 
-            AnimatedContent(
-                targetState = expanded,
-                transitionSpec = {
-                    fadeIn(fadeSpec) togetherWith fadeOut(fadeSpec)
-                },
-                label = "mealDetailsAiInferenceExpand",
-            ) { isExpanded ->
-                if (isExpanded) {
-                    AiInferenceDetails(
+            Column(
+                modifier = Modifier
+                    .let {
+                        if (!expanded && expandable) {
+                            it.clickable { onExpandedChange(true) }
+                        } else {
+                            it
+                        }
+                    }
+                    .padding(top = PaddingHalf)
+                    .animateContentSize(animationSpec = tween(durationMillis = 280)),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = PaddingHalf),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        painter = painterResource(CommonR.drawable.ic_ai_borg),
+                        contentDescription = null,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(PaddingHalf),
-                        nutrientBreakdown = nutrientBreakdown,
+                            .padding(end = PaddingHalf)
+                            .size(20.dp),
+                        tint = MaterialTheme.colorScheme.primary,
                     )
-                } else {
-                    AiInferencePreview(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(PaddingHalf),
-                        text = nutrientBreakdown.componentsSummary ?: nutrientBreakdown.notes.orEmpty(),
+                    Text(
+                        text = stringResource(R.string.record_details_ai_inferred_title),
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                }
+
+                AnimatedContent(
+                    targetState = expanded,
+                    transitionSpec = {
+                        fadeIn(fadeSpec) togetherWith fadeOut(fadeSpec)
+                    },
+                    label = "mealDetailsAiInferenceExpand",
+                ) { isExpanded ->
+                    if (isExpanded) {
+                        AiInferenceDetails(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(PaddingHalf),
+                            nutrientBreakdown = nutrientBreakdown,
+                        )
+                    } else {
+                        Text(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(PaddingHalf)
+                                .let {
+                                    if (previewLayout.hasVisualOverflow) it.fadeLastLineBottom(previewLayout) else it
+                                },
+                            text = previewText,
+                            style = previewStyle,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = PreviewMaxLines,
+                            overflow = TextOverflow.Clip,
+                        )
+                    }
+                }
+
+                if (expanded || expandable) {
+                    ExpandToggleRow(
+                        expanded = expanded,
+                        expandLabel = stringResource(R.string.record_details_ai_inferred_show_all),
+                        onCollapseTapped = { onExpandedChange(false) },
                     )
                 }
             }
-
-            ExpandToggleRow(
-                expanded = expanded,
-                onCollapseTapped = { onExpandedChange(false) },
-            )
         }
     }
 }
 
-@Composable
-private fun AiInferencePreview(
-    modifier: Modifier,
-    text: String,
-) {
-    var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
-    Text(
-        modifier = modifier.fadeTruncatedLastLine { layout },
-        text = text,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        maxLines = 2,
-        overflow = TextOverflow.Clip,
-        onTextLayout = { layout = it },
-    )
-}
-
 /**
- * When the text is cut off, fades out the end of its last visible line instead of showing an ellipsis.
- * The layout is read at draw time, so a new layout only triggers a redraw.
+ * Fades out the bottom quarter of the last visible line, hinting that the text continues.
  */
-private fun Modifier.fadeTruncatedLastLine(layout: () -> TextLayoutResult?): Modifier = this
+private fun Modifier.fadeLastLineBottom(layout: TextLayoutResult): Modifier = this
     .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
     .drawWithContent {
         drawContent()
-        val textLayout = layout()?.takeIf { it.hasVisualOverflow && it.lineCount > 0 } ?: return@drawWithContent
-        val lastLineTop = textLayout.getLineTop(textLayout.lineCount - 1)
-        val fadeWidth = size.width * .4f
-        val ltr = layoutDirection == LayoutDirection.Ltr
+        val lastLine = layout.lineCount - 1
+        if (lastLine < 0) return@drawWithContent
+        val lineTop = layout.getLineTop(lastLine)
+        val lineBottom = layout.getLineBottom(lastLine)
+        val fadeTop = lineBottom - (lineBottom - lineTop) * .25f
         drawRect(
-            brush = Brush.horizontalGradient(
+            brush = Brush.verticalGradient(
                 colors = listOf(Color.Transparent, Color.Black),
-                startX = if (ltr) size.width - fadeWidth else fadeWidth,
-                endX = if (ltr) size.width else 0f,
+                startY = fadeTop,
+                endY = lineBottom,
             ),
-            topLeft = Offset(0f, lastLineTop),
-            size = Size(size.width, size.height - lastLineTop),
+            topLeft = Offset(0f, fadeTop),
+            size = Size(size.width, size.height - fadeTop),
             blendMode = BlendMode.DstOut,
         )
     }
@@ -224,6 +239,7 @@ private fun AiInferenceDetails(
 internal fun ExpandToggleRow(
     expanded: Boolean,
     onCollapseTapped: () -> Unit,
+    expandLabel: String = stringResource(R.string.meal_details_expand),
 ) {
     Row(
         modifier = Modifier
@@ -243,7 +259,7 @@ internal fun ExpandToggleRow(
             text = if (expanded) {
                 stringResource(R.string.meal_details_collapse)
             } else {
-                stringResource(R.string.meal_details_expand)
+                expandLabel
             },
             style = MaterialTheme.typography.labelLarge,
         )
@@ -287,6 +303,23 @@ private fun AiInferenceSectionCollapsedPreview() {
     ViewPreviewContext {
         AiInferenceSection(
             nutrientBreakdown = previewAiNutrientBreakdown(),
+            expanded = false,
+            onExpandedChange = {},
+        )
+    }
+}
+
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun AiInferenceSectionFitsPreview() {
+    ViewPreviewContext {
+        AiInferenceSection(
+            nutrientBreakdown = previewAiNutrientBreakdown().copy(
+                notes = null,
+                components = listOf("- 1 slice white bread", "- ~1 tbsp orange marmalade (?)"),
+                componentsSummary = "1 slice white bread · ~1 tbsp orange marmalade (?)",
+            ),
             expanded = false,
             onExpandedChange = {},
         )
