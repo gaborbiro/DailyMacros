@@ -142,7 +142,7 @@ class MainActivity : ComponentActivity() {
             appPrefs.hasCompletedOnboarding = true
         }
 
-        analyticsLogger.setUserId(appPrefs.userUUID)
+        analyticsLogger.setUserId(appPrefs.clientId)
         lifecycleScope.launch {
             requestStatusRepository.deleteStale()
         }

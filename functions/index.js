@@ -53,17 +53,17 @@
  *     this list bypass the per-user DAILY cap and the subscription gate
  *     (including the pre-subscription feature caps) entirely, but are still
  *     counted and still subject to the global monthly budget. Entries can be
- *     a bare three-word id, or an object with a "note" field to record who
+ *     a bare client ID, or an object with a "note" field to record who
  *     the grant is for and why - the note is never read by this function, it's
  *     just there so you can tell entries apart later. Use it to permanently
- *     unlock yourself: put your own three-word id (from the app's Settings
+ *     unlock yourself: put your own client ID (from the app's Settings
  *     screen) here once.
  *   - To give one user more room today, edit their users/{uid}.dailyCapCount:
  *     0 restores their full daily allowance, a negative value (e.g. -10) grants
  *     that many extra requests on top of the cap. It resets to normal at the
  *     next UTC day.
  *
- * Every request records the caller's three-word client id (X-Client-Id header)
+ * Every request records the caller's client ID (X-Client-Id header)
  * and last-seen time on users/{uid} - AND writes it to a separate
  * clientIds/{clientId} -> {uid} doc, unconditionally, before any allow/deny
  * decision. That second write is the one that matters for support: it's a
@@ -205,7 +205,7 @@ exports.openaiProxy = onRequest(
       return;
     }
 
-    // Three-word client id the user sees in Settings. Stored on the usage doc so
+    // Client ID (three words) the user sees in Settings. Stored on the usage doc so
     // a support email maps to a row. Clamped so a bad/spoofed header can't bloat
     // the document; null if absent (older app builds).
     const clientId = (req.get("X-Client-Id") || "").slice(0, 64) || null;
@@ -233,7 +233,7 @@ exports.openaiProxy = onRequest(
       const cfg = configSnap.data() || {};
       const perUserDailyCap = cfg.perUserDailyCap ?? DEFAULT_PER_USER_DAILY_CAP;
       const monthlyBudget = cfg.monthlyRequestBudget ?? DEFAULT_MONTHLY_REQUEST_BUDGET;
-      // Each entry is either a bare three-word id, or { clientId, note } so you
+      // Each entry is either a bare client ID, or { clientId, note } so you
       // can record who a grant belongs to and why (see header comment above).
       const unlimitedClientIds = Array.isArray(cfg.unlimitedClientIds)
         ? cfg.unlimitedClientIds.map((entry) => (typeof entry === "string" ? entry : entry?.clientId))
@@ -285,7 +285,7 @@ exports.openaiProxy = onRequest(
       // Written unconditionally, before any allow/deny decision below, so it
       // survives even on a denied request and even a users/{uid} delete: a
       // separate document (mirrors purchaseTokens) is the only way a
-      // support agent who's just been told a three-word id, and nothing
+      // support agent who's just been told a client ID, and nothing
       // else, can ever get back to a uid once the profile doc holding
       // clientId is gone.
       if (clientId != null) {

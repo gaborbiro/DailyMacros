@@ -167,7 +167,7 @@ Two separate durable mappings (each its own collection, unaffected by
 `users/{uid}` being deleted) exist specifically so this is recoverable:
 `purchaseTokens/{token} -> {uid}` and `clientIds/{clientId} -> {uid}` — the
 first recovers the uid → purchase token link, the second means even just a
-support email quoting a three-word id is enough to find the uid at all.
+support email quoting a client ID is enough to find the uid at all.
 
 - **Automatic**: `openaiProxy` self-heals the first time it sees a
   not-yet-entitled request from a uid whose doc doesn't exist at all — it
@@ -302,14 +302,14 @@ client is wired to send its Firebase ID token — that's the follow-up step.
   subscribe (see `index.js`'s header comment) — a user's own progress toward
   those caps lives on their `users/{uid}` doc (`preSubTotal`/`preSubSuccess`).
 - **Unlock a test device from subscription enforcement entirely:** add its
-  three-word id to `config/limits.unlimitedClientIds` (see below) — cleaner
+  client ID to `config/limits.unlimitedClientIds` (see below) — cleaner
   than watching it burn through the pre-subscription allowance.
 - **Emergency stop:** set `config/limits.killSwitch = true`. All proxied
   requests immediately return 503 until you flip it back.
 - **See usage:** `usage/global` holds the current month's count;
   `users/{uid}` holds each device's daily count (`dailyCapCount`, valid for
   the UTC date in `dailyCapUtcDate`), plus `clientId` (the
-  three-word id shown in the app's Settings), `lastSeen`, and that same
+  three-word client ID shown in the app's Settings), `lastSeen`, and that same
   user's subscription fields (`subscriptionState`, `subscriptionProductId`,
   `subscriptionExpiryTimeMillis`, `subscriptionPurchaseToken`,
   `subscriptionUpdatedAt`, and `subscriptionVoidedAt` if ever revoked) — one
@@ -318,7 +318,7 @@ client is wired to send its Firebase ID token — that's the follow-up step.
   (lowercased, prefix stripped) — `active`, `pending`, `paused`,
   `in_grace_period`, `on_hold`, `canceled`, `expired`, `unspecified` — plus
   the synthetic `revoked` written only by `checkVoidedPurchases`.
-- **Find a user from a support email:** they quote their three-word id (e.g.
+- **Find a user from a support email:** they quote their client ID (e.g.
   `apple-fox-moon`). Console → Firestore → `clientIds/apple-fox-moon` — a
   direct doc lookup, no query needed, and it works even if `users/{uid}` was
   lost (that's the reason this mapping exists as its own collection instead
@@ -326,7 +326,7 @@ client is wired to send its Firebase ID token — that's the follow-up step.
   auth uid; open `users/{uid}` from there for today's count, last-seen time,
   and subscription state. (Not guaranteed unique at scale — see
   `repairSubscription`'s doc comment in `subscriptions.js`.)
-- **Unlock yourself permanently:** add your own three-word id to
+- **Unlock yourself permanently:** add your own client ID to
   `config/limits.unlimitedClientIds`. Those clients skip the per-user daily cap
   (they're still counted and still bounded by the global monthly budget).
 - **Unlock someone else permanently, with a note:** add an object instead of a
