@@ -47,7 +47,6 @@
     <string name="quick_pick_confirm_logged_toast">Meal logged</string>
     <string name="quick_pick_confirm_log_failed_toast">Couldn’t log meal</string>
     <!-- NutrientsIndentedList -->
-    <string name="modal_content_ai_notes">AI notes:</string>
     <string name="modal_content_components">Components:</string>
     <!-- RecordDetailsCreateView -->
     <string name="modal_content_run_ai_cd">Run image recognition</string>

@@ -209,13 +209,6 @@ private fun AiInferenceDetails(
                 Spacer(modifier = Modifier.height(PaddingDefault))
             }
             Text(
-                text = stringResource(R.string.modal_content_ai_notes),
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    textDecoration = TextDecoration.Underline,
-                ),
-            )
-            Spacer(modifier = Modifier.height(PaddingQuarter))
-            Text(
                 text = it,
                 style = MaterialTheme.typography.bodyMedium,
             )
