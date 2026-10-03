@@ -10,7 +10,6 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -28,8 +27,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.StarBorder
@@ -102,6 +99,7 @@ fun ColumnScope.RecordDetailsView(
     nutrientBreakdown: NutrientBreakdownUiModel?,
     imageFilenames: List<String>,
     macrosExpanded: Boolean = false,
+    aiInferenceExpanded: Boolean = false,
     onImageTapped: (String) -> Unit,
     onImageDeleteTapped: (String) -> Unit,
     onImageMoveLeftTapped: (String) -> Unit,
@@ -122,6 +120,7 @@ fun ColumnScope.RecordDetailsView(
     val browseReadOnly = browseMode && (showCloseOnly || !view.allowEdit)
     val showImageControls = showPhotoManagement || (view.isEditing && view.allowEdit && !showCloseOnly)
     var macrosExpanded by remember(view.recordId, view.templateDbId) { mutableStateOf(macrosExpanded) }
+    var aiInferenceExpanded by remember(view.recordId, view.templateDbId) { mutableStateOf(aiInferenceExpanded) }
     // Session-scoped: survives View state replacements (e.g. variant switch) until this dialog leaves composition.
     var variantPickerRevealed by remember { mutableStateOf(false) }
 
@@ -410,44 +409,10 @@ fun ColumnScope.RecordDetailsView(
                             }
                         }
 
-                        Row(
-                            modifier = Modifier
-                                .height(28.dp)
-                                .fillMaxWidth()
-                                .let {
-                                    if (macrosExpanded) {
-                                        it.clickable { macrosExpanded = false }
-                                    } else {
-                                        it
-                                    }
-                                },
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = if (macrosExpanded) {
-                                    stringResource(R.string.meal_details_collapse)
-                                } else {
-                                    stringResource(R.string.meal_details_expand)
-                                },
-                                style = MaterialTheme.typography.labelLarge,
-                            )
-
-                            Spacer(
-                                modifier = Modifier
-                                    .size(6.dp)
-                            )
-
-                            Icon(
-                                imageVector = if (macrosExpanded) {
-                                    Icons.Filled.KeyboardArrowUp
-                                } else {
-                                    Icons.Filled.KeyboardArrowDown
-                                },
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                            )
-                        }
+                        ExpandToggleRow(
+                            expanded = macrosExpanded,
+                            onCollapseTapped = { macrosExpanded = false },
+                        )
                     }
                 }
 
@@ -467,6 +432,16 @@ fun ColumnScope.RecordDetailsView(
                         tint = MaterialTheme.colorScheme.primary,
                     )
                 }
+            }
+
+            if (nutrientBreakdown.hasAiInference) {
+                Spacer(modifier = Modifier.height(PaddingHalf))
+                AiInferenceSection(
+                    modifier = Modifier.padding(horizontal = PaddingHalf),
+                    nutrientBreakdown = nutrientBreakdown,
+                    expanded = aiInferenceExpanded,
+                    onExpandedChange = { aiInferenceExpanded = it },
+                )
             }
         } else if (!view.showLoadingIndicator && view.compactNutrients.hasAnyVisibleMacro()) {
             Spacer(modifier = Modifier.height(20.dp))
@@ -692,6 +667,7 @@ private fun RecordDetailsViewPreviewBrowseExpanded() {
             quickPickStarred = false,
             onQuickPickStarToggled = {},
             macrosExpanded = true,
+            aiInferenceExpanded = true,
         )
     }
 }
@@ -828,6 +804,8 @@ private fun previewNutrientBreakdown() = NutrientBreakdownUiModel(
     salt = "Salt: 5g",
     fibre = "Fibre: 4.5g",
     notes = "Notes: This is a note",
+    components = listOf("- 1 apple", "- ~1 tbsp peanut butter (?)"),
+    componentsSummary = "1 apple · ~1 tbsp peanut butter (?)",
 )
 
 private fun previewCompactNutrients() = NutrientsUiModel(

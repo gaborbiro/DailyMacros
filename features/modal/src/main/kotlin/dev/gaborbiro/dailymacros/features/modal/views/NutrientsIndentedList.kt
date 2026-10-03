@@ -5,14 +5,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.style.TextDecoration
 import dev.gaborbiro.dailymacros.features.modal.R
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -20,7 +16,6 @@ import dev.gaborbiro.dailymacros.design.LocalExtraColorScheme
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingDouble
 import dev.gaborbiro.dailymacros.design.PaddingHalf
-import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 
@@ -160,46 +155,8 @@ internal fun NutrientsIndentedList(
             )
         }
 
-        nutrientBreakdown.notes?.takeIf { it.isNotBlank() }?.let {
-            Spacer(modifier = Modifier.height(PaddingDefault))
-            Text(
-                text = stringResource(R.string.modal_content_ai_notes),
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    textDecoration = TextDecoration.Underline,
-                ),
-            )
-            Spacer(modifier = Modifier.height(PaddingQuarter))
-            Text(
-                text = it,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
-
-        if (nutrientBreakdown.components.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(PaddingDefault))
-            Text(
-                text = stringResource(R.string.modal_content_components),
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    textDecoration = TextDecoration.Underline,
-                ),
-            )
-            Spacer(modifier = Modifier.height(PaddingQuarter))
-            nutrientBreakdown.components.forEach { line ->
-                Text(
-                    text = line,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-        }
-
         Spacer(modifier = Modifier.height(PaddingDefault))
-        Text(
-            text = stringResource(R.string.record_details_ai_disclaimer),
-            style = MaterialTheme.typography.bodySmall.copy(
-                fontStyle = FontStyle.Italic,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            ),
-        )
+        MealDetailsFootnote(text = stringResource(R.string.record_details_ai_disclaimer))
     }
 }
 
@@ -219,7 +176,7 @@ private fun NutrientsIndentedListPreview() {
                 ofWhichAddedSugar = "of which added sugar: 15g",
                 salt = "Salt: 5g",
                 fibre = "Fibre: 4.5g",
-                notes = "Notes: This is a note",
+                notes = null,
             ),
         )
     }

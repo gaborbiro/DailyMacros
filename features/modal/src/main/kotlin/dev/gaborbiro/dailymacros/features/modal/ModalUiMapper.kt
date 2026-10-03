@@ -22,6 +22,14 @@ class ModalUiMapper @Inject constructor(
         val topContributors = record.template.topContributors
 
         val notes = record.template.notes
+        val componentLabels = record.template.mealComponents.map { component ->
+            val confidence = when (component.confidence) {
+                ComponentConfidence.MEDIUM -> " (?)"
+                ComponentConfidence.LOW -> " (??)"
+                else -> ""
+            }
+            "${component.estimatedAmount} ${component.name}$confidence"
+        }
 
         return NutrientBreakdownUiModel(
             calories = nutrientBreakdown.calories?.let {
@@ -92,14 +100,8 @@ class ModalUiMapper @Inject constructor(
                         )
             },
             notes = notes,
-            components = record.template.mealComponents.map { component ->
-                val confidence = when (component.confidence) {
-                    ComponentConfidence.MEDIUM -> " (?)"
-                    ComponentConfidence.LOW -> " (??)"
-                    else -> ""
-                }
-                "- ${component.estimatedAmount} ${component.name}$confidence"
-            },
+            components = componentLabels.map { "- $it" },
+            componentsSummary = componentLabels.takeIf { it.isNotEmpty() }?.joinToString(separator = " · "),
         ).let { model -> model.copy(hasDisplayableContent = hasDisplayableContent(model)) }
     }
 
