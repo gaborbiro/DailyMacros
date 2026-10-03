@@ -10,6 +10,17 @@ plugins {
 // Bump here; GitHub release tag v{versionName} uses :app:printAppReleaseVersionName in CI.
 private val baseVersion = "1.13.1"
 
+// Shake (in-app tester feedback, see ShakeFeedback.kt). Shake's "App API key" is write-only
+// (it can only submit tickets) and ends up in the APK anyway, but it's kept out of source
+// control like other credentials: CI passes it as the SHAKE_API_KEY env var; locally, set
+// shakeApiKey in ~/.gradle/gradle.properties (NOT this repo's gradle.properties). Blank means
+// Shake isn't started at all. Shake wants one dashboard app per package name, so .debug/.qa
+// builds need a different key than release.
+private val shakeApiKey: String = providers.gradleProperty("shakeApiKey")
+    .orElse(providers.environmentVariable("SHAKE_API_KEY"))
+    .getOrElse("")
+    .trim()
+
 android {
     namespace = "dev.gaborbiro.dailymacros"
     compileSdk = libs.versions.android.sdk.compile.get().toInt()
@@ -25,6 +36,8 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        buildConfigField("String", "SHAKE_API_KEY", "\"$shakeApiKey\"")
     }
 
     signingConfigs {
@@ -208,6 +221,8 @@ dependencies {
 
     implementation(libs.vico.compose)
     implementation(libs.vico.compose.m3)
+
+    implementation(libs.shakebugs.shake)
 
     testImplementation(project(":repositories:chatgpt:domain"))
     testImplementation(project(":repositories:common"))

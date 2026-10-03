@@ -44,6 +44,17 @@
        and complete the Play Console "Photo and video permissions" declaration.
        See README.md → "Pending doc/text updates for hidden features".
     -->
+    <!--
+       The Shake SDK (tester feedback, see ShakeFeedback.kt) declares READ_EXTERNAL_STORAGE
+       (maxSdkVersion 32) only to watch the screenshots folder for its screenshot invocation,
+       which is turned off; Shake only requests it when that invocation is on. Stripped so the
+       alpha doesn't pick up a storage permission. Drop this line when the photo monitor
+       re-adds the permission above (they'd conflict).
+       Shake's other permissions stay: DETECT_SCREEN_CAPTURE is used unconditionally on
+       Android 14+ (removing it crashes the SDK), HIGH_SAMPLING_RATE_SENSORS is for shake
+       detection, FOREGROUND_SERVICE_MEDIA_PROJECTION is for auto screen recording.
+    -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
 
     <!--
        Package-visibility declaration required by the Health Connect integration guide so the

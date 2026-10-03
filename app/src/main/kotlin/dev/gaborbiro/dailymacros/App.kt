@@ -10,6 +10,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.HiltAndroidApp
 import dagger.hilt.components.SingletonComponent
+import dev.gaborbiro.dailymacros.feedback.ShakeFeedback
 import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectSyncCoordinator
 import dev.gaborbiro.dailymacros.features.shared.photodiary.PhotoMonitorWorker
 import dev.gaborbiro.dailymacros.features.widgets.WidgetAutoReloader
@@ -32,6 +33,7 @@ interface AppBootstrapEntryPoint {
     fun settingsRepository(): SettingsRepository
     fun subscriptionRepository(): SubscriptionRepository
     fun pendingDriveSyncInfoStore(): PendingDriveSyncInfoStore
+    fun appPrefs(): AppPrefs
 }
 
 @HiltAndroidApp
@@ -69,6 +71,9 @@ class App : Application(), Configuration.Provider {
             bootstrap.settingsRepository().setLastSyncedEpochMs(epochMs)
             bootstrap.settingsRepository().setAutoSyncErrorStatus(null)
         }
+        // Early, per Shake's guidance, so it also covers launches that go straight to
+        // ModalActivity (widgets, share sheet) without passing through MainActivity.
+        ShakeFeedback.start(this, clientId = bootstrap.appPrefs().userUUID)
         bootstrap.widgetAutoReloader().start()
         bootstrap.healthConnectSyncCoordinator().start()
         // The photo monitor chain can die if a run is killed before it re-enqueues itself
