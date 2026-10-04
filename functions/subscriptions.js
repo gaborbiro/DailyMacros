@@ -332,7 +332,7 @@ exports.checkVoidedPurchases = onSchedule(
  * request, but this exists for when you want to fix it immediately without
  * waiting for them to call in, or to investigate a specific uid directly).
  *
- * Accepts either `uid` or `clientId` (the three-word id a user would quote
+ * Accepts either `uid` or `clientId` (the three-word client ID a user would quote
  * in a support message — resolved to a uid via `clientIds/{clientId}`, a
  * durable mapping unaffected by users/{uid} being lost, same idea as
  * purchaseTokens). Looks up the uid's purchase token via
@@ -343,7 +343,7 @@ exports.checkVoidedPurchases = onSchedule(
  *
  * NOTE: clientId → uid is not guaranteed unique (see ThreeWordId.kt's
  * ~535,680-combination keyspace) — at meaningful install counts, two
- * different users can land on the same three-word id, and this mapping only
+ * different users can land on the same client ID, and this mapping only
  * remembers whichever one wrote to it most recently. If a repair looks
  * wrong, double-check the id with the user rather than trusting a match
  * blindly.

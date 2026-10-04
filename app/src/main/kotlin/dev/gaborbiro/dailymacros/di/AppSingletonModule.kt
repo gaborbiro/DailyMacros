@@ -30,7 +30,7 @@ object AppSingletonModule {
     fun settingsAppInfo(appPrefs: AppPrefs): SettingsAppInfo =
         object : SettingsAppInfo {
             override val versionLabel: String
-                get() = "${BuildConfig.VERSION_NAME}\nUserID: ${appPrefs.userUUID}"
+                get() = "${BuildConfig.VERSION_NAME}\nClient ID: ${appPrefs.clientId}"
             override val isDebugBuild: Boolean
                 get() = BuildConfig.DEBUG
         }
@@ -40,7 +40,7 @@ object AppSingletonModule {
     fun clientIdProvider(appPrefs: AppPrefs): RepositoryClientIdProvider =
         object : RepositoryClientIdProvider {
             override val clientId: String
-                get() = appPrefs.userUUID
+                get() = appPrefs.clientId
         }
 
     @Provides
@@ -48,7 +48,7 @@ object AppSingletonModule {
     fun remoteConfigClientIdProvider(appPrefs: AppPrefs): RemoteConfigClientIdProvider =
         object : RemoteConfigClientIdProvider {
             override val clientId: String
-                get() = appPrefs.userUUID
+                get() = appPrefs.clientId
         }
 
     @Provides

@@ -88,7 +88,8 @@ diary content are sent to analytics or crash reporting.
 
 ## Identifiers
 
-On first run the app generates a random identifier (a set of three words). It is
+On first run the app generates a random identifier (a set of three words, shown
+in Settings as your **Client ID**). It is
 used to enforce fair-use limits on meal analysis and as the reference you can
 quote to the developer for support. It is not derived from any personal
 information. If you uninstall the app, this identifier is discarded and any

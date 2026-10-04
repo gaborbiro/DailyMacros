@@ -5,7 +5,7 @@ name: Repair subscription
 # repairSubscription and functions/README.md's "Recovering a lost
 # users/{uid} doc" section). Trigger from the Actions tab -> "Repair
 # subscription" -> Run workflow -> fill in either uid or client_id (whichever
-# you have - e.g. from a support email quoting their three-word id). Works
+# you have - e.g. from a support email quoting their client ID). Works
 # just as well from the GitHub mobile app as from a desktop, which is the
 # point: no phone-side HTTP client or manually-copied secret needed, the
 # ADMIN_REPAIR_KEY secret lives only in this repo's Actions secrets and in
@@ -17,7 +17,7 @@ on:
         description: 'Firebase auth uid to repair (leave blank if using client_id)'
         required: false
       client_id:
-        description: 'Three-word client id to repair, e.g. apple-fox-moon (leave blank if using uid)'
+        description: 'Client ID (three words, from the app's Settings) to repair, e.g. apple-fox-moon (leave blank if using uid)'
         required: false
 
 jobs:
