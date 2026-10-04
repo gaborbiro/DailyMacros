@@ -13,8 +13,8 @@ class AppPrefs @Inject constructor(
 ) {
 
     companion object {
-        // Historic key name, from when this was a UUID. Never rename the string: doing so
-        // would silently give every existing install a new client ID.
+        // Never rename this string: doing so would silently give every existing install a new client ID
+        // which would break Firestore config
         private const val KEY_CLIENT_ID = "user_uuid_3"
         private const val KEY_ONBOARDING_COMPLETE = "onboarding_complete"
     }
