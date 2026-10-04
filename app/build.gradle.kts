@@ -26,7 +26,7 @@ android {
             useSupportLibrary = true
         }
 
-        buildConfigField("String", "SHAKE_API_KEY", "\"$shakeApiKey\"")
+        buildConfigField("String", "SHAKE_API_KEY", "\"${shakeApiKey()}\"")
     }
 
     signingConfigs {
@@ -125,7 +125,9 @@ private val sha = (System.getenv("BUILD_SHA") ?: System.getenv("GITHUB_SHA"))?.t
 // hard requirement: packaging an APK/AAB without it fails (see verifyShakeApiKey below), so a
 // missing secret can't silently ship a build without tester feedback. Shake wants one dashboard
 // app per package name, so .debug/.qa builds need a different key than release.
-private val shakeApiKey: String = providers.gradleProperty("shakeApiKey")
+// A function, not a val: the android {} block above runs before vals declared down here are
+// initialised, and would read null.
+private fun shakeApiKey(): String = providers.gradleProperty("shakeApiKey")
     .orElse(providers.environmentVariable("SHAKE_API_KEY"))
     .getOrElse("")
     .trim()
@@ -260,7 +262,7 @@ afterEvaluate {
 val verifyShakeApiKey by tasks.registering {
     group = "verification"
     description = "Fails the build when no Shake API key is configured (see ShakeFeedback.kt)"
-    val keyMissing = shakeApiKey.isEmpty()
+    val keyMissing = shakeApiKey().isEmpty()
     doLast {
         if (keyMissing) {
             throw GradleException(

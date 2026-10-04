@@ -73,7 +73,7 @@ class App : Application(), Configuration.Provider {
         }
         // Early, per Shake's guidance, so it also covers launches that go straight to
         // ModalActivity (widgets, share sheet) without passing through MainActivity.
-        ShakeFeedback.start(this, clientId = bootstrap.appPrefs().userUUID)
+        ShakeFeedback.start(this, clientId = bootstrap.appPrefs().clientId)
         bootstrap.widgetAutoReloader().start()
         bootstrap.healthConnectSyncCoordinator().start()
         // The photo monitor chain can die if a run is killed before it re-enqueues itself
