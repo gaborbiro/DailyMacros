@@ -227,6 +227,8 @@ dependencies {
     implementation(libs.vico.compose.m3)
 
     implementation(libs.shakebugs.shake)
+    // Lets ShakeButtonAboveDialogs notice dialog windows; part of the Shake integration.
+    implementation(libs.squareup.curtains)
 
     testImplementation(project(":repositories:chatgpt:domain"))
     testImplementation(project(":repositories:common"))

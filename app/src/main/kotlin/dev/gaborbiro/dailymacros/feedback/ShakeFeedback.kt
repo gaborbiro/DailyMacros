@@ -11,8 +11,9 @@ import dev.gaborbiro.dailymacros.BuildConfig
  * recording, activity history and device/app info already attached.
  *
  * Everything Shake-specific is kept in this package. Removing Shake = delete the package, its call
- * site in App.onCreate, the dependency/SHAKE_API_KEY wiring in app/build.gradle.kts, and the
- * READ_EXTERNAL_STORAGE removal in AndroidManifest.xml. Screen names, custom keys, events and
+ * site in App.onCreate, the dependency (Shake + curtains)/SHAKE_API_KEY wiring in
+ * app/build.gradle.kts, the button-size override res/layout/shake_sdk_view_report_button.xml, and
+ * the READ_EXTERNAL_STORAGE removal in AndroidManifest.xml. Screen names, custom keys, events and
  * non-fatal errors reach Shake through AnalyticsLogger (see ShakeAnalyticsSink).
  *
  * Meal photos/details are intentionally NOT masked (no Shake.addPrivateView / FLAG_SECURE):
@@ -59,6 +60,7 @@ object ShakeFeedback {
 
         Shake.start(application, apiKey)
         Shake.setMetadata(METADATA_CLIENT_ID, clientId)
+        ShakeButtonAboveDialogs.install()
         isStarted = true
     }
 }
