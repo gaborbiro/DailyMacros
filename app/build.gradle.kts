@@ -10,18 +10,6 @@ plugins {
 // Bump here; GitHub release tag v{versionName} uses :app:printAppReleaseVersionName in CI.
 private val baseVersion = "1.13.1"
 
-// Shake (in-app tester feedback, see ShakeFeedback.kt). Shake's "App API key" is write-only
-// (it can only submit tickets) and ends up in the APK anyway, but it's kept out of source
-// control like other credentials: CI passes it as the SHAKE_API_KEY env var; locally, set
-// shakeApiKey in ~/.gradle/gradle.properties (NOT this repo's gradle.properties). The key is a
-// hard requirement: packaging an APK/AAB without it fails (see verifyShakeApiKey below), so a
-// missing secret can't silently ship a build without tester feedback. Shake wants one dashboard
-// app per package name, so .debug/.qa builds need a different key than release.
-private val shakeApiKey: String = providers.gradleProperty("shakeApiKey")
-    .orElse(providers.environmentVariable("SHAKE_API_KEY"))
-    .getOrElse("")
-    .trim()
-
 android {
     namespace = "dev.gaborbiro.dailymacros"
     compileSdk = libs.versions.android.sdk.compile.get().toInt()
@@ -128,6 +116,19 @@ private fun gitCommitCount(): Int? =
 private val pipelineId = gitCommitCount() ?: Int.MAX_VALUE
 
 private val sha = (System.getenv("BUILD_SHA") ?: System.getenv("GITHUB_SHA"))?.take(7) ?: "manual"
+
+
+// Shake (in-app tester feedback, see ShakeFeedback.kt). Shake's "App API key" is write-only
+// (it can only submit tickets) and ends up in the APK anyway, but it's kept out of source
+// control like other credentials: CI passes it as the SHAKE_API_KEY env var; locally, set
+// shakeApiKey in ~/.gradle/gradle.properties (NOT this repo's gradle.properties). The key is a
+// hard requirement: packaging an APK/AAB without it fails (see verifyShakeApiKey below), so a
+// missing secret can't silently ship a build without tester feedback. Shake wants one dashboard
+// app per package name, so .debug/.qa builds need a different key than release.
+private val shakeApiKey: String = providers.gradleProperty("shakeApiKey")
+    .orElse(providers.environmentVariable("SHAKE_API_KEY"))
+    .getOrElse("")
+    .trim()
 
 
 // Single source of truth for versionCode: release gets the CI run number so Play Store
