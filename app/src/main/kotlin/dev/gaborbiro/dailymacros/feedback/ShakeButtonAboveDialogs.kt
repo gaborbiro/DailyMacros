@@ -16,8 +16,9 @@ import curtains.phoneWindow
  *
  * The button is its own small window, added when a screen opens, so any dialog opened afterwards
  * (Daily Targets, Personalise AI, the meal screens, confirmations) is a newer window stacked on
- * top of it. Re-applying the (unchanged) floating-button setting makes Shake remove and re-add
- * the button on the current screen, which puts it above the dialog.
+ * top of it. Switching the floating-button setting off and back on makes Shake remove the button
+ * and add a new window for it on the current screen, which stacks above the dialog. (Setting it
+ * to true while it's already shown only refreshes the existing window in place.)
  */
 internal object ShakeButtonAboveDialogs {
 
@@ -34,7 +35,9 @@ internal object ShakeButtonAboveDialogs {
 
     private fun raiseButton() {
         val config = Shake.getReportConfiguration()
-        if (config.isShowFloatingReportButton) config.isShowFloatingReportButton = true
+        if (!config.isShowFloatingReportButton) return
+        config.isShowFloatingReportButton = false
+        config.isShowFloatingReportButton = true
     }
 
     /**
