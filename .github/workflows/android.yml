@@ -38,6 +38,10 @@ jobs:
       run: ./gradlew testDebugUnitTest --stacktrace
 
     - name: Build debug APK
+      env:
+        # Shake tester feedback (see ShakeFeedback.kt), using the dashboard app registered for
+        # the .debug package. Required: the build fails without it (fork PRs get no secrets).
+        SHAKE_API_KEY: ${{ secrets.SHAKE_API_KEY_DEBUG }}
       run: ./gradlew assembleDebug
 
     - name: Set short SHA for release tag

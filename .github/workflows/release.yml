@@ -43,6 +43,8 @@ jobs:
         RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
         RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
         RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        # Shake tester feedback (see ShakeFeedback.kt). Required: the build fails without it.
+        SHAKE_API_KEY: ${{ secrets.SHAKE_API_KEY }}
       run: ./gradlew bundleRelease
 
     # ── Collect artifacts ──────────────────────────────────────

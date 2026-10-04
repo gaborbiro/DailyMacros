@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Overrides the Shake SDK's own shake_sdk_view_report_button.xml (same name, app resources win)
+   to make the floating feedback button ~70% of its default size: 42dp circle instead of 60dp.
+   Copied from Shake 18.0.0 with only the sizes changed. Every id and view type must stay as in
+   the SDK's version, so re-check this file against the SDK's when upgrading Shake.
+-->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="56dp"
+    android:layout_height="56dp"
+    android:background="#00ffffff"
+    android:elevation="5dp"
+    android:gravity="center">
+
+    <FrameLayout
+        android:id="@+id/container"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        android:layout_centerInParent="true"
+        android:background="@drawable/shake_sdk_button_report_background"
+        android:gravity="center">
+
+        <RelativeLayout
+            android:id="@+id/report_button_container"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_gravity="center">
+
+            <ImageView
+                android:id="@+id/image_report_button"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:layout_centerInParent="true"
+                android:scaleType="fitCenter"
+                android:src="@drawable/shake_sdk_ic_invoke_report_icon" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/recording_button_container"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_gravity="center"
+            android:background="@drawable/shake_sdk_button_report_red_background">
+
+            <ImageView
+                android:id="@+id/image_recording_button"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_centerInParent="true"
+                android:scaleType="fitCenter"
+                android:src="@drawable/shake_sdk_ic_recording_start_icon" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/screenshot_button_container"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_gravity="center">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_centerInParent="true"
+                android:scaleType="fitCenter"
+                android:src="@drawable/shake_sdk_ic_screenshot_icon" />
+        </RelativeLayout>
+
+    </FrameLayout>
+
+    <ProgressBar
+        android:id="@+id/screen_recording_progressbar"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_centerInParent="true"
+        android:indeterminateOnly="false"
+        android:progressDrawable="@drawable/shake_sdk_custom_progressbar_drawable"
+        android:visibility="gone" />
+
+</RelativeLayout>

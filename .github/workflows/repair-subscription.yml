@@ -17,7 +17,7 @@ on:
         description: 'Firebase auth uid to repair (leave blank if using client_id)'
         required: false
       client_id:
-        description: 'Client ID (three words, from the app's Settings) to repair, e.g. apple-fox-moon (leave blank if using uid)'
+        description: "Client ID (three words, from the app's Settings) to repair, e.g. apple-fox-moon (leave blank if using uid)"
         required: false
 
 jobs:

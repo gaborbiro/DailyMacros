@@ -25,6 +25,8 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        buildConfigField("String", "SHAKE_API_KEY", "\"${shakeApiKey()}\"")
     }
 
     signingConfigs {
@@ -114,6 +116,21 @@ private fun gitCommitCount(): Int? =
 private val pipelineId = gitCommitCount() ?: Int.MAX_VALUE
 
 private val sha = (System.getenv("BUILD_SHA") ?: System.getenv("GITHUB_SHA"))?.take(7) ?: "manual"
+
+
+// Shake (in-app tester feedback, see ShakeFeedback.kt). Shake's "App API key" is write-only
+// (it can only submit tickets) and ends up in the APK anyway, but it's kept out of source
+// control like other credentials: CI passes it as the SHAKE_API_KEY env var; locally, set
+// shakeApiKey in ~/.gradle/gradle.properties (NOT this repo's gradle.properties). The key is a
+// hard requirement: packaging an APK/AAB without it fails (see verifyShakeApiKey below), so a
+// missing secret can't silently ship a build without tester feedback. Shake wants one dashboard
+// app per package name, so .debug/.qa builds need a different key than release.
+// A function, not a val: the android {} block above runs before vals declared down here are
+// initialised, and would read null.
+private fun shakeApiKey(): String = providers.gradleProperty("shakeApiKey")
+    .orElse(providers.environmentVariable("SHAKE_API_KEY"))
+    .getOrElse("")
+    .trim()
 
 
 // Single source of truth for versionCode: release gets the CI run number so Play Store
@@ -209,6 +226,10 @@ dependencies {
     implementation(libs.vico.compose)
     implementation(libs.vico.compose.m3)
 
+    implementation(libs.shakebugs.shake)
+    // Lets ShakeButtonAboveDialogs notice dialog windows; part of the Shake integration.
+    implementation(libs.squareup.curtains)
+
     testImplementation(project(":repositories:chatgpt:domain"))
     testImplementation(project(":repositories:common"))
     testImplementation(libs.test.junit)
@@ -236,6 +257,31 @@ tasks.register("writeAppReleaseVersionNameFile") {
 afterEvaluate {
     tasks.named("bundleRelease").configure {
         dependsOn("writeAppReleaseVersionNameFile")
+    }
+}
+
+// Runs only before packaging (APK/AAB), so unit tests and lint still work without the key.
+val verifyShakeApiKey by tasks.registering {
+    group = "verification"
+    description = "Fails the build when no Shake API key is configured (see ShakeFeedback.kt)"
+    val keyMissing = shakeApiKey().isEmpty()
+    doLast {
+        if (keyMissing) {
+            throw GradleException(
+                "Shake API key missing: refusing to build an app without tester feedback. " +
+                    "CI: set the GitHub Actions secret SHAKE_API_KEY (release.yml) or SHAKE_API_KEY_DEBUG " +
+                    "(android.yml). Locally: add shakeApiKey=<App API key> to ~/.gradle/gradle.properties " +
+                    "or export SHAKE_API_KEY."
+            )
+        }
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        val name = variant.name.replaceFirstChar { it.uppercase() }
+        tasks.matching { it.name == "package$name" || it.name == "package${name}Bundle" }
+            .configureEach { dependsOn(verifyShakeApiKey) }
     }
 }
 

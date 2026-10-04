@@ -156,6 +156,14 @@ class MainActivity : ComponentActivity() {
                 val promptEditorViewModel: PromptEditorViewModel = hiltViewModel()
                 val trendsViewModel: TrendsViewModel = hiltViewModel()
 
+                // Firebase only auto-tracks Activities, and every screen here is a nav destination
+                // inside this one. Route pattern only, never its arguments.
+                LaunchedEffect(navController) {
+                    navController.currentBackStackEntryFlow.collect { entry ->
+                        entry.destination.route?.substringBefore('?')?.let(analyticsLogger::logScreenView)
+                    }
+                }
+
                 LaunchedEffect(pendingHighlightRowId) {
                     pendingHighlightRowId?.let { rowId ->
                         navController.navigate("$SETTINGS_ROUTE?$SETTINGS_HIGHLIGHT_ROW_ARG=${rowId.name}") {
