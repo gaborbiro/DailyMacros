@@ -2,6 +2,19 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application>
+        <!--
+           Invisible target of quick pick widget taps (see QuickPickLogActivity). Its own empty
+           task affinity keeps it out of the app's task, so a silent log doesn't disturb whatever
+           the user had open in the app.
+        -->
+        <activity
+            android:name=".QuickPickLogActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.NoDisplay" />
+
         <activity
             android:name=".ModalActivity"
             android:configChanges="orientation|screenSize"

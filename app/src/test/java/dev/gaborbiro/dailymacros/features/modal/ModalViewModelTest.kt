@@ -13,6 +13,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.BaseRecordsRepositoryStu
 import dev.gaborbiro.dailymacros.features.modal.usecase.BuildRecordDetailsViewDialogUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateTemplateUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.LogMealFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ExportImageToGalleryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
@@ -178,6 +179,7 @@ class ModalViewModelTest {
             getTemplateImageUseCase = GetTemplateImageUseCase(repo),
             foodRecognitionUseCase = FoodRecognitionUseCase(imageStore, VmFakeChatGpt(), testSettingsRepository),
             applyQuickPickOverrideAndReloadWidgetUseCase = ApplyQuickPickOverrideAndReloadWidgetUseCase(repo),
+            logMealFromTemplateUseCase = LogMealFromTemplateUseCase(app, repo, createFromTemplate),
             analyticsLogger = AnalyticsLogger(sinks = emptySet()),
             errorUiMapper = ErrorUiMapper(app, testSettingsRepository),
         ).also { activeViewModels.add(it) }
