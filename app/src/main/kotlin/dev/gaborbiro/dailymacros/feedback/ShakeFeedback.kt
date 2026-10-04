@@ -1,7 +1,6 @@
 package dev.gaborbiro.dailymacros.feedback
 
 import android.app.Application
-import android.util.Log
 import com.shakebugs.shake.Shake
 import com.shakebugs.shake.ShakeScreen
 import dev.gaborbiro.dailymacros.BuildConfig
@@ -21,18 +20,14 @@ import dev.gaborbiro.dailymacros.BuildConfig
  */
 object ShakeFeedback {
 
-    private const val TAG = "ShakeFeedback"
     private const val METADATA_CLIENT_ID = "clientId"
 
     var isStarted = false
         private set
 
     fun start(application: Application, clientId: String) {
+        // Never blank: the build refuses to package an app without it (verifyShakeApiKey).
         val apiKey = BuildConfig.SHAKE_API_KEY
-        if (apiKey.isBlank()) {
-            Log.i(TAG, "No Shake API key in this build; tester feedback is disabled")
-            return
-        }
         // Defaults are spelled out on purpose so each capability can be switched off with a
         // one-line change after the alpha evaluation.
         Shake.getReportConfiguration().apply {

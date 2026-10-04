@@ -40,7 +40,7 @@ jobs:
     - name: Build debug APK
       env:
         # Shake tester feedback (see ShakeFeedback.kt), using the dashboard app registered for
-        # the .debug package. Missing secret (or a fork PR) = Shake not started.
+        # the .debug package. Required: the build fails without it (fork PRs get no secrets).
         SHAKE_API_KEY: ${{ secrets.SHAKE_API_KEY_DEBUG }}
       run: ./gradlew assembleDebug
 
