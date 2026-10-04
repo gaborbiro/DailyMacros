@@ -13,7 +13,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.features.main.MainActivity
 import dev.gaborbiro.dailymacros.features.modal.getCameraIntent
 import dev.gaborbiro.dailymacros.features.modal.getImagePickerIntent
-import dev.gaborbiro.dailymacros.features.modal.getQuickPickWidgetTapIntent
+import dev.gaborbiro.dailymacros.features.modal.getQuickPickWidgetConfirmIntent
 import dev.gaborbiro.dailymacros.features.modal.getShowRecordImageIntent
 import dev.gaborbiro.dailymacros.features.modal.getShowTemplateImageIntent
 import dev.gaborbiro.dailymacros.features.modal.getTextOnlyIntent
@@ -44,13 +44,11 @@ class WidgetNavigatorImpl @Inject constructor(
     override fun quickPickImageTapped(templateId: Long): Action =
         launchInNewStack(context.getShowTemplateImageIntent(templateId))
 
-    // Not launchInNewStack: QuickPickLogActivity is invisible and lives in its own task, and only
-    // starts ModalActivity (in a new stack) when the "Log meal again?" confirmation is on.
     override fun quickPickBodyTapped(templateId: Long, templateName: String): Action =
-        actionStartActivityIntent(context.getQuickPickWidgetTapIntent(templateId, templateName))
+        launchInNewStack(context.getQuickPickWidgetConfirmIntent(templateId, templateName))
 
     override fun quickPickWidgetTapped(templateId: Long, templateName: String): Action =
-        actionStartActivityIntent(context.getQuickPickWidgetTapIntent(templateId, templateName))
+        launchInNewStack(context.getQuickPickWidgetConfirmIntent(templateId, templateName))
 
     override fun reload(): Action {
         return actionRunCallback<RefreshAction>()
