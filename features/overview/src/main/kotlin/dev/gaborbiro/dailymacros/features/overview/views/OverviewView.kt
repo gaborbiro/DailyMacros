@@ -194,6 +194,13 @@ internal fun OverviewView(
                         onRestoreFromLocalBackup = onRestoreFromLocalBackup,
                         restoreFromLocalBackupInProgress = restoreFromLocalBackupInProgress,
                     )
+                } else if (searchActive) {
+                    SearchNoResultsView(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(remainingPadding),
+                        searchTerm = viewState.searchTerm.orEmpty().trim(),
+                    )
                 }
 
                 OverviewListTopActions(
@@ -267,6 +274,24 @@ internal fun OverviewView(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SearchNoResultsView(
+    modifier: Modifier,
+    searchTerm: String,
+) {
+    Box(
+        modifier = modifier.padding(PaddingDefault),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = stringResource(R.string.overview_content_search_no_results, searchTerm),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
@@ -401,6 +426,33 @@ private fun OverviewListPreviewEmpty() {
             viewState = OverviewUiState(
                 items = emptyList(),
                 showAddWidgetButton = true,
+            ),
+            onRepeatMenuItemTapped = {},
+            onDeleteMenuItemTapped = {},
+            onRecordImageTapped = {},
+            onRecordBodyTapped = {},
+            onUndoDeleteTapped = {},
+            onUndoDeleteDismissed = {},
+            onUndoDeleteSnackbarShown = {},
+            onSearchTermChanged = {},
+            onAnalyseMacrosMenuItemTapped = {},
+            onSettingsButtonTapped = {},
+            onDailySummaryTapped = {},
+            onWeeklySummaryTapped = {},
+            onLoadMore = {},
+        )
+    }
+}
+
+@Preview(widthDp = 300)
+@Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+private fun OverviewListPreviewSearchNoResults() {
+    PreviewContext {
+        OverviewView(
+            viewState = OverviewUiState(
+                items = emptyList(),
+                searchTerm = "pizza",
             ),
             onRepeatMenuItemTapped = {},
             onDeleteMenuItemTapped = {},
