@@ -14,6 +14,7 @@ import java.time.ZonedDateTime
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.toJavaDuration
+import kotlin.time.toKotlinInstant
 
 sealed class HealthConnectSyncResult {
     data class Success(val count: Int) : HealthConnectSyncResult()
@@ -59,7 +60,7 @@ class HealthConnectSyncUseCase @Inject constructor(
         }
         return try {
             val client = HealthConnectClient.getOrCreate(application)
-            val nutritionRecords = recordsRepository.getRecords(since = since)
+            val nutritionRecords = recordsRepository.getRecords(since = since.toInstant().toKotlinInstant())
                 .filter { it.template.nutrients.calories != null }
                 .map { it.toNutritionRecord() }
             if (nutritionRecords.isNotEmpty()) {

@@ -13,6 +13,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedInstant
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33], manifest = Config.NONE)
@@ -44,7 +45,7 @@ class RecordsUiMapperTest {
 
     private fun record(template: Template) = Record(
         recordId = 5L,
-        timestamp = ZonedDateTime.of(2024, 3, 15, 14, 7, 0, 0, zone),
+        timestamp = ZonedDateTime.of(2024, 3, 15, 14, 7, 0, 0, zone).toZonedInstant(),
         template = template,
     )
 
@@ -94,12 +95,12 @@ class RecordsUiMapperTest {
     fun `adds positive offset label when zone jumps forward`() {
         val previous = Record(
             recordId = 4L,
-            timestamp = ZonedDateTime.of(2024, 3, 15, 10, 0, 0, 0, ZoneId.of("Europe/Lisbon")),
+            timestamp = ZonedDateTime.of(2024, 3, 15, 10, 0, 0, 0, ZoneId.of("Europe/Lisbon")).toZonedInstant(),
             template = stubTemplate(1L, false, null),
         )
         val current = Record(
             recordId = 5L,
-            timestamp = ZonedDateTime.of(2024, 3, 15, 14, 0, 0, 0, ZoneId.of("Asia/Dubai")),
+            timestamp = ZonedDateTime.of(2024, 3, 15, 14, 0, 0, 0, ZoneId.of("Asia/Dubai")).toZonedInstant(),
             template = stubTemplate(1L, false, null),
         )
         val ui = mapper.map(current, timeOnly = true, previousRecord = previous)
@@ -110,12 +111,12 @@ class RecordsUiMapperTest {
     fun `adds negative offset label with hours and minutes when zone jumps backward`() {
         val previous = Record(
             recordId = 4L,
-            timestamp = ZonedDateTime.of(2024, 3, 15, 10, 0, 0, 0, ZoneId.of("Asia/Kolkata")),
+            timestamp = ZonedDateTime.of(2024, 3, 15, 10, 0, 0, 0, ZoneId.of("Asia/Kolkata")).toZonedInstant(),
             template = stubTemplate(1L, false, null),
         )
         val current = Record(
             recordId = 5L,
-            timestamp = ZonedDateTime.of(2024, 3, 15, 14, 0, 0, 0, ZoneId.of("Europe/Lisbon")),
+            timestamp = ZonedDateTime.of(2024, 3, 15, 14, 0, 0, 0, ZoneId.of("Europe/Lisbon")).toZonedInstant(),
             template = stubTemplate(1L, false, null),
         )
         val ui = mapper.map(current, timeOnly = true, previousRecord = previous)

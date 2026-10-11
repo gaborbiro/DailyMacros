@@ -4,6 +4,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import dev.gaborbiro.dailymacros.features.modal.ModalUiMapper
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.RecordDetailsPristineSnapshot
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedDateTime
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import javax.inject.Inject
 
@@ -49,7 +50,7 @@ class BuildRecordDetailsViewDialogUseCase @Inject constructor(
                 imageFilenames = tmpl.imageFilenames,
             ),
             isEditing = false,
-            timestamp = record.timestamp,
+            timestamp = record.timestamp.toZonedDateTime(),
         )
     }
 }

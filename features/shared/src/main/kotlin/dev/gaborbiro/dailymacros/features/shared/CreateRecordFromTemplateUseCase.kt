@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.shared
 
 import androidx.annotation.UiThread
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedInstant
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import java.time.ZonedDateTime
 
@@ -20,6 +21,6 @@ class CreateRecordFromTemplateUseCase @Inject constructor(
         templateId: Long,
         timestamp: ZonedDateTime,
     ): Long {
-        return recordsRepository.saveRecord(templateId, timestamp)
+        return recordsRepository.saveRecord(templateId, timestamp.toZonedInstant())
     }
 }

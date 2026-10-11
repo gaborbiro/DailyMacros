@@ -63,6 +63,8 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.ByteArrayInputStream
 import java.time.ZonedDateTime
+import dev.gaborbiro.dailymacros.repositories.common.model.ZonedInstant
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedDateTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
@@ -301,7 +303,7 @@ class ModalViewModelTest {
                 return 42L
             }
 
-            override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
+            override suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant): Long {
                 saveRecordCalls++
                 assertEquals(42L, templateId)
                 return 99L
@@ -323,8 +325,8 @@ class ModalViewModelTest {
             var savedAt: ZonedDateTime? = null
             val repo = object : BaseRecordsRepositoryStub() {
                 override suspend fun saveTemplate(templateToSave: TemplateToSave) = 42L
-                override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
-                    savedAt = timestamp
+                override suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant): Long {
+                    savedAt = timestamp.toZonedDateTime()
                     return 99L
                 }
             }
@@ -372,7 +374,7 @@ class ModalViewModelTest {
         vm.onTimestampPicked(newTimestamp)
         advanceUntilIdle()
 
-        assertEquals(newTimestamp, updatedRecord?.timestamp)
+        assertEquals(newTimestamp, updatedRecord?.timestamp?.toZonedDateTime())
         assertEquals(5L, updatedRecord?.recordId)
         assertNull(vm.uiState.value.overlayDialog)
         assertEquals(
@@ -435,7 +437,7 @@ class ModalViewModelTest {
             override suspend fun countRecordsForTemplate(templateId: Long) = 1
             override suspend fun getTemplateIdsInSameVariantFamily(templateId: Long) = listOf(templateId)
             override suspend fun getTemplate(templateId: Long) = tpl
-            override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
+            override suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant): Long {
                 saveRecordCalls++
                 assertEquals(99L, templateId)
                 return 100L
@@ -470,7 +472,7 @@ class ModalViewModelTest {
                 return 99L
             }
 
-            override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
+            override suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant): Long {
                 saveRecordCalls++
                 assertEquals(7L, templateId)
                 return 88L
@@ -507,7 +509,7 @@ class ModalViewModelTest {
                 return 99L
             }
 
-            override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
+            override suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant): Long {
                 saveRecordCalls++
                 assertEquals(7L, templateId)
                 return 88L

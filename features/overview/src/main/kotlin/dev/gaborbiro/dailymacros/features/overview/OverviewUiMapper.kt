@@ -17,6 +17,7 @@ import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelDailySummary
 import dev.gaborbiro.dailymacros.features.overview.model.ListUiModelWeeklySummary
 import dev.gaborbiro.dailymacros.features.overview.model.NutrientSummaryStatEntry
 import dev.gaborbiro.dailymacros.features.shared.model.TravelDay
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedDateTime
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
@@ -74,7 +75,7 @@ class OverviewUiMapper @Inject constructor(
                     phrase.isNotEmpty() && "${record.template.name} ${record.template.description}"
                         .lowercase()
                         .contains(phrase)
-                }.thenByDescending { (record, _) -> record.timestamp }
+                }.thenByDescending { (record, _) -> record.timestamp.toZonedDateTime() }
             )
             .map { (_, uiModel) -> uiModel }
     }
@@ -773,15 +774,15 @@ class OverviewUiMapper @Inject constructor(
 
     private fun List<Record>.groupByWallClockDay(dayStart: LocalTime): List<TravelDay> {
         return this
-            .sortedBy { it.timestamp.toInstant() }
+            .sortedBy { it.timestamp.instant }
             .groupByTo(
                 destination = sortedMapOf(),
-                keySelector = { it.timestamp.logicalDiaryDate(dayStart) },
+                keySelector = { it.timestamp.toZonedDateTime().logicalDiaryDate(dayStart) },
                 valueTransform = { it }
             )
             .map { (day, records) ->
-                val start = records.minBy { it.timestamp.toInstant() }.timestamp
-                val end = records.maxBy { it.timestamp.toInstant() }.timestamp
+                val start = records.minBy { it.timestamp.instant }.timestamp.toZonedDateTime()
+                val end = records.maxBy { it.timestamp.instant }.timestamp.toZonedDateTime()
                 TravelDay(
                     records = records.toList(),
                     day = day,

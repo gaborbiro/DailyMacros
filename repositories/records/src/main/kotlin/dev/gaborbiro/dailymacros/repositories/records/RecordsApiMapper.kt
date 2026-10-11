@@ -10,12 +10,14 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TopContributorsEntity
 import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
 import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.common.model.ZonedInstant
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedDateTime
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedInstant
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
 import java.time.Instant
 import java.time.ZoneId
-import java.time.ZonedDateTime
 import javax.inject.Inject
 
 class RecordsApiMapper @Inject constructor() {
@@ -90,14 +92,15 @@ class RecordsApiMapper @Inject constructor() {
         val zoneId = ZoneId.of(record.entity.zoneId)
         return Record(
             recordId = record.entity.id!!,
-            timestamp = Instant.ofEpochMilli(epochMillis).atZone(zoneId),
+            timestamp = Instant.ofEpochMilli(epochMillis).atZone(zoneId).toZonedInstant(),
             template = map(record.template),
         )
     }
 
     // -------- DB <— Domain: write helpers --------
 
-    fun map(templateId: Long, timestamp: ZonedDateTime): RecordEntity {
+    fun map(templateId: Long, zonedInstant: ZonedInstant): RecordEntity {
+        val timestamp = zonedInstant.toZonedDateTime()
         return RecordEntity(
             timestamp = timestamp.toLocalDateTime(),
             zoneId = timestamp.zone.id,

@@ -13,6 +13,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedInstant
 
 class ListMealVariantsForTemplateUseCaseTest {
 
@@ -60,7 +61,7 @@ class ListMealVariantsForTemplateUseCaseTest {
                 2L -> listOf(
                     Record(
                         recordId = 1L,
-                        timestamp = ZonedDateTime.of(2024, 1, 1, 12, 0, 0, 0, zone),
+                        timestamp = ZonedDateTime.of(2024, 1, 1, 12, 0, 0, 0, zone).toZonedInstant(),
                         template = stubTemplate(2L, "B"),
                     ),
                 )
@@ -79,12 +80,12 @@ class ListMealVariantsForTemplateUseCaseTest {
         val t2 = stubTemplate(2L, "Child", parentId = 1L)
         val r2Old = Record(
             recordId = 10L,
-            timestamp = ZonedDateTime.of(2020, 1, 1, 12, 0, 0, 0, zone),
+            timestamp = ZonedDateTime.of(2020, 1, 1, 12, 0, 0, 0, zone).toZonedInstant(),
             template = t2,
         )
         val r2New = Record(
             recordId = 11L,
-            timestamp = ZonedDateTime.of(2024, 6, 1, 12, 0, 0, 0, zone),
+            timestamp = ZonedDateTime.of(2024, 6, 1, 12, 0, 0, 0, zone).toZonedInstant(),
             template = t2,
         )
         val repo = object : BaseRecordsRepositoryStub() {

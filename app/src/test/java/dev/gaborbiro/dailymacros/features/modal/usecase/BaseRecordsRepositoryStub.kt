@@ -10,11 +10,12 @@ import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
 import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
-import java.time.ZonedDateTime
+import dev.gaborbiro.dailymacros.repositories.common.model.ZonedInstant
+import kotlin.time.Instant
 
 /** Minimal defaults for modal feature unit tests; override only what each test needs. */
 open class BaseRecordsRepositoryStub : RecordsRepository {
-    override suspend fun getRecords(since: ZonedDateTime?) = emptyList<Record>()
+    override suspend fun getRecords(since: Instant?) = emptyList<Record>()
     override suspend fun getTemplateIdsInSameVariantFamily(templateId: Long) = emptyList<Long>()
     override suspend fun countTemplates(): Int = 0
     override fun getMostRecentRecord(): Record? = null
@@ -27,7 +28,7 @@ open class BaseRecordsRepositoryStub : RecordsRepository {
     override fun observe(recordId: Long): Flow<Record?> = emptyFlow()
     override suspend fun getTemplate(templateId: Long): Template = error("not used")
     override suspend fun saveTemplate(templateToSave: TemplateToSave) = 0L
-    override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime) = 0L
+    override suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant) = 0L
     override suspend fun updateRecord(record: Record) = Unit
     override suspend fun deleteRecord(recordId: Long): Record = error("not used")
     override suspend fun deleteTemplateIfUnused(templateId: Long, imageToo: Boolean) = false to false

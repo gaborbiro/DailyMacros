@@ -15,6 +15,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import dev.gaborbiro.dailymacros.repositories.common.model.ZonedInstant
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedDateTime
+import kotlin.time.Instant
 
 class CreateRecordFromTemplateUseCaseTest {
 
@@ -23,9 +26,9 @@ class CreateRecordFromTemplateUseCaseTest {
         var savedTemplateId: Long? = null
         var savedAt: ZonedDateTime? = null
         val repo = object : StubRecordsRepository() {
-            override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
+            override suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant): Long {
                 savedTemplateId = templateId
-                savedAt = timestamp
+                savedAt = timestamp.toZonedDateTime()
                 return 42L
             }
         }
@@ -37,7 +40,7 @@ class CreateRecordFromTemplateUseCaseTest {
     }
 
     private open class StubRecordsRepository : RecordsRepository {
-        override suspend fun getRecords(since: ZonedDateTime?) = emptyList<Record>()
+        override suspend fun getRecords(since: Instant?) = emptyList<Record>()
         override suspend fun getTemplateIdsInSameVariantFamily(templateId: Long) = emptyList<Long>()
         override suspend fun countTemplates(): Int = 0
         override fun getMostRecentRecord(): Record? = null
@@ -50,7 +53,7 @@ class CreateRecordFromTemplateUseCaseTest {
         override fun observe(recordId: Long): Flow<Record> = emptyFlow()
         override suspend fun getTemplate(templateId: Long): Template = error("not used")
         override suspend fun saveTemplate(templateToSave: TemplateToSave) = 0L
-        override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime) = 0L
+        override suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant) = 0L
         override suspend fun updateRecord(record: Record) = Unit
         override suspend fun deleteRecord(recordId: Long): Record = error("not used")
         override suspend fun deleteTemplateIfUnused(templateId: Long, imageToo: Boolean) = false to false

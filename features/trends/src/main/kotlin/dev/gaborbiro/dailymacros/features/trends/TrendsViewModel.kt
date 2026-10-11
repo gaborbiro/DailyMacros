@@ -19,6 +19,7 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ForJsonBodyChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsRequest
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedDateTime
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
@@ -43,6 +44,7 @@ import java.time.temporal.WeekFields
 import java.util.Date
 import java.util.Locale
 import kotlin.math.abs
+import kotlin.time.toKotlinInstant
 import javax.inject.Inject
 
 @HiltViewModel
@@ -191,7 +193,7 @@ class TrendsViewModel @Inject constructor(
                 val lastCompleteWeekStart = today.with(weekFields.dayOfWeek(), 1).minusWeeks(1)
                 val prevWeekStart = lastCompleteWeekStart.minusWeeks(1)
                 val since = diaryDayWindowStart(prevWeekStart, dayStart, zone)
-                val records = recordsRepository.getRecords(since = since)
+                val records = recordsRepository.getRecords(since = since.toInstant().toKotlinInstant())
                 val targets = settingsRepository.getTargets()
                 val customisations = settingsRepository.getPromptCustomisations()
                 val diary = formatDiary(records, targets, zone, dayStart)
@@ -239,7 +241,7 @@ class TrendsViewModel @Inject constructor(
                 val weekFields = WeekFields.of(Locale.getDefault())
                 val thisWeekStart = today.with(weekFields.dayOfWeek(), 1)
                 val since = diaryDayWindowStart(thisWeekStart, dayStart, zone)
-                val records = recordsRepository.getRecords(since = since)
+                val records = recordsRepository.getRecords(since = since.toInstant().toKotlinInstant())
                 val targets = settingsRepository.getTargets()
                 val customisations = settingsRepository.getPromptCustomisations()
                 val diary = formatOngoingDiary(records, targets, zone, dayStart)
@@ -327,8 +329,8 @@ class TrendsViewModel @Inject constructor(
         appendTargetParts(sb, targets)
 
         val byDay = records
-            .sortedBy { it.timestamp }
-            .groupBy { it.timestamp.logicalDiaryDate(dayStart) }
+            .sortedBy { it.timestamp.toZonedDateTime() }
+            .groupBy { it.timestamp.toZonedDateTime().logicalDiaryDate(dayStart) }
 
         val prevWeekDays = byDay.filterKeys { it >= prevWeekStart && it < lastCompleteWeekStart }.toSortedMap()
         val lastWeekDays = byDay.filterKeys { it >= lastCompleteWeekStart }.toSortedMap()
@@ -360,8 +362,8 @@ class TrendsViewModel @Inject constructor(
         appendTargetParts(sb, targets)
 
         val byDay = records
-            .sortedBy { it.timestamp }
-            .groupBy { it.timestamp.logicalDiaryDate(dayStart) }
+            .sortedBy { it.timestamp.toZonedDateTime() }
+            .groupBy { it.timestamp.toZonedDateTime().logicalDiaryDate(dayStart) }
 
         val weekDays = byDay.filterKeys { it >= thisWeekStart }.toSortedMap()
 
@@ -431,7 +433,7 @@ class TrendsViewModel @Inject constructor(
         val timeFmt = DateTimeFormatter.ofPattern("HH:mm")
         sb.appendLine(day.format(dayFmt))
         records.forEach { record ->
-            val time = record.timestamp.withZoneSameInstant(zone).format(timeFmt)
+            val time = record.timestamp.toZonedDateTime().withZoneSameInstant(zone).format(timeFmt)
             sb.appendLine("  • ${record.template.name} ($time)")
             record.template.mealComponents.takeIf { it.isNotEmpty() }?.let { components ->
                 val ingredientsList = components.joinToString(", ") {

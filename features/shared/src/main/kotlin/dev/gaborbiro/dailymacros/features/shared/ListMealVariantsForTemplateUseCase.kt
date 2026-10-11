@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.features.shared
 
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedDateTime
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import java.time.ZonedDateTime
 import javax.inject.Inject
@@ -58,5 +59,5 @@ class ListMealVariantsForTemplateUseCase @Inject constructor(
 
     private suspend fun latestRecordTimeForTemplate(templateId: Long): ZonedDateTime? =
         recordsRepository.getRecordsByTemplate(templateId)
-            .maxOfOrNull { it.timestamp }
+            .maxOfOrNull { it.timestamp.toZonedDateTime() }
 }

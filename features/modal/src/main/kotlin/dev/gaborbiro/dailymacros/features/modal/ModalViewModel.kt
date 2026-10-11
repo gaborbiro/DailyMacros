@@ -37,6 +37,7 @@ import dev.gaborbiro.dailymacros.features.shared.ErrorUiMapper
 import dev.gaborbiro.dailymacros.features.shared.ListMealVariantsForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.NutrientAnalysisWorker
 import dev.gaborbiro.dailymacros.repositories.common.model.DomainError
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedInstant
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
@@ -673,7 +674,7 @@ class ModalViewModel @Inject constructor(
         popOverlay()
         runSafely("Couldn't update the date and time") {
             val record = recordsRepository.get(overlay.recordId) ?: return@runSafely
-            recordsRepository.updateRecord(record.copy(timestamp = timestamp))
+            recordsRepository.updateRecord(record.copy(timestamp = timestamp.toZonedInstant()))
             updateRoot<DialogHandle.RecordDetailsDialog.View> {
                 if (it.recordId == overlay.recordId) it.copy(timestamp = timestamp) else it
             }

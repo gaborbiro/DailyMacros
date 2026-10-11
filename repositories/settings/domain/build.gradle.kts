@@ -1,7 +1,24 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
-    kotlin("jvm")
+    alias(libs.plugins.kotlin.multiplatform)
 }
 
-dependencies {
-    implementation(libs.kotlinx.coroutines.core)
+kotlin {
+    jvm {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.fromTarget(libs.versions.kotlin.jvm.get()))
+        }
+    }
+    iosArm64()
+    iosSimulatorArm64()
+
+    sourceSets {
+        commonMain.dependencies {
+            implementation(libs.kotlinx.coroutines.core)
+        }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
+    }
 }

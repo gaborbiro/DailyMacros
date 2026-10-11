@@ -6,6 +6,7 @@ import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
 import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedInstant
 
 object ModalRecordFixtures {
     val zone: ZoneId = ZoneId.of("UTC")
@@ -34,7 +35,7 @@ object ModalRecordFixtures {
 
     fun record(recordId: Long, template: Template) = Record(
         recordId = recordId,
-        timestamp = ZonedDateTime.of(2024, 1, 1, 12, 0, 0, 0, zone),
+        timestamp = ZonedDateTime.of(2024, 1, 1, 12, 0, 0, 0, zone).toZonedInstant(),
         template = template,
     )
 }

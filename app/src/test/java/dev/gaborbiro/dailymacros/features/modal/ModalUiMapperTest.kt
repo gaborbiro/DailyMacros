@@ -17,6 +17,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedInstant
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33], manifest = Config.NONE)
@@ -29,7 +30,7 @@ class ModalUiMapperTest {
     fun `mapNutrientBreakdowns formats calories and notes`() {
         val record = Record(
             recordId = 1L,
-            timestamp = ZonedDateTime.of(2024, 1, 1, 12, 0, 0, 0, zone),
+            timestamp = ZonedDateTime.of(2024, 1, 1, 12, 0, 0, 0, zone).toZonedInstant(),
             template = Template(
                 dbId = 1L,
                 imageFilenames = emptyList(),
@@ -79,7 +80,7 @@ class ModalUiMapperTest {
 
     private fun recordWith(mealComponents: List<MealComponent>) = Record(
         recordId = 1L,
-        timestamp = ZonedDateTime.of(2024, 1, 1, 12, 0, 0, 0, zone),
+        timestamp = ZonedDateTime.of(2024, 1, 1, 12, 0, 0, 0, zone).toZonedInstant(),
         template = Template(
             dbId = 1L,
             imageFilenames = emptyList(),

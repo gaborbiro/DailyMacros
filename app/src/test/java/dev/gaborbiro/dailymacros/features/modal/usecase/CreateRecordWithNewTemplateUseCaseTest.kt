@@ -7,6 +7,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import dev.gaborbiro.dailymacros.repositories.common.model.ZonedInstant
 
 class CreateRecordWithNewTemplateUseCaseTest {
 
@@ -15,7 +16,7 @@ class CreateRecordWithNewTemplateUseCaseTest {
         val repo = object : BaseRecordsRepositoryStub() {
             override suspend fun saveTemplate(templateToSave: TemplateToSave) = 100L
 
-            override suspend fun saveRecord(templateId: Long, timestamp: java.time.ZonedDateTime) = 555L
+            override suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant) = 555L
         }
         val createTemplate = CreateTemplateUseCase(repo)
         val createFromTpl = CreateRecordFromTemplateUseCase(repo)

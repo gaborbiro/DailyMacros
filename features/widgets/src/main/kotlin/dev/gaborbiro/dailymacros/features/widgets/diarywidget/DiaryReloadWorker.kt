@@ -20,6 +20,7 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.RequestStatusReposi
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import java.time.ZonedDateTime
+import kotlin.time.toKotlinInstant
 
 @HiltWorker
 class DiaryReloadWorker @AssistedInject constructor(
@@ -70,7 +71,7 @@ class DiaryReloadWorker @AssistedInject constructor(
             val quickPickCount =
                 workerParameters.inputData.getInt(PREFS_QUICK_PICK_COUNT, QUICK_PICK_COUNT_DEFAULT)
             val since = ZonedDateTime.now().minusDays(recordDaysToDisplay.toLong())
-            val recentRecords = recordsRepository.getRecords(since)
+            val recentRecords = recordsRepository.getRecords(since.toInstant().toKotlinInstant())
             val quickPicks = recordsRepository.getQuickPicks(quickPickCount)
 
             sendToWidgets(applicationContext, recentRecords, quickPicks)
