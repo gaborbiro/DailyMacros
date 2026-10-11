@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.hilt.android)
@@ -120,17 +122,21 @@ private val sha = (System.getenv("BUILD_SHA") ?: System.getenv("GITHUB_SHA"))?.t
 
 // Shake (in-app tester feedback, see ShakeFeedback.kt). Shake's "App API key" is write-only
 // (it can only submit tickets) and ends up in the APK anyway, but it's kept out of source
-// control like other credentials: CI passes it as the SHAKE_API_KEY env var; locally, set
-// shakeApiKey in ~/.gradle/gradle.properties (NOT this repo's gradle.properties). The key is a
-// hard requirement: packaging an APK/AAB without it fails (see verifyShakeApiKey below), so a
-// missing secret can't silently ship a build without tester feedback. Shake wants one dashboard
+// control like other credentials: locally, set SHAKE_API_KEY in local.properties (gitignored);
+// CI passes it as the SHAKE_API_KEY env var. The key is a hard requirement: packaging an APK/AAB
+// without it fails (see verifyShakeApiKey below), so a missing secret can't silently ship a build without tester feedback. Shake wants one dashboard
 // app per package name, so .debug/.qa builds need a different key than release.
 // A function, not a val: the android {} block above runs before vals declared down here are
 // initialised, and would read null.
-private fun shakeApiKey(): String = providers.gradleProperty("shakeApiKey")
+private fun shakeApiKey(): String = localProperty("SHAKE_API_KEY")
     .orElse(providers.environmentVariable("SHAKE_API_KEY"))
     .getOrElse("")
     .trim()
+
+private fun localProperty(name: String): Provider<String> =
+    providers.fileContents(rootProject.layout.projectDirectory.file("local.properties")).asText
+        .map { text -> Properties().apply { load(text.reader()) }.getProperty(name).orEmpty() }
+        .filter { it.isNotBlank() }
 
 
 // Single source of truth for versionCode: release gets the CI run number so Play Store
@@ -271,7 +277,7 @@ val verifyShakeApiKey by tasks.registering {
             throw GradleException(
                 "Shake API key missing: refusing to build an app without tester feedback. " +
                     "CI: set the GitHub Actions secret SHAKE_API_KEY (release.yml) or SHAKE_API_KEY_DEBUG " +
-                    "(android.yml). Locally: add shakeApiKey=<App API key> to ~/.gradle/gradle.properties " +
+                    "(android.yml). Locally: add SHAKE_API_KEY=<App API key> to local.properties " +
                     "or export SHAKE_API_KEY."
             )
         }
