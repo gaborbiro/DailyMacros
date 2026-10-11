@@ -124,6 +124,7 @@ fun SettingsScreen(
         onOverwriteDialogDismissed = settingsViewModel::onOverwriteDialogDismissed,
         onSubscribeTapped = { context.findActivity()?.let(settingsViewModel::onSubscribeRowTapped) },
         onShowOnboardingTapped = { navController.navigate(ONBOARDING_ROUTE) },
+        onMealReminderDebugTapped = settingsViewModel::onMealReminderDebugRowTapped,
         onHealthConnectSyncToggled = settingsViewModel::onHealthConnectSyncToggled,
         onSuggestIntegrationTapped = { openSuggestIntegrationEmail(context) },
     )

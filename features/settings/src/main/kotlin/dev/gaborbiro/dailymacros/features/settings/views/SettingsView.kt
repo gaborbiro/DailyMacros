@@ -104,6 +104,7 @@ internal fun SettingsView(
     onOverwriteDialogDismissed: () -> Unit,
     onSubscribeTapped: () -> Unit,
     onShowOnboardingTapped: () -> Unit = {},
+    onMealReminderDebugTapped: () -> Unit = {},
     onHealthConnectSyncToggled: (Boolean) -> Unit = {},
     onSuggestIntegrationTapped: () -> Unit = {},
 ) {
@@ -475,6 +476,11 @@ internal fun SettingsView(
                 SettingRow(
                     title = stringResource(R.string.settings_debug_show_onboarding_row),
                     onTapped = onShowOnboardingTapped,
+                )
+                SettingRow(
+                    title = stringResource(R.string.settings_debug_meal_reminders_row),
+                    subtitle = viewState.mealReminderDebugText,
+                    onTapped = onMealReminderDebugTapped,
                 )
             }
 

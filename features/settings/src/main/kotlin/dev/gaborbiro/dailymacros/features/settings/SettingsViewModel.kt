@@ -33,6 +33,8 @@ import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteD
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.RestoreFromDriveUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.SyncDatabaseUseCase
+import dev.gaborbiro.dailymacros.features.settings.mealreminders.toDebugText
+import dev.gaborbiro.dailymacros.features.shared.mealreminders.GetMealReminderPlanUseCase
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
 import dev.gaborbiro.dailymacros.repositories.backup.domain.CloudSyncRepository
@@ -70,6 +72,7 @@ class SettingsViewModel @Inject constructor(
     private val cloudSyncRepository: CloudSyncRepository,
     private val featureFlagStore: FeatureFlagStore,
     private val subscriptionRepository: SubscriptionRepository,
+    private val getMealReminderPlanUseCase: GetMealReminderPlanUseCase,
 ) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(
@@ -103,6 +106,21 @@ class SettingsViewModel @Inject constructor(
             subscriptionRepository.observeState().collect { state ->
                 _uiState.update { it.copy(subscriptionState = state) }
             }
+        }
+        if (appInfo.isDebugBuild) onMealReminderDebugRowTapped()
+    }
+
+    /** Recomputes the debug readout - tap the row again after logging something to see the plan react. */
+    fun onMealReminderDebugRowTapped() {
+        viewModelScope.launch {
+            val text = runCatching {
+                val now = ZonedDateTime.now()
+                getMealReminderPlanUseCase.execute(now = now).toDebugText(now)
+            }.getOrElse { t ->
+                Log.e("MealReminders", "Failed to compute meal reminder plan", t)
+                "Failed: ${t.message}"
+            }
+            _uiState.update { it.copy(mealReminderDebugText = text) }
         }
     }
 

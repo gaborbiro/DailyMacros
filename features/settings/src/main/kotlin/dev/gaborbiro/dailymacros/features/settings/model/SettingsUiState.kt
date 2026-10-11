@@ -37,6 +37,8 @@ data class SettingsUiState(
     val pdfExportInProgress: Boolean = false,
     val subscriptionState: SubscriptionState = SubscriptionState.Unknown,
     val isDebugBuild: Boolean = false,
+    /** Settings > Debug readout of learned meal times and today's reminder plan; null until loaded. */
+    val mealReminderDebugText: String? = null,
     val healthConnectSyncEnabled: Boolean = false,
     val healthConnectSyncInProgress: Boolean = false,
     val healthConnectSyncVisible: Boolean = false,
