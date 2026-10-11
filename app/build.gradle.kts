@@ -165,6 +165,7 @@ dependencies {
     implementation(project(":features:trends"))
     implementation(project(":features:widgets"))
     implementation(project(":repositories:backup"))
+    implementation(project(":repositories:backup:domain"))
     implementation(project(":repositories:billing"))
     implementation(project(":repositories:billing:domain"))
     implementation(project(":repositories:chatgpt"))
