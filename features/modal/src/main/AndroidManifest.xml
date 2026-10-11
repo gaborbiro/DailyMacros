@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- In-app dictation (views/dictation/DictationController) listens through SpeechRecognizer. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
     <!--
-       Package visibility for the voice-input mic button (RecordDetailsCreateView): lets us check
-       whether a speech recogniser app is installed on Android 11+ before showing the button.
+       Package visibility for dictation on Android 11+: RecognitionService lets
+       SpeechRecognizer.isRecognitionAvailable see the device's recogniser; RECOGNIZE_SPEECH lets us
+       check for the system voice-input dialog used as the no-permission fallback.
     -->
     <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
         <intent>
             <action android:name="android.speech.action.RECOGNIZE_SPEECH" />
         </intent>

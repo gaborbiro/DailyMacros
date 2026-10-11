@@ -53,8 +53,11 @@
     <!-- RecordDetailsCreateView -->
     <string name="modal_content_run_ai_cd">Run image recognition</string>
     <string name="modal_content_running_ai_placeholder">Running image recognition…</string>
-    <string name="modal_content_voice_input_cd">Dictate meal</string>
+    <string name="modal_content_voice_input_cd">Dictate</string>
     <string name="modal_content_voice_input_prompt">What did you eat?</string>
+    <string name="modal_content_voice_input_stop_cd">Stop dictating</string>
+    <string name="modal_content_voice_input_error_network">Voice input needs an internet connection</string>
+    <string name="modal_content_voice_input_error_generic">Voice input stopped. Please try again</string>
     <!-- ViewImageDialog -->
     <string name="modal_content_view_image_close_cd">Close</string>
     <!-- ImageStrip -->

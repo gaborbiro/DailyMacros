@@ -326,6 +326,7 @@ class ModalActivity : AppCompatActivity() {
                 onDismissRequested = onDismissRequested,
                 onImagesInfoButtonTapped = viewModel::onImagesInfoButtonTapped,
                 onRunAIButtonTapped = viewModel::onRunAIButtonTapped,
+                onTitleDictationStarted = viewModel::onTitleDictationStarted,
                 onVariantTemplatePicked = viewModel::onVariantTemplateSelected,
                 onQuickPickStarToggled = viewModel::onQuickPickStarToggled,
                 onRecordDetailsEditStarted = viewModel::onRecordDetailsEditStarted,

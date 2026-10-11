@@ -45,6 +45,7 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import dev.gaborbiro.dailymacros.test.WorkManagerTestSupport
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.flowOf
@@ -100,8 +101,10 @@ class ModalViewModelTest {
         override suspend fun delete(filename: String) = Unit
     }
 
-    private class VmFakeChatGpt : ChatGPTRepository {
-        override suspend fun recogniseFood(request: FoodRecognitionRequest) = FoodRecognitionResult(title = "X", error = null)
+    private class VmFakeChatGpt(
+        private val recognise: suspend () -> FoodRecognitionResult = { FoodRecognitionResult(title = "X", error = null) },
+    ) : ChatGPTRepository {
+        override suspend fun recogniseFood(request: FoodRecognitionRequest) = recognise()
 
         override suspend fun analyseNutrients(request: NutrientAnalysisRequest): NutrientAnalysisResult =
             error("unused")
@@ -146,7 +149,10 @@ class ModalViewModelTest {
         override fun clearApiKeyOverride() = Unit
     }
 
-    private fun viewModel(repo: RecordsRepository = BaseRecordsRepositoryStub()): ModalViewModel {
+    private fun viewModel(
+        repo: RecordsRepository = BaseRecordsRepositoryStub(),
+        chatGpt: ChatGPTRepository = VmFakeChatGpt(),
+    ): ModalViewModel {
         val app = ApplicationProvider.getApplicationContext<Application>()
         val nutrients = TemplateUiMapper()
         val modalUiMapper = ModalUiMapper(nutrients)
@@ -177,13 +183,31 @@ class ModalViewModelTest {
             exportImageToGalleryUseCase = ExportImageToGalleryUseCase(app, imageStore),
             getRecordImageUseCase = GetRecordImageUseCase(repo),
             getTemplateImageUseCase = GetTemplateImageUseCase(repo),
-            foodRecognitionUseCase = FoodRecognitionUseCase(imageStore, VmFakeChatGpt(), testSettingsRepository),
+            foodRecognitionUseCase = FoodRecognitionUseCase(imageStore, chatGpt, testSettingsRepository),
             applyQuickPickOverrideAndReloadWidgetUseCase = ApplyQuickPickOverrideAndReloadWidgetUseCase(repo),
             logMealFromTemplateUseCase = LogMealFromTemplateUseCase(app, repo, createFromTemplate),
             analyticsLogger = AnalyticsLogger(sinks = emptySet()),
             errorUiMapper = ErrorUiMapper(app, testSettingsRepository),
         ).also { activeViewModels.add(it) }
     }
+
+    @Test
+    fun `starting title dictation cancels running image recognition so it can't fill in the title`() =
+        runTest(testDispatcher) {
+            val recognition = CompletableDeferred<FoodRecognitionResult>()
+            val vm = viewModel(chatGpt = VmFakeChatGpt { recognition.await() })
+            fun root() = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.Edit
+            vm.onCreateRecordWithTextDeeplinkReceived()
+            vm.onRunAIButtonTapped()
+            assertTrue(root().showProgressIndicator)
+
+            vm.onTitleDictationStarted()
+            assertFalse(root().showProgressIndicator)
+
+            recognition.complete(FoodRecognitionResult(title = "AI title", error = null))
+            advanceUntilIdle()
+            assertEquals("", root().title.text)
+        }
 
     @Test
     fun `text deeplink opens empty edit dialog`() {
