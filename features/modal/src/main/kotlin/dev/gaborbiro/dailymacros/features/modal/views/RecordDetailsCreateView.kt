@@ -1,6 +1,12 @@
 package dev.gaborbiro.dailymacros.features.modal.views
 
+import android.app.Activity
+import android.content.ActivityNotFoundException
+import android.content.Intent
 import android.content.res.Configuration
+import android.speech.RecognizerIntent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -9,6 +15,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,7 +25,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -32,8 +42,10 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -106,43 +118,54 @@ fun ColumnScope.RecordDetailsCreateView(
         isError = titleErrorMessage.isNullOrBlank().not(),
         textStyle = MaterialTheme.typography.bodyMedium,
         trailingIcon = {
-            Box(
-                modifier = Modifier.size(48.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                when {
-                    showProgressIndicator -> {
-                        val infiniteTransition = rememberInfiniteTransition(label = "aiIconRotation")
-                        val rotation by infiniteTransition.animateFloat(
-                            initialValue = 0f,
-                            targetValue = 360f,
-                            animationSpec = infiniteRepeatable(
-                                animation = tween(durationMillis = 1200, easing = LinearEasing),
-                            ),
-                            label = "aiIconRotationAngle",
-                        )
-                        Icon(
-                            painter = painterResource(CommonR.drawable.ic_ai_borg),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(25.dp)
-                                .graphicsLayer { rotationZ = rotation },
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                    }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Stays available while image recognition runs: a non-blank title is kept
+                // over the AI's suggestion (see ModalViewModel.runFoodRecognition).
+                VoiceInputButton(
+                    onTextRecognised = { spoken ->
+                        onTitleChanged(appendSpokenText(title, spoken))
+                    },
+                )
+                if (showProgressIndicator || showRunAIButton) {
+                    Box(
+                        modifier = Modifier.size(48.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        when {
+                            showProgressIndicator -> {
+                                val infiniteTransition = rememberInfiniteTransition(label = "aiIconRotation")
+                                val rotation by infiniteTransition.animateFloat(
+                                    initialValue = 0f,
+                                    targetValue = 360f,
+                                    animationSpec = infiniteRepeatable(
+                                        animation = tween(durationMillis = 1200, easing = LinearEasing),
+                                    ),
+                                    label = "aiIconRotationAngle",
+                                )
+                                Icon(
+                                    painter = painterResource(CommonR.drawable.ic_ai_borg),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(25.dp)
+                                        .graphicsLayer { rotationZ = rotation },
+                                    tint = MaterialTheme.colorScheme.primary,
+                                )
+                            }
 
-                    showRunAIButton -> {
-                        Button(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .padding(PaddingHalf),
-                            contentPadding = PaddingValues(),
-                            onClick = onRunAIButtonTapped,
-                        ) {
-                            Icon(
-                                painter = painterResource(CommonR.drawable.ic_ai_borg),
-                                contentDescription = stringResource(R.string.modal_content_run_ai_cd),
-                            )
+                            showRunAIButton -> {
+                                Button(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .padding(PaddingHalf),
+                                    contentPadding = PaddingValues(),
+                                    onClick = onRunAIButtonTapped,
+                                ) {
+                                    Icon(
+                                        painter = painterResource(CommonR.drawable.ic_ai_borg),
+                                        contentDescription = stringResource(R.string.modal_content_run_ai_cd),
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -198,6 +221,77 @@ fun ColumnScope.RecordDetailsCreateView(
         ),
         onValueChange = { onDescriptionChanged(it) },
     )
+}
+
+private const val SILENCE_TIMEOUT_MILLIS = 5_000L
+
+/**
+ * Mic button that hands off to the device's own speech recogniser (on most phones that's
+ * Google's, the same engine as Gboard voice typing) via [RecognizerIntent]. The recogniser
+ * app owns the microphone, so this app needs no RECORD_AUDIO permission and no audio ever
+ * passes through it. Hidden when the device has no recogniser installed.
+ */
+@Composable
+private fun VoiceInputButton(
+    onTextRecognised: (String) -> Unit,
+) {
+    val context = LocalContext.current
+    val prompt = stringResource(R.string.modal_content_voice_input_prompt)
+    val intent = remember(prompt) {
+        Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+            .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            .putExtra(RecognizerIntent.EXTRA_PROMPT, prompt)
+            // Wait longer through pauses while you think of the next item. These are hints:
+            // the recogniser app decides whether to honour them.
+            .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, SILENCE_TIMEOUT_MILLIS)
+            .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, SILENCE_TIMEOUT_MILLIS)
+    }
+    val isAvailable = remember(intent) {
+        intent.resolveActivity(context.packageManager) != null
+    }
+    if (!isAvailable) return
+
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        if (result.resultCode != Activity.RESULT_OK) return@rememberLauncherForActivityResult
+        result.data
+            ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            ?.firstOrNull()
+            ?.takeIf { it.isNotBlank() }
+            ?.let(onTextRecognised)
+    }
+
+    IconButton(
+        onClick = {
+            try {
+                launcher.launch(intent)
+            } catch (_: ActivityNotFoundException) {
+                // Recogniser was uninstalled/disabled since we checked; nothing to do.
+            }
+        },
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Mic,
+            contentDescription = stringResource(R.string.modal_content_voice_input_cd),
+        )
+    }
+}
+
+/**
+ * Appends [spoken] to whatever is already typed (so you can dictate in several goes) and puts
+ * the cursor at the end. The recogniser returns lower-case text, so the first letter is
+ * capitalised when it starts the field.
+ */
+internal fun appendSpokenText(current: TextFieldValue, spoken: String): TextFieldValue {
+    val trimmed = spoken.trim()
+    val existing = current.text.trimEnd()
+    val newText = if (existing.isEmpty()) {
+        trimmed.replaceFirstChar { it.uppercaseChar() }
+    } else {
+        "$existing $trimmed"
+    }
+    return TextFieldValue(text = newText, selection = TextRange(newText.length))
 }
 
 @Preview
