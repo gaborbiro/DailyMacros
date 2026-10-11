@@ -13,6 +13,7 @@ import dev.gaborbiro.dailymacros.core.featureflags.RemoteConfigClientIdProvider
 import dev.gaborbiro.dailymacros.features.settings.SettingsAppInfo
 import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
 import dev.gaborbiro.dailymacros.features.shared.notifications.MacroResultsNotificationSender
+import dev.gaborbiro.dailymacros.repositories.backup.domain.BackupClientIdProvider
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.RepositoryClientIdProvider
 import dev.gaborbiro.dailymacros.util.showMacroResultsNotification
 import javax.inject.Singleton
@@ -47,6 +48,14 @@ object AppSingletonModule {
     @Singleton
     fun remoteConfigClientIdProvider(appPrefs: AppPrefs): RemoteConfigClientIdProvider =
         object : RemoteConfigClientIdProvider {
+            override val clientId: String
+                get() = appPrefs.clientId
+        }
+
+    @Provides
+    @Singleton
+    fun backupClientIdProvider(appPrefs: AppPrefs): BackupClientIdProvider =
+        object : BackupClientIdProvider {
             override val clientId: String
                 get() = appPrefs.clientId
         }

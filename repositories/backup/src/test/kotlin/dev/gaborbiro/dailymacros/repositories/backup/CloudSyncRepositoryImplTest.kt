@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.repositories.backup
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import dev.gaborbiro.dailymacros.repositories.backup.domain.BackupClientIdProvider
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
@@ -12,6 +13,7 @@ import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
 import okio.Buffer
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -50,7 +52,10 @@ class CloudSyncRepositoryImplTest {
                 handler(request)
             })
             .build()
-        return CloudSyncRepositoryImpl(context, client)
+        val clientIdProvider = object : BackupClientIdProvider {
+            override val clientId = THIS_CLIENT_ID
+        }
+        return CloudSyncRepositoryImpl(context, client, clientIdProvider)
     }
 
     private fun jsonResponse(request: Request, body: String) = Response.Builder()
@@ -61,10 +66,10 @@ class CloudSyncRepositoryImplTest {
         .body(body.toResponseBody("application/json".toMediaType()))
         .build()
 
-    private fun filesListJson(fileId: String?) = if (fileId == null) {
-        """{"files":[]}"""
-    } else {
-        """{"files":[{"id":"$fileId","name":"unused","modifiedTime":"2026-01-01T00:00:00Z","size":"42"}]}"""
+    private fun filesListJson(fileId: String?, writerClientId: String? = null): String {
+        if (fileId == null) return """{"files":[]}"""
+        val appProperties = writerClientId?.let { ""","appProperties":{"writerClientId":"$it"}""" }.orEmpty()
+        return """{"files":[{"id":"$fileId","name":"unused","modifiedTime":"2026-01-01T00:00:00Z","size":"42"$appProperties}]}"""
     }
 
     private fun requestBodyText(request: Request): String {
@@ -139,12 +144,14 @@ class CloudSyncRepositoryImplTest {
 
         assertEquals("new-id", result.fileId)
         assertTrue(createRequestBody.orEmpty().contains(namespacedName))
+        assertTrue(createRequestBody.orEmpty().contains(""""appProperties":{"writerClientId":"$THIS_CLIENT_ID"}"""))
         // Only the namespaced-name lookup happened before creating - the legacy file was never queried or touched.
         assertEquals(2, requestedUrls.size)
     }
 
     @Test
     fun `uploadBackup updates the existing namespaced file in place`() = runBlocking {
+        var updateRequestBody: String? = null
         val repo = repository { request ->
             when {
                 nameQueriedBy(request) == "name='$namespacedName'" ->
@@ -152,6 +159,7 @@ class CloudSyncRepositoryImplTest {
 
                 request.method == "PATCH" -> {
                     assertTrue(request.url.toString().contains("/existing-id"))
+                    updateRequestBody = requestBodyText(request)
                     jsonResponse(request, """{"id":"existing-id","modifiedTime":"2026-01-02T00:00:00Z","size":"20"}""")
                 }
 
@@ -163,6 +171,31 @@ class CloudSyncRepositoryImplTest {
         val result = repo.uploadBackup("token", tarFile)
 
         assertEquals("existing-id", result.fileId)
+        assertTrue(updateRequestBody.orEmpty().contains(""""appProperties":{"writerClientId":"$THIS_CLIENT_ID"}"""))
         assertEquals(2, requestedUrls.size)
+    }
+
+    @Test
+    fun `getBackupInfo marks a backup tagged with this install's client ID as its own`() = runBlocking {
+        val repo = repository { request ->
+            jsonResponse(request, filesListJson(fileId = "id", writerClientId = THIS_CLIENT_ID))
+        }
+
+        assertTrue(repo.getBackupInfo("token")!!.writtenByThisInstall)
+    }
+
+    @Test
+    fun `getBackupInfo does not mark another install's or an untagged backup as its own`() = runBlocking {
+        val foreign = repository { request ->
+            jsonResponse(request, filesListJson(fileId = "id", writerClientId = "other-client-id"))
+        }
+        val untagged = repository { request -> jsonResponse(request, filesListJson(fileId = "id")) }
+
+        assertFalse(foreign.getBackupInfo("token")!!.writtenByThisInstall)
+        assertFalse(untagged.getBackupInfo("token")!!.writtenByThisInstall)
+    }
+
+    private companion object {
+        const val THIS_CLIENT_ID = "apple-fox-moon"
     }
 }

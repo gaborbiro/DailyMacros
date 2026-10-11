@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.repositories.backup.di.ForDrive
+import dev.gaborbiro.dailymacros.repositories.backup.domain.BackupClientIdProvider
 import dev.gaborbiro.dailymacros.repositories.backup.domain.CloudSyncRepository
 import dev.gaborbiro.dailymacros.repositories.backup.domain.model.DriveBackupInfo
 import kotlinx.coroutines.Dispatchers
@@ -25,6 +26,7 @@ import javax.inject.Singleton
 class CloudSyncRepositoryImpl @Inject constructor(
     @ApplicationContext private val appContext: Context,
     @ForDrive private val okHttpClient: OkHttpClient,
+    private val clientIdProvider: BackupClientIdProvider,
 ) : CloudSyncRepository {
 
     private val gson = Gson()
@@ -54,7 +56,7 @@ class CloudSyncRepositoryImpl @Inject constructor(
 
     private fun findBackupByName(accessToken: String, name: String): DriveBackupInfo? {
         val request = Request.Builder()
-            .url("$FILES_URL?spaces=appDataFolder&fields=files(id,name,modifiedTime,size)&q=name='$name'")
+            .url("$FILES_URL?spaces=appDataFolder&fields=files($FILE_FIELDS)&q=name='$name'")
             .header("Authorization", "Bearer $accessToken")
             .get()
             .build()
@@ -83,14 +85,14 @@ class CloudSyncRepositoryImpl @Inject constructor(
         }
 
     private fun createFile(accessToken: String, tarFile: File): DriveBackupInfo {
-        val metadata = """{"name":"$namespacedBackupFileName","parents":["appDataFolder"]}"""
+        val metadata = """{"name":"$namespacedBackupFileName","parents":["appDataFolder"],${writerAppProperties()}}"""
         val body = MultipartBody.Builder()
             .setType("multipart/related".toMediaType())
             .addPart(metadata.toRequestBody("application/json; charset=UTF-8".toMediaType()))
             .addPart(tarFile.asRequestBody("application/octet-stream".toMediaType()))
             .build()
         val request = Request.Builder()
-            .url("$UPLOAD_URL?uploadType=multipart&fields=id,modifiedTime,size")
+            .url("$UPLOAD_URL?uploadType=multipart&fields=$FILE_FIELDS")
             .header("Authorization", "Bearer $accessToken")
             .post(body)
             .build()
@@ -104,11 +106,11 @@ class CloudSyncRepositoryImpl @Inject constructor(
     private fun updateFile(accessToken: String, fileId: String, tarFile: File): DriveBackupInfo {
         val body = MultipartBody.Builder()
             .setType("multipart/related".toMediaType())
-            .addPart("{}".toRequestBody("application/json; charset=UTF-8".toMediaType()))
+            .addPart("{${writerAppProperties()}}".toRequestBody("application/json; charset=UTF-8".toMediaType()))
             .addPart(tarFile.asRequestBody("application/octet-stream".toMediaType()))
             .build()
         val request = Request.Builder()
-            .url("$UPLOAD_URL/$fileId?uploadType=multipart&fields=id,modifiedTime,size")
+            .url("$UPLOAD_URL/$fileId?uploadType=multipart&fields=$FILE_FIELDS")
             .header("Authorization", "Bearer $accessToken")
             .patch(body)
             .build()
@@ -118,6 +120,14 @@ class CloudSyncRepositoryImpl @Inject constructor(
             gson.fromJson(responseBody, DriveFileResponse::class.java).toDriveBackupInfo()
         }
     }
+
+    /**
+     * Tags each upload with this install's client ID (as Drive file metadata, not inside the
+     * backup itself, so it's never restored onto another install), letting conflict detection
+     * tell this install's own writes apart from other devices'.
+     */
+    private fun writerAppProperties(): String =
+        """"appProperties":{"$APP_PROPERTY_WRITER_CLIENT_ID":"${clientIdProvider.clientId}"}"""
 
     private fun driveApiException(code: Int, body: String?): IOException {
         val hint = if (code == 401) " (access token expired — sign out and sign in again)" else ""
@@ -132,13 +142,15 @@ class CloudSyncRepositoryImpl @Inject constructor(
         @SerializedName("id") val id: String = "",
         @SerializedName("modifiedTime") val modifiedTime: String = "",
         @SerializedName("size") val size: String = "0",
-    ) {
-        fun toDriveBackupInfo() = DriveBackupInfo(
-            fileId = id,
-            modifiedTimeMs = runCatching { Instant.parse(modifiedTime).toEpochMilli() }.getOrDefault(0L),
-            sizeBytes = size.toLongOrNull() ?: 0L,
-        )
-    }
+        @SerializedName("appProperties") val appProperties: Map<String, String>? = null,
+    )
+
+    private fun DriveFileResponse.toDriveBackupInfo() = DriveBackupInfo(
+        fileId = id,
+        modifiedTimeMs = runCatching { Instant.parse(modifiedTime).toEpochMilli() }.getOrDefault(0L),
+        sizeBytes = size.toLongOrNull() ?: 0L,
+        writtenByThisInstall = appProperties?.get(APP_PROPERTY_WRITER_CLIENT_ID) == clientIdProvider.clientId,
+    )
 
     private companion object {
         const val FILES_URL = "https://www.googleapis.com/drive/v3/files"
@@ -146,5 +158,7 @@ class CloudSyncRepositoryImpl @Inject constructor(
         const val LEGACY_BACKUP_FILE_NAME = "daily_macros_backup.tar"
         const val BACKUP_FILE_NAME_PREFIX = "daily_macros_backup"
         const val BACKUP_FILE_EXTENSION = ".tar"
+        const val FILE_FIELDS = "id,name,modifiedTime,size,appProperties"
+        const val APP_PROPERTY_WRITER_CLIENT_ID = "writerClientId"
     }
 }
