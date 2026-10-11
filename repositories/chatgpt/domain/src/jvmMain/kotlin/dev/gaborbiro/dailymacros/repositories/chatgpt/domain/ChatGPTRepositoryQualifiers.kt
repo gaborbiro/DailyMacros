@@ -9,7 +9,3 @@ annotation class ForImageUploadChatGpt
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class ForJsonBodyChatGpt
-
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class ChatGptClientGson
