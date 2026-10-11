@@ -451,12 +451,7 @@ class ModalViewModel @Inject constructor(
         val title = title.truncatedTo(256)
         val root = _uiState.value.rootDialog
         if (root is DialogHandle.RecordDetailsDialog.Edit && title.text.isNotBlank() && title.text != root.title.text) {
-            if (recogniseFoodJob?.isActive == true) {
-                recogniseFoodJob?.cancel()
-                updateRoot<DialogHandle.RecordDetailsDialog.Edit> {
-                    it.copy(showProgressIndicator = false, showRunAIButton = true)
-                }
-            }
+            cancelFoodRecognition()
         }
         updateRoot<DialogHandle.RecordDetailsDialog> {
             when (it) {
@@ -472,6 +467,23 @@ class ModalViewModel @Inject constructor(
             }
         }
         recomputeHasUnsavedEdits()
+    }
+
+    /**
+     * The user is about to dictate a title: stop image recognition (pending or running) so it can't
+     * fill in its own title underneath them.
+     */
+    fun onTitleDictationStarted() {
+        cancelFoodRecognition()
+    }
+
+    private fun cancelFoodRecognition() {
+        if (recogniseFoodJob?.isActive == true) {
+            recogniseFoodJob?.cancel()
+            updateRoot<DialogHandle.RecordDetailsDialog.Edit> {
+                it.copy(showProgressIndicator = false, showRunAIButton = true)
+            }
+        }
     }
 
     fun onDescriptionChanged(description: TextFieldValue) {

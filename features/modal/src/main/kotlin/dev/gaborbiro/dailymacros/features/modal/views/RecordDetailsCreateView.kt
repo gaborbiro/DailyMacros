@@ -1,12 +1,6 @@
 package dev.gaborbiro.dailymacros.features.modal.views
 
-import android.app.Activity
-import android.content.ActivityNotFoundException
-import android.content.Intent
 import android.content.res.Configuration
-import android.speech.RecognizerIntent
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -25,10 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -42,10 +33,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -58,6 +47,9 @@ import dev.gaborbiro.dailymacros.features.common.R as CommonR
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
+import dev.gaborbiro.dailymacros.features.modal.views.dictation.DictationButton
+import dev.gaborbiro.dailymacros.features.modal.views.dictation.DictationTarget
+import dev.gaborbiro.dailymacros.features.modal.views.dictation.rememberDictationController
 import kotlinx.coroutines.delay
 
 @Composable
@@ -80,8 +72,10 @@ fun ColumnScope.RecordDetailsCreateView(
     onAddImageViaPickerTapped: () -> Unit,
     onImagesInfoButtonTapped: () -> Unit,
     onRunAIButtonTapped: () -> Unit,
+    onTitleDictationStarted: () -> Unit = {},
 ) {
     val focusRequester = remember { FocusRequester() }
+    val dictation = rememberDictationController()
 
     if (showKeyboardOnOpen) {
         LaunchedEffect(key1 = Unit) {
@@ -119,12 +113,13 @@ fun ColumnScope.RecordDetailsCreateView(
         textStyle = MaterialTheme.typography.bodyMedium,
         trailingIcon = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Stays available while image recognition runs: a non-blank title is kept
-                // over the AI's suggestion (see ModalViewModel.runFoodRecognition).
-                VoiceInputButton(
-                    onTextRecognised = { spoken ->
-                        onTitleChanged(appendSpokenText(title, spoken))
-                    },
+                // Stays available while image recognition runs; starting to dictate cancels it.
+                DictationButton(
+                    controller = dictation,
+                    target = DictationTarget.Title,
+                    value = title,
+                    onValueChange = onTitleChanged,
+                    onDictationStarted = onTitleDictationStarted,
                 )
                 if (showProgressIndicator || showRunAIButton) {
                     Box(
@@ -185,7 +180,11 @@ fun ColumnScope.RecordDetailsCreateView(
             capitalization = KeyboardCapitalization.Sentences,
             imeAction = ImeAction.Next,
         ),
-        onValueChange = { onTitleChanged(it) },
+        onValueChange = {
+            // Typing takes over from dictation.
+            if (it.text != title.text && dictation.isWritingTo(DictationTarget.Title)) dictation.cancel()
+            onTitleChanged(it)
+        },
     )
     if (titleErrorMessage.isNullOrBlank().not()) {
         Text(
@@ -206,6 +205,15 @@ fun ColumnScope.RecordDetailsCreateView(
             .padding(horizontal = PaddingDefault)
             .heightIn(min = 120.dp),
         textStyle = MaterialTheme.typography.bodyMedium,
+        trailingIcon = {
+            DictationButton(
+                controller = dictation,
+                target = DictationTarget.Description,
+                value = description,
+                onValueChange = onDescriptionChanged,
+                onDictationStarted = {},
+            )
+        },
         placeholder = {
             Text(
                 text = stringResource(R.string.meal_details_description_placeholder),
@@ -219,79 +227,11 @@ fun ColumnScope.RecordDetailsCreateView(
             keyboardType = KeyboardType.Text,
             capitalization = KeyboardCapitalization.Sentences,
         ),
-        onValueChange = { onDescriptionChanged(it) },
-    )
-}
-
-private const val SILENCE_TIMEOUT_MILLIS = 5_000L
-
-/**
- * Mic button that hands off to the device's own speech recogniser (on most phones that's
- * Google's, the same engine as Gboard voice typing) via [RecognizerIntent]. The recogniser
- * app owns the microphone, so this app needs no RECORD_AUDIO permission and no audio ever
- * passes through it. Hidden when the device has no recogniser installed.
- */
-@Composable
-private fun VoiceInputButton(
-    onTextRecognised: (String) -> Unit,
-) {
-    val context = LocalContext.current
-    val prompt = stringResource(R.string.modal_content_voice_input_prompt)
-    val intent = remember(prompt) {
-        Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-            .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            .putExtra(RecognizerIntent.EXTRA_PROMPT, prompt)
-            // Wait longer through pauses while you think of the next item. These are hints:
-            // the recogniser app decides whether to honour them.
-            .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, SILENCE_TIMEOUT_MILLIS)
-            .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, SILENCE_TIMEOUT_MILLIS)
-    }
-    val isAvailable = remember(intent) {
-        intent.resolveActivity(context.packageManager) != null
-    }
-    if (!isAvailable) return
-
-    val launcher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult(),
-    ) { result ->
-        if (result.resultCode != Activity.RESULT_OK) return@rememberLauncherForActivityResult
-        result.data
-            ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-            ?.firstOrNull()
-            ?.takeIf { it.isNotBlank() }
-            ?.let(onTextRecognised)
-    }
-
-    IconButton(
-        onClick = {
-            try {
-                launcher.launch(intent)
-            } catch (_: ActivityNotFoundException) {
-                // Recogniser was uninstalled/disabled since we checked; nothing to do.
-            }
+        onValueChange = {
+            if (it.text != description.text && dictation.isWritingTo(DictationTarget.Description)) dictation.cancel()
+            onDescriptionChanged(it)
         },
-    ) {
-        Icon(
-            imageVector = Icons.Filled.Mic,
-            contentDescription = stringResource(R.string.modal_content_voice_input_cd),
-        )
-    }
-}
-
-/**
- * Appends [spoken] to whatever is already typed (so you can dictate in several goes) and puts
- * the cursor at the end. The recogniser returns lower-case text, so the first letter is
- * capitalised when it starts the field.
- */
-internal fun appendSpokenText(current: TextFieldValue, spoken: String): TextFieldValue {
-    val trimmed = spoken.trim()
-    val existing = current.text.trimEnd()
-    val newText = if (existing.isEmpty()) {
-        trimmed.replaceFirstChar { it.uppercaseChar() }
-    } else {
-        "$existing $trimmed"
-    }
-    return TextFieldValue(text = newText, selection = TextRange(newText.length))
+    )
 }
 
 @Preview

@@ -58,6 +58,7 @@ internal fun RecordDetailsDialog(
     onDismissRequested: () -> Unit,
     onImagesInfoButtonTapped: () -> Unit,
     onRunAIButtonTapped: () -> Unit,
+    onTitleDictationStarted: () -> Unit,
     onVariantTemplatePicked: (Long) -> Unit,
     onQuickPickStarToggled: () -> Unit,
     onRecordDetailsEditStarted: () -> Unit,
@@ -111,6 +112,7 @@ internal fun RecordDetailsDialog(
                 onAddImageViaPickerTapped = onAddImageViaPickerTapped,
                 onImagesInfoButtonTapped = onImagesInfoButtonTapped,
                 onRunAIButtonTapped = onRunAIButtonTapped,
+                onTitleDictationStarted = onTitleDictationStarted,
                 variantPickerOptions = viewDialog?.variantPickerOptions,
                 selectedVariantTemplateId = viewDialog?.templateDbId ?: 0L,
                 onVariantTemplatePicked = onVariantTemplatePicked,
@@ -244,6 +246,7 @@ internal fun ColumnScope.RecordDetailsDialogContent(
     onAddImageViaPickerTapped: () -> Unit,
     onImagesInfoButtonTapped: () -> Unit,
     onRunAIButtonTapped: () -> Unit,
+    onTitleDictationStarted: () -> Unit = {},
     variantPickerOptions: List<MealVariantPickerOption>? = null,
     selectedVariantTemplateId: Long = 0L,
     onVariantTemplatePicked: (Long) -> Unit = { },
@@ -273,6 +276,7 @@ internal fun ColumnScope.RecordDetailsDialogContent(
                 onAddImageViaPickerTapped = onAddImageViaPickerTapped,
                 onImagesInfoButtonTapped = onImagesInfoButtonTapped,
                 onRunAIButtonTapped = onRunAIButtonTapped,
+                onTitleDictationStarted = onTitleDictationStarted,
             )
 
         is DialogHandle.RecordDetailsDialog.View ->

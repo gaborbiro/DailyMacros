@@ -1,6 +1,6 @@
 # Daily Macros — Privacy Policy
 
-_Last updated: 2026-09-19_
+_Last updated: 2026-10-11_
 
 Daily Macros is a nutrition diary. This policy explains what data the app
 handles, where it goes, and the choices you have. It describes the app's current
@@ -101,6 +101,11 @@ person.
 - **Photos / media (`READ_MEDIA_IMAGES`)** — to read the meal photos you add to
   your food diary.
 - **Notifications** — to show reminders and status notifications.
+- **Microphone (`RECORD_AUDIO`)** — only requested when you first tap a mic
+  button to dictate a meal title or description. Speech is converted to text by
+  your phone's own speech recognition service (on most phones, Google's) and
+  only the resulting text is put into the field. The app does not record, store,
+  or send audio to the developer or to OpenAI.
 - **Health Connect - write nutrition (`health.WRITE_NUTRITION`)** — only
   requested if you turn on Health Connect sync in Settings; lets the app write
   your logged meals' nutrition figures to Health Connect.
