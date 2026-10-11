@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.shared
 
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedDateTime
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -12,7 +13,7 @@ class RecordsUiMapper @Inject constructor(
     private val templateUiMapper: TemplateUiMapper,
 ) {
     fun map(record: Record, timeOnly: Boolean = false, previousRecord: Record? = null): ListUiModelRecord {
-        val timestampStr = mapRecordTimestamp(record.timestamp, timeOnly) +
+        val timestampStr = mapRecordTimestamp(record.timestamp.toZonedDateTime(), timeOnly) +
             (timezoneShiftLabel(previousRecord, record)?.let { " $it" } ?: "")
 
         val nutrients = templateUiMapper.mapRecordNutrients(record.template.nutrients)
@@ -45,10 +46,12 @@ class RecordsUiMapper @Inject constructor(
      * timezones (e.g. crossing timezones mid-flight).
      */
     private fun timezoneShiftLabel(previousRecord: Record?, record: Record): String? {
-        val previousZone = previousRecord?.timestamp?.zone ?: return null
-        if (previousZone == record.timestamp.zone) return null
+        val previousTimestamp = previousRecord?.timestamp?.toZonedDateTime()
+        val recordTimestamp = record.timestamp.toZonedDateTime()
+        val previousZone = previousTimestamp?.zone ?: return null
+        if (previousZone == recordTimestamp.zone) return null
 
-        val diffSeconds = record.timestamp.offset.totalSeconds - previousRecord.timestamp.offset.totalSeconds
+        val diffSeconds = recordTimestamp.offset.totalSeconds - previousTimestamp.offset.totalSeconds
         if (diffSeconds == 0) return null
 
         val sign = if (diffSeconds > 0) "+" else "-"

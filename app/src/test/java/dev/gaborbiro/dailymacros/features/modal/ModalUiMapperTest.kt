@@ -7,6 +7,7 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
 import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedInstant
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -29,7 +30,7 @@ class ModalUiMapperTest {
     fun `mapNutrientBreakdowns formats calories and notes`() {
         val record = Record(
             recordId = 1L,
-            timestamp = ZonedDateTime.of(2024, 1, 1, 12, 0, 0, 0, zone),
+            timestamp = ZonedDateTime.of(2024, 1, 1, 12, 0, 0, 0, zone).toZonedInstant(),
             template = Template(
                 dbId = 1L,
                 imageFilenames = emptyList(),
@@ -79,7 +80,7 @@ class ModalUiMapperTest {
 
     private fun recordWith(mealComponents: List<MealComponent>) = Record(
         recordId = 1L,
-        timestamp = ZonedDateTime.of(2024, 1, 1, 12, 0, 0, 0, zone),
+        timestamp = ZonedDateTime.of(2024, 1, 1, 12, 0, 0, 0, zone).toZonedInstant(),
         template = Template(
             dbId = 1L,
             imageFilenames = emptyList(),

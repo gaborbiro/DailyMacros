@@ -8,6 +8,8 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImage
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
 import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
 import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.common.model.ZonedInstant
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedInstant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.runBlocking
@@ -15,15 +17,16 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import kotlin.time.Instant
 
 class CreateRecordFromTemplateUseCaseTest {
 
     @Test
     fun `execute saves record with the given timestamp and returns new id`() = runBlocking {
         var savedTemplateId: Long? = null
-        var savedAt: ZonedDateTime? = null
+        var savedAt: ZonedInstant? = null
         val repo = object : StubRecordsRepository() {
-            override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
+            override suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant): Long {
                 savedTemplateId = templateId
                 savedAt = timestamp
                 return 42L
@@ -33,11 +36,11 @@ class CreateRecordFromTemplateUseCaseTest {
         val id = CreateRecordFromTemplateUseCase(repo).execute(7L, timestamp)
         assertEquals(42L, id)
         assertEquals(7L, savedTemplateId)
-        assertEquals(timestamp, savedAt)
+        assertEquals(timestamp.toZonedInstant(), savedAt)
     }
 
     private open class StubRecordsRepository : RecordsRepository {
-        override suspend fun getRecords(since: ZonedDateTime?) = emptyList<Record>()
+        override suspend fun getRecords(since: Instant?) = emptyList<Record>()
         override suspend fun getTemplateIdsInSameVariantFamily(templateId: Long) = emptyList<Long>()
         override suspend fun countTemplates(): Int = 0
         override fun getMostRecentRecord(): Record? = null
@@ -50,7 +53,7 @@ class CreateRecordFromTemplateUseCaseTest {
         override fun observe(recordId: Long): Flow<Record> = emptyFlow()
         override suspend fun getTemplate(templateId: Long): Template = error("not used")
         override suspend fun saveTemplate(templateToSave: TemplateToSave) = 0L
-        override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime) = 0L
+        override suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant) = 0L
         override suspend fun updateRecord(record: Record) = Unit
         override suspend fun deleteRecord(recordId: Long): Record = error("not used")
         override suspend fun deleteTemplateIfUnused(templateId: Long, imageToo: Boolean) = false to false

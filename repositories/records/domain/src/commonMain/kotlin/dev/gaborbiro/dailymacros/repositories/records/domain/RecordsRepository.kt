@@ -1,18 +1,19 @@
 package dev.gaborbiro.dailymacros.repositories.records.domain
 
+import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
+import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.common.model.ZonedInstant
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
-import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
-import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
 import kotlinx.coroutines.flow.Flow
-import java.time.ZonedDateTime
+import kotlin.time.Instant
 
 interface RecordsRepository {
 
-    suspend fun getRecords(since: ZonedDateTime? = null): List<Record>
+    suspend fun getRecords(since: Instant? = null): List<Record>
 
     /**
      * All template ids in the same user-created variant family as [templateId] (shared root from
@@ -43,7 +44,7 @@ interface RecordsRepository {
 
     suspend fun saveTemplate(templateToSave: TemplateToSave): Long
 
-    suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long
+    suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant): Long
 
     suspend fun updateRecord(record: Record)
 

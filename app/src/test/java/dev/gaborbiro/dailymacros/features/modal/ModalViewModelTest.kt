@@ -41,6 +41,9 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImage
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
 import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
 import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.common.model.ZonedInstant
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedDateTime
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedInstant
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
@@ -303,7 +306,7 @@ class ModalViewModelTest {
                 return 42L
             }
 
-            override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
+            override suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant): Long {
                 saveRecordCalls++
                 assertEquals(42L, templateId)
                 return 99L
@@ -322,10 +325,10 @@ class ModalViewModelTest {
     @Test
     fun `submit uses the timestamp captured when record creation started, not when it's saved`() =
         runTest(testDispatcher) {
-            var savedAt: ZonedDateTime? = null
+            var savedAt: ZonedInstant? = null
             val repo = object : BaseRecordsRepositoryStub() {
                 override suspend fun saveTemplate(templateToSave: TemplateToSave) = 42L
-                override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
+                override suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant): Long {
                     savedAt = timestamp
                     return 99L
                 }
@@ -333,7 +336,7 @@ class ModalViewModelTest {
             val vm = viewModel(repo)
             vm.onCreateRecordWithTextDeeplinkReceived()
             val startedAt =
-                (vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.Edit).startedAt
+                (vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.Edit).startedAt.toZonedInstant()
             // Simulate the app being backgrounded for a while between opening the create-record
             // screen and finally submitting it.
             Thread.sleep(50)
@@ -374,7 +377,7 @@ class ModalViewModelTest {
         vm.onTimestampPicked(newTimestamp)
         advanceUntilIdle()
 
-        assertEquals(newTimestamp, updatedRecord?.timestamp)
+        assertEquals(newTimestamp, updatedRecord?.timestamp?.toZonedDateTime())
         assertEquals(5L, updatedRecord?.recordId)
         assertNull(vm.uiState.value.overlayDialog)
         assertEquals(
@@ -437,7 +440,7 @@ class ModalViewModelTest {
             override suspend fun countRecordsForTemplate(templateId: Long) = 1
             override suspend fun getTemplateIdsInSameVariantFamily(templateId: Long) = listOf(templateId)
             override suspend fun getTemplate(templateId: Long) = tpl
-            override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
+            override suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant): Long {
                 saveRecordCalls++
                 assertEquals(99L, templateId)
                 return 100L
@@ -472,7 +475,7 @@ class ModalViewModelTest {
                 return 99L
             }
 
-            override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
+            override suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant): Long {
                 saveRecordCalls++
                 assertEquals(7L, templateId)
                 return 88L
@@ -509,7 +512,7 @@ class ModalViewModelTest {
                 return 99L
             }
 
-            override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
+            override suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant): Long {
                 saveRecordCalls++
                 assertEquals(7L, templateId)
                 return 88L

@@ -11,21 +11,23 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.RecordEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TopContributorsEntity
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
+import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
+import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.common.model.ZonedInstant
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
-import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
-import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import java.time.ZonedDateTime
+import kotlinx.datetime.toJavaLocalDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Instant
 
 @Singleton
 class RecordsRepositoryImpl @Inject constructor(
@@ -38,8 +40,8 @@ class RecordsRepositoryImpl @Inject constructor(
 
     // -------- Reads --------
 
-    override suspend fun getRecords(since: ZonedDateTime?): List<Record> = recordsDAO
-        .get(since?.toInstant()?.toEpochMilli() ?: 0L)
+    override suspend fun getRecords(since: Instant?): List<Record> = recordsDAO
+        .get(since?.toEpochMilliseconds() ?: 0L)
         .map(mapper::map)
 
     override suspend fun getTemplateIdsInSameVariantFamily(templateId: Long): List<Long> =
@@ -135,16 +137,16 @@ class RecordsRepositoryImpl @Inject constructor(
         return templateId
     }
 
-    override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
+    override suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant): Long {
         return recordsDAO.insertOrUpdate(mapper.map(templateId, timestamp))
     }
 
     override suspend fun updateRecord(record: Record) {
         recordsDAO.insertOrUpdate(
             RecordEntity(
-                timestamp = record.timestamp.toLocalDateTime(),
-                zoneId = record.timestamp.zone.id,
-                epochMillis = record.timestamp.toInstant().toEpochMilli(),
+                timestamp = record.timestamp.localDateTime.toJavaLocalDateTime(),
+                zoneId = record.timestamp.timeZone.id,
+                epochMillis = record.timestamp.instant.toEpochMilliseconds(),
                 templateId = record.template.dbId,
             ).apply {
                 id = record.recordId

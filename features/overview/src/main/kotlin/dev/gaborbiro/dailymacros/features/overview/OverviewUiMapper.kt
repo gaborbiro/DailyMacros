@@ -34,6 +34,7 @@ import java.util.Locale
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 import dev.gaborbiro.dailymacros.features.overview.R
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedDateTime
 import javax.inject.Inject
 
 class OverviewUiMapper @Inject constructor(
@@ -74,7 +75,7 @@ class OverviewUiMapper @Inject constructor(
                     phrase.isNotEmpty() && "${record.template.name} ${record.template.description}"
                         .lowercase()
                         .contains(phrase)
-                }.thenByDescending { (record, _) -> record.timestamp }
+                }.thenByDescending { (record, _) -> record.timestamp.instant }
             )
             .map { (_, uiModel) -> uiModel }
     }
@@ -773,20 +774,20 @@ class OverviewUiMapper @Inject constructor(
 
     private fun List<Record>.groupByWallClockDay(dayStart: LocalTime): List<TravelDay> {
         return this
-            .sortedBy { it.timestamp.toInstant() }
+            .sortedBy { it.timestamp.instant }
             .groupByTo(
                 destination = sortedMapOf(),
-                keySelector = { it.timestamp.logicalDiaryDate(dayStart) },
+                keySelector = { it.timestamp.toZonedDateTime().logicalDiaryDate(dayStart) },
                 valueTransform = { it }
             )
             .map { (day, records) ->
-                val start = records.minBy { it.timestamp.toInstant() }.timestamp
-                val end = records.maxBy { it.timestamp.toInstant() }.timestamp
+                val start = records.minBy { it.timestamp.instant }.timestamp
+                val end = records.maxBy { it.timestamp.instant }.timestamp
                 TravelDay(
                     records = records.toList(),
                     day = day,
-                    firstLog = start,
-                    lastLog = end,
+                    firstLog = start.toZonedDateTime(),
+                    lastLog = end.toZonedDateTime(),
                     diaryDayStart = dayStart,
                 )
             }

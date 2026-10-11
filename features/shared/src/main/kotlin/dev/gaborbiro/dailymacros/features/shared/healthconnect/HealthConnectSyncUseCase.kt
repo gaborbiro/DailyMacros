@@ -8,12 +8,15 @@ import androidx.health.connect.client.records.metadata.Metadata
 import androidx.health.connect.client.units.Energy
 import androidx.health.connect.client.units.Mass
 import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedDateTime
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import java.time.ZonedDateTime
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.toJavaDuration
+import kotlin.time.toJavaInstant
+import kotlin.time.toKotlinInstant
 
 sealed class HealthConnectSyncResult {
     data class Success(val count: Int) : HealthConnectSyncResult()
@@ -59,7 +62,7 @@ class HealthConnectSyncUseCase @Inject constructor(
         }
         return try {
             val client = HealthConnectClient.getOrCreate(application)
-            val nutritionRecords = recordsRepository.getRecords(since = since)
+            val nutritionRecords = recordsRepository.getRecords(since = since.toInstant().toKotlinInstant())
                 .filter { it.template.nutrients.calories != null }
                 .map { it.toNutritionRecord() }
             if (nutritionRecords.isNotEmpty()) {
@@ -92,8 +95,8 @@ class HealthConnectSyncUseCase @Inject constructor(
      * [Nutrients.salt] is converted to sodium (salt ÷ 2.5).
      */
     private fun Record.toNutritionRecord(): NutritionRecord {
-        val startInstant = timestamp.toInstant()
-        val zoneOffset = timestamp.offset
+        val startInstant = timestamp.instant.toJavaInstant()
+        val zoneOffset = timestamp.toZonedDateTime().offset
         val nutrients = template.nutrients
         return NutritionRecord(
             startTime = startInstant,
