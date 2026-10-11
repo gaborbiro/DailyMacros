@@ -119,13 +119,13 @@ fun ColumnScope.RecordDetailsCreateView(
         textStyle = MaterialTheme.typography.bodyMedium,
         trailingIcon = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (!showProgressIndicator) {
-                    VoiceInputButton(
-                        onTextRecognised = { spoken ->
-                            onTitleChanged(appendSpokenText(title, spoken))
-                        },
-                    )
-                }
+                // Stays available while image recognition runs: a non-blank title is kept
+                // over the AI's suggestion (see ModalViewModel.runFoodRecognition).
+                VoiceInputButton(
+                    onTextRecognised = { spoken ->
+                        onTitleChanged(appendSpokenText(title, spoken))
+                    },
+                )
                 if (showProgressIndicator || showRunAIButton) {
                     Box(
                         modifier = Modifier.size(48.dp),
@@ -223,6 +223,8 @@ fun ColumnScope.RecordDetailsCreateView(
     )
 }
 
+private const val SILENCE_TIMEOUT_MILLIS = 5_000L
+
 /**
  * Mic button that hands off to the device's own speech recogniser (on most phones that's
  * Google's, the same engine as Gboard voice typing) via [RecognizerIntent]. The recogniser
@@ -239,6 +241,10 @@ private fun VoiceInputButton(
         Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
             .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             .putExtra(RecognizerIntent.EXTRA_PROMPT, prompt)
+            // Wait longer through pauses while you think of the next item. These are hints:
+            // the recogniser app decides whether to honour them.
+            .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, SILENCE_TIMEOUT_MILLIS)
+            .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, SILENCE_TIMEOUT_MILLIS)
     }
     val isAvailable = remember(intent) {
         intent.resolveActivity(context.packageManager) != null
