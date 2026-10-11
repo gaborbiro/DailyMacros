@@ -16,7 +16,8 @@ android-sdk-target = "36"
 # --- Toolchains / Plugins ------------------------------------------------------
 # -------------------------------------------------------------------------------
 agp = "9.4.1"
-kotlin-compose = "2.4.21"
+kotlin = "2.4.21"
+kotlinx-datetime = "0.8.0"
 ksp = "2.3.12"
 google-services = "4.5.0"
 firebase-crashlytics-plugin = "3.0.8"
@@ -177,6 +178,10 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 kotlinx-coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-guava", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 # -------------------------------------------------------------------------------
+# --- KotlinX / Misc ------------------------------------------------------------
+# -------------------------------------------------------------------------------
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
+# -------------------------------------------------------------------------------
 # --- UI / Charts ---------------------------------------------------------------
 # -------------------------------------------------------------------------------
 vico-compose = { module = "com.patrykandpatrick.vico:compose", version.ref = "vico" }
@@ -207,13 +212,15 @@ test-junit = { module = "junit:junit", version.ref = "junit" }
 test-robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 androidx-test-core = { module = "androidx.test:core", version.ref = "androidx-test-core" }
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidx-test-core" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin-compose" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
 firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebase-crashlytics-plugin" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "dagger" }
 version-catalog-update = { id = "nl.littlerobots.version-catalog-update", version.ref = "version-catalog-update" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
