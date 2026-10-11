@@ -23,10 +23,6 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-// Process-wide: MainActivity.onResume and EndOfDayAutoSyncWorker each get their own instance,
-// and onResume fires again on every return from the camera, a picker or a permission dialog.
-// Without serialising, a second run can see the first run's just-committed upload before the
-// first run records it, and report it as a conflict.
 private val autoSyncMutex = Mutex()
 
 class AutoSyncUseCase @Inject constructor(
