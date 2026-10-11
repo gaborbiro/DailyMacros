@@ -21,6 +21,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAn
 import dev.gaborbiro.dailymacros.features.modal.usecase.BuildRecordDetailsViewDialogUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateTemplateUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.LogMealFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.ExportImageToGalleryUseCase
@@ -86,6 +87,7 @@ class ModalViewModel @Inject constructor(
     private val getTemplateImageUseCase: GetTemplateImageUseCase,
     private val foodRecognitionUseCase: FoodRecognitionUseCase,
     private val applyQuickPickOverrideAndReloadWidgetUseCase: ApplyQuickPickOverrideAndReloadWidgetUseCase,
+    private val logMealFromTemplateUseCase: LogMealFromTemplateUseCase,
     private val analyticsLogger: AnalyticsLogger,
     private val errorUiMapper: ErrorUiMapper,
 ) : AndroidViewModel(application) {
@@ -195,11 +197,7 @@ class ModalViewModel @Inject constructor(
     private fun logMealFromTemplate(templateId: Long) {
         viewModelScope.launch {
             try {
-                val recordId = createRecordFromTemplateUseCase.execute(
-                    templateId,
-                    ZonedDateTime.now(ZoneId.systemDefault()),
-                )
-                scheduleMacroAnalysisForRecordIfTemplateIncomplete(recordId, templateId)
+                logMealFromTemplateUseCase.execute(templateId)
                 _uiUpdates.emit(
                     ModalUiUpdates.ShowToast(application.getString(R.string.quick_pick_confirm_logged_toast))
                 )
