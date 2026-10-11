@@ -15,10 +15,6 @@ Native Android app (Daily Macros). A small Firebase Cloud Functions backend (`fu
 | Update version catalog | `./gradlew versionCatalogUpdate` |
 | Deploy OpenAI proxy | `firebase deploy --only functions` (from repo root; see `functions/README.md`) |
 
-## Testing
-
-- For deep-link changes, consider `@DeeplinkTest` coverage.
-
 ## CI/CD
 
 - **CI** (`.github/workflows/android.yml`): runs tests + `assembleDebug` on push/PR to `master`. On merge to `master`, creates a GitHub Release tagged `build-<shortSha>`. On PRs from the same repo, creates a prerelease tagged `pr-<PR#>-<shortSha>`.
@@ -28,3 +24,7 @@ Native Android app (Daily Macros). A small Firebase Cloud Functions backend (`fu
 - The OpenAI key is **not** embedded in the app or CI. It lives only as a Firebase secret (`OPENAI_KEY`) used by the `functions/` proxy; keyless app builds reach OpenAI through that proxy (authenticated with an anonymous Firebase token). The hidden "Personalise AI" feature lets a user supply their own key at runtime for a direct call. See `functions/README.md`.
 - Shake tester feedback (`app/.../feedback/ShakeFeedback.kt`) reads its App API key from the `shakeApiKey` Gradle property or `SHAKE_API_KEY` env var into `BuildConfig.SHAKE_API_KEY`. It is required: packaging any APK/AAB without it fails (`verifyShakeApiKey`); unit tests and lint don't need it. CI uses the `SHAKE_API_KEY` secret (release) and `SHAKE_API_KEY_DEBUG` (debug builds, separate Shake app for the `.debug` package).
 - Do not introduce secrets into source control.
+
+## Project-Specific Architecture Notes
+
+Standard layered architecture (see global rules at c:\Users\GaborBiro\.claude\CLAUDE.md)
