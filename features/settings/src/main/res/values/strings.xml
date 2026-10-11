@@ -167,4 +167,5 @@
     <!-- Debug -->
     <string name="settings_debug_section">Debug</string>
     <string name="settings_debug_show_onboarding_row">Show onboarding screens</string>
+    <string name="settings_debug_meal_reminders_row">Meal reminder timing (tap to refresh)</string>
 </resources>
