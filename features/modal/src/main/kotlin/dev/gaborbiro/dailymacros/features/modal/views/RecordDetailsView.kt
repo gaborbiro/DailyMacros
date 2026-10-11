@@ -189,6 +189,15 @@ fun ColumnScope.RecordDetailsView(
                     color = Color.Gray,
                 )
             },
+            trailingIcon = {
+                VoiceInputButton(
+                    prompt = stringResource(R.string.modal_content_voice_input_prompt),
+                    contentDescription = stringResource(R.string.modal_content_voice_input_cd),
+                    onTextRecognised = { spoken ->
+                        onTitleChanged(appendSpokenText(title, spoken))
+                    },
+                )
+            },
             value = title,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Text,
@@ -225,6 +234,15 @@ fun ColumnScope.RecordDetailsView(
                     style = MaterialTheme.typography.labelLarge,
                     fontStyle = FontStyle.Italic,
                     color = Color.Gray,
+                )
+            },
+            trailingIcon = {
+                VoiceInputButton(
+                    prompt = stringResource(R.string.modal_content_voice_input_description_prompt),
+                    contentDescription = stringResource(R.string.modal_content_voice_input_description_cd),
+                    onTextRecognised = { spoken ->
+                        onDescriptionChanged(appendSpokenText(description, spoken))
+                    },
                 )
             },
             value = description,
