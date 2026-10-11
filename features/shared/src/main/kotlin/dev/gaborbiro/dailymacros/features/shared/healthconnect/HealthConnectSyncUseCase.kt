@@ -8,6 +8,7 @@ import androidx.health.connect.client.records.metadata.Metadata
 import androidx.health.connect.client.units.Energy
 import androidx.health.connect.client.units.Mass
 import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedDateTime
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import java.time.ZonedDateTime
@@ -93,8 +94,9 @@ class HealthConnectSyncUseCase @Inject constructor(
      * [Nutrients.salt] is converted to sodium (salt ÷ 2.5).
      */
     private fun Record.toNutritionRecord(): NutritionRecord {
-        val startInstant = timestamp.toInstant()
-        val zoneOffset = timestamp.offset
+        val zonedTimestamp = timestamp.toZonedDateTime()
+        val startInstant = zonedTimestamp.toInstant()
+        val zoneOffset = zonedTimestamp.offset
         val nutrients = template.nutrients
         return NutritionRecord(
             startTime = startInstant,
