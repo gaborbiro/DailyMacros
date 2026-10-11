@@ -9,7 +9,13 @@
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowNoTitle">true</item>
         <item name="windowNoTitle">true</item>
-        <item name="android:windowIsFloating">true</item>
+        <!--
+           Not floating: ModalActivity draws nothing itself (its UI is all Compose dialogs), so
+           a floating, wrap-content window measures 0x0. Shake sizes its screenshot from this
+           window before drawing the dialogs on top, and a 0x0 window means no screenshot at
+           all. A full-screen transparent window looks the same.
+        -->
+        <item name="android:windowIsFloating">false</item>
         <item name="android:backgroundDimEnabled">true</item>
     </style>
 </resources>

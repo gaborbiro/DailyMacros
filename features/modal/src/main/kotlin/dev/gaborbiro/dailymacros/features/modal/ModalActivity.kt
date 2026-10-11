@@ -30,6 +30,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import dev.gaborbiro.dailymacros.features.modal.R
+import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.file.domain.FileStore
 import dev.gaborbiro.dailymacros.data.image.DefaultFoodPicExt
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
@@ -50,6 +51,13 @@ import dev.gaborbiro.dailymacros.features.modal.views.RecordDetailsDialog
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
+import dev.gaborbiro.dailymacros.features.modal.usecase.LogMealFromTemplateUseCase
+import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -62,10 +70,24 @@ class ModalActivity : AppCompatActivity() {
     @FileStorePublicBucketEphemeral
     lateinit var cacheFileStore: FileStore
 
+    @Inject
+    lateinit var analyticsLogger: AnalyticsLogger
+
+    @Inject
+    lateinit var settingsRepository: SettingsRepository
+
+    @Inject
+    lateinit var logMealFromTemplateUseCase: LogMealFromTemplateUseCase
+
     private val viewModel: ModalViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (logQuickPickWithoutShowing()) {
+            finish()
+            return
+        }
 
         setShowWhenLocked(true)
         setTurnScreenOn(true)
@@ -92,6 +114,11 @@ class ModalActivity : AppCompatActivity() {
 
         setContent {
             val viewState by viewModel.uiState.collectAsStateWithLifecycle()
+
+            val screen = viewState.toModalScreen()
+            LaunchedEffect(screen) {
+                screen?.let { analyticsLogger.logScreenView(it.name, it.args) }
+            }
 
             val notificationPermissionLauncher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.RequestPermission(),
@@ -183,6 +210,33 @@ class ModalActivity : AppCompatActivity() {
         if (notificationId != -1) {
             getSystemService(NotificationManager::class.java).cancel(notificationId)
         }
+    }
+
+    /**
+     * A quick pick widget tap with the "Log meal again?" confirmation turned off has nothing to
+     * show: log the meal and let onCreate finish before the window is ever drawn, so the tap
+     * doesn't flash this Activity's dimmed backdrop (or Shake's feedback button). With the
+     * confirmation on, the normal path shows the dialog.
+     */
+    private fun logQuickPickWithoutShowing(): Boolean {
+        if (intent.getStringExtra(EXTRA_ACTION) != Action.QUICK_PICK_WIDGET_CONFIRM.name) return false
+        if (settingsRepository.getQuickPickConfirmationEnabled()) return false
+        val templateId = intent.getLongExtra(EXTRA_TEMPLATE_ID, -1L).takeIf { it != -1L } ?: return false
+        val appContext = applicationContext
+        // Outlives this Activity, which finishes straight away; the write takes milliseconds.
+        CoroutineScope(SupervisorJob() + Dispatchers.Main).launch {
+            val message = try {
+                logMealFromTemplateUseCase.execute(templateId)
+                R.string.quick_pick_confirm_logged_toast
+            } catch (e: CancellationException) {
+                throw e
+            } catch (t: Throwable) {
+                analyticsLogger.logError(t)
+                R.string.quick_pick_confirm_log_failed_toast
+            }
+            Toast.makeText(appContext, message, Toast.LENGTH_SHORT).show()
+        }
+        return true
     }
 
     private fun getActionFromIntent(intent: Intent = this.intent): Action? {

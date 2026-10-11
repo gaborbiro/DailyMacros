@@ -43,6 +43,7 @@
     <!-- SearchFAB -->
     <string name="overview_content_search">Search</string>
     <string name="overview_content_search_clear_cd">Clear search</string>
+    <string name="overview_content_search_no_results">No results for “%1$s”</string>
     <!-- Nutrient labels (OverviewUiMapper) -->
     <string name="overview_content_nutrient_calories">Calories</string>
     <string name="overview_content_nutrient_protein">Protein</string>
