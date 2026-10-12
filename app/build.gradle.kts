@@ -268,7 +268,7 @@ afterEvaluate {
 }
 
 // Runs only before packaging (APK/AAB), so unit tests and lint still work without the key.
-val verifyShakeApiKey by tasks.registering {
+val verifyShakeApiKey = tasks.register("verifyShakeApiKey") {
     group = "verification"
     description = "Fails the build when no Shake API key is configured (see ShakeFeedback.kt)"
     val keyMissing = shakeApiKey().isEmpty()
