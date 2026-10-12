@@ -33,10 +33,10 @@ class ModalUiMapper @Inject constructor(
 
         return NutrientBreakdownUiModel(
             calories = nutrientBreakdown.calories?.let {
-                templateUiMapper.formatCalories(value = it, withLabel = true)
+                "Calories: " + templateUiMapper.formatCalories(value = it)
             },
             protein = nutrientBreakdown.protein?.let {
-                templateUiMapper.formatProtein(value = it, withLabel = true) +
+                "Protein: " + templateUiMapper.formatProtein(value = it) +
                         templateUiMapper.formatTopContributorSuffix(
                             amount = it,
                             line = NutrientDisplayLine.Protein,
@@ -44,7 +44,7 @@ class ModalUiMapper @Inject constructor(
                         )
             },
             fat = nutrientBreakdown.fat?.let {
-                templateUiMapper.formatFat(value = it, saturated = null, withLabel = true) +
+                "Fat: " + templateUiMapper.formatFat(value = it, saturated = null) +
                         templateUiMapper.formatTopContributorSuffix(
                             amount = it,
                             line = NutrientDisplayLine.Fat,
@@ -52,7 +52,7 @@ class ModalUiMapper @Inject constructor(
                         )
             },
             ofWhichSaturated = nutrientBreakdown.ofWhichSaturated?.let {
-                templateUiMapper.formatSaturatedFat(value = it, withLabel = true) +
+                "of which saturated: " + templateUiMapper.formatSaturatedFat(value = it) +
                         templateUiMapper.formatTopContributorSuffix(
                             amount = it,
                             line = NutrientDisplayLine.OfWhichSaturated,
@@ -60,7 +60,7 @@ class ModalUiMapper @Inject constructor(
                         )
             },
             carbs = nutrientBreakdown.carbs?.let {
-                templateUiMapper.formatCarbs(value = it, sugar = null, addedSugar = null, withLabel = true) +
+                "Carb: " + templateUiMapper.formatCarbs(value = it, sugar = null, addedSugar = null) +
                         templateUiMapper.formatTopContributorSuffix(
                             amount = it,
                             line = NutrientDisplayLine.Carb,
@@ -68,7 +68,7 @@ class ModalUiMapper @Inject constructor(
                         )
             },
             ofWhichSugar = nutrientBreakdown.ofWhichSugar?.let {
-                templateUiMapper.formatSugar(value = it, withLabel = true) +
+                "of which sugar: " + templateUiMapper.formatSugar(value = it) +
                         templateUiMapper.formatTopContributorSuffix(
                             amount = it,
                             line = NutrientDisplayLine.OfWhichSugar,
@@ -76,7 +76,7 @@ class ModalUiMapper @Inject constructor(
                         )
             },
             ofWhichAddedSugar = nutrientBreakdown.ofWhichAddedSugar?.let {
-                templateUiMapper.formatAddedSugar(value = it, withLabel = true) +
+                "of which added sugar: " + templateUiMapper.formatAddedSugar(value = it) +
                         templateUiMapper.formatTopContributorSuffix(
                             amount = it,
                             line = NutrientDisplayLine.OfWhichAddedSugar,
@@ -84,7 +84,7 @@ class ModalUiMapper @Inject constructor(
                         )
             },
             salt = nutrientBreakdown.salt?.let {
-                templateUiMapper.formatSalt(value = it, withLabel = true) +
+                "Salt: " + templateUiMapper.formatSalt(value = it) +
                         templateUiMapper.formatTopContributorSuffix(
                             amount = it,
                             line = NutrientDisplayLine.Salt,
@@ -92,7 +92,7 @@ class ModalUiMapper @Inject constructor(
                         )
             },
             fibre = nutrientBreakdown.fibre?.let {
-                templateUiMapper.formatFibre(value = it, withLabel = true) +
+                "Fibre: " + templateUiMapper.formatFibre(value = it) +
                         templateUiMapper.formatTopContributorSuffix(
                             amount = it,
                             line = NutrientDisplayLine.Fibre,

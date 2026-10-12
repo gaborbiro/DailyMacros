@@ -8,6 +8,6 @@ enum class NutrientDisplayLine(val unit: String, val decimalCount: Int, val drop
     OfWhichAddedSugar(unit = "g", decimalCount = 0, dropTrailingZeroes = true),
     Fat(unit = "g", decimalCount = 0, dropTrailingZeroes = true),
     OfWhichSaturated(unit = "g", decimalCount = 0, dropTrailingZeroes = true),
-    Salt(unit = "g", decimalCount = 1, dropTrailingZeroes = false),
+    Salt(unit = "g", decimalCount = 1, dropTrailingZeroes = true),
     Fibre(unit = "g", decimalCount = 0, dropTrailingZeroes = true),
 }
