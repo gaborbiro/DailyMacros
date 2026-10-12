@@ -1,9 +1,9 @@
 package dev.gaborbiro.dailymacros.features.shared
 
-import android.icu.text.DecimalFormat
 import android.util.Range
 import dev.gaborbiro.dailymacros.features.common.views.NutrientDisplayLine
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
+import dev.gaborbiro.dailymacros.features.shared.nutrition.formatDecimal
 import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
@@ -94,27 +94,11 @@ class TemplateUiMapper @Inject constructor() {
         generateAndApplyFormat(value, NutrientDisplayLine.Fibre)
 
     private fun generateAndApplyFormat(value: Number, line: NutrientDisplayLine): String {
-        val format = generateFormat(
+        return formatDecimal(
+            value = value.toDouble(),
             decimalCount = line.decimalCount,
             dropTrailingZeroes = line.dropTrailingZeroes,
-        )
-        return format.format(value) + line.unit
-    }
-
-    private fun generateFormat(
-        decimalCount: Int,
-        dropTrailingZeroes: Boolean,
-    ): DecimalFormat {
-        require(decimalCount >= 0)
-        val decimalPattern = buildString {
-            append("0")
-            if (decimalCount > 0) {
-                append('.')
-                val ch = if (dropTrailingZeroes) '#' else '0'
-                repeat(decimalCount) { append(ch) }
-            }
-        }
-        return DecimalFormat(decimalPattern)
+        ) + line.unit
     }
 
     //////////////////////////////////////////////////////////////////////////
