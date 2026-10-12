@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.shared.mealreminders
 
 import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryDate
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedDateTime
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import java.time.DayOfWeek
 import java.time.Duration
@@ -40,8 +41,9 @@ object MealReminderPlanner {
         loggedDayRule: LoggedDayRule,
         history: Map<MealSlot, SlotReminderHistory> = emptyMap(),
     ): List<MealSlotPlan> {
+        val logs = records.map { MealLog(it.timestamp.toZonedDateTime(), it.template.nutrients.calories) }
         val today = now.logicalDiaryDate(dayStart)
-        val learned = learnMealTimes(records, today, dayStart, loggedDayRule)
+        val learned = learnMealTimes(logs, today, dayStart, loggedDayRule)
         return MealSlot.entries.map { slot ->
             MealSlotPlan(
                 slot = slot,
@@ -49,7 +51,7 @@ object MealReminderPlanner {
                 decision = decide(
                     slot = slot,
                     learned = learned.getValue(slot),
-                    records = records,
+                    logs = logs,
                     now = now,
                     today = today,
                     dayStart = dayStart,
@@ -59,25 +61,25 @@ object MealReminderPlanner {
         }
     }
 
-    internal fun learnMealTimes(
-        records: List<Record>,
+    private fun learnMealTimes(
+        logs: List<MealLog>,
         today: LocalDate,
         dayStart: LocalTime,
         loggedDayRule: LoggedDayRule,
     ): Map<MealSlot, LearnedMealTime> {
         val firstDay = today.minusDays(LOOKBACK_DAYS)
-        val countedDays = records
+        val countedDays = logs
             .groupBy { it.timestamp.logicalDiaryDate(dayStart) }
             .filterKeys { it >= firstDay && it < today }
             .filterValues { loggedDayRule.counts(it) }
 
         // One sample per (day, slot): when that day's meal in that slot started.
         val samples: Map<MealSlot, List<Pair<LocalDate, Int>>> = countedDays
-            .flatMap { (day, dayRecords) ->
-                dayRecords
+            .flatMap { (day, dayLogs) ->
+                dayLogs
                     .filter { it.isKnownMeal() }
-                    .mapNotNull { record ->
-                        val minute = record.timestamp.diaryMinute(dayStart)
+                    .mapNotNull { log ->
+                        val minute = log.timestamp.diaryMinute(dayStart)
                         slotOf(minute, dayStart)?.let { slot -> Triple(slot, day, minute) }
                     }
                     .groupBy { it.first }
@@ -128,7 +130,7 @@ object MealReminderPlanner {
     private fun decide(
         slot: MealSlot,
         learned: LearnedMealTime,
-        records: List<Record>,
+        logs: List<MealLog>,
         now: ZonedDateTime,
         today: LocalDate,
         dayStart: LocalTime,
@@ -140,7 +142,7 @@ object MealReminderPlanner {
         val windowEndMinute = slot.windowEndMinute(dayStart)
         val windowEnd = todayAt(windowEndMinute)
 
-        val loggedInSlotToday = records.any {
+        val loggedInSlotToday = logs.any {
             it.mightBeMeal() &&
                 it.timestamp.logicalDiaryDate(dayStart) == today &&
                 slotOf(it.timestamp.diaryMinute(dayStart), dayStart) == slot
@@ -171,12 +173,12 @@ object MealReminderPlanner {
             ReminderStyle.CATCH_UP -> learned.lateMinute!! + CATCH_UP_DELAY_MINUTES.toInt()
         }.coerceIn(slot.windowStartMinute, windowEndMinute - LATEST_BASE_BEFORE_WINDOW_END_MINUTES)
 
-        val pastRecords = records.filter { !it.timestamp.isAfter(now) }
-        val afterLastMeal = pastRecords
+        val pastLogs = logs.filter { !it.timestamp.isAfter(now) }
+        val afterLastMeal = pastLogs
             .filter { it.mightBeMeal() }
             .maxOfOrNull { it.timestamp }
             ?.plusMinutes(MIN_GAP_AFTER_MEAL_MINUTES)
-        val afterLastLog = pastRecords
+        val afterLastLog = pastLogs
             .maxOfOrNull { it.timestamp }
             ?.plusMinutes(MIN_GAP_AFTER_ANY_LOG_MINUTES)
 
@@ -208,22 +210,24 @@ object MealReminderPlanner {
             .lastOrNull { diaryMinute >= it.windowStartMinute }
             ?.takeIf { diaryMinute < it.windowEndMinute(dayStart) }
 
-    private fun LoggedDayRule.counts(dayRecords: List<Record>): Boolean = when (this) {
-        LoggedDayRule.AnyRecord -> dayRecords.isNotEmpty()
-        is LoggedDayRule.MinimumCalories ->
-            dayRecords.sumOf { it.template.nutrients.calories ?: 0 } >= threshold
+    /** The parts of a [Record] the planner needs, with the timestamp converted to java.time once. */
+    private class MealLog(val timestamp: ZonedDateTime, val calories: Int?)
+
+    private fun LoggedDayRule.counts(dayLogs: List<MealLog>): Boolean = when (this) {
+        LoggedDayRule.AnyRecord -> dayLogs.isNotEmpty()
+        is LoggedDayRule.MinimumCalories -> dayLogs.sumOf { it.calories ?: 0 } >= threshold
     }
 
     /** Analysed and big enough to be a meal - the only records trusted for learning times. */
-    private fun Record.isKnownMeal(): Boolean =
-        (template.nutrients.calories ?: 0) >= MEAL_MIN_CALORIES
+    private fun MealLog.isKnownMeal(): Boolean =
+        (calories ?: 0) >= MEAL_MIN_CALORIES
 
     /**
      * For staying quiet, also trust records whose calories are unknown (still analysing, or never
      * analysed): a photo snapped five minutes ago is most likely the meal we'd be reminding about.
      */
-    private fun Record.mightBeMeal(): Boolean =
-        template.nutrients.calories.let { it == null || it >= MEAL_MIN_CALORIES }
+    private fun MealLog.mightBeMeal(): Boolean =
+        calories.let { it == null || it >= MEAL_MIN_CALORIES }
 
     private fun LocalDate.isWeekend(): Boolean =
         dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY

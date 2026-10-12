@@ -5,6 +5,7 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import java.time.ZonedDateTime
 import javax.inject.Inject
+import kotlin.time.toKotlinInstant
 
 /** Loads the history [MealReminderPlanner] needs and returns today's plan for each meal slot. */
 class GetMealReminderPlanUseCase @Inject constructor(
@@ -19,7 +20,7 @@ class GetMealReminderPlanUseCase @Inject constructor(
     ): MealReminderPlan {
         // Two spare days so the lookback still covers whole diary days around the day-start shift.
         val records = recordsRepository.getRecords(
-            since = now.minusDays(MealReminderPlanner.LOOKBACK_DAYS + 2),
+            since = now.minusDays(MealReminderPlanner.LOOKBACK_DAYS + 2).toInstant().toKotlinInstant(),
         )
         val loggedDayRule = loggedDayRuleProvider.get()
         return MealReminderPlan(

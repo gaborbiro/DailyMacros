@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.features.shared.mealreminders
 
 import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
 import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedInstant
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import org.junit.Assert.assertEquals
@@ -25,7 +26,7 @@ class MealReminderPlannerTest {
         val id = nextId++
         return Record(
             recordId = id,
-            timestamp = ZonedDateTime.of(date, LocalTime.parse(time), zone),
+            timestamp = ZonedDateTime.of(date, LocalTime.parse(time), zone).toZonedInstant(),
             template = Template(
                 dbId = id,
                 imageFilenames = emptyList(),
