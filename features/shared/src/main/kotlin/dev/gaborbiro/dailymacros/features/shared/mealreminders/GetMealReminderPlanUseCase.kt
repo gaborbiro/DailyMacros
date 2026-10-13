@@ -12,11 +12,12 @@ class GetMealReminderPlanUseCase @Inject constructor(
     private val recordsRepository: RecordsRepository,
     private val settingsRepository: SettingsRepository,
     private val loggedDayRuleProvider: LoggedDayRuleProvider,
+    private val prefs: MealReminderPrefs,
 ) {
 
     suspend fun execute(
         now: ZonedDateTime = ZonedDateTime.now(),
-        history: Map<MealSlot, SlotReminderHistory> = emptyMap(),
+        history: Map<MealSlot, SlotReminderHistory> = prefs.history(),
     ): MealReminderPlan {
         // Two spare days so the lookback still covers whole diary days around the day-start shift.
         val records = recordsRepository.getRecords(

@@ -291,4 +291,65 @@ class MealReminderPlannerTest {
         assertEquals(24 * 60 + 30, dinner.learned.typicalMinute)
         assertEquals(MealReminderDecision.Remind(at("00:30", today.plusDays(1)), ReminderStyle.PHOTO_PROMPT), dinner.decision)
     }
+
+    private fun resolve(
+        records: List<Record>,
+        now: ZonedDateTime,
+        slotHistory: SlotReminderHistory,
+    ): SlotReminderHistory =
+        MealReminderPlanner.resolveOutcomes(records, now, LocalTime.MIDNIGHT, mapOf(MealSlot.LUNCH to slotHistory))
+            .getValue(MealSlot.LUNCH)
+
+    @Test
+    fun `logging the meal after a reminder resets the ignored streak`() {
+        val reminded = SlotReminderHistory(lastRemindedAt = at("12:30"), consecutiveIgnored = 2, awaitingOutcome = true)
+
+        val resolved = resolve(listOf(record(today, "12:50", 600)), now = at("13:00"), reminded)
+
+        assertEquals(SlotReminderHistory(lastRemindedAt = at("12:30"), consecutiveIgnored = 0), resolved)
+    }
+
+    @Test
+    fun `a meal logged later but backdated into the slot still counts as acted on`() {
+        val reminded = SlotReminderHistory(lastRemindedAt = at("12:30"), consecutiveIgnored = 1, awaitingOutcome = true)
+
+        val resolved = resolve(listOf(record(today, "12:10", 600)), now = at("21:00"), reminded)
+
+        assertEquals(0, resolved.consecutiveIgnored)
+        assertEquals(false, resolved.awaitingOutcome)
+    }
+
+    @Test
+    fun `a reminder whose slot ended without a meal counts as ignored`() {
+        val reminded = SlotReminderHistory(lastRemindedAt = at("12:30"), consecutiveIgnored = 2, awaitingOutcome = true)
+
+        val resolved = resolve(listOf(record(today, "15:00", 100)), now = at("16:00"), reminded)
+
+        assertEquals(3, resolved.consecutiveIgnored)
+        assertEquals(false, resolved.awaitingOutcome)
+    }
+
+    @Test
+    fun `a reminder stays pending while its slot is still open`() {
+        val reminded = SlotReminderHistory(lastRemindedAt = at("12:30"), consecutiveIgnored = 1, awaitingOutcome = true)
+
+        assertEquals(reminded, resolve(emptyList(), now = at("15:59"), reminded))
+    }
+
+    @Test
+    fun `a settled reminder is left alone`() {
+        val settled = SlotReminderHistory(lastRemindedAt = at("12:30", today.minusDays(1)), consecutiveIgnored = 1)
+
+        assertEquals(settled, resolve(emptyList(), now = at("20:00"), settled))
+    }
+
+    @Test
+    fun `a meal on another day does not settle yesterday's reminder as acted on`() {
+        val yesterday = today.minusDays(1)
+        val reminded = SlotReminderHistory(lastRemindedAt = at("12:30", yesterday), awaitingOutcome = true)
+
+        val resolved = resolve(listOf(record(today, "12:30", 600)), now = at("13:00"), reminded)
+
+        assertEquals(1, resolved.consecutiveIgnored)
+    }
 }

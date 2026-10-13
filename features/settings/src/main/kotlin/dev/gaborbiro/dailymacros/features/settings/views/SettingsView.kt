@@ -82,6 +82,7 @@ internal fun SettingsView(
     onDiaryDayStartDialogDismissed: () -> Unit,
     onDiaryDayStartHourSelected: (Int) -> Unit,
     onAutoPhotoRecognitionToggled: (Boolean) -> Unit,
+    onMealRemindersToggled: (Boolean) -> Unit = {},
     onQuickPickConfirmationToggled: (Boolean) -> Unit,
     onWifiOnlyBackupToggled: (Boolean) -> Unit,
     onWifiOnlyAnalysisToggled: (Boolean) -> Unit,
@@ -288,6 +289,21 @@ internal fun SettingsView(
                         Switch(
                             checked = viewState.autoPhotoRecognitionEnabled,
                             onCheckedChange = onAutoPhotoRecognitionToggled,
+                        )
+                    },
+                )
+            }
+
+            if (viewState.mealRemindersVisible) {
+                SettingSectionHeader(title = stringResource(R.string.settings_content_reminders_section))
+                SettingRow(
+                    title = stringResource(R.string.settings_meal_reminders_row),
+                    subtitle = stringResource(R.string.settings_meal_reminders_subtitle),
+                    onTapped = { onMealRemindersToggled(!viewState.mealRemindersEnabled) },
+                    trailing = {
+                        Switch(
+                            checked = viewState.mealRemindersEnabled,
+                            onCheckedChange = onMealRemindersToggled,
                         )
                     },
                 )

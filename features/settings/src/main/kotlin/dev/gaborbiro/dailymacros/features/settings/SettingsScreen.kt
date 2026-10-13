@@ -56,6 +56,13 @@ fun SettingsScreen(
         else settingsViewModel.onAutoPhotoPermissionsDenied()
     }
 
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) settingsViewModel.onNotificationPermissionGranted()
+        else settingsViewModel.onNotificationPermissionDenied()
+    }
+
     val healthConnectPermissionLauncher = rememberLauncherForActivityResult(
         contract = PermissionController.createRequestPermissionResultContract()
     ) { granted ->
@@ -81,6 +88,11 @@ fun SettingsScreen(
                     }
                     photoPermissionLauncher.launch(permission)
                 }
+                SettingsUiUpdates.RequestNotificationPermission -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                }
                 SettingsUiUpdates.RequestHealthConnectPermissions -> {
                     healthConnectPermissionLauncher.launch(HealthConnectSyncUseCase.PERMISSIONS)
                 }
@@ -100,6 +112,7 @@ fun SettingsScreen(
         onDiaryDayStartDialogDismissed = settingsViewModel::onDiaryDayStartDialogDismissed,
         onDiaryDayStartHourSelected = settingsViewModel::onDiaryDayStartHourSelected,
         onAutoPhotoRecognitionToggled = settingsViewModel::onAutoPhotoRecognitionToggled,
+        onMealRemindersToggled = settingsViewModel::onMealRemindersToggled,
         onQuickPickConfirmationToggled = settingsViewModel::onQuickPickConfirmationToggled,
         onWifiOnlyBackupToggled = settingsViewModel::onWifiOnlyBackupToggled,
         onWifiOnlyAnalysisToggled = settingsViewModel::onWifiOnlyAnalysisToggled,

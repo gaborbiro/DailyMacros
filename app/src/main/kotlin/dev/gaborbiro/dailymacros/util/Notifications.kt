@@ -11,6 +11,7 @@ import dev.gaborbiro.dailymacros.features.common.SettingsRowId
 import dev.gaborbiro.dailymacros.features.main.MainActivity
 import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
 import dev.gaborbiro.dailymacros.features.shared.notifications.CHANNEL_ID_FOREGROUND
+import dev.gaborbiro.dailymacros.features.shared.notifications.CHANNEL_ID_MEAL_REMINDERS
 
 private const val CHANNEL_ID_GENERAL = "general"
 const val CHANNEL_ID_ERROR = "error"
@@ -42,12 +43,23 @@ fun Context.createNotificationChannels() {
                 "Notifications required for the app to be able to work when not visible (for example fetching macro-nutrient information after adding a meal via the widget)"
         }
 
+    // Its own channel so reminders can be muted without silencing analysis results.
+    val mealRemindersChannel = NotificationChannel(
+        CHANNEL_ID_MEAL_REMINDERS,
+        "Meal reminders",
+        NotificationManager.IMPORTANCE_DEFAULT
+    ).apply {
+        setShowBadge(false)
+        description = "A nudge around your usual breakfast, lunch and dinner times, unless you've already logged it"
+    }
+
     val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     notificationManager.createNotificationChannels(
         listOf(
             generalChannel,
             errorChannel,
             foregroundChannel,
+            mealRemindersChannel,
         )
     )
 }

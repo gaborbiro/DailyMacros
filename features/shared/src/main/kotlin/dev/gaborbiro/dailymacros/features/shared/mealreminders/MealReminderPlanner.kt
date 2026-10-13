@@ -41,7 +41,7 @@ object MealReminderPlanner {
         loggedDayRule: LoggedDayRule,
         history: Map<MealSlot, SlotReminderHistory> = emptyMap(),
     ): List<MealSlotPlan> {
-        val logs = records.map { MealLog(it.timestamp.toZonedDateTime(), it.template.nutrients.calories) }
+        val logs = records.map { it.toMealLog() }
         val today = now.logicalDiaryDate(dayStart)
         val learned = learnMealTimes(logs, today, dayStart, loggedDayRule)
         return MealSlot.entries.map { slot ->
@@ -60,6 +60,41 @@ object MealReminderPlanner {
             )
         }
     }
+
+    /**
+     * Settles reminders still [SlotReminderHistory.awaitingOutcome]: one whose slot got a meal
+     * logged that diary day (even backdated) was acted on and resets the ignored streak; one whose
+     * slot ended without a meal counts as ignored. Others stay pending.
+     */
+    fun resolveOutcomes(
+        records: List<Record>,
+        now: ZonedDateTime,
+        dayStart: LocalTime,
+        history: Map<MealSlot, SlotReminderHistory>,
+    ): Map<MealSlot, SlotReminderHistory> {
+        val logs = records.map { it.toMealLog() }
+        return history.mapValues { (slot, slotHistory) ->
+            val remindedAt = slotHistory.lastRemindedAt
+            if (!slotHistory.awaitingOutcome || remindedAt == null) return@mapValues slotHistory
+            val day = remindedAt.logicalDiaryDate(dayStart)
+            val logged = logs.any {
+                it.mightBeMeal() &&
+                    it.timestamp.logicalDiaryDate(dayStart) == day &&
+                    slotOf(it.timestamp.diaryMinute(dayStart), dayStart) == slot
+            }
+            when {
+                logged -> slotHistory.copy(consecutiveIgnored = 0, awaitingOutcome = false)
+                !now.isBefore(slot.windowEnd(day, dayStart, now)) ->
+                    slotHistory.copy(consecutiveIgnored = slotHistory.consecutiveIgnored + 1, awaitingOutcome = false)
+
+                else -> slotHistory
+            }
+        }
+    }
+
+    /** When [slot] ends on diary day [day], in [reference]'s zone. */
+    fun MealSlot.windowEnd(day: LocalDate, dayStart: LocalTime, reference: ZonedDateTime): ZonedDateTime =
+        day.atStartOfDay().plusMinutes(windowEndMinute(dayStart).toLong()).atZone(reference.zone)
 
     private fun learnMealTimes(
         logs: List<MealLog>,
@@ -140,7 +175,7 @@ object MealReminderPlanner {
             today.atStartOfDay().plusMinutes(minute.toLong()).atZone(now.zone)
 
         val windowEndMinute = slot.windowEndMinute(dayStart)
-        val windowEnd = todayAt(windowEndMinute)
+        val windowEnd = slot.windowEnd(today, dayStart, now)
 
         val loggedInSlotToday = logs.any {
             it.mightBeMeal() &&
@@ -212,6 +247,8 @@ object MealReminderPlanner {
 
     /** The parts of a [Record] the planner needs, with the timestamp converted to java.time once. */
     private class MealLog(val timestamp: ZonedDateTime, val calories: Int?)
+
+    private fun Record.toMealLog() = MealLog(timestamp.toZonedDateTime(), template.nutrients.calories)
 
     private fun LoggedDayRule.counts(dayLogs: List<MealLog>): Boolean = when (this) {
         LoggedDayRule.AnyRecord -> dayLogs.isNotEmpty()

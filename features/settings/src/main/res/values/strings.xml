@@ -53,6 +53,9 @@
     <string name="pdf_export_notification_error_title">Food diary export failed</string>
     <string name="pdf_export_notification_error_text">Something went wrong while creating the PDF.</string>
     <string name="settings_content_camera_section">Camera</string>
+    <string name="settings_content_reminders_section">Reminders</string>
+    <string name="settings_meal_reminders_row">Meal reminders</string>
+    <string name="settings_meal_reminders_subtitle">A nudge around your usual breakfast, lunch and dinner times, unless you\'ve already logged it</string>
     <string name="settings_content_widgets_section">Widgets</string>
     <string name="settings_quick_pick_confirmation_row">Quick Pick confirmation</string>
     <string name="settings_quick_pick_confirmation_subtitle">When off, meals are logged immediately instead of showing a confirmation dialog when tapping a Quick Pick.</string>

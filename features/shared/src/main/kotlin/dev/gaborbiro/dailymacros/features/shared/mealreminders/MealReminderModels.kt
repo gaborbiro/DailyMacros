@@ -26,6 +26,8 @@ data class SlotReminderHistory(
     val lastRemindedAt: ZonedDateTime? = null,
     /** Reminders in a row that ended without the slot getting logged. Reset when one is acted on. */
     val consecutiveIgnored: Int = 0,
+    /** The last reminder went out and its slot is neither logged nor over yet (see [MealReminderPlanner.resolveOutcomes]). */
+    val awaitingOutcome: Boolean = false,
 )
 
 data class LearnedMealTime(
