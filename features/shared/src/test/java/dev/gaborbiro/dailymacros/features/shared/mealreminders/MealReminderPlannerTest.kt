@@ -352,4 +352,19 @@ class MealReminderPlannerTest {
 
         assertEquals(1, resolved.consecutiveIgnored)
     }
+
+    @Test
+    fun `a meal moved from the evening to lunchtime no longer silences dinner`() {
+        // Erratic dinners: 75th percentile 21:00, so the catch-up goes out at 21:30.
+        val dinners = history("18:00", "21:00", "19:00", "21:00", "18:30")
+        val loggedAtDinner = record(today, "19:30", 600)
+        val movedToLunch = loggedAtDinner.copy(timestamp = at("13:00").toZonedInstant())
+
+        val before = plan(dinners + loggedAtDinner, now = at("19:35")).getValue(MealSlot.DINNER)
+        val after = plan(dinners + movedToLunch, now = at("19:36"))
+
+        assertEquals(silent(SilenceReason.ALREADY_LOGGED), before.decision)
+        assertEquals(silent(SilenceReason.ALREADY_LOGGED), after.getValue(MealSlot.LUNCH).decision)
+        assertEquals(remind("21:30", ReminderStyle.CATCH_UP), after.getValue(MealSlot.DINNER).decision)
+    }
 }

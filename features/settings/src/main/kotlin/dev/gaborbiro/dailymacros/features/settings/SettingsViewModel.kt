@@ -117,11 +117,11 @@ class SettingsViewModel @Inject constructor(
                 _uiState.update { it.copy(subscriptionState = state) }
             }
         }
-        if (appInfo.isDebugBuild) onMealReminderDebugRowTapped()
     }
 
-    /** Recomputes the debug readout - tap the row again after logging something to see the plan react. */
+    /** Recomputes the debug readout. Also called whenever the screen resumes, so it's never stale. */
     fun onMealReminderDebugRowTapped() {
+        if (!_uiState.value.isDebugBuild) return
         viewModelScope.launch {
             val text = runCatching {
                 val now = ZonedDateTime.now()
@@ -623,7 +623,7 @@ class SettingsViewModel @Inject constructor(
         mealReminderPrefs.enabled = enabled
         _uiState.update { it.copy(mealRemindersEnabled = enabled) }
         // Schedules (or cancels) straight away instead of waiting for the next diary change.
-        mealReminderCoordinator.refresh()
+        mealReminderCoordinator.refresh(trigger = "settings")
     }
 
     fun onHealthConnectPermissionsDenied() {

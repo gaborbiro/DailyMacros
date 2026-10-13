@@ -157,6 +157,8 @@ fun SettingsScreen(
             if (event == Lifecycle.Event.ON_RESUME && !targetsSettingsViewModel.uiState.value.canReset) {
                 targetsSettingsViewModel.reloadFromRepository()
             }
+            // Meals may have been logged or moved elsewhere (e.g. from a widget) while away.
+            if (event == Lifecycle.Event.ON_RESUME) settingsViewModel.onMealReminderDebugRowTapped()
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }

@@ -10,8 +10,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -30,7 +32,7 @@ class MealReminderCoordinator @Inject constructor(
     @param:ApplicationContext private val appContext: Context,
     private val recordsRepository: RecordsRepository,
     private val runner: MealReminderRunner,
-) {
+) : MealReminderRefresher {
 
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var job: Job? = null
@@ -43,6 +45,13 @@ class MealReminderCoordinator @Inject constructor(
         job = scope.launch {
             runSafely(trigger = "app start")
             recordsRepository.observeRecords(searchTerm = null, sinceEpochMillis = 0L)
+                // A failed query would otherwise end the subscription, silently freezing the
+                // schedule until the next app start.
+                .retryWhen { cause, _ ->
+                    Log.e(TAG, "Diary observer failed, resubscribing", cause)
+                    delay(DEBOUNCE_MS)
+                    true
+                }
                 // Skip the initial "current state" emission so we only react to changes.
                 .drop(1)
                 // Coalesce bursts of writes (e.g. an AI analysis result landing after the save).
@@ -52,9 +61,9 @@ class MealReminderCoordinator @Inject constructor(
         }
     }
 
-    /** For a settings change: apply it now rather than on the next diary change. */
-    fun refresh() {
-        scope.launch { runSafely(trigger = "settings") }
+    /** Applies a change now (a setting, a moved meal) rather than waiting for the diary observer. */
+    override fun refresh(trigger: String) {
+        scope.launch { runSafely(trigger = trigger) }
     }
 
     private suspend fun runSafely(trigger: String) {
