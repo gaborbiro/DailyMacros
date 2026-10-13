@@ -1,6 +1,9 @@
 package dev.gaborbiro.dailymacros.features.shared.mealreminders
 
+import android.content.Context
 import android.util.Log
+import androidx.work.WorkManager
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +27,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class MealReminderCoordinator @Inject constructor(
+    @param:ApplicationContext private val appContext: Context,
     private val recordsRepository: RecordsRepository,
     private val runner: MealReminderRunner,
 ) {
@@ -34,30 +38,33 @@ class MealReminderCoordinator @Inject constructor(
     @OptIn(FlowPreview::class)
     fun start() {
         if (job?.isActive == true) return
+        // The first build scheduled reminders through WorkManager; drop any job it left behind.
+        WorkManager.getInstance(appContext).cancelUniqueWork(LEGACY_WORK_NAME)
         job = scope.launch {
-            runSafely()
+            runSafely(trigger = "app start")
             recordsRepository.observeRecords(searchTerm = null, sinceEpochMillis = 0L)
                 // Skip the initial "current state" emission so we only react to changes.
                 .drop(1)
                 // Coalesce bursts of writes (e.g. an AI analysis result landing after the save).
                 .debounce(DEBOUNCE_MS)
-                .onEach { runSafely() }
+                .onEach { runSafely(trigger = "diary change") }
                 .collect {}
         }
     }
 
     /** For a settings change: apply it now rather than on the next diary change. */
     fun refresh() {
-        scope.launch { runSafely() }
+        scope.launch { runSafely(trigger = "settings") }
     }
 
-    private suspend fun runSafely() {
-        runCatching { runner.run() }
+    private suspend fun runSafely(trigger: String) {
+        runCatching { runner.run(trigger = trigger) }
             .onFailure { Log.e(TAG, "Meal reminder pass failed", it) }
     }
 
     private companion object {
         const val TAG = "MealReminders"
         const val DEBOUNCE_MS = 5_000L
+        const val LEGACY_WORK_NAME = "meal_reminders"
     }
 }

@@ -5,6 +5,8 @@ import dev.gaborbiro.dailymacros.features.shared.mealreminders.LoggedDayRule
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderDecision
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderPlan
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderPlanner
+import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderRunner
+import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderSchedule.isStale
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealSlotPlan
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.ReminderStyle
 import java.time.ZonedDateTime
@@ -14,8 +16,17 @@ import java.time.format.DateTimeFormatter
  * Plain-text readout of [MealReminderPlan] for Settings > Debug, so the learned meal times can be
  * sanity-checked against reality before any reminder is posted. Debug-only, hence not localised.
  */
-internal fun MealReminderPlan.toDebugText(now: ZonedDateTime): String = buildString {
+internal fun MealReminderPlan.toDebugText(now: ZonedDateTime, status: MealReminderRunner.Status): String = buildString {
     appendLine(
+        "Reminders: ${if (status.enabled) "on" else "OFF"}, " +
+            "notifications ${if (status.notificationsAllowed) "allowed" else "BLOCKED"}"
+    )
+    status.lastPass?.let { pass ->
+        appendLine("Last pass ${pass.at.format(TIME_FORMAT)} (${pass.summary})")
+        appendLine("Next wake-up: ${pass.nextWakeUp?.format(DATE_TIME_FORMAT) ?: "none"}")
+    } ?: appendLine("Last pass: never")
+    appendLine(
+
         when (val rule = loggedDayRule) {
             LoggedDayRule.AnyRecord -> "Learning from: days with any record"
             is LoggedDayRule.MinimumCalories -> "Learning from: days with ≥${rule.threshold} kcal"
@@ -42,7 +53,11 @@ private fun MealSlotPlan.toDebugText(now: ZonedDateTime): String {
                 ReminderStyle.PHOTO_PROMPT -> "photo prompt"
                 ReminderStyle.CATCH_UP -> "catch-up"
             }
-            val due = if (decision.at.isAfter(now)) "" else " (due now)"
+            val due = when {
+                decision.at.isAfter(now) -> ""
+                decision.isStale(now) -> " (missed, too late to post)"
+                else -> " (due now)"
+            }
             "$style at ${decision.at.format(TIME_FORMAT)}$due"
         }
 
@@ -52,5 +67,6 @@ private fun MealSlotPlan.toDebugText(now: ZonedDateTime): String {
 }
 
 private val TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm")
+private val DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("EEE HH:mm")
 
 private fun Int.hhmm(): String = "%02d:%02d".format((this / 60) % 24, this % 60)

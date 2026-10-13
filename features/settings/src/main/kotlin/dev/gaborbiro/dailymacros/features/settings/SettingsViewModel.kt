@@ -37,6 +37,7 @@ import dev.gaborbiro.dailymacros.features.settings.mealreminders.toDebugText
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.GetMealReminderPlanUseCase
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderCoordinator
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderPrefs
+import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderRunner
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
 import dev.gaborbiro.dailymacros.repositories.backup.domain.CloudSyncRepository
@@ -77,6 +78,7 @@ class SettingsViewModel @Inject constructor(
     private val getMealReminderPlanUseCase: GetMealReminderPlanUseCase,
     private val mealReminderPrefs: MealReminderPrefs,
     private val mealReminderCoordinator: MealReminderCoordinator,
+    private val mealReminderRunner: MealReminderRunner,
 ) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(
@@ -123,7 +125,7 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             val text = runCatching {
                 val now = ZonedDateTime.now()
-                getMealReminderPlanUseCase.execute(now = now).toDebugText(now)
+                getMealReminderPlanUseCase.execute(now = now).toDebugText(now, mealReminderRunner.status())
             }.getOrElse { t ->
                 Log.e("MealReminders", "Failed to compute meal reminder plan", t)
                 "Failed: ${t.message}"

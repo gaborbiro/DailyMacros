@@ -15,17 +15,23 @@ object MealReminderSchedule {
     val EARLY_TOLERANCE: Duration = Duration.ofMinutes(1)
 
     /**
-     * A reminder whose time passed longer ago than this is dropped instead of posted, so turning
-     * the feature on at 15:00 (or a phone waking from deep sleep) doesn't fire "lunch time?" late.
+     * A photo prompt whose time passed longer ago than this is dropped instead of posted, so
+     * turning the feature on at 15:00 doesn't fire "Lunch time? 📸" mid-afternoon. A catch-up
+     * ("Had lunch yet?") still makes sense late, so it stays due until its slot ends (after which
+     * the planner no longer returns it).
      */
-    val MAX_LATENESS: Duration = Duration.ofMinutes(60)
+    val MAX_PHOTO_PROMPT_LATENESS: Duration = Duration.ofMinutes(60)
 
     fun due(plans: List<MealSlotPlan>, now: ZonedDateTime): List<Pair<MealSlot, MealReminderDecision.Remind>> =
         plans.mapNotNull { plan ->
             (plan.decision as? MealReminderDecision.Remind)
-                ?.takeIf { !it.at.isAfter(now.plus(EARLY_TOLERANCE)) && !it.at.isBefore(now.minus(MAX_LATENESS)) }
+                ?.takeIf { !it.at.isAfter(now.plus(EARLY_TOLERANCE)) && !it.isStale(now) }
                 ?.let { plan.slot to it }
         }
+
+    /** A photo prompt that was missed by more than [MAX_PHOTO_PROMPT_LATENESS], so won't be posted. */
+    fun MealReminderDecision.Remind.isStale(now: ZonedDateTime): Boolean =
+        style == ReminderStyle.PHOTO_PROMPT && at.isBefore(now.minus(MAX_PHOTO_PROMPT_LATENESS))
 
     /**
      * The next upcoming reminder, or the start of the next diary day (when tomorrow's plan

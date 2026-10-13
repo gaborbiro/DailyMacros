@@ -37,11 +37,22 @@ class MealReminderScheduleTest {
     )
 
     @Test
-    fun `a reminder is due from its time until an hour later`() {
+    fun `a photo prompt is due from its time until an hour later`() {
         assertEquals(emptyList<MealSlot>(), MealReminderSchedule.due(plans, at("12:28")).map { it.first })
         assertEquals(listOf(MealSlot.LUNCH), MealReminderSchedule.due(plans, at("12:29:30")).map { it.first })
         assertEquals(listOf(MealSlot.LUNCH), MealReminderSchedule.due(plans, at("13:30")).map { it.first })
         assertEquals(emptyList<MealSlot>(), MealReminderSchedule.due(plans, at("13:31")).map { it.first })
+    }
+
+    @Test
+    fun `a late catch-up is still due`() {
+        val catchUp = MealSlotPlan(
+            MealSlot.LUNCH,
+            learned,
+            MealReminderDecision.Remind(at("12:30"), ReminderStyle.CATCH_UP),
+        )
+
+        assertEquals(listOf(MealSlot.LUNCH), MealReminderSchedule.due(listOf(catchUp), at("15:15")).map { it.first })
     }
 
     @Test

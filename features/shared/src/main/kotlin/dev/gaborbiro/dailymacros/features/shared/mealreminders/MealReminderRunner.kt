@@ -8,12 +8,14 @@ import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.features.common.utils.diaryDayStartTime
 import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryDate
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderPlanner.windowEnd
+import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderSchedule.isStale
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.time.Duration
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.toKotlinInstant
@@ -35,13 +37,23 @@ class MealReminderRunner @Inject constructor(
     private val analyticsLogger: AnalyticsLogger,
 ) {
 
-    // The app-start pass, the diary observer and the worker can overlap; only one may post.
+    // The app-start pass, the diary observer and the alarm can overlap; only one may post.
     private val mutex = Mutex()
 
-    suspend fun run(now: ZonedDateTime = ZonedDateTime.now()) = mutex.withLock {
+    data class Status(
+        val enabled: Boolean,
+        val notificationsAllowed: Boolean,
+        val lastPass: MealReminderPrefs.LastPass?,
+    )
+
+    fun status() = Status(prefs.enabled, notifier.canPost(), prefs.lastPass)
+
+    /** [trigger] only feeds the Settings > Debug readout: what started this pass. */
+    suspend fun run(now: ZonedDateTime = ZonedDateTime.now(), trigger: String) = mutex.withLock {
         if (!prefs.enabled) {
-            MealReminderWorker.cancel(appContext)
+            MealReminderAlarm.cancel(appContext)
             notifier.cancelAll()
+            prefs.lastPass = MealReminderPrefs.LastPass(now, "$trigger: reminders off", nextWakeUp = null)
             return@withLock
         }
         val dayStart = diaryDayStartTime(settingsRepository.getDiaryDayStartHour())
@@ -66,7 +78,8 @@ class MealReminderRunner @Inject constructor(
             .forEach { notifier.cancel(it.slot) }
 
         val due = MealReminderSchedule.due(plans, now)
-        val posted = if (notifier.canPost()) due else emptyList()
+        val canPost = notifier.canPost()
+        val posted = if (canPost) due else emptyList()
         posted.forEach { (slot, remind) ->
             notifier.post(slot, remind.style, now, slot.windowEnd(now.logicalDiaryDate(dayStart), dayStart, now))
             history[slot] = history.getValue(slot).copy(lastRemindedAt = now, awaitingOutcome = true)
@@ -78,9 +91,22 @@ class MealReminderRunner @Inject constructor(
         prefs.saveHistory(history)
 
         val next = MealReminderSchedule.nextCheck(plans, now, dayStart, excluding = due.map { it.first }.toSet())
-        MealReminderWorker.schedule(appContext, delay = Duration.between(now, next))
-        Log.i(TAG, "Posted ${posted.map { it.first }}, next check at $next")
+        MealReminderAlarm.schedule(appContext, next)
+
+        val dropped = plans.filter { (it.decision as? MealReminderDecision.Remind)?.isStale(now) == true }
+        val summary = buildList {
+            if (posted.isNotEmpty()) add("posted ${posted.joinToString { it.first.label() }}")
+            if (due.isNotEmpty() && !canPost) add("${due.joinToString { it.first.label() }} due but notifications blocked")
+            dropped.forEach { plan ->
+                val lateBy = Duration.between((plan.decision as MealReminderDecision.Remind).at, now).toMinutes()
+                add("dropped ${plan.slot.label()} (${lateBy}m late)")
+            }
+        }.ifEmpty { listOf("nothing due") }.joinToString("; ")
+        prefs.lastPass = MealReminderPrefs.LastPass(now, "$trigger: $summary", nextWakeUp = next)
+        Log.i(TAG, "$trigger: $summary, next check at ${next.format(DateTimeFormatter.ISO_LOCAL_TIME)}")
     }
+
+    private fun MealSlot.label() = name.lowercase()
 
     private companion object {
         const val TAG = "MealReminders"
