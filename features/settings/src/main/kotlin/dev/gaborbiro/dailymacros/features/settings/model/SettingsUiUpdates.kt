@@ -7,5 +7,6 @@ sealed class SettingsUiUpdates {
     data object RequestGoogleSignIn : SettingsUiUpdates()
     data object RequestPhotoPermissions : SettingsUiUpdates()
     data object RequestHealthConnectPermissions : SettingsUiUpdates()
+    data object RequestNotificationPermission : SettingsUiUpdates()
     data class RestoreConfirmNeeded(val modifiedAtMs: Long, val fileId: String) : SettingsUiUpdates()
 }

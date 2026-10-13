@@ -37,6 +37,7 @@ import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.ErrorUiMapper
 import dev.gaborbiro.dailymacros.features.shared.ListMealVariantsForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.NutrientAnalysisWorker
+import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderRefresher
 import dev.gaborbiro.dailymacros.repositories.common.model.DomainError
 import dev.gaborbiro.dailymacros.repositories.common.model.toZonedInstant
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
@@ -91,6 +92,7 @@ class ModalViewModel @Inject constructor(
     private val logMealFromTemplateUseCase: LogMealFromTemplateUseCase,
     private val analyticsLogger: AnalyticsLogger,
     private val errorUiMapper: ErrorUiMapper,
+    private val mealReminderRefresher: MealReminderRefresher,
 ) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(ModalUiState())
@@ -673,6 +675,8 @@ class ModalViewModel @Inject constructor(
         runSafely("Couldn't update the date and time") {
             val record = recordsRepository.get(overlay.recordId) ?: return@runSafely
             recordsRepository.updateRecord(record.copy(timestamp = timestamp.toZonedInstant()))
+            // Moving a meal can move it into another slot (dinner logged, then dated to lunch).
+            mealReminderRefresher.refresh(trigger = "timestamp edit")
             updateRoot<DialogHandle.RecordDetailsDialog.View> {
                 if (it.recordId == overlay.recordId) it.copy(timestamp = timestamp) else it
             }

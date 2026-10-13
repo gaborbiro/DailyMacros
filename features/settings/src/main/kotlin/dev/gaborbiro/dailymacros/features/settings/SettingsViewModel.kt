@@ -33,6 +33,11 @@ import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteD
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.RestoreFromDriveUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.SyncDatabaseUseCase
+import dev.gaborbiro.dailymacros.features.settings.mealreminders.toDebugText
+import dev.gaborbiro.dailymacros.features.shared.mealreminders.GetMealReminderPlanUseCase
+import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderCoordinator
+import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderPrefs
+import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderRunner
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
 import dev.gaborbiro.dailymacros.repositories.backup.domain.CloudSyncRepository
@@ -70,6 +75,10 @@ class SettingsViewModel @Inject constructor(
     private val cloudSyncRepository: CloudSyncRepository,
     private val featureFlagStore: FeatureFlagStore,
     private val subscriptionRepository: SubscriptionRepository,
+    private val getMealReminderPlanUseCase: GetMealReminderPlanUseCase,
+    private val mealReminderPrefs: MealReminderPrefs,
+    private val mealReminderCoordinator: MealReminderCoordinator,
+    private val mealReminderRunner: MealReminderRunner,
 ) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(
@@ -84,6 +93,10 @@ class SettingsViewModel @Inject constructor(
             aiInsightsEnabled = featureFlagStore.isEnabled(FeatureFlagStore.Key.AI_INSIGHTS_ENABLED),
             autoPhotoRecognitionEnabled = settingsRepository.getAutoPhotoRecognitionEnabled(),
             autoPhotoRecognitionVisible = featureFlagStore.isEnabled(FeatureFlagStore.Key.AUTO_PHOTO_RECOGNITION_ENABLED),
+            mealRemindersEnabled = mealReminderPrefs.enabled,
+            // Debug builds always show it, so it can be tried before the flag is turned on.
+            mealRemindersVisible = appInfo.isDebugBuild ||
+                featureFlagStore.isEnabled(FeatureFlagStore.Key.MEAL_REMINDERS_VISIBLE),
             quickPickConfirmationEnabled = settingsRepository.getQuickPickConfirmationEnabled(),
             autoBackupInterval = settingsRepository.getAutoBackupInterval(),
             wifiOnlyBackupEnabled = settingsRepository.getWifiOnlyBackupEnabled(),
@@ -103,6 +116,21 @@ class SettingsViewModel @Inject constructor(
             subscriptionRepository.observeState().collect { state ->
                 _uiState.update { it.copy(subscriptionState = state) }
             }
+        }
+    }
+
+    /** Recomputes the debug readout. Also called whenever the screen resumes, so it's never stale. */
+    fun onMealReminderDebugRowTapped() {
+        if (!_uiState.value.isDebugBuild) return
+        viewModelScope.launch {
+            val text = runCatching {
+                val now = ZonedDateTime.now()
+                getMealReminderPlanUseCase.execute(now = now).toDebugText(now, mealReminderRunner.status())
+            }.getOrElse { t ->
+                Log.e("MealReminders", "Failed to compute meal reminder plan", t)
+                "Failed: ${t.message}"
+            }
+            _uiState.update { it.copy(mealReminderDebugText = text) }
         }
     }
 
@@ -562,6 +590,40 @@ class SettingsViewModel @Inject constructor(
 
     fun onHealthConnectPermissionsGranted() {
         enableHealthConnectSync()
+    }
+
+    fun onMealRemindersToggled(enabled: Boolean) {
+        if (!enabled) {
+            setMealRemindersEnabled(false)
+            return
+        }
+        val needsPermission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(
+                getApplication(),
+                Manifest.permission.POST_NOTIFICATIONS,
+            ) != PackageManager.PERMISSION_GRANTED
+        if (needsPermission) {
+            viewModelScope.launch { _uiUpdates.emit(SettingsUiUpdates.RequestNotificationPermission) }
+        } else {
+            setMealRemindersEnabled(true)
+        }
+    }
+
+    fun onNotificationPermissionGranted() {
+        setMealRemindersEnabled(true)
+    }
+
+    fun onNotificationPermissionDenied() {
+        viewModelScope.launch {
+            _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Allow notifications to get meal reminders."))
+        }
+    }
+
+    private fun setMealRemindersEnabled(enabled: Boolean) {
+        mealReminderPrefs.enabled = enabled
+        _uiState.update { it.copy(mealRemindersEnabled = enabled) }
+        // Schedules (or cancels) straight away instead of waiting for the next diary change.
+        mealReminderCoordinator.refresh(trigger = "settings")
     }
 
     fun onHealthConnectPermissionsDenied() {
