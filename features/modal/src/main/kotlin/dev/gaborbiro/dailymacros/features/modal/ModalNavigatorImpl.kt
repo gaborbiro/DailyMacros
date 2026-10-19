@@ -56,6 +56,25 @@ class ModalNavigatorImpl @Inject constructor() : ModalNavigator {
         },
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
+
+    override fun addRecordPendingIntent(
+        context: Context,
+        requestCode: Int,
+        mode: ModalNavigator.AddRecordMode,
+        notificationId: Int,
+    ): PendingIntent = PendingIntent.getActivity(
+        context,
+        requestCode,
+        when (mode) {
+            ModalNavigator.AddRecordMode.CAMERA -> context.getCameraIntent()
+            ModalNavigator.AddRecordMode.BROWSE_IMAGES -> context.getImagePickerIntent()
+            ModalNavigator.AddRecordMode.TEXT_ONLY -> context.getTextOnlyIntent()
+        }.apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra(EXTRA_DISMISS_NOTIFICATION_ID, notificationId)
+        },
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+    )
 }
 
 fun Context.getShowRecordImageIntent(recordId: Long) =

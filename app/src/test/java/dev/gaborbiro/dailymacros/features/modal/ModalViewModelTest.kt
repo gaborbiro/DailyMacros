@@ -27,6 +27,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseC
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.ErrorUiMapper
+import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderRefresher
 import dev.gaborbiro.dailymacros.features.shared.TemplateUiMapper
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
@@ -149,7 +150,10 @@ class ModalViewModelTest {
         override fun clearApiKeyOverride() = Unit
     }
 
-    private fun viewModel(repo: RecordsRepository = BaseRecordsRepositoryStub()): ModalViewModel {
+    private fun viewModel(
+        repo: RecordsRepository = BaseRecordsRepositoryStub(),
+        mealReminderRefresher: MealReminderRefresher = MealReminderRefresher { },
+    ): ModalViewModel {
         val app = ApplicationProvider.getApplicationContext<Application>()
         val nutrients = TemplateUiMapper()
         val modalUiMapper = ModalUiMapper(nutrients)
@@ -185,6 +189,7 @@ class ModalViewModelTest {
             logMealFromTemplateUseCase = LogMealFromTemplateUseCase(app, repo, createFromTemplate),
             analyticsLogger = AnalyticsLogger(sinks = emptySet()),
             errorUiMapper = ErrorUiMapper(app, testSettingsRepository),
+            mealReminderRefresher = mealReminderRefresher,
         ).also { activeViewModels.add(it) }
     }
 
@@ -362,7 +367,8 @@ class ModalViewModelTest {
                 updatedRecord = record
             }
         }
-        val vm = viewModel(repo)
+        val refreshTriggers = mutableListOf<String>()
+        val vm = viewModel(repo, mealReminderRefresher = { refreshTriggers += it })
         vm.onRecordDetailsButtonTapped(5L)
         advanceUntilIdle()
         val originalTimestamp =
@@ -379,6 +385,8 @@ class ModalViewModelTest {
 
         assertEquals(newTimestamp, updatedRecord?.timestamp?.toZonedDateTime())
         assertEquals(5L, updatedRecord?.recordId)
+        // Meal reminders re-plan straight away, since the meal may have moved to another slot.
+        assertEquals(listOf("timestamp edit"), refreshTriggers)
         assertNull(vm.uiState.value.overlayDialog)
         assertEquals(
             newTimestamp,

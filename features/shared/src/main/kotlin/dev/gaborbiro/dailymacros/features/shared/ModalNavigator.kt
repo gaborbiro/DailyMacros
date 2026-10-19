@@ -25,4 +25,14 @@ interface ModalNavigator {
         recognisedTitle: String,
         notificationId: Int,
     ): PendingIntent
+
+    /** Opens the add-meal flow in [mode] and dismisses [notificationId] (e.g. from a meal reminder). */
+    fun addRecordPendingIntent(
+        context: Context,
+        requestCode: Int,
+        mode: AddRecordMode,
+        notificationId: Int,
+    ): PendingIntent
+
+    enum class AddRecordMode { CAMERA, BROWSE_IMAGES, TEXT_ONLY }
 }

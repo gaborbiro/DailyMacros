@@ -12,6 +12,7 @@ import dagger.hilt.android.HiltAndroidApp
 import dagger.hilt.components.SingletonComponent
 import dev.gaborbiro.dailymacros.feedback.ShakeFeedback
 import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectSyncCoordinator
+import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderCoordinator
 import dev.gaborbiro.dailymacros.features.shared.photodiary.PhotoMonitorWorker
 import dev.gaborbiro.dailymacros.features.widgets.WidgetAutoReloader
 import dev.gaborbiro.dailymacros.repositories.billing.domain.SubscriptionRepository
@@ -30,6 +31,7 @@ interface AppWorkerFactoryEntryPoint {
 interface AppBootstrapEntryPoint {
     fun widgetAutoReloader(): WidgetAutoReloader
     fun healthConnectSyncCoordinator(): HealthConnectSyncCoordinator
+    fun mealReminderCoordinator(): MealReminderCoordinator
     fun settingsRepository(): SettingsRepository
     fun subscriptionRepository(): SubscriptionRepository
     fun pendingDriveSyncInfoStore(): PendingDriveSyncInfoStore
@@ -76,6 +78,7 @@ class App : Application(), Configuration.Provider {
         ShakeFeedback.start(this, clientId = bootstrap.appPrefs().clientId)
         bootstrap.widgetAutoReloader().start()
         bootstrap.healthConnectSyncCoordinator().start()
+        bootstrap.mealReminderCoordinator().start()
         // The photo monitor chain can die if a run is killed before it re-enqueues itself
         // (process death, force-stop). Re-arm on every process start; KEEP makes this a no-op
         // when the monitor is already scheduled.
