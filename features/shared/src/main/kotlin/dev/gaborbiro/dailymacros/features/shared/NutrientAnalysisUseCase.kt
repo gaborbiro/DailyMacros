@@ -147,18 +147,20 @@ class NutrientAnalysisUseCase @Inject constructor(
             val subscriptionRequired = (t as? DomainError.DisplayMessageToUser.OperationFailed)
                 ?.cause?.let { it as? UsageLimitException }
                 ?.kind == UsageLimitKind.SUBSCRIPTION_REQUIRED
-            val userFacingError = errorUiMapper.map(t, appContext.getString(R.string.shared_content_please_try_again))
+            val title = foodName?.ellipsize(50)
+                ?.let { appContext.getString(R.string.shared_content_macros_error_title, it) }
+                ?: appContext.getString(R.string.shared_content_macros_error_title_unknown)
+            val message = errorUiMapper.map(t, appContext.getString(R.string.shared_content_please_try_again)).message
             macroResultsNotificationSender.showMacroResultsNotification(
                 id = 123000L + recordId,
                 recordId = recordId,
-                title = foodName?.ellipsize(50)
-                    ?.let { appContext.getString(R.string.shared_content_macros_error_title, it) }
-                    ?: appContext.getString(R.string.shared_content_macros_error_title_unknown),
-                message = userFacingError.message,
+                title = title,
+                message = message,
                 isError = true,
                 subscriptionRequired = subscriptionRequired,
             )
-            throw userFacingError
+            // Logged with a placeholder for the meal name, which is user-typed text
+            throw UserFacingError("$title\n$message", t)
         } finally {
             requestStatusRepository.unmark(record.template.dbId)
         }
