@@ -159,6 +159,14 @@ order) before trusting it — the Voided Purchases API's field/enum names in
 the code are per Google's documented shape but haven't been exercised
 against a live response here.
 
+Until Oct 2026 this job sent `type: 2`, which the API rejects (only `0` and
+`1` are valid), so no run ever completed. The first successful run after the
+fix looks back 30 days (the API's limit) instead of 3, then records
+`jobs/checkVoidedPurchases.catchUpCompletedAt` in Firestore so later runs go
+back to the normal window. Voids older than that are out of reach: check
+Play Console → Order management for refunds since launch and revoke those by
+hand in Firestore.
+
 ### Recovering a lost `users/{uid}` doc
 
 If a subscriber's `users/{uid}` doc is ever lost (an accidental Firestore

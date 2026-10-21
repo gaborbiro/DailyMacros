@@ -246,6 +246,18 @@ exports.onSubscriptionNotification = onMessagePublished(
 // revoking an already-revoked doc is a no-op write).
 const VOIDED_PURCHASES_LOOKBACK_MILLIS = 3 * 24 * 60 * 60 * 1000; // 3 days
 
+// One-off catch-up for the period this job was broken (it sent an invalid
+// `type` from launch until Oct 2026, so it never completed a run). Until
+// `jobs/checkVoidedPurchases.catchUpCompletedAt` is set, a run looks back as
+// far as the API allows instead of the usual window; the first successful
+// run sets it. Older voids are out of the API's reach - check Play Console's
+// Order management for those. Safe to delete once the marker is set.
+//
+// The API rejects a startTime older than 30 days; the hour of margin keeps
+// the request inside that limit by the time Play checks it.
+const VOIDED_PURCHASES_CATCH_UP_LOOKBACK_MILLIS = 30 * 24 * 60 * 60 * 1000 - 60 * 60 * 1000;
+const VOIDED_PURCHASES_JOB_DOC = "jobs/checkVoidedPurchases";
+
 /**
  * Refunds and chargebacks are NOT covered by RTDN — Play has no push
  * notification for them. The only way to learn about one is to poll the
@@ -257,11 +269,16 @@ const VOIDED_PURCHASES_LOOKBACK_MILLIS = 3 * 24 * 60 * 60 * 1000; // 3 days
  * since bought a fresh subscription with a new token, this old void is stale
  * news and must not clobber the new, legitimate purchase.
  *
- * NOTE: field/enum names below (`type`, `productType`, `tokenPagination`)
- * are per Google's documented Voided Purchases API shape at the time this
- * was written — verify against the current Play Developer API docs and test
- * against a real refunded test purchase (Play Console → Order management →
- * refund) before relying on this in production.
+ * NOTE: field/enum names below (`type`, `tokenPagination`) are per Google's
+ * documented Voided Purchases API shape — test against a real refunded test
+ * purchase (Play Console → Order management → refund) before relying on this
+ * in production. `type` only accepts 0 (in-app products only) or 1 (in-app
+ * products and subscriptions); there's no subscriptions-only value.
+ *
+ * Failures are caught and logged here rather than thrown: the scheduler
+ * wrapper only logs `err.message`, losing the stack and Play's response body.
+ * Not rethrowing keeps it to one log entry per failure; nothing retries a
+ * failed run anyway, the next scheduled one simply re-scans the window.
  */
 exports.checkVoidedPurchases = onSchedule(
   {
@@ -271,57 +288,79 @@ exports.checkVoidedPurchases = onSchedule(
     timeoutSeconds: 120,
   },
   async () => {
-    const authClient = await androidPublisherAuth.getClient();
-    const androidPublisher = google.androidpublisher({ version: "v3", auth: authClient });
+    try {
+      const jobRef = db.doc(VOIDED_PURCHASES_JOB_DOC);
+      const isCatchUp = !(await jobRef.get()).get("catchUpCompletedAt");
 
-    const now = Date.now();
-    const startTime = String(now - VOIDED_PURCHASES_LOOKBACK_MILLIS);
-    const endTime = String(now);
+      const authClient = await androidPublisherAuth.getClient();
+      const androidPublisher = google.androidpublisher({ version: "v3", auth: authClient });
 
-    let pageToken;
-    let revoked = 0;
-    let seen = 0;
-    do {
-      const response = await androidPublisher.purchases.voidedpurchases.list({
-        packageName: PACKAGE_NAME,
-        startTime,
-        endTime,
-        type: 2, // subscriptions only
-        token: pageToken,
-      });
+      const now = Date.now();
+      const lookback = isCatchUp ? VOIDED_PURCHASES_CATCH_UP_LOOKBACK_MILLIS : VOIDED_PURCHASES_LOOKBACK_MILLIS;
+      const startTime = String(now - lookback);
+      const endTime = String(now);
 
-      const voidedPurchases = response.data.voidedPurchases || [];
-      for (const voided of voidedPurchases) {
-        seen++;
-        const purchaseToken = voided.purchaseToken;
-        if (!purchaseToken) continue;
+      let pageToken;
+      let revoked = 0;
+      let seen = 0;
+      do {
+        const response = await androidPublisher.purchases.voidedpurchases.list({
+          packageName: PACKAGE_NAME,
+          startTime,
+          endTime,
+          // In-app products and subscriptions. Non-subscription voids fall out
+          // below: only verified subscription tokens have a purchaseTokens/ doc.
+          type: 1,
+          token: pageToken,
+        });
 
-        const mapping = await db.doc(`purchaseTokens/${purchaseToken}`).get();
-        if (!mapping.exists) continue; // never verified this token, nothing to revoke
+        const voidedPurchases = response.data.voidedPurchases || [];
+        for (const voided of voidedPurchases) {
+          seen++;
+          const purchaseToken = voided.purchaseToken;
+          if (!purchaseToken) continue;
 
-        const { uid } = mapping.data();
-        const userRef = db.doc(`users/${uid}`);
-        const userSnap = await userRef.get();
-        const sub = userSnap.data();
-        if (sub && sub.subscriptionPurchaseToken === purchaseToken) {
-          await userRef.set(
-            {
-              subscriptionState: "revoked",
-              subscriptionExpiryTimeMillis: 0,
-              subscriptionVoidedAt: Date.now(),
-              subscriptionUpdatedAt: Date.now(),
-            },
-            { merge: true },
-          );
-          revoked++;
-          logger.info("Revoked subscription for voided purchase", { uid, purchaseToken });
+          const mapping = await db.doc(`purchaseTokens/${purchaseToken}`).get();
+          if (!mapping.exists) continue; // never verified this token, nothing to revoke
+
+          const { uid } = mapping.data();
+          const userRef = db.doc(`users/${uid}`);
+          const userSnap = await userRef.get();
+          const sub = userSnap.data();
+          if (sub && sub.subscriptionPurchaseToken === purchaseToken) {
+            await userRef.set(
+              {
+                subscriptionState: "revoked",
+                subscriptionExpiryTimeMillis: 0,
+                subscriptionVoidedAt: Date.now(),
+                subscriptionUpdatedAt: Date.now(),
+              },
+              { merge: true },
+            );
+            revoked++;
+            logger.info("Revoked subscription for voided purchase", { uid, purchaseToken });
+          }
         }
+
+        pageToken = response.data.tokenPagination && response.data.tokenPagination.nextPageToken;
+      } while (pageToken);
+
+      if (isCatchUp) {
+        await jobRef.set({ catchUpCompletedAt: now }, { merge: true });
       }
-
-      pageToken = response.data.tokenPagination && response.data.tokenPagination.nextPageToken;
-    } while (pageToken);
-
-    logger.info("checkVoidedPurchases run complete", { seen, revoked });
+      logger.info("checkVoidedPurchases run complete", { seen, revoked, isCatchUp });
+    } catch (e) {
+      // Logs a copy rather than `e`: a googleapis error carries the request
+      // config, including the Authorization header, and the logger would print
+      // it. Passing an Error (not a string) keeps the original stack, so Error
+      // Reporting points at this file.
+      const logged = new Error(e.message);
+      logged.stack = e.stack;
+      logger.error(logged, {
+        status: e.response && e.response.status,
+        response: e.response && e.response.data,
+      });
+    }
   },
 );
 
