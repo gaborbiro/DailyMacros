@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.AiRequestError
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ErrorResponseBody1
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ErrorResponseBody2
+import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.UnstructuredErrorBody
 import dev.gaborbiro.dailymacros.repositories.common.model.UsageLimitKind
 import kotlinx.coroutines.CancellationException
 import retrofit2.Response
@@ -99,9 +100,10 @@ private fun <T> ErrorHandlingContext.handleUnsuccessful(
     }
     val finalType = type ?: "unable to discern structured error type (${response.code()})"
     val finalMessage = analyticsMessage ?: "unable to discern structured error message"
+    val isUnstructured = type == null && analyticsMessage == null
     throw AiRequestError.Upstream(
         errorMessage = "$finalType - $finalMessage",
-        cause = Exception(response.code().toString() + " - " + errorBody)
+        cause = if (isUnstructured) errorBody?.let { UnstructuredErrorBody(response.code(), it) } else null,
     )
 }
 
