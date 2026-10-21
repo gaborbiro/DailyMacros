@@ -12,25 +12,17 @@ sealed class DomainError(
      */
     final override fun toString(): String = super.toString()
 
+    /**
+     * Classifies a failure so the presentation layer can pick a message. Carries no text of its
+     * own: the technical details live in [cause], so they're logged once, not repeated here.
+     */
     sealed class DisplayMessageToUser(
-        message: String? = null,
         cause: Throwable?,
-    ) : DomainError(message, cause) {
-
-        data class TechnicalMessage(
-            override val message: String,
-            override val cause: Throwable? = null,
-        ) : DisplayMessageToUser(message, cause)
-
-        data class ForceTechnicalMessage(
-            override val message: String,
-            override val cause: Throwable? = null,
-        ) : DisplayMessageToUser(message, cause)
+    ) : DomainError(message = null, cause) {
 
         data class OperationFailed(
-            override val message: String? = null,
             override val cause: Throwable? = null,
-        ) : DisplayMessageToUser(message, cause = cause)
+        ) : DisplayMessageToUser(cause)
 
         data class CheckInternetConnection(
             override val cause: Throwable,

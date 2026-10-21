@@ -155,6 +155,7 @@
     <string name="settings_content_subscription_section">Subscription</string>
     <string name="settings_content_subscription_row_subscribed">Subscribed</string>
     <string name="settings_content_subscription_row_not_subscribed">Subscribe</string>
+    <string name="settings_content_purchase_flow_error">Couldn’t open the subscription page. Please try again later.</string>
     <!-- Privacy & data -->
     <string name="settings_privacy_section">Privacy &amp; data</string>
     <string name="settings_privacy_disclosure">To recognise meals and estimate nutrition, the photos and descriptions you add are sent to OpenAI for analysis. Your food diary is stored on this device; the developer does not store your meal photos or entries. Cloud backup, if you enable it, goes to your own Google account. Health Connect sync, if you enable it, shares your meals\' names and nutrition figures (not photos) with Health Connect and any app you connect to it.</string>

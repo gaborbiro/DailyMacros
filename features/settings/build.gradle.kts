@@ -10,6 +10,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:analytics"))
     implementation(project(":core:design"))
     implementation(project(":core:featureFlags"))
     implementation(project(":features:common"))

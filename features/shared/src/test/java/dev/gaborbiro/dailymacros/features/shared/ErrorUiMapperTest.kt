@@ -4,12 +4,8 @@ import android.content.Context
 import dev.gaborbiro.dailymacros.repositories.common.model.DomainError
 import dev.gaborbiro.dailymacros.repositories.common.model.UsageLimitException
 import dev.gaborbiro.dailymacros.repositories.common.model.UsageLimitKind
-import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
-import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
-import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PromptVersion
-import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
-import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -23,135 +19,100 @@ class ErrorUiMapperTest {
 
     private val context: Context get() = RuntimeEnvironment.getApplication()
 
-    private val mapperWithApiKey get() = ErrorUiMapper(context, fakeSettings(apiKey = "sk-test"))
-    private val mapperWithoutApiKey get() = ErrorUiMapper(context, fakeSettings(apiKey = null))
+    private val mapper get() = ErrorUiMapper(context)
 
     @Test
-    fun `mapErrorMessage check internet connection`() {
-        val result = mapperWithoutApiKey.mapErrorMessage(
+    fun `map check internet connection`() {
+        val result = mapper.map(
             DomainError.DisplayMessageToUser.CheckInternetConnection(cause = RuntimeException()),
-            defaultMessage = "default",
+            genericMessage = "default",
         )
-        assertTrue(result.contains("internet", ignoreCase = true))
+        assertTrue(result.message.contains("internet", ignoreCase = true))
     }
 
     @Test
-    fun `mapErrorMessage operation failed uses default`() {
+    fun `map operation failed uses default`() {
         assertEquals(
             "Couldn't save your entry",
-            mapperWithoutApiKey.mapErrorMessage(
+            mapper.map(
                 DomainError.DisplayMessageToUser.OperationFailed(),
-                defaultMessage = "Couldn't save your entry",
-            ),
+                genericMessage = "Couldn't save your entry",
+            ).message,
         )
     }
 
     @Test
-    fun `mapErrorMessage usage limit daily shows specific message even without api key`() {
-        val result = mapperWithoutApiKey.mapErrorMessage(
+    fun `map operation failed hides the technical cause`() {
+        assertEquals(
+            "Couldn't get macros",
+            mapper.map(
+                DomainError.DisplayMessageToUser.OperationFailed(cause = Exception("HTTP 500 - server_error - boom")),
+                genericMessage = "Couldn't get macros",
+            ).message,
+        )
+    }
+
+    @Test
+    fun `map non-domain error uses default`() {
+        assertEquals(
+            "default",
+            mapper.map(IllegalStateException("boom"), genericMessage = "default").message,
+        )
+    }
+
+    @Test
+    fun `map keeps the original error as the cause`() {
+        val error = DomainError.DisplayMessageToUser.OperationFailed()
+
+        assertSame(error, mapper.map(error, genericMessage = "default").cause)
+    }
+
+    @Test
+    fun `map usage limit daily shows specific message`() {
+        val result = mapper.map(
             DomainError.DisplayMessageToUser.OperationFailed(
                 cause = UsageLimitException(UsageLimitKind.DAILY),
             ),
-            defaultMessage = "default",
+            genericMessage = "default",
         )
         assertEquals(
             context.getString(R.string.shared_content_usage_limit_daily),
-            result,
+            result.message,
         )
     }
 
     @Test
-    fun `mapErrorMessage usage limit monthly and unavailable map to their strings`() {
+    fun `map usage limit monthly and unavailable map to their strings`() {
         assertEquals(
             context.getString(R.string.shared_content_usage_limit_monthly),
-            mapperWithoutApiKey.mapErrorMessage(
+            mapper.map(
                 DomainError.DisplayMessageToUser.OperationFailed(
                     cause = UsageLimitException(UsageLimitKind.MONTHLY),
                 ),
-                defaultMessage = "default",
-            ),
+                genericMessage = "default",
+            ).message,
         )
         assertEquals(
             context.getString(R.string.shared_content_usage_limit_unavailable),
-            mapperWithoutApiKey.mapErrorMessage(
+            mapper.map(
                 DomainError.DisplayMessageToUser.OperationFailed(
                     cause = UsageLimitException(UsageLimitKind.UNAVAILABLE),
                 ),
-                defaultMessage = "default",
-            ),
+                genericMessage = "default",
+            ).message,
         )
     }
 
     @Test
-    fun `mapErrorMessage subscription required shows its own string`() {
+    fun `map subscription required shows its own string`() {
         assertEquals(
             context.getString(R.string.shared_content_usage_limit_subscription_required),
-            mapperWithoutApiKey.mapErrorMessage(
+            mapper.map(
                 DomainError.DisplayMessageToUser.OperationFailed(
                     cause = UsageLimitException(UsageLimitKind.SUBSCRIPTION_REQUIRED),
                 ),
-                defaultMessage = "default",
-            ),
+                genericMessage = "default",
+            ).message,
         )
     }
-
-    @Test
-    fun `mapErrorMessage force technical message always shows`() {
-        assertEquals(
-            "API quota exceeded",
-            mapperWithoutApiKey.mapErrorMessage(
-                DomainError.DisplayMessageToUser.ForceTechnicalMessage("API quota exceeded"),
-                defaultMessage = "default",
-            ),
-        )
-    }
-
-    @Test
-    fun `mapErrorMessage technical message shown when api key is unlocked`() {
-        assertEquals(
-            "API error detail",
-            mapperWithApiKey.mapErrorMessage(
-                DomainError.DisplayMessageToUser.TechnicalMessage("API error detail"),
-                defaultMessage = "default",
-            ),
-        )
-    }
-
-    @Test
-    fun `mapErrorMessage technical message falls back to default when no api key`() {
-        assertEquals(
-            "Couldn't get macros",
-            mapperWithoutApiKey.mapErrorMessage(
-                DomainError.DisplayMessageToUser.TechnicalMessage("API error detail"),
-                defaultMessage = "Couldn't get macros",
-            ),
-        )
-    }
-}
-
-private fun fakeSettings(apiKey: String?): SettingsRepository = object : SettingsRepository {
-    override fun getTargets(): Targets = Targets(
-        calories = Target(enabled = false),
-        protein = Target(enabled = false),
-        salt = Target(enabled = false),
-        fat = Target(enabled = false),
-        carbs = Target(enabled = false),
-        fibre = Target(enabled = false),
-        ofWhichSaturated = Target(enabled = false),
-        ofWhichSugar = Target(enabled = false),
-    )
-    override fun setTargets(targets: Targets) {}
-    override fun getDiaryDayStartHour(): Int = 0
-    override fun setDiaryDayStartHour(hourOfDay: Int) {}
-    override fun getPromptCustomisations(): Map<String, String> = emptyMap()
-    override fun setPromptCustomisations(values: Map<String, String>) {}
-    override fun clearPromptCustomisations() {}
-    override fun getPromptVersions(type: String): List<PromptVersion> = emptyList()
-    override fun savePromptVersion(type: String, customisations: Map<String, String>): PromptVersion =
-        throw UnsupportedOperationException()
-    override fun deletePromptVersion(version: Int) {}
-    override fun getApiKeyOverride(): String? = apiKey
-    override fun setApiKeyOverride(key: String) {}
-    override fun clearApiKeyOverride()  {}
-    override fun getCloudSyncProvider(): CloudSyncProvider = CloudSyncProvider.NONE
 }

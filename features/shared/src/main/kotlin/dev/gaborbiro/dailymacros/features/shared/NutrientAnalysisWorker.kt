@@ -96,10 +96,7 @@ class NutrientAnalysisWorker @AssistedInject constructor(
             if (recordId == -1L) {
                 Result.failure()
             } else {
-                nutrientAnalysisUseCase.execute(
-                    recordId = recordId,
-                    notifyOnFailure = true,
-                )
+                nutrientAnalysisUseCase.execute(recordId = recordId)
                 cancelWorkRequest(
                     appContext = applicationContext,
                     recordId = recordId,
@@ -108,7 +105,8 @@ class NutrientAnalysisWorker @AssistedInject constructor(
             }
         } catch (t: Throwable) {
             analyticsLogger.logError(t)
-            if (t is DomainError.DisplayMessageToUser.OperationFailed && t.cause is UsageLimitException) {
+            // Analysis failures arrive as a UserFacingError wrapping the domain error
+            if ((t.cause as? DomainError.DisplayMessageToUser.OperationFailed)?.cause is UsageLimitException) {
                 cancelAllWorkRequests(applicationContext)
             }
             Result.failure()

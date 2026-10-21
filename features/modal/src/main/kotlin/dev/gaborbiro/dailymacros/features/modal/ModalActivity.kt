@@ -48,6 +48,7 @@ import dev.gaborbiro.dailymacros.features.modal.views.ImageDialog
 import dev.gaborbiro.dailymacros.features.modal.views.ConfirmSwitchTemplateDialog
 import dev.gaborbiro.dailymacros.features.modal.views.QuickPickWidgetConfirmDialog
 import dev.gaborbiro.dailymacros.features.modal.views.RecordDetailsDialog
+import dev.gaborbiro.dailymacros.features.shared.UserFacingError
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
@@ -231,7 +232,7 @@ class ModalActivity : AppCompatActivity() {
             } catch (e: CancellationException) {
                 throw e
             } catch (t: Throwable) {
-                analyticsLogger.logError(t)
+                analyticsLogger.logError(UserFacingError(appContext.getString(R.string.quick_pick_confirm_log_failed_toast), t))
                 R.string.quick_pick_confirm_log_failed_toast
             }
             Toast.makeText(appContext, message, Toast.LENGTH_SHORT).show()

@@ -18,4 +18,4 @@ enum class UsageLimitKind { DAILY, MONTHLY, UNAVAILABLE, SUBSCRIPTION_REQUIRED }
 class UsageLimitException(
     val kind: UsageLimitKind,
     cause: Throwable? = null,
-) : Exception(cause)
+) : Exception(null as String?, cause) // Exception(cause) would copy cause.toString() into the message, repeating it in logs

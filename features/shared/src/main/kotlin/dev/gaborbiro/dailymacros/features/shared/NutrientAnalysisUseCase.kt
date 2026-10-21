@@ -36,11 +36,12 @@ class NutrientAnalysisUseCase @Inject constructor(
     private val settingsRepository: SettingsRepository,
 ) {
 
-    suspend fun execute(
-        recordId: Long,
-        /** When true (e.g. [NutrientAnalysisWorker]), show a high-importance notification if the API fails. */
-        notifyOnFailure: Boolean = false,
-    ) {
+    /**
+     * Shows a high-importance notification if the analysis fails.
+     *
+     * @throws UserFacingError carrying the notification's message, with the failure as its cause
+     */
+    suspend fun execute(recordId: Long) {
         val record: Record = recordsRepository.get(recordId)!!
         try {
             val base64Images = record.template.imageFilenames
@@ -139,39 +140,25 @@ class NutrientAnalysisUseCase @Inject constructor(
                         }
                     }
             }
-        } catch (domainError: DomainError) {
-            if (notifyOnFailure) {
-                val foodName = record.template.name.takeIf { it.isNotBlank() }
-                val subscriptionRequired = (domainError as? DomainError.DisplayMessageToUser.OperationFailed)
-                    ?.cause?.let { it as? UsageLimitException }
-                    ?.kind == UsageLimitKind.SUBSCRIPTION_REQUIRED
-                macroResultsNotificationSender.showMacroResultsNotification(
-                    id = 123000L + recordId,
-                    recordId = recordId,
-                    title = foodName?.ellipsize(50)
-                        ?.let { appContext.getString(R.string.shared_content_macros_error_title, it) }
-                        ?: appContext.getString(R.string.shared_content_macros_error_title_unknown),
-                    message = errorUiMapper.mapErrorMessage(domainError, appContext.getString(R.string.shared_content_please_try_again)),
-                    isError = true,
-                    subscriptionRequired = subscriptionRequired,
-                )
-            }
-            throw domainError
+        } catch (e: CancellationException) {
+            throw e
         } catch (t: Throwable) {
-            if (t is CancellationException) throw t
-            if (notifyOnFailure) {
-                val foodName = record.template.name.takeIf { it.isNotBlank() }
-                macroResultsNotificationSender.showMacroResultsNotification(
-                    id = 123000L + recordId,
-                    recordId = recordId,
-                    title = foodName?.ellipsize(50)
-                        ?.let { appContext.getString(R.string.shared_content_macros_error_title, it) }
-                        ?: appContext.getString(R.string.shared_content_macros_error_title_unknown),
-                    message = appContext.getString(R.string.shared_content_please_try_again),
-                    isError = true,
-                )
-            }
-            throw t
+            val foodName = record.template.name.takeIf { it.isNotBlank() }
+            val subscriptionRequired = (t as? DomainError.DisplayMessageToUser.OperationFailed)
+                ?.cause?.let { it as? UsageLimitException }
+                ?.kind == UsageLimitKind.SUBSCRIPTION_REQUIRED
+            val userFacingError = errorUiMapper.map(t, appContext.getString(R.string.shared_content_please_try_again))
+            macroResultsNotificationSender.showMacroResultsNotification(
+                id = 123000L + recordId,
+                recordId = recordId,
+                title = foodName?.ellipsize(50)
+                    ?.let { appContext.getString(R.string.shared_content_macros_error_title, it) }
+                    ?: appContext.getString(R.string.shared_content_macros_error_title_unknown),
+                message = userFacingError.message,
+                isError = true,
+                subscriptionRequired = subscriptionRequired,
+            )
+            throw userFacingError
         } finally {
             requestStatusRepository.unmark(record.template.dbId)
         }

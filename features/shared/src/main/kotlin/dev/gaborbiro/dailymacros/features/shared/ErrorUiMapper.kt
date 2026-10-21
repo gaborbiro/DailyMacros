@@ -5,18 +5,22 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.repositories.common.model.DomainError
 import dev.gaborbiro.dailymacros.repositories.common.model.UsageLimitException
 import dev.gaborbiro.dailymacros.repositories.common.model.UsageLimitKind
-import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import javax.inject.Inject
 
 class ErrorUiMapper @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val settingsRepository: SettingsRepository,
 ) {
 
-    fun mapErrorMessage(error: DomainError, defaultMessage: String): String = when (error) {
+    /**
+     * Picks the message the user is shown for [error], falling back to [genericMessage]. The
+     * result is what to both display and log.
+     */
+    fun map(error: Throwable, genericMessage: String): UserFacingError =
+        UserFacingError(message = mapMessage(error, genericMessage), cause = error)
+
+    private fun mapMessage(error: Throwable, genericMessage: String): String = when (error) {
         is DomainError.DisplayMessageToUser.OperationFailed -> when (val cause = error.cause) {
-            // A usage limit shows a specific, always-visible message; anything else
-            // stays generic.
+            // A usage limit shows a specific message; anything else stays generic.
             is UsageLimitException -> context.getString(
                 when (cause.kind) {
                     UsageLimitKind.DAILY -> R.string.shared_content_usage_limit_daily
@@ -25,12 +29,10 @@ class ErrorUiMapper @Inject constructor(
                     UsageLimitKind.SUBSCRIPTION_REQUIRED -> R.string.shared_content_usage_limit_subscription_required
                 }
             )
-            else -> defaultMessage
+            else -> genericMessage
         }
         is DomainError.DisplayMessageToUser.CheckInternetConnection ->
             context.getString(R.string.shared_content_connectivity_error)
-        is DomainError.DisplayMessageToUser.TechnicalMessage ->
-            if (settingsRepository.getApiKeyOverride() != null) error.message else defaultMessage
-        is DomainError.DisplayMessageToUser.ForceTechnicalMessage -> error.message
+        else -> genericMessage
     }
 }

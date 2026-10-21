@@ -188,7 +188,7 @@ class ModalViewModelTest {
             applyQuickPickOverrideAndReloadWidgetUseCase = ApplyQuickPickOverrideAndReloadWidgetUseCase(repo),
             logMealFromTemplateUseCase = LogMealFromTemplateUseCase(app, repo, createFromTemplate),
             analyticsLogger = AnalyticsLogger(sinks = emptySet()),
-            errorUiMapper = ErrorUiMapper(app, testSettingsRepository),
+            errorUiMapper = ErrorUiMapper(app),
             mealReminderRefresher = mealReminderRefresher,
         ).also { activeViewModels.add(it) }
     }

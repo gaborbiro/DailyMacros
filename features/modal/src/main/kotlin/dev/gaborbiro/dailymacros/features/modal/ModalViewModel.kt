@@ -37,8 +37,8 @@ import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.ErrorUiMapper
 import dev.gaborbiro.dailymacros.features.shared.ListMealVariantsForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.NutrientAnalysisWorker
+import dev.gaborbiro.dailymacros.features.shared.UserFacingError
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderRefresher
-import dev.gaborbiro.dailymacros.repositories.common.model.DomainError
 import dev.gaborbiro.dailymacros.repositories.common.model.toZonedInstant
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
@@ -207,10 +207,9 @@ class ModalViewModel @Inject constructor(
             } catch (e: CancellationException) {
                 throw e
             } catch (t: Throwable) {
-                analyticsLogger.logError(t)
-                _uiUpdates.emit(
-                    ModalUiUpdates.ShowToast(application.getString(R.string.quick_pick_confirm_log_failed_toast))
-                )
+                val message = application.getString(R.string.quick_pick_confirm_log_failed_toast)
+                analyticsLogger.logError(UserFacingError(message, t))
+                _uiUpdates.emit(ModalUiUpdates.ShowToast(message))
             } finally {
                 closeAll()
             }
@@ -1069,19 +1068,17 @@ class ModalViewModel @Inject constructor(
         }
     }
 
-    private fun runSafely(defaultMessage: String, task: suspend () -> Unit): Job {
-        return viewModelScope.launch(makeErrorHandler(defaultMessage)) {
+    private fun runSafely(genericMessage: String, task: suspend () -> Unit): Job {
+        return viewModelScope.launch(makeErrorHandler(genericMessage)) {
             task()
         }
     }
 
-    private fun makeErrorHandler(defaultMessage: String) = CoroutineExceptionHandler { _, exception ->
+    private fun makeErrorHandler(genericMessage: String) = CoroutineExceptionHandler { _, exception ->
         if (exception is CancellationException) return@CoroutineExceptionHandler
-        analyticsLogger.logError(exception)
-        val message = when {
-            exception is DomainError -> errorUiMapper.mapErrorMessage(exception, defaultMessage)
-            else -> defaultMessage
-        }
+        val userFacingError = errorUiMapper.map(exception, genericMessage)
+        analyticsLogger.logError(userFacingError)
+        val message = userFacingError.message
         viewModelScope.launch {
             _uiUpdates.emit(ModalUiUpdates.Error(message.ellipsize(300) ?: message))
         }

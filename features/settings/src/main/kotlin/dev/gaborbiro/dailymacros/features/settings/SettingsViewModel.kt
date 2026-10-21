@@ -8,7 +8,9 @@ import android.os.Build
 import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
+import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.core.featureflags.FeatureFlagStore
+import dev.gaborbiro.dailymacros.features.shared.ErrorUiMapper
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.GoogleAuthException
 import com.google.android.gms.auth.GoogleAuthUtil
@@ -79,6 +81,8 @@ class SettingsViewModel @Inject constructor(
     private val mealReminderPrefs: MealReminderPrefs,
     private val mealReminderCoordinator: MealReminderCoordinator,
     private val mealReminderRunner: MealReminderRunner,
+    private val errorUiMapper: ErrorUiMapper,
+    private val analyticsLogger: AnalyticsLogger,
 ) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(
@@ -115,6 +119,18 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             subscriptionRepository.observeState().collect { state ->
                 _uiState.update { it.copy(subscriptionState = state) }
+            }
+        }
+        // This ViewModel is activity-scoped and its snackbar is drawn over every screen, so this
+        // catches failures from all subscribe entry points (Settings, Paywall, Onboarding).
+        viewModelScope.launch {
+            subscriptionRepository.observePurchaseFlowFailures().collect { error ->
+                val userFacingError = errorUiMapper.map(
+                    error,
+                    getApplication<Application>().getString(R.string.settings_content_purchase_flow_error),
+                )
+                analyticsLogger.logError(userFacingError)
+                _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar(userFacingError.message))
             }
         }
     }

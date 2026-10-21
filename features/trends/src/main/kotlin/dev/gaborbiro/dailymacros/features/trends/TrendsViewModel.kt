@@ -4,11 +4,13 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.core.featureflags.FeatureFlagStore
 import dev.gaborbiro.dailymacros.features.common.utils.diaryDayStartTime
 import dev.gaborbiro.dailymacros.features.common.utils.diaryDayWindowStart
 import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryDate
 import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryToday
+import dev.gaborbiro.dailymacros.features.shared.ErrorUiMapper
 import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
 import dev.gaborbiro.dailymacros.features.trends.model.Timescale
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsSettingsUIModel
@@ -25,6 +27,7 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,6 +58,8 @@ class TrendsViewModel @Inject constructor(
     private val preferences: TrendsPreferences,
     private val mapper: TrendsUiMapper,
     @ForJsonBodyChatGpt private val chatGPTRepository: ChatGPTRepository,
+    private val errorUiMapper: ErrorUiMapper,
+    private val analyticsLogger: AnalyticsLogger,
     featureFlagStore: FeatureFlagStore,
 ) : AndroidViewModel(application) {
 
@@ -220,11 +225,14 @@ class TrendsViewModel @Inject constructor(
                         weeklyInsightsLoading = false,
                     )
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
+                val message = reportInsightsError(e)
                 _uiState.update {
                     it.copy(
                         weeklyInsightsLoading = false,
-                        weeklyInsightsError = e.message ?: "Failed to get insights",
+                        weeklyInsightsError = message,
                     )
                 }
             }
@@ -266,15 +274,25 @@ class TrendsViewModel @Inject constructor(
                         ongoingWeekInsightsLoading = false,
                     )
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
+                val message = reportInsightsError(e)
                 _uiState.update {
                     it.copy(
                         ongoingWeekInsightsLoading = false,
-                        ongoingWeekInsightsError = e.message ?: "Failed to get insights",
+                        ongoingWeekInsightsError = message,
                     )
                 }
             }
         }
+    }
+
+    /** Logs [e] as what the user is shown and returns that message. */
+    private fun reportInsightsError(e: Exception): String {
+        val userFacingError = errorUiMapper.map(e, getApplication<Application>().getString(R.string.trends_content_insights_error))
+        analyticsLogger.logError(userFacingError)
+        return userFacingError.message
     }
 
     private fun resolvePromptVersionLabel(

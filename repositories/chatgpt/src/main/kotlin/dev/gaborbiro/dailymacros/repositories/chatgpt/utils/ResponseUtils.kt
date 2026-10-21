@@ -97,7 +97,7 @@ private fun <T> ErrorHandlingContext.handleUnsuccessful(
         }.getOrNull()
         message to null
     }
-    val finalType = type ?: "unable to discern structured error type"
+    val finalType = type ?: "unable to discern structured error type (${response.code()})"
     val finalMessage = analyticsMessage ?: "unable to discern structured error message"
     throw AiRequestError.Upstream(
         errorMessage = "$finalType - $finalMessage",
