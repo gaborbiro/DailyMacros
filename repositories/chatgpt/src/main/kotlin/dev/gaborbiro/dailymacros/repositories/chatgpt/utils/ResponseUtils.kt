@@ -6,7 +6,6 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ErrorRespons
 import dev.gaborbiro.dailymacros.repositories.chatgpt.service.model.ErrorResponseBody2
 import dev.gaborbiro.dailymacros.repositories.common.model.UsageLimitKind
 import kotlinx.coroutines.CancellationException
-import okhttp3.ResponseBody
 import retrofit2.Response
 import java.io.IOException
 
@@ -35,14 +34,10 @@ internal suspend fun <T> runCatching(
 
 /**
  * Use this when there is a return value
- *
- * @param doOnError called before the default error handling mechanism. This means you can
- * override the default error handling by throwing your own ApiError.
  */
 fun <T> ErrorHandlingContext.parse(
     response: Response<T>,
     doOnSuccess: ((T, Response<T>) -> Unit)? = null,
-    doOnError: ((errorBody: ResponseBody?, response: Response<T>) -> Unit)? = null,
 ): T {
     handle(
         response,
@@ -51,8 +46,7 @@ fun <T> ErrorHandlingContext.parse(
                 response.body()
                     ?: throw AiRequestError.Generic("$tag Error: missing response payload")
             doOnSuccess?.invoke(body, response)
-        },
-        doOnError
+        }
     )
     return response.body()
         ?: throw AiRequestError.Generic("$tag Error: missing response payload")
@@ -66,12 +60,11 @@ fun <T> ErrorHandlingContext.parse(
 fun <T> ErrorHandlingContext.handle(
     response: Response<T>,
     doOnSuccess: ((Response<T>) -> Unit)? = null,
-    doOnError: ((errorBody: ResponseBody?, response: Response<T>) -> Unit)? = null,
 ) {
     if (response.isSuccessful) {
         doOnSuccess?.invoke(response)
     } else {
-        handleUnsuccessful(response, doOnError)
+        handleUnsuccessful(response)
     }
 }
 
@@ -80,9 +73,7 @@ fun <T> ErrorHandlingContext.handle(
  */
 private fun <T> ErrorHandlingContext.handleUnsuccessful(
     response: Response<T>,
-    doOnError: ((errorBody: ResponseBody?, response: Response<T>) -> Unit)? = null,
 ): T {
-    doOnError?.invoke(response.errorBody(), response)
     val errorBody = response.errorBody()?.string()
     val gson = Gson()
 
@@ -106,9 +97,12 @@ private fun <T> ErrorHandlingContext.handleUnsuccessful(
         }.getOrNull()
         message to null
     }
-    val finalType = type ?: "unknown error type"
-    val finalMessage = analyticsMessage ?: "no error message"
-    throw AiRequestError.Upstream(errorMessage = "$finalType - $finalMessage")
+    val finalType = type ?: "unable to discern structured error type"
+    val finalMessage = analyticsMessage ?: "unable to discern structured error message"
+    throw AiRequestError.Upstream(
+        errorMessage = "$finalType - $finalMessage",
+        cause = Exception(response.code().toString() + " - " + errorBody)
+    )
 }
 
 /**

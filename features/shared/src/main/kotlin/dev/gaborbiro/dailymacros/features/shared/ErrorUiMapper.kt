@@ -30,7 +30,7 @@ class ErrorUiMapper @Inject constructor(
         is DomainError.DisplayMessageToUser.CheckInternetConnection ->
             context.getString(R.string.shared_content_connectivity_error)
         is DomainError.DisplayMessageToUser.TechnicalMessage ->
-            if (settingsRepository.getApiKeyOverride() != null) error.errorMessage else defaultMessage
-        is DomainError.DisplayMessageToUser.ForceTechnicalMessage -> error.errorMessage
+            if (settingsRepository.getApiKeyOverride() != null) error.message else defaultMessage
+        is DomainError.DisplayMessageToUser.ForceTechnicalMessage -> error.message
     }
 }
