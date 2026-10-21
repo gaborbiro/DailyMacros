@@ -179,7 +179,8 @@ support email quoting a client ID is enough to find the uid at all.
 
 - **Automatic**: `openaiProxy` self-heals the first time it sees a
   not-yet-entitled request from a uid whose doc doesn't exist at all — it
-  checks `purchaseTokens` for a token on file, and if found, re-verifies with
+  checks `purchaseTokens` for the uid's newest token on file (by document
+  creation time — a resubscriber has one per purchase), and if found, re-verifies with
   Play and retries the same request before denying it. No waiting required,
   but it only fires when that uid happens to make a request.
 - **Manual**: `repairSubscription`, an on-demand HTTP endpoint, for fixing a

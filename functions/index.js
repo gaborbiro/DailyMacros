@@ -74,8 +74,8 @@
  * (e.g. an accidental Firestore delete) they'd otherwise be treated as a
  * brand-new user until their next real Play lifecycle event triggers RTDN.
  * Instead, the first time we see !userSnap.exists on a not-entitled request,
- * we check the separate (delete-immune) purchaseTokens collection for a
- * token on file for this uid; if found, we re-verify with Play and retry the
+ * we check the separate (delete-immune) purchaseTokens collection for the
+ * newest token on file for this uid; if found, we re-verify with Play and retry the
  * same request once with fresh data rather than denying it. See
  * subscriptions.js's repairSubscription for the manual, on-demand version of
  * the same repair.
@@ -271,12 +271,9 @@ exports.openaiProxy = onRequest(
       // doesn't recur for them).
       let selfHealPurchaseToken = null;
       if (!isUnlimited && !entitled && !userSnap.exists) {
-        const tokenQuery = await tx.get(
-          db.collection("purchaseTokens").where("uid", "==", uid).limit(1),
+        selfHealPurchaseToken = subscriptions.newestPurchaseTokenId(
+          await tx.get(subscriptions.purchaseTokensForUidQuery(uid)),
         );
-        if (!tokenQuery.empty) {
-          selfHealPurchaseToken = tokenQuery.docs[0].id;
-        }
       }
 
       // All reads are done - everything from here on is a write or an

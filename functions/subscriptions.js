@@ -115,19 +115,49 @@ async function verifyAndStore(uid, purchaseToken, productIdHint) {
 }
 
 /**
- * Reverse lookup: given a uid, find the purchase token `verifyAndStore` last
- * recorded for it, by querying `purchaseTokens` (keyed by token, not uid) for
- * a matching `uid` field. This is what makes recovery possible after a
- * `users/{uid}` doc is lost — that document is gone, but `purchaseTokens`
- * entries are separate documents and survive it untouched. Returns null if
- * no token is on file (a genuinely new/never-subscribed uid, not an anomaly).
+ * All `purchaseTokens` entries for a uid. Shared by `findPurchaseTokenForUid`
+ * and `openaiProxy`'s self-heal, which has to run the same query through its
+ * transaction instead of `db`. Pair with `newestPurchaseTokenId`.
+ */
+function purchaseTokensForUidQuery(uid) {
+  return db.collection("purchaseTokens").where("uid", "==", uid);
+}
+
+/**
+ * Picks the token from a `purchaseTokensForUidQuery` result whose mapping was
+ * created most recently, or null if there are none. A uid that resubscribed
+ * after an expiry (or changed plan) has one entry per purchase, and only the
+ * newest can still be entitled — verifying an older one would record the user
+ * as expired while they're paying. Uses Firestore's own document createTime,
+ * which is when `verifyAndStore` first saw that token (≈ purchase time), so
+ * it needs no stored field and covers entries written before this existed.
+ */
+function newestPurchaseTokenId(snapshot) {
+  let newest = null;
+  for (const doc of snapshot.docs) {
+    if (newest === null || doc.createTime.toMillis() > newest.createTime.toMillis()) {
+      newest = doc;
+    }
+  }
+  return newest === null ? null : newest.id;
+}
+
+/**
+ * Reverse lookup: given a uid, find the purchase token `verifyAndStore`
+ * recorded for its latest purchase, by querying `purchaseTokens` (keyed by
+ * token, not uid) for a matching `uid` field. This is what makes recovery
+ * possible after a `users/{uid}` doc is lost — that document is gone, but
+ * `purchaseTokens` entries are separate documents and survive it untouched.
+ * Returns null if no token is on file (a genuinely new/never-subscribed uid,
+ * not an anomaly).
  */
 async function findPurchaseTokenForUid(uid) {
-  const snapshot = await db.collection("purchaseTokens").where("uid", "==", uid).limit(1).get();
-  return snapshot.empty ? null : snapshot.docs[0].id;
+  return newestPurchaseTokenId(await purchaseTokensForUidQuery(uid).get());
 }
 
 exports.verifyAndStore = verifyAndStore;
+exports.purchaseTokensForUidQuery = purchaseTokensForUidQuery;
+exports.newestPurchaseTokenId = newestPurchaseTokenId;
 exports.findPurchaseTokenForUid = findPurchaseTokenForUid;
 
 exports.verifySubscription = onRequest(
