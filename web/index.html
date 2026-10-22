@@ -484,7 +484,6 @@
         <button type="button" data-src="/img/demo/cheese-bread.jpg" aria-label="Analyse a sample photo of cheese bread"><img src="/img/demo/cheese-bread.jpg" alt=""></button>
       </div>
       <p class="demo-after" id="demo-after" hidden>Logged! It’s in the app too, with today’s totals updated. <button type="button" id="demo-show-overview">Show me</button></p>
-      <p class="fine" id="demo-tries">3 free tries a day.</p>
       <p class="fine">Photos are sent to OpenAI for the analysis and aren’t stored by Daily Macros. Interactive demo: the AI is real, the phones are replicas.</p>
     </div>
     <input type="file" id="demo-camera-input" accept="image/*" capture="environment" hidden>
@@ -569,7 +568,7 @@
           </ol>
           <form id="join-form" novalidate>
             <label for="email" id="email-label">Google account email used in Play Store</label>
-            <p class="hint" id="email-hint">Use the Google account that is signed into Google Play on your Android phone. Google requires this account to be approved before you can install the test version.</p>
+            <p class="hint" id="email-hint">Use the Google account that is signed into Google Play on your Android phone.</p>
             <input id="email" name="email" type="email" inputmode="email" autocomplete="email"
                    autocapitalize="off" spellcheck="false" placeholder="you@gmail.com" required
                    aria-describedby="email-hint email-error">
@@ -676,7 +675,7 @@
   var COPY = {
     android: {
       label: "Google account email used in Play Store",
-      hint: "Use the Google account that is signed into Google Play on your Android phone. Google requires this account to be approved before you can install the test version.",
+      hint: "Use the Google account that is signed into Google Play on your Android phone.",
       placeholder: "you@gmail.com",
       cta: "Join the Android test",
       privacy: "Your email will only be used to give you access to the Daily Macros test and contact you about testing."
@@ -874,11 +873,10 @@
   var cameraBtn = document.getElementById("demo-camera");
   var cameraInput = document.getElementById("demo-camera-input");
   var galleryInput = document.getElementById("demo-gallery-input");
-  var triesEl = document.getElementById("demo-tries");
 
   var started = false;
   var busy = false;
-  var aiRan = false; // an analysis came back, whatever the outcome
+  var analysedOnce = false; // an analysis succeeded at least once
   var favouriteUsed = false;
   var remaining = null; // unknown until the first answer from /api/demo
   var current = null; // { image, description, result } of the meal in the dialog
@@ -1212,11 +1210,10 @@
 
   // --- Visitor's first interaction ------------------------------------------
 
+  // Counts the visitor once in stats/counters.demo_start, on any first tap.
   function markStarted() {
     if (started) return;
     started = true;
-    document.getElementById("demo-hint").hidden = true;
-    cameraBtn.classList.remove("pulse");
     try {
       fetch("/api/event", {
         method: "POST",
@@ -1227,11 +1224,13 @@
     } catch (e) {}
   }
 
-  function setRemaining(n) {
-    remaining = n;
-    triesEl.textContent = n > 0
-      ? n + (n === 1 ? " free try" : " free tries") + " left today."
-      : "That was your last free try today.";
+  // The camera hint stays until the visitor has really used it: a photo or
+  // description analysed successfully. Then the favourites hint takes over
+  // (shown when the result dialog closes).
+  function markAnalysed() {
+    analysedOnce = true;
+    document.getElementById("demo-hint").hidden = true;
+    cameraBtn.classList.remove("pulse");
   }
 
   // The prompt wants the English name of the output language ("German"), the
@@ -1317,7 +1316,7 @@
     dialog.textContent = "";
     cameraBtn.focus({ preventScroll: true });
     // Once they've tried the AI, point at the one-tap way of logging.
-    if (aiRan && !favouriteUsed) favHint.hidden = false;
+    if (analysedOnce && !favouriteUsed) favHint.hidden = false;
   }
 
   function showTextEntry() {
@@ -1456,9 +1455,9 @@
       return r.json().catch(function () { return {}; }).then(function (data) { return { status: r.status, data: data }; });
     }).then(function (res) {
       busy = false;
-      aiRan = true;
-      if (typeof res.data.remaining === "number") setRemaining(res.data.remaining);
+      if (typeof res.data.remaining === "number") remaining = res.data.remaining;
       if (res.status === 200 && res.data.ok) {
+        markAnalysed();
         current.result = res.data.result;
         showResult();
         return;
@@ -1472,7 +1471,6 @@
       showError(message, res.status !== 422 && res.status !== 400);
     }).catch(function (ex) {
       busy = false;
-      aiRan = true;
       showError(ex instanceof TypeError
         ? "Couldn't reach the server. Check your connection and try again."
         : "The demo couldn't verify this browser. Please reload the page.", true);
