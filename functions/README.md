@@ -371,8 +371,9 @@ Both email you on every *new* signup (not duplicates). The email is
 best-effort: a mail failure never fails the signup, and if the secrets below
 are unset the function simply skips it locally.
 
-`trackEvent` (see `stats.js`) increments `stats/counters.page_view` and
-`stats/counters.beta_cta_click` so you can see the funnel between a visit and
+`trackEvent` (see `stats.js`) increments `stats/counters.page_view`,
+`stats/counters.beta_cta_click` and `stats/counters.demo_start` (a visitor's
+first tap on the demo below) so you can see the funnel between a visit and
 each signup; it doesn't store any per-visitor data.
 
 One-time setup (the deploy fails until both secrets exist):
@@ -392,3 +393,65 @@ Each `testers` doc has a `platform`: `android` (status `pending` → `added`) or
 `ios` (status `waitlist`, nothing to approve, never counted as pending). Docs
 from before the iPhone option have no `platform` field and are all Android.
 iOS ids are hashed with an `ios:` prefix, so one email can be on both lists.
+
+---
+
+## Landing-page demo (`demoAnalyze`)
+
+The "Try it on a meal" section of `web/index.html` is an HTML replica of the
+home-screen widget. Everything on it is static except the analysis: the page
+downscales the visitor's photo (or takes a typed description) and POSTs it to
+`/api/demo`, a Hosting rewrite to `demoAnalyze` (see `demo.js`).
+
+`demoAnalyze` is deliberately **not** a pass-through like `openaiProxy`: it
+builds the OpenAI request itself from `lib/demoPrompt.js` (a copy of the app's
+nutrient-analysis prompt, so keep the two in step), so the endpoint can only
+ever analyse a meal. Because web visitors have no stable identity, it has its
+own caps instead of the per-user ones, all in `config/demo`:
+
+| Field | Type | Default | Meaning |
+|---|---|---|---|
+| `enabled` | boolean | `true` | The demo's own kill switch. |
+| `dailyBudget` | number | `60` | All demo calls per UTC day (`usage/demo`). Separate from `config/limits`, so an abused demo can't lock out app users. Worst case per month: 30 × this. |
+| `perIpDailyCap` | number | `3` | Calls per visitor IP per UTC day (`demoIps/{sha256(day:ip)}`). A soft limit; `dailyBudget` is the real ceiling. |
+| `requireAppCheck` | boolean | `true` | Require a valid App Check token. |
+| `model` | string | `gpt-5.4-mini` | OpenAI model. |
+| `reasoningEffort` | string | `low` | The app uses `high`; a landing-page visitor won't wait that long. |
+
+One-time setup (until it's done, the demo answers every try with "couldn't
+verify this browser"):
+
+1. **Register a web app** in the Firebase console: *Project settings → Your
+   apps → Add app → Web*. Hosting then serves its config at
+   `/__/firebase/init.json`, which the page reads, so nothing else needs
+   pasting.
+2. **Create a reCAPTCHA Enterprise key**: Cloud console → *Security →
+   reCAPTCHA → Create key*, type *Website*, domains
+   `dailymacros-9fab8.web.app` and `dailymacros-9fab8.firebaseapp.com` (plus
+   any custom domain). Enable the reCAPTCHA Enterprise API if prompted.
+3. **Register it with App Check**: Firebase console → *App Check → Apps* →
+   the web app → *reCAPTCHA Enterprise* → paste the site key → *Save*. Don't
+   turn on enforcement for other Firebase products; `demoAnalyze` verifies
+   tokens itself.
+4. **Put the site key in the page**: `APP_CHECK_SITE_KEY` in the demo script
+   at the bottom of `web/index.html`. Site keys are public by design.
+5. **Add a TTL policy** so the per-IP docs delete themselves after two days:
+   ```bash
+   gcloud firestore fields ttls update expireAt \
+     --collection-group=demoIps --enable-ttl --project=dailymacros-9fab8
+   ```
+6. **Deploy** functions and hosting (the `/api/demo` rewrite is in
+   `firebase.json`).
+
+To test on `localhost`, the page prints an App Check debug token to the
+browser console; add it under *App Check → Apps → ⋮ → Manage debug tokens*.
+
+Operating it:
+
+- **Stop the demo:** set `config/demo.enabled = false`. The page shows "The
+  demo is taking a break".
+- **See usage:** `usage/demo` holds today's count; `stats/counters.demo_start`
+  counts visitors who tried it.
+- **Sample photos:** `web/img/demo/*.jpg` are cut from the widget screenshot.
+  Real, larger food photos give the AI more to work with; replace the files
+  with the same names.

@@ -88,7 +88,6 @@
  */
 
 const { onRequest } = require("firebase-functions/v2/https");
-const { defineSecret } = require("firebase-functions/params");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 
@@ -109,8 +108,10 @@ exports.joinTest = require("./testers").joinTest;
 // Landing-page funnel counters (see stats.js).
 exports.trackEvent = require("./stats").trackEvent;
 
-// Set with: firebase functions:secrets:set OPENAI_KEY
-const OPENAI_KEY = defineSecret("OPENAI_KEY");
+// Landing-page "try it on a meal" demo (see demo.js).
+exports.demoAnalyze = require("./demo").demoAnalyze;
+
+const { OPENAI_KEY } = require("./lib/secrets");
 
 const OPENAI_URL = "https://api.openai.com/v1/responses";
 

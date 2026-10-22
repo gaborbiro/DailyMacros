@@ -19,7 +19,8 @@ const { FieldValue } = require("firebase-admin/firestore");
 
 const db = admin.firestore();
 
-const EVENT_TYPES = new Set(["page_view", "beta_cta_click"]);
+// demo_start: a visitor's first tap on the landing-page demo (see demo.js).
+const EVENT_TYPES = new Set(["page_view", "beta_cta_click", "demo_start"]);
 
 exports.trackEvent = onRequest(
   {
