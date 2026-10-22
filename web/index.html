@@ -167,8 +167,14 @@
   }
   .w-scroll:focus-visible { outline: 2px solid rgba(245, 124, 0, .7); outline-offset: -2px; }
   .w-recent { margin: 0; padding: 6px 10px; list-style: none; }
-  .w-recent li { display: flex; align-items: center; gap: 10px; padding: 4px 0; border-radius: 8px; }
-  .w-recent li > div { min-width: 0; }
+  .w-recent li { border-radius: 8px; }
+  .w-row {
+    display: flex; align-items: center; gap: 10px; width: 100%; padding: 4px 2px; border: 0; border-radius: 8px;
+    background: none; text-align: left; cursor: pointer;
+  }
+  .w-row:hover, .w-row:focus-visible { background: rgba(255, 255, 255, .08); outline: none; }
+  .w-row-text { min-width: 0; }
+  .w-row-text > span { display: block; }
   .w-thumb { flex: none; width: 52px; height: 38px; border-radius: 7px; object-fit: cover; background: #4A382D; }
   .w-noimg { display: grid; place-items: center; color: #F2B489; font-size: 18px; }
   .w-name { color: #fff; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -287,7 +293,7 @@
   }
   .dialog:focus { outline: none; }
   .dialog-photo { display: block; width: 84px; height: 84px; border-radius: 12px; object-fit: cover; }
-  .dialog-quote { margin: 0; padding: 8px 10px; border-left: 3px solid #F5A623; color: #fff; font-style: italic; }
+  .dialog > :first-child { margin-top: 0; } /* text-only meals have no photo on top */
   .dialog h3 { margin: 12px 0 10px; color: #fff; font-size: 18px; line-height: 1.2; }
   .dialog h3:focus { outline: none; }
   .dialog .tracks { gap: 6px; margin: 0; }
@@ -309,8 +315,6 @@
     display: block; margin: 10px auto 0; border: 0; background: none; cursor: pointer;
     color: #F5A623 !important; font-weight: 600;
   }
-  .dialog-pin { display: flex; align-items: center; gap: 8px; margin: 12px 0 0; font-weight: 400; cursor: pointer; }
-  .dialog-pin input { width: 18px; height: 18px; accent-color: #F5A623; }
   .dialog-status { display: flex; align-items: center; gap: 12px; margin-top: 16px; color: #fff; }
   .dialog-error { margin-top: 12px; color: #FFB4A9; }
   .spinner {
@@ -392,6 +396,7 @@
                       <span class="w-pick-text"><span class="w-name">Bacon cheese scrambled egg</span><span class="w-sub">509kcal</span></span>
                     </button>
                   </div>
+                  <ul class="w-recent" id="demo-recent-more" aria-label="Earlier meals"></ul>
                 </div>
                 <div class="w-bar">
                   <button type="button" id="demo-camera" class="pulse" aria-label="Take a photo of your meal">
@@ -748,7 +753,7 @@
   var APP_CHECK_SITE_KEY = "";
   var FIREBASE_SDK = "https://www.gstatic.com/firebasejs/11.0.2/";
   var MAX_PHOTO_PX = 768;
-  var MAX_TILES = 4;
+  var QUICK_PICKS_INDEX = 4; // the real widget lists Quick Picks after the 4th recent meal
   var CONFIDENCE_MARK = { high: "", medium: " (?)", low: " (??)" };
 
   // The app's default daily targets. A min of 0 means "at most max".
@@ -776,16 +781,56 @@
   ];
   var TYPICAL_ADDED_SUGAR = 15;
 
-  // The sample meals, with the nutrition the app logged for them. The ones
-  // without a photo were logged from a typed description.
+  // The sample meals, with the nutrition and AI notes the app logged for them.
+  // The ones without a photo were logged from a typed description.
+  function part(name, amount, confidence) { return { name: name, amount: amount, confidence: confidence }; }
   var FOODS = {
-    "scrambled-egg": { name: "Bacon cheese scrambled egg", image: "/img/demo/scrambled-egg.jpg", calories: 509, protein: 31.9, fat: 27.2, saturated: 10.3, carbs: 32.7, sugar: 6.1, addedSugar: 1.5, salt: 2.5, fibre: 4.5 },
-    "cheese-bread": { name: "Cheese bread", image: "/img/demo/cheese-bread.jpg", calories: 95, protein: 1.5, fat: 3.5, saturated: 1, carbs: 14, sugar: 0.6, addedSugar: 0, salt: 0.4, fibre: 0.3 },
-    "noodle-soup": { name: "Noodle soup", image: "/img/demo/noodle-soup.jpg", calories: 390, protein: 29, fat: 7, saturated: 1.8, carbs: 46, sugar: 3, addedSugar: 0.5, salt: 2.2, fibre: 2.5 },
-    "apple-cake": { name: "Apple cake", image: "/img/demo/apple-cake.jpg", calories: 393, protein: 4.3, fat: 16.1, saturated: 1.5, carbs: 58.7, sugar: 39, addedSugar: 34, salt: 0.4, fibre: 2.2 },
-    "yoghurt-bowl": { name: "Greek yoghurt with berries and oats", image: null, calories: 380, protein: 28, fat: 9, saturated: 5, carbs: 46, sugar: 22, addedSugar: 6, salt: 0.3, fibre: 8 },
-    "lentil-soup": { name: "Lentil soup", image: null, calories: 320, protein: 18, fat: 6, saturated: 1, carbs: 45, sugar: 6, addedSugar: 0, salt: 1.2, fibre: 12 },
-    "chicken-rice": { name: "Chicken, rice and broccoli", image: null, calories: 650, protein: 55, fat: 12, saturated: 3, carbs: 75, sugar: 3, addedSugar: 0, salt: 1.2, fibre: 7 }
+    "scrambled-egg": {
+      name: "Bacon cheese scrambled egg", image: "/img/demo/scrambled-egg.jpg",
+      calories: 509, protein: 31.9, fat: 27.2, saturated: 10.3, carbs: 32.7, sugar: 6.1, addedSugar: 1.5, salt: 2.5, fibre: 4.5,
+      components: [part("bread", "2 slices, ~90 g", "medium"), part("eggs", "about 3 large", "medium"), part("bacon", "about 35 g", "medium"),
+        part("grated mozzarella", "about 35 g", "medium"), part("cherry tomatoes", "about 40 g", "low"), part("cucumber", "about 40 g", "low")],
+      notes: "Packaging values were used for the bacon and mozzarella. Bread, eggs and vegetables were estimated from the photo. No separate cooking fat was counted."
+    },
+    "cheese-bread": {
+      name: "Cheese bread", image: "/img/demo/cheese-bread.jpg",
+      calories: 95, protein: 1.5, fat: 3.5, saturated: 1, carbs: 14, sugar: 0.6, addedSugar: 0, salt: 0.4, fibre: 0.3,
+      components: [part("cheese bread roll", "1 small roll, ~35 g", "medium")],
+      notes: "Estimated as one small Brazilian-style cheese bread roll."
+    },
+    "noodle-soup": {
+      name: "Noodle soup", image: "/img/demo/noodle-soup.jpg",
+      calories: 390, protein: 29, fat: 7, saturated: 1.8, carbs: 46, sugar: 3, addedSugar: 0.5, salt: 2.2, fibre: 2.5,
+      components: [part("egg noodles", "~120 g cooked", "medium"), part("chicken", "~90 g", "medium"),
+        part("broth", "~400 ml", "medium"), part("mixed vegetables", "~60 g", "low")],
+      notes: "Estimated from the photo, assuming a chicken stock broth."
+    },
+    "apple-cake": {
+      name: "Apple cake", image: "/img/demo/apple-cake.jpg",
+      calories: 393, protein: 4.3, fat: 16.1, saturated: 1.5, carbs: 58.7, sugar: 39, addedSugar: 34, salt: 0.4, fibre: 2.2,
+      components: [part("apple cake", "1 slice, ~120 g", "medium")],
+      notes: "One slice estimated from the photo, assuming a sponge base with apple and a sugar topping."
+    },
+    "yoghurt-bowl": {
+      name: "Greek yoghurt with berries and oats", image: null,
+      calories: 380, protein: 28, fat: 9, saturated: 5, carbs: 46, sugar: 22, addedSugar: 6, salt: 0.3, fibre: 8,
+      components: [part("Greek yoghurt", "~200 g", "high"), part("mixed berries", "~80 g", "high"),
+        part("oats", "~30 g", "high"), part("honey", "1 teaspoon", "medium")],
+      notes: "Estimated from the description."
+    },
+    "lentil-soup": {
+      name: "Lentil soup", image: null,
+      calories: 320, protein: 18, fat: 6, saturated: 1, carbs: 45, sugar: 6, addedSugar: 0, salt: 1.2, fibre: 12,
+      components: [part("red lentil soup", "1 large bowl, ~400 ml", "medium")],
+      notes: "Estimated from the description, assuming a home-made red lentil soup."
+    },
+    "chicken-rice": {
+      name: "Chicken, rice and broccoli", image: null,
+      calories: 650, protein: 55, fat: 12, saturated: 3, carbs: 75, sugar: 3, addedSugar: 0, salt: 1.2, fibre: 7,
+      components: [part("chicken breast", "~180 g", "high"), part("cooked rice", "~200 g", "medium"),
+        part("broccoli", "~100 g", "high"), part("olive oil", "1 teaspoon", "low")],
+      notes: "Estimated from the description."
+    }
   };
 
   // Today's meals are seeded relative to now (dropped if that would be before
@@ -811,6 +856,7 @@
   var tiles = ["apple-cake", "cheese-bread", "scrambled-egg", "noodle-soup"].map(function (k) { return FOODS[k]; });
 
   var recentEl = document.getElementById("demo-recent");
+  var recentMoreEl = document.getElementById("demo-recent-more");
   var tilesEl = document.getElementById("demo-tiles");
   var overviewEl = document.getElementById("demo-overview");
   var trendsEl = document.getElementById("demo-trends");
@@ -901,30 +947,37 @@
 
   // --- Widget ---------------------------------------------------------------
 
+  // Recent meals, with the Quick Picks block after the first QUICK_PICKS_INDEX
+  // of them and the older ones continuing below it. Each row opens the meal.
   function renderWidget(highlightNewest) {
     recentEl.textContent = "";
+    recentMoreEl.textContent = "";
     diary.forEach(function (meal, i) {
       var li = el("li", highlightNewest && i === 0 ? "is-new" : null);
+      var row = el("button", "w-row");
+      row.type = "button";
+      row.setAttribute("data-meal", String(i));
       if (meal.image) {
-        li.appendChild(img("w-thumb", meal.image));
+        row.appendChild(img("w-thumb", meal.image));
       } else {
-        var noImg = el("div", "w-thumb w-noimg", "✎");
+        var noImg = el("span", "w-thumb w-noimg", "✎");
         noImg.setAttribute("aria-hidden", "true");
-        li.appendChild(noImg);
+        row.appendChild(noImg);
       }
-      var text = el("div");
-      text.appendChild(el("div", "w-name", meal.name));
-      text.appendChild(el("div", "w-sub", dayName(meal.at) + ", " + hhmm(meal.at) + " (" + kcal(meal.calories) + ")"));
-      li.appendChild(text);
-      recentEl.appendChild(li);
+      var text = el("span", "w-row-text");
+      text.appendChild(el("span", "w-name", meal.name));
+      text.appendChild(el("span", "w-sub", dayName(meal.at) + ", " + hhmm(meal.at) + " (" + kcal(meal.calories) + ")"));
+      row.appendChild(text);
+      li.appendChild(row);
+      (i < QUICK_PICKS_INDEX ? recentEl : recentMoreEl).appendChild(li);
     });
     if (highlightNewest) document.getElementById("demo-widget-scroll").scrollTop = 0;
   }
 
-  function renderTiles(highlightFirst) {
+  function renderTiles() {
     tilesEl.textContent = "";
     tiles.forEach(function (meal, i) {
-      var tile = el("button", "w-tile" + (highlightFirst && i === 0 ? " is-new" : ""));
+      var tile = el("button", "w-tile");
       tile.type = "button";
       tile.setAttribute("data-tile", String(i));
       tile.setAttribute("aria-label", "Log " + meal.name);
@@ -1247,8 +1300,6 @@
       var photo = img("dialog-photo", current.image);
       photo.alt = "Your meal";
       dialog.appendChild(photo);
-    } else if (current && current.description) {
-      dialog.appendChild(el("p", "dialog-quote", "“" + current.description + "”"));
     }
     nodes.forEach(function (n) { dialog.appendChild(n); });
     scrim.hidden = false;
@@ -1302,23 +1353,29 @@
       || component.charAt(0).toUpperCase() + component.slice(1) || "Your meal";
   }
 
-  function showResult() {
-    var r = current.result;
-    var title = el("h3", null, mealTitle());
-    title.tabIndex = -1;
+  // The meal screen's title, nutrient chips and "What the AI inferred" box,
+  // shared by a fresh analysis and a meal opened from the widget.
+  function mealDetailNodes(title, meal, canRerun) {
+    var heading = el("h3", null, title);
+    heading.tabIndex = -1;
 
     var chips = el("div", "tracks");
-    chipsFor(r).forEach(function (c) { chips.appendChild(el("span", "chip " + c[0], c[1])); });
+    chipsFor(meal).forEach(function (c) { chips.appendChild(el("span", "chip " + c[0], c[1])); });
 
     var inferred = el("div", "inferred");
     inferred.appendChild(el("strong", null, "What the AI inferred"));
     var list = el("ul");
-    r.components.forEach(function (c) {
+    meal.components.forEach(function (c) {
       list.appendChild(el("li", null, "- " + c.name + (c.amount ? " (" + c.amount + ")" : "") + CONFIDENCE_MARK[c.confidence]));
     });
     inferred.appendChild(list);
-    if (r.notes) inferred.appendChild(el("p", null, r.notes));
-    inferred.appendChild(el("em", null, "If something looks off, add a clarification below and re-run the analysis."));
+    if (meal.notes) inferred.appendChild(el("p", null, meal.notes));
+    if (canRerun) inferred.appendChild(el("em", null, "If something looks off, add a clarification below and re-run the analysis."));
+    return [heading, chips, inferred];
+  }
+
+  function showResult() {
+    var details = mealDetailNodes(mealTitle(), current.result, true);
 
     var fix = el("div", "dialog-fix");
     var note = el("input");
@@ -1335,17 +1392,25 @@
     fix.appendChild(note);
     fix.appendChild(rerun);
 
-    var pin = el("label", "dialog-pin");
-    var pinBox = el("input");
-    pinBox.type = "checkbox";
-    pin.appendChild(pinBox);
-    pin.appendChild(document.createTextNode("Pin to home screen as a favourite"));
-
-    openDialog([
-      title, chips, inferred, fix, pin,
-      button("btn", "Log meal", function () { logAnalysed(pinBox.checked); }),
+    openDialog(details.concat([
+      fix,
+      button("btn", "Log meal", logAnalysed),
       button("dialog-link", "Close", closeDialog)
-    ], title);
+    ]), details[0]);
+  }
+
+  // A logged meal, opened from the widget: the same screen without the
+  // re-run, as in the app.
+  function showMealDetails(meal) {
+    current = { image: meal.image, description: "", result: null };
+    var details = mealDetailNodes(meal.name, meal, false);
+    openDialog(details.concat([
+      button("btn", "Log meal again", function () {
+        closeDialog();
+        logMeal(meal);
+      }),
+      button("dialog-link", "Close", closeDialog)
+    ]), details[0]);
   }
 
   function showError(message, canRetry) {
@@ -1421,7 +1486,7 @@
 
   // --- Logging: both phones show the same diary -----------------------------
 
-  function logMeal(food, pin) {
+  function logMeal(food) {
     markStarted();
     var meal = Object.assign({}, food);
     meal.at = new Date();
@@ -1429,36 +1494,39 @@
     renderWidget(true);
     renderOverview(true);
     if (!trendsEl.hidden) renderTrends();
-    if (pin) {
-      tiles.unshift(food);
-      tiles = tiles.slice(0, MAX_TILES);
-      renderTiles(true);
-    }
     document.getElementById("demo-after").hidden = false;
   }
 
-  function logAnalysed(pin) {
+  function logAnalysed() {
     var r = current.result;
     var food = {
       name: mealTitle(), image: current.image, calories: r.calories, protein: r.protein, fat: r.fat,
-      saturated: r.saturated, carbs: r.carbs, sugar: r.sugar, addedSugar: r.addedSugar, salt: r.salt, fibre: r.fibre
+      saturated: r.saturated, carbs: r.carbs, sugar: r.sugar, addedSugar: r.addedSugar, salt: r.salt, fibre: r.fibre,
+      components: r.components, notes: r.notes
     };
     closeDialog();
-    logMeal(food, pin);
+    logMeal(food);
     if (remaining === 0) setTimeout(function () { showEnd(); }, 1200);
   }
 
   // --- Wiring ---------------------------------------------------------------
 
   renderWidget(false);
-  renderTiles(false);
+  renderTiles();
   renderOverview(false);
 
   function logFavourite(food) {
     favouriteUsed = true;
     favHint.hidden = true;
-    logMeal(food, false);
+    logMeal(food);
   }
+  document.getElementById("demo-widget-scroll").addEventListener("click", function (e) {
+    var row = e.target.closest("[data-meal]");
+    if (row) {
+      markStarted();
+      showMealDetails(diary[Number(row.getAttribute("data-meal"))]);
+    }
+  });
   tilesEl.addEventListener("click", function (e) {
     var tile = e.target.closest("[data-tile]");
     if (tile) logFavourite(tiles[Number(tile.getAttribute("data-tile"))]);
