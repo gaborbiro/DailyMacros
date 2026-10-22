@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -30,7 +31,7 @@ import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientKind
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientRowUiModel
 
-private val DotSize = 8.dp
+private val DotSize = 12.dp
 private val DotGap = 12.dp
 private val IndentStep = 16.dp
 
@@ -63,10 +64,11 @@ private fun NutrientRow(row: NutrientRowUiModel) {
     val topLevel = row.indent == 0
     Row(modifier = Modifier.fillMaxWidth()) {
         if (topLevel) {
+            // Centres the dot on the label's first line.
+            val lineHeight = with(LocalDensity.current) { MaterialTheme.typography.bodyMedium.lineHeight.toDp() }
             Box(
                 modifier = Modifier
-                    // Centres the dot on the first line of text.
-                    .padding(top = 7.dp)
+                    .padding(top = ((lineHeight - DotSize) / 2).coerceAtLeast(0.dp))
                     .size(DotSize)
                     .background(color = row.kind.color(), shape = CircleShape),
             )
