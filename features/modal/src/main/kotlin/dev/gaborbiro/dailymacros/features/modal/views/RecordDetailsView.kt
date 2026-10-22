@@ -35,6 +35,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -57,6 +58,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -522,54 +524,23 @@ private fun VariantTemplateDropdown(
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
         )
         DropdownMenu(
+            modifier = Modifier.exposedDropdownSize(),
             expanded = expanded,
             onDismissRequest = { expanded = false },
             scrollState = menuScrollState,
         ) {
-            options.forEach { option ->
+            options.forEachIndexed { index, option ->
                 val isSelected = option.templateId == selectedTemplateId
-                DropdownMenuItem(
-                    modifier = Modifier.semantics {
-                        selected = isSelected
-                    },
-                    leadingIcon = {
-                        Box(
-                            modifier = Modifier.size(24.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            if (isSelected) {
-                                Icon(
-                                    imageVector = Icons.Filled.Check,
-                                    contentDescription = selectedRowLabel,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                )
-                            }
-                        }
-                    },
-                    text = {
-                        Column(Modifier.padding(vertical = 4.dp)) {
-                            Text(
-                                text = option.title,
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = option.lastUsedDateLabel,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            if (option.componentsSubtitle.isNotEmpty()) {
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = option.componentsSubtitle,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            }
-                        }
-                    },
+                if (index > 0) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(start = 48.dp, end = 12.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                    )
+                }
+                VariantTemplateMenuItem(
+                    option = option,
+                    isSelected = isSelected,
+                    selectedRowLabel = selectedRowLabel,
                     onClick = {
                         expanded = false
                         onTemplatePicked(option.templateId)
@@ -578,6 +549,69 @@ private fun VariantTemplateDropdown(
             }
         }
     }
+}
+
+@Composable
+private fun VariantTemplateMenuItem(
+    option: MealVariantPickerOption,
+    isSelected: Boolean,
+    selectedRowLabel: String,
+    onClick: () -> Unit,
+) {
+    DropdownMenuItem(
+        modifier = Modifier
+            .then(
+                if (isSelected) {
+                    Modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f))
+                } else {
+                    Modifier
+                }
+            )
+            .semantics { selected = isSelected },
+        leadingIcon = {
+            Box(
+                modifier = Modifier.size(24.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (isSelected) {
+                    Icon(
+                        imageVector = Icons.Filled.Check,
+                        contentDescription = selectedRowLabel,
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+        },
+        text = {
+            Column(Modifier.padding(vertical = 10.dp)) {
+                Text(
+                    text = option.title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = option.lastUsedDateLabel,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (option.componentsSubtitle.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = option.componentsSubtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        },
+        onClick = onClick,
+    )
 }
 
 @Preview
@@ -765,12 +799,14 @@ private fun RecordDetailsViewPreviewVariantPicker() {
                 title = "Chicken curry",
                 lastUsedDateLabel = "Wed, 27 May",
                 isCurrentVariant = true,
+                componentsSubtitle = "chicken thigh, rice, coconut milk, curry paste",
             ),
             MealVariantPickerOption(
                 templateId = 2L,
                 title = "Chicken curry (large)",
                 lastUsedDateLabel = "Tue, 26 May",
                 isCurrentVariant = false,
+                componentsSubtitle = "chicken breast, basmati rice, yoghurt, naan",
             ),
         ),
         pristineSnapshot = RecordDetailsPristineSnapshot(
