@@ -98,9 +98,11 @@ function buildOpenAiRequest({ image, description, language }, { model, reasoning
   if (image != null) {
     input.push({ role: "user", content: [{ type: "input_image", image_url: image }] });
   }
+  // The prompt only fills in "title" when the input has none, and an empty
+  // Title: line reads as "specified" often enough to come back untitled.
   const userText = ANALYSIS_USER
     .replaceAll("{phone_language}", language)
-    .replace("{title}", "")
+    .replace("{title}", "(none yet, please provide one)")
     .replace("{description}", description);
   input.push({ role: "user", content: [{ type: "input_text", text: userText }] });
 
