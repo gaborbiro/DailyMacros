@@ -111,6 +111,16 @@
   .hero-tail { padding-top: 36px; }
   .demo { display: grid; gap: 14px; padding-top: 28px; }
   .demo-title { font-size: 1.25rem; }
+  /* Shown instead of the phone replicas until the visitor interacts: testers
+     mistook the replicas for plain screenshots and never tapped them, so the
+     first thing they see now is an ordinary web card, not app-shaped UI. */
+  .demo-cta {
+    background: var(--card); border: 1px solid var(--line); border-radius: 18px;
+    padding: 36px 20px; text-align: center; display: grid; gap: 10px; justify-items: center;
+  }
+  .demo-cta h3 { font-size: 1.3rem; margin: 0; }
+  .demo-cta p { color: var(--muted); max-width: 32em; margin: 0; }
+  .demo-cta .btn { font-size: 1.05rem; padding: 16px 30px; margin-top: 8px; }
   /* The bottom padding leaves room for the phones' shadow, which the
      horizontal scroller would otherwise clip into a hard edge. */
   .demo-phones {
@@ -367,7 +377,13 @@
   <div class="wrap demo" id="try" role="region" aria-labelledby="try-title">
     <h2 class="demo-title" id="try-title">Try the live demo, with real AI</h2>
 
-    <div class="demo-phones">
+    <div class="demo-cta" id="demo-cta">
+      <h3>See it work on one of your own meals</h3>
+      <p>Pick a photo from your camera roll and watch real AI estimate the nutrition — live, right here.</p>
+      <button type="button" class="btn" id="demo-cta-choose">Choose a photo</button>
+    </div>
+
+    <div class="demo-phones" id="demo-phones" hidden>
       <figure class="demo-device" id="demo-widget-device">
         <figcaption>Widgets</figcaption>
         <div class="phone" id="demo-phone" role="group" aria-label="Interactive replica of the Daily Macros home-screen widget">
@@ -861,6 +877,8 @@
   ].filter(Boolean);
   var tiles = ["apple-cake", "cheese-bread", "scrambled-egg", "noodle-soup"].map(function (k) { return FOODS[k]; });
 
+  var ctaEl = document.getElementById("demo-cta");
+  var demoPhonesEl = document.getElementById("demo-phones");
   var recentEl = document.getElementById("demo-recent");
   var recentMoreEl = document.getElementById("demo-recent-more");
   var tilesEl = document.getElementById("demo-tiles");
@@ -1223,9 +1241,13 @@
   // --- Visitor's first interaction ------------------------------------------
 
   // Counts the visitor once in stats/counters.demo_start, on any first tap.
+  // Also swaps the plain CTA card for the phone replicas: the replicas look
+  // too much like app screenshots to double as the thing you tap to start.
   function markStarted() {
     if (started) return;
     started = true;
+    ctaEl.hidden = true;
+    demoPhonesEl.hidden = false;
     try {
       fetch("/api/event", {
         method: "POST",
@@ -1596,6 +1618,7 @@
     trendsMode = tab.getAttribute("data-mode");
     renderTrends();
   });
+  document.getElementById("demo-cta-choose").addEventListener("click", function () { markStarted(); galleryInput.click(); });
   cameraBtn.addEventListener("click", function () { markStarted(); cameraInput.click(); });
   document.getElementById("demo-gallery").addEventListener("click", function () { markStarted(); galleryInput.click(); });
   document.getElementById("demo-text").addEventListener("click", function () {
