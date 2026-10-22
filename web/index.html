@@ -46,6 +46,7 @@
 
   .hero { padding: 36px 20px 28px; display: grid; gap: 16px; }
   .hero p { color: var(--muted); font-size: 1.1rem; max-width: 34em; }
+  .hero-points { color: var(--muted); font-size: 1.1rem; max-width: 34em; margin: -4px 0 0; padding-left: 1.2em; display: grid; gap: 6px; }
   .btn {
     display: inline-block; border: 0; border-radius: 12px; cursor: pointer;
     background: var(--orange); color: #fff; font: inherit; font-weight: 700;
@@ -407,7 +408,12 @@
 <main>
   <div class="wrap hero hero-head">
     <h1>A food diary easy enough to actually stick with.</h1>
-    <p>Track what you eat without turning every meal into data entry. Snap a photo and let AI estimate the nutrition, or log your regular meals from your home screen in one tap. Review what it inferred, fix anything that looks off, and move on.</p>
+    <p>Track what you eat without turning every meal into data entry.</p>
+    <ul class="hero-points">
+      <li>Snap a photo and let AI estimate the nutrition</li>
+      <li>Or log your regular meals from your home screen in one tap</li>
+      <li>Review what it inferred, fix anything that looks off, and move on</li>
+    </ul>
   </div>
 
   <div class="wrap demo" id="try">
