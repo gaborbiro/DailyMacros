@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.features.modal.views
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -24,10 +25,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
@@ -41,7 +44,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
@@ -69,7 +71,7 @@ private const val PreviewLastLineFadeFraction = 1f
  * Provenance for the nutrient estimate: what the AI read from the photo/title/description.
  * Collapsed, it previews the detected components (falling back to the notes) in at most two lines, fading out
  * the bottom of the last line when there is more. It only offers to expand (tap the preview; a chevron in the
- * header hints at it) when the preview hides something. No card or border: it reads as a caption to the macros.
+ * caption hints at it and turns over once expanded) when the preview hides something. No card or border: it reads as a caption to the macros.
  *
  * [correctionInput], when given, closes the card: the place to tell the AI what it got wrong, right after
  * reading what it inferred. It replaces the footnote that otherwise points the user at the description.
@@ -120,6 +122,9 @@ internal fun AiInferenceSection(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .let {
+                            if (expanded) it.clickable { onExpandedChange(false) } else it
+                        }
                         .padding(horizontal = PaddingDefault),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -136,12 +141,23 @@ internal fun AiInferenceSection(
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    if (!expanded && expandable) {
+                    if (expanded || expandable) {
+                        val chevronRotation by animateFloatAsState(
+                            targetValue = if (expanded) 180f else 0f,
+                            animationSpec = tween(durationMillis = 280),
+                            label = "mealDetailsAiInferenceChevron",
+                        )
                         Icon(
                             imageVector = Icons.Filled.KeyboardArrowDown,
-                            contentDescription = stringResource(R.string.record_details_ai_inferred_show_all),
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            contentDescription = if (expanded) {
+                                stringResource(R.string.meal_details_collapse)
+                            } else {
+                                stringResource(R.string.record_details_ai_inferred_show_all)
+                            },
+                            modifier = Modifier
+                                .size(18.dp)
+                                .rotate(chevronRotation),
+                            tint = ExpandAffordanceColor,
                         )
                     }
                 }
@@ -233,20 +249,13 @@ private fun AiInferenceDetails(
     showFootnote: Boolean,
 ) {
     Column(modifier = modifier) {
-        if (nutrientBreakdown.components.isNotEmpty()) {
+        // The caption above already says what this is, so the list goes without a heading.
+        nutrientBreakdown.components.forEach { line ->
             Text(
-                text = stringResource(R.string.modal_content_components),
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    textDecoration = TextDecoration.Underline,
-                ),
+                text = line,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Spacer(modifier = Modifier.height(PaddingQuarter))
-            nutrientBreakdown.components.forEach { line ->
-                Text(
-                    text = line,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
         }
 
         nutrientBreakdown.notes?.takeIf { it.isNotBlank() }?.let {
@@ -256,6 +265,7 @@ private fun AiInferenceDetails(
             Text(
                 text = it,
                 style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
@@ -311,6 +321,7 @@ internal fun ExpandToggleRow(
                 expandLabel
             },
             style = MaterialTheme.typography.labelLarge,
+            color = ExpandAffordanceColor,
         )
 
         Spacer(
@@ -326,9 +337,17 @@ internal fun ExpandToggleRow(
             },
             contentDescription = null,
             modifier = Modifier.size(18.dp),
+            tint = ExpandAffordanceColor,
         )
     }
 }
+
+/**
+ * Expand/collapse controls are secondary to what they reveal, so they share one muted colour (and stay out of the
+ * primary colour, which is kept for the actions that matter: correcting the AI and Done).
+ */
+private val ExpandAffordanceColor: Color
+    @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
 
 private fun previewAiNutrientBreakdown() = NutrientBreakdownUiModel(
     calories = "Calories: 170 kcal",

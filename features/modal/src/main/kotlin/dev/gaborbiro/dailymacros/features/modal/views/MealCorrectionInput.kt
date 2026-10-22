@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.features.modal.views
 
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -18,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -27,7 +29,9 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.PaddingDefault
+import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.modal.R
 
@@ -50,15 +54,25 @@ internal fun MealCorrectionInput(
     val focusRequester = remember { FocusRequester() }
     Column(modifier = modifier.fillMaxWidth()) {
         AnimatedVisibility(visible = !open) {
-            TextButton(onClick = { open = true }) {
-                Text(
-                    text = stringResource(R.string.meal_details_correction_link),
-                    style = MaterialTheme.typography.labelLarge,
-                )
-            }
+            // A bare link rather than a TextButton: it lines up with the text above (TextButton's own inset
+            // would push it off the 16dp edge) and doesn't pad the bottom of the dialog with its 48dp height.
+            Text(
+                modifier = Modifier
+                    .padding(horizontal = PaddingHalf)
+                    .clip(MaterialTheme.shapes.small)
+                    .clickable { open = true }
+                    .padding(horizontal = PaddingHalf, vertical = 12.dp),
+                text = stringResource(R.string.meal_details_correction_link),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+            )
         }
         AnimatedVisibility(visible = open) {
-            Column(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = PaddingDefault),
+            ) {
                 OutlinedTextField(
                     modifier = Modifier
                         .fillMaxWidth()

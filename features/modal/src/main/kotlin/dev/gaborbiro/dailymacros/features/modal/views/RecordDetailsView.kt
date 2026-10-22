@@ -24,6 +24,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -77,6 +79,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 private val recordTimestampFormatter = DateTimeFormatter.ofPattern("dd MMM, H:mm")
+private val recordTimeFormatter = DateTimeFormatter.ofPattern("H:mm")
 
 /**
  * A logged meal, read top to bottom: photos, title with when it was eaten, description, the macros and what
@@ -347,7 +350,6 @@ fun ColumnScope.RecordDetailsView(
                 )
                 correctionInput?.invoke()
             }
-            Spacer(modifier = Modifier.height(PaddingHalf))
         }
     }
 }
@@ -419,24 +421,43 @@ private fun TimestampLine(
         today.minusDays(1) -> stringResource(R.string.edit_timestamp_day_yesterday)
         else -> null
     }
-    val formattedTimestamp = view.timestamp.format(recordTimestampFormatter)
+    // "Today" already says which day, so the date only shows for older meals.
+    val formattedTimestamp = relativeDayLabel
+        ?.let { "$it, ${view.timestamp.format(recordTimeFormatter)}" }
+        ?: view.timestamp.format(recordTimestampFormatter)
     val editLabel = stringResource(R.string.meal_details_edit_timestamp_cd)
-    Text(
+    Row(
         modifier = Modifier
-            .fillMaxWidth()
+            .padding(horizontal = PaddingHalf)
             .then(
                 if (editable) {
                     Modifier
+                        .clip(MaterialTheme.shapes.small)
                         .clickable(onClickLabel = editLabel) { onEditTimestampTapped() }
                 } else {
                     Modifier
                 }
             )
-            .padding(horizontal = PaddingDefault, vertical = PaddingQuarter),
-        text = relativeDayLabel?.let { "$it, $formattedTimestamp" } ?: formattedTimestamp,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
+            .padding(horizontal = PaddingHalf, vertical = PaddingQuarter),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = formattedTimestamp,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        if (editable) {
+            // Just enough to say "this can change"; the text stays the main thing.
+            Icon(
+                modifier = Modifier
+                    .padding(start = 6.dp)
+                    .size(14.dp),
+                imageVector = Icons.Outlined.Edit,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = .6f),
+            )
+        }
+    }
 }
 
 private fun NutrientsUiModel.hasAnyVisibleMacro(): Boolean =
