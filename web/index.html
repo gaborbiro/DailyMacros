@@ -229,13 +229,12 @@
   }
   .ov-summary:hover, .ov-summary:focus-visible { border-color: #5E5A6B; outline: none; }
   .ov-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
-  .ov-row { display: flex; align-items: center; gap: 6px; }
-  .ov-label { flex: none; width: 54px; text-align: right; color: #D9D2CC; font-size: 10.5px; }
-  .ov-col { flex: 1; min-width: 0; }
-  .ov-line { display: flex; justify-content: space-between; gap: 4px; margin-top: 3px; color: #D9D2CC; font-size: 9.5px; }
+  .ov-row { display: grid; grid-template-columns: 54px 1fr; column-gap: 6px; align-items: center; }
+  .ov-label { grid-column: 1; grid-row: 1; text-align: right; color: #D9D2CC; font-size: 10.5px; }
+  .ov-line { grid-column: 2; grid-row: 2; display: flex; justify-content: space-between; gap: 4px; margin-top: 3px; color: #D9D2CC; font-size: 9.5px; }
   .ov-line b { color: #fff; font-weight: 600; }
   .ov-range { color: #8F8984; }
-  .ov-track { position: relative; height: 6px; border-radius: 3px; background: #2C2C30; }
+  .ov-track { grid-column: 2; grid-row: 1; position: relative; height: 6px; border-radius: 3px; background: #2C2C30; }
   .ov-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; transition: width .5s ease-out; }
   .ov-tick { position: absolute; top: -2px; width: 2px; height: 10px; margin-left: -1px; border-radius: 1px; background: #3DBA5A; }
   .ov-trends {
@@ -1016,7 +1015,6 @@
     MACROS.forEach(function (m) {
       var row = el("div", "ov-row");
       row.appendChild(el("span", "ov-label", m.label));
-      var col = el("div", "ov-col");
       var track = el("div", "ov-track");
       var fill = el("div", "ov-fill");
       fill.style.width = Math.min(targetProgress(m, t[m.key]), 1) * 100 + "%";
@@ -1025,12 +1023,11 @@
       tickMark.style.left = targetMarker0to1(m) * 100 + "%";
       track.appendChild(fill);
       track.appendChild(tickMark);
-      col.appendChild(track);
+      row.appendChild(track);
       var line = el("div", "ov-line");
       line.appendChild(el("b", null, m.key === "calories" ? kcal(t.calories) : grams(t[m.key])));
       line.appendChild(el("span", "ov-range", range(m)));
-      col.appendChild(line);
-      row.appendChild(col);
+      row.appendChild(line);
       grid.appendChild(row);
     });
     card.appendChild(grid);
