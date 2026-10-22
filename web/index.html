@@ -46,7 +46,13 @@
 
   .hero { padding: 36px 20px 28px; display: grid; gap: 16px; }
   .hero p { color: var(--muted); font-size: 1.1rem; max-width: 34em; }
-  .hero-points { color: var(--muted); font-size: 1.1rem; max-width: 34em; margin: -4px 0 0; padding-left: 1.2em; display: grid; gap: 6px; }
+  .hero-sub { color: var(--ink); font-size: 1.3rem; font-weight: 600; max-width: 34em; }
+  .hero-points { list-style: none; margin: -2px 0 0; padding: 0; display: grid; gap: 12px; max-width: 34em; }
+  .hero-points li { display: flex; align-items: flex-start; gap: 12px; color: var(--muted); font-size: 1.1rem; }
+  .hero-points li::before {
+    content: "✓"; flex: none; display: grid; place-items: center; width: 22px; height: 22px; margin-top: 1px;
+    border-radius: 50%; background: var(--orange); color: #fff; font-size: 12px; font-weight: 700;
+  }
   .btn {
     display: inline-block; border: 0; border-radius: 12px; cursor: pointer;
     background: var(--orange); color: #fff; font: inherit; font-weight: 700;
@@ -407,13 +413,29 @@
 
 <main>
   <div class="wrap hero hero-head">
-    <h1>A food diary easy enough to actually stick with.</h1>
-    <p>Track what you eat without turning every meal into data entry.</p>
+    <h1>Daily Macros</h1>
+    <p class="hero-sub">A food diary easy enough to actually stick with.</p>
     <ul class="hero-points">
       <li>Snap a photo and let AI estimate the nutrition</li>
       <li>Or log your regular meals from your home screen in one tap</li>
       <li>Review what it inferred, fix anything that looks off, and move on</li>
     </ul>
+  </div>
+
+  <div class="wrap">
+    <section>
+      <h2>What it tracks</h2>
+      <div class="tracks">
+        <span class="chip c-cal">Calories</span>
+        <span class="chip c-pro">Protein</span>
+        <span class="chip c-carb">Carbs</span>
+        <span class="chip c-carb">Sugar &amp; added sugar</span>
+        <span class="chip c-fat">Fat</span>
+        <span class="chip c-fat">Saturated fat</span>
+        <span class="chip c-fib">Fibre</span>
+        <span class="chip c-salt">Salt</span>
+      </div>
+    </section>
   </div>
 
   <div class="wrap demo" id="try">
@@ -573,32 +595,6 @@
   </div>
 
   <div class="wrap">
-    <section>
-      <h2>How it works</h2>
-      <ol class="steps">
-        <li><strong>Show it what you ate</strong> — Snap a photo. Add a few words if they help; typing is optional.</li>
-        <li><strong>Check what it inferred</strong> — Daily Macros identifies the foods and portions and estimates the nutrition. You can see the assumptions it made.</li>
-        <li><strong>Fix anything that’s off</strong> — Add a clarification or another photo and re-run the analysis.</li>
-        <li><strong>It’s in your diary</strong> — Your daily totals update automatically.</li>
-      </ol>
-      <p>Favourite meals get a one-tap home-screen widget, so most days you never need to open the app at all.</p>
-      <p>If you haven't logged by your usual mealtime, a reminder nudges you to catch up. Your diary also backs up to your own Google Drive — never to a server of mine — and syncs into Health Connect for any other health app you use.</p>
-    </section>
-
-    <section>
-      <h2>What it tracks</h2>
-      <div class="tracks">
-        <span class="chip c-cal">Calories</span>
-        <span class="chip c-pro">Protein</span>
-        <span class="chip c-carb">Carbs</span>
-        <span class="chip c-carb">Sugar &amp; added sugar</span>
-        <span class="chip c-fat">Fat</span>
-        <span class="chip c-fat">Saturated fat</span>
-        <span class="chip c-fib">Fibre</span>
-        <span class="chip c-salt">Salt</span>
-      </div>
-    </section>
-
     <section id="waitlist">
       <div class="join">
         <div id="waitlist-form-view">
