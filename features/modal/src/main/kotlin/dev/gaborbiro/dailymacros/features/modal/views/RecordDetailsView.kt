@@ -9,7 +9,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -19,19 +18,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.Schedule
-import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,7 +33,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -50,7 +41,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -72,6 +62,7 @@ import dev.gaborbiro.dailymacros.features.modal.R
 import dev.gaborbiro.dailymacros.features.common.R as CommonR
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
+import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.features.common.utils.diaryDayStartTime
 import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryDate
 import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryToday
@@ -88,8 +79,9 @@ import java.time.format.DateTimeFormatter
 private val recordTimestampFormatter = DateTimeFormatter.ofPattern("dd MMM, H:mm")
 
 /**
- * A logged meal, read top to bottom: photos, title, description, the macros, what the AI inferred (with the
- * place to correct it), and finally the bookkeeping (when it was eaten, whether it's a Quick Pick).
+ * A logged meal, read top to bottom: photos, title with when it was eaten, description, the macros and what
+ * the AI inferred (with a link to correct it). Kept deliberately flat: no cards, borders or dividers, and the
+ * Quick Pick star lives in the dialog's header (see RecordDetailsDialog).
  *
  * Browsing and editing share this one layout: switching to [DialogHandle.RecordDetailsDialog.View.isEditing]
  * turns the title and description into fields in place, slides in the photo controls and folds away the
@@ -120,9 +112,6 @@ fun ColumnScope.RecordDetailsView(
     variantPickerOptions: List<MealVariantPickerOption>?,
     selectedVariantTemplateId: Long,
     onVariantTemplatePicked: (Long) -> Unit,
-    showQuickPickStar: Boolean,
-    quickPickStarred: Boolean,
-    onQuickPickStarToggled: () -> Unit,
     onEditTimestampTapped: () -> Unit = {},
     onCorrectionChanged: (TextFieldValue) -> Unit = {},
     onReanalyzeTapped: () -> Unit = {},
@@ -169,10 +158,18 @@ fun ColumnScope.RecordDetailsView(
     }
 
     val hasImages = imageFilenames.isNotEmpty()
+    // While browsing, the header's star and overflow menu (RecordDetailsDialog's topEndAction) float over the
+    // strip's end, so keep photos from scrolling under them: 12dp outer padding + 2 x 48dp IconButtons.
+    val imageStripEndPadding by animateDpAsState(
+        targetValue = if (browseInteractive) 104.dp else 0.dp,
+        animationSpec = editModeSpec(),
+        label = "mealDetailsImageStripEndPadding",
+    )
     AnimatedVisibility(visible = hasImages || showImageControls, enter = editModeEnter, exit = editModeExit) {
         ImageStrip(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(end = imageStripEndPadding)
                 .padding(top = 12.dp)
                 .padding(bottom = 12.dp),
             showAddPhotoButtons = showImageControls,
@@ -229,6 +226,13 @@ fun ColumnScope.RecordDetailsView(
             )
         },
     )
+    AnimatedVisibility(visible = browseMode, enter = editModeEnter, exit = editModeExit) {
+        TimestampLine(
+            view = view,
+            editable = browseInteractive,
+            onEditTimestampTapped = onEditTimestampTapped,
+        )
+    }
     AnimatedVisibility(visible = editing && titleErrorMessage.isNullOrBlank().not()) {
         Text(
             modifier = Modifier
@@ -323,18 +327,15 @@ fun ColumnScope.RecordDetailsView(
                 )
 
                 if (nutrientBreakdown.hasAiInference) {
-                    Spacer(modifier = Modifier.height(PaddingHalf))
+                    Spacer(modifier = Modifier.height(PaddingDefault))
                     AiInferenceSection(
-                        modifier = Modifier.padding(horizontal = PaddingHalf),
                         nutrientBreakdown = nutrientBreakdown,
                         expanded = aiInferenceExpanded,
                         onExpandedChange = { aiInferenceExpanded = it },
                         correctionInput = correctionInput,
                     )
-                } else if (correctionInput != null) {
-                    Box(modifier = Modifier.padding(horizontal = PaddingHalf, vertical = PaddingHalf)) {
-                        correctionInput()
-                    }
+                } else {
+                    correctionInput?.invoke()
                 }
             } else if (!view.showLoadingIndicator && view.compactNutrients.hasAnyVisibleMacro()) {
                 Spacer(modifier = Modifier.height(20.dp))
@@ -344,33 +345,14 @@ fun ColumnScope.RecordDetailsView(
                         .padding(horizontal = PaddingDefault),
                     nutrients = view.compactNutrients,
                 )
-                if (correctionInput != null) {
-                    Box(modifier = Modifier.padding(horizontal = PaddingHalf, vertical = PaddingHalf)) {
-                        correctionInput()
-                    }
-                }
+                correctionInput?.invoke()
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = PaddingDefault),
-                color = MaterialTheme.colorScheme.outlineVariant,
-            )
-            TimestampRow(
-                view = view,
-                editable = browseInteractive,
-                onEditTimestampTapped = onEditTimestampTapped,
-            )
-            if (showQuickPickStar) {
-                QuickPickRow(
-                    starred = quickPickStarred,
-                    onToggle = onQuickPickStarToggled,
-                )
-            }
+            Spacer(modifier = Modifier.height(PaddingHalf))
         }
     }
 }
 
+/** The macros at a glance; tapping them (or "More details") unfolds the full breakdown. */
 @Composable
 private fun MacrosCard(
     nutrientBreakdown: NutrientBreakdownUiModel,
@@ -379,83 +361,52 @@ private fun MacrosCard(
     onExpandedChange: (Boolean) -> Unit,
 ) {
     val macroFadeSpec = tween<Float>(durationMillis = 400)
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = PaddingHalf),
-    ) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .let {
-                    if (expanded) {
-                        it
-                    } else {
-                        it.clickable { onExpandedChange(true) }
-                    }
-                },
-            color = Color.Transparent,
-            shape = MaterialTheme.shapes.small,
-            border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.primary.copy(alpha = .45f)),
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(top = PaddingHalf)
-                    .animateContentSize(animationSpec = tween(durationMillis = 280)),
-            ) {
-                AnimatedContent(
-                    targetState = expanded,
-                    transitionSpec = {
-                        fadeIn(macroFadeSpec) togetherWith fadeOut(macroFadeSpec)
-                    },
-                    label = "mealDetailsMacrosExpand",
-                ) { isExpanded ->
-                    if (isExpanded) {
-                        NutrientsIndentedList(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(PaddingHalf),
-                            nutrientBreakdown = nutrientBreakdown
-                        )
-                    } else {
-                        CompactMacroNutrientsGrid(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(PaddingHalf),
-                            nutrients = compactNutrients,
-                        )
-                    }
+            .let {
+                if (expanded) {
+                    it
+                } else {
+                    it.clickable { onExpandedChange(true) }
                 }
-
-                ExpandToggleRow(
-                    expanded = expanded,
-                    onCollapseTapped = { onExpandedChange(false) },
+            }
+            .animateContentSize(animationSpec = tween(durationMillis = 280)),
+    ) {
+        AnimatedContent(
+            targetState = expanded,
+            transitionSpec = {
+                fadeIn(macroFadeSpec) togetherWith fadeOut(macroFadeSpec)
+            },
+            label = "mealDetailsMacrosExpand",
+        ) { isExpanded ->
+            if (isExpanded) {
+                NutrientsIndentedList(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = PaddingDefault, vertical = PaddingHalf),
+                    nutrientBreakdown = nutrientBreakdown
+                )
+            } else {
+                CompactMacroNutrientsGrid(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = PaddingDefault),
+                    nutrients = compactNutrients,
                 )
             }
         }
 
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .offset(y = (-11).dp)
-                .size(22.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surface),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                painter = painterResource(CommonR.drawable.ic_ai_borg),
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.primary,
-            )
-        }
+        ExpandToggleRow(
+            expanded = expanded,
+            onCollapseTapped = { onExpandedChange(false) },
+        )
     }
 }
 
-/** When the meal was eaten. Tapping it (on an editable meal) opens the date and time picker. */
+/** When the meal was eaten, as a quiet line under the title. Tapping it (on an editable meal) opens the picker. */
 @Composable
-private fun TimestampRow(
+private fun TimestampLine(
     view: DialogHandle.RecordDetailsDialog.View,
     editable: Boolean,
     onEditTimestampTapped: () -> Unit,
@@ -469,96 +420,23 @@ private fun TimestampRow(
         else -> null
     }
     val formattedTimestamp = view.timestamp.format(recordTimestampFormatter)
-    DetailsRow(
-        modifier = if (editable) Modifier.clickable { onEditTimestampTapped() } else Modifier,
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Outlined.Schedule,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        },
-        title = relativeDayLabel?.let { "$it, $formattedTimestamp" } ?: formattedTimestamp,
-        subtitle = null,
-        trailingIcon = if (editable) {
-            {
-                Icon(
-                    modifier = Modifier.size(18.dp),
-                    imageVector = Icons.Filled.Edit,
-                    contentDescription = stringResource(R.string.meal_details_edit_timestamp_cd),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        } else {
-            null
-        },
-    )
-}
-
-/** Whether the meal is offered on the widget for one-tap logging. */
-@Composable
-private fun QuickPickRow(
-    starred: Boolean,
-    onToggle: () -> Unit,
-) {
-    DetailsRow(
-        modifier = Modifier.clickable(onClick = onToggle),
-        leadingIcon = {
-            Icon(
-                imageVector = if (starred) Icons.Filled.Star else Icons.Outlined.StarBorder,
-                contentDescription = null,
-                tint = if (starred) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
-            )
-        },
-        title = if (starred) {
-            stringResource(R.string.meal_details_quick_pick_added)
-        } else {
-            stringResource(R.string.meal_details_quick_pick_add)
-        },
-        subtitle = if (starred) {
-            stringResource(R.string.meal_details_quick_pick_added_subtitle)
-        } else {
-            stringResource(R.string.meal_details_quick_pick_add_subtitle)
-        },
-        trailingIcon = null,
-    )
-}
-
-@Composable
-private fun DetailsRow(
-    modifier: Modifier,
-    leadingIcon: @Composable () -> Unit,
-    title: String,
-    subtitle: String?,
-    trailingIcon: (@Composable () -> Unit)?,
-) {
-    Row(
-        modifier = modifier
+    val editLabel = stringResource(R.string.meal_details_edit_timestamp_cd)
+    Text(
+        modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = PaddingDefault, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        leadingIcon()
-        Spacer(modifier = Modifier.width(PaddingDefault))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
+            .then(
+                if (editable) {
+                    Modifier
+                        .clickable(onClickLabel = editLabel) { onEditTimestampTapped() }
+                } else {
+                    Modifier
+                }
             )
-            if (subtitle != null) {
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-        trailingIcon?.invoke()
-    }
+            .padding(horizontal = PaddingDefault, vertical = PaddingQuarter),
+        text = relativeDayLabel?.let { "$it, $formattedTimestamp" } ?: formattedTimestamp,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 private fun NutrientsUiModel.hasAnyVisibleMacro(): Boolean =
@@ -746,9 +624,6 @@ private fun RecordDetailsViewPreviewBrowse() {
             variantPickerOptions = null,
             selectedVariantTemplateId = view.templateDbId,
             onVariantTemplatePicked = {},
-            showQuickPickStar = true,
-            quickPickStarred = false,
-            onQuickPickStarToggled = {},
         )
     }
 }
@@ -800,9 +675,6 @@ private fun RecordDetailsViewPreviewBrowseExpanded() {
             variantPickerOptions = null,
             selectedVariantTemplateId = view.templateDbId,
             onVariantTemplatePicked = {},
-            showQuickPickStar = true,
-            quickPickStarred = false,
-            onQuickPickStarToggled = {},
             macrosExpanded = true,
             aiInferenceExpanded = true,
         )
@@ -856,9 +728,6 @@ private fun RecordDetailsViewPreviewEditing() {
             variantPickerOptions = null,
             selectedVariantTemplateId = view.templateDbId,
             onVariantTemplatePicked = {},
-            showQuickPickStar = false,
-            quickPickStarred = false,
-            onQuickPickStarToggled = {},
         )
     }
 }
@@ -925,9 +794,6 @@ private fun RecordDetailsViewPreviewVariantPicker() {
             variantPickerOptions = view.variantPickerOptions,
             selectedVariantTemplateId = view.templateDbId,
             onVariantTemplatePicked = {},
-            showQuickPickStar = true,
-            quickPickStarred = true,
-            onQuickPickStarToggled = {},
         )
     }
 }

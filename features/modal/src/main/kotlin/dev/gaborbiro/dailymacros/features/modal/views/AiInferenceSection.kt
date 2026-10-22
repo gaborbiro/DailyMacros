@@ -7,7 +7,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -23,7 +22,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -70,7 +68,8 @@ private const val PreviewLastLineFadeFraction = 1f
 /**
  * Provenance for the nutrient estimate: what the AI read from the photo/title/description.
  * Collapsed, it previews the detected components (falling back to the notes) in at most two lines, fading out
- * the bottom of the last line when there is more. It only offers to expand when the preview hides something.
+ * the bottom of the last line when there is more. It only offers to expand (tap the preview; a chevron in the
+ * header hints at it) when the preview hides something. No card or border: it reads as a caption to the macros.
  *
  * [correctionInput], when given, closes the card: the place to tell the AI what it got wrong, right after
  * reading what it inferred. It replaces the footnote that otherwise points the user at the description.
@@ -88,116 +87,116 @@ internal fun AiInferenceSection(
     val previewText = nutrientBreakdown.componentsSummary ?: nutrientBreakdown.notes.orEmpty()
     val previewStyle = MaterialTheme.typography.bodyMedium
     val textMeasurer = rememberTextMeasurer()
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        color = Color.Transparent,
-        shape = MaterialTheme.shapes.small,
-        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.primary.copy(alpha = .45f)),
-    ) {
-        BoxWithConstraints {
-            // Measured up front (rather than via onTextLayout) so the expand affordance is right on the first frame.
-            // Mirrors the preview's horizontal padding, rounded the same way the padding modifier rounds it.
-            val previewWidthPx = (constraints.maxWidth - 2 * with(LocalDensity.current) { PaddingHalf.roundToPx() })
-                .coerceAtLeast(0)
-            val previewLayout = remember(previewText, previewStyle, previewWidthPx) {
-                textMeasurer.measure(
-                    text = previewText,
-                    style = previewStyle,
-                    overflow = TextOverflow.Clip,
-                    maxLines = PreviewMaxLines,
-                    constraints = Constraints(maxWidth = previewWidthPx),
-                )
-            }
-            // Notes aren't part of the preview while it shows the components, so they'd be unreachable otherwise.
-            val notesHiddenByPreview = nutrientBreakdown.componentsSummary != null && !nutrientBreakdown.notes.isNullOrBlank()
-            val expandable = previewLayout.hasVisualOverflow || notesHiddenByPreview
+    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+        // Measured up front (rather than via onTextLayout) so the expand affordance is right on the first frame.
+        // Mirrors the preview's horizontal padding, rounded the same way the padding modifier rounds it.
+        val previewWidthPx = (constraints.maxWidth - 2 * with(LocalDensity.current) { PaddingDefault.roundToPx() })
+            .coerceAtLeast(0)
+        val previewLayout = remember(previewText, previewStyle, previewWidthPx) {
+            textMeasurer.measure(
+                text = previewText,
+                style = previewStyle,
+                overflow = TextOverflow.Clip,
+                maxLines = PreviewMaxLines,
+                constraints = Constraints(maxWidth = previewWidthPx),
+            )
+        }
+        // Notes aren't part of the preview while it shows the components, so they'd be unreachable otherwise.
+        val notesHiddenByPreview = nutrientBreakdown.componentsSummary != null && !nutrientBreakdown.notes.isNullOrBlank()
+        val expandable = previewLayout.hasVisualOverflow || notesHiddenByPreview
 
-            Column {
-                Column(
-                    modifier = Modifier
-                        .let {
-                            if (!expanded && expandable) {
-                                it.clickable { onExpandedChange(true) }
-                            } else {
-                                it
-                            }
-                        }
-                        .padding(top = PaddingHalf)
-                        .animateContentSize(animationSpec = tween(durationMillis = 280)),
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = PaddingHalf),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(
-                            painter = painterResource(CommonR.drawable.ic_ai_borg),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .padding(end = PaddingHalf)
-                                .size(20.dp),
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                        Text(
-                            text = stringResource(R.string.record_details_ai_inferred_title),
-                            style = MaterialTheme.typography.titleSmall,
-                        )
-                    }
-
-                    AnimatedContent(
-                        targetState = expanded,
-                        transitionSpec = {
-                            fadeIn(fadeSpec) togetherWith fadeOut(fadeSpec)
-                        },
-                        label = "mealDetailsAiInferenceExpand",
-                    ) { isExpanded ->
-                        if (isExpanded) {
-                            AiInferenceDetails(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(PaddingHalf),
-                                nutrientBreakdown = nutrientBreakdown,
-                                showFootnote = showFootnote,
-                            )
+        Column {
+            Column(
+                modifier = Modifier
+                    .let {
+                        if (!expanded && expandable) {
+                            it.clickable { onExpandedChange(true) }
                         } else {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(PaddingHalf),
-                            ) {
-                                Text(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .let {
-                                            if (previewLayout.hasVisualOverflow) it.fadeLastLineBottom(previewLayout) else it
-                                        },
-                                    text = previewText,
-                                    style = previewStyle,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = PreviewMaxLines,
-                                    overflow = TextOverflow.Clip,
-                                )
-                                // Nothing more to expand into, so the footnote belongs here.
-                                if (!expandable && showFootnote) {
-                                    Spacer(modifier = Modifier.height(PaddingDefault))
-                                    MealDetailsFootnote(text = stringResource(R.string.record_details_ai_inferred_footnote))
-                                }
-                            }
+                            it
                         }
                     }
-
-                    if (expanded || expandable) {
-                        ExpandToggleRow(
-                            expanded = expanded,
-                            expandLabel = stringResource(R.string.record_details_ai_inferred_show_all),
-                            onCollapseTapped = { onExpandedChange(false) },
+                    .animateContentSize(animationSpec = tween(durationMillis = 280)),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = PaddingDefault),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        painter = painterResource(CommonR.drawable.ic_ai_borg),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .padding(end = PaddingQuarter)
+                            .size(14.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = stringResource(R.string.record_details_ai_inferred_title),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    if (!expanded && expandable) {
+                        Icon(
+                            imageVector = Icons.Filled.KeyboardArrowDown,
+                            contentDescription = stringResource(R.string.record_details_ai_inferred_show_all),
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
-                // Outside the collapsed card's tap target, so typing here doesn't expand the card.
-                correctionInput?.invoke()
+
+                AnimatedContent(
+                    targetState = expanded,
+                    transitionSpec = {
+                        fadeIn(fadeSpec) togetherWith fadeOut(fadeSpec)
+                    },
+                    label = "mealDetailsAiInferenceExpand",
+                ) { isExpanded ->
+                    if (isExpanded) {
+                        AiInferenceDetails(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = PaddingDefault, vertical = PaddingHalf),
+                            nutrientBreakdown = nutrientBreakdown,
+                            showFootnote = showFootnote,
+                        )
+                    } else {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = PaddingDefault, vertical = PaddingHalf),
+                        ) {
+                            Text(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .let {
+                                        if (previewLayout.hasVisualOverflow) it.fadeLastLineBottom(previewLayout) else it
+                                    },
+                                text = previewText,
+                                style = previewStyle,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = PreviewMaxLines,
+                                overflow = TextOverflow.Clip,
+                            )
+                            // Nothing more to expand into, so the footnote belongs here.
+                            if (!expandable && showFootnote) {
+                                Spacer(modifier = Modifier.height(PaddingDefault))
+                                MealDetailsFootnote(text = stringResource(R.string.record_details_ai_inferred_footnote))
+                            }
+                        }
+                    }
+                }
+
+                if (expanded) {
+                    ExpandToggleRow(
+                        expanded = true,
+                        onCollapseTapped = { onExpandedChange(false) },
+                    )
+                }
             }
+            // Outside the collapsed preview's tap target, so typing here doesn't expand it.
+            correctionInput?.invoke()
         }
     }
 }

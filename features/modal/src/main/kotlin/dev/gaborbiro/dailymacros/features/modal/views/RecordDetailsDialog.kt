@@ -9,15 +9,18 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,13 +29,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.design.PaddingDefault
+import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.features.modal.R
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.MealVariantPickerOption
@@ -127,9 +129,6 @@ internal fun RecordDetailsDialog(
                 variantPickerOptions = viewDialog?.variantPickerOptions,
                 selectedVariantTemplateId = viewDialog?.templateDbId ?: 0L,
                 onVariantTemplatePicked = onVariantTemplatePicked,
-                showQuickPickStar = viewDialog != null && viewDialog.allowEdit,
-                quickPickStarred = viewDialog?.quickPickStarred == true,
-                onQuickPickStarToggled = onQuickPickStarToggled,
                 onEditTimestampTapped = onEditTimestampTapped,
                 onCorrectionChanged = onCorrectionChanged,
                 onReanalyzeTapped = onReanalyzeTapped,
@@ -138,8 +137,10 @@ internal fun RecordDetailsDialog(
         errorMessages = errorMessages,
         topEndAction = if (viewDialog != null && !showCloseOnly) {
             {
-                RecordDetailsOverflowMenu(
+                RecordDetailsHeaderActions(
                     visible = !viewDialog.isEditing,
+                    quickPickStarred = viewDialog.quickPickStarred,
+                    onQuickPickStarToggled = onQuickPickStarToggled,
                     // A quick pick's details already lead with "Log meal again".
                     showLogMealAgain = !viewDialog.openedFromTemplateDetailsOnly,
                     onEditTapped = onRecordDetailsEditStarted,
@@ -245,12 +246,14 @@ private fun updateButtonLabel(dialogHandle: DialogHandle.RecordDetailsDialog.Vie
 }
 
 /**
- * Replaces the old edit button: editing and logging the meal again are things the user does later, if at
- * all, so they sit behind a menu instead of competing with reading the results.
+ * The Quick Pick star and an overflow menu. Editing and logging the meal again are things the user does
+ * later, if at all, so they sit behind the menu instead of competing with reading the results.
  */
 @Composable
-private fun RecordDetailsOverflowMenu(
+private fun RecordDetailsHeaderActions(
     visible: Boolean,
+    quickPickStarred: Boolean,
+    onQuickPickStarToggled: () -> Unit,
     showLogMealAgain: Boolean,
     onEditTapped: () -> Unit,
     onLogMealAgainTapped: () -> Unit,
@@ -261,40 +264,52 @@ private fun RecordDetailsOverflowMenu(
         enter = fadeIn(editModeSpec()),
         exit = fadeOut(editModeSpec()),
     ) {
-        Box(modifier = Modifier.padding(top = 12.dp, end = PaddingDefault)) {
-            IconButton(
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = Color.Gray.copy(alpha = .8f),
-                    contentColor = Color.White,
-                ),
-                onClick = { menuExpanded = true },
-            ) {
+        Row(modifier = Modifier.padding(top = 12.dp, end = PaddingHalf)) {
+            IconButton(onClick = onQuickPickStarToggled) {
                 Icon(
-                    imageVector = Icons.Filled.MoreVert,
-                    contentDescription = stringResource(R.string.meal_details_menu_cd),
-                )
-            }
-            DropdownMenu(
-                expanded = menuExpanded,
-                onDismissRequest = { menuExpanded = false },
-            ) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.meal_details_menu_edit)) },
-                    leadingIcon = { Icon(imageVector = Icons.Filled.Edit, contentDescription = null) },
-                    onClick = {
-                        menuExpanded = false
-                        onEditTapped()
+                    imageVector = if (quickPickStarred) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                    contentDescription = if (quickPickStarred) {
+                        stringResource(R.string.meal_details_quick_pick_remove_cd)
+                    } else {
+                        stringResource(R.string.meal_details_quick_pick_add_cd)
+                    },
+                    tint = if (quickPickStarred) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
                     },
                 )
-                if (showLogMealAgain) {
+            }
+            Box {
+                IconButton(onClick = { menuExpanded = true }) {
+                    Icon(
+                        imageVector = Icons.Filled.MoreVert,
+                        contentDescription = stringResource(R.string.meal_details_menu_cd),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false },
+                ) {
                     DropdownMenuItem(
-                        text = { Text(stringResource(R.string.meal_details_action_add_new)) },
-                        leadingIcon = { Icon(imageVector = Icons.Filled.Add, contentDescription = null) },
+                        text = { Text(stringResource(R.string.meal_details_menu_edit)) },
+                        leadingIcon = { Icon(imageVector = Icons.Filled.Edit, contentDescription = null) },
                         onClick = {
                             menuExpanded = false
-                            onLogMealAgainTapped()
+                            onEditTapped()
                         },
                     )
+                    if (showLogMealAgain) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.meal_details_action_add_new)) },
+                            leadingIcon = { Icon(imageVector = Icons.Filled.Add, contentDescription = null) },
+                            onClick = {
+                                menuExpanded = false
+                                onLogMealAgainTapped()
+                            },
+                        )
+                    }
                 }
             }
         }
@@ -328,9 +343,6 @@ internal fun ColumnScope.RecordDetailsDialogContent(
     variantPickerOptions: List<MealVariantPickerOption>? = null,
     selectedVariantTemplateId: Long = 0L,
     onVariantTemplatePicked: (Long) -> Unit = { },
-    showQuickPickStar: Boolean = false,
-    quickPickStarred: Boolean = false,
-    onQuickPickStarToggled: () -> Unit = { },
     onEditTimestampTapped: () -> Unit = { },
     onCorrectionChanged: (TextFieldValue) -> Unit = { },
     onReanalyzeTapped: () -> Unit = { },
@@ -381,9 +393,6 @@ internal fun ColumnScope.RecordDetailsDialogContent(
                 variantPickerOptions = variantPickerOptions,
                 selectedVariantTemplateId = selectedVariantTemplateId,
                 onVariantTemplatePicked = onVariantTemplatePicked,
-                showQuickPickStar = showQuickPickStar,
-                quickPickStarred = quickPickStarred,
-                onQuickPickStarToggled = onQuickPickStarToggled,
                 onEditTimestampTapped = onEditTimestampTapped,
                 onCorrectionChanged = onCorrectionChanged,
                 onReanalyzeTapped = onReanalyzeTapped,

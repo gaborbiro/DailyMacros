@@ -115,9 +115,6 @@ internal fun RecordDetailsDialogPreview(
                 variantPickerOptions = viewDialog?.variantPickerOptions,
                 selectedVariantTemplateId = viewDialog?.templateDbId ?: 0L,
                 onVariantTemplatePicked = {},
-                showQuickPickStar = viewDialog != null && viewDialog.allowEdit,
-                quickPickStarred = viewDialog?.quickPickStarred == true,
-                onQuickPickStarToggled = {},
             )
             when (dialogHandle) {
                 is DialogHandle.RecordDetailsDialog.Edit -> {
