@@ -830,8 +830,8 @@ private fun previewNutrientBreakdown() = NutrientBreakdownUiModel(
     salt = "Salt: 5g",
     fibre = "Fibre: 4.5g",
     notes = "Notes: This is a note",
-    components = listOf("- 1 apple", "- ~1 tbsp peanut butter (?)"),
-    componentsSummary = "1 apple · ~1 tbsp peanut butter (?)",
+    components = listOf("- 1 apple", "- ~1 tbsp peanut butter (likely)"),
+    componentsSummary = "1 apple · ~1 tbsp peanut butter (likely)",
 )
 
 private fun previewCompactNutrients() = NutrientsUiModel(

@@ -23,10 +23,11 @@ class ModalUiMapper @Inject constructor(
 
         val notes = record.template.notes
         val componentLabels = record.template.mealComponents.map { component ->
+            // Only the uncertain ones are marked, in plain words: confident components need no label.
             val confidence = when (component.confidence) {
-                ComponentConfidence.MEDIUM -> " (?)"
-                ComponentConfidence.LOW -> " (??)"
-                else -> ""
+                ComponentConfidence.MEDIUM -> " (likely)"
+                ComponentConfidence.LOW -> " (guess)"
+                ComponentConfidence.HIGH -> ""
             }
             "${component.estimatedAmount} ${component.name}$confidence"
         }

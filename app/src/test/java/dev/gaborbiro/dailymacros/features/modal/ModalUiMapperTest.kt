@@ -61,7 +61,7 @@ class ModalUiMapperTest {
     }
 
     @Test
-    fun `mapNutrientBreakdowns lists components and joins them into a summary with confidence markers`() {
+    fun `mapNutrientBreakdowns lists components and joins them into a summary with plain-word confidence for uncertain ones`() {
         val record = recordWith(
             mealComponents = listOf(
                 MealComponent(name = "bread", estimatedAmount = "1 slice", confidence = ComponentConfidence.HIGH),
@@ -71,10 +71,10 @@ class ModalUiMapperTest {
         )
         val ui = mapper.mapNutrientBreakdowns(record)
         assertEquals(
-            listOf("- 1 slice bread", "- ~1 tbsp marmalade (?)", "- ~5g butter (??)"),
+            listOf("- 1 slice bread", "- ~1 tbsp marmalade (likely)", "- ~5g butter (guess)"),
             ui.components,
         )
-        assertEquals("1 slice bread · ~1 tbsp marmalade (?) · ~5g butter (??)", ui.componentsSummary)
+        assertEquals("1 slice bread · ~1 tbsp marmalade (likely) · ~5g butter (guess)", ui.componentsSummary)
     }
 
     @Test

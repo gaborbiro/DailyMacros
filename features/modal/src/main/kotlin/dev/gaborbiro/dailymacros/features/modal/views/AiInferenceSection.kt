@@ -360,8 +360,8 @@ private fun previewAiNutrientBreakdown() = NutrientBreakdownUiModel(
     salt = null,
     fibre = null,
     notes = "Assumed white bread with a thin spread of butter; marmalade amount estimated from the photo.",
-    components = listOf("- 1 slice white bread", "- ~5g butter (?)", "- ~1 tbsp orange marmalade (??)"),
-    componentsSummary = "1 slice white bread · ~5g butter (?) · ~1 tbsp orange marmalade (??)",
+    components = listOf("- 1 slice white bread", "- ~5g butter (likely)", "- ~1 tbsp orange marmalade (guess)"),
+    componentsSummary = "1 slice white bread · ~5g butter (likely) · ~1 tbsp orange marmalade (guess)",
 )
 
 @Preview
@@ -385,8 +385,8 @@ private fun AiInferenceSectionFitsPreview() {
         AiInferenceSection(
             nutrientBreakdown = previewAiNutrientBreakdown().copy(
                 notes = null,
-                components = listOf("- 1 slice white bread", "- ~1 tbsp orange marmalade (?)"),
-                componentsSummary = "1 slice white bread · ~1 tbsp orange marmalade (?)",
+                components = listOf("- 1 slice white bread", "- ~1 tbsp orange marmalade (likely)"),
+                componentsSummary = "1 slice white bread · ~1 tbsp orange marmalade (likely)",
             ),
             expanded = false,
             onExpandedChange = {},
