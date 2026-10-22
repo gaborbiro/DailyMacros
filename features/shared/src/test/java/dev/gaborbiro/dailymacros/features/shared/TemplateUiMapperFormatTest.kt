@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.features.shared
 import dev.gaborbiro.dailymacros.features.common.views.NutrientDisplayLine
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -80,5 +81,13 @@ class TemplateUiMapperFormatTest {
         assertEquals(" (chicken)", mapper.formatTopContributorSuffix(1f, NutrientDisplayLine.Protein, "chicken"))
         assertEquals("", mapper.formatTopContributorSuffix(0.4f, NutrientDisplayLine.Protein, "chicken"))
         assertEquals(" (soy)", mapper.formatTopContributorSuffix(0.1f, NutrientDisplayLine.Salt, "soy"))
+    }
+
+    @Test
+    fun `topContributors is the bare text under the same visibility rule`() {
+        assertEquals("chicken", mapper.topContributors(1f, NutrientDisplayLine.Protein, "chicken"))
+        assertNull(mapper.topContributors(0.4f, NutrientDisplayLine.Protein, "chicken"))
+        assertNull(mapper.topContributors(5f, NutrientDisplayLine.Protein, "  "))
+        assertNull(mapper.topContributors(null, NutrientDisplayLine.Protein, "chicken"))
     }
 }

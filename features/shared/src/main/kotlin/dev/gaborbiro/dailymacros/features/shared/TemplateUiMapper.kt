@@ -111,11 +111,21 @@ class TemplateUiMapper @Inject constructor() {
         amount: Number?,
         line: NutrientDisplayLine,
         contributorText: String?,
-    ): String {
+    ): String = topContributors(amount, line, contributorText)?.let { " ($it)" }.orEmpty()
+
+    /**
+     * The contributor text on its own (no brackets), under the same visibility rule as
+     * [formatTopContributorSuffix]; null when it shouldn't show.
+     */
+    fun topContributors(
+        amount: Number?,
+        line: NutrientDisplayLine,
+        contributorText: String?,
+    ): String? {
         if (amount == null || amount.toDouble() < minimumAmountForContributorVisibility(line.decimalCount)) {
-            return ""
+            return null
         }
-        return formatTopContributorText(contributorText)
+        return contributorText?.takeIf { it.isNotBlank() }
     }
 
     private fun minimumAmountForContributorVisibility(decimalCount: Int): Double =

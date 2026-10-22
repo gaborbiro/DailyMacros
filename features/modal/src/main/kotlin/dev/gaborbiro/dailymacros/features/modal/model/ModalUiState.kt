@@ -97,6 +97,13 @@ sealed class DialogHandle {
             val timestamp: ZonedDateTime,
             /** Wall-clock hour a new food diary day begins; used to label [timestamp] as Today/Yesterday. */
             val diaryDayStartHour: Int = 0,
+            /** Whether the inline "Something off?" correction is offered under the AI's findings (logged meals only). */
+            val allowCorrection: Boolean = false,
+            /** What the user wants the AI to fix; appended to the description when they re-analyze. */
+            val correction: TextFieldValue = TextFieldValue(),
+            val canReanalyze: Boolean = false,
+            /** Whether saving the current edits sends the meal back to the AI. */
+            val editsRequireAnalysis: Boolean = false,
         ) : RecordDetailsDialog(
             titleHint = titleHint,
             titleValidationError = titleValidationError,
@@ -161,18 +168,25 @@ sealed class ImageInputType {
 }
 
 data class NutrientBreakdownUiModel(
-    val calories: String?,
-    val protein: String?,
-    val fat: String?,
-    val ofWhichSaturated: String?,
-    val carbs: String?,
-    val ofWhichSugar: String?,
-    val ofWhichAddedSugar: String?,
-    val salt: String?,
-    val fibre: String?,
+    /** The full breakdown, top to bottom, "of which" lines indented under their parent. */
+    val nutrients: List<NutrientRowUiModel>,
     val notes: String?,
     val components: List<String> = emptyList(),
     /** Single-line rendition of [components] (e.g. "1 slice bread · ~1 tbsp marmalade") for the collapsed AI section. */
     val componentsSummary: String? = null,
     val hasDisplayableContent: Boolean = false,
 )
+
+/** One line of the expanded macros, e.g. "Protein · 6g · red bean paste, egg". */
+data class NutrientRowUiModel(
+    val kind: NutrientKind,
+    val label: String,
+    val amount: String,
+    /** What contributes most to this nutrient, when the AI said and the amount is big enough to matter. */
+    val sources: String? = null,
+    /** 0 for a nutrient, 1 for "of which", 2 for "of which, of which" (added sugar under sugar). */
+    val indent: Int = 0,
+)
+
+/** Which macro a row belongs to; the view picks its colour. */
+enum class NutrientKind { CALORIES, PROTEIN, FAT, CARBS, SALT, FIBRE }

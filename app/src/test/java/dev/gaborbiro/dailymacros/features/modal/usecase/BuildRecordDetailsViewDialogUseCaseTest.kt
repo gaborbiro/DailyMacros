@@ -16,6 +16,7 @@ class BuildRecordDetailsViewDialogUseCaseTest {
         val dlg = build.execute(record, edit = false)
         assertFalse(dlg.allowEdit)
         assertFalse(dlg.openedFromTemplateDetailsOnly)
+        assertFalse(dlg.allowCorrection)
         assertEquals(0, dlg.linkedRecordCountForTemplate)
         assertEquals("Rice", dlg.title.text)
         assertEquals("Rice", dlg.pristineSnapshot.title)
@@ -29,6 +30,7 @@ class BuildRecordDetailsViewDialogUseCaseTest {
         val dlg = build.execute(record, edit = true)
         assertTrue(dlg.allowEdit)
         assertFalse(dlg.openedFromTemplateDetailsOnly)
+        assertTrue(dlg.allowCorrection)
     }
 
     @Test
@@ -38,5 +40,7 @@ class BuildRecordDetailsViewDialogUseCaseTest {
         val dlg = build.execute(record, edit = false, templateDetailsMode = true)
         assertTrue(dlg.allowEdit)
         assertTrue(dlg.openedFromTemplateDetailsOnly)
+        // A quick pick's details start a new log; correcting the AI belongs to a logged meal.
+        assertFalse(dlg.allowCorrection)
     }
 }
