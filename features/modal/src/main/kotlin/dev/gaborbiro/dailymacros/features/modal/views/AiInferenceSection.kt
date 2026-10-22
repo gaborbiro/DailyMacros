@@ -350,15 +350,7 @@ private val ExpandAffordanceColor: Color
     @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
 
 private fun previewAiNutrientBreakdown() = NutrientBreakdownUiModel(
-    calories = "Calories: 170 kcal",
-    protein = null,
-    fat = null,
-    ofWhichSaturated = null,
-    carbs = null,
-    ofWhichSugar = null,
-    ofWhichAddedSugar = null,
-    salt = null,
-    fibre = null,
+    nutrients = previewNutrientRows(),
     notes = "Assumed white bread with a thin spread of butter; marmalade amount estimated from the photo.",
     components = listOf("- 1 slice white bread", "- ~5g butter (likely)", "- ~1 tbsp orange marmalade (guess)"),
     componentsSummary = "1 slice white bread · ~5g butter (likely) · ~1 tbsp orange marmalade (guess)",

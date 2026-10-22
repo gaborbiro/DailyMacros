@@ -415,15 +415,7 @@ private fun NoteInputDialogContentPreviewView() {
             imageFilenames = listOf("1", "2"),
             allowEdit = true,
             nutrientBreakdown = NutrientBreakdownUiModel(
-                calories = "Calories: 2100 cal",
-                protein = "Protein: 150g",
-                fat = "Fat 100g",
-                ofWhichSaturated = "of which saturated: 20g",
-                carbs = "Carbs: 100g",
-                ofWhichSugar = "of which sugar: 30g",
-                ofWhichAddedSugar = "of which added sugar: 15g",
-                salt = "Salt: 5g",
-                fibre = "Fibre: 4.5g",
+                nutrients = previewNutrientRows(),
                 notes = "Notes: This is a note",
             ),
             compactNutrients = NutrientsUiModel(

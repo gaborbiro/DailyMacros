@@ -54,10 +54,26 @@ class ModalUiMapperTest {
             ),
         )
         val ui = mapper.mapNutrientBreakdowns(record)
-        assertNotNull(ui.calories)
-        assertTrue(ui.calories!!.contains("300"))
-        assertNotNull(ui.protein)
+        assertEquals(listOf("Calories", "Protein"), ui.nutrients.map { it.label })
+        assertTrue(ui.nutrients[0].amount.contains("300"))
         assertEquals("Leftovers", ui.notes)
+    }
+
+    @Test
+    fun `mapNutrientBreakdowns nests of-which rows and keeps sources apart from amounts`() {
+        val record = recordWith(mealComponents = emptyList()).let { r ->
+            r.copy(
+                template = r.template.copy(
+                    nutrients = Nutrients(fat = 10f, ofWhichSaturated = 4f, carbs = 30f, ofWhichSugar = 12f, ofWhichAddedSugar = 5f),
+                    topContributors = TopContributors(topFatContributors = "butter"),
+                ),
+            )
+        }
+        val rows = mapper.mapNutrientBreakdowns(record).nutrients
+        assertEquals(listOf("Fat", "Saturated", "Carbs", "Sugar", "Added sugar"), rows.map { it.label })
+        assertEquals(listOf(0, 1, 0, 1, 2), rows.map { it.indent })
+        assertEquals("butter", rows[0].sources)
+        assertTrue(rows.none { it.amount.contains("(") || it.label.contains(":") })
     }
 
     @Test

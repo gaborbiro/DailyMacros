@@ -21,7 +21,7 @@
     <string name="meal_details_correction_voice_prompt">What’s different?</string>
     <string name="meal_details_quick_pick_add_cd">Add to Quick Picks</string>
     <string name="meal_details_quick_pick_remove_cd">Remove from Quick Picks</string>
-    <string name="meal_details_expand">More details</string>
+    <string name="meal_details_expand">Details</string>
     <string name="meal_details_collapse">Collapse</string>
     <string name="record_details_ai_inferred_title">What the AI inferred</string>
     <string name="record_details_ai_inferred_show_all">Show all</string>
