@@ -13,6 +13,9 @@ Metering is by **request count** (a tripwire), not exact token cost:
 ~3000 requests/month ≈ $30 at ~$0.01/call. Tune it live in Firestore — no
 redeploy needed.
 
+For what every Firestore collection and document is for, see
+[FIRESTORE.md](FIRESTORE.md).
+
 ---
 
 ## One-time setup (Firebase console + CLI)
@@ -315,7 +318,7 @@ client is wired to send its Firebase ID token — that's the follow-up step.
   than watching it burn through the pre-subscription allowance.
 - **Emergency stop:** set `config/limits.killSwitch = true`. All proxied
   requests immediately return 503 until you flip it back.
-- **See usage:** `usage/global` holds the current month's count;
+- **See usage:** `meters/app` holds the current month's count;
   `users/{uid}` holds each device's daily count (`dailyCapCount`, valid for
   the UTC date in `dailyCapUtcDate`), plus `clientId` (the
   three-word client ID shown in the app's Settings), `lastSeen`, and that same
@@ -412,8 +415,8 @@ own caps instead of the per-user ones, all in `config/demo`:
 | Field | Type | Default | Meaning |
 |---|---|---|---|
 | `enabled` | boolean | `true` | The demo's own kill switch. |
-| `dailyBudget` | number | `60` | All demo calls per UTC day (`usage/demo`). Separate from `config/limits`, so an abused demo can't lock out app users. Worst case per month: 30 × this. |
-| `perIpDailyCap` | number | `3` | Calls per visitor IP per UTC day (`demoIps/{sha256(day:ip)}`). A soft limit; `dailyBudget` is the real ceiling. |
+| `dailyBudget` | number | `60` | All demo calls per UTC day (`meters/demo`). Separate from `config/limits`, so an abused demo can't lock out app users. Worst case per month: 30 × this. |
+| `perIpDailyCap` | number | `3` | Calls per visitor IP per UTC day (`meters/demo/visitors/{sha256(day:ip)}`). A soft limit; `dailyBudget` is the real ceiling. |
 | `requireAppCheck` | boolean | `true` | Require a valid App Check token. |
 | `model` | string | `gpt-5.4-mini` | OpenAI model. |
 | `reasoningEffort` | string | `low` | The app uses `high`; a landing-page visitor won't wait that long. |
@@ -438,7 +441,7 @@ verify this browser"):
 5. **Add a TTL policy** so the per-IP docs delete themselves after two days:
    ```bash
    gcloud firestore fields ttls update expireAt \
-     --collection-group=demoIps --enable-ttl --project=dailymacros-9fab8
+     --collection-group=visitors --enable-ttl --project=dailymacros-9fab8
    ```
 6. **Deploy** functions and hosting (the `/api/demo` rewrite is in
    `firebase.json`).
@@ -450,7 +453,7 @@ Operating it:
 
 - **Stop the demo:** set `config/demo.enabled = false`. The page shows "The
   demo is taking a break".
-- **See usage:** `usage/demo` holds today's count; `stats/counters.demo_start`
+- **See usage:** `meters/demo` holds today's count; `stats/counters.demo_start`
   counts visitors who tried it.
 - **Sample photos:** `web/img/demo/*.jpg` are cut from the widget screenshot.
   Real, larger food photos give the AI more to work with; replace the files

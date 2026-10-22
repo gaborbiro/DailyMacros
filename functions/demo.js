@@ -13,11 +13,11 @@
  * Firestore at config/demo without redeploying:
  *   - enabled (default true): the demo's own kill switch.
  *   - dailyBudget (default 60): every demo call per UTC day, counted in
- *     usage/demo. Deliberately separate from openaiProxy's monthly budget, so
+ *     meters/demo. Deliberately separate from openaiProxy's monthly budget, so
  *     an abused demo can never lock out app users. Worst case per month is
  *     30 x this.
  *   - perIpDailyCap (default 3): per visitor IP per UTC day, counted in
- *     demoIps/{sha256(day:ip)}. A soft limit only - IPs are shared, rotate,
+ *     meters/demo/visitors/{sha256(day:ip)}. A soft limit only - IPs are shared, rotate,
  *     and the header is spoofable when the function is called directly
  *     instead of through Hosting. dailyBudget is the real ceiling. Each doc
  *     carries an expireAt for a Firestore TTL policy (see README).
@@ -59,7 +59,7 @@ const IMAGE_DATA_URL = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+=*$/;
 // form the app passes as {phone_language}.
 const LANGUAGE = /^[A-Za-z][A-Za-z ()-]{1,39}$/;
 
-// demoIps docs are only needed for the day they count; TTL deletes them after.
+// Visitor docs are only needed for the day they count; TTL deletes them after.
 const IP_DOC_TTL_MILLIS = 2 * 24 * 60 * 60 * 1000;
 
 function sendError(res, status, code, message, extra) {
@@ -232,8 +232,8 @@ exports.demoAnalyze = onRequest(
     const dailyBudget = cfg.dailyBudget ?? DEFAULT_DAILY_BUDGET;
     const perIpDailyCap = cfg.perIpDailyCap ?? DEFAULT_PER_IP_DAILY_CAP;
     const ipHash = crypto.createHash("sha256").update(`${dayKey}:${clientIp(req)}`).digest("hex");
-    const budgetRef = db.doc("usage/demo");
-    const ipRef = db.doc(`demoIps/${ipHash}`);
+    const budgetRef = db.doc("meters/demo"); // see FIRESTORE.md
+    const ipRef = budgetRef.collection("visitors").doc(ipHash);
 
     let decision;
     try {

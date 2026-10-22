@@ -221,7 +221,7 @@ exports.openaiProxy = onRequest(
     const dailyCapUtcDateKey = now.toISOString().slice(0, 10); // YYYY-MM-DD (UTC)
 
     const configRef = db.doc("config/limits");
-    const globalRef = db.doc("usage/global");
+    const globalRef = db.doc("meters/app"); // see FIRESTORE.md
     const userRef = db.doc(`users/${uid}`);
 
     const runCapCheck = async (tx) => {
