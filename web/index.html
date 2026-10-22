@@ -136,6 +136,10 @@
   @media (min-width: 680px) { .demo-phones { justify-content: center; overflow: visible; } }
   .demo-device { flex: 0 0 min(280px, 84vw); min-width: 0; margin: 0; scroll-snap-align: center; }
   .demo-device figcaption { margin-bottom: 8px; text-align: center; font-weight: 700; }
+  /* Only the left phone (with the CTA) shows at first; the right one and both
+     captions stay reserved-but-invisible, not display:none, so revealing them
+     on interaction can't shift the left phone's centered position at all. */
+  .demo-reveal { visibility: hidden; }
   .demo-foot { display: grid; gap: 10px; justify-items: center; text-align: center; margin-top: -10px; }
   .demo-foot .fine { max-width: 36em; }
   .demo-samples { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 16px; }
@@ -401,7 +405,7 @@
   <div class="wrap demo" id="try">
     <div class="demo-phones" id="demo-phones">
       <figure class="demo-device" id="demo-widget-device">
-        <figcaption>Widgets</figcaption>
+        <figcaption class="demo-reveal">Widgets</figcaption>
         <div class="phone" id="demo-phone" role="group" aria-label="Interactive replica of the Daily Macros home-screen widget">
           <div class="screen screen-home">
             <div class="demo-veil" id="demo-cta">
@@ -481,8 +485,8 @@
         </div>
       </figure>
 
-      <figure class="demo-device" id="demo-overview-device">
-        <figcaption>The app</figcaption>
+      <figure class="demo-device demo-reveal" id="demo-overview-device">
+        <figcaption class="demo-reveal">The app</figcaption>
         <div class="phone" role="group" aria-label="Interactive replica of the Daily Macros app's diary screen">
           <div class="screen">
             <div class="demo-veil"></div>
@@ -1279,11 +1283,16 @@
   // --- Visitor's first interaction ------------------------------------------
 
   // Counts the visitor once in stats/counters.demo_start, on any first tap.
-  // Also lifts the frosted-glass veils off both phones.
+  // Also lifts the frosted-glass veils off both phones, and reveals the
+  // second phone plus both captions (reserved space all along, so this
+  // can't shift the left phone's position).
   function markStarted() {
     if (started) return;
     started = true;
     Array.prototype.forEach.call(veilEls, function (v) { v.hidden = true; });
+    Array.prototype.forEach.call(document.querySelectorAll(".demo-reveal"), function (el) {
+      el.classList.remove("demo-reveal");
+    });
     try {
       fetch("/api/event", {
         method: "POST",
