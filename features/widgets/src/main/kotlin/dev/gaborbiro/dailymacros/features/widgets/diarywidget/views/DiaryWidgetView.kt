@@ -92,6 +92,8 @@ internal fun DiaryWidgetView(
             modifier = GlanceModifier
                 .fillMaxWidth()
                 .wrapContentHeight(),
+            // Prototype: always on. Next step is a first-time-user flag in WidgetUiState.
+            highlightCamera = true,
             launchNoteViaCameraAction = { navigator.createRecordWithCamera() },
             launchNewNoteViaImagePickerActionProvider = { navigator.createRecordWithImagePicker() },
             launchNewNoteViaTextOnlyActionProvider = { navigator.createRecord() },

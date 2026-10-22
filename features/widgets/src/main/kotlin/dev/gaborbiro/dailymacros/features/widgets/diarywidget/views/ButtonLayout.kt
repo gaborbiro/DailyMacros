@@ -1,7 +1,9 @@
 package dev.gaborbiro.dailymacros.features.widgets.diarywidget.views
 
+import android.widget.RemoteViews
 import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.dp
 import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -11,10 +13,13 @@ import androidx.glance.LocalContext
 import androidx.glance.action.Action
 import androidx.glance.action.action
 import androidx.glance.action.clickable
+import androidx.glance.appwidget.AndroidRemoteViews
 import androidx.glance.layout.Alignment
+import androidx.glance.layout.Box
 import androidx.glance.layout.Row
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.padding
+import androidx.glance.layout.size
 import androidx.glance.layout.wrapContentHeight
 import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
@@ -25,6 +30,7 @@ import dev.gaborbiro.dailymacros.features.widgets.util.WidgetPreviewContext
 @Composable
 fun ButtonLayout(
     modifier: GlanceModifier,
+    highlightCamera: Boolean,
     launchNoteViaCameraAction: @Composable () -> Action,
     launchNewNoteViaImagePickerActionProvider: @Composable () -> Action,
     launchNewNoteViaTextOnlyActionProvider: @Composable () -> Action,
@@ -35,14 +41,26 @@ fun ButtonLayout(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        WidgetButton(
-            modifier = GlanceModifier
-                .defaultWeight()
-                .padding(vertical = PaddingWidgetDouble),
-            iconResId = R.drawable.ic_add_photo,
-            contentDescription = context.getString(R.string.widgets_content_new_record_via_camera_cd),
-            tapAction = launchNoteViaCameraAction(),
-        )
+        Box(
+            modifier = GlanceModifier.defaultWeight(),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (highlightCamera) {
+                // Fixed size: a fill-parent ProgressBar would stretch the whole row to the widget's height.
+                AndroidRemoteViews(
+                    modifier = GlanceModifier.size(48.dp),
+                    remoteViews = RemoteViews(context.packageName, R.layout.widget_camera_pulse),
+                )
+            }
+            WidgetButton(
+                modifier = GlanceModifier
+                    .fillMaxWidth()
+                    .padding(vertical = PaddingWidgetDouble),
+                iconResId = R.drawable.ic_add_photo,
+                contentDescription = context.getString(R.string.widgets_content_new_record_via_camera_cd),
+                tapAction = launchNoteViaCameraAction(),
+            )
+        }
         WidgetButton(
             modifier = GlanceModifier
                 .defaultWeight()
@@ -95,6 +113,7 @@ private fun ButtonLayoutPreview() {
             modifier = GlanceModifier
                 .fillMaxWidth()
                 .wrapContentHeight(),
+            highlightCamera = true,
             launchNoteViaCameraAction = { action {} },
             launchNewNoteViaImagePickerActionProvider = { action {} },
             launchNewNoteViaTextOnlyActionProvider = { action {} },
