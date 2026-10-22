@@ -54,6 +54,9 @@ jobs:
       with:
         tag_name: build-${{ env.GIT_SHORT_SHA }}
         name: "Master #${{ github.run_number }} (${{ env.GIT_SHORT_SHA }})"
+        # Debug builds, not store releases: keeps "Release" (and the Latest badge) for release.yml.
+        prerelease: true
+        make_latest: false
         # Without this, the tag defaults to master's tip at release-creation time, which can have
         # already moved past BUILD_SHA if another push/merge lands while this run is still going.
         target_commitish: ${{ env.BUILD_SHA }}
