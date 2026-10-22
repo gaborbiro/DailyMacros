@@ -102,21 +102,23 @@
      Trends screens. Only the AI analysis is real (POST /api/demo,
      functions/demo.js). */
   .hero-head { padding-bottom: 8px; }
-  .hero-tail { padding-top: 12px; }
-  .demo { display: grid; gap: 12px; }
+  .hero-tail { padding-top: 36px; }
+  .demo { display: grid; gap: 14px; padding-top: 28px; }
   .demo-title { font-size: 1.25rem; }
-  .demo-intro { color: var(--muted); max-width: 34em; }
+  /* The bottom padding leaves room for the phones' shadow, which the
+     horizontal scroller would otherwise clip into a hard edge. */
   .demo-phones {
     display: flex; gap: 24px; align-items: flex-start; overflow-x: auto; scroll-snap-type: x mandatory;
-    margin: 0 -20px; padding: 4px 20px 12px; scrollbar-width: none;
+    margin: 0 -20px; padding: 4px 20px 40px; scrollbar-width: none;
   }
   .demo-phones::-webkit-scrollbar { display: none; }
-  @media (min-width: 680px) { .demo-phones { justify-content: center; } }
+  /* Both phones fit side by side: no scroller, so nothing clips the shadows. */
+  @media (min-width: 680px) { .demo-phones { justify-content: center; overflow: visible; } }
   .demo-device { flex: 0 0 min(300px, 84vw); margin: 0; scroll-snap-align: center; }
   .demo-device figcaption { margin-bottom: 8px; text-align: center; font-weight: 700; }
-  .demo-foot { display: grid; gap: 8px; justify-items: center; text-align: center; }
+  .demo-foot { display: grid; gap: 10px; justify-items: center; text-align: center; margin-top: -10px; }
   .demo-foot .fine { max-width: 36em; }
-  .demo-samples { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .demo-samples { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 16px; }
   .demo-samples button {
     width: 76px; height: 52px; padding: 0; border: 0; border-radius: 10px; overflow: hidden; cursor: pointer;
     box-shadow: 0 2px 8px rgba(120, 60, 0, .18);
@@ -366,8 +368,7 @@
   </div>
 
   <div class="wrap demo" id="try" role="region" aria-labelledby="try-title">
-    <h2 class="demo-title" id="try-title">Try it on a meal</h2>
-    <p class="demo-intro">Tap the widget’s camera and snap whatever you’re eating. Real AI analysis, like in the app, logs it, and the app’s diary updates. Tap the day’s totals there to see your trends.</p>
+    <h2 class="demo-title" id="try-title">Try the live demo, with real AI</h2>
 
     <div class="demo-phones">
       <figure class="demo-device" id="demo-widget-device">
