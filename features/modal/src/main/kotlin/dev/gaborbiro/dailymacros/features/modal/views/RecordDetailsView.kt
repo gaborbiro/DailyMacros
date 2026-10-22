@@ -11,6 +11,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -363,6 +364,8 @@ private fun MacrosCard(
     onExpandedChange: (Boolean) -> Unit,
 ) {
     val macroFadeSpec = tween<Float>(durationMillis = 400)
+    // Tapping the chips expands, but only the "Details" pill shows the press (see ExpandPill).
+    val toggleInteractions = remember { MutableInteractionSource() }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -370,7 +373,7 @@ private fun MacrosCard(
                 if (expanded) {
                     it
                 } else {
-                    it.clickable { onExpandedChange(true) }
+                    it.clickable(interactionSource = toggleInteractions, indication = null) { onExpandedChange(true) }
                 }
             }
             .animateContentSize(animationSpec = tween(durationMillis = 280)),
@@ -402,6 +405,7 @@ private fun MacrosCard(
         ExpandToggleRow(
             expanded = expanded,
             onCollapseTapped = { onExpandedChange(false) },
+            interactionSource = toggleInteractions,
         )
     }
 }

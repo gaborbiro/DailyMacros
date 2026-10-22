@@ -2,14 +2,18 @@ package dev.gaborbiro.dailymacros.features.modal.views
 
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,19 +22,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
@@ -71,7 +76,7 @@ private const val PreviewLastLineFadeFraction = 1f
  * Provenance for the nutrient estimate: what the AI read from the photo/title/description.
  * Collapsed, it previews the detected components (falling back to the notes) in at most two lines, fading out
  * the bottom of the last line when there is more. It only offers to expand (tap the preview; a chevron in the
- * caption hints at it and turns over once expanded) when the preview hides something. No card or border: it reads as a caption to the macros.
+ * caption's pill hints at it) when the preview hides something. No card or border: it reads as a caption to the macros.
  *
  * [correctionInput], when given, closes the card: the place to tell the AI what it got wrong, right after
  * reading what it inferred. It replaces the footnote that otherwise points the user at the description.
@@ -107,12 +112,16 @@ internal fun AiInferenceSection(
         val notesHiddenByPreview = nutrientBreakdown.componentsSummary != null && !nutrientBreakdown.notes.isNullOrBlank()
         val expandable = previewLayout.hasVisualOverflow || notesHiddenByPreview
 
+        // Taps land anywhere on the caption or preview, but only the pill shows it (see ExpandPill).
+        val toggleInteractions = remember { MutableInteractionSource() }
         Column {
             Column(
                 modifier = Modifier
                     .let {
                         if (!expanded && expandable) {
-                            it.clickable { onExpandedChange(true) }
+                            it.clickable(interactionSource = toggleInteractions, indication = null) {
+                                onExpandedChange(true)
+                            }
                         } else {
                             it
                         }
@@ -123,7 +132,13 @@ internal fun AiInferenceSection(
                     modifier = Modifier
                         .fillMaxWidth()
                         .let {
-                            if (expanded) it.clickable { onExpandedChange(false) } else it
+                            if (expanded) {
+                                it.clickable(interactionSource = toggleInteractions, indication = null) {
+                                    onExpandedChange(false)
+                                }
+                            } else {
+                                it
+                            }
                         }
                         .padding(horizontal = PaddingDefault),
                     verticalAlignment = Alignment.CenterVertically,
@@ -142,22 +157,15 @@ internal fun AiInferenceSection(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     if (expanded || expandable) {
-                        val chevronRotation by animateFloatAsState(
-                            targetValue = if (expanded) 180f else 0f,
-                            animationSpec = tween(durationMillis = 280),
-                            label = "mealDetailsAiInferenceChevron",
-                        )
-                        Icon(
-                            imageVector = Icons.Filled.KeyboardArrowDown,
+                        ExpandPill(
+                            modifier = Modifier.padding(start = PaddingHalf),
+                            expanded = expanded,
+                            interactionSource = toggleInteractions,
                             contentDescription = if (expanded) {
                                 stringResource(R.string.meal_details_collapse)
                             } else {
                                 stringResource(R.string.record_details_ai_inferred_show_all)
                             },
-                            modifier = Modifier
-                                .size(18.dp)
-                                .rotate(chevronRotation),
-                            tint = ExpandAffordanceColor,
                         )
                     }
                 }
@@ -208,6 +216,7 @@ internal fun AiInferenceSection(
                     ExpandToggleRow(
                         expanded = true,
                         onCollapseTapped = { onExpandedChange(false) },
+                        interactionSource = toggleInteractions,
                     )
                 }
             }
@@ -291,22 +300,24 @@ internal fun MealDetailsFootnote(text: String) {
 }
 
 /**
- * "More details ⌄" / "Collapse ⌃" footer shared by the meal details cards. While collapsed, taps are
- * handled by the enclosing card, so this row only reacts once expanded.
+ * "Details ⌄" / "Collapse ⌃" footer shared by the meal details sections. While collapsed, taps are handled by the
+ * enclosing section, which passes its [interactionSource] so the pill still answers them; once expanded this row
+ * collapses on tap.
  */
 @Composable
 internal fun ExpandToggleRow(
     expanded: Boolean,
     onCollapseTapped: () -> Unit,
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     expandLabel: String = stringResource(R.string.meal_details_expand),
 ) {
     Row(
         modifier = Modifier
-            .height(28.dp)
+            .height(32.dp)
             .fillMaxWidth()
             .let {
                 if (expanded) {
-                    it.clickable { onCollapseTapped() }
+                    it.clickable(interactionSource = interactionSource, indication = null) { onCollapseTapped() }
                 } else {
                     it
                 }
@@ -314,31 +325,60 @@ internal fun ExpandToggleRow(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = if (expanded) {
-                stringResource(R.string.meal_details_collapse)
-            } else {
-                expandLabel
-            },
-            style = MaterialTheme.typography.labelLarge,
-            color = ExpandAffordanceColor,
-        )
-
-        Spacer(
-            modifier = Modifier
-                .size(6.dp)
-        )
-
-        Icon(
-            imageVector = if (expanded) {
-                Icons.Filled.KeyboardArrowUp
-            } else {
-                Icons.Filled.KeyboardArrowDown
-            },
+        Crossfade(
+            targetState = expanded,
+            animationSpec = tween(durationMillis = ExpandPillFadeMillis),
+            label = "mealDetailsExpandLabel",
+        ) { isExpanded ->
+            Text(
+                text = if (isExpanded) stringResource(R.string.meal_details_collapse) else expandLabel,
+                style = MaterialTheme.typography.labelLarge,
+                color = ExpandAffordanceColor,
+            )
+        }
+        ExpandPill(
+            modifier = Modifier.padding(start = PaddingHalf),
+            expanded = expanded,
+            interactionSource = interactionSource,
             contentDescription = null,
-            modifier = Modifier.size(18.dp),
-            tint = ExpandAffordanceColor,
         )
+    }
+}
+
+private const val ExpandPillFadeMillis = 150
+
+/**
+ * A small tonal pill with a chevron, after the system notification's expand button: the chevron simply cross-fades
+ * between down and up, and a press shows as a soft ripple inside the pill only. It draws but doesn't handle taps;
+ * the caller's clickable shares [interactionSource] with it, so the tap target can be much bigger than the pill.
+ */
+@Composable
+internal fun ExpandPill(
+    expanded: Boolean,
+    interactionSource: MutableInteractionSource,
+    contentDescription: String?,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .size(width = 28.dp, height = 20.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            .indication(interactionSource, ripple()),
+        contentAlignment = Alignment.Center,
+    ) {
+        Crossfade(
+            targetState = expanded,
+            animationSpec = tween(durationMillis = ExpandPillFadeMillis),
+            label = "mealDetailsExpandPill",
+        ) { isExpanded ->
+            Icon(
+                imageVector = if (isExpanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                contentDescription = contentDescription,
+                modifier = Modifier.size(16.dp),
+                tint = MaterialTheme.colorScheme.onSurface,
+            )
+        }
     }
 }
 
