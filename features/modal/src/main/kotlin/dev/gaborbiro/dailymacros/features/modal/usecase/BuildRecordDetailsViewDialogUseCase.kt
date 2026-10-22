@@ -51,6 +51,8 @@ class BuildRecordDetailsViewDialogUseCase @Inject constructor(
             ),
             isEditing = false,
             timestamp = record.timestamp.toZonedDateTime(),
+            // A quick pick's details are a starting point for a new log, not a meal to correct.
+            allowCorrection = edit && !templateDetailsMode,
         )
     }
 }

@@ -1,12 +1,24 @@
 package dev.gaborbiro.dailymacros.features.modal.views
 
 import android.content.res.Configuration
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -63,11 +75,12 @@ internal fun RecordDetailsDialog(
     onRecordDetailsEditStarted: () -> Unit,
     onRecordDetailsEditCancelled: () -> Unit,
     onEditTimestampTapped: () -> Unit,
+    onCorrectionChanged: (TextFieldValue) -> Unit,
+    onReanalyzeTapped: () -> Unit,
 ) {
     val ui = deconstructDialogHandle(dialogHandle)
     val viewDialog = dialogHandle as? DialogHandle.RecordDetailsDialog.View
     val showCloseOnly = dialogHandle is DialogHandle.RecordDetailsDialog.View && !dialogHandle.allowEdit
-    val showRecordEditAction = viewDialog != null && viewDialog.allowEdit && !viewDialog.isEditing && !showCloseOnly
     val showKeyboardOnOpen = remember(dialogHandle) { ui.showKeyboardOnOpen }
     val showPhotoManagement = when (dialogHandle) {
         is DialogHandle.RecordDetailsDialog.Edit -> true
@@ -118,24 +131,20 @@ internal fun RecordDetailsDialog(
                 quickPickStarred = viewDialog?.quickPickStarred == true,
                 onQuickPickStarToggled = onQuickPickStarToggled,
                 onEditTimestampTapped = onEditTimestampTapped,
+                onCorrectionChanged = onCorrectionChanged,
+                onReanalyzeTapped = onReanalyzeTapped,
             )
         },
         errorMessages = errorMessages,
-        topEndAction = if (showRecordEditAction) {
+        topEndAction = if (viewDialog != null && !showCloseOnly) {
             {
-                IconButton(
-                    modifier = Modifier.padding(top = 12.dp, end = PaddingDefault),
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = Color.Gray.copy(alpha = .8f),
-                        contentColor = Color.White,
-                    ),
-                    onClick = onRecordDetailsEditStarted,
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Edit,
-                        contentDescription = stringResource(R.string.meal_details_begin_edit_cd),
-                    )
-                }
+                RecordDetailsOverflowMenu(
+                    visible = !viewDialog.isEditing,
+                    // A quick pick's details already lead with "Log meal again".
+                    showLogMealAgain = !viewDialog.openedFromTemplateDetailsOnly,
+                    onEditTapped = onRecordDetailsEditStarted,
+                    onLogMealAgainTapped = onSaveAndAddDetailsTapped,
+                )
             }
         } else null,
         footer = {
@@ -145,59 +154,58 @@ internal fun RecordDetailsDialog(
                         showCloseOnly = false,
                         showSaveAndAdd = false,
                         primaryEnabled = true,
-                        primaryLabel = stringResource(R.string.meal_details_action_save),
+                        primaryLabel = stringResource(R.string.meal_details_action_save_and_analyze),
                         saveAndAddLabel = null,
                         onDismissRequested = { requestDismissRecordDetails() },
                         onSaveTapped = onSubmitButtonTapped,
                         onSaveAndAddTapped = {},
+                        primaryStartsAnalysis = true,
                     )
                 }
 
                 is DialogHandle.RecordDetailsDialog.View -> {
-                    val dirty = dialogHandle.hasUnsavedEdits
-                    when {
-                        showCloseOnly -> {
-                            RecordDetailsDialogButtons(
-                                showCloseOnly = true,
-                                showSaveAndAdd = false,
-                                primaryEnabled = true,
-                                primaryLabel = null,
-                                saveAndAddLabel = null,
-                                onDismissRequested = { requestDismissRecordDetails() },
-                                onSaveTapped = {},
-                                onSaveAndAddTapped = {},
-                            )
-                        }
-
-                        dialogHandle.isEditing -> {
-                            RecordDetailsViewEditButtons(
-                                primaryEnabled = dirty,
-                                primaryLabel = if (dialogHandle.linkedRecordCountForTemplate == 1) {
-                                    stringResource(R.string.meal_details_action_update)
-                                } else {
-                                    pluralStringResource(
-                                        R.plurals.meal_details_update_linked_records,
-                                        dialogHandle.linkedRecordCountForTemplate,
-                                        dialogHandle.linkedRecordCountForTemplate,
-                                    )
-                                },
-                                onUpdate = onSaveDetailsTapped,
-                                onSaveAndAdd = onSaveAndAddDetailsTapped,
-                                onCancel = {
-                                    if (dialogHandle.hasUnsavedEdits) {
-                                        pendingDiscard = PendingRecordDetailsDiscard.ExitEditMode
-                                    } else {
-                                        onRecordDetailsEditCancelled()
-                                    }
-                                },
-                            )
-                        }
-
-                        else -> {
-                            RecordDetailsViewBrowseButtons(
-                                onLogMealAgain = onSaveAndAddDetailsTapped,
-                                onDismissRequested = { requestDismissRecordDetails() },
-                            )
+                    if (showCloseOnly) {
+                        RecordDetailsDialogButtons(
+                            showCloseOnly = true,
+                            showSaveAndAdd = false,
+                            primaryEnabled = true,
+                            primaryLabel = null,
+                            saveAndAddLabel = null,
+                            onDismissRequested = { requestDismissRecordDetails() },
+                            onSaveTapped = {},
+                            onSaveAndAddTapped = {},
+                        )
+                    } else {
+                        AnimatedContent(
+                            targetState = dialogHandle.isEditing,
+                            transitionSpec = {
+                                fadeIn(editModeSpec()) togetherWith fadeOut(editModeSpec()) using
+                                        SizeTransform(clip = false) { _, _ -> editModeSpec() }
+                            },
+                            label = "mealDetailsFooter",
+                        ) { editing ->
+                            if (editing) {
+                                RecordDetailsViewEditButtons(
+                                    primaryEnabled = dialogHandle.hasUnsavedEdits,
+                                    primaryLabel = updateButtonLabel(dialogHandle),
+                                    primaryStartsAnalysis = dialogHandle.editsRequireAnalysis,
+                                    onUpdate = onSaveDetailsTapped,
+                                    onSaveAndAdd = onSaveAndAddDetailsTapped,
+                                    onCancel = {
+                                        if (dialogHandle.hasUnsavedEdits) {
+                                            pendingDiscard = PendingRecordDetailsDiscard.ExitEditMode
+                                        } else {
+                                            onRecordDetailsEditCancelled()
+                                        }
+                                    },
+                                )
+                            } else {
+                                RecordDetailsViewBrowseButtons(
+                                    showLogMealAgain = dialogHandle.openedFromTemplateDetailsOnly,
+                                    onLogMealAgain = onSaveAndAddDetailsTapped,
+                                    onDismissRequested = { requestDismissRecordDetails() },
+                                )
+                            }
                         }
                     }
                 }
@@ -217,6 +225,79 @@ internal fun RecordDetailsDialog(
             },
             onKeepEditing = { pendingDiscard = null },
         )
+    }
+}
+
+@Composable
+private fun updateButtonLabel(dialogHandle: DialogHandle.RecordDetailsDialog.View): String {
+    val linkedCount = dialogHandle.linkedRecordCountForTemplate
+    return when {
+        linkedCount == 1 && dialogHandle.editsRequireAnalysis ->
+            stringResource(R.string.meal_details_action_update_and_analyze)
+
+        linkedCount == 1 -> stringResource(R.string.meal_details_action_update)
+
+        dialogHandle.editsRequireAnalysis ->
+            pluralStringResource(R.plurals.meal_details_update_and_analyze_linked_records, linkedCount, linkedCount)
+
+        else -> pluralStringResource(R.plurals.meal_details_update_linked_records, linkedCount, linkedCount)
+    }
+}
+
+/**
+ * Replaces the old edit button: editing and logging the meal again are things the user does later, if at
+ * all, so they sit behind a menu instead of competing with reading the results.
+ */
+@Composable
+private fun RecordDetailsOverflowMenu(
+    visible: Boolean,
+    showLogMealAgain: Boolean,
+    onEditTapped: () -> Unit,
+    onLogMealAgainTapped: () -> Unit,
+) {
+    var menuExpanded by remember { mutableStateOf(false) }
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(editModeSpec()),
+        exit = fadeOut(editModeSpec()),
+    ) {
+        Box(modifier = Modifier.padding(top = 12.dp, end = PaddingDefault)) {
+            IconButton(
+                colors = IconButtonDefaults.filledIconButtonColors(
+                    containerColor = Color.Gray.copy(alpha = .8f),
+                    contentColor = Color.White,
+                ),
+                onClick = { menuExpanded = true },
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.MoreVert,
+                    contentDescription = stringResource(R.string.meal_details_menu_cd),
+                )
+            }
+            DropdownMenu(
+                expanded = menuExpanded,
+                onDismissRequest = { menuExpanded = false },
+            ) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.meal_details_menu_edit)) },
+                    leadingIcon = { Icon(imageVector = Icons.Filled.Edit, contentDescription = null) },
+                    onClick = {
+                        menuExpanded = false
+                        onEditTapped()
+                    },
+                )
+                if (showLogMealAgain) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.meal_details_action_add_new)) },
+                        leadingIcon = { Icon(imageVector = Icons.Filled.Add, contentDescription = null) },
+                        onClick = {
+                            menuExpanded = false
+                            onLogMealAgainTapped()
+                        },
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -251,6 +332,8 @@ internal fun ColumnScope.RecordDetailsDialogContent(
     quickPickStarred: Boolean = false,
     onQuickPickStarToggled: () -> Unit = { },
     onEditTimestampTapped: () -> Unit = { },
+    onCorrectionChanged: (TextFieldValue) -> Unit = { },
+    onReanalyzeTapped: () -> Unit = { },
 ) {
     when (dialogHandle) {
         is DialogHandle.RecordDetailsDialog.Edit ->
@@ -302,6 +385,8 @@ internal fun ColumnScope.RecordDetailsDialogContent(
                 quickPickStarred = quickPickStarred,
                 onQuickPickStarToggled = onQuickPickStarToggled,
                 onEditTimestampTapped = onEditTimestampTapped,
+                onCorrectionChanged = onCorrectionChanged,
+                onReanalyzeTapped = onReanalyzeTapped,
             )
     }
 }

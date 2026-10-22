@@ -97,6 +97,13 @@ sealed class DialogHandle {
             val timestamp: ZonedDateTime,
             /** Wall-clock hour a new food diary day begins; used to label [timestamp] as Today/Yesterday. */
             val diaryDayStartHour: Int = 0,
+            /** Whether the inline "Something off?" correction is offered under the AI's findings (logged meals only). */
+            val allowCorrection: Boolean = false,
+            /** What the user wants the AI to fix; appended to the description when they re-analyze. */
+            val correction: TextFieldValue = TextFieldValue(),
+            val canReanalyze: Boolean = false,
+            /** Whether saving the current edits sends the meal back to the AI. */
+            val editsRequireAnalysis: Boolean = false,
         ) : RecordDetailsDialog(
             titleHint = titleHint,
             titleValidationError = titleValidationError,

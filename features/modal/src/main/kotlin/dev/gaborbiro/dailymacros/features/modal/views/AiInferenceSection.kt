@@ -71,6 +71,9 @@ private const val PreviewLastLineFadeFraction = 1f
  * Provenance for the nutrient estimate: what the AI read from the photo/title/description.
  * Collapsed, it previews the detected components (falling back to the notes) in at most two lines, fading out
  * the bottom of the last line when there is more. It only offers to expand when the preview hides something.
+ *
+ * [correctionInput], when given, closes the card: the place to tell the AI what it got wrong, right after
+ * reading what it inferred. It replaces the footnote that otherwise points the user at the description.
  */
 @Composable
 internal fun AiInferenceSection(
@@ -78,7 +81,9 @@ internal fun AiInferenceSection(
     nutrientBreakdown: NutrientBreakdownUiModel,
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
+    correctionInput: (@Composable () -> Unit)? = null,
 ) {
+    val showFootnote = correctionInput == null
     val fadeSpec = tween<Float>(durationMillis = 400)
     val previewText = nutrientBreakdown.componentsSummary ?: nutrientBreakdown.notes.orEmpty()
     val previewStyle = MaterialTheme.typography.bodyMedium
@@ -107,86 +112,91 @@ internal fun AiInferenceSection(
             val notesHiddenByPreview = nutrientBreakdown.componentsSummary != null && !nutrientBreakdown.notes.isNullOrBlank()
             val expandable = previewLayout.hasVisualOverflow || notesHiddenByPreview
 
-            Column(
-                modifier = Modifier
-                    .let {
-                        if (!expanded && expandable) {
-                            it.clickable { onExpandedChange(true) }
-                        } else {
-                            it
-                        }
-                    }
-                    .padding(top = PaddingHalf)
-                    .animateContentSize(animationSpec = tween(durationMillis = 280)),
-            ) {
-                Row(
+            Column {
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = PaddingHalf),
-                    verticalAlignment = Alignment.CenterVertically,
+                        .let {
+                            if (!expanded && expandable) {
+                                it.clickable { onExpandedChange(true) }
+                            } else {
+                                it
+                            }
+                        }
+                        .padding(top = PaddingHalf)
+                        .animateContentSize(animationSpec = tween(durationMillis = 280)),
                 ) {
-                    Icon(
-                        painter = painterResource(CommonR.drawable.ic_ai_borg),
-                        contentDescription = null,
+                    Row(
                         modifier = Modifier
-                            .padding(end = PaddingHalf)
-                            .size(20.dp),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                    Text(
-                        text = stringResource(R.string.record_details_ai_inferred_title),
-                        style = MaterialTheme.typography.titleSmall,
-                    )
-                }
-
-                AnimatedContent(
-                    targetState = expanded,
-                    transitionSpec = {
-                        fadeIn(fadeSpec) togetherWith fadeOut(fadeSpec)
-                    },
-                    label = "mealDetailsAiInferenceExpand",
-                ) { isExpanded ->
-                    if (isExpanded) {
-                        AiInferenceDetails(
+                            .fillMaxWidth()
+                            .padding(horizontal = PaddingHalf),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            painter = painterResource(CommonR.drawable.ic_ai_borg),
+                            contentDescription = null,
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(PaddingHalf),
-                            nutrientBreakdown = nutrientBreakdown,
+                                .padding(end = PaddingHalf)
+                                .size(20.dp),
+                            tint = MaterialTheme.colorScheme.primary,
                         )
-                    } else {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(PaddingHalf),
-                        ) {
-                            Text(
+                        Text(
+                            text = stringResource(R.string.record_details_ai_inferred_title),
+                            style = MaterialTheme.typography.titleSmall,
+                        )
+                    }
+
+                    AnimatedContent(
+                        targetState = expanded,
+                        transitionSpec = {
+                            fadeIn(fadeSpec) togetherWith fadeOut(fadeSpec)
+                        },
+                        label = "mealDetailsAiInferenceExpand",
+                    ) { isExpanded ->
+                        if (isExpanded) {
+                            AiInferenceDetails(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .let {
-                                        if (previewLayout.hasVisualOverflow) it.fadeLastLineBottom(previewLayout) else it
-                                    },
-                                text = previewText,
-                                style = previewStyle,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = PreviewMaxLines,
-                                overflow = TextOverflow.Clip,
+                                    .padding(PaddingHalf),
+                                nutrientBreakdown = nutrientBreakdown,
+                                showFootnote = showFootnote,
                             )
-                            // Nothing more to expand into, so the footnote belongs here.
-                            if (!expandable) {
-                                Spacer(modifier = Modifier.height(PaddingDefault))
-                                MealDetailsFootnote(text = stringResource(R.string.record_details_ai_inferred_footnote))
+                        } else {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(PaddingHalf),
+                            ) {
+                                Text(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .let {
+                                            if (previewLayout.hasVisualOverflow) it.fadeLastLineBottom(previewLayout) else it
+                                        },
+                                    text = previewText,
+                                    style = previewStyle,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = PreviewMaxLines,
+                                    overflow = TextOverflow.Clip,
+                                )
+                                // Nothing more to expand into, so the footnote belongs here.
+                                if (!expandable && showFootnote) {
+                                    Spacer(modifier = Modifier.height(PaddingDefault))
+                                    MealDetailsFootnote(text = stringResource(R.string.record_details_ai_inferred_footnote))
+                                }
                             }
                         }
                     }
-                }
 
-                if (expanded || expandable) {
-                    ExpandToggleRow(
-                        expanded = expanded,
-                        expandLabel = stringResource(R.string.record_details_ai_inferred_show_all),
-                        onCollapseTapped = { onExpandedChange(false) },
-                    )
+                    if (expanded || expandable) {
+                        ExpandToggleRow(
+                            expanded = expanded,
+                            expandLabel = stringResource(R.string.record_details_ai_inferred_show_all),
+                            onCollapseTapped = { onExpandedChange(false) },
+                        )
+                    }
                 }
+                // Outside the collapsed card's tap target, so typing here doesn't expand the card.
+                correctionInput?.invoke()
             }
         }
     }
@@ -221,6 +231,7 @@ private fun Modifier.fadeLastLineBottom(layout: TextLayoutResult): Modifier = th
 private fun AiInferenceDetails(
     modifier: Modifier,
     nutrientBreakdown: NutrientBreakdownUiModel,
+    showFootnote: Boolean,
 ) {
     Column(modifier = modifier) {
         if (nutrientBreakdown.components.isNotEmpty()) {
@@ -249,8 +260,10 @@ private fun AiInferenceDetails(
             )
         }
 
-        Spacer(modifier = Modifier.height(PaddingDefault))
-        MealDetailsFootnote(text = stringResource(R.string.record_details_ai_inferred_footnote))
+        if (showFootnote) {
+            Spacer(modifier = Modifier.height(PaddingDefault))
+            MealDetailsFootnote(text = stringResource(R.string.record_details_ai_inferred_footnote))
+        }
     }
 }
 

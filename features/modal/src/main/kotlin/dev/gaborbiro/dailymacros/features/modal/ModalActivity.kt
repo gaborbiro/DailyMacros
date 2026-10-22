@@ -332,6 +332,8 @@ class ModalActivity : AppCompatActivity() {
                 onRecordDetailsEditStarted = viewModel::onRecordDetailsEditStarted,
                 onRecordDetailsEditCancelled = viewModel::onRecordDetailsEditCancelled,
                 onEditTimestampTapped = viewModel::onEditTimestampTapped,
+                onCorrectionChanged = viewModel::onCorrectionChanged,
+                onReanalyzeTapped = viewModel::onReanalyzeTapped,
             )
 
             is DialogHandle.EditTimestampDialog -> EditTimestampBottomSheet(

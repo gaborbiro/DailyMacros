@@ -1,6 +1,10 @@
 package dev.gaborbiro.dailymacros.features.modal
 
+import androidx.compose.ui.text.input.TextFieldValue
+import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
+import dev.gaborbiro.dailymacros.features.modal.model.RecordDetailsPristineSnapshot
 import dev.gaborbiro.dailymacros.features.shared.TemplateUiMapper
+import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.ComponentConfidence
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
@@ -9,6 +13,7 @@ import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
 import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
 import dev.gaborbiro.dailymacros.repositories.common.model.toZonedInstant
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -77,6 +82,63 @@ class ModalUiMapperTest {
         val ui = mapper.mapNutrientBreakdowns(recordWith(mealComponents = emptyList()))
         assertNull(ui.componentsSummary)
     }
+
+    @Test
+    fun `appendCorrection puts the correction on its own line after the description`() {
+        assertEquals("Leftover rice\nIt was brown rice", mapper.appendCorrection("Leftover rice ", " It was brown rice"))
+    }
+
+    @Test
+    fun `appendCorrection without a description is just the correction`() {
+        assertEquals("About 200 g", mapper.appendCorrection("  ", "About 200 g"))
+    }
+
+    @Test
+    fun `correctionCapacity leaves room for the separator`() {
+        assertEquals(256 - 5 - 1, mapper.correctionCapacity("Curry", maxDescriptionLength = 256))
+        assertEquals(256, mapper.correctionCapacity("", maxDescriptionLength = 256))
+        assertEquals(0, mapper.correctionCapacity("x".repeat(300), maxDescriptionLength = 256))
+    }
+
+    @Test
+    fun `editsRequireMacroAnalysis ignores reordered photos and whitespace but not new wording or photos`() {
+        val pristine = viewDialog(title = "Soup", description = "Lentil", images = listOf("a", "b"))
+        assertFalse(mapper.editsRequireMacroAnalysis(pristine))
+        assertFalse(mapper.editsRequireMacroAnalysis(pristine.copy(imageFilenames = listOf("b", "a"))))
+        assertFalse(mapper.editsRequireMacroAnalysis(pristine.copy(title = TextFieldValue("Soup "))))
+        assertTrue(mapper.editsRequireMacroAnalysis(pristine.copy(title = TextFieldValue("Stew"))))
+        assertTrue(mapper.editsRequireMacroAnalysis(pristine.copy(description = TextFieldValue("Lentil, no cream"))))
+        assertTrue(mapper.editsRequireMacroAnalysis(pristine.copy(imageFilenames = listOf("a", "b", "c"))))
+    }
+
+    private fun viewDialog(title: String, description: String, images: List<String>) =
+        DialogHandle.RecordDetailsDialog.View(
+            recordId = 1L,
+            templateDbId = 1L,
+            variabilityAnchorTemplateDbId = 1L,
+            nutrientBreakdown = null,
+            compactNutrients = NutrientsUiModel(
+                calories = null,
+                protein = null,
+                fat = null,
+                carbs = null,
+                salt = null,
+                fibre = null,
+            ),
+            allowEdit = true,
+            isEditing = true,
+            titleHint = "",
+            title = TextFieldValue(title),
+            description = TextFieldValue(description),
+            imageFilenames = images,
+            pristineSnapshot = RecordDetailsPristineSnapshot(
+                templateDbId = 1L,
+                title = title,
+                description = description,
+                imageFilenames = images,
+            ),
+            timestamp = ZonedDateTime.of(2024, 1, 1, 12, 0, 0, 0, zone),
+        )
 
     private fun recordWith(mealComponents: List<MealComponent>) = Record(
         recordId = 1L,
