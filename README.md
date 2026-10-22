@@ -4,7 +4,7 @@
 
 Snap a photo or describe a meal, review what the AI inferred, and keep track of calories and nutrients against your own targets. Home-screen widgets make logging regular meals a one-tap action.
 
-[Website and testing information](https://gaborbiro.dev) · [Development builds](https://github.com/gaborbiro/DailyMacros/releases) · [Privacy policy](PRIVACY.md)
+[Website and testing information](https://dailymacros.dev) · [Development builds](https://github.com/gaborbiro/DailyMacros/releases) · [Privacy policy](PRIVACY.md)
 
 [![Android CI](https://github.com/gaborbiro/DailyMacros/actions/workflows/android.yml/badge.svg)](https://github.com/gaborbiro/DailyMacros/actions/workflows/android.yml)
 
@@ -30,7 +30,7 @@ Meal photos and descriptions are sent for AI analysis. See the [privacy policy](
 
 ## Project status
 
-Actively developed. The [website](https://gaborbiro.dev) has launch and testing information. [GitHub Releases](https://github.com/gaborbiro/DailyMacros/releases) contains automated development builds and pull-request previews; check each release's label before choosing a build.
+Actively developed. The [website](https://dailymacros.dev) has launch and testing information. [GitHub Releases](https://github.com/gaborbiro/DailyMacros/releases) contains automated development builds and pull-request previews; check each release's label before choosing a build.
 
 Designed and developed by [Gabor Biro](https://github.com/gaborbiro).
 

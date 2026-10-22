@@ -429,9 +429,8 @@ verify this browser"):
    `/__/firebase/init.json`, which the page reads, so nothing else needs
    pasting.
 2. **Create a reCAPTCHA Enterprise key**: Cloud console → *Security →
-   reCAPTCHA → Create key*, type *Website*, domains
-   `dailymacros-9fab8.web.app` and `dailymacros-9fab8.firebaseapp.com` (plus
-   any custom domain). Enable the reCAPTCHA Enterprise API if prompted.
+   reCAPTCHA → Create key*, type *Website*, domains `dailymacros.dev`,
+   `dailymacros-9fab8.web.app` and `dailymacros-9fab8.firebaseapp.com`. Enable the reCAPTCHA Enterprise API if prompted.
 3. **Register it with App Check**: Firebase console → *App Check → Apps* →
    the web app → *reCAPTCHA Enterprise* → paste the site key → *Save*. Don't
    turn on enforcement for other Firebase products; `demoAnalyze` verifies
