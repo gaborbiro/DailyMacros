@@ -56,6 +56,12 @@
   .btn-ghost { background: transparent; color: var(--orange-dark); border: 1.5px solid var(--orange); }
   .btn-ghost:hover { background: rgba(245, 124, 0, .08); }
   .hero-ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+  /* What testers get, on every "Join the test" button. */
+  .cta-badge {
+    display: inline-block; margin-left: 6px; padding: 2px 9px; border-radius: 999px; vertical-align: 1px;
+    background: var(--orange); color: #fff; font-size: .78em; font-weight: 700; white-space: nowrap;
+  }
+  .btn:not(.btn-ghost) .cta-badge { background: #fff; color: var(--orange-dark); }
   .fine { font-size: .875rem; color: var(--muted); }
   .fine a { color: var(--orange-dark); }
 
@@ -426,7 +432,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
               </button>
               <p id="demo-end-text"></p>
-              <a class="btn js-beta-cta" href="#join">Join the test</a>
+              <a class="btn js-beta-cta" href="#join">Join the test <span class="cta-badge">3 weeks free</span></a>
               <a class="btn btn-ghost" href="#waitlist">Get notified when it launches</a>
             </div>
             <div class="gesture"></div>
@@ -488,7 +494,7 @@
   <div class="wrap hero hero-tail">
     <div class="hero-ctas">
       <a class="btn" href="#waitlist">Get notified when Daily Macros launches</a>
-      <a class="btn btn-ghost js-beta-cta" href="#join">Join the test</a>
+      <a class="btn btn-ghost js-beta-cta" href="#join">Join the test <span class="cta-badge">3 weeks free</span></a>
     </div>
     <p class="fine">Android first, with an iPhone version planned. Join the waitlist either way.</p>
     <p class="fine">Free to try, with a few AI analyses on the house. A subscription unlocks ongoing use.</p>
@@ -559,7 +565,7 @@
           <ol class="steps" id="android-steps">
             <li>Enter your Google Play email below.</li>
             <li>I add that account to the test and send you the link.</li>
-            <li>Install Daily Macros and stay opted in for at least 14 days, which Google requires before I can launch it publicly. During that time, please use it naturally when you can. Log a few meals, try taking photos, check the macros and explore the app. Any feedback, even something small or confusing, is very useful.</li>
+            <li>Install Daily Macros and use it naturally when you can. Log a few meals, try taking photos, check the macros and explore the app. Any feedback, even something small or confusing, is very useful.</li>
           </ol>
           <form id="join-form" novalidate>
             <label for="email" id="email-label">Google account email used in Play Store</label>
@@ -581,9 +587,7 @@
           <div id="done-android">
             <h2>Thanks, I've got your email.</h2>
             <p>I received <strong id="sent-email"></strong>.</p>
-            <p class="next"><strong>One more step, on my side:</strong> I still need to add that Google account to the Daily Macros closed test. You can't install the app until I do. Once you're added, I'll email you the Google Play testing link.</p>
-            <p class="fine" style="margin-top:14px">When you can install it, please stay opted in for 14 days. Google needs testers to remain enrolled for that long before the app can go public.</p>
-          </div>
+            <p class="next"><strong>One more step, on my side:</strong> I still need to add that Google account to the Daily Macros closed test. You can't install the app until I do. Once you're added, I'll email you the Google Play testing link.</p>          </div>
           <div id="done-ios" hidden>
             <h2>You're on the iPhone waitlist.</h2>
             <p>I received <strong id="sent-email-ios"></strong>.</p>
