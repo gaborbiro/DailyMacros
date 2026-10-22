@@ -1459,8 +1459,7 @@
   function showEnd(message) {
     scrim.hidden = true;
     ends.forEach(function (card) {
-      card.querySelector(".demo-end-text").textContent = message
-        || "Daily Macros puts this on your Android home screen, and keeps your diary, daily totals and trends behind it.";
+      card.querySelector(".demo-end-text").textContent = message || "That's all the freebies for today.";
       card.hidden = false;
     });
     ends[0].querySelector(".btn").focus({ preventScroll: true });
