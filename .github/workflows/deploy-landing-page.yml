@@ -30,6 +30,7 @@ on:
         options:
           - hosting,functions:joinWaitlist,functions:joinTest,functions:trackEvent
           - hosting
+          - hosting,functions:demoAnalyze
       channel:
         description: 'Preview channel name (leave empty to deploy hosting live)'
         required: false
