@@ -118,6 +118,8 @@ class DiaryWidgetScreen : GlanceAppWidget() {
                         }
                         WidgetUiState.Success(
                             items = items,
+                            // Nudge towards the record buttons until the user has logged something.
+                            highlightRecordButtons = items.isEmpty(),
                             imageStore = deps.imageStore,
                             navigator = deps.widgetNavigator,
                         )
@@ -133,7 +135,8 @@ class DiaryWidgetScreen : GlanceAppWidget() {
                                 DiaryWidgetView(
                                     modifier = GlanceModifier.fillMaxSize(),
                                     navigator = state.navigator,
-                                    items = state.items
+                                    items = state.items,
+                                    highlightRecordButtons = state.highlightRecordButtons,
                                 )
                             }
                         }
@@ -164,6 +167,7 @@ class DiaryWidgetScreen : GlanceAppWidget() {
     private sealed interface WidgetUiState {
         data class Success(
             val items: List<ListUiModelBase>,
+            val highlightRecordButtons: Boolean,
             val imageStore: ImageStore,
             val navigator: WidgetNavigator,
         ) : WidgetUiState

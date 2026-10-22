@@ -1,35 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    Expanding, fading disc behind the widget's camera button (mirrors the web demo's demo-pulse).
-    Widgets can't run animations directly; this plays as the indeterminate drawable of a
-    ProgressBar (see layout/widget_camera_pulse.xml), which the launcher keeps animating.
--->
+<!-- See widget_record_button_pulse_camera.xml; second in the stagger. -->
 <animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt">
-    <aapt:attr name="android:drawable">
-        <vector
-            android:width="48dp"
-            android:height="48dp"
-            android:viewportWidth="48"
-            android:viewportHeight="48">
-            <group
-                android:name="disc"
-                android:pivotX="24"
-                android:pivotY="24">
-                <path
-                    android:name="fill"
-                    android:fillColor="@android:color/white"
-                    android:pathData="M24,0 A24,24 0 1,1 24,48 A24,24 0 1,1 24,0 Z" />
-            </group>
-        </vector>
-    </aapt:attr>
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:drawable="@drawable/widget_record_button_pulse_disc">
 
     <target android:name="disc">
         <aapt:attr name="android:animation">
             <objectAnimator
                 android:duration="1600"
                 android:interpolator="@android:anim/decelerate_interpolator"
-                android:repeatCount="infinite">
+                android:repeatCount="infinite"
+                android:startOffset="533">
                 <propertyValuesHolder
                     android:propertyName="scaleX"
                     android:valueFrom="0.5"
@@ -51,6 +32,7 @@
                 android:interpolator="@android:anim/decelerate_interpolator"
                 android:propertyName="fillAlpha"
                 android:repeatCount="infinite"
+                android:startOffset="533"
                 android:valueFrom="0.8"
                 android:valueTo="0"
                 android:valueType="floatType" />

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Disc animated by the widget_record_button_pulse_* drawables. Starts invisible so a button
+    whose pulse has a start offset shows nothing until its first cycle begins.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <group
+        android:name="disc"
+        android:pivotX="24"
+        android:pivotY="24"
+        android:scaleX="0.5"
+        android:scaleY="0.5">
+        <path
+            android:name="fill"
+            android:fillAlpha="0"
+            android:fillColor="@android:color/white"
+            android:pathData="M24,0 A24,24 0 1,1 24,48 A24,24 0 1,1 24,0 Z" />
+    </group>
+</vector>
