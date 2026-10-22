@@ -229,10 +229,13 @@
     background: #1B1B1F; text-align: left; cursor: pointer;
   }
   .ov-summary:hover, .ov-summary:focus-visible { border-color: #5E5A6B; outline: none; }
-  .ov-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; }
-  .ov-line { display: flex; justify-content: space-between; gap: 4px; margin-bottom: 3px; color: #D9D2CC; font-size: 10.5px; }
+  .ov-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+  .ov-row { display: flex; align-items: center; gap: 6px; }
+  .ov-label { flex: none; width: 54px; text-align: right; color: #D9D2CC; font-size: 10.5px; }
+  .ov-col { flex: 1; min-width: 0; }
+  .ov-line { display: flex; justify-content: space-between; gap: 4px; margin-top: 3px; color: #D9D2CC; font-size: 9.5px; }
   .ov-line b { color: #fff; font-weight: 600; }
-  .ov-range { margin-top: 2px; text-align: right; color: #8F8984; font-size: 9px; }
+  .ov-range { color: #8F8984; }
   .ov-track { position: relative; height: 6px; border-radius: 3px; background: #2C2C30; }
   .ov-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; transition: width .5s ease-out; }
   .ov-tick { position: absolute; top: -2px; width: 2px; height: 10px; margin-left: -1px; border-radius: 1px; background: #3DBA5A; }
@@ -900,6 +903,18 @@
   function range(m) {
     return m.key === "calories" ? m.min / 1000 + "k-" + m.max / 1000 + "k" : m.min + "-" + m.max;
   }
+  // Matches the app's TemplateUiMapper.targetProgress: the green marker sits at a
+  // fixed 75% of the bar for a real min-max range (not at a proportional position),
+  // with progress rescaled so reaching min lands exactly on the marker and reaching
+  // max fills the bar. A min of 0 ("at most max") has no floor, so it's plain total/max.
+  function targetProgress(m, total) {
+    return m.min > 0 && m.min < m.max
+      ? (total <= m.min ? (total / m.min) * 0.75 : 0.75 + ((total - m.min) / (m.max - m.min)) * 0.25)
+      : total / m.max;
+  }
+  function targetMarker0to1(m) {
+    return m.min > 0 ? 0.75 : 0;
+  }
 
   function el(tag, className, text) {
     var node = document.createElement(tag);
@@ -1000,22 +1015,23 @@
     card.setAttribute("aria-label", dayName(new Date(Date.now() - ago * 86400000)) + "’s totals: " + kcal(t.calories) + ". Open trends");
     var grid = el("div", "ov-grid");
     MACROS.forEach(function (m) {
-      var scale = m.max * 1.25;
-      var row = el("div");
-      var line = el("div", "ov-line");
-      line.appendChild(el("span", null, m.label));
-      line.appendChild(el("b", null, m.key === "calories" ? kcal(t.calories) : grams(t[m.key])));
-      row.appendChild(line);
+      var row = el("div", "ov-row");
+      row.appendChild(el("span", "ov-label", m.label));
+      var col = el("div", "ov-col");
       var track = el("div", "ov-track");
       var fill = el("div", "ov-fill");
-      fill.style.width = Math.min(t[m.key] / scale, 1) * 100 + "%";
+      fill.style.width = Math.min(targetProgress(m, t[m.key]), 1) * 100 + "%";
       fill.style.background = m.color;
       var tickMark = el("div", "ov-tick");
-      tickMark.style.left = m.min / scale * 100 + "%";
+      tickMark.style.left = targetMarker0to1(m) * 100 + "%";
       track.appendChild(fill);
       track.appendChild(tickMark);
-      row.appendChild(track);
-      row.appendChild(el("div", "ov-range", "target " + range(m)));
+      col.appendChild(track);
+      var line = el("div", "ov-line");
+      line.appendChild(el("b", null, m.key === "calories" ? kcal(t.calories) : grams(t[m.key])));
+      line.appendChild(el("span", "ov-range", range(m)));
+      col.appendChild(line);
+      row.appendChild(col);
       grid.appendChild(row);
     });
     card.appendChild(grid);
