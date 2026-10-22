@@ -109,16 +109,18 @@
   .hero-head { padding-bottom: 8px; }
   .hero-tail { padding-top: 36px; }
   .demo { display: grid; gap: 14px; padding-top: 28px; }
-  /* Shown instead of the phone replicas until the visitor interacts: testers
-     mistook the replicas for plain screenshots and never tapped them, so the
-     first thing they see now is an ordinary web card, not app-shaped UI. */
-  .demo-cta {
-    background: var(--card); border: 1px solid var(--line); border-radius: 18px;
-    padding: 36px 20px; text-align: center; display: grid; gap: 10px; justify-items: center;
+  /* Covers each phone's screen (keeping its shape/chrome intact) until the
+     visitor interacts: testers never realised the plain replicas were
+     tappable, so a frosted glass layer now makes clear there's a live
+     screen underneath waiting to be used. Only the left phone carries the
+     CTA text/button; the right one is just the glass. */
+  .demo-veil {
+    position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; gap: 14px;
+    padding: 24px; text-align: center; background: rgba(18, 14, 12, .55);
+    backdrop-filter: blur(14px) saturate(130%); -webkit-backdrop-filter: blur(14px) saturate(130%);
   }
-  .demo-cta h3 { font-size: 1.3rem; margin: 0; }
-  .demo-cta p { color: var(--muted); max-width: 32em; margin: 0; }
-  .demo-cta .btn { font-size: 1.05rem; padding: 16px 30px; margin-top: 8px; }
+  .demo-veil h3 { margin: 0; font-size: 1.15rem; color: #fff; }
+  .demo-veil .btn { font-size: 1rem; padding: 14px 26px; }
   /* The bottom padding leaves room for the phones' shadow, which the
      horizontal scroller would otherwise clip into a hard edge. */
   .demo-phones {
@@ -202,11 +204,14 @@
   }
   .w-bar button:hover, .w-bar button:focus-visible { background: rgba(255, 255, 255, .12); outline: none; }
   .w-bar svg { width: 24px; height: 24px; }
-  .w-bar .pulse { animation: demo-pulse 1.6s ease-out infinite; }
+  .pulse { animation: demo-pulse 1.6s ease-out infinite; }
+  .w-bar .pulse:nth-of-type(2) { animation-delay: .4s; }
+  .w-bar .pulse:nth-of-type(3) { animation-delay: .8s; }
   .w-hint {
     width: fit-content; margin: 10px auto 0; padding: 5px 12px; border-radius: 999px;
     background: var(--orange); color: #fff; font-weight: 700; font-size: 12.5px;
   }
+  .w-hint:empty { background: none; } /* reserves the space without showing a hint */
   .w-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 24px; }
   .w-hint + .w-tiles { margin-top: 14px; }
   .w-tile {
@@ -373,17 +378,15 @@
   </div>
 
   <div class="wrap demo" id="try">
-    <div class="demo-cta" id="demo-cta">
-      <h3>See it work on one of your own meals</h3>
-      <p>Pick a photo from your camera roll and watch real AI estimate the nutrition — live, right here.</p>
-      <button type="button" class="btn" id="demo-cta-choose">Choose a photo</button>
-    </div>
-
-    <div class="demo-phones" id="demo-phones" hidden>
+    <div class="demo-phones" id="demo-phones">
       <figure class="demo-device" id="demo-widget-device">
         <figcaption>Widgets</figcaption>
         <div class="phone" id="demo-phone" role="group" aria-label="Interactive replica of the Daily Macros home-screen widget">
           <div class="screen screen-home">
+            <div class="demo-veil" id="demo-cta">
+              <h3>Interactive Demo with real AI - Try it out now</h3>
+              <button type="button" class="btn" id="demo-cta-choose">Choose a meal photo</button>
+            </div>
             <div class="status" aria-hidden="true">
               <span class="js-demo-clock">12:00</span>
               <span class="status-icons">
@@ -413,17 +416,19 @@
                   <button type="button" id="demo-camera" class="pulse" aria-label="Take a photo of your meal">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 10a2 2 0 0 1 2-2h2l1.5-2h4.5L13.5 8H15a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/><circle cx="9.5" cy="14" r="3"/><path d="M20 2v6M17 5h6"/></svg>
                   </button>
-                  <button type="button" id="demo-gallery" aria-label="Choose a photo of your meal">
+                  <button type="button" id="demo-gallery" class="pulse" aria-label="Choose a photo of your meal">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="15" height="14" rx="2"/><circle cx="7" cy="11.5" r="1.4"/><path d="M2 18l4-4 3 3 2.5-2.5L17 19"/><path d="M20 2v6M17 5h6"/></svg>
                   </button>
-                  <button type="button" id="demo-text" aria-label="Describe your meal in words">
+                  <button type="button" id="demo-text" class="pulse" aria-label="Describe your meal in words">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="15" height="14" rx="2"/><path d="M6 12h7M6 16h5"/><path d="M20 2v6M17 5h6"/></svg>
                   </button>
                 </div>
               </div>
-              <p class="w-hint" id="demo-hint">↑ Tap the camera to log a meal</p>
+              <!-- Used to show "Tap the camera to log a meal"; kept empty (not removed) so the
+                   gap above the tiles doesn't change. -->
+              <p class="w-hint" aria-hidden="true"></p>
               <div class="w-tiles" id="demo-tiles" aria-label="Favourite meals"></div>
-              <p class="w-hint" id="demo-fav-hint" hidden>↑ Tap a favourite to log it in one tap</p>
+              <p class="w-hint pulse" id="demo-fav-hint" hidden>↑ Tap a favourite to log it in one tap</p>
             </div>
 
             <div class="dialog-scrim" id="demo-scrim" hidden>
@@ -447,6 +452,7 @@
         <figcaption>The app</figcaption>
         <div class="phone" role="group" aria-label="Interactive replica of the Daily Macros app's diary screen">
           <div class="screen">
+            <div class="demo-veil"></div>
             <div class="status" aria-hidden="true">
               <span class="js-demo-clock">12:00</span>
               <span class="status-icons">
@@ -873,8 +879,7 @@
   ].filter(Boolean);
   var tiles = ["apple-cake", "cheese-bread", "scrambled-egg", "noodle-soup"].map(function (k) { return FOODS[k]; });
 
-  var ctaEl = document.getElementById("demo-cta");
-  var demoPhonesEl = document.getElementById("demo-phones");
+  var veilEls = document.querySelectorAll(".demo-veil");
   var recentEl = document.getElementById("demo-recent");
   var recentMoreEl = document.getElementById("demo-recent-more");
   var tilesEl = document.getElementById("demo-tiles");
@@ -1237,13 +1242,11 @@
   // --- Visitor's first interaction ------------------------------------------
 
   // Counts the visitor once in stats/counters.demo_start, on any first tap.
-  // Also swaps the plain CTA card for the phone replicas: the replicas look
-  // too much like app screenshots to double as the thing you tap to start.
+  // Also lifts the frosted-glass veils off both phones.
   function markStarted() {
     if (started) return;
     started = true;
-    ctaEl.hidden = true;
-    demoPhonesEl.hidden = false;
+    Array.prototype.forEach.call(veilEls, function (v) { v.hidden = true; });
     try {
       fetch("/api/event", {
         method: "POST",
@@ -1254,13 +1257,14 @@
     } catch (e) {}
   }
 
-  // The camera hint stays until the visitor has really used it: a photo or
-  // description analysed successfully. Then the favourites hint takes over
-  // (shown when the result dialog closes).
+  // The three buttons pulse until the visitor has really used one: a photo
+  // or description analysed successfully. Then the favourites hint takes
+  // over (shown when the result dialog closes).
   function markAnalysed() {
     analysedOnce = true;
-    document.getElementById("demo-hint").hidden = true;
-    cameraBtn.classList.remove("pulse");
+    Array.prototype.forEach.call(document.querySelectorAll(".w-bar .pulse"), function (b) {
+      b.classList.remove("pulse");
+    });
   }
 
   // The prompt wants the English name of the output language ("German"), the
