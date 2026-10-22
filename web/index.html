@@ -134,6 +134,126 @@
   .done .next { background: #FFF1DD; border-radius: 12px; padding: 12px 14px; margin-top: 14px; }
   [hidden] { display: none !important; }
 
+  /* Try-it demo: an HTML replica of the home-screen widget. Only the AI
+     analysis is real (POST /api/demo, functions/demo.js). */
+  .try-grid { display: grid; gap: 18px; }
+  .try-copy p { color: var(--muted); margin-top: 10px; }
+  .try-side .fine + .fine { margin-top: 10px; }
+  @media (min-width: 700px) {
+    .try-grid { grid-template-columns: 300px 1fr; grid-template-rows: auto auto 1fr; column-gap: 32px; align-items: start; }
+    .phone { grid-column: 1; grid-row: 1 / span 3; }
+    .try-copy, .try-side { grid-column: 2; }
+  }
+  .demo-samples { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 14px; }
+  .demo-samples button {
+    width: 76px; height: 52px; padding: 0; border: 0; border-radius: 10px; overflow: hidden; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(120, 60, 0, .18);
+  }
+  .demo-samples button:focus-visible { outline: 3px solid rgba(245, 124, 0, .6); outline-offset: 2px; }
+  .demo-samples img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .demo-after { background: #FFF1DD; border-radius: 12px; padding: 12px 14px; margin-top: 14px; }
+  .demo-after a { color: var(--orange-dark); font-weight: 700; }
+
+  .phone {
+    position: relative; width: 100%; max-width: 300px; min-height: 600px; margin: 0 auto; overflow: hidden;
+    padding: 10px 12px 16px; border-radius: 30px; background: #000; color: #F3E9E1;
+    font-size: 13px; line-height: 1.3; box-shadow: 0 10px 30px rgba(120, 60, 0, .25);
+  }
+  .phone button { font: inherit; color: inherit; }
+  .phone-status { display: flex; justify-content: space-between; padding: 2px 10px 14px; font-size: 12px; font-weight: 600; color: #fff; }
+  .widget { background: #2E2019; border-radius: 18px; overflow: hidden; }
+  .w-recent { list-style: none; margin: 0; padding: 8px 10px 6px; }
+  .w-recent li { display: flex; align-items: center; gap: 10px; padding: 4px 0; border-radius: 8px; }
+  .w-recent li > div { min-width: 0; }
+  .w-thumb { flex: none; width: 52px; height: 38px; border-radius: 7px; object-fit: cover; background: #4A382D; }
+  .w-noimg { display: grid; place-items: center; color: #F2B489; font-size: 18px; }
+  .w-name { color: #fff; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .w-sub { color: #BFB2A8; font-size: 11.5px; }
+  .w-picks { background: #4A3125; padding: 6px 10px 8px; }
+  .w-picks-title { text-align: center; color: #F2B489; font-weight: 700; margin-bottom: 4px; }
+  .w-pick { display: flex; align-items: center; gap: 10px; }
+  .w-open {
+    margin-left: auto; width: 36px; height: 36px; border: 0; border-radius: 10px; cursor: pointer;
+    display: grid; place-items: center; background: #F7DE8A; color: #3A2A20 !important;
+  }
+  .w-bar { display: flex; justify-content: space-around; padding: 6px 4px; background: #3A2920; }
+  .w-bar button {
+    width: 44px; height: 40px; border: 0; border-radius: 10px; cursor: pointer;
+    display: grid; place-items: center; background: none; color: #F3E6DC;
+  }
+  .w-bar button:hover, .w-bar button:focus-visible, .w-open:focus-visible { background: rgba(255, 255, 255, .12); outline: none; }
+  .phone svg { width: 24px; height: 24px; }
+  .w-bar .pulse { animation: demo-pulse 1.6s ease-out infinite; }
+  .w-bar .spin svg { animation: demo-spin .8s linear; }
+  .w-hint {
+    width: fit-content; margin: 10px auto 0; padding: 5px 12px; border-radius: 999px;
+    background: var(--orange); color: #fff; font-weight: 700; font-size: 12.5px;
+  }
+  .w-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .w-tile {
+    position: relative; height: 70px; padding: 0; border: 0; border-radius: 10px; overflow: hidden;
+    cursor: pointer; background: #4A382D;
+  }
+  .w-tile img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .w-tile span {
+    position: absolute; left: 0; right: 0; bottom: 0; padding: 3px 7px; text-align: left;
+    background: rgba(0, 0, 0, .5); color: #fff; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .w-tile:focus-visible { outline: 3px solid rgba(245, 124, 0, .8); outline-offset: 1px; }
+  .is-new { animation: demo-in .7s ease-out; }
+
+  .sheet {
+    position: absolute; left: 0; right: 0; bottom: 0; max-height: 94%; overflow-y: auto;
+    padding: 16px 16px 18px; border-radius: 22px 22px 30px 30px; background: #2B2B2B; color: #E8E2DC;
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, .5); animation: demo-up .3s ease-out;
+  }
+  .sheet:focus { outline: none; }
+  .sheet-photo { display: block; width: 84px; height: 84px; border-radius: 12px; object-fit: cover; }
+  .sheet-quote { margin: 0; padding: 8px 10px; border-left: 3px solid #F5A623; color: #fff; font-style: italic; }
+  .sheet h3 { margin: 12px 0 10px; color: #fff; font-size: 18px; line-height: 1.2; }
+  .sheet h3:focus { outline: none; }
+  .sheet .tracks { gap: 6px; margin: 0; }
+  .sheet .chip { padding: 4px 9px; border-radius: 8px; font-size: 12px; }
+  .inferred { margin-top: 12px; padding: 10px 12px; border: 1.5px solid #F5A623; border-radius: 12px; }
+  .inferred strong { color: #fff; }
+  .inferred ul { margin: 6px 0 8px; padding: 0; list-style: none; }
+  .inferred em { display: block; margin-top: 8px; color: #A9A29C; }
+  .sheet-fix { display: flex; gap: 6px; margin-top: 12px; }
+  .sheet input[type=text], .sheet textarea {
+    flex: 1; min-width: 0; width: 100%; padding: 9px 10px; border: 1px solid #555; border-radius: 10px;
+    background: #1E1E1E; color: #fff; font: inherit; font-size: 13px;
+  }
+  .sheet textarea { min-height: 80px; resize: vertical; }
+  .sheet .btn { width: 100%; margin-top: 12px; padding: 11px; font-size: 15px; background: #F5A623; color: #2B1A00; }
+  .sheet .btn:hover { background: #FFB840; }
+  .sheet .btn-small { width: auto; margin: 0; padding: 9px 12px; font-size: 13px; }
+  .sheet-link {
+    display: block; margin: 10px auto 0; border: 0; background: none; cursor: pointer;
+    color: #F5A623 !important; font-weight: 600;
+  }
+  .sheet-pin { display: flex; align-items: center; gap: 8px; margin: 12px 0 0; font-weight: 400; cursor: pointer; }
+  .sheet-pin input { width: 18px; height: 18px; accent-color: #F5A623; }
+  .sheet-status { display: flex; align-items: center; gap: 12px; margin-top: 16px; color: #fff; }
+  .sheet-error { margin-top: 12px; color: #FFB4A9; }
+  .spinner {
+    flex: none; width: 28px; height: 28px; border: 3px solid rgba(255, 255, 255, .2);
+    border-top-color: #F5A623; border-radius: 50%; animation: demo-spin .9s linear infinite;
+  }
+  .demo-end {
+    position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; gap: 12px;
+    padding: 24px; text-align: center; background: rgba(20, 10, 0, .9); color: #fff;
+  }
+  .demo-end h3 { font-size: 20px; line-height: 1.2; }
+  .demo-end p { color: #E8DCD2; }
+  .demo-end .btn { font-size: 15px; padding: 12px 14px; }
+  .demo-end .btn-ghost { color: #FFD3A8; }
+
+  @keyframes demo-pulse { 0% { box-shadow: 0 0 0 0 rgba(245, 124, 0, .8); } 100% { box-shadow: 0 0 0 12px rgba(245, 124, 0, 0); } }
+  @keyframes demo-spin { to { transform: rotate(360deg); } }
+  @keyframes demo-up { from { transform: translateY(100%); } to { transform: none; } }
+  @keyframes demo-in { from { opacity: 0; transform: translateY(-6px); background: rgba(245, 124, 0, .45); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .phone, .phone * { animation: none !important; } }
+
   footer { padding: 24px 0 40px; }
   footer a { color: inherit; }
 </style>
@@ -155,8 +275,8 @@
       <a class="btn" href="#waitlist">Get notified when Daily Macros launches</a>
       <a class="btn btn-ghost js-beta-cta" href="#join">Join the test</a>
     </div>
-    <p class="fine">Android first, with an iPhone version planned — join the waitlist either way.</p>
-    <p class="fine">Free to try, with a few AI analyses on the house — a subscription unlocks ongoing use.</p>
+    <p class="fine">Android first, with an iPhone version planned. Join the waitlist either way.</p>
+    <p class="fine">Free to try, with a few AI analyses on the house. A subscription unlocks ongoing use.</p>
   </div>
 
   <div class="shots" aria-label="App screenshots">
@@ -166,6 +286,84 @@
     <button type="button" data-full="/img/screenshot-4-widgets-full.webp"><img src="/img/screenshot-4-widgets.webp" width="720" height="1280" alt="Home screen widgets for logging favourite meals in one tap"></button>
     <button type="button" data-full="/img/screenshot-5-trends-full.webp"><img src="/img/screenshot-5-trends.webp" width="720" height="1280" alt="Trends screen showing calories and macros over days, weeks and months"></button>
   </div>
+
+  <section id="try" class="wrap" aria-labelledby="try-title">
+    <div class="try-grid">
+      <div class="try-copy">
+        <h2 id="try-title">Try it on a meal</h2>
+        <p>This is the Daily Macros home-screen widget. Tap the camera and snap whatever you’re eating, or a food label. Real AI analysis, like in the app, estimates the nutrition in seconds.</p>
+        <p>Tap a favourite at the bottom to log it in one tap. That’s how most days go.</p>
+      </div>
+
+      <div class="phone" id="demo-phone" role="group" aria-label="Interactive replica of the Daily Macros home-screen widget">
+        <div class="phone-status" aria-hidden="true"><span id="demo-clock">12:00</span><span>100%</span></div>
+        <div class="widget">
+          <ul class="w-recent" id="demo-recent" aria-label="Recently logged meals" aria-live="polite">
+            <li><img class="w-thumb" src="/img/demo/apple-cake.jpg" alt=""><div><div class="w-name">Apple cake</div><div class="w-sub">Today, 10:30 (393kcal)</div></div></li>
+            <li><img class="w-thumb" src="/img/demo/cheese-bread.jpg" alt=""><div><div class="w-name">Cheese bread</div><div class="w-sub">Today, 08:15 (95kcal)</div></div></li>
+            <li><img class="w-thumb" src="/img/demo/scrambled-egg.jpg" alt=""><div><div class="w-name">Bacon cheese scrambled egg</div><div class="w-sub">Today, 08:10 (509kcal)</div></div></li>
+            <li><img class="w-thumb" src="/img/demo/noodle-soup.jpg" alt=""><div><div class="w-name">Noodle soup</div><div class="w-sub">Yesterday, 19:45 (390kcal)</div></div></li>
+          </ul>
+          <div class="w-picks">
+            <div class="w-picks-title">★ Quick Picks ★</div>
+            <div class="w-pick">
+              <img class="w-thumb" src="/img/demo/apple-cake.jpg" alt="">
+              <div><div class="w-name">Apple cake</div><div class="w-sub">393kcal</div></div>
+              <button type="button" class="w-open js-demo-fav" data-name="Apple cake" data-kcal="393" data-img="/img/demo/apple-cake.jpg" aria-label="Log apple cake again">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="w-bar">
+            <button type="button" id="demo-camera" class="pulse" aria-label="Take a photo of your meal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 10a2 2 0 0 1 2-2h2l1.5-2h4.5L13.5 8H15a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/><circle cx="9.5" cy="14" r="3"/><path d="M20 2v6M17 5h6"/></svg>
+            </button>
+            <button type="button" id="demo-gallery" aria-label="Choose a photo of your meal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="15" height="14" rx="2"/><circle cx="7" cy="11.5" r="1.4"/><path d="M2 18l4-4 3 3 2.5-2.5L17 19"/><path d="M20 2v6M17 5h6"/></svg>
+            </button>
+            <button type="button" id="demo-text" aria-label="Describe your meal in words">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="15" height="14" rx="2"/><path d="M6 12h7M6 16h5"/><path d="M20 2v6M17 5h6"/></svg>
+            </button>
+            <button type="button" id="demo-refresh" aria-label="Refresh widget">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>
+            </button>
+          </div>
+        </div>
+        <p class="w-hint" id="demo-hint">↑ Tap the camera to log a meal</p>
+        <div class="w-tiles" id="demo-tiles" aria-label="Favourite meals">
+          <button type="button" class="w-tile js-demo-fav" data-name="Apple cake" data-kcal="393" data-img="/img/demo/apple-cake.jpg" aria-label="Log apple cake"><img src="/img/demo/apple-cake.jpg" alt=""><span>Apple cake</span></button>
+          <button type="button" class="w-tile js-demo-fav" data-name="Cheese bread" data-kcal="95" data-img="/img/demo/cheese-bread.jpg" aria-label="Log cheese bread"><img src="/img/demo/cheese-bread.jpg" alt=""><span>Cheese bread</span></button>
+          <button type="button" class="w-tile js-demo-fav" data-name="Bacon cheese scrambled egg" data-kcal="509" data-img="/img/demo/scrambled-egg.jpg" aria-label="Log bacon cheese scrambled egg"><img src="/img/demo/scrambled-egg.jpg" alt=""><span>Bacon cheese scrambled egg</span></button>
+          <button type="button" class="w-tile js-demo-fav" data-name="Noodle soup" data-kcal="390" data-img="/img/demo/noodle-soup.jpg" aria-label="Log noodle soup"><img src="/img/demo/noodle-soup.jpg" alt=""><span>Noodle soup</span></button>
+        </div>
+
+        <div class="sheet" id="demo-sheet" role="dialog" aria-label="Meal analysis" tabindex="-1" hidden></div>
+
+        <div class="demo-end" id="demo-end" role="dialog" aria-labelledby="demo-end-title" hidden>
+          <h3 id="demo-end-title" tabindex="-1">That’s your home screen from now on.</h3>
+          <p id="demo-end-text"></p>
+          <a class="btn" href="#waitlist">Get notified when it launches</a>
+          <a class="btn btn-ghost js-beta-cta" href="#join">Join the test</a>
+          <button type="button" class="sheet-link" id="demo-end-close">Back to the widget</button>
+        </div>
+      </div>
+
+      <div class="try-side">
+        <p class="fine">No food handy? Try one of these:</p>
+        <div class="demo-samples">
+          <button type="button" data-src="/img/demo/scrambled-egg.jpg" aria-label="Analyse a sample photo of scrambled egg on toast"><img src="/img/demo/scrambled-egg.jpg" alt=""></button>
+          <button type="button" data-src="/img/demo/noodle-soup.jpg" aria-label="Analyse a sample photo of noodle soup"><img src="/img/demo/noodle-soup.jpg" alt=""></button>
+          <button type="button" data-src="/img/demo/apple-cake.jpg" aria-label="Analyse a sample photo of apple cake"><img src="/img/demo/apple-cake.jpg" alt=""></button>
+          <button type="button" data-src="/img/demo/cheese-bread.jpg" aria-label="Analyse a sample photo of cheese bread"><img src="/img/demo/cheese-bread.jpg" alt=""></button>
+        </div>
+        <p class="fine" id="demo-tries">3 free tries a day.</p>
+        <p class="fine">Photos are sent to OpenAI for the analysis and aren’t stored by Daily Macros. Interactive demo: the AI is real, the home screen is a replica.</p>
+        <p class="demo-after" id="demo-after" hidden>Like it? <a href="#waitlist">Get notified when Daily Macros launches</a>.</p>
+      </div>
+    </div>
+    <input type="file" id="demo-camera-input" accept="image/*" capture="environment" hidden>
+    <input type="file" id="demo-gallery-input" accept="image/*" hidden>
+  </section>
 
   <div class="wrap">
     <section>
@@ -215,7 +413,7 @@
         <div id="waitlist-done-view" class="done" hidden tabindex="-1">
           <h2>You're on the list.</h2>
           <p>I'll email <strong id="waitlist-sent-email"></strong> when Daily Macros launches, and about any major updates before then.</p>
-          <p class="fine" style="margin-top:14px">That's it — this is just a launch waitlist, nothing to install.</p>
+          <p class="fine" style="margin-top:14px">That's it! This is just a launch waitlist, nothing to install.</p>
         </div>
       </div>
     </section>
@@ -277,7 +475,7 @@
 
 <footer>
   <div class="wrap fine">
-    Daily Macros is made by Gabor Biro. <a href="https://github.com/gaborbiro/DailyMacros/blob/master/PRIVACY.md" rel="noopener">Privacy policy</a>
+    Daily Macros is made by Gabor Biro. <a href="/privacy.html">Privacy policy</a>
   </div>
 </footer>
 
@@ -467,6 +665,400 @@
       btn.textContent = COPY[platform()].cta;
     });
   });
+})();
+</script>
+<script>
+// Try-it demo (#try). Everything on the phone is static HTML except the
+// analysis, which POSTs to /api/demo (functions/demo.js).
+(function () {
+  // reCAPTCHA Enterprise site key for Firebase App Check (see "Landing-page
+  // demo setup" in functions/README.md). While empty, no App Check token is
+  // sent, which demoAnalyze rejects unless config/demo.requireAppCheck is false.
+  var APP_CHECK_SITE_KEY = "";
+  var FIREBASE_SDK = "https://www.gstatic.com/firebasejs/11.0.2/";
+  var MAX_PHOTO_PX = 768;
+  var MAX_ROWS = 4;
+  var CONFIDENCE_MARK = { high: "", medium: " (?)", low: " (??)" };
+
+  var recent = document.getElementById("demo-recent");
+  var tiles = document.getElementById("demo-tiles");
+  var sheet = document.getElementById("demo-sheet");
+  var end = document.getElementById("demo-end");
+  var cameraBtn = document.getElementById("demo-camera");
+  var cameraInput = document.getElementById("demo-camera-input");
+  var galleryInput = document.getElementById("demo-gallery-input");
+  var triesEl = document.getElementById("demo-tries");
+
+  var started = false;
+  var busy = false;
+  var remaining = null; // unknown until the first answer from /api/demo
+  var current = null; // { image, description, result } of the meal in the sheet
+  var appCheck = null;
+
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function clock() { var d = new Date(); return pad(d.getHours()) + ":" + pad(d.getMinutes()); }
+  function tick() { document.getElementById("demo-clock").textContent = clock(); }
+  tick();
+  setInterval(tick, 30000);
+
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+  function button(className, text, onClick) {
+    var b = el("button", className, text);
+    b.type = "button";
+    b.addEventListener("click", onClick);
+    return b;
+  }
+
+  // The prompt wants the English name of the output language ("German"), the
+  // same form the app sends.
+  function language() {
+    try {
+      return new Intl.DisplayNames(["en"], { type: "language" }).of(navigator.language.split("-")[0]) || "English";
+    } catch (e) {
+      return "English";
+    }
+  }
+
+  function markStarted() {
+    if (started) return;
+    started = true;
+    document.getElementById("demo-hint").hidden = true;
+    cameraBtn.classList.remove("pulse");
+    try {
+      fetch("/api/event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "demo_start" }),
+        keepalive: true
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  function setRemaining(n) {
+    remaining = n;
+    triesEl.textContent = n > 0
+      ? n + (n === 1 ? " free try" : " free tries") + " left today."
+      : "That was your last free try today.";
+  }
+
+  // --- Photos: downscale to a small JPEG before upload ---------------------
+
+  function toJpeg(source) {
+    var w = source.naturalWidth || source.width, h = source.naturalHeight || source.height;
+    var scale = Math.min(1, MAX_PHOTO_PX / Math.max(w, h));
+    var canvas = document.createElement("canvas");
+    canvas.width = Math.round(w * scale);
+    canvas.height = Math.round(h * scale);
+    canvas.getContext("2d").drawImage(source, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/jpeg", 0.82);
+  }
+  function photoFromFile(file) {
+    // createImageBitmap honours EXIF orientation, so phone photos aren't sideways.
+    if (window.createImageBitmap) return createImageBitmap(file).then(toJpeg);
+    return photoFromUrl(URL.createObjectURL(file));
+  }
+  function photoFromUrl(url) {
+    var img = new Image();
+    img.src = url;
+    return img.decode().then(function () { return toJpeg(img); });
+  }
+
+  // --- App Check: loaded on first use, so visitors who never try the demo
+  //     don't load the Firebase SDK or reCAPTCHA ----------------------------
+
+  function appCheckToken() {
+    if (!APP_CHECK_SITE_KEY) return Promise.resolve(null);
+    if (!appCheck) {
+      // Prints a debug token to the console on localhost; register it in the
+      // Firebase console (App Check > Manage debug tokens) to test locally.
+      if (location.hostname === "localhost") self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+      appCheck = Promise.all([
+        import(FIREBASE_SDK + "firebase-app.js"),
+        import(FIREBASE_SDK + "firebase-app-check.js"),
+        fetch("/__/firebase/init.json").then(function (r) { return r.json(); })
+      ]).then(function (m) {
+        var app = m[0].initializeApp(m[2]);
+        var instance = m[1].initializeAppCheck(app, {
+          provider: new m[1].ReCaptchaEnterpriseProvider(APP_CHECK_SITE_KEY),
+          isTokenAutoRefreshEnabled: false
+        });
+        return { getToken: m[1].getToken, instance: instance };
+      });
+      appCheck.catch(function () { appCheck = null; }); // let the next try retry the load
+    }
+    return appCheck.then(function (a) {
+      return a.getToken(a.instance).then(function (t) { return t.token; });
+    });
+  }
+
+  // --- Sheet (the app's analysis screen) ----------------------------------
+
+  function openSheet(nodes, focusTarget) {
+    sheet.textContent = "";
+    if (current && current.image) {
+      var photo = el("img", "sheet-photo");
+      photo.src = current.image;
+      photo.alt = "Your meal";
+      sheet.appendChild(photo);
+    } else if (current && current.description) {
+      sheet.appendChild(el("p", "sheet-quote", "“" + current.description + "”"));
+    }
+    nodes.forEach(function (n) { sheet.appendChild(n); });
+    sheet.hidden = false;
+    (focusTarget || sheet).focus();
+  }
+  function closeSheet() {
+    if (busy) return;
+    sheet.hidden = true;
+    sheet.textContent = "";
+    cameraBtn.focus();
+  }
+
+  function showTextEntry() {
+    current = null;
+    var title = el("h3", null, "What did you eat?");
+    var area = el("textarea");
+    area.maxLength = 500;
+    area.placeholder = "e.g. a bowl of porridge with banana and a spoon of honey";
+    area.setAttribute("aria-label", "Describe your meal");
+    openSheet([
+      title,
+      area,
+      button("btn", "Analyse", function () {
+        var text = area.value.trim();
+        if (!text) { area.focus(); return; }
+        analyse({ image: null, description: text });
+      }),
+      button("sheet-link", "Close", closeSheet)
+    ], area);
+  }
+
+  function showAnalysing() {
+    var status = el("div", "sheet-status");
+    status.setAttribute("role", "status");
+    status.appendChild(el("div", "spinner"));
+    var text = el("div");
+    text.appendChild(el("div", null, "Analysing your meal…"));
+    text.appendChild(el("div", "w-sub", "Usually takes 10–20 seconds."));
+    status.appendChild(text);
+    openSheet([status]);
+  }
+
+  function grams(n) {
+    if (n == null) return "?g";
+    return (n >= 10 ? Math.round(n) : Math.round(n * 10) / 10) + "g";
+  }
+  function mealTitle() {
+    return current.result.title || current.description.slice(0, 60) || "Your meal";
+  }
+
+  function showResult() {
+    var r = current.result;
+    var title = el("h3", null, mealTitle());
+    title.tabIndex = -1;
+
+    var chips = el("div", "tracks");
+    [
+      ["c-cal", Math.round(r.calories) + "kcal"],
+      ["c-pro", "Protein: " + grams(r.protein)],
+      ["c-fat", "Fat: " + grams(r.fat) + "(" + grams(r.saturated) + ")"],
+      ["c-carb", "Carb: " + grams(r.carbs) + "(" + grams(r.sugar) + "/" + grams(r.addedSugar) + ")"],
+      ["c-salt", "Salt: " + grams(r.salt)],
+      ["c-fib", "Fibre: " + grams(r.fibre)]
+    ].forEach(function (c) { chips.appendChild(el("span", "chip " + c[0], c[1])); });
+
+    var inferred = el("div", "inferred");
+    inferred.appendChild(el("strong", null, "What the AI inferred"));
+    var list = el("ul");
+    r.components.forEach(function (c) {
+      list.appendChild(el("li", null, "- " + c.name + (c.amount ? " (" + c.amount + ")" : "") + CONFIDENCE_MARK[c.confidence]));
+    });
+    inferred.appendChild(list);
+    if (r.notes) inferred.appendChild(el("p", null, r.notes));
+    inferred.appendChild(el("em", null, "If something looks off, add a clarification below and re-run the analysis."));
+
+    var fix = el("div", "sheet-fix");
+    var note = el("input");
+    note.type = "text";
+    note.maxLength = 200;
+    note.placeholder = remaining === 0 ? "No re-runs left today" : "e.g. it was a small portion";
+    note.setAttribute("aria-label", "Clarification for the analysis");
+    var rerun = button("btn btn-small", "Re-run", function () {
+      var text = note.value.trim();
+      if (!text) { note.focus(); return; }
+      analyse({ image: current.image, description: current.description ? current.description + "\n" + text : text });
+    });
+    note.disabled = rerun.disabled = remaining === 0;
+    fix.appendChild(note);
+    fix.appendChild(rerun);
+
+    var pin = el("label", "sheet-pin");
+    var pinBox = el("input");
+    pinBox.type = "checkbox";
+    pin.appendChild(pinBox);
+    pin.appendChild(document.createTextNode("Pin to home screen as a favourite"));
+
+    openSheet([
+      title, chips, inferred, fix, pin,
+      button("btn", "Log meal", function () { logMeal(pinBox.checked); }),
+      button("sheet-link", "Close", closeSheet)
+    ], title);
+  }
+
+  function showError(message, canRetry) {
+    var nodes = [el("p", "sheet-error", message)];
+    if (canRetry && current) {
+      nodes.push(button("btn", "Try again", function () { analyse(current); }));
+    }
+    nodes.push(button(canRetry ? "sheet-link" : "btn", "Try another photo", function () { cameraInput.click(); }));
+    nodes.push(button("sheet-link", "Close", closeSheet));
+    openSheet(nodes, nodes[nodes.length - 1]);
+  }
+
+  function showEnd(message) {
+    sheet.hidden = true;
+    document.getElementById("demo-end-text").textContent = message
+      || "Daily Macros puts this on your Android home screen, and keeps your diary, daily totals and trends behind it.";
+    end.hidden = false;
+    document.getElementById("demo-end-title").focus();
+  }
+
+  // --- Analysis -----------------------------------------------------------
+
+  function analyse(meal) {
+    if (remaining === 0) { showEnd(); return; }
+    current = { image: meal.image, description: meal.description, result: null };
+    busy = true;
+    showAnalysing();
+    appCheckToken().then(function (token) {
+      var headers = { "Content-Type": "application/json" };
+      if (token) headers["X-Firebase-AppCheck"] = token;
+      return fetch("/api/demo", {
+        method: "POST",
+        headers: headers,
+        body: JSON.stringify({ image: current.image, description: current.description, language: language() })
+      });
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (data) { return { status: r.status, data: data }; });
+    }).then(function (res) {
+      busy = false;
+      if (typeof res.data.remaining === "number") setRemaining(res.data.remaining);
+      if (res.status === 200 && res.data.ok) {
+        current.result = res.data.result;
+        showResult();
+        return;
+      }
+      var message = (res.data.error && res.data.error.message) || "Something went wrong. Please try again.";
+      if (res.status === 429) { showEnd(message); return; }
+      // 422: the AI found no food to analyse - the same photo won't do better.
+      showError(message, res.status !== 422 && res.status !== 400);
+    }).catch(function (ex) {
+      busy = false;
+      showError(ex instanceof TypeError
+        ? "Couldn't reach the server. Check your connection and try again."
+        : "The demo couldn't verify this browser. Please reload the page.", true);
+    });
+  }
+
+  function startWithPhoto(photo) {
+    markStarted();
+    if (remaining === 0) { showEnd(); return; }
+    photo.then(function (image) {
+      analyse({ image: image, description: "" });
+    }).catch(function () {
+      current = null;
+      showError("That photo couldn't be opened here. Try a JPEG or PNG.", false);
+    });
+  }
+
+  // --- Widget -------------------------------------------------------------
+
+  function addRow(name, kcal, image) {
+    var li = el("li", "is-new");
+    var thumb;
+    if (image) {
+      thumb = el("img", "w-thumb");
+      thumb.src = image;
+      thumb.alt = "";
+    } else {
+      thumb = el("div", "w-thumb w-noimg", "✎");
+      thumb.setAttribute("aria-hidden", "true");
+    }
+    var text = el("div");
+    text.appendChild(el("div", "w-name", name));
+    text.appendChild(el("div", "w-sub", "Today, " + clock() + " (" + Math.round(kcal) + "kcal)"));
+    li.appendChild(thumb);
+    li.appendChild(text);
+    recent.insertBefore(li, recent.firstChild);
+    while (recent.children.length > MAX_ROWS) recent.removeChild(recent.lastChild);
+  }
+
+  function addTile(name, kcal, image) {
+    var tile = el("button", "w-tile js-demo-fav is-new");
+    tile.type = "button";
+    tile.setAttribute("data-name", name);
+    tile.setAttribute("data-kcal", String(Math.round(kcal)));
+    if (image) tile.setAttribute("data-img", image);
+    tile.setAttribute("aria-label", "Log " + name);
+    if (image) {
+      var img = el("img");
+      img.src = image;
+      img.alt = "";
+      tile.appendChild(img);
+    }
+    tile.appendChild(el("span", null, name));
+    tiles.insertBefore(tile, tiles.firstChild);
+    while (tiles.children.length > MAX_ROWS) tiles.removeChild(tiles.lastChild);
+  }
+
+  function logMeal(pin) {
+    var name = mealTitle(), kcal = current.result.calories, image = current.image;
+    closeSheet();
+    addRow(name, kcal, image);
+    if (pin) addTile(name, kcal, image);
+    document.getElementById("demo-after").hidden = false;
+    if (remaining === 0) setTimeout(function () { showEnd(); }, 1200);
+  }
+
+  document.getElementById("demo-phone").addEventListener("click", function (e) {
+    var fav = e.target.closest(".js-demo-fav");
+    if (!fav) return;
+    markStarted();
+    addRow(fav.getAttribute("data-name"), Number(fav.getAttribute("data-kcal")), fav.getAttribute("data-img"));
+  });
+  cameraBtn.addEventListener("click", function () { markStarted(); cameraInput.click(); });
+  document.getElementById("demo-gallery").addEventListener("click", function () { markStarted(); galleryInput.click(); });
+  document.getElementById("demo-text").addEventListener("click", function () {
+    markStarted();
+    if (remaining === 0) { showEnd(); return; }
+    showTextEntry();
+  });
+  document.getElementById("demo-refresh").addEventListener("click", function () {
+    var b = this;
+    b.classList.remove("spin");
+    void b.offsetWidth; // restart the animation
+    b.classList.add("spin");
+  });
+  [cameraInput, galleryInput].forEach(function (input) {
+    input.addEventListener("change", function () {
+      var file = input.files && input.files[0];
+      input.value = "";
+      if (file) startWithPhoto(photoFromFile(file));
+    });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll(".demo-samples button"), function (b) {
+    b.addEventListener("click", function () { startWithPhoto(photoFromUrl(b.getAttribute("data-src"))); });
+  });
+  document.getElementById("demo-end-close").addEventListener("click", function () {
+    end.hidden = true;
+    cameraBtn.focus();
+  });
+  sheet.addEventListener("keydown", function (e) { if (e.key === "Escape") closeSheet(); });
 })();
 </script>
 </body>
