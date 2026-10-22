@@ -1313,8 +1313,8 @@
   // Each phone has its own dialog layer: the widget's for the analysis and
   // its recent meals, the app's for its diary entries. returnFocus is where
   // focus goes when the dialog closes.
-  var widgetHost = { scrim: scrim, dialog: dialog, returnFocus: cameraBtn };
-  var appHost = { scrim: document.getElementById("demo-app-scrim"), dialog: document.getElementById("demo-app-dialog"), returnFocus: overviewEl };
+  var widgetHost = { scrim: scrim, dialog: dialog, returnFocus: cameraBtn, phone: document.getElementById("demo-widget-device") };
+  var appHost = { scrim: document.getElementById("demo-app-scrim"), dialog: document.getElementById("demo-app-dialog"), returnFocus: overviewEl, phone: document.getElementById("demo-overview-device") };
 
   // image defaults to the photo of the meal being analysed in the widget.
   function openDialog(nodes, focusTarget, host, image) {
@@ -1328,6 +1328,10 @@
     }
     nodes.forEach(function (n) { host.dialog.appendChild(n); });
     host.scrim.hidden = false;
+    // On narrow screens the two phones sit in a horizontally-scrollable strip;
+    // bring this dialog's phone into view, but only if it isn't already (like
+    // RecyclerView.scrollToPosition: nudge the minimum needed, or not at all).
+    host.phone.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
     (focusTarget || host.dialog).focus({ preventScroll: true });
   }
   function closeWidgetDialog() { closeDialog(widgetHost); }
