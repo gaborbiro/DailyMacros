@@ -138,8 +138,11 @@
   .demo-device figcaption { margin-bottom: 8px; text-align: center; font-weight: 700; }
   /* Only the left phone (with the CTA) shows at first; the right one and both
      captions stay reserved-but-invisible, not display:none, so revealing them
-     on interaction can't shift the left phone's centered position at all. */
-  .demo-reveal { visibility: hidden; }
+     on interaction can't shift the left phone's centered position at all.
+     .demo-fade (always present) carries the transition so removing
+     .demo-reveal fades opacity in, instead of the content just popping in. */
+  .demo-fade { transition: opacity .5s ease; }
+  .demo-reveal { visibility: hidden; opacity: 0; }
   .demo-foot { display: grid; gap: 10px; justify-items: center; text-align: center; margin-top: -10px; }
   .demo-foot .fine { max-width: 36em; }
   .demo-samples { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 16px; }
@@ -239,13 +242,13 @@
     flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
     scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, .25) transparent;
   }
-  .ov-scroll { padding: 0 12px 26px; }
+  .ov-scroll { padding: 0 6px 26px; }
   .ov-scroll:focus-visible, .trends-scroll:focus-visible { outline: 2px solid rgba(245, 124, 0, .7); outline-offset: -2px; }
   .ov-day { position: relative; margin: 6px 0 10px; text-align: center; color: #fff; font-size: 15px; }
   .ov-day + .ov-summary { margin-top: 0; }
   .ov-meals + .ov-day { margin-top: 22px; }
   .ov-summary {
-    display: block; width: 100%; padding: 10px 8px 8px; border: 1px solid #2E2E33; border-radius: 14px;
+    display: block; width: 100%; padding: 10px 6px 8px; border: 1px solid #2E2E33; border-radius: 14px;
     background: #1B1B1F; text-align: left; cursor: pointer;
   }
   .ov-summary:hover, .ov-summary:focus-visible { border-color: #5E5A6B; outline: none; }
@@ -381,7 +384,7 @@
   @keyframes demo-slide-out { from { transform: none; } to { transform: translateX(100%); } }
   .trends.is-closing { animation: demo-slide-out .22s ease-in forwards; }
   @keyframes demo-in { from { opacity: 0; transform: translateY(-6px); background: rgba(245, 124, 0, .45); } to { opacity: 1; transform: none; } }
-  @media (prefers-reduced-motion: reduce) { .phone, .phone * { animation: none !important; transition: none !important; } }
+  @media (prefers-reduced-motion: reduce) { .phone, .phone *, .demo-fade { animation: none !important; transition: none !important; } }
 
   footer { padding: 24px 0 40px; }
   footer a { color: inherit; }
@@ -405,7 +408,7 @@
   <div class="wrap demo" id="try">
     <div class="demo-phones" id="demo-phones">
       <figure class="demo-device" id="demo-widget-device">
-        <figcaption class="demo-reveal">Widgets</figcaption>
+        <figcaption class="demo-fade demo-reveal">Widgets</figcaption>
         <div class="phone" id="demo-phone" role="group" aria-label="Interactive replica of the Daily Macros home-screen widget">
           <div class="screen screen-home">
             <div class="demo-veil" id="demo-cta">
@@ -485,8 +488,8 @@
         </div>
       </figure>
 
-      <figure class="demo-device demo-reveal" id="demo-overview-device">
-        <figcaption class="demo-reveal">The app</figcaption>
+      <figure class="demo-device demo-fade demo-reveal" id="demo-overview-device">
+        <figcaption class="demo-fade demo-reveal">The app</figcaption>
         <div class="phone" role="group" aria-label="Interactive replica of the Daily Macros app's diary screen">
           <div class="screen">
             <div class="demo-veil"></div>
