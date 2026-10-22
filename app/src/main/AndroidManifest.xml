@@ -51,8 +51,10 @@
        alpha doesn't pick up a storage permission. Drop this line when the photo monitor
        re-adds the permission above (they'd conflict).
        Shake's other permissions stay: DETECT_SCREEN_CAPTURE is used unconditionally on
-       Android 14+ (removing it crashes the SDK), HIGH_SAMPLING_RATE_SENSORS is for shake
-       detection, FOREGROUND_SERVICE_MEDIA_PROJECTION is for auto screen recording.
+       Android 14+ (removing it crashes the SDK; MainActivity drops that registration to avoid
+       the system's screenshot toast, but other in-process activities still make it),
+       HIGH_SAMPLING_RATE_SENSORS is for shake detection, FOREGROUND_SERVICE_MEDIA_PROJECTION is
+       for auto screen recording.
     -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
 

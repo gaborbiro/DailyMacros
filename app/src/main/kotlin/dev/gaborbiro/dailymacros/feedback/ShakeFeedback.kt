@@ -12,9 +12,10 @@ import dev.gaborbiro.dailymacros.BuildConfig
  *
  * Everything Shake-specific is kept in this package. Removing Shake = delete the package, its call
  * site in App.onCreate, the dependency (Shake + curtains)/SHAKE_API_KEY wiring in
- * app/build.gradle.kts, the button-size override res/layout/shake_sdk_view_report_button.xml, and
- * the READ_EXTERNAL_STORAGE removal in AndroidManifest.xml. Screen names, custom keys, events and
- * non-fatal errors reach Shake through AnalyticsLogger (see ShakeAnalyticsSink).
+ * app/build.gradle.kts, the button-size override res/layout/shake_sdk_view_report_button.xml, the
+ * screen-capture callback overrides in MainActivity (they stop the "detected this screenshot"
+ * toast) and the READ_EXTERNAL_STORAGE removal in AndroidManifest.xml. Screen names, custom keys,
+ * events and non-fatal errors reach Shake through AnalyticsLogger (see ShakeAnalyticsSink).
  *
  * Meal photos/details are intentionally NOT masked (no Shake.addPrivateView / FLAG_SECURE):
  * when a tester says the macros are wrong, the photo and surrounding state are the evidence.
