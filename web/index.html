@@ -59,42 +59,6 @@
   .fine { font-size: .875rem; color: var(--muted); }
   .fine a { color: var(--orange-dark); }
 
-  /* Screenshots: swipeable strip, all five across on wide screens. */
-  .shots {
-    display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory;
-    padding: 4px 20px 16px; -webkit-overflow-scrolling: touch; scrollbar-width: none;
-  }
-  .shots::-webkit-scrollbar { display: none; }
-  .shots button {
-    flex: 0 0 68%; max-width: 260px; padding: 0; border: 0; background: none;
-    scroll-snap-align: center; cursor: zoom-in; border-radius: 18px;
-  }
-  .shots button:focus-visible { outline: 3px solid rgba(245, 124, 0, .6); outline-offset: 2px; }
-  .shots img {
-    display: block; width: 100%; height: auto; aspect-ratio: 9 / 16;
-    border-radius: 18px; background: #FFE2C2; box-shadow: 0 6px 20px rgba(120, 60, 0, .18);
-  }
-  @media (min-width: 1100px) {
-    .shots { display: grid; grid-template-columns: repeat(5, 1fr); max-width: 1200px; margin: 0 auto; overflow: visible; }
-    .shots button { flex: none; max-width: none; }
-  }
-
-  /* Full-size screenshot viewer. */
-  .lb {
-    position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center;
-    background: rgba(24, 12, 0, .92); cursor: zoom-out;
-  }
-  .lb img { max-width: 94vw; max-height: 92vh; width: auto; height: auto; border-radius: 14px; cursor: default; }
-  .lb button {
-    position: absolute; width: 44px; height: 44px; border: 0; border-radius: 50%; cursor: pointer;
-    background: rgba(255, 255, 255, .16); color: #fff; font: 28px/1 system-ui, sans-serif;
-  }
-  .lb button:hover, .lb button:focus-visible { background: rgba(255, 255, 255, .3); outline: none; }
-  .lb-x { top: 14px; right: 14px; }
-  .lb-prev { left: 10px; top: 50%; margin-top: -22px; }
-  .lb-next { right: 10px; top: 50%; margin-top: -22px; }
-  body.lb-open { overflow: hidden; }
-
   section { padding: 28px 0; }
   .tracks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
   .chip { border-radius: 999px; padding: 6px 14px; font-weight: 600; font-size: .9rem; color: #2B2118; }
@@ -134,65 +98,107 @@
   .done .next { background: #FFF1DD; border-radius: 12px; padding: 12px 14px; margin-top: 14px; }
   [hidden] { display: none !important; }
 
-  /* Try-it demo: an HTML replica of the home-screen widget. Only the AI
-     analysis is real (POST /api/demo, functions/demo.js). */
-  .try-grid { display: grid; gap: 18px; }
-  .try-copy p { color: var(--muted); margin-top: 10px; }
-  .try-side .fine + .fine { margin-top: 10px; }
-  @media (min-width: 700px) {
-    .try-grid { grid-template-columns: 300px 1fr; grid-template-rows: auto auto 1fr; column-gap: 32px; align-items: start; }
-    .phone { grid-column: 1; grid-row: 1 / span 3; }
-    .try-copy, .try-side { grid-column: 2; }
+  /* Try-it demo: HTML replicas of the home-screen widget and the Overview and
+     Trends screens. Only the AI analysis is real (POST /api/demo,
+     functions/demo.js). */
+  .hero-head { padding-bottom: 8px; }
+  .hero-tail { padding-top: 12px; }
+  .demo { display: grid; gap: 12px; }
+  .demo-title { font-size: 1.25rem; }
+  .demo-intro { color: var(--muted); max-width: 34em; }
+  .demo-phones {
+    display: flex; gap: 24px; align-items: flex-start; overflow-x: auto; scroll-snap-type: x mandatory;
+    margin: 0 -20px; padding: 4px 20px 12px; scrollbar-width: none;
   }
-  .demo-samples { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 14px; }
+  .demo-phones::-webkit-scrollbar { display: none; }
+  @media (min-width: 680px) { .demo-phones { justify-content: center; } }
+  .demo-device { flex: 0 0 min(300px, 84vw); margin: 0; scroll-snap-align: center; }
+  .demo-device figcaption { margin-bottom: 8px; text-align: center; font-weight: 700; }
+  .demo-foot { display: grid; gap: 8px; justify-items: center; text-align: center; }
+  .demo-foot .fine { max-width: 36em; }
+  .demo-samples { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
   .demo-samples button {
     width: 76px; height: 52px; padding: 0; border: 0; border-radius: 10px; overflow: hidden; cursor: pointer;
     box-shadow: 0 2px 8px rgba(120, 60, 0, .18);
   }
   .demo-samples button:focus-visible { outline: 3px solid rgba(245, 124, 0, .6); outline-offset: 2px; }
   .demo-samples img { display: block; width: 100%; height: 100%; object-fit: cover; }
-  .demo-after { background: #FFF1DD; border-radius: 12px; padding: 12px 14px; margin-top: 14px; }
-  .demo-after a { color: var(--orange-dark); font-weight: 700; }
+  .demo-after { background: #FFF1DD; border-radius: 12px; padding: 10px 14px; }
+  .demo-after button {
+    border: 0; padding: 0; background: none; cursor: pointer; font: inherit; font-weight: 700;
+    color: var(--orange-dark); text-decoration: underline;
+  }
 
+  /* Phone frame. */
   .phone {
-    position: relative; width: 100%; max-width: 300px; min-height: 600px; margin: 0 auto; overflow: hidden;
-    padding: 10px 12px 16px; border-radius: 30px; background: #000; color: #F3E9E1;
-    font-size: 13px; line-height: 1.3; box-shadow: 0 10px 30px rgba(120, 60, 0, .25);
+    position: relative; height: 620px; padding: 8px; border-radius: 34px; background: #0E0E0E;
+    box-shadow: inset 0 0 0 1.5px #3A3A3A, 0 12px 30px rgba(120, 60, 0, .25);
+    color: #F3E9E1; font-size: 13px; line-height: 1.3;
   }
   .phone button { font: inherit; color: inherit; }
-  .phone-status { display: flex; justify-content: space-between; padding: 2px 10px 14px; font-size: 12px; font-weight: 600; color: #fff; }
-  .widget { background: #2E2019; border-radius: 18px; overflow: hidden; }
-  .w-recent { list-style: none; margin: 0; padding: 8px 10px 6px; }
+  .screen { position: relative; display: flex; flex-direction: column; height: 100%; overflow: hidden; border-radius: 27px; background: #121212; }
+  .screen-home {
+    background:
+      radial-gradient(120% 70% at 15% 0%, rgba(140, 110, 170, .30), transparent 60%),
+      radial-gradient(110% 60% at 100% 100%, rgba(214, 120, 50, .26), transparent 60%),
+      linear-gradient(170deg, #2B2530, #1A171D 55%, #221A15);
+  }
+  .status {
+    position: relative; flex: none; display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 18px 8px; color: #fff; font-size: 12px; font-weight: 600;
+  }
+  .status::before {
+    content: ""; position: absolute; left: 50%; top: 9px; width: 11px; height: 11px; margin-left: -5.5px;
+    border-radius: 50%; background: #050505; box-shadow: 0 0 0 1.5px #2A2A2A;
+  }
+  .status-icons { display: flex; align-items: center; gap: 5px; }
+  .status-icons svg { width: 14px; height: 14px; }
+  .gesture {
+    position: absolute; left: 50%; bottom: 7px; z-index: 5; width: 96px; height: 4px; margin-left: -48px;
+    border-radius: 2px; background: rgba(255, 255, 255, .5); pointer-events: none;
+  }
+
+  /* Widget phone. */
+  .home { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 6px 12px 22px; }
+  .widget { background: rgba(46, 32, 25, .95); border-radius: 18px; overflow: hidden; box-shadow: 0 4px 14px rgba(0, 0, 0, .3); }
+  /* Recent meals and Quick Picks scroll together, like the real widget's list. */
+  .w-scroll {
+    max-height: 256px; overflow-y: auto; overscroll-behavior: contain;
+    scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, .25) transparent;
+  }
+  .w-scroll:focus-visible { outline: 2px solid rgba(245, 124, 0, .7); outline-offset: -2px; }
+  .w-recent { margin: 0; padding: 6px 10px; list-style: none; }
   .w-recent li { display: flex; align-items: center; gap: 10px; padding: 4px 0; border-radius: 8px; }
   .w-recent li > div { min-width: 0; }
   .w-thumb { flex: none; width: 52px; height: 38px; border-radius: 7px; object-fit: cover; background: #4A382D; }
   .w-noimg { display: grid; place-items: center; color: #F2B489; font-size: 18px; }
   .w-name { color: #fff; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .w-sub { color: #BFB2A8; font-size: 11.5px; }
-  .w-picks { background: #4A3125; padding: 6px 10px 8px; }
-  .w-picks-title { text-align: center; color: #F2B489; font-weight: 700; margin-bottom: 4px; }
-  .w-pick { display: flex; align-items: center; gap: 10px; }
-  .w-open {
-    margin-left: auto; width: 36px; height: 36px; border: 0; border-radius: 10px; cursor: pointer;
-    display: grid; place-items: center; background: #F7DE8A; color: #3A2A20 !important;
+  .w-picks { padding: 6px 10px 8px; background: #4A3125; }
+  .w-picks-title { margin-bottom: 4px; text-align: center; color: #F2B489; font-weight: 700; }
+  .w-pick {
+    display: flex; align-items: center; gap: 10px; width: 100%; padding: 2px; border: 0; border-radius: 8px;
+    background: none; text-align: left; cursor: pointer;
   }
+  .w-pick:hover, .w-pick:focus-visible { background: rgba(255, 255, 255, .08); outline: none; }
+  .w-pick-text { min-width: 0; }
+  .w-pick-text > span { display: block; }
   .w-bar { display: flex; justify-content: space-around; padding: 6px 4px; background: #3A2920; }
   .w-bar button {
-    width: 44px; height: 40px; border: 0; border-radius: 10px; cursor: pointer;
-    display: grid; place-items: center; background: none; color: #F3E6DC;
+    display: grid; place-items: center; width: 44px; height: 40px; border: 0; border-radius: 10px;
+    background: none; color: #F3E6DC; cursor: pointer;
   }
-  .w-bar button:hover, .w-bar button:focus-visible, .w-open:focus-visible { background: rgba(255, 255, 255, .12); outline: none; }
-  .phone svg { width: 24px; height: 24px; }
+  .w-bar button:hover, .w-bar button:focus-visible { background: rgba(255, 255, 255, .12); outline: none; }
+  .w-bar svg { width: 24px; height: 24px; }
   .w-bar .pulse { animation: demo-pulse 1.6s ease-out infinite; }
-  .w-bar .spin svg { animation: demo-spin .8s linear; }
   .w-hint {
     width: fit-content; margin: 10px auto 0; padding: 5px 12px; border-radius: 999px;
     background: var(--orange); color: #fff; font-weight: 700; font-size: 12.5px;
   }
   .w-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
   .w-tile {
-    position: relative; height: 70px; padding: 0; border: 0; border-radius: 10px; overflow: hidden;
-    cursor: pointer; background: #4A382D;
+    position: relative; height: 70px; padding: 0; border: 0; border-radius: 12px; overflow: hidden;
+    background: #4A382D; cursor: pointer; box-shadow: 0 4px 12px rgba(0, 0, 0, .3);
   }
   .w-tile img { display: block; width: 100%; height: 100%; object-fit: cover; }
   .w-tile span {
@@ -202,9 +208,76 @@
   .w-tile:focus-visible { outline: 3px solid rgba(245, 124, 0, .8); outline-offset: 1px; }
   .is-new { animation: demo-in .7s ease-out; }
 
+  /* Overview phone. */
+  .ov-body { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .ov-scroll, .trends-scroll {
+    flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
+  }
+  .ov-scroll::-webkit-scrollbar, .trends-scroll::-webkit-scrollbar { display: none; }
+  .ov-scroll { padding: 0 12px 26px; }
+  .ov-scroll:focus-visible, .trends-scroll:focus-visible { outline: 2px solid rgba(245, 124, 0, .7); outline-offset: -2px; }
+  .ov-day { position: relative; margin: 6px 0 10px; text-align: center; color: #fff; font-size: 15px; }
+  .ov-day + .ov-summary { margin-top: 0; }
+  .ov-meals + .ov-day { margin-top: 22px; }
+  .ov-gear {
+    position: absolute; right: 0; top: -5px; display: grid; place-items: center; width: 30px; height: 30px;
+    border-radius: 50%; background: #3B3946;
+  }
+  .ov-gear svg { width: 16px; height: 16px; }
+  .ov-summary {
+    display: block; width: 100%; padding: 10px 10px 8px; border: 1px solid #2E2E33; border-radius: 14px;
+    background: #1B1B1F; text-align: left; cursor: pointer;
+  }
+  .ov-summary:hover, .ov-summary:focus-visible { border-color: #5E5A6B; outline: none; }
+  .ov-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; }
+  .ov-line { display: flex; justify-content: space-between; gap: 4px; margin-bottom: 3px; color: #D9D2CC; font-size: 10.5px; }
+  .ov-line b { color: #fff; font-weight: 600; }
+  .ov-range { margin-top: 2px; text-align: right; color: #8F8984; font-size: 9px; }
+  .ov-track { position: relative; height: 6px; border-radius: 3px; background: #2C2C30; }
+  .ov-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; transition: width .5s ease-out; }
+  .ov-tick { position: absolute; top: -2px; width: 2px; height: 10px; margin-left: -1px; border-radius: 1px; background: #3DBA5A; }
+  .ov-trends {
+    display: flex; align-items: center; gap: 8px; margin-top: 9px; padding-top: 8px;
+    border-top: 1px solid #2E2E33; color: #BDB6B0; font-size: 11.5px;
+  }
+  .ov-spark { display: flex; align-items: flex-end; gap: 2px; height: 18px; }
+  .ov-spark i { display: block; width: 5px; border-radius: 1.5px; background: #5E7BA6; }
+  .ov-spark i:last-child { background: #A9CFF7; }
+  .ov-trends b { margin-left: auto; color: #F5A623; }
+  .ov-meal { display: grid; grid-template-columns: 54px 1fr; gap: 8px; margin-top: 12px; border-radius: 10px; }
+  .ov-photo { width: 54px; height: 54px; border-radius: 8px; object-fit: cover; background: #2C2C30; }
+  .ov-meal-head { display: flex; justify-content: space-between; gap: 6px; color: #fff; font-size: 13px; }
+  .ov-meal-head span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ov-meal-head span:last-child { flex: none; color: #BDB6B0; font-size: 11px; }
+  .ov-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-top: 4px; }
+  .ov-chips .chip {
+    padding: 2px 6px; border-radius: 6px; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* Trends, opened from a day's summary. */
+  .trends { position: absolute; inset: 0; display: flex; flex-direction: column; background: #121212; animation: demo-slide .25s ease-out; }
+  .trends-bar { display: flex; align-items: center; gap: 10px; padding: 6px 12px; background: #242424; color: #fff; font-size: 17px; }
+  .trends-bar button {
+    display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 50%;
+    background: none; cursor: pointer;
+  }
+  .trends-bar button:hover, .trends-bar button:focus-visible { background: rgba(255, 255, 255, .12); outline: none; }
+  .trends-bar svg { width: 20px; height: 20px; }
+  .trends-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 12px 12px 4px; }
+  .trends-tabs button {
+    padding: 6px 0; border: 1px solid #555; border-radius: 9px; background: none; color: #E8E2DC;
+    font-size: 12.5px; cursor: pointer;
+  }
+  .trends-tabs button[aria-pressed="true"] { border-color: #4A4658; background: #4A4658; color: #fff; }
+  .trends-tabs button:focus-visible { outline: 2px solid rgba(245, 124, 0, .8); }
+  .trends-scroll { padding: 0 8px 26px; }
+  .trend-title { margin: 14px 4px 2px; font-size: 13px; font-weight: 600; }
+  .trend svg { display: block; width: 100%; height: auto; }
+
+  /* Analysis sheet (the app's meal screen) and the out-of-tries card. */
   .sheet {
-    position: absolute; left: 0; right: 0; bottom: 0; max-height: 94%; overflow-y: auto;
-    padding: 16px 16px 18px; border-radius: 22px 22px 30px 30px; background: #2B2B2B; color: #E8E2DC;
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 4; max-height: 94%; overflow-y: auto; overscroll-behavior: contain;
+    padding: 16px 16px 22px; border-radius: 22px 22px 27px 27px; background: #2B2B2B; color: #E8E2DC;
     box-shadow: 0 -8px 30px rgba(0, 0, 0, .5); animation: demo-up .3s ease-out;
   }
   .sheet:focus { outline: none; }
@@ -240,10 +313,11 @@
     border-top-color: #F5A623; border-radius: 50%; animation: demo-spin .9s linear infinite;
   }
   .demo-end {
-    position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; gap: 12px;
-    padding: 24px; text-align: center; background: rgba(20, 10, 0, .9); color: #fff;
+    position: absolute; inset: 0; z-index: 6; display: flex; flex-direction: column; justify-content: center; gap: 12px;
+    padding: 24px; text-align: center; background: rgba(20, 10, 0, .92); color: #fff;
   }
   .demo-end h3 { font-size: 20px; line-height: 1.2; }
+  .demo-end h3:focus { outline: none; }
   .demo-end p { color: #E8DCD2; }
   .demo-end .btn { font-size: 15px; padding: 12px 14px; }
   .demo-end .btn-ghost { color: #FFD3A8; }
@@ -251,8 +325,11 @@
   @keyframes demo-pulse { 0% { box-shadow: 0 0 0 0 rgba(245, 124, 0, .8); } 100% { box-shadow: 0 0 0 12px rgba(245, 124, 0, 0); } }
   @keyframes demo-spin { to { transform: rotate(360deg); } }
   @keyframes demo-up { from { transform: translateY(100%); } to { transform: none; } }
+  @keyframes demo-slide { from { transform: translateX(100%); } to { transform: none; } }
+  @keyframes demo-slide-out { from { transform: none; } to { transform: translateX(100%); } }
+  .trends.is-closing { animation: demo-slide-out .22s ease-in forwards; }
   @keyframes demo-in { from { opacity: 0; transform: translateY(-6px); background: rgba(245, 124, 0, .45); } to { opacity: 1; transform: none; } }
-  @media (prefers-reduced-motion: reduce) { .phone, .phone * { animation: none !important; } }
+  @media (prefers-reduced-motion: reduce) { .phone, .phone * { animation: none !important; transition: none !important; } }
 
   footer { padding: 24px 0 40px; }
   footer a { color: inherit; }
@@ -268,9 +345,126 @@
 </header>
 
 <main>
-  <div class="wrap hero">
+  <div class="wrap hero hero-head">
     <h1>A food diary easy enough to actually stick with.</h1>
     <p>Track what you eat without turning every meal into data entry. Snap a photo and let AI estimate the nutrition, or log your regular meals from your home screen in one tap. Review what it inferred, fix anything that looks off, and move on.</p>
+  </div>
+
+  <div class="wrap demo" id="try" role="region" aria-labelledby="try-title">
+    <h2 class="demo-title" id="try-title">Try it on a meal</h2>
+    <p class="demo-intro">Tap the widget’s camera and snap whatever you’re eating. Real AI analysis, like in the app, logs it, and the app’s diary updates. Tap the day’s totals there to see your trends.</p>
+
+    <div class="demo-phones">
+      <figure class="demo-device" id="demo-widget-device">
+        <figcaption>Widget</figcaption>
+        <div class="phone" id="demo-phone" role="group" aria-label="Interactive replica of the Daily Macros home-screen widget">
+          <div class="screen screen-home">
+            <div class="status" aria-hidden="true">
+              <span class="js-demo-clock">12:00</span>
+              <span class="status-icons">
+                <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="10" width="2.5" height="4" rx=".5"/><rect x="5" y="7.5" width="2.5" height="6.5" rx=".5"/><rect x="9" y="5" width="2.5" height="9" rx=".5"/><rect x="13" y="2" width="2.5" height="12" rx=".5"/></svg>
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1.5 6a9.5 9.5 0 0 1 13 0"/><path d="M4 8.8a6 6 0 0 1 8 0"/><path d="M6.4 11.4a2.5 2.5 0 0 1 3.2 0"/></svg>
+                <svg viewBox="0 0 24 16" style="width:21px"><rect x="1" y="3" width="19" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="3" y="5" width="15" height="6" rx="1.2" fill="currentColor"/><rect x="21" y="6" width="2" height="4" rx="1" fill="currentColor"/></svg>
+              </span>
+            </div>
+            <div class="home">
+              <div class="widget">
+                <div class="w-scroll" id="demo-widget-scroll" tabindex="0" aria-label="Recent meals and quick picks">
+                  <ul class="w-recent" id="demo-recent" aria-label="Recently logged meals"></ul>
+                  <div class="w-picks">
+                    <div class="w-picks-title">★ Quick Picks ★</div>
+                    <button type="button" class="w-pick" data-food="apple-cake" aria-label="Log apple cake again">
+                      <img class="w-thumb" src="/img/demo/apple-cake.jpg" alt="">
+                      <span class="w-pick-text"><span class="w-name">Apple cake</span><span class="w-sub">393kcal</span></span>
+                    </button>
+                    <button type="button" class="w-pick" data-food="scrambled-egg" aria-label="Log bacon cheese scrambled egg again">
+                      <img class="w-thumb" src="/img/demo/scrambled-egg.jpg" alt="">
+                      <span class="w-pick-text"><span class="w-name">Bacon cheese scrambled egg</span><span class="w-sub">509kcal</span></span>
+                    </button>
+                  </div>
+                </div>
+                <div class="w-bar">
+                  <button type="button" id="demo-camera" class="pulse" aria-label="Take a photo of your meal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 10a2 2 0 0 1 2-2h2l1.5-2h4.5L13.5 8H15a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/><circle cx="9.5" cy="14" r="3"/><path d="M20 2v6M17 5h6"/></svg>
+                  </button>
+                  <button type="button" id="demo-gallery" aria-label="Choose a photo of your meal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="15" height="14" rx="2"/><circle cx="7" cy="11.5" r="1.4"/><path d="M2 18l4-4 3 3 2.5-2.5L17 19"/><path d="M20 2v6M17 5h6"/></svg>
+                  </button>
+                  <button type="button" id="demo-text" aria-label="Describe your meal in words">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="15" height="14" rx="2"/><path d="M6 12h7M6 16h5"/><path d="M20 2v6M17 5h6"/></svg>
+                  </button>
+                </div>
+              </div>
+              <p class="w-hint" id="demo-hint">↑ Tap the camera to log a meal</p>
+              <div class="w-tiles" id="demo-tiles" aria-label="Favourite meals"></div>
+            </div>
+
+            <div class="sheet" id="demo-sheet" role="dialog" aria-label="Meal analysis" tabindex="-1" hidden></div>
+
+            <div class="demo-end" id="demo-end" role="dialog" aria-labelledby="demo-end-title" hidden>
+              <h3 id="demo-end-title" tabindex="-1">That’s your home screen from now on.</h3>
+              <p id="demo-end-text"></p>
+              <a class="btn" href="#waitlist">Get notified when it launches</a>
+              <a class="btn btn-ghost js-beta-cta" href="#join">Join the test</a>
+              <button type="button" class="sheet-link" id="demo-end-close">Back to the widget</button>
+            </div>
+            <div class="gesture"></div>
+          </div>
+        </div>
+      </figure>
+
+      <figure class="demo-device" id="demo-overview-device">
+        <figcaption>The app</figcaption>
+        <div class="phone" role="group" aria-label="Interactive replica of the Daily Macros app's diary screen">
+          <div class="screen">
+            <div class="status" aria-hidden="true">
+              <span class="js-demo-clock">12:00</span>
+              <span class="status-icons">
+                <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="10" width="2.5" height="4" rx=".5"/><rect x="5" y="7.5" width="2.5" height="6.5" rx=".5"/><rect x="9" y="5" width="2.5" height="9" rx=".5"/><rect x="13" y="2" width="2.5" height="12" rx=".5"/></svg>
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1.5 6a9.5 9.5 0 0 1 13 0"/><path d="M4 8.8a6 6 0 0 1 8 0"/><path d="M6.4 11.4a2.5 2.5 0 0 1 3.2 0"/></svg>
+                <svg viewBox="0 0 24 16" style="width:21px"><rect x="1" y="3" width="19" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="3" y="5" width="15" height="6" rx="1.2" fill="currentColor"/><rect x="21" y="6" width="2" height="4" rx="1" fill="currentColor"/></svg>
+              </span>
+            </div>
+            <div class="ov-body">
+              <div class="ov-scroll" id="demo-overview" tabindex="0" aria-label="Your diary"></div>
+              <div class="trends" id="demo-trends" role="dialog" aria-label="Trends" hidden>
+                <div class="trends-bar">
+                  <button type="button" id="demo-trends-back" aria-label="Back to the diary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+                  </button>
+                  <span>Trends</span>
+                </div>
+                <div class="trends-tabs" role="group" aria-label="Period">
+                  <button type="button" data-mode="days" aria-pressed="true">Days</button>
+                  <button type="button" data-mode="weeks" aria-pressed="false">Weeks</button>
+                  <button type="button" data-mode="months" aria-pressed="false">Months</button>
+                </div>
+                <div class="trends-scroll" id="demo-trends-charts" tabindex="0" aria-label="Charts"></div>
+              </div>
+            </div>
+            <div class="gesture"></div>
+          </div>
+        </div>
+      </figure>
+    </div>
+
+    <div class="demo-foot">
+      <p class="fine">No food handy? Try one of these:</p>
+      <div class="demo-samples">
+        <button type="button" data-src="/img/demo/scrambled-egg.jpg" aria-label="Analyse a sample photo of scrambled egg on toast"><img src="/img/demo/scrambled-egg.jpg" alt=""></button>
+        <button type="button" data-src="/img/demo/noodle-soup.jpg" aria-label="Analyse a sample photo of noodle soup"><img src="/img/demo/noodle-soup.jpg" alt=""></button>
+        <button type="button" data-src="/img/demo/apple-cake.jpg" aria-label="Analyse a sample photo of apple cake"><img src="/img/demo/apple-cake.jpg" alt=""></button>
+        <button type="button" data-src="/img/demo/cheese-bread.jpg" aria-label="Analyse a sample photo of cheese bread"><img src="/img/demo/cheese-bread.jpg" alt=""></button>
+      </div>
+      <p class="demo-after" id="demo-after" hidden>Logged! It’s in the app too, with today’s totals updated. <button type="button" id="demo-show-overview">Show me</button></p>
+      <p class="fine" id="demo-tries">3 free tries a day.</p>
+      <p class="fine">Photos are sent to OpenAI for the analysis and aren’t stored by Daily Macros. Interactive demo: the AI is real, the phones are replicas.</p>
+    </div>
+    <input type="file" id="demo-camera-input" accept="image/*" capture="environment" hidden>
+    <input type="file" id="demo-gallery-input" accept="image/*" hidden>
+  </div>
+
+  <div class="wrap hero hero-tail">
     <div class="hero-ctas">
       <a class="btn" href="#waitlist">Get notified when Daily Macros launches</a>
       <a class="btn btn-ghost js-beta-cta" href="#join">Join the test</a>
@@ -278,92 +472,6 @@
     <p class="fine">Android first, with an iPhone version planned. Join the waitlist either way.</p>
     <p class="fine">Free to try, with a few AI analyses on the house. A subscription unlocks ongoing use.</p>
   </div>
-
-  <div class="shots" aria-label="App screenshots">
-    <button type="button" data-full="/img/screenshot-1-diary-full.webp"><img src="/img/screenshot-1-diary.webp" width="720" height="1280" alt="Daily diary showing calories and macros against targets, with each meal listed with its nutrition"></button>
-    <button type="button" data-full="/img/screenshot-2-nutrient-breakdown-full.webp"><img src="/img/screenshot-2-nutrient-breakdown.webp" width="720" height="1280" alt="Full nutrient breakdown for a meal, showing which foods each nutrient figure comes from"></button>
-    <button type="button" data-full="/img/screenshot-3-ai-inference-full.webp"><img src="/img/screenshot-3-ai-inference.webp" width="720" height="1280" alt="Meal details showing what the AI inferred: the components it detected with estimated portions, and the assumptions behind the nutrient estimates"></button>
-    <button type="button" data-full="/img/screenshot-4-widgets-full.webp"><img src="/img/screenshot-4-widgets.webp" width="720" height="1280" alt="Home screen widgets for logging favourite meals in one tap"></button>
-    <button type="button" data-full="/img/screenshot-5-trends-full.webp"><img src="/img/screenshot-5-trends.webp" width="720" height="1280" alt="Trends screen showing calories and macros over days, weeks and months"></button>
-  </div>
-
-  <section id="try" class="wrap" aria-labelledby="try-title">
-    <div class="try-grid">
-      <div class="try-copy">
-        <h2 id="try-title">Try it on a meal</h2>
-        <p>This is the Daily Macros home-screen widget. Tap the camera and snap whatever you’re eating, or a food label. Real AI analysis, like in the app, estimates the nutrition in seconds.</p>
-        <p>Tap a favourite at the bottom to log it in one tap. That’s how most days go.</p>
-      </div>
-
-      <div class="phone" id="demo-phone" role="group" aria-label="Interactive replica of the Daily Macros home-screen widget">
-        <div class="phone-status" aria-hidden="true"><span id="demo-clock">12:00</span><span>100%</span></div>
-        <div class="widget">
-          <ul class="w-recent" id="demo-recent" aria-label="Recently logged meals" aria-live="polite">
-            <li><img class="w-thumb" src="/img/demo/apple-cake.jpg" alt=""><div><div class="w-name">Apple cake</div><div class="w-sub">Today, 10:30 (393kcal)</div></div></li>
-            <li><img class="w-thumb" src="/img/demo/cheese-bread.jpg" alt=""><div><div class="w-name">Cheese bread</div><div class="w-sub">Today, 08:15 (95kcal)</div></div></li>
-            <li><img class="w-thumb" src="/img/demo/scrambled-egg.jpg" alt=""><div><div class="w-name">Bacon cheese scrambled egg</div><div class="w-sub">Today, 08:10 (509kcal)</div></div></li>
-            <li><img class="w-thumb" src="/img/demo/noodle-soup.jpg" alt=""><div><div class="w-name">Noodle soup</div><div class="w-sub">Yesterday, 19:45 (390kcal)</div></div></li>
-          </ul>
-          <div class="w-picks">
-            <div class="w-picks-title">★ Quick Picks ★</div>
-            <div class="w-pick">
-              <img class="w-thumb" src="/img/demo/apple-cake.jpg" alt="">
-              <div><div class="w-name">Apple cake</div><div class="w-sub">393kcal</div></div>
-              <button type="button" class="w-open js-demo-fav" data-name="Apple cake" data-kcal="393" data-img="/img/demo/apple-cake.jpg" aria-label="Log apple cake again">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
-              </button>
-            </div>
-          </div>
-          <div class="w-bar">
-            <button type="button" id="demo-camera" class="pulse" aria-label="Take a photo of your meal">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 10a2 2 0 0 1 2-2h2l1.5-2h4.5L13.5 8H15a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/><circle cx="9.5" cy="14" r="3"/><path d="M20 2v6M17 5h6"/></svg>
-            </button>
-            <button type="button" id="demo-gallery" aria-label="Choose a photo of your meal">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="15" height="14" rx="2"/><circle cx="7" cy="11.5" r="1.4"/><path d="M2 18l4-4 3 3 2.5-2.5L17 19"/><path d="M20 2v6M17 5h6"/></svg>
-            </button>
-            <button type="button" id="demo-text" aria-label="Describe your meal in words">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="15" height="14" rx="2"/><path d="M6 12h7M6 16h5"/><path d="M20 2v6M17 5h6"/></svg>
-            </button>
-            <button type="button" id="demo-refresh" aria-label="Refresh widget">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>
-            </button>
-          </div>
-        </div>
-        <p class="w-hint" id="demo-hint">↑ Tap the camera to log a meal</p>
-        <div class="w-tiles" id="demo-tiles" aria-label="Favourite meals">
-          <button type="button" class="w-tile js-demo-fav" data-name="Apple cake" data-kcal="393" data-img="/img/demo/apple-cake.jpg" aria-label="Log apple cake"><img src="/img/demo/apple-cake.jpg" alt=""><span>Apple cake</span></button>
-          <button type="button" class="w-tile js-demo-fav" data-name="Cheese bread" data-kcal="95" data-img="/img/demo/cheese-bread.jpg" aria-label="Log cheese bread"><img src="/img/demo/cheese-bread.jpg" alt=""><span>Cheese bread</span></button>
-          <button type="button" class="w-tile js-demo-fav" data-name="Bacon cheese scrambled egg" data-kcal="509" data-img="/img/demo/scrambled-egg.jpg" aria-label="Log bacon cheese scrambled egg"><img src="/img/demo/scrambled-egg.jpg" alt=""><span>Bacon cheese scrambled egg</span></button>
-          <button type="button" class="w-tile js-demo-fav" data-name="Noodle soup" data-kcal="390" data-img="/img/demo/noodle-soup.jpg" aria-label="Log noodle soup"><img src="/img/demo/noodle-soup.jpg" alt=""><span>Noodle soup</span></button>
-        </div>
-
-        <div class="sheet" id="demo-sheet" role="dialog" aria-label="Meal analysis" tabindex="-1" hidden></div>
-
-        <div class="demo-end" id="demo-end" role="dialog" aria-labelledby="demo-end-title" hidden>
-          <h3 id="demo-end-title" tabindex="-1">That’s your home screen from now on.</h3>
-          <p id="demo-end-text"></p>
-          <a class="btn" href="#waitlist">Get notified when it launches</a>
-          <a class="btn btn-ghost js-beta-cta" href="#join">Join the test</a>
-          <button type="button" class="sheet-link" id="demo-end-close">Back to the widget</button>
-        </div>
-      </div>
-
-      <div class="try-side">
-        <p class="fine">No food handy? Try one of these:</p>
-        <div class="demo-samples">
-          <button type="button" data-src="/img/demo/scrambled-egg.jpg" aria-label="Analyse a sample photo of scrambled egg on toast"><img src="/img/demo/scrambled-egg.jpg" alt=""></button>
-          <button type="button" data-src="/img/demo/noodle-soup.jpg" aria-label="Analyse a sample photo of noodle soup"><img src="/img/demo/noodle-soup.jpg" alt=""></button>
-          <button type="button" data-src="/img/demo/apple-cake.jpg" aria-label="Analyse a sample photo of apple cake"><img src="/img/demo/apple-cake.jpg" alt=""></button>
-          <button type="button" data-src="/img/demo/cheese-bread.jpg" aria-label="Analyse a sample photo of cheese bread"><img src="/img/demo/cheese-bread.jpg" alt=""></button>
-        </div>
-        <p class="fine" id="demo-tries">3 free tries a day.</p>
-        <p class="fine">Photos are sent to OpenAI for the analysis and aren’t stored by Daily Macros. Interactive demo: the AI is real, the home screen is a replica.</p>
-        <p class="demo-after" id="demo-after" hidden>Like it? <a href="#waitlist">Get notified when Daily Macros launches</a>.</p>
-      </div>
-    </div>
-    <input type="file" id="demo-camera-input" accept="image/*" capture="environment" hidden>
-    <input type="file" id="demo-gallery-input" accept="image/*" hidden>
-  </section>
 
   <div class="wrap">
     <section>
@@ -466,64 +574,12 @@
   </div>
 </main>
 
-<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Screenshot viewer" hidden>
-  <button type="button" class="lb-x" aria-label="Close">&times;</button>
-  <button type="button" class="lb-prev" aria-label="Previous screenshot">&#8249;</button>
-  <img alt="">
-  <button type="button" class="lb-next" aria-label="Next screenshot">&#8250;</button>
-</div>
-
 <footer>
   <div class="wrap fine">
     Daily Macros is made by Gabor Biro. <a href="/privacy.html">Privacy policy</a>
   </div>
 </footer>
 
-<script>
-(function () {
-  var shots = Array.prototype.slice.call(document.querySelectorAll(".shots button"));
-  var lb = document.getElementById("lb");
-  var lbImg = lb.querySelector("img");
-  var current = 0, opener = null, touchX = null;
-
-  function show(i) {
-    current = (i + shots.length) % shots.length;
-    lbImg.src = shots[current].getAttribute("data-full");
-    lbImg.alt = shots[current].querySelector("img").alt;
-  }
-  function open(i) {
-    opener = shots[i];
-    show(i);
-    lb.hidden = false;
-    document.body.classList.add("lb-open");
-    lb.querySelector(".lb-x").focus();
-  }
-  function close() {
-    lb.hidden = true;
-    document.body.classList.remove("lb-open");
-    if (opener) opener.focus();
-  }
-
-  shots.forEach(function (b, i) { b.addEventListener("click", function () { open(i); }); });
-  lb.addEventListener("click", function (e) { if (e.target === lb) close(); });
-  lb.querySelector(".lb-x").addEventListener("click", close);
-  lb.querySelector(".lb-prev").addEventListener("click", function () { show(current - 1); });
-  lb.querySelector(".lb-next").addEventListener("click", function () { show(current + 1); });
-  document.addEventListener("keydown", function (e) {
-    if (lb.hidden) return;
-    if (e.key === "Escape") close();
-    else if (e.key === "ArrowLeft") show(current - 1);
-    else if (e.key === "ArrowRight") show(current + 1);
-  });
-  lb.addEventListener("touchstart", function (e) { touchX = e.touches[0].clientX; }, { passive: true });
-  lb.addEventListener("touchend", function (e) {
-    if (touchX === null) return;
-    var dx = e.changedTouches[0].clientX - touchX;
-    touchX = null;
-    if (Math.abs(dx) > 50) show(current + (dx < 0 ? 1 : -1));
-  });
-})();
-</script>
 <script>
 (function () {
   function sendEvent(type) {
@@ -668,8 +724,9 @@
 })();
 </script>
 <script>
-// Try-it demo (#try). Everything on the phone is static HTML except the
-// analysis, which POSTs to /api/demo (functions/demo.js).
+// Try-it demo (#try): HTML replicas of the home-screen widget and the
+// Overview/Trends screens, sharing one in-memory diary. Everything is static
+// except the analysis, which POSTs to /api/demo (functions/demo.js).
 (function () {
   // reCAPTCHA Enterprise site key for Firebase App Check (see "Landing-page
   // demo setup" in functions/README.md). While empty, no App Check token is
@@ -677,11 +734,73 @@
   var APP_CHECK_SITE_KEY = "";
   var FIREBASE_SDK = "https://www.gstatic.com/firebasejs/11.0.2/";
   var MAX_PHOTO_PX = 768;
-  var MAX_ROWS = 4;
+  var MAX_TILES = 4;
   var CONFIDENCE_MARK = { high: "", medium: " (?)", low: " (??)" };
 
-  var recent = document.getElementById("demo-recent");
-  var tiles = document.getElementById("demo-tiles");
+  // The app's default daily targets. A min of 0 means "at most max".
+  var MACROS = [
+    { key: "calories", label: "Calories", min: 2100, max: 2400, color: "#A9CFF7" },
+    { key: "protein", label: "Protein", min: 130, max: 300, color: "#9EE6C6" },
+    { key: "fat", label: "Fat", min: 50, max: 90, color: "#F6E39A" },
+    { key: "saturated", label: "saturated", min: 0, max: 25, color: "#F6E39A" },
+    { key: "carbs", label: "Carbs", min: 200, max: 300, color: "#F9C9A3" },
+    { key: "sugar", label: "sugar", min: 60, max: 80, color: "#F9C9A3" },
+    { key: "salt", label: "Salt", min: 0, max: 6, color: "#CDBBF5" },
+    { key: "fibre", label: "Fibre", min: 25, max: 100, color: "#F8B9CB" }
+  ];
+  // Everything Trends charts, in the app's order. addedSugar has no target.
+  var TRENDS = [
+    { key: "calories", label: "Calories (kcal)", color: "#8AB4F8" },
+    { key: "protein", label: "Protein (g)", color: "#81C995" },
+    { key: "fat", label: "Fat (g)", color: "#F2D27A" },
+    { key: "saturated", label: "of which saturated (g)", color: "#E3BE5A" },
+    { key: "carbs", label: "Carbs (g)", color: "#F6AE7E" },
+    { key: "sugar", label: "of which sugar (g)", color: "#F0976F" },
+    { key: "addedSugar", label: "of which added sugar (g)", color: "#E07F63" },
+    { key: "salt", label: "Salt (g)", color: "#C3A6F5" },
+    { key: "fibre", label: "Fibre (g)", color: "#F59AB5" }
+  ];
+  var TYPICAL_ADDED_SUGAR = 15;
+
+  // The sample meals, with the nutrition the app logged for them. The ones
+  // without a photo were logged from a typed description.
+  var FOODS = {
+    "scrambled-egg": { name: "Bacon cheese scrambled egg", image: "/img/demo/scrambled-egg.jpg", calories: 509, protein: 31.9, fat: 27.2, saturated: 10.3, carbs: 32.7, sugar: 6.1, addedSugar: 1.5, salt: 2.5, fibre: 4.5 },
+    "cheese-bread": { name: "Cheese bread", image: "/img/demo/cheese-bread.jpg", calories: 95, protein: 1.5, fat: 3.5, saturated: 1, carbs: 14, sugar: 0.6, addedSugar: 0, salt: 0.4, fibre: 0.3 },
+    "noodle-soup": { name: "Noodle soup", image: "/img/demo/noodle-soup.jpg", calories: 390, protein: 29, fat: 7, saturated: 1.8, carbs: 46, sugar: 3, addedSugar: 0.5, salt: 2.2, fibre: 2.5 },
+    "apple-cake": { name: "Apple cake", image: "/img/demo/apple-cake.jpg", calories: 393, protein: 4.3, fat: 16.1, saturated: 1.5, carbs: 58.7, sugar: 39, addedSugar: 34, salt: 0.4, fibre: 2.2 },
+    "yoghurt-bowl": { name: "Greek yoghurt with berries and oats", image: null, calories: 380, protein: 28, fat: 9, saturated: 5, carbs: 46, sugar: 22, addedSugar: 6, salt: 0.3, fibre: 8 },
+    "lentil-soup": { name: "Lentil soup", image: null, calories: 320, protein: 18, fat: 6, saturated: 1, carbs: 45, sugar: 6, addedSugar: 0, salt: 1.2, fibre: 12 },
+    "chicken-rice": { name: "Chicken, rice and broccoli", image: null, calories: 650, protein: 55, fat: 12, saturated: 3, carbs: 75, sugar: 3, addedSugar: 0, salt: 1.2, fibre: 7 }
+  };
+
+  // Today's meals are seeded relative to now (dropped if that would be before
+  // midnight), so "today" never shows a meal from the future.
+  function seedToday(foodKey, minutesAgo) {
+    var meal = Object.assign({}, FOODS[foodKey]);
+    meal.at = new Date(Date.now() - minutesAgo * 60000);
+    return daysAgo(meal.at) === 0 ? meal : null;
+  }
+  // Yesterday is a complete day that lands inside every target.
+  function seedYesterday(foodKey, hours, minutes) {
+    var meal = Object.assign({}, FOODS[foodKey]);
+    meal.at = startOfDay(new Date());
+    meal.at.setDate(meal.at.getDate() - 1);
+    meal.at.setHours(hours, minutes);
+    return meal;
+  }
+  var diary = [ // newest first
+    seedToday("apple-cake", 50), seedToday("noodle-soup", 200), seedToday("scrambled-egg", 360),
+    seedYesterday("chicken-rice", 19, 30), seedYesterday("apple-cake", 16, 15), seedYesterday("lentil-soup", 13, 0),
+    seedYesterday("yoghurt-bowl", 10, 30), seedYesterday("scrambled-egg", 7, 45)
+  ].filter(Boolean);
+  var tiles = ["apple-cake", "cheese-bread", "scrambled-egg", "noodle-soup"].map(function (k) { return FOODS[k]; });
+
+  var recentEl = document.getElementById("demo-recent");
+  var tilesEl = document.getElementById("demo-tiles");
+  var overviewEl = document.getElementById("demo-overview");
+  var trendsEl = document.getElementById("demo-trends");
+  var chartsEl = document.getElementById("demo-trends-charts");
   var sheet = document.getElementById("demo-sheet");
   var end = document.getElementById("demo-end");
   var cameraBtn = document.getElementById("demo-camera");
@@ -694,12 +813,25 @@
   var remaining = null; // unknown until the first answer from /api/demo
   var current = null; // { image, description, result } of the meal in the sheet
   var appCheck = null;
+  var trendsMode = "days";
+  var trendsOpener = null;
+
+  // --- Formatting -----------------------------------------------------------
 
   function pad(n) { return (n < 10 ? "0" : "") + n; }
-  function clock() { var d = new Date(); return pad(d.getHours()) + ":" + pad(d.getMinutes()); }
-  function tick() { document.getElementById("demo-clock").textContent = clock(); }
-  tick();
-  setInterval(tick, 30000);
+  function hhmm(d) { return pad(d.getHours()) + ":" + pad(d.getMinutes()); }
+  function startOfDay(d) { var s = new Date(d); s.setHours(0, 0, 0, 0); return s; }
+  function daysAgo(d) { return Math.round((startOfDay(new Date()) - startOfDay(d)) / 86400000); }
+  function dayName(d) {
+    var ago = daysAgo(d);
+    return ago === 0 ? "Today" : ago === 1 ? "Yesterday" : d.toLocaleDateString("en-GB", { weekday: "short" });
+  }
+  function longDate(d) { return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }); }
+  function grams(n) { return n == null ? "?g" : Math.round(n * 10) / 10 + "g"; }
+  function kcal(n) { return Math.round(n || 0) + "kcal"; }
+  function range(m) {
+    return m.key === "calories" ? m.min / 1000 + "k-" + m.max / 1000 + "k" : m.min + "-" + m.max;
+  }
 
   function el(tag, className, text) {
     var node = document.createElement(tag);
@@ -713,16 +845,295 @@
     b.addEventListener("click", onClick);
     return b;
   }
-
-  // The prompt wants the English name of the output language ("German"), the
-  // same form the app sends.
-  function language() {
-    try {
-      return new Intl.DisplayNames(["en"], { type: "language" }).of(navigator.language.split("-")[0]) || "English";
-    } catch (e) {
-      return "English";
-    }
+  function img(className, src) {
+    var i = el("img", className);
+    i.src = src;
+    i.alt = "";
+    return i;
   }
+  function chipsFor(meal) {
+    return [
+      ["c-cal", kcal(meal.calories)],
+      ["c-pro", "Protein: " + grams(meal.protein)],
+      ["c-fat", "Fat: " + grams(meal.fat) + "(" + grams(meal.saturated) + ")"],
+      ["c-carb", "Carb: " + grams(meal.carbs) + "(" + grams(meal.sugar) + "/" + grams(meal.addedSugar) + ")"],
+      ["c-salt", "Salt: " + grams(meal.salt)],
+      ["c-fib", "Fibre: " + grams(meal.fibre)]
+    ];
+  }
+
+  function tick() {
+    var now = hhmm(new Date());
+    Array.prototype.forEach.call(document.querySelectorAll(".js-demo-clock"), function (c) { c.textContent = now; });
+  }
+  tick();
+  setInterval(tick, 30000);
+
+  // --- Diary maths ----------------------------------------------------------
+
+  function mealsOn(ago) { return diary.filter(function (m) { return daysAgo(m.at) === ago; }); }
+  function totals(meals) {
+    var t = {};
+    TRENDS.forEach(function (m) {
+      t[m.key] = meals.reduce(function (sum, meal) { return sum + (meal[m.key] || 0); }, 0);
+    });
+    return t;
+  }
+  function targetFor(key) { return MACROS.filter(function (m) { return m.key === key; })[0] || null; }
+
+  // --- Widget ---------------------------------------------------------------
+
+  function renderWidget(highlightNewest) {
+    recentEl.textContent = "";
+    diary.forEach(function (meal, i) {
+      var li = el("li", highlightNewest && i === 0 ? "is-new" : null);
+      if (meal.image) {
+        li.appendChild(img("w-thumb", meal.image));
+      } else {
+        var noImg = el("div", "w-thumb w-noimg", "✎");
+        noImg.setAttribute("aria-hidden", "true");
+        li.appendChild(noImg);
+      }
+      var text = el("div");
+      text.appendChild(el("div", "w-name", meal.name));
+      text.appendChild(el("div", "w-sub", dayName(meal.at) + ", " + hhmm(meal.at) + " (" + kcal(meal.calories) + ")"));
+      li.appendChild(text);
+      recentEl.appendChild(li);
+    });
+    if (highlightNewest) document.getElementById("demo-widget-scroll").scrollTop = 0;
+  }
+
+  function renderTiles(highlightFirst) {
+    tilesEl.textContent = "";
+    tiles.forEach(function (meal, i) {
+      var tile = el("button", "w-tile" + (highlightFirst && i === 0 ? " is-new" : ""));
+      tile.type = "button";
+      tile.setAttribute("data-tile", String(i));
+      tile.setAttribute("aria-label", "Log " + meal.name);
+      if (meal.image) tile.appendChild(img(null, meal.image));
+      tile.appendChild(el("span", null, meal.name));
+      tilesEl.appendChild(tile);
+    });
+  }
+
+  // --- Overview -------------------------------------------------------------
+
+  function summaryCard(meals, ago) {
+    var t = totals(meals);
+    var card = el("button", "ov-summary");
+    card.type = "button";
+    card.setAttribute("aria-label", dayName(new Date(Date.now() - ago * 86400000)) + "’s totals: " + kcal(t.calories) + ". Open trends");
+    var grid = el("div", "ov-grid");
+    MACROS.forEach(function (m) {
+      var scale = m.max * 1.25;
+      var row = el("div");
+      var line = el("div", "ov-line");
+      line.appendChild(el("span", null, m.label));
+      line.appendChild(el("b", null, m.key === "calories" ? kcal(t.calories) : grams(t[m.key])));
+      row.appendChild(line);
+      var track = el("div", "ov-track");
+      var fill = el("div", "ov-fill");
+      fill.style.width = Math.min(t[m.key] / scale, 1) * 100 + "%";
+      fill.style.background = m.color;
+      var tickMark = el("div", "ov-tick");
+      tickMark.style.left = m.min / scale * 100 + "%";
+      track.appendChild(fill);
+      track.appendChild(tickMark);
+      row.appendChild(track);
+      row.appendChild(el("div", "ov-range", "target " + range(m)));
+      grid.appendChild(row);
+    });
+    card.appendChild(grid);
+
+    // The proposed Trends entry point: a labelled footer with the last 7 days'
+    // calories, on the card that already opens Trends in the app.
+    var footer = el("div", "ov-trends");
+    var spark = el("div", "ov-spark");
+    spark.setAttribute("aria-hidden", "true");
+    var week = series("calories", "days");
+    var top = Math.max.apply(null, week.concat([1]));
+    week.forEach(function (v) {
+      var bar = el("i");
+      bar.style.height = Math.max(2, v / top * 18) + "px";
+      spark.appendChild(bar);
+    });
+    footer.appendChild(spark);
+    footer.appendChild(el("span", null, "Last 7 days"));
+    footer.appendChild(el("b", null, "Trends ›"));
+    card.appendChild(footer);
+    return card;
+  }
+
+  function mealCard(meal, isNew) {
+    var card = el("div", "ov-meal" + (isNew ? " is-new" : ""));
+    if (meal.image) {
+      card.appendChild(img("ov-photo", meal.image));
+    } else {
+      var noImg = el("div", "ov-photo w-noimg", "✎");
+      noImg.setAttribute("aria-hidden", "true");
+      card.appendChild(noImg);
+    }
+    var body = el("div");
+    var head = el("div", "ov-meal-head");
+    head.appendChild(el("span", null, meal.name));
+    head.appendChild(el("span", null, hhmm(meal.at)));
+    body.appendChild(head);
+    var chips = el("div", "ov-chips");
+    chipsFor(meal).forEach(function (c) { chips.appendChild(el("span", "chip " + c[0], c[1])); });
+    body.appendChild(chips);
+    card.appendChild(body);
+    return card;
+  }
+
+  function renderOverview(highlightNewest) {
+    var scrollTop = overviewEl.scrollTop;
+    overviewEl.textContent = "";
+    [0, 1].forEach(function (ago) {
+      var day = new Date(Date.now() - ago * 86400000);
+      var head = el("div", "ov-day", ago === 0 ? longDate(day) : "Yesterday, " + longDate(day));
+      if (ago === 0) {
+        var gear = el("span", "ov-gear");
+        gear.setAttribute("aria-hidden", "true");
+        gear.innerHTML = '<svg viewBox="0 0 24 24" fill="#C9C3E0"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.4 7.4 0 0 0-1.7-1L15 3.5h-4l-.4 2.5a7.4 7.4 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.4 7.4 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7.4 7.4 0 0 0 1.7-1l2.4 1 2-3.4zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>';
+        head.appendChild(gear);
+      }
+      overviewEl.appendChild(head);
+      var meals = mealsOn(ago);
+      overviewEl.appendChild(summaryCard(meals, ago));
+      var list = el("div", "ov-meals");
+      meals.forEach(function (meal) { list.appendChild(mealCard(meal, highlightNewest && meal === diary[0])); });
+      overviewEl.appendChild(list);
+    });
+    overviewEl.scrollTop = highlightNewest ? 0 : scrollTop;
+  }
+
+  // --- Trends ---------------------------------------------------------------
+
+  var PERIODS = { days: 7, weeks: 8, months: 6 };
+
+  function roundValue(v) { return v < 20 ? Math.round(v * 10) / 10 : Math.round(v); }
+
+  // The history is made up to show someone hitting their goals: inside each
+  // target band, or comfortably under an "at most" limit. In Days, the last two
+  // points are yesterday's (on-target) and today's (still growing) real totals.
+  function series(key, mode) {
+    var target = targetFor(key);
+    var n = PERIODS[mode];
+    var values = [];
+    for (var i = 0; i < n; i++) {
+      var wobble = 0.7 * Math.sin(i * 1.9 + key.length) + 0.3 * Math.cos(i * 0.7 + n); // -1..1
+      var v = !target ? TYPICAL_ADDED_SUGAR * (1 + 0.25 * wobble)
+        : target.min > 0 ? target.min + (target.max - target.min) * (0.5 + 0.3 * wobble)
+        : target.max * (0.65 + 0.15 * wobble);
+      values.push(roundValue(v));
+    }
+    if (mode === "days") {
+      values[n - 2] = roundValue(totals(mealsOn(1))[key]);
+      values[n - 1] = roundValue(totals(mealsOn(0))[key]);
+    }
+    return values;
+  }
+
+  function periodLabels(mode) {
+    var n = PERIODS[mode], labels = [], now = new Date();
+    for (var i = n - 1; i >= 0; i--) {
+      if (mode === "days") {
+        labels.push(i === 0 ? "Today" : new Date(now.getTime() - i * 86400000).toLocaleDateString("en-GB", { weekday: "short" }));
+      } else if (mode === "weeks") {
+        var monday = startOfDay(now);
+        monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7) - i * 7);
+        var sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        labels.push(monday.getDate() + "-" + sunday.getDate());
+      } else {
+        labels.push(new Date(now.getFullYear(), now.getMonth() - i, 1).toLocaleDateString("en-GB", { month: "short" }));
+      }
+    }
+    return labels;
+  }
+
+  function niceTop(v) {
+    var step = Math.pow(10, Math.floor(Math.log10(v / 4)));
+    var nice = [1, 2, 2.5, 5, 10].map(function (f) { return f * step; }).filter(function (s) { return s * 4 >= v; })[0];
+    return nice * 4;
+  }
+
+  function chartSvg(trend, mode) {
+    var target = targetFor(trend.key);
+    var values = series(trend.key, mode), labels = periodLabels(mode), n = values.length;
+    var color = trend.color;
+    var partialToday = mode === "days"; // today's total is still growing
+    var W = 280, H = 150, L = 36, R = 10, T = 10, B = 24;
+    var top = niceTop(Math.max.apply(null, values.concat(target ? [target.max] : [])) * 1.08);
+    function x(i) { return L + (W - L - R) * i / (n - 1); }
+    function y(v) { return T + (H - T - B) * (1 - v / top); }
+    function pts(from, to) { return values.slice(from, to).map(function (v, i) { return x(from + i) + "," + y(v); }).join(" "); }
+    var s = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + trend.label + " by " + mode.slice(0, -1) + '">';
+    for (var g = 0; g <= 4; g++) {
+      var gv = top * g / 4;
+      s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(gv) + '" y2="' + y(gv) + '" stroke="#333" stroke-dasharray="3 3"/>';
+      s += '<text x="' + (L - 5) + '" y="' + (y(gv) + 3) + '" fill="#BDB6B0" font-size="9" text-anchor="end">' + (Number.isInteger(gv) ? gv : gv.toFixed(1)) + "</text>";
+    }
+    if (target) {
+      [target.min, target.max].forEach(function (t) {
+        if (t > 0) s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(t) + '" y2="' + y(t) + '" stroke="' + color + '" stroke-width="1.5" stroke-dasharray="6 4" opacity=".8"/>';
+      });
+    }
+    s += '<polyline points="' + pts(0, partialToday ? n - 1 : n) + '" fill="none" stroke="' + color + '" stroke-width="2"/>';
+    if (partialToday) {
+      s += '<polyline points="' + pts(n - 2, n) + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-dasharray="3 3" opacity=".7"/>';
+    }
+    values.forEach(function (v, i) {
+      var hollow = partialToday && i === n - 1;
+      s += '<circle cx="' + x(i) + '" cy="' + y(v) + '" r="3.5" fill="' + (hollow ? "#121212" : color) + '" stroke="' + color + '" stroke-width="1.5"><title>'
+        + labels[i] + ": " + v + (hollow ? " so far" : "") + "</title></circle>";
+      if (n > 7 && (n - 1 - i) % 2 === 1) return; // every other week label, so they don't collide
+      var anchor = i === n - 1 ? "end" : "middle";
+      s += '<text x="' + (i === n - 1 ? x(i) + 4 : x(i)) + '" y="' + (H - 8) + '" fill="#BDB6B0" font-size="9" text-anchor="' + anchor + '">' + labels[i] + "</text>";
+    });
+    return s + "</svg>";
+  }
+
+  function renderTrends() {
+    chartsEl.textContent = "";
+    TRENDS.forEach(function (trend) {
+      var section = el("div", "trend");
+      var title = el("div", "trend-title", trend.label);
+      title.style.color = trend.color;
+      section.appendChild(title);
+      var chart = el("div");
+      chart.innerHTML = chartSvg(trend, trendsMode); // built from numbers and our own labels only
+      section.appendChild(chart.firstChild);
+      chartsEl.appendChild(section);
+    });
+    Array.prototype.forEach.call(trendsEl.querySelectorAll("[data-mode]"), function (b) {
+      b.setAttribute("aria-pressed", String(b.getAttribute("data-mode") === trendsMode));
+    });
+  }
+
+  function openTrends(opener) {
+    markStarted();
+    trendsOpener = opener;
+    renderTrends();
+    trendsEl.hidden = false;
+    chartsEl.scrollTop = 0;
+    document.getElementById("demo-trends-back").focus({ preventScroll: true });
+  }
+  function closeTrends() {
+    if (trendsEl.hidden || trendsEl.classList.contains("is-closing")) return;
+    function finish() {
+      trendsEl.classList.remove("is-closing");
+      trendsEl.hidden = true;
+      if (trendsOpener && document.body.contains(trendsOpener)) trendsOpener.focus({ preventScroll: true });
+      else overviewEl.focus({ preventScroll: true });
+    }
+    // With reduced motion there's no animation, so no animationend to wait for.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { finish(); return; }
+    trendsEl.addEventListener("animationend", finish, { once: true });
+    trendsEl.classList.add("is-closing");
+  }
+
+  // --- Visitor's first interaction ------------------------------------------
 
   function markStarted() {
     if (started) return;
@@ -746,7 +1157,17 @@
       : "That was your last free try today.";
   }
 
-  // --- Photos: downscale to a small JPEG before upload ---------------------
+  // The prompt wants the English name of the output language ("German"), the
+  // same form the app sends.
+  function language() {
+    try {
+      return new Intl.DisplayNames(["en"], { type: "language" }).of(navigator.language.split("-")[0]) || "English";
+    } catch (e) {
+      return "English";
+    }
+  }
+
+  // --- Photos: downscale to a small JPEG before upload ----------------------
 
   function toJpeg(source) {
     var w = source.naturalWidth || source.width, h = source.naturalHeight || source.height;
@@ -763,13 +1184,17 @@
     return photoFromUrl(URL.createObjectURL(file));
   }
   function photoFromUrl(url) {
-    var img = new Image();
-    img.src = url;
-    return img.decode().then(function () { return toJpeg(img); });
+    // onload rather than decode(): decode() can stall in background tabs.
+    return new Promise(function (resolve, reject) {
+      var image = new Image();
+      image.onload = function () { resolve(toJpeg(image)); };
+      image.onerror = function () { reject(new Error("Couldn't load " + url)); };
+      image.src = url;
+    });
   }
 
   // --- App Check: loaded on first use, so visitors who never try the demo
-  //     don't load the Firebase SDK or reCAPTCHA ----------------------------
+  //     don't load the Firebase SDK or reCAPTCHA -----------------------------
 
   function appCheckToken() {
     if (!APP_CHECK_SITE_KEY) return Promise.resolve(null);
@@ -796,13 +1221,12 @@
     });
   }
 
-  // --- Sheet (the app's analysis screen) ----------------------------------
+  // --- Sheet (the app's analysis screen) ------------------------------------
 
   function openSheet(nodes, focusTarget) {
     sheet.textContent = "";
     if (current && current.image) {
-      var photo = el("img", "sheet-photo");
-      photo.src = current.image;
+      var photo = img("sheet-photo", current.image);
       photo.alt = "Your meal";
       sheet.appendChild(photo);
     } else if (current && current.description) {
@@ -810,13 +1234,13 @@
     }
     nodes.forEach(function (n) { sheet.appendChild(n); });
     sheet.hidden = false;
-    (focusTarget || sheet).focus();
+    (focusTarget || sheet).focus({ preventScroll: true });
   }
   function closeSheet() {
     if (busy) return;
     sheet.hidden = true;
     sheet.textContent = "";
-    cameraBtn.focus();
+    cameraBtn.focus({ preventScroll: true });
   }
 
   function showTextEntry() {
@@ -849,10 +1273,6 @@
     openSheet([status]);
   }
 
-  function grams(n) {
-    if (n == null) return "?g";
-    return (n >= 10 ? Math.round(n) : Math.round(n * 10) / 10) + "g";
-  }
   function mealTitle() {
     return current.result.title || current.description.slice(0, 60) || "Your meal";
   }
@@ -863,14 +1283,7 @@
     title.tabIndex = -1;
 
     var chips = el("div", "tracks");
-    [
-      ["c-cal", Math.round(r.calories) + "kcal"],
-      ["c-pro", "Protein: " + grams(r.protein)],
-      ["c-fat", "Fat: " + grams(r.fat) + "(" + grams(r.saturated) + ")"],
-      ["c-carb", "Carb: " + grams(r.carbs) + "(" + grams(r.sugar) + "/" + grams(r.addedSugar) + ")"],
-      ["c-salt", "Salt: " + grams(r.salt)],
-      ["c-fib", "Fibre: " + grams(r.fibre)]
-    ].forEach(function (c) { chips.appendChild(el("span", "chip " + c[0], c[1])); });
+    chipsFor(r).forEach(function (c) { chips.appendChild(el("span", "chip " + c[0], c[1])); });
 
     var inferred = el("div", "inferred");
     inferred.appendChild(el("strong", null, "What the AI inferred"));
@@ -905,7 +1318,7 @@
 
     openSheet([
       title, chips, inferred, fix, pin,
-      button("btn", "Log meal", function () { logMeal(pinBox.checked); }),
+      button("btn", "Log meal", function () { logAnalysed(pinBox.checked); }),
       button("sheet-link", "Close", closeSheet)
     ], title);
   }
@@ -925,10 +1338,10 @@
     document.getElementById("demo-end-text").textContent = message
       || "Daily Macros puts this on your Android home screen, and keeps your diary, daily totals and trends behind it.";
     end.hidden = false;
-    document.getElementById("demo-end-title").focus();
+    document.getElementById("demo-end-title").focus({ preventScroll: true });
   }
 
-  // --- Analysis -----------------------------------------------------------
+  // --- Analysis -------------------------------------------------------------
 
   function analyse(meal) {
     if (remaining === 0) { showEnd(); return; }
@@ -953,7 +1366,10 @@
         showResult();
         return;
       }
-      var message = (res.data.error && res.data.error.message) || "Something went wrong. Please try again.";
+      // No JSON error body means the request never reached demoAnalyze (e.g. a
+      // 404 with no /api/demo rewrite), so show the status to tell them apart.
+      var message = (res.data.error && res.data.error.message)
+        || "Something went wrong (HTTP " + res.status + "). Please try again.";
       if (res.status === 429) { showEnd(message); return; }
       // 422: the AI found no food to analyse - the same photo won't do better.
       showError(message, res.status !== 422 && res.status !== 400);
@@ -976,60 +1392,59 @@
     });
   }
 
-  // --- Widget -------------------------------------------------------------
+  // --- Logging: both phones show the same diary -----------------------------
 
-  function addRow(name, kcal, image) {
-    var li = el("li", "is-new");
-    var thumb;
-    if (image) {
-      thumb = el("img", "w-thumb");
-      thumb.src = image;
-      thumb.alt = "";
-    } else {
-      thumb = el("div", "w-thumb w-noimg", "✎");
-      thumb.setAttribute("aria-hidden", "true");
+  function logMeal(food, pin) {
+    markStarted();
+    var meal = Object.assign({}, food);
+    meal.at = new Date();
+    diary.unshift(meal);
+    renderWidget(true);
+    renderOverview(true);
+    if (!trendsEl.hidden) renderTrends();
+    if (pin) {
+      tiles.unshift(food);
+      tiles = tiles.slice(0, MAX_TILES);
+      renderTiles(true);
     }
-    var text = el("div");
-    text.appendChild(el("div", "w-name", name));
-    text.appendChild(el("div", "w-sub", "Today, " + clock() + " (" + Math.round(kcal) + "kcal)"));
-    li.appendChild(thumb);
-    li.appendChild(text);
-    recent.insertBefore(li, recent.firstChild);
-    while (recent.children.length > MAX_ROWS) recent.removeChild(recent.lastChild);
-  }
-
-  function addTile(name, kcal, image) {
-    var tile = el("button", "w-tile js-demo-fav is-new");
-    tile.type = "button";
-    tile.setAttribute("data-name", name);
-    tile.setAttribute("data-kcal", String(Math.round(kcal)));
-    if (image) tile.setAttribute("data-img", image);
-    tile.setAttribute("aria-label", "Log " + name);
-    if (image) {
-      var img = el("img");
-      img.src = image;
-      img.alt = "";
-      tile.appendChild(img);
-    }
-    tile.appendChild(el("span", null, name));
-    tiles.insertBefore(tile, tiles.firstChild);
-    while (tiles.children.length > MAX_ROWS) tiles.removeChild(tiles.lastChild);
-  }
-
-  function logMeal(pin) {
-    var name = mealTitle(), kcal = current.result.calories, image = current.image;
-    closeSheet();
-    addRow(name, kcal, image);
-    if (pin) addTile(name, kcal, image);
     document.getElementById("demo-after").hidden = false;
+  }
+
+  function logAnalysed(pin) {
+    var r = current.result;
+    var food = {
+      name: mealTitle(), image: current.image, calories: r.calories, protein: r.protein, fat: r.fat,
+      saturated: r.saturated, carbs: r.carbs, sugar: r.sugar, addedSugar: r.addedSugar, salt: r.salt, fibre: r.fibre
+    };
+    closeSheet();
+    logMeal(food, pin);
     if (remaining === 0) setTimeout(function () { showEnd(); }, 1200);
   }
 
-  document.getElementById("demo-phone").addEventListener("click", function (e) {
-    var fav = e.target.closest(".js-demo-fav");
-    if (!fav) return;
-    markStarted();
-    addRow(fav.getAttribute("data-name"), Number(fav.getAttribute("data-kcal")), fav.getAttribute("data-img"));
+  // --- Wiring ---------------------------------------------------------------
+
+  renderWidget(false);
+  renderTiles(false);
+  renderOverview(false);
+
+  tilesEl.addEventListener("click", function (e) {
+    var tile = e.target.closest("[data-tile]");
+    if (tile) logMeal(tiles[Number(tile.getAttribute("data-tile"))], false);
+  });
+  Array.prototype.forEach.call(document.querySelectorAll(".w-pick"), function (pick) {
+    pick.addEventListener("click", function () { logMeal(FOODS[pick.getAttribute("data-food")], false); });
+  });
+  overviewEl.addEventListener("click", function (e) {
+    var summary = e.target.closest(".ov-summary");
+    if (summary) openTrends(summary);
+  });
+  document.getElementById("demo-trends-back").addEventListener("click", closeTrends);
+  trendsEl.addEventListener("keydown", function (e) { if (e.key === "Escape") closeTrends(); });
+  trendsEl.querySelector(".trends-tabs").addEventListener("click", function (e) {
+    var tab = e.target.closest("[data-mode]");
+    if (!tab) return;
+    trendsMode = tab.getAttribute("data-mode");
+    renderTrends();
   });
   cameraBtn.addEventListener("click", function () { markStarted(); cameraInput.click(); });
   document.getElementById("demo-gallery").addEventListener("click", function () { markStarted(); galleryInput.click(); });
@@ -1037,12 +1452,6 @@
     markStarted();
     if (remaining === 0) { showEnd(); return; }
     showTextEntry();
-  });
-  document.getElementById("demo-refresh").addEventListener("click", function () {
-    var b = this;
-    b.classList.remove("spin");
-    void b.offsetWidth; // restart the animation
-    b.classList.add("spin");
   });
   [cameraInput, galleryInput].forEach(function (input) {
     input.addEventListener("change", function () {
@@ -1054,9 +1463,12 @@
   Array.prototype.forEach.call(document.querySelectorAll(".demo-samples button"), function (b) {
     b.addEventListener("click", function () { startWithPhoto(photoFromUrl(b.getAttribute("data-src"))); });
   });
+  document.getElementById("demo-show-overview").addEventListener("click", function () {
+    document.getElementById("demo-overview-device").scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  });
   document.getElementById("demo-end-close").addEventListener("click", function () {
     end.hidden = true;
-    cameraBtn.focus();
+    cameraBtn.focus({ preventScroll: true });
   });
   sheet.addEventListener("keydown", function (e) { if (e.key === "Escape") closeSheet(); });
 })();
