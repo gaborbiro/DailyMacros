@@ -224,11 +224,6 @@
   .ov-day { position: relative; margin: 6px 0 10px; text-align: center; color: #fff; font-size: 15px; }
   .ov-day + .ov-summary { margin-top: 0; }
   .ov-meals + .ov-day { margin-top: 22px; }
-  .ov-gear {
-    position: absolute; right: 0; top: -5px; display: grid; place-items: center; width: 30px; height: 30px;
-    border-radius: 50%; background: #3B3946;
-  }
-  .ov-gear svg { width: 16px; height: 16px; }
   .ov-summary {
     display: block; width: 100%; padding: 10px 10px 8px; border: 1px solid #2E2E33; border-radius: 14px;
     background: #1B1B1F; text-align: left; cursor: pointer;
@@ -421,11 +416,11 @@
               <div class="dialog" id="demo-dialog" role="dialog" aria-modal="true" aria-label="Meal analysis" tabindex="-1"></div>
             </div>
 
-            <div class="demo-end" id="demo-end" role="dialog" aria-describedby="demo-end-text" aria-label="Out of demo tries" hidden>
-              <button type="button" class="demo-end-x" id="demo-end-close" aria-label="Close">
+            <div class="demo-end" role="dialog" aria-describedby="demo-end-text" aria-label="Out of demo tries" hidden>
+              <button type="button" class="demo-end-x" aria-label="Close">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
               </button>
-              <p id="demo-end-text"></p>
+              <p class="demo-end-text" id="demo-end-text"></p>
               <a class="btn js-beta-cta" href="#join">Join the test <span class="cta-badge">3 weeks free</span></a>
               <a class="btn btn-ghost" href="#waitlist">Get notified when it launches</a>
             </div>
@@ -465,6 +460,15 @@
             </div>
             <div class="dialog-scrim" id="demo-app-scrim" hidden>
               <div class="dialog" id="demo-app-dialog" role="dialog" aria-modal="true" aria-label="Meal details" tabindex="-1"></div>
+            </div>
+            <!-- Same card as on the widget phone; both open and close together. -->
+            <div class="demo-end" role="dialog" aria-describedby="demo-end-text-app" aria-label="Out of demo tries" hidden>
+              <button type="button" class="demo-end-x" aria-label="Close">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+              </button>
+              <p class="demo-end-text" id="demo-end-text-app"></p>
+              <a class="btn js-beta-cta" href="#join">Join the test <span class="cta-badge">3 weeks free</span></a>
+              <a class="btn btn-ghost" href="#waitlist">Get notified when it launches</a>
             </div>
             <div class="gesture"></div>
           </div>
@@ -525,7 +529,7 @@
         <div id="waitlist-form-view">
           <h2>Get notified when Daily Macros launches</h2>
           <form id="waitlist-form" novalidate>
-            <p class="hint" id="waitlist-email-hint">Just a heads-up when it's ready, and about any major update before then. Not a test signup, no Google Play email needed.</p>
+            <p class="hint" id="waitlist-email-hint">Just a heads-up when it's ready, and about any major update before then. Not a test signup, no Google Play Store email needed.</p>
             <input id="waitlist-email" name="email" type="email" inputmode="email" autocomplete="email" aria-label="Email"
                    autocapitalize="off" spellcheck="false" placeholder="you@example.com" required
                    aria-describedby="waitlist-email-hint waitlist-email-error">
@@ -557,13 +561,13 @@
           </div>
           <p class="ios-note" id="ios-note" hidden>An iPhone version is planned, but it isn't available yet. Leave your email and I'll contact you about it.</p>
           <ol class="steps" id="android-steps">
-            <li>Enter your Google Play email below.</li>
+            <li>Enter your Google Play Store email below.</li>
             <li>I add that account to the test and send you the link.</li>
             <li>Install Daily Macros and use it naturally when you can. Log a few meals, try taking photos, check the macros and explore the app. Any feedback, even something small or confusing, is very useful.</li>
           </ol>
           <form id="join-form" novalidate>
-            <label for="email" id="email-label">Google account email used in Play Store</label>
-            <p class="hint" id="email-hint">Use the Google account that is signed into Google Play on your Android phone.</p>
+            <label for="email" id="email-label">Google account email used in the Google Play Store</label>
+            <p class="hint" id="email-hint">Use the Google account that is signed into the Google Play Store on your Android phone.</p>
             <input id="email" name="email" type="email" inputmode="email" autocomplete="email"
                    autocapitalize="off" spellcheck="false" placeholder="you@gmail.com" required
                    aria-describedby="email-hint email-error">
@@ -581,7 +585,7 @@
           <div id="done-android">
             <h2>Thanks, I've got your email.</h2>
             <p>I received <strong id="sent-email"></strong>.</p>
-            <p class="next"><strong>One more step, on my side:</strong> I still need to add that Google account to the Daily Macros closed test. You can't install the app until I do. Once you're added, I'll email you the Google Play testing link.</p>          </div>
+            <p class="next"><strong>One more step, on my side:</strong> I still need to add that Google account to the Daily Macros closed test. You can't install the app until I do. Once you're added, I'll email you the Google Play Store testing link.</p>          </div>
           <div id="done-ios" hidden>
             <h2>You're on the iPhone waitlist.</h2>
             <p>I received <strong id="sent-email-ios"></strong>.</p>
@@ -669,8 +673,8 @@
 
   var COPY = {
     android: {
-      label: "Google account email used in Play Store",
-      hint: "Use the Google account that is signed into Google Play on your Android phone.",
+      label: "Google account email used in the Google Play Store",
+      hint: "Use the Google account that is signed into the Google Play Store on your Android phone.",
       placeholder: "you@gmail.com",
       cta: "Join the Android test",
       privacy: "Your email will only be used to give you access to the Daily Macros test and contact you about testing."
@@ -864,7 +868,8 @@
   var scrim = document.getElementById("demo-scrim");
   var dialog = document.getElementById("demo-dialog");
   var favHint = document.getElementById("demo-fav-hint");
-  var end = document.getElementById("demo-end");
+  // The out-of-tries card, one per phone; they open and close together.
+  var ends = Array.prototype.slice.call(document.querySelectorAll(".demo-end"));
   var cameraBtn = document.getElementById("demo-camera");
   var cameraInput = document.getElementById("demo-camera-input");
   var galleryInput = document.getElementById("demo-gallery-input");
@@ -1066,12 +1071,6 @@
     [0, 1].forEach(function (ago) {
       var day = new Date(Date.now() - ago * 86400000);
       var head = el("div", "ov-day", ago === 0 ? longDate(day) : "Yesterday, " + longDate(day));
-      if (ago === 0) {
-        var gear = el("span", "ov-gear");
-        gear.setAttribute("aria-hidden", "true");
-        gear.innerHTML = '<svg viewBox="0 0 24 24" fill="#C9C3E0"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.4 7.4 0 0 0-1.7-1L15 3.5h-4l-.4 2.5a7.4 7.4 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.4 7.4 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7.4 7.4 0 0 0 1.7-1l2.4 1 2-3.4zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>';
-        head.appendChild(gear);
-      }
       overviewEl.appendChild(head);
       var meals = mealsOn(ago);
       overviewEl.appendChild(summaryCard(meals, ago));
@@ -1442,10 +1441,16 @@
 
   function showEnd(message) {
     scrim.hidden = true;
-    document.getElementById("demo-end-text").textContent = message
-      || "Daily Macros puts this on your Android home screen, and keeps your diary, daily totals and trends behind it.";
-    end.hidden = false;
-    end.querySelector(".btn").focus({ preventScroll: true });
+    ends.forEach(function (card) {
+      card.querySelector(".demo-end-text").textContent = message
+        || "Daily Macros puts this on your Android home screen, and keeps your diary, daily totals and trends behind it.";
+      card.hidden = false;
+    });
+    ends[0].querySelector(".btn").focus({ preventScroll: true });
+  }
+  function closeEnd() {
+    ends.forEach(function (card) { card.hidden = true; });
+    cameraBtn.focus({ preventScroll: true });
   }
 
   // --- Analysis -------------------------------------------------------------
@@ -1592,10 +1597,7 @@
   Array.prototype.forEach.call(document.querySelectorAll(".demo-samples button"), function (b) {
     b.addEventListener("click", function () { startWithPhoto(photoFromUrl(b.getAttribute("data-src"))); });
   });
-  document.getElementById("demo-end-close").addEventListener("click", function () {
-    end.hidden = true;
-    cameraBtn.focus({ preventScroll: true });
-  });
+  ends.forEach(function (card) { card.querySelector(".demo-end-x").addEventListener("click", closeEnd); });
   [widgetHost, appHost].forEach(function (host) {
     host.dialog.addEventListener("keydown", function (e) { if (e.key === "Escape") closeDialog(host); });
     // Tapping the overlay outside the dialog dismisses it, as on Android.
