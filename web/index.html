@@ -210,9 +210,9 @@
   /* Overview phone. */
   .ov-body { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
   .ov-scroll, .trends-scroll {
-    flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
+    flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+    scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, .25) transparent;
   }
-  .ov-scroll::-webkit-scrollbar, .trends-scroll::-webkit-scrollbar { display: none; }
   .ov-scroll { padding: 0 12px 26px; }
   .ov-scroll:focus-visible, .trends-scroll:focus-visible { outline: 2px solid rgba(245, 124, 0, .7); outline-offset: -2px; }
   .ov-day { position: relative; margin: 6px 0 10px; text-align: center; color: #fff; font-size: 15px; }
@@ -273,40 +273,46 @@
   .trend-title { margin: 14px 4px 2px; font-size: 13px; font-weight: 600; }
   .trend svg { display: block; width: 100%; height: auto; }
 
-  /* Analysis sheet (the app's meal screen) and the out-of-tries card. */
-  .sheet {
-    position: absolute; left: 0; right: 0; bottom: 0; z-index: 4; max-height: 94%; overflow-y: auto; overscroll-behavior: contain;
-    padding: 16px 16px 22px; border-radius: 22px 22px 27px 27px; background: #2B2B2B; color: #E8E2DC;
-    box-shadow: 0 -8px 30px rgba(0, 0, 0, .5); animation: demo-up .3s ease-out;
+  /* Analysis dialog over a dark overlay, like the app's meal screen, and the
+     out-of-tries card. */
+  .dialog-scrim {
+    position: absolute; inset: 0; z-index: 4; display: flex; align-items: center; justify-content: center;
+    padding: 40px 10px 22px; background: rgba(0, 0, 0, .62); animation: demo-fade .2s ease-out;
   }
-  .sheet:focus { outline: none; }
-  .sheet-photo { display: block; width: 84px; height: 84px; border-radius: 12px; object-fit: cover; }
-  .sheet-quote { margin: 0; padding: 8px 10px; border-left: 3px solid #F5A623; color: #fff; font-style: italic; }
-  .sheet h3 { margin: 12px 0 10px; color: #fff; font-size: 18px; line-height: 1.2; }
-  .sheet h3:focus { outline: none; }
-  .sheet .tracks { gap: 6px; margin: 0; }
-  .sheet .chip { padding: 4px 9px; border-radius: 8px; font-size: 12px; }
+  .dialog {
+    width: 100%; max-height: 100%; overflow-y: auto; overscroll-behavior: contain;
+    padding: 16px; border-radius: 22px; background: #2B2B2B; color: #E8E2DC;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, .6); animation: demo-pop .2s ease-out;
+    scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, .25) transparent;
+  }
+  .dialog:focus { outline: none; }
+  .dialog-photo { display: block; width: 84px; height: 84px; border-radius: 12px; object-fit: cover; }
+  .dialog-quote { margin: 0; padding: 8px 10px; border-left: 3px solid #F5A623; color: #fff; font-style: italic; }
+  .dialog h3 { margin: 12px 0 10px; color: #fff; font-size: 18px; line-height: 1.2; }
+  .dialog h3:focus { outline: none; }
+  .dialog .tracks { gap: 6px; margin: 0; }
+  .dialog .chip { padding: 4px 9px; border-radius: 8px; font-size: 12px; }
   .inferred { margin-top: 12px; padding: 10px 12px; border: 1.5px solid #F5A623; border-radius: 12px; }
   .inferred strong { color: #fff; }
   .inferred ul { margin: 6px 0 8px; padding: 0; list-style: none; }
   .inferred em { display: block; margin-top: 8px; color: #A9A29C; }
-  .sheet-fix { display: flex; gap: 6px; margin-top: 12px; }
-  .sheet input[type=text], .sheet textarea {
+  .dialog-fix { display: flex; gap: 6px; margin-top: 12px; }
+  .dialog input[type=text], .dialog textarea {
     flex: 1; min-width: 0; width: 100%; padding: 9px 10px; border: 1px solid #555; border-radius: 10px;
     background: #1E1E1E; color: #fff; font: inherit; font-size: 13px;
   }
-  .sheet textarea { min-height: 80px; resize: vertical; }
-  .sheet .btn { width: 100%; margin-top: 12px; padding: 11px; font-size: 15px; background: #F5A623; color: #2B1A00; }
-  .sheet .btn:hover { background: #FFB840; }
-  .sheet .btn-small { width: auto; margin: 0; padding: 9px 12px; font-size: 13px; }
-  .sheet-link {
+  .dialog textarea { min-height: 80px; resize: vertical; }
+  .dialog .btn { width: 100%; margin-top: 12px; padding: 11px; font-size: 15px; background: #F5A623; color: #2B1A00; }
+  .dialog .btn:hover { background: #FFB840; }
+  .dialog .btn-small { width: auto; margin: 0; padding: 9px 12px; font-size: 13px; }
+  .dialog-link {
     display: block; margin: 10px auto 0; border: 0; background: none; cursor: pointer;
     color: #F5A623 !important; font-weight: 600;
   }
-  .sheet-pin { display: flex; align-items: center; gap: 8px; margin: 12px 0 0; font-weight: 400; cursor: pointer; }
-  .sheet-pin input { width: 18px; height: 18px; accent-color: #F5A623; }
-  .sheet-status { display: flex; align-items: center; gap: 12px; margin-top: 16px; color: #fff; }
-  .sheet-error { margin-top: 12px; color: #FFB4A9; }
+  .dialog-pin { display: flex; align-items: center; gap: 8px; margin: 12px 0 0; font-weight: 400; cursor: pointer; }
+  .dialog-pin input { width: 18px; height: 18px; accent-color: #F5A623; }
+  .dialog-status { display: flex; align-items: center; gap: 12px; margin-top: 16px; color: #fff; }
+  .dialog-error { margin-top: 12px; color: #FFB4A9; }
   .spinner {
     flex: none; width: 28px; height: 28px; border: 3px solid rgba(255, 255, 255, .2);
     border-top-color: #F5A623; border-radius: 50%; animation: demo-spin .9s linear infinite;
@@ -315,15 +321,20 @@
     position: absolute; inset: 0; z-index: 6; display: flex; flex-direction: column; justify-content: center; gap: 12px;
     padding: 24px; text-align: center; background: rgba(20, 10, 0, .92); color: #fff;
   }
-  .demo-end h3 { font-size: 20px; line-height: 1.2; }
-  .demo-end h3:focus { outline: none; }
-  .demo-end p { color: #E8DCD2; }
+  .demo-end p { color: #E8DCD2; font-size: 15px; }
+  .demo-end-x {
+    position: absolute; top: 40px; right: 14px; display: grid; place-items: center; width: 36px; height: 36px;
+    border: 0; border-radius: 50%; background: rgba(255, 255, 255, .12); color: #fff; cursor: pointer;
+  }
+  .demo-end-x:hover, .demo-end-x:focus-visible { background: rgba(255, 255, 255, .24); outline: none; }
+  .demo-end-x svg { width: 18px; height: 18px; }
   .demo-end .btn { font-size: 15px; padding: 12px 14px; }
   .demo-end .btn-ghost { color: #FFD3A8; }
 
   @keyframes demo-pulse { 0% { box-shadow: 0 0 0 0 rgba(245, 124, 0, .8); } 100% { box-shadow: 0 0 0 12px rgba(245, 124, 0, 0); } }
   @keyframes demo-spin { to { transform: rotate(360deg); } }
-  @keyframes demo-up { from { transform: translateY(100%); } to { transform: none; } }
+  @keyframes demo-fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes demo-pop { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
   @keyframes demo-slide { from { transform: translateX(100%); } to { transform: none; } }
   @keyframes demo-slide-out { from { transform: none; } to { transform: translateX(100%); } }
   .trends.is-closing { animation: demo-slide-out .22s ease-in forwards; }
@@ -396,16 +407,20 @@
               </div>
               <p class="w-hint" id="demo-hint">↑ Tap the camera to log a meal</p>
               <div class="w-tiles" id="demo-tiles" aria-label="Favourite meals"></div>
+              <p class="w-hint" id="demo-fav-hint" hidden>↑ Tap a favourite to log it in one tap</p>
             </div>
 
-            <div class="sheet" id="demo-sheet" role="dialog" aria-label="Meal analysis" tabindex="-1" hidden></div>
+            <div class="dialog-scrim" id="demo-scrim" hidden>
+              <div class="dialog" id="demo-dialog" role="dialog" aria-modal="true" aria-label="Meal analysis" tabindex="-1"></div>
+            </div>
 
-            <div class="demo-end" id="demo-end" role="dialog" aria-labelledby="demo-end-title" hidden>
-              <h3 id="demo-end-title" tabindex="-1">That’s your home screen from now on.</h3>
+            <div class="demo-end" id="demo-end" role="dialog" aria-describedby="demo-end-text" aria-label="Out of demo tries" hidden>
+              <button type="button" class="demo-end-x" id="demo-end-close" aria-label="Close">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+              </button>
               <p id="demo-end-text"></p>
-              <a class="btn" href="#waitlist">Get notified when it launches</a>
-              <a class="btn btn-ghost js-beta-cta" href="#join">Join the test</a>
-              <button type="button" class="sheet-link" id="demo-end-close">Back to the widget</button>
+              <a class="btn js-beta-cta" href="#join">Join the test</a>
+              <a class="btn btn-ghost" href="#waitlist">Get notified when it launches</a>
             </div>
             <div class="gesture"></div>
           </div>
@@ -800,7 +815,9 @@
   var overviewEl = document.getElementById("demo-overview");
   var trendsEl = document.getElementById("demo-trends");
   var chartsEl = document.getElementById("demo-trends-charts");
-  var sheet = document.getElementById("demo-sheet");
+  var scrim = document.getElementById("demo-scrim");
+  var dialog = document.getElementById("demo-dialog");
+  var favHint = document.getElementById("demo-fav-hint");
   var end = document.getElementById("demo-end");
   var cameraBtn = document.getElementById("demo-camera");
   var cameraInput = document.getElementById("demo-camera-input");
@@ -809,8 +826,10 @@
 
   var started = false;
   var busy = false;
+  var aiRan = false; // an analysis came back, whatever the outcome
+  var favouriteUsed = false;
   var remaining = null; // unknown until the first answer from /api/demo
-  var current = null; // { image, description, result } of the meal in the sheet
+  var current = null; // { image, description, result } of the meal in the dialog
   var appCheck = null;
   var trendsMode = "days";
   var trendsOpener = null;
@@ -1220,26 +1239,28 @@
     });
   }
 
-  // --- Sheet (the app's analysis screen) ------------------------------------
+  // --- Dialog (the app's analysis screen) ------------------------------------
 
-  function openSheet(nodes, focusTarget) {
-    sheet.textContent = "";
+  function openDialog(nodes, focusTarget) {
+    dialog.textContent = "";
     if (current && current.image) {
-      var photo = img("sheet-photo", current.image);
+      var photo = img("dialog-photo", current.image);
       photo.alt = "Your meal";
-      sheet.appendChild(photo);
+      dialog.appendChild(photo);
     } else if (current && current.description) {
-      sheet.appendChild(el("p", "sheet-quote", "“" + current.description + "”"));
+      dialog.appendChild(el("p", "dialog-quote", "“" + current.description + "”"));
     }
-    nodes.forEach(function (n) { sheet.appendChild(n); });
-    sheet.hidden = false;
-    (focusTarget || sheet).focus({ preventScroll: true });
+    nodes.forEach(function (n) { dialog.appendChild(n); });
+    scrim.hidden = false;
+    (focusTarget || dialog).focus({ preventScroll: true });
   }
-  function closeSheet() {
+  function closeDialog() {
     if (busy) return;
-    sheet.hidden = true;
-    sheet.textContent = "";
+    scrim.hidden = true;
+    dialog.textContent = "";
     cameraBtn.focus({ preventScroll: true });
+    // Once they've tried the AI, point at the one-tap way of logging.
+    if (aiRan && !favouriteUsed) favHint.hidden = false;
   }
 
   function showTextEntry() {
@@ -1249,7 +1270,7 @@
     area.maxLength = 500;
     area.placeholder = "e.g. a bowl of porridge with banana and a spoon of honey";
     area.setAttribute("aria-label", "Describe your meal");
-    openSheet([
+    openDialog([
       title,
       area,
       button("btn", "Analyse", function () {
@@ -1257,23 +1278,28 @@
         if (!text) { area.focus(); return; }
         analyse({ image: null, description: text });
       }),
-      button("sheet-link", "Close", closeSheet)
+      button("dialog-link", "Close", closeDialog)
     ], area);
   }
 
   function showAnalysing() {
-    var status = el("div", "sheet-status");
+    var status = el("div", "dialog-status");
     status.setAttribute("role", "status");
     status.appendChild(el("div", "spinner"));
     var text = el("div");
     text.appendChild(el("div", null, "Analysing your meal…"));
     text.appendChild(el("div", "w-sub", "Usually takes 10–20 seconds."));
     status.appendChild(text);
-    openSheet([status]);
+    openDialog([status]);
   }
 
+  // The AI's title, falling back to what the visitor typed, then the main
+  // component the AI found ("mushrooms" -> "Mushrooms").
   function mealTitle() {
-    return current.result.title || current.description.slice(0, 60) || "Your meal";
+    var r = current.result;
+    var component = r.components.length ? r.components[0].name : "";
+    return r.title || current.description.slice(0, 60)
+      || component.charAt(0).toUpperCase() + component.slice(1) || "Your meal";
   }
 
   function showResult() {
@@ -1294,7 +1320,7 @@
     if (r.notes) inferred.appendChild(el("p", null, r.notes));
     inferred.appendChild(el("em", null, "If something looks off, add a clarification below and re-run the analysis."));
 
-    var fix = el("div", "sheet-fix");
+    var fix = el("div", "dialog-fix");
     var note = el("input");
     note.type = "text";
     note.maxLength = 200;
@@ -1309,35 +1335,35 @@
     fix.appendChild(note);
     fix.appendChild(rerun);
 
-    var pin = el("label", "sheet-pin");
+    var pin = el("label", "dialog-pin");
     var pinBox = el("input");
     pinBox.type = "checkbox";
     pin.appendChild(pinBox);
     pin.appendChild(document.createTextNode("Pin to home screen as a favourite"));
 
-    openSheet([
+    openDialog([
       title, chips, inferred, fix, pin,
       button("btn", "Log meal", function () { logAnalysed(pinBox.checked); }),
-      button("sheet-link", "Close", closeSheet)
+      button("dialog-link", "Close", closeDialog)
     ], title);
   }
 
   function showError(message, canRetry) {
-    var nodes = [el("p", "sheet-error", message)];
+    var nodes = [el("p", "dialog-error", message)];
     if (canRetry && current) {
       nodes.push(button("btn", "Try again", function () { analyse(current); }));
     }
-    nodes.push(button(canRetry ? "sheet-link" : "btn", "Try another photo", function () { cameraInput.click(); }));
-    nodes.push(button("sheet-link", "Close", closeSheet));
-    openSheet(nodes, nodes[nodes.length - 1]);
+    nodes.push(button(canRetry ? "dialog-link" : "btn", "Try another photo", function () { cameraInput.click(); }));
+    nodes.push(button("dialog-link", "Close", closeDialog));
+    openDialog(nodes, nodes[nodes.length - 1]);
   }
 
   function showEnd(message) {
-    sheet.hidden = true;
+    scrim.hidden = true;
     document.getElementById("demo-end-text").textContent = message
       || "Daily Macros puts this on your Android home screen, and keeps your diary, daily totals and trends behind it.";
     end.hidden = false;
-    document.getElementById("demo-end-title").focus({ preventScroll: true });
+    end.querySelector(".btn").focus({ preventScroll: true });
   }
 
   // --- Analysis -------------------------------------------------------------
@@ -1359,6 +1385,7 @@
       return r.json().catch(function () { return {}; }).then(function (data) { return { status: r.status, data: data }; });
     }).then(function (res) {
       busy = false;
+      aiRan = true;
       if (typeof res.data.remaining === "number") setRemaining(res.data.remaining);
       if (res.status === 200 && res.data.ok) {
         current.result = res.data.result;
@@ -1374,6 +1401,7 @@
       showError(message, res.status !== 422 && res.status !== 400);
     }).catch(function (ex) {
       busy = false;
+      aiRan = true;
       showError(ex instanceof TypeError
         ? "Couldn't reach the server. Check your connection and try again."
         : "The demo couldn't verify this browser. Please reload the page.", true);
@@ -1415,7 +1443,7 @@
       name: mealTitle(), image: current.image, calories: r.calories, protein: r.protein, fat: r.fat,
       saturated: r.saturated, carbs: r.carbs, sugar: r.sugar, addedSugar: r.addedSugar, salt: r.salt, fibre: r.fibre
     };
-    closeSheet();
+    closeDialog();
     logMeal(food, pin);
     if (remaining === 0) setTimeout(function () { showEnd(); }, 1200);
   }
@@ -1426,12 +1454,17 @@
   renderTiles(false);
   renderOverview(false);
 
+  function logFavourite(food) {
+    favouriteUsed = true;
+    favHint.hidden = true;
+    logMeal(food, false);
+  }
   tilesEl.addEventListener("click", function (e) {
     var tile = e.target.closest("[data-tile]");
-    if (tile) logMeal(tiles[Number(tile.getAttribute("data-tile"))], false);
+    if (tile) logFavourite(tiles[Number(tile.getAttribute("data-tile"))]);
   });
   Array.prototype.forEach.call(document.querySelectorAll(".w-pick"), function (pick) {
-    pick.addEventListener("click", function () { logMeal(FOODS[pick.getAttribute("data-food")], false); });
+    pick.addEventListener("click", function () { logFavourite(FOODS[pick.getAttribute("data-food")]); });
   });
   overviewEl.addEventListener("click", function (e) {
     var summary = e.target.closest(".ov-summary");
@@ -1469,7 +1502,9 @@
     end.hidden = true;
     cameraBtn.focus({ preventScroll: true });
   });
-  sheet.addEventListener("keydown", function (e) { if (e.key === "Escape") closeSheet(); });
+  dialog.addEventListener("keydown", function (e) { if (e.key === "Escape") closeDialog(); });
+  // Tapping the overlay outside the dialog dismisses it, as on Android.
+  scrim.addEventListener("click", function (e) { if (e.target === scrim) closeDialog(); });
 })();
 </script>
 </body>
