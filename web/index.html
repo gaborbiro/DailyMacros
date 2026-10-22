@@ -278,6 +278,10 @@
   .ov-meal {
     display: grid; grid-template-columns: 54px 1fr; gap: 8px; margin-top: 8px; padding: 4px; border-radius: 10px; cursor: pointer;
   }
+  /* Without this, a 1fr grid track's default auto min-width lets a long meal
+     name or non-wrapping chip force the track (and the whole card) wider
+     than the phone, instead of actually truncating as intended. */
+  .ov-meal > div:last-child { min-width: 0; }
   .ov-meal:hover, .ov-meal:focus-visible { background: rgba(255, 255, 255, .06); outline: none; }
   .ov-photo { width: 54px; height: 54px; border-radius: 8px; object-fit: cover; background: #2C2C30; }
   .ov-meal-head { display: flex; justify-content: space-between; gap: 6px; color: #fff; font-size: 13px; }
@@ -312,7 +316,7 @@
      out-of-tries card. */
   .dialog-scrim {
     position: absolute; inset: 0; z-index: 4; display: flex; align-items: center; justify-content: center;
-    padding: 40px 10px 22px; background: rgba(0, 0, 0, .62); animation: demo-fade .2s ease-out;
+    padding: 40px 4px 22px; background: rgba(0, 0, 0, .62); animation: demo-fade .2s ease-out;
   }
   /* .dialog-box is the visible card and owns the pop-in; .dialog is just the
      scrolling content, with its native scrollbar hidden in favour of
