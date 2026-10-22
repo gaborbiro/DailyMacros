@@ -130,11 +130,6 @@
   }
   .demo-samples button:focus-visible { outline: 3px solid rgba(245, 124, 0, .6); outline-offset: 2px; }
   .demo-samples img { display: block; width: 100%; height: 100%; object-fit: cover; }
-  .demo-after { background: #FFF1DD; border-radius: 12px; padding: 10px 14px; }
-  .demo-after button {
-    border: 0; padding: 0; background: none; cursor: pointer; font: inherit; font-weight: 700;
-    color: var(--orange-dark); text-decoration: underline;
-  }
 
   /* Phone frame. */
   .phone {
@@ -144,12 +139,7 @@
   }
   .phone button { font: inherit; color: inherit; }
   .screen { position: relative; display: flex; flex-direction: column; height: 100%; overflow: hidden; border-radius: 27px; background: #121212; }
-  .screen-home {
-    background:
-      radial-gradient(120% 70% at 15% 0%, rgba(140, 110, 170, .30), transparent 60%),
-      radial-gradient(110% 60% at 100% 100%, rgba(214, 120, 50, .26), transparent 60%),
-      linear-gradient(170deg, #2B2530, #1A171D 55%, #221A15);
-  }
+  .screen-home { background: #1E1A26 url(/img/demo/wallpaper.svg) center / cover no-repeat; }
   .status {
     position: relative; flex: none; display: flex; align-items: center; justify-content: space-between;
     padding: 10px 18px 8px; color: #fff; font-size: 12px; font-weight: 600;
@@ -208,7 +198,8 @@
     width: fit-content; margin: 10px auto 0; padding: 5px 12px; border-radius: 999px;
     background: var(--orange); color: #fff; font-weight: 700; font-size: 12.5px;
   }
-  .w-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .w-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 24px; }
+  .w-hint + .w-tiles { margin-top: 14px; }
   .w-tile {
     position: relative; height: 70px; padding: 0; border: 0; border-radius: 12px; overflow: hidden;
     background: #4A382D; cursor: pointer; box-shadow: 0 4px 12px rgba(0, 0, 0, .3);
@@ -257,7 +248,10 @@
   .ov-spark i { display: block; width: 5px; border-radius: 1.5px; background: #5E7BA6; }
   .ov-spark i:last-child { background: #A9CFF7; }
   .ov-trends b { margin-left: auto; color: #F5A623; }
-  .ov-meal { display: grid; grid-template-columns: 54px 1fr; gap: 8px; margin-top: 12px; border-radius: 10px; }
+  .ov-meal {
+    display: grid; grid-template-columns: 54px 1fr; gap: 8px; margin-top: 8px; padding: 4px; border-radius: 10px; cursor: pointer;
+  }
+  .ov-meal:hover, .ov-meal:focus-visible { background: rgba(255, 255, 255, .06); outline: none; }
   .ov-photo { width: 54px; height: 54px; border-radius: 8px; object-fit: cover; background: #2C2C30; }
   .ov-meal-head { display: flex; justify-content: space-between; gap: 6px; color: #fff; font-size: 13px; }
   .ov-meal-head span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -377,7 +371,7 @@
 
     <div class="demo-phones">
       <figure class="demo-device" id="demo-widget-device">
-        <figcaption>Widget</figcaption>
+        <figcaption>Widgets</figcaption>
         <div class="phone" id="demo-phone" role="group" aria-label="Interactive replica of the Daily Macros home-screen widget">
           <div class="screen screen-home">
             <div class="status" aria-hidden="true">
@@ -468,6 +462,9 @@
                 <div class="trends-scroll" id="demo-trends-charts" tabindex="0" aria-label="Charts"></div>
               </div>
             </div>
+            <div class="dialog-scrim" id="demo-app-scrim" hidden>
+              <div class="dialog" id="demo-app-dialog" role="dialog" aria-modal="true" aria-label="Meal details" tabindex="-1"></div>
+            </div>
             <div class="gesture"></div>
           </div>
         </div>
@@ -482,7 +479,6 @@
         <button type="button" data-src="/img/demo/apple-cake.jpg" aria-label="Analyse a sample photo of apple cake"><img src="/img/demo/apple-cake.jpg" alt=""></button>
         <button type="button" data-src="/img/demo/cheese-bread.jpg" aria-label="Analyse a sample photo of cheese bread"><img src="/img/demo/cheese-bread.jpg" alt=""></button>
       </div>
-      <p class="demo-after" id="demo-after" hidden>Logged! It’s in the app too, with today’s totals updated. <button type="button" id="demo-show-overview">Show me</button></p>
       <p class="fine">Photos are sent to OpenAI for the analysis and aren’t stored by Daily Macros. Interactive demo: the AI is real, the phones are replicas.</p>
     </div>
     <input type="file" id="demo-camera-input" accept="image/*" capture="environment" hidden>
@@ -495,7 +491,6 @@
       <a class="btn btn-ghost js-beta-cta" href="#join">Join the test <span class="cta-badge">3 weeks free</span></a>
     </div>
     <p class="fine">Android first, with an iPhone version planned. Join the waitlist either way.</p>
-    <p class="fine">Free to try, with a few AI analyses on the house. A subscription unlocks ongoing use.</p>
   </div>
 
   <div class="wrap">
@@ -1040,6 +1035,11 @@
 
   function mealCard(meal, isNew) {
     var card = el("div", "ov-meal" + (isNew ? " is-new" : ""));
+    // A div with button semantics: the card holds block layout a <button> can't.
+    card.setAttribute("role", "button");
+    card.tabIndex = 0;
+    card.setAttribute("data-meal", String(diary.indexOf(meal)));
+    card.setAttribute("aria-label", meal.name + ", " + hhmm(meal.at) + ", " + kcal(meal.calories) + ". Open details");
     if (meal.image) {
       card.appendChild(img("ov-photo", meal.image));
     } else {
@@ -1298,24 +1298,35 @@
 
   // --- Dialog (the app's analysis screen) ------------------------------------
 
-  function openDialog(nodes, focusTarget) {
-    dialog.textContent = "";
-    if (current && current.image) {
-      var photo = img("dialog-photo", current.image);
+  // Each phone has its own dialog layer: the widget's for the analysis and
+  // its recent meals, the app's for its diary entries. returnFocus is where
+  // focus goes when the dialog closes.
+  var widgetHost = { scrim: scrim, dialog: dialog, returnFocus: cameraBtn };
+  var appHost = { scrim: document.getElementById("demo-app-scrim"), dialog: document.getElementById("demo-app-dialog"), returnFocus: overviewEl };
+
+  // image defaults to the photo of the meal being analysed in the widget.
+  function openDialog(nodes, focusTarget, host, image) {
+    host = host || widgetHost;
+    if (image === undefined) image = current && current.image;
+    host.dialog.textContent = "";
+    if (image) {
+      var photo = img("dialog-photo", image);
       photo.alt = "Your meal";
-      dialog.appendChild(photo);
+      host.dialog.appendChild(photo);
     }
-    nodes.forEach(function (n) { dialog.appendChild(n); });
-    scrim.hidden = false;
-    (focusTarget || dialog).focus({ preventScroll: true });
+    nodes.forEach(function (n) { host.dialog.appendChild(n); });
+    host.scrim.hidden = false;
+    (focusTarget || host.dialog).focus({ preventScroll: true });
   }
-  function closeDialog() {
-    if (busy) return;
-    scrim.hidden = true;
-    dialog.textContent = "";
-    cameraBtn.focus({ preventScroll: true });
+  function closeWidgetDialog() { closeDialog(widgetHost); }
+  function closeDialog(host) {
+    host = host || widgetHost;
+    if (host === widgetHost && busy) return;
+    host.scrim.hidden = true;
+    host.dialog.textContent = "";
+    host.returnFocus.focus({ preventScroll: true });
     // Once they've tried the AI, point at the one-tap way of logging.
-    if (analysedOnce && !favouriteUsed) favHint.hidden = false;
+    if (host === widgetHost && analysedOnce && !favouriteUsed) favHint.hidden = false;
   }
 
   function showTextEntry() {
@@ -1333,7 +1344,7 @@
         if (!text) { area.focus(); return; }
         analyse({ image: null, description: text });
       }),
-      button("dialog-link", "Close", closeDialog)
+      button("dialog-link", "Close", closeWidgetDialog)
     ], area);
   }
 
@@ -1399,22 +1410,23 @@
     openDialog(details.concat([
       fix,
       button("btn", "Log meal", logAnalysed),
-      button("dialog-link", "Close", closeDialog)
+      button("dialog-link", "Close", closeWidgetDialog)
     ]), details[0]);
   }
 
-  // A logged meal, opened from the widget: the same screen without the
-  // re-run, as in the app.
-  function showMealDetails(meal) {
-    current = { image: meal.image, description: "", result: null };
+  // A logged meal, opened from the widget or the app's diary: the same screen
+  // without the re-run, as in the app. Leaves `current` (the widget's
+  // analysis) alone.
+  function showMealDetails(meal, host) {
     var details = mealDetailNodes(meal.name, meal, false);
+    function close() { closeDialog(host); }
     openDialog(details.concat([
       button("btn", "Log meal again", function () {
-        closeDialog();
+        close();
         logMeal(meal);
       }),
-      button("dialog-link", "Close", closeDialog)
-    ]), details[0]);
+      button("dialog-link", "Close", close)
+    ]), details[0], host, meal.image);
   }
 
   function showError(message, canRetry) {
@@ -1423,7 +1435,7 @@
       nodes.push(button("btn", "Try again", function () { analyse(current); }));
     }
     nodes.push(button(canRetry ? "dialog-link" : "btn", "Try another photo", function () { cameraInput.click(); }));
-    nodes.push(button("dialog-link", "Close", closeDialog));
+    nodes.push(button("dialog-link", "Close", closeWidgetDialog));
     openDialog(nodes, nodes[nodes.length - 1]);
   }
 
@@ -1497,7 +1509,6 @@
     renderWidget(true);
     renderOverview(true);
     if (!trendsEl.hidden) renderTrends();
-    document.getElementById("demo-after").hidden = false;
   }
 
   function logAnalysed() {
@@ -1527,7 +1538,7 @@
     var row = e.target.closest("[data-meal]");
     if (row) {
       markStarted();
-      showMealDetails(diary[Number(row.getAttribute("data-meal"))]);
+      showMealDetails(diary[Number(row.getAttribute("data-meal"))], widgetHost);
     }
   });
   tilesEl.addEventListener("click", function (e) {
@@ -1537,9 +1548,23 @@
   Array.prototype.forEach.call(document.querySelectorAll(".w-pick"), function (pick) {
     pick.addEventListener("click", function () { logFavourite(FOODS[pick.getAttribute("data-food")]); });
   });
+  function openDiaryEntry(card) {
+    markStarted();
+    appHost.returnFocus = card;
+    showMealDetails(diary[Number(card.getAttribute("data-meal"))], appHost);
+  }
   overviewEl.addEventListener("click", function (e) {
     var summary = e.target.closest(".ov-summary");
-    if (summary) openTrends(summary);
+    if (summary) { openTrends(summary); return; }
+    var card = e.target.closest(".ov-meal");
+    if (card) openDiaryEntry(card);
+  });
+  overviewEl.addEventListener("keydown", function (e) {
+    var card = e.target.closest(".ov-meal");
+    if (card && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
+      openDiaryEntry(card);
+    }
   });
   document.getElementById("demo-trends-back").addEventListener("click", closeTrends);
   trendsEl.addEventListener("keydown", function (e) { if (e.key === "Escape") closeTrends(); });
@@ -1566,16 +1591,15 @@
   Array.prototype.forEach.call(document.querySelectorAll(".demo-samples button"), function (b) {
     b.addEventListener("click", function () { startWithPhoto(photoFromUrl(b.getAttribute("data-src"))); });
   });
-  document.getElementById("demo-show-overview").addEventListener("click", function () {
-    document.getElementById("demo-overview-device").scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-  });
   document.getElementById("demo-end-close").addEventListener("click", function () {
     end.hidden = true;
     cameraBtn.focus({ preventScroll: true });
   });
-  dialog.addEventListener("keydown", function (e) { if (e.key === "Escape") closeDialog(); });
-  // Tapping the overlay outside the dialog dismisses it, as on Android.
-  scrim.addEventListener("click", function (e) { if (e.target === scrim) closeDialog(); });
+  [widgetHost, appHost].forEach(function (host) {
+    host.dialog.addEventListener("keydown", function (e) { if (e.key === "Escape") closeDialog(host); });
+    // Tapping the overlay outside the dialog dismisses it, as on Android.
+    host.scrim.addEventListener("click", function (e) { if (e.target === host.scrim) closeDialog(host); });
+  });
 })();
 </script>
 </body>
