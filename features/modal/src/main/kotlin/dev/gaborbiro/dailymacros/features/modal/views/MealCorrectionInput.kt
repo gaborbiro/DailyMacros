@@ -4,6 +4,14 @@ import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
@@ -52,6 +60,16 @@ internal fun MealCorrectionInput(
 ) {
     var open by remember { mutableStateOf(correction.text.isNotBlank()) }
     val focusRequester = remember { FocusRequester() }
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    var fieldFocused by remember { mutableStateOf(false) }
+    var openHeightPx by remember { mutableIntStateOf(0) }
+    val imeBottomPx = WindowInsets.ime.getBottom(LocalDensity.current)
+    // The field scrolls itself into view when it gains focus, but that's before the keyboard is up. The dialog's
+    // scroll area then shrinks frame by frame as the keyboard rises (and grows again when Re-analyze slides in),
+    // so keep asking for the field and its button to be in view while it's focused and either of those changes.
+    LaunchedEffect(fieldFocused, imeBottomPx, openHeightPx) {
+        if (fieldFocused) bringIntoViewRequester.bringIntoView()
+    }
     Column(modifier = modifier.fillMaxWidth()) {
         AnimatedVisibility(visible = !open) {
             // A bare link rather than a TextButton: it lines up with the text above (TextButton's own inset
@@ -71,13 +89,16 @@ internal fun MealCorrectionInput(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .bringIntoViewRequester(bringIntoViewRequester)
+                    .onSizeChanged { openHeightPx = it.height }
                     .padding(top = PaddingDefault),
             ) {
                 OutlinedTextField(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = PaddingDefault)
-                        .focusRequester(focusRequester),
+                        .focusRequester(focusRequester)
+                        .onFocusChanged { fieldFocused = it.isFocused },
                     value = correction,
                     onValueChange = onCorrectionChanged,
                     textStyle = MaterialTheme.typography.bodyMedium,
