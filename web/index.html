@@ -242,19 +242,19 @@
     flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
     scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, .25) transparent;
   }
-  .ov-scroll { padding: 0 6px 26px; }
+  .ov-scroll { padding: 0 2px 26px; }
   .ov-scroll:focus-visible, .trends-scroll:focus-visible { outline: 2px solid rgba(245, 124, 0, .7); outline-offset: -2px; }
   .ov-day { position: relative; margin: 6px 0 10px; text-align: center; color: #fff; font-size: 15px; }
   .ov-day + .ov-summary { margin-top: 0; }
   .ov-meals + .ov-day { margin-top: 22px; }
   .ov-summary {
-    display: block; width: 100%; padding: 10px 6px 8px; border: 1px solid #2E2E33; border-radius: 14px;
+    display: block; width: 100%; padding: 10px 4px 8px; border: 1px solid #2E2E33; border-radius: 14px;
     background: #1B1B1F; text-align: left; cursor: pointer;
   }
   .ov-summary:hover, .ov-summary:focus-visible { border-color: #5E5A6B; outline: none; }
-  .ov-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 8px; }
-  .ov-row { display: grid; grid-template-columns: 54px 1fr; column-gap: 6px; align-items: center; }
-  .ov-label { grid-column: 1; grid-row: 1; text-align: right; color: #D9D2CC; font-size: 10.5px; }
+  .ov-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 6px; }
+  .ov-row { display: grid; grid-template-columns: 46px 1fr; column-gap: 4px; align-items: center; }
+  .ov-label { grid-column: 1; grid-row: 1; text-align: right; color: #D9D2CC; font-size: 10px; }
   /* Value and range stack (rather than share a line) so neither gets squeezed
      against the card edge at this phone's narrower width. */
   .ov-line {
