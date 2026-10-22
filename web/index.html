@@ -211,7 +211,6 @@
   .w-bar svg { width: 24px; height: 24px; }
   .pulse { animation: demo-pulse 1.6s ease-out infinite; }
   .w-bar .pulse:nth-of-type(2) { animation-delay: .4s; }
-  .w-bar .pulse:nth-of-type(3) { animation-delay: .8s; }
   .w-hint {
     width: fit-content; margin: 10px auto 0; padding: 5px 12px; border-radius: 999px;
     background: var(--orange); color: #fff; font-weight: 700; font-size: 12.5px;
@@ -243,14 +242,19 @@
   .ov-day + .ov-summary { margin-top: 0; }
   .ov-meals + .ov-day { margin-top: 22px; }
   .ov-summary {
-    display: block; width: 100%; padding: 10px 10px 8px; border: 1px solid #2E2E33; border-radius: 14px;
+    display: block; width: 100%; padding: 10px 8px 8px; border: 1px solid #2E2E33; border-radius: 14px;
     background: #1B1B1F; text-align: left; cursor: pointer;
   }
   .ov-summary:hover, .ov-summary:focus-visible { border-color: #5E5A6B; outline: none; }
-  .ov-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+  .ov-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 8px; }
   .ov-row { display: grid; grid-template-columns: 54px 1fr; column-gap: 6px; align-items: center; }
   .ov-label { grid-column: 1; grid-row: 1; text-align: right; color: #D9D2CC; font-size: 10.5px; }
-  .ov-line { grid-column: 2; grid-row: 2; display: flex; justify-content: space-between; gap: 4px; margin-top: 3px; color: #D9D2CC; font-size: 9.5px; }
+  /* Value and range stack (rather than share a line) so neither gets squeezed
+     against the card edge at this phone's narrower width. */
+  .ov-line {
+    grid-column: 2; grid-row: 2; display: flex; flex-direction: column; gap: 1px; margin-top: 3px;
+    color: #D9D2CC; font-size: 9px; white-space: nowrap;
+  }
   .ov-line b { color: #fff; font-weight: 600; }
   .ov-range { color: #8F8984; }
   .ov-track { grid-column: 2; grid-row: 1; position: relative; height: 6px; border-radius: 3px; background: #2C2C30; }
@@ -303,13 +307,26 @@
     position: absolute; inset: 0; z-index: 4; display: flex; align-items: center; justify-content: center;
     padding: 40px 10px 22px; background: rgba(0, 0, 0, .62); animation: demo-fade .2s ease-out;
   }
-  .dialog {
-    width: 100%; max-height: 100%; overflow-y: auto; overscroll-behavior: contain;
-    padding: 16px; border-radius: 22px; background: #2B2B2B; color: #E8E2DC;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, .6); animation: demo-pop .2s ease-out;
-    scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, .25) transparent;
+  /* .dialog-box is the visible card and owns the pop-in; .dialog is just the
+     scrolling content, with its native scrollbar hidden in favour of
+     .dialog-scrollbar below, which (unlike a native overlay scrollbar) never
+     fades out. */
+  .dialog-box {
+    position: relative; width: 100%; max-height: 100%; display: flex; flex-direction: column;
+    border-radius: 22px; background: #2B2B2B; box-shadow: 0 10px 40px rgba(0, 0, 0, .6);
+    animation: demo-pop .2s ease-out;
   }
+  .dialog {
+    flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+    padding: 16px; color: #E8E2DC; scrollbar-width: none;
+  }
+  .dialog::-webkit-scrollbar { display: none; }
   .dialog:focus { outline: none; }
+  .dialog-scrollbar {
+    position: absolute; top: 8px; right: 5px; bottom: 8px; width: 4px; border-radius: 2px;
+    background: rgba(255, 255, 255, .08); pointer-events: none;
+  }
+  .dialog-scrollbar-thumb { position: absolute; left: 0; right: 0; border-radius: 2px; background: rgba(255, 255, 255, .4); }
   .dialog-photo { display: block; width: 84px; height: 84px; border-radius: 12px; object-fit: cover; }
   .dialog > :first-child { margin-top: 0; } /* text-only meals have no photo on top */
   .dialog h3 { margin: 12px 0 10px; color: #fff; font-size: 18px; line-height: 1.2; }
@@ -433,7 +450,7 @@
                   <button type="button" id="demo-gallery" class="pulse" aria-label="Choose a photo of your meal">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="15" height="14" rx="2"/><circle cx="7" cy="11.5" r="1.4"/><path d="M2 18l4-4 3 3 2.5-2.5L17 19"/><path d="M20 2v6M17 5h6"/></svg>
                   </button>
-                  <button type="button" id="demo-text" class="pulse" aria-label="Describe your meal in words">
+                  <button type="button" id="demo-text" aria-label="Describe your meal in words">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="15" height="14" rx="2"/><path d="M6 12h7M6 16h5"/><path d="M20 2v6M17 5h6"/></svg>
                   </button>
                 </div>
@@ -446,7 +463,10 @@
             </div>
 
             <div class="dialog-scrim" id="demo-scrim" hidden>
-              <div class="dialog" id="demo-dialog" role="dialog" aria-modal="true" aria-label="Meal analysis" tabindex="-1"></div>
+              <div class="dialog-box">
+                <div class="dialog" id="demo-dialog" role="dialog" aria-modal="true" aria-label="Meal analysis" tabindex="-1"></div>
+                <div class="dialog-scrollbar" id="demo-dialog-scrollbar" hidden><div class="dialog-scrollbar-thumb"></div></div>
+              </div>
             </div>
 
             <div class="demo-end" role="dialog" aria-describedby="demo-end-text" aria-label="Out of demo tries" hidden>
@@ -493,7 +513,10 @@
               </div>
             </div>
             <div class="dialog-scrim" id="demo-app-scrim" hidden>
-              <div class="dialog" id="demo-app-dialog" role="dialog" aria-modal="true" aria-label="Meal details" tabindex="-1"></div>
+              <div class="dialog-box">
+                <div class="dialog" id="demo-app-dialog" role="dialog" aria-modal="true" aria-label="Meal details" tabindex="-1"></div>
+                <div class="dialog-scrollbar" id="demo-app-dialog-scrollbar" hidden><div class="dialog-scrollbar-thumb"></div></div>
+              </div>
             </div>
             <!-- Same card as on the widget phone; both open and close together. -->
             <div class="demo-end" role="dialog" aria-describedby="demo-end-text-app" aria-label="Out of demo tries" hidden>
@@ -1351,8 +1374,34 @@
   // Each phone has its own dialog layer: the widget's for the analysis and
   // its recent meals, the app's for its diary entries. returnFocus is where
   // focus goes when the dialog closes.
-  var widgetHost = { scrim: scrim, dialog: dialog, returnFocus: cameraBtn, phone: document.getElementById("demo-widget-device") };
-  var appHost = { scrim: document.getElementById("demo-app-scrim"), dialog: document.getElementById("demo-app-dialog"), returnFocus: overviewEl, phone: document.getElementById("demo-overview-device") };
+  var widgetHost = {
+    scrim: scrim, dialog: dialog, returnFocus: cameraBtn, phone: document.getElementById("demo-widget-device"),
+    scrollbar: document.getElementById("demo-dialog-scrollbar"),
+  };
+  var appHost = {
+    scrim: document.getElementById("demo-app-scrim"), dialog: document.getElementById("demo-app-dialog"),
+    returnFocus: overviewEl, phone: document.getElementById("demo-overview-device"),
+    scrollbar: document.getElementById("demo-app-dialog-scrollbar"),
+  };
+
+  // The dialog's own native scrollbar is hidden (see .dialog::-webkit-scrollbar)
+  // in favour of this one, which - unlike a mobile browser's overlay scrollbar -
+  // stays visible for as long as the dialog has more content than fits.
+  function updateDialogScrollbar(host) {
+    var el = host.dialog, track = host.scrollbar, thumb = track.firstElementChild;
+    var overflowing = el.scrollHeight > el.clientHeight + 1;
+    track.hidden = !overflowing;
+    if (!overflowing) return;
+    var trackHeight = track.clientHeight;
+    var thumbHeight = Math.max((el.clientHeight / el.scrollHeight) * trackHeight, 24);
+    var maxScroll = el.scrollHeight - el.clientHeight;
+    var maxThumbTop = trackHeight - thumbHeight;
+    thumb.style.height = thumbHeight + "px";
+    thumb.style.top = (maxScroll > 0 ? (el.scrollTop / maxScroll) * maxThumbTop : 0) + "px";
+  }
+  [widgetHost, appHost].forEach(function (host) {
+    host.dialog.addEventListener("scroll", function () { updateDialogScrollbar(host); });
+  });
 
   // image defaults to the photo of the meal being analysed in the widget.
   function openDialog(nodes, focusTarget, host, image) {
@@ -1371,6 +1420,7 @@
     // RecyclerView.scrollToPosition: nudge the minimum needed, or not at all).
     host.phone.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
     (focusTarget || host.dialog).focus({ preventScroll: true });
+    updateDialogScrollbar(host);
   }
   function closeWidgetDialog() { closeDialog(widgetHost); }
   function closeDialog(host) {
