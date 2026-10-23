@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Star
@@ -29,12 +28,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.PaddingHalf
+import dev.gaborbiro.dailymacros.features.common.R as CommonR
 import dev.gaborbiro.dailymacros.features.modal.R
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.MealVariantPickerOption
@@ -303,7 +304,7 @@ private fun RecordDetailsHeaderActions(
                     if (showLogMealAgain) {
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.meal_details_action_add_new)) },
-                            leadingIcon = { Icon(imageVector = Icons.Filled.Add, contentDescription = null) },
+                            leadingIcon = { Icon(painter = painterResource(CommonR.drawable.ic_exposure_plus_1), contentDescription = null) },
                             onClick = {
                                 menuExpanded = false
                                 onLogMealAgainTapped()
