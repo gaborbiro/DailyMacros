@@ -79,27 +79,27 @@
   .c-carb { background: #FFDCC2; } .c-salt { background: #E6D9FF; } .c-fib { background: #FFD9E3; }
   .tracks + p { margin-top: 14px; color: var(--muted); }
 
-  .loop { text-align: center; }
+  .loop { text-align: center; padding-top: 36px; }
   .loop h2 { max-width: 28em; margin: 0 auto; }
   .loop > p { color: var(--muted); max-width: 32em; margin: 10px auto 0; }
-  .loop-diagram { display: grid; justify-items: center; gap: 2px; margin: 28px auto 0; max-width: 360px; }
+  .loop-diagram { display: grid; justify-items: center; gap: 14px; margin: 32px auto 0; max-width: 360px; }
   .loop-step {
-    display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
-    background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px;
+    display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px;
     box-shadow: 0 2px 10px rgba(120, 60, 0, .06);
   }
   .loop-step svg { flex: none; width: 22px; height: 22px; color: var(--orange-dark); }
   .loop-step strong { display: block; font-size: .98rem; }
-  .loop-step span { display: block; color: var(--muted); font-size: .85rem; margin-top: 1px; }
+  .loop-step span { display: block; color: var(--muted); font-size: .85rem; margin-top: 2px; }
   .loop-end { background: var(--bg); border-style: dashed; }
-  .loop-arrow { color: var(--orange); font-size: 1.3rem; line-height: 1; padding: 2px 0; }
-  .loop-arrow-cycle { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .loop-arrow { color: var(--orange); font-size: 1.3rem; line-height: 1; padding: 4px 0; }
+  .loop-arrow-cycle { display: flex; flex-direction: column; align-items: center; gap: 4px; }
   .loop-arrow-cycle span { font-size: .78rem; font-style: italic; color: var(--muted); line-height: 1.2; }
-  .loop-note { margin: 36px 0 20px; color: var(--muted); font-style: italic; font-size: .95rem; }
+  .loop-note { margin: 40px 0 22px; color: var(--muted); font-style: italic; font-size: .95rem; }
   /* Deliberately not button-shaped (no solid fill, no shadow, dashed like
      .loop-end): it's the end state of the diagram, not something to tap. */
   .loop-shortcut {
-    display: inline-flex; align-items: center; gap: 10px; padding: 12px 22px;
+    display: inline-flex; align-items: center; gap: 10px; padding: 16px 26px;
     background: #FFF1DD; color: var(--orange-dark); border: 1.5px dashed var(--orange);
     border-radius: 14px; font-weight: 700; font-size: 1.05rem;
   }
@@ -180,7 +180,11 @@
      so the lone phone sits properly centred instead of looking shifted left
      to make room for space it isn't using. On reveal, both its width and the
      row's gap animate back in together instead of snapping. */
-  #demo-phones.pre-reveal { gap: 0; }
+  /* Centred regardless of viewport width: with the right phone's flex-basis
+     at 0 there's nothing to scroll to yet, so there's no swipe behaviour to
+     preserve here (unlike the two-phone state below, which only centres
+     past 680px so the mobile swipe still works). */
+  #demo-phones.pre-reveal { gap: 0; justify-content: center; }
   #demo-phones.pre-reveal #demo-overview-device { flex-basis: 0; opacity: 0; pointer-events: none; }
   /* The left caption still uses reserved-space hiding: its own phone never
      moves, so there's nothing to realign when it fades in. */
@@ -188,6 +192,7 @@
   .demo-reveal { visibility: hidden; opacity: 0; }
   .demo-foot { display: grid; gap: 10px; justify-items: center; text-align: center; margin-top: -10px; }
   .demo-foot .fine { max-width: 36em; }
+  .demo-samples-label { font-size: 1.05rem; font-weight: 600; color: var(--ink); }
   .demo-samples { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 16px; }
   .demo-samples button {
     width: 76px; height: 52px; padding: 0; border: 0; border-radius: 10px; overflow: hidden; cursor: pointer;
@@ -594,7 +599,7 @@
     </div>
 
     <div class="demo-foot">
-      <p class="fine">No food handy? Try one of these:</p>
+      <p class="demo-samples-label">No food handy? Try one of these:</p>
       <div class="demo-samples">
         <button type="button" data-src="/img/demo/scrambled-egg.jpg" aria-label="Analyse a sample photo of scrambled egg on toast"><img src="/img/demo/scrambled-egg.jpg" alt=""></button>
         <button type="button" data-src="/img/demo/noodle-soup.jpg" aria-label="Analyse a sample photo of noodle soup"><img src="/img/demo/noodle-soup.jpg" alt=""></button>
