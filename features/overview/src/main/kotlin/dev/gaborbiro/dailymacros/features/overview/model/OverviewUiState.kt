@@ -11,7 +11,7 @@ data class OverviewUiState(
     val showAddWidgetButton: Boolean = false,
     val showUndoDeleteSnackbar: Boolean = false,
     val recordToUndelete: Record? = null,
-    val showSettingsButton: Boolean = false,
+    val showTopActions: Boolean = false,
     val showSubscribeBanner: Boolean = false,
     /** One-shot: set when a tap on a Trends chart point resolved to a day card already present
      *  in [items], asking the view to scroll to it - see OverviewViewModel.onScrollToDateRequested.

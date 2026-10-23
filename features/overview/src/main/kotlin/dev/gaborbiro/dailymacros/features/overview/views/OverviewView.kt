@@ -69,6 +69,7 @@ internal fun OverviewView(
     onUndoDeleteDismissed: () -> Unit,
     onUndoDeleteSnackbarShown: () -> Unit,
     onSearchTermChanged: (String?) -> Unit,
+    onTrendsButtonTapped: () -> Unit,
     onSettingsButtonTapped: () -> Unit,
     onDailySummaryTapped: (epochDay: Long) -> Unit,
     onWeeklySummaryTapped: (epochDay: Long) -> Unit,
@@ -205,8 +206,9 @@ internal fun OverviewView(
 
                 OverviewListTopActions(
                     visible = fabsVisible,
-                    showSettingsButton = viewState.showSettingsButton,
+                    showTopActions = viewState.showTopActions,
                     topContentPadding = 0.dp,
+                    onTrendsButtonTapped = onTrendsButtonTapped,
                     onSettingsButtonTapped = onSettingsButtonTapped,
                 )
 
@@ -409,6 +411,7 @@ private fun OverviewListPreview() {
             onUndoDeleteSnackbarShown = {},
             onSearchTermChanged = {},
             onAnalyseMacrosMenuItemTapped = {},
+            onTrendsButtonTapped = {},
             onSettingsButtonTapped = {},
             onDailySummaryTapped = {},
             onWeeklySummaryTapped = {},
@@ -436,6 +439,7 @@ private fun OverviewListPreviewEmpty() {
             onUndoDeleteSnackbarShown = {},
             onSearchTermChanged = {},
             onAnalyseMacrosMenuItemTapped = {},
+            onTrendsButtonTapped = {},
             onSettingsButtonTapped = {},
             onDailySummaryTapped = {},
             onWeeklySummaryTapped = {},
@@ -463,6 +467,7 @@ private fun OverviewListPreviewSearchNoResults() {
             onUndoDeleteSnackbarShown = {},
             onSearchTermChanged = {},
             onAnalyseMacrosMenuItemTapped = {},
+            onTrendsButtonTapped = {},
             onSettingsButtonTapped = {},
             onDailySummaryTapped = {},
             onWeeklySummaryTapped = {},
