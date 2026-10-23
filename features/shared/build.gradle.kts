@@ -20,6 +20,7 @@ android {
 
 dependencies {
     implementation(project(":features:common"))
+    implementation(project(":features:shared:nutrition"))
     implementation(project(":core:design"))
     implementation(project(":core:analytics"))
     implementation(project(":repositories:common"))

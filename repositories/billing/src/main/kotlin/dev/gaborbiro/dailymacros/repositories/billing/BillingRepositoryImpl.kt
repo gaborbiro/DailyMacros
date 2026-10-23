@@ -23,11 +23,14 @@ import dev.gaborbiro.dailymacros.repositories.billing.domain.SUBSCRIPTION_OFFER_
 import dev.gaborbiro.dailymacros.repositories.billing.domain.SUBSCRIPTION_PRODUCT_ID
 import dev.gaborbiro.dailymacros.repositories.billing.domain.SubscriptionRepository
 import dev.gaborbiro.dailymacros.repositories.billing.domain.model.SubscriptionState
+import dev.gaborbiro.dailymacros.repositories.common.model.DomainError
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -62,6 +65,8 @@ internal class BillingRepositoryImpl(
     private val firebaseAuth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
 
     private val _state = MutableStateFlow<SubscriptionState>(SubscriptionState.Unknown)
+
+    private val purchaseFlowFailures = MutableSharedFlow<DomainError>()
 
     @Volatile
     private var cachedProductDetails: ProductDetails? = null
@@ -103,7 +108,7 @@ internal class BillingRepositoryImpl(
             Log.d(TAG, "launchPurchaseFlow: billingClient.isReady=${billingClient.isReady} cachedProductDetails=$cachedProductDetails")
             val productDetails = cachedProductDetails ?: fetchProductDetails()
             if (productDetails == null) {
-                Log.w(TAG, "launchPurchaseFlow: aborting, no ProductDetails for '$SUBSCRIPTION_PRODUCT_ID' (is the base plan Activated in Play Console? is this build installed via Internal testing, not a sideloaded debug/qa build?)")
+                reportPurchaseFlowFailure("No ProductDetails for '$SUBSCRIPTION_PRODUCT_ID' (is the base plan Activated in Play Console? is this build installed via Internal testing, not a sideloaded debug/qa build?)")
                 return@launch
             }
             val offerDetails = productDetails.subscriptionOfferDetails.orEmpty()
@@ -113,7 +118,7 @@ internal class BillingRepositoryImpl(
                 ?.offerToken
                 ?: offerDetails.firstOrNull { it.basePlanId == SUBSCRIPTION_BASE_PLAN_ID }?.offerToken
             if (offerToken == null) {
-                Log.w(TAG, "launchPurchaseFlow: aborting, no offer matched basePlanId='$SUBSCRIPTION_BASE_PLAN_ID' offerId='$SUBSCRIPTION_OFFER_ID'")
+                reportPurchaseFlowFailure("No offer matched basePlanId='$SUBSCRIPTION_BASE_PLAN_ID' offerId='$SUBSCRIPTION_OFFER_ID'")
                 return@launch
             }
 
@@ -129,11 +134,23 @@ internal class BillingRepositoryImpl(
                 .setObfuscatedAccountId(obfuscatedAccountId())
                 .build()
 
-            withContext(Dispatchers.Main) {
-                val result = billingClient.launchBillingFlow(activity, flowParams)
-                Log.d(TAG, "launchBillingFlow result: code=${result.responseCode} debugMessage=${result.debugMessage}")
+            val result = withContext(Dispatchers.Main) {
+                billingClient.launchBillingFlow(activity, flowParams)
+            }
+            Log.d(TAG, "launchBillingFlow result: code=${result.responseCode} debugMessage=${result.debugMessage}")
+            // A cancel isn't a failure; the user backed out on purpose
+            if (result.responseCode != BillingClient.BillingResponseCode.OK &&
+                result.responseCode != BillingClient.BillingResponseCode.USER_CANCELED
+            ) {
+                reportPurchaseFlowFailure("launchBillingFlow failed: code=${result.responseCode} debugMessage=${result.debugMessage}")
             }
         }
+    }
+
+    override fun observePurchaseFlowFailures(): Flow<DomainError> = purchaseFlowFailures.asSharedFlow()
+
+    private suspend fun reportPurchaseFlowFailure(reason: String) {
+        purchaseFlowFailures.emit(DomainError.DisplayMessageToUser.OperationFailed(cause = PurchaseFlowError(reason)))
     }
 
     private fun startConnection() {

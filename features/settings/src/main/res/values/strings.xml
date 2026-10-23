@@ -53,6 +53,9 @@
     <string name="pdf_export_notification_error_title">Food diary export failed</string>
     <string name="pdf_export_notification_error_text">Something went wrong while creating the PDF.</string>
     <string name="settings_content_camera_section">Camera</string>
+    <string name="settings_content_reminders_section">Reminders</string>
+    <string name="settings_meal_reminders_row">Meal reminders</string>
+    <string name="settings_meal_reminders_subtitle">A nudge around your usual breakfast, lunch and dinner times, unless you\'ve already logged it</string>
     <string name="settings_content_widgets_section">Widgets</string>
     <string name="settings_quick_pick_confirmation_row">Quick Pick confirmation</string>
     <string name="settings_quick_pick_confirmation_subtitle">When off, meals are logged immediately instead of showing a confirmation dialog when tapping a Quick Pick.</string>
@@ -152,6 +155,7 @@
     <string name="settings_content_subscription_section">Subscription</string>
     <string name="settings_content_subscription_row_subscribed">Subscribed</string>
     <string name="settings_content_subscription_row_not_subscribed">Subscribe</string>
+    <string name="settings_content_purchase_flow_error">Couldn’t open the subscription page. Please try again later.</string>
     <!-- Privacy & data -->
     <string name="settings_privacy_section">Privacy &amp; data</string>
     <string name="settings_privacy_disclosure">To recognise meals and estimate nutrition, the photos and descriptions you add are sent to OpenAI for analysis. Your food diary is stored on this device; the developer does not store your meal photos or entries. Cloud backup, if you enable it, goes to your own Google account. Health Connect sync, if you enable it, shares your meals\' names and nutrition figures (not photos) with Health Connect and any app you connect to it.</string>
@@ -160,11 +164,12 @@
     <!-- Connected services -->
     <string name="settings_content_connected_services_section">Connected services</string>
     <string name="settings_health_connect_sync_row">Sync to Health Connect</string>
-    <string name="settings_health_connect_sync_subtitle">Automatically shares new and updated meals with Health Connect. Samsung Health reads from Health Connect on Samsung devices.</string>
+    <string name="settings_health_connect_sync_subtitle">Automatically shares new and updated meals with Health Connect.</string>
     <string name="settings_suggest_integration_row_question">Any other service you\'d like to sync with?</string>
     <string name="settings_suggest_integration_row_cta">Drop me a message</string>
     <string name="settings_suggest_integration_row_outro">and I\'ll look into it</string>
     <!-- Debug -->
     <string name="settings_debug_section">Debug</string>
     <string name="settings_debug_show_onboarding_row">Show onboarding screens</string>
+    <string name="settings_debug_meal_reminders_row">Meal reminder timing (tap to refresh)</string>
 </resources>

@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.features.main
 
+import android.app.Activity.ScreenCaptureCallback
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -64,6 +65,7 @@ import dev.gaborbiro.dailymacros.util.cancelAutoSyncNotifications
 import dev.gaborbiro.dailymacros.util.showAutoSyncConflictNotification
 import dev.gaborbiro.dailymacros.util.showAutoSyncFailureNotification
 import kotlinx.coroutines.launch
+import java.util.concurrent.Executor
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -125,6 +127,17 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    // On Android 14+ the Shake SDK registers a screen-capture callback on every resumed activity,
+    // even with its screenshot invocation off (see ShakeFeedback), and while any callback is
+    // registered the system shows a "<app> detected this screenshot" toast on every screenshot.
+    // The app has no screenshot-detection feature of its own, so registrations are dropped here.
+    // Remove these two overrides if one is ever added (or Shake is removed).
+    override fun registerScreenCaptureCallback(executor: Executor, callback: ScreenCaptureCallback) {
+    }
+
+    override fun unregisterScreenCaptureCallback(callback: ScreenCaptureCallback) {
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
             navigationBarStyle = SystemBarStyle.light(Color.Transparent.toArgb(), Color.Transparent.toArgb())
@@ -142,7 +155,7 @@ class MainActivity : ComponentActivity() {
             appPrefs.hasCompletedOnboarding = true
         }
 
-        analyticsLogger.setUserId(appPrefs.userUUID)
+        analyticsLogger.setUserId(appPrefs.clientId)
         lifecycleScope.launch {
             requestStatusRepository.deleteStale()
         }
@@ -155,6 +168,14 @@ class MainActivity : ComponentActivity() {
                 val targetsSettingsViewModel: TargetsSettingsViewModel = hiltViewModel()
                 val promptEditorViewModel: PromptEditorViewModel = hiltViewModel()
                 val trendsViewModel: TrendsViewModel = hiltViewModel()
+
+                // Firebase only auto-tracks Activities, and every screen here is a nav destination
+                // inside this one. Route pattern only, never its arguments.
+                LaunchedEffect(navController) {
+                    navController.currentBackStackEntryFlow.collect { entry ->
+                        entry.destination.route?.substringBefore('?')?.let(analyticsLogger::logScreenView)
+                    }
+                }
 
                 LaunchedEffect(pendingHighlightRowId) {
                     pendingHighlightRowId?.let { rowId ->

@@ -115,9 +115,6 @@ internal fun RecordDetailsDialogPreview(
                 variantPickerOptions = viewDialog?.variantPickerOptions,
                 selectedVariantTemplateId = viewDialog?.templateDbId ?: 0L,
                 onVariantTemplatePicked = {},
-                showQuickPickStar = viewDialog != null && viewDialog.allowEdit,
-                quickPickStarred = viewDialog?.quickPickStarred == true,
-                onQuickPickStarToggled = {},
             )
             when (dialogHandle) {
                 is DialogHandle.RecordDetailsDialog.Edit -> {
@@ -125,11 +122,12 @@ internal fun RecordDetailsDialogPreview(
                         showCloseOnly = false,
                         showSaveAndAdd = false,
                         primaryEnabled = true,
-                        primaryLabel = stringResource(R.string.meal_details_action_save),
+                        primaryLabel = stringResource(R.string.meal_details_action_save_and_analyze),
                         saveAndAddLabel = null,
                         onDismissRequested = onDismissRequested,
                         onSaveTapped = onSubmitButtonTapped,
                         onSaveAndAddTapped = {},
+                        primaryStartsAnalysis = true,
                     )
                 }
 
@@ -177,6 +175,7 @@ internal fun RecordDetailsDialogPreview(
                                         dialogHandle.linkedRecordCountForTemplate,
                                     )
                                 },
+                                primaryStartsAnalysis = dialogHandle.editsRequireAnalysis,
                                 onUpdate = onSubmitButtonTapped,
                                 onSaveAndAdd = onSubmitButtonTapped,
                                 onCancel = onDismissRequested,
@@ -184,6 +183,7 @@ internal fun RecordDetailsDialogPreview(
                         }
                         else -> {
                             RecordDetailsViewBrowseButtons(
+                                showLogMealAgain = false,
                                 onLogMealAgain = onSubmitButtonTapped,
                                 onDismissRequested = onDismissRequested,
                             )

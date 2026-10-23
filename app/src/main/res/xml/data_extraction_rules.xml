@@ -11,7 +11,7 @@
      device — and it is a credential, so it must not leave the device regardless.
    - local_only_prefs.xml : PII that isn't a device setting, e.g. the cloud-sync
      email (see LocalOnlyPrefsStore).
-   - local_only_app_prefs.xml : the per-install analytics UUID (see AppPrefs).
+   - local_only_app_prefs.xml : the per-install client ID (see AppPrefs).
      Restoring it onto a different install would make analytics treat a fresh
      install as a continuation of the old one.
 

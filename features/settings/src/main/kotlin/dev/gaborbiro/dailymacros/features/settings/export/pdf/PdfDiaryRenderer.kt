@@ -9,6 +9,7 @@ import android.graphics.Typeface
 import android.graphics.pdf.PdfDocument
 import dev.gaborbiro.dailymacros.features.shared.model.TravelDay
 import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedDateTime
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.PdfExportOptions
@@ -151,7 +152,7 @@ class PdfDiaryRenderer(
             drawTotalsBox(day)
         }
 
-        day.records.sortedBy { it.timestamp.toInstant() }.forEach { record ->
+        day.records.sortedBy { it.timestamp.instant }.forEach { record ->
             drawMeal(record)
         }
     }
@@ -291,7 +292,7 @@ class PdfDiaryRenderer(
     }
 
     private fun heading(record: Record): String {
-        val time = record.timestamp.format(timeFormatter)
+        val time = record.timestamp.toZonedDateTime().format(timeFormatter)
         return listOf(time, record.template.name).filter { it.isNotBlank() }.joinToString("   ")
     }
 

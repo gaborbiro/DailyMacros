@@ -18,7 +18,7 @@ import java.io.IOException
  * - Otherwise the request is routed to the [PROXY_URL] Cloud Function and
  *   authenticated with a Firebase ID token (anonymous auth). The OpenAI key no
  *   longer ships in the app; the proxy holds it and enforces the caps. The
- *   three-word client id ([RepositoryClientIdProvider]) is attached so the proxy can
+ *   client ID ([RepositoryClientIdProvider]) is attached so the proxy can
  *   record it on the usage document — that is the handle a user reports in a
  *   support email, letting you find their row and, if needed, grant a bonus.
  */

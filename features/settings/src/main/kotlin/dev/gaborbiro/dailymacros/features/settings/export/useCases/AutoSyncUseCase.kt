@@ -1,6 +1,7 @@
 package dev.gaborbiro.dailymacros.features.settings.export.useCases
 
 import android.content.Context
+import android.util.Log
 import com.google.android.gms.auth.GoogleAuthException
 import com.google.android.gms.auth.GoogleAuthUtil
 import com.google.android.gms.auth.UserRecoverableAuthException
@@ -15,15 +16,21 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.model.AutoSyncErro
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.AutoSyncErrorStatus
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.BackupInterval
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+
+private val autoSyncMutex = Mutex()
 
 class AutoSyncUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
     private val settingsRepository: SettingsRepository,
     private val cloudSyncRepository: CloudSyncRepository,
     private val syncDatabaseUseCase: SyncDatabaseUseCase,
+    private val checkCloudBackupConflictUseCase: CheckCloudBackupConflictUseCase,
 ) {
     sealed interface Result {
         data object Skipped : Result
@@ -32,7 +39,9 @@ class AutoSyncUseCase @Inject constructor(
         data class Failure(val message: String, val shouldNotify: Boolean) : Result
     }
 
-    suspend fun execute(): Result {
+    suspend fun execute(): Result = autoSyncMutex.withLock { executeLocked() }
+
+    private suspend fun executeLocked(): Result {
         if (settingsRepository.getCloudSyncProvider() == CloudSyncProvider.NONE) return Result.Skipped
 
         val interval = settingsRepository.getAutoBackupInterval()
@@ -50,16 +59,20 @@ class AutoSyncUseCase @Inject constructor(
                     message = context.getString(R.string.settings_content_not_signed_in_google),
                     shouldNotify = recordErrorAndDecideNotify(AutoSyncError.FAILURE, interval),
                 )
-            val lastSynced = settingsRepository.getLastSyncedEpochMs()
             val driveInfo = cloudSyncRepository.getBackupInfo(token)
-            if (driveInfo != null && driveInfo.modifiedTimeMs > (lastSynced ?: 0L)) {
+            if (checkCloudBackupConflictUseCase.execute(driveInfo)) {
                 return Result.ConflictDetected(
                     shouldNotify = recordErrorAndDecideNotify(AutoSyncError.CONFLICT, interval),
                 )
             }
             syncDatabaseUseCase.execute(token)
             Result.Success
+        } catch (e: CancellationException) {
+            // The caller's scope went away (e.g. MainActivity destroyed mid-sync). Not a sync
+            // failure: reporting it as one posted a false "Backup failed" notification.
+            throw e
         } catch (e: Exception) {
+            Log.e("CloudSync", "Auto-sync failed", e)
             Result.Failure(
                 message = e.message ?: "Unknown error",
                 shouldNotify = recordErrorAndDecideNotify(AutoSyncError.FAILURE, interval),

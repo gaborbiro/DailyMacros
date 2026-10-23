@@ -3,6 +3,9 @@ package dev.gaborbiro.dailymacros.features.settings.export.useCases
 import dev.gaborbiro.dailymacros.repositories.backup.domain.BackupRepository
 import dev.gaborbiro.dailymacros.repositories.backup.domain.CloudSyncRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
+import java.io.File
 import java.io.IOException
 import javax.inject.Inject
 
@@ -17,6 +20,14 @@ class SyncDatabaseUseCase @Inject constructor(
 ) {
     suspend fun execute(accessToken: String) {
         val tarFile = backupRepository.prepareBackupArchiveForExport()
+        // Non-cancellable: the blocking upload can't be interrupted, so cancelling the caller
+        // (e.g. MainActivity's lifecycleScope on destroy) would let the write reach Drive while
+        // skipping the bookkeeping below, making the next sync see this install's own upload as
+        // a conflict.
+        withContext(NonCancellable) { uploadAndRecord(accessToken, tarFile) }
+    }
+
+    private suspend fun uploadAndRecord(accessToken: String, tarFile: File) {
         try {
             val attemptStartMs = System.currentTimeMillis()
             val uploaded = try {
@@ -29,7 +40,11 @@ class SyncDatabaseUseCase @Inject constructor(
                 // conflict from another device - adopt it instead of surfacing a false
                 // failure/conflict on the very next sync attempt.
                 val recovered = runCatching { cloudSyncRepository.getBackupInfo(accessToken) }.getOrNull()
-                if (recovered != null && recovered.modifiedTimeMs >= attemptStartMs - UPLOAD_ACK_RECOVERY_WINDOW_MS) {
+                if (
+                    recovered != null &&
+                    recovered.writtenByThisInstall &&
+                    recovered.modifiedTimeMs >= attemptStartMs - UPLOAD_ACK_RECOVERY_WINDOW_MS
+                ) {
                     recovered
                 } else {
                     throw e

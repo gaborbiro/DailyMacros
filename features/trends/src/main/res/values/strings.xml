@@ -14,6 +14,7 @@
     <string name="trends_content_fetched_at">fetched %1$s</string>
     <string name="trends_content_refresh">Refresh</string>
     <string name="trends_content_get_insights">Get insights</string>
+    <string name="trends_content_insights_error">Couldn’t get insights. Please try again.</string>
     <string name="trends_content_weekly_insights_title">Weekly Insights</string>
     <!-- TrendsSettingsBottomSheet -->
     <string name="trends_sheet_title">Trends Settings</string>

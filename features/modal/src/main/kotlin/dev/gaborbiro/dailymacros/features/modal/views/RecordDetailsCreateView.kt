@@ -9,6 +9,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -106,43 +107,56 @@ fun ColumnScope.RecordDetailsCreateView(
         isError = titleErrorMessage.isNullOrBlank().not(),
         textStyle = MaterialTheme.typography.bodyMedium,
         trailingIcon = {
-            Box(
-                modifier = Modifier.size(48.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                when {
-                    showProgressIndicator -> {
-                        val infiniteTransition = rememberInfiniteTransition(label = "aiIconRotation")
-                        val rotation by infiniteTransition.animateFloat(
-                            initialValue = 0f,
-                            targetValue = 360f,
-                            animationSpec = infiniteRepeatable(
-                                animation = tween(durationMillis = 1200, easing = LinearEasing),
-                            ),
-                            label = "aiIconRotationAngle",
-                        )
-                        Icon(
-                            painter = painterResource(CommonR.drawable.ic_ai_borg),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(25.dp)
-                                .graphicsLayer { rotationZ = rotation },
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                    }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Stays available while image recognition runs: a non-blank title is kept
+                // over the AI's suggestion (see ModalViewModel.runFoodRecognition).
+                VoiceInputButton(
+                    prompt = stringResource(R.string.modal_content_voice_input_prompt),
+                    contentDescription = stringResource(R.string.modal_content_voice_input_cd),
+                    onTextRecognised = { spoken ->
+                        onTitleChanged(appendSpokenText(title, spoken))
+                    },
+                )
+                if (showProgressIndicator || showRunAIButton) {
+                    Box(
+                        modifier = Modifier.size(48.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        when {
+                            showProgressIndicator -> {
+                                val infiniteTransition = rememberInfiniteTransition(label = "aiIconRotation")
+                                val rotation by infiniteTransition.animateFloat(
+                                    initialValue = 0f,
+                                    targetValue = 360f,
+                                    animationSpec = infiniteRepeatable(
+                                        animation = tween(durationMillis = 1200, easing = LinearEasing),
+                                    ),
+                                    label = "aiIconRotationAngle",
+                                )
+                                Icon(
+                                    painter = painterResource(CommonR.drawable.ic_ai_borg),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(25.dp)
+                                        .graphicsLayer { rotationZ = rotation },
+                                    tint = MaterialTheme.colorScheme.primary,
+                                )
+                            }
 
-                    showRunAIButton -> {
-                        Button(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .padding(PaddingHalf),
-                            contentPadding = PaddingValues(),
-                            onClick = onRunAIButtonTapped,
-                        ) {
-                            Icon(
-                                painter = painterResource(CommonR.drawable.ic_ai_borg),
-                                contentDescription = stringResource(R.string.modal_content_run_ai_cd),
-                            )
+                            showRunAIButton -> {
+                                Button(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .padding(PaddingHalf),
+                                    contentPadding = PaddingValues(),
+                                    onClick = onRunAIButtonTapped,
+                                ) {
+                                    Icon(
+                                        painter = painterResource(CommonR.drawable.ic_ai_borg),
+                                        contentDescription = stringResource(R.string.modal_content_run_ai_cd),
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -189,6 +203,15 @@ fun ColumnScope.RecordDetailsCreateView(
                 style = MaterialTheme.typography.labelLarge,
                 fontStyle = FontStyle.Italic,
                 color = Color.Gray,
+            )
+        },
+        trailingIcon = {
+            VoiceInputButton(
+                prompt = stringResource(R.string.modal_content_voice_input_description_prompt),
+                contentDescription = stringResource(R.string.modal_content_voice_input_description_cd),
+                onTextRecognised = { spoken ->
+                    onDescriptionChanged(appendSpokenText(description, spoken))
+                },
             )
         },
         value = description,
@@ -240,7 +263,7 @@ private fun RecordDetailsCreateViewPreviewRunAi() {
             imageFilenames = listOf("1", "2"),
             title = TextFieldValue(),
             showRunAIButton = true,
-            titleHint = "Title",
+            titleHint = "Title (optional)",
             showProgressIndicator = false,
             description = TextFieldValue(),
             titleErrorMessage = null,
@@ -268,7 +291,7 @@ private fun RecordDetailsCreateViewPreviewError() {
             imageFilenames = listOf("1", "2"),
             title = TextFieldValue(),
             showRunAIButton = true,
-            titleHint = "Title",
+            titleHint = "Title (optional)",
             showProgressIndicator = false,
             description = TextFieldValue(),
             titleErrorMessage = "error",

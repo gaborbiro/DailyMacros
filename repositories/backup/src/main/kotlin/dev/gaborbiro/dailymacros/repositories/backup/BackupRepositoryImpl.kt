@@ -103,7 +103,7 @@ class BackupRepositoryImpl @Inject constructor(
                     sharedPrefsRoot.walkTopDown()
                         .filter { it.isFile }
                         // Never export the encrypted API-key store, the local-only PII prefs, or
-                        // the per-install analytics UUID (see SecureApiKeyStore, LocalOnlyPrefsStore,
+                        // the per-install client ID (see SecureApiKeyStore, LocalOnlyPrefsStore,
                         // AppPrefs) — this mirrors data_extraction_rules.xml's OS-backup exclusions,
                         // since this in-app path doesn't consult that file.
                         .filter { it.name !in EXCLUDED_PREFS_FILE_NAMES }

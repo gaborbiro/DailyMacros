@@ -185,7 +185,7 @@ class OverviewViewModel @Inject constructor(
                                 // "true" also permanently hid the Search FAB, which is gated
                                 // on this same flag.
                                 showAddWidgetButton = false,
-                                showSettingsButton = notSearching,
+                                showTopActions = notSearching,
                                 showSubscribeBanner = notSearching && showSubscribeBanner,
                             )
 
@@ -203,7 +203,7 @@ class OverviewViewModel @Inject constructor(
                                 isLoadingMore = false,
                                 hasMoreData = hasMore,
                                 showAddWidgetButton = notSearching,
-                                showSettingsButton = false,
+                                showTopActions = false,
                                 showSubscribeBanner = false,
                             )
                         }
@@ -336,6 +336,13 @@ class OverviewViewModel @Inject constructor(
             it.copy(
                 recordToUndelete = null,
             )
+        }
+    }
+
+    /** The plain "View trends" entry point: opens Trends at its default timescale/position. */
+    fun onTrendsButtonTapped() {
+        viewModelScope.launch {
+            _uiUpdates.emit(OverviewUiUpdates.OpenTrendsScreen())
         }
     }
 

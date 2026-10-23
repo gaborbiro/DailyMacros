@@ -13,6 +13,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.BaseRecordsRepositoryStu
 import dev.gaborbiro.dailymacros.features.modal.usecase.BuildRecordDetailsViewDialogUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateTemplateUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.LogMealFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ExportImageToGalleryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
@@ -26,6 +27,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseC
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.ErrorUiMapper
+import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderRefresher
 import dev.gaborbiro.dailymacros.features.shared.TemplateUiMapper
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.FoodRecognitionRequest
@@ -40,12 +42,16 @@ import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImage
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
 import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
 import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.common.model.ZonedInstant
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedDateTime
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedInstant
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import dev.gaborbiro.dailymacros.test.WorkManagerTestSupport
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -145,7 +151,10 @@ class ModalViewModelTest {
         override fun clearApiKeyOverride() = Unit
     }
 
-    private fun viewModel(repo: RecordsRepository = BaseRecordsRepositoryStub()): ModalViewModel {
+    private fun viewModel(
+        repo: RecordsRepository = BaseRecordsRepositoryStub(),
+        mealReminderRefresher: MealReminderRefresher = MealReminderRefresher { },
+    ): ModalViewModel {
         val app = ApplicationProvider.getApplicationContext<Application>()
         val nutrients = TemplateUiMapper()
         val modalUiMapper = ModalUiMapper(nutrients)
@@ -178,8 +187,10 @@ class ModalViewModelTest {
             getTemplateImageUseCase = GetTemplateImageUseCase(repo),
             foodRecognitionUseCase = FoodRecognitionUseCase(imageStore, VmFakeChatGpt(), testSettingsRepository),
             applyQuickPickOverrideAndReloadWidgetUseCase = ApplyQuickPickOverrideAndReloadWidgetUseCase(repo),
-            analyticsLogger = AnalyticsLogger(),
-            errorUiMapper = ErrorUiMapper(app, testSettingsRepository),
+            logMealFromTemplateUseCase = LogMealFromTemplateUseCase(app, repo, createFromTemplate),
+            analyticsLogger = AnalyticsLogger(sinks = emptySet()),
+            errorUiMapper = ErrorUiMapper(app),
+            mealReminderRefresher = mealReminderRefresher,
         ).also { activeViewModels.add(it) }
     }
 
@@ -301,7 +312,7 @@ class ModalViewModelTest {
                 return 42L
             }
 
-            override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
+            override suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant): Long {
                 saveRecordCalls++
                 assertEquals(42L, templateId)
                 return 99L
@@ -320,10 +331,10 @@ class ModalViewModelTest {
     @Test
     fun `submit uses the timestamp captured when record creation started, not when it's saved`() =
         runTest(testDispatcher) {
-            var savedAt: ZonedDateTime? = null
+            var savedAt: ZonedInstant? = null
             val repo = object : BaseRecordsRepositoryStub() {
                 override suspend fun saveTemplate(templateToSave: TemplateToSave) = 42L
-                override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
+                override suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant): Long {
                     savedAt = timestamp
                     return 99L
                 }
@@ -331,7 +342,7 @@ class ModalViewModelTest {
             val vm = viewModel(repo)
             vm.onCreateRecordWithTextDeeplinkReceived()
             val startedAt =
-                (vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.Edit).startedAt
+                (vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.Edit).startedAt.toZonedInstant()
             // Simulate the app being backgrounded for a while between opening the create-record
             // screen and finally submitting it.
             Thread.sleep(50)
@@ -357,7 +368,8 @@ class ModalViewModelTest {
                 updatedRecord = record
             }
         }
-        val vm = viewModel(repo)
+        val refreshTriggers = mutableListOf<String>()
+        val vm = viewModel(repo, mealReminderRefresher = { refreshTriggers += it })
         vm.onRecordDetailsButtonTapped(5L)
         advanceUntilIdle()
         val originalTimestamp =
@@ -372,8 +384,10 @@ class ModalViewModelTest {
         vm.onTimestampPicked(newTimestamp)
         advanceUntilIdle()
 
-        assertEquals(newTimestamp, updatedRecord?.timestamp)
+        assertEquals(newTimestamp, updatedRecord?.timestamp?.toZonedDateTime())
         assertEquals(5L, updatedRecord?.recordId)
+        // Meal reminders re-plan straight away, since the meal may have moved to another slot.
+        assertEquals(listOf("timestamp edit"), refreshTriggers)
         assertNull(vm.uiState.value.overlayDialog)
         assertEquals(
             newTimestamp,
@@ -435,7 +449,7 @@ class ModalViewModelTest {
             override suspend fun countRecordsForTemplate(templateId: Long) = 1
             override suspend fun getTemplateIdsInSameVariantFamily(templateId: Long) = listOf(templateId)
             override suspend fun getTemplate(templateId: Long) = tpl
-            override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
+            override suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant): Long {
                 saveRecordCalls++
                 assertEquals(99L, templateId)
                 return 100L
@@ -470,7 +484,7 @@ class ModalViewModelTest {
                 return 99L
             }
 
-            override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
+            override suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant): Long {
                 saveRecordCalls++
                 assertEquals(7L, templateId)
                 return 88L
@@ -507,7 +521,7 @@ class ModalViewModelTest {
                 return 99L
             }
 
-            override suspend fun saveRecord(templateId: Long, timestamp: ZonedDateTime): Long {
+            override suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant): Long {
                 saveRecordCalls++
                 assertEquals(7L, templateId)
                 return 88L
@@ -521,6 +535,143 @@ class ModalViewModelTest {
         assertEquals(0, saveTemplateCalls)
         assertEquals(1, saveRecordCalls)
         assertNull(vm.uiState.value.rootDialog)
+    }
+
+    /** A single-variant meal whose records can be re-pointed at a new template (as re-analysis does). */
+    private class ReanalysisRepo(
+        initial: Record,
+    ) : BaseRecordsRepositoryStub() {
+        val records = MutableStateFlow(initial)
+        val savedTemplates = mutableListOf<TemplateToSave>()
+
+        override fun observe(recordId: Long) = records
+        override suspend fun get(recordId: Long) = records.value.takeIf { it.recordId == recordId }
+        override suspend fun countRecordsForTemplate(templateId: Long) = 1
+        override suspend fun getRecordsByTemplate(templateId: Long) = listOf(records.value)
+        override suspend fun getTemplateIdsInSameVariantFamily(templateId: Long) = listOf(templateId)
+        override suspend fun getTemplate(templateId: Long) = when (templateId) {
+            records.value.template.dbId -> records.value.template
+            42L -> ModalRecordFixtures.template(dbId = 42L, name = savedTemplates.last().name)
+                .copy(description = savedTemplates.last().description)
+            else -> error("unexpected template $templateId")
+        }
+
+        override suspend fun saveTemplate(templateToSave: TemplateToSave): Long {
+            savedTemplates += templateToSave
+            return 42L
+        }
+
+        override suspend fun updateRecord(record: Record) {
+            records.value = record
+        }
+    }
+
+    private fun analysedSoup() = ModalRecordFixtures.record(
+        5L,
+        ModalRecordFixtures.template(dbId = 7L, name = "Soup", description = "Lentil").copy(
+            nutrients = Nutrients(calories = 300),
+        ),
+    )
+
+    @Test
+    fun `re-analyze adds the correction to the description and keeps the dialog open`() = runTest(testDispatcher) {
+        val repo = ReanalysisRepo(analysedSoup())
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        var root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertTrue(root.allowCorrection)
+        assertFalse(root.canReanalyze)
+
+        vm.onCorrectionChanged(TextFieldValue("It was brown rice"))
+        root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertTrue(root.canReanalyze)
+
+        vm.onReanalyzeTapped()
+        advanceUntilIdle()
+
+        assertEquals(1, repo.savedTemplates.size)
+        assertEquals("Soup", repo.savedTemplates.single().name)
+        assertEquals("Lentil\nIt was brown rice", repo.savedTemplates.single().description)
+        root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertEquals(42L, root.templateDbId)
+        assertEquals("", root.correction.text)
+        assertFalse(root.canReanalyze)
+        assertTrue(root.showLoadingIndicator)
+    }
+
+    @Test
+    fun `re-analysis shows analyzing until the worker has finished with the meal`() = runTest(testDispatcher) {
+        val repo = ReanalysisRepo(analysedSoup())
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        vm.onCorrectionChanged(TextFieldValue("Small bowl"))
+        vm.onReanalyzeTapped()
+        advanceUntilIdle()
+
+        fun showsAnalyzing() = (vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View).showLoadingIndicator
+
+        // Forked template, not yet picked up by the worker: no results, not marked pending.
+        assertTrue(showsAnalyzing())
+        val forked = repo.records.value
+        repo.records.value = forked.copy(template = forked.template.copy(isPending = true))
+        advanceUntilIdle()
+        assertTrue(showsAnalyzing())
+        repo.records.value = forked.copy(
+            template = forked.template.copy(isPending = false, nutrients = Nutrients(calories = 250)),
+        )
+        advanceUntilIdle()
+        assertFalse(showsAnalyzing())
+    }
+
+    @Test
+    fun `correction is capped so the description stays within its limit`() = runTest(testDispatcher) {
+        val longDescription = "x".repeat(250)
+        val repo = ReanalysisRepo(
+            ModalRecordFixtures.record(5L, ModalRecordFixtures.template(dbId = 7L, description = longDescription)),
+        )
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        vm.onCorrectionChanged(TextFieldValue("abcdefgh"))
+        val root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertEquals("abcde", root.correction.text)
+    }
+
+    @Test
+    fun `quick pick details don't take corrections`() = runTest(testDispatcher) {
+        val repo = ReanalysisRepo(analysedSoup())
+        val vm = viewModel(repo)
+        vm.onTemplateDetailsButtonTapped(7L)
+        advanceUntilIdle()
+        vm.onCorrectionChanged(TextFieldValue("Small bowl"))
+        vm.onReanalyzeTapped()
+        advanceUntilIdle()
+        val root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertFalse(root.allowCorrection)
+        assertEquals("", root.correction.text)
+        assertTrue(repo.savedTemplates.isEmpty())
+    }
+
+    @Test
+    fun `editing the title marks the update as one that re-analyzes, reordering photos doesn't`() = runTest(testDispatcher) {
+        val tpl = ModalRecordFixtures.template(dbId = 7L, name = "Soup", imageFilenames = listOf("a.jpg", "b.jpg"))
+        val repo = ReanalysisRepo(ModalRecordFixtures.record(5L, tpl))
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        vm.onRecordDetailsEditStarted()
+        vm.onImageMoveRightTapped("a.jpg")
+        var root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertTrue(root.hasUnsavedEdits)
+        assertFalse(root.editsRequireAnalysis)
+        vm.onTitleChanged(TextFieldValue("Stew"))
+        root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertTrue(root.editsRequireAnalysis)
+        vm.onRecordDetailsEditCancelled()
+        root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertFalse(root.editsRequireAnalysis)
     }
 
     @Test

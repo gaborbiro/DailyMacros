@@ -69,6 +69,7 @@ internal fun OverviewView(
     onUndoDeleteDismissed: () -> Unit,
     onUndoDeleteSnackbarShown: () -> Unit,
     onSearchTermChanged: (String?) -> Unit,
+    onTrendsButtonTapped: () -> Unit,
     onSettingsButtonTapped: () -> Unit,
     onDailySummaryTapped: (epochDay: Long) -> Unit,
     onWeeklySummaryTapped: (epochDay: Long) -> Unit,
@@ -104,17 +105,14 @@ internal fun OverviewView(
 
     val listState = rememberLazyListState()
 
-    // Slide the FABs out while the user scrolls towards the past (further down the reversed
-    // list, i.e. "forward" through it) and back in as soon as they scroll back towards the top
-    // ("backward"), even a little. lastScrolledForward/Backward are ScrollableState's own
-    // direction tracking, sticky until the next scroll in the other direction - exactly what's
-    // needed here, and driven by the list's actual scroll gestures rather than
-    // listState.firstVisibleItemIndex, whose "am I at the top" check an earlier version of this
-    // relied on: that could get permanently stuck if a new record prepended while backgrounded
-    // shifted Compose's scroll-anchoring so index 0 never reported "true" again (see
-    // OverviewListTopActions.kt history). A hand-rolled NestedScrollConnection reading raw
-    // pre-scroll deltas was tried here too and didn't reliably react to scrolling at all -
-    // this is the API Compose itself maintains for this exact "hide on scroll" pattern.
+    // Slide the FABs out once the user deliberately scrolls towards the past ("forward" through
+    // the list) and back in once they deliberately scroll back towards the top - see
+    // rememberHideOnScrollVisibility for the thresholds and why ScrollableState's own
+    // lastScrolledForward was too twitchy for this. It's driven by the list's actual scroll
+    // movement rather than listState.firstVisibleItemIndex, whose "am I at the top" check an
+    // earlier version of this relied on: that could get permanently stuck if a new record
+    // prepended while backgrounded shifted Compose's scroll-anchoring so index 0 never reported
+    // "true" again (see OverviewListTopActions.kt history).
     //
     // searchActive keeps the search FAB pinned open regardless of scroll direction whenever a
     // term is typed in: SearchFAB's expanded/text state is local to that composable, and the
@@ -124,8 +122,9 @@ internal fun OverviewView(
     // derivedStateOf only reacts to snapshot-state reads captured in its lambda, and a plain
     // Boolean read from viewState wouldn't otherwise trigger a recompute of the remembered value.
     val searchActive = !viewState.searchTerm.isNullOrBlank()
+    val scrollVisibility = rememberHideOnScrollVisibility(listState)
     val fabsVisible by remember(searchActive) {
-        derivedStateOf { !listState.lastScrolledForward || searchActive }
+        derivedStateOf { scrollVisibility.value || searchActive }
     }
 
     // A tap on a Trends chart point resolves to a day already loaded here (see
@@ -194,12 +193,20 @@ internal fun OverviewView(
                         onRestoreFromLocalBackup = onRestoreFromLocalBackup,
                         restoreFromLocalBackupInProgress = restoreFromLocalBackupInProgress,
                     )
+                } else if (searchActive) {
+                    SearchNoResultsView(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(remainingPadding),
+                        searchTerm = viewState.searchTerm.orEmpty().trim(),
+                    )
                 }
 
                 OverviewListTopActions(
                     visible = fabsVisible,
-                    showSettingsButton = viewState.showSettingsButton,
+                    showTopActions = viewState.showTopActions,
                     topContentPadding = 0.dp,
+                    onTrendsButtonTapped = onTrendsButtonTapped,
                     onSettingsButtonTapped = onSettingsButtonTapped,
                 )
 
@@ -267,6 +274,24 @@ internal fun OverviewView(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SearchNoResultsView(
+    modifier: Modifier,
+    searchTerm: String,
+) {
+    Box(
+        modifier = modifier.padding(PaddingDefault),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = stringResource(R.string.overview_content_search_no_results, searchTerm),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
@@ -384,6 +409,7 @@ private fun OverviewListPreview() {
             onUndoDeleteSnackbarShown = {},
             onSearchTermChanged = {},
             onAnalyseMacrosMenuItemTapped = {},
+            onTrendsButtonTapped = {},
             onSettingsButtonTapped = {},
             onDailySummaryTapped = {},
             onWeeklySummaryTapped = {},
@@ -411,6 +437,35 @@ private fun OverviewListPreviewEmpty() {
             onUndoDeleteSnackbarShown = {},
             onSearchTermChanged = {},
             onAnalyseMacrosMenuItemTapped = {},
+            onTrendsButtonTapped = {},
+            onSettingsButtonTapped = {},
+            onDailySummaryTapped = {},
+            onWeeklySummaryTapped = {},
+            onLoadMore = {},
+        )
+    }
+}
+
+@Preview(widthDp = 300)
+@Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+private fun OverviewListPreviewSearchNoResults() {
+    PreviewContext {
+        OverviewView(
+            viewState = OverviewUiState(
+                items = emptyList(),
+                searchTerm = "pizza",
+            ),
+            onRepeatMenuItemTapped = {},
+            onDeleteMenuItemTapped = {},
+            onRecordImageTapped = {},
+            onRecordBodyTapped = {},
+            onUndoDeleteTapped = {},
+            onUndoDeleteDismissed = {},
+            onUndoDeleteSnackbarShown = {},
+            onSearchTermChanged = {},
+            onAnalyseMacrosMenuItemTapped = {},
+            onTrendsButtonTapped = {},
             onSettingsButtonTapped = {},
             onDailySummaryTapped = {},
             onWeeklySummaryTapped = {},

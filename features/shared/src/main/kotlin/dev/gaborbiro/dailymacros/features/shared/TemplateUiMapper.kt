@@ -1,179 +1,151 @@
 package dev.gaborbiro.dailymacros.features.shared
 
-import android.icu.text.DecimalFormat
 import android.util.Range
-import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
-import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.common.views.NutrientDisplayLine
+import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
+import dev.gaborbiro.dailymacros.features.shared.nutrition.formatDecimal
+import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
-import kotlin.math.pow
-
 import javax.inject.Inject
+import kotlin.math.pow
 
 class TemplateUiMapper @Inject constructor() {
 
     fun mapRecordNutrients(nutrients: Nutrients): NutrientsUiModel {
         return NutrientsUiModel(
-            calories = nutrients.calories?.let {
-                formatCalories(nutrients.calories, withLabel = false)
+            calories = nutrients.calories?.let { calories ->
+                formatCalories(calories)
             },
-            protein = nutrients.protein?.let {
-                formatProtein(nutrients.protein, withLabel = true)
+            protein = nutrients.protein?.let { protein ->
+                "Protein: " + formatProtein(protein)
             },
-            fat = nutrients.fat?.let {
-                formatFat(nutrients.fat, nutrients.ofWhichSaturated, withLabel = true)
+            fat = nutrients.fat?.let { fat ->
+                "Fat: " + formatFat(fat, nutrients.ofWhichSaturated)
             },
-            carbs = nutrients.carbs?.let {
-                formatCarbs(nutrients.carbs, nutrients.ofWhichSugar, nutrients.ofWhichAddedSugar, withLabel = true)
+            carbs = nutrients.carbs?.let { carbs ->
+                "Carb: " + formatCarbs(
+                    carbs,
+                    nutrients.ofWhichSugar,
+                    nutrients.ofWhichAddedSugar
+                )
             },
-            salt = nutrients.salt?.let {
-                formatSalt(nutrients.salt, withLabel = true)
+            salt = nutrients.salt?.let { salt ->
+                "Salt: " + formatSalt(salt)
             },
-            fibre = nutrients.fibre?.let {
-                formatFibre(nutrients.fibre, withLabel = true)
+            fibre = nutrients.fibre?.let { fibre ->
+                "Fibre: " + formatFibre(fibre)
             },
         )
     }
 
-    fun formatCalories(
-        value: Number?,
-        withLabel: Boolean,
-    ): String {
-        val amount = value ?: 0
-        val label = if (withLabel) "Calories:" else null
-        val format = generateFormat(
-            label = label,
-            line = NutrientDisplayLine.Calories,
-        )
-        return formatMacroAmount(amount, format)
-    }
+    fun formatCalories(value: Number): String =
+        generateAndApplyFormat(value, NutrientDisplayLine.Calories)
 
-    fun formatProtein(
-        value: Number?,
-        withLabel: Boolean,
-    ): String {
-        val amount = value ?: 0
-        val label = if (withLabel) "Protein:" else null
-        val format = generateFormat(
-            label = label,
-            line = NutrientDisplayLine.Protein,
-        )
-        return formatMacroAmount(amount, format)
-    }
+    fun formatProtein(value: Number): String =
+        generateAndApplyFormat(value, NutrientDisplayLine.Protein)
 
     fun formatCarbs(
-        value: Number?,
+        value: Number,
         sugar: Number?,
         addedSugar: Number?,
-        withLabel: Boolean,
     ): String {
-        val amount = value ?: 0
-        val label = if (withLabel) "Carb:" else null
-        val format = generateFormat(
-            label = label,
-            line = NutrientDisplayLine.Carb,
-        )
-        return formatMacroAmount(amount, format) {
-            sugar?.let {
-                val sugar = formatSugar(sugar, withLabel = false)
+        val sugarStr = sugar
+            ?.let {
+                val sugar = formatSugar(sugar)
                 val addedSugar = addedSugar?.let {
-                    formatAddedSugar(addedSugar, withLabel = false)
+                    formatAddedSugar(addedSugar)
                 }
                 "${sugar}${addedSugar?.let { "/$it" } ?: ""}"
             }
-        }
+        return generateAndApplyFormat(
+            value,
+            NutrientDisplayLine.Carb
+        ) + sugarStr?.let { " ($it)" }.orEmpty()
     }
 
-    fun formatSugar(
-        value: Number?,
-        withLabel: Boolean,
-    ): String {
-        val amount = value ?: 0
-        // no short label because in short mode sugar is displayed after carbs in parentheses
-        val label = if (withLabel) "of which sugar:" else null
-        val format = generateFormat(
-            label = label,
-            line = NutrientDisplayLine.OfWhichSugar,
-        )
-        return formatMacroAmount(amount, format)
-    }
+    fun formatSugar(value: Number): String =
+        generateAndApplyFormat(value, NutrientDisplayLine.OfWhichSugar)
 
-    fun formatAddedSugar(
-        value: Number?,
-        withLabel: Boolean,
-    ): String {
-        val amount = value ?: 0
-        val label = if (withLabel) "of which added sugar:" else null
-        // no short label because in short mode sugar is displayed after carbs in parentheses
-        val format = generateFormat(
-            label = label,
-            line = NutrientDisplayLine.OfWhichAddedSugar,
-        )
-        return formatMacroAmount(amount, format)
-    }
+    fun formatAddedSugar(value: Number): String =
+        generateAndApplyFormat(value, NutrientDisplayLine.OfWhichAddedSugar)
 
     fun formatFat(
-        value: Number?,
+        value: Number,
         saturated: Number?,
-        withLabel: Boolean,
     ): String {
-        val amount = value ?: 0
-        val label = if (withLabel) "Fat:" else null
-        val format = generateFormat(
-            label = label,
-            line = NutrientDisplayLine.Fat,
-        )
-        return formatMacroAmount(amount, format) {
-            saturated?.let {
-                formatSaturatedFat(saturated, withLabel = false)
+        val saturatedFat = saturated
+            ?.let {
+                formatSaturatedFat(saturated)
             }
+        return generateAndApplyFormat(
+            value,
+            NutrientDisplayLine.Fat
+        ) + saturatedFat?.let { " ($it)" }.orEmpty()
+    }
+
+    fun formatSaturatedFat(value: Number): String =
+        generateAndApplyFormat(value, NutrientDisplayLine.OfWhichSaturated)
+
+    fun formatSalt(value: Number): String =
+        generateAndApplyFormat(value, NutrientDisplayLine.Salt)
+
+    fun formatFibre(value: Number): String =
+        generateAndApplyFormat(value, NutrientDisplayLine.Fibre)
+
+    private fun generateAndApplyFormat(value: Number, line: NutrientDisplayLine): String {
+        return formatDecimal(
+            value = value.toDouble(),
+            decimalCount = line.decimalCount,
+            dropTrailingZeroes = line.dropTrailingZeroes,
+        ) + line.unit
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Appends contributor text only when [amount] is non-null and at least the smallest
+     * display step for [line] (`1 / 10^decimalCount` in the same units as formatted).
+     */
+    fun formatTopContributorSuffix(
+        amount: Number?,
+        line: NutrientDisplayLine,
+        contributorText: String?,
+    ): String = topContributors(amount, line, contributorText)?.let { " ($it)" }.orEmpty()
+
+    /**
+     * The contributor text on its own (no brackets), under the same visibility rule as
+     * [formatTopContributorSuffix]; null when it shouldn't show.
+     */
+    fun topContributors(
+        amount: Number?,
+        line: NutrientDisplayLine,
+        contributorText: String?,
+    ): String? {
+        if (amount == null || amount.toDouble() < minimumAmountForContributorVisibility(line.decimalCount)) {
+            return null
         }
+        return contributorText?.takeIf { it.isNotBlank() }
     }
 
-    fun formatSaturatedFat(
-        value: Number?,
-        withLabel: Boolean,
-    ): String {
-        val amount = value ?: 0
-        // no short label because in short mode saturated fats are displayed after fat in parentheses
-        val label = if (withLabel) "of which saturated:" else null
-        val format = generateFormat(
-            label = label,
-            line = NutrientDisplayLine.OfWhichSaturated,
-        )
-        return formatMacroAmount(amount, format)
-    }
+    private fun minimumAmountForContributorVisibility(decimalCount: Int): Double =
+        1.0 / 10.0.pow(decimalCount.toDouble())
 
-    fun formatSalt(
-        value: Number?,
-        withLabel: Boolean,
-    ): String {
-        val amount = value ?: 0
-        val label = if (withLabel) "Salt:" else null
-        val format = generateFormat(
-            label = label,
-            line = NutrientDisplayLine.Salt,
-        )
-        return formatMacroAmount(amount, format)
-    }
-
-    fun formatFibre(
-        value: Number?,
-        withLabel: Boolean,
-    ): String {
-        val amount = value ?: 0
-        val label = if (withLabel) "Fibre:" else null
-        val format = generateFormat(
-            label = label,
-            line = NutrientDisplayLine.Fibre,
-        )
-        return formatMacroAmount(amount, format)
+    /**
+     * public for testing
+     * TODO it shouldn't be tested separately like this
+     */
+    fun formatTopContributorText(text: String?): String {
+        return text
+            ?.takeIf { it.isNotBlank() }
+            ?.let {
+                " ($it)"
+            } ?: ""
     }
 
     fun targetProgress(target: Target, total: Float): Float? = target.max?.let { max ->
         val min = target.min ?: 0
-        if (min > 0 && max > min) {
+        if (min in 1..<max) {
             if (total <= min) {
                 (total / min) * 0.75f
             } else {
@@ -197,94 +169,11 @@ class TemplateUiMapper @Inject constructor() {
         )
     }
 
-    private fun formatMacroAmount(
-        value: Number,
-        format: SafeNumberFormatter,
-        extraValue: (() -> String?)? = null,
-    ): String {
-        return format.format(value) + (extraValue?.invoke()?.let { "($it)" } ?: "")
-    }
-
-    private fun generateFormat(
-        label: String?,
-        line: NutrientDisplayLine,
-    ): SafeNumberFormatter {
-        val decimalPattern = "${decimalFormat(line.decimalCount, line.dropTrailingZeroes)}${line.unit.literal()}"
-
-        val format = if (label != null) {
-            val labelLiteral = "$label ".literal()
-            DecimalFormat("$labelLiteral$decimalPattern")
-        } else {
-            DecimalFormat(decimalPattern)
-        }
-
-        val safeFormatter = object : SafeNumberFormatter(format) {
-            override fun nullFormat(): String = label ?: ""
-        }
-
-        return safeFormatter
-    }
-
-    private fun decimalFormat(decimals: Int, dropTrailingZeroes: Boolean = true): String {
-        require(decimals >= 0)
-        val pattern = buildString {
-            append("0")
-            if (decimals > 0) {
-                append('.')
-                val ch = if (dropTrailingZeroes) '#' else '0'
-                repeat(decimals) { append(ch) }
-            }
-        }
-        return pattern
-    }
-
-    /**
-     * @return receiver wrapped in '' if non blank, [default] otherwise
-     */
-    private fun String.literal(
-        default: String? = "",
-    ) = takeIf(String::isNotBlank)
-        ?.let { "'$this'" }
-        ?: default
-
-    fun formatTopContributorText(text: String?): String {
-        return text
-            ?.takeIf { it.isNotBlank() }
-            ?.let {
-                " ($it)"
-            } ?: ""
-    }
-
-    /**
-     * Appends contributor text only when [amount] is non-null and at least the smallest
-     * display step for [line] (`1 / 10^decimalCount` in the same units as formatted).
-     */
-    fun formatTopContributorSuffix(
-        amount: Number?,
-        line: NutrientDisplayLine,
-        contributorText: String?,
-    ): String {
-        if (amount == null || amount.toDouble() < minimumAmountForContributorVisibility(line.decimalCount)) {
-            return ""
-        }
-        return formatTopContributorText(contributorText)
-    }
-
-    private fun minimumAmountForContributorVisibility(decimalCount: Int): Double =
-        1.0 / 10.0.pow(decimalCount.toDouble())
-
-    private abstract class SafeNumberFormatter(
-        private val format: DecimalFormat,
-    ) {
-        fun format(value: Number?): String = value?.let { format.format(it) } ?: nullFormat()
-
-        abstract fun nullFormat(): String
-    }
-
     fun getBestPhoto(template: Template): String? {
         val array = template.imageFilenames.mapIndexed { index, imageFilename ->
             imageFilename to template.isRepresentativeOfMealByImageIndex[index]
         }
-        return array.firstOrNull { (_, isRepresentative) -> isRepresentative == true }?.first ?: template.imageFilenames.firstOrNull()
+        return array.firstOrNull { (_, isRepresentative) -> isRepresentative == true }?.first
+            ?: template.imageFilenames.firstOrNull()
     }
 }

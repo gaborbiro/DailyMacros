@@ -56,6 +56,13 @@ fun SettingsScreen(
         else settingsViewModel.onAutoPhotoPermissionsDenied()
     }
 
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) settingsViewModel.onNotificationPermissionGranted()
+        else settingsViewModel.onNotificationPermissionDenied()
+    }
+
     val healthConnectPermissionLauncher = rememberLauncherForActivityResult(
         contract = PermissionController.createRequestPermissionResultContract()
     ) { granted ->
@@ -81,6 +88,11 @@ fun SettingsScreen(
                     }
                     photoPermissionLauncher.launch(permission)
                 }
+                SettingsUiUpdates.RequestNotificationPermission -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                }
                 SettingsUiUpdates.RequestHealthConnectPermissions -> {
                     healthConnectPermissionLauncher.launch(HealthConnectSyncUseCase.PERMISSIONS)
                 }
@@ -100,6 +112,7 @@ fun SettingsScreen(
         onDiaryDayStartDialogDismissed = settingsViewModel::onDiaryDayStartDialogDismissed,
         onDiaryDayStartHourSelected = settingsViewModel::onDiaryDayStartHourSelected,
         onAutoPhotoRecognitionToggled = settingsViewModel::onAutoPhotoRecognitionToggled,
+        onMealRemindersToggled = settingsViewModel::onMealRemindersToggled,
         onQuickPickConfirmationToggled = settingsViewModel::onQuickPickConfirmationToggled,
         onWifiOnlyBackupToggled = settingsViewModel::onWifiOnlyBackupToggled,
         onWifiOnlyAnalysisToggled = settingsViewModel::onWifiOnlyAnalysisToggled,
@@ -124,6 +137,7 @@ fun SettingsScreen(
         onOverwriteDialogDismissed = settingsViewModel::onOverwriteDialogDismissed,
         onSubscribeTapped = { context.findActivity()?.let(settingsViewModel::onSubscribeRowTapped) },
         onShowOnboardingTapped = { navController.navigate(ONBOARDING_ROUTE) },
+        onMealReminderDebugTapped = settingsViewModel::onMealReminderDebugRowTapped,
         onHealthConnectSyncToggled = settingsViewModel::onHealthConnectSyncToggled,
         onSuggestIntegrationTapped = { openSuggestIntegrationEmail(context) },
     )
@@ -143,6 +157,8 @@ fun SettingsScreen(
             if (event == Lifecycle.Event.ON_RESUME && !targetsSettingsViewModel.uiState.value.canReset) {
                 targetsSettingsViewModel.reloadFromRepository()
             }
+            // Meals may have been logged or moved elsewhere (e.g. from a widget) while away.
+            if (event == Lifecycle.Event.ON_RESUME) settingsViewModel.onMealReminderDebugRowTapped()
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }

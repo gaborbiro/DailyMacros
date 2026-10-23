@@ -23,6 +23,7 @@ import java.time.temporal.WeekFields
 import java.util.Locale
 import javax.inject.Inject
 import dev.gaborbiro.dailymacros.features.trends.R
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedDateTime
 
 /**
  * The Weeks chart's bottom axis only renders a label every Nth week (see TrendsView.kt's
@@ -44,7 +45,7 @@ class TrendsUiMapper @Inject constructor(
         get() = diaryDayStartTime(settingsRepository.getDiaryDayStartHour())
 
     private fun Record.diaryKeyDate(): LocalDate =
-        timestamp.logicalDiaryDate(diaryDayStart)
+        timestamp.toZonedDateTime().logicalDiaryDate(diaryDayStart)
 
     private fun logicalToday(): LocalDate =
         logicalDiaryToday(ZoneId.systemDefault(), diaryDayStart)

@@ -12,6 +12,8 @@ android {
 dependencies {
     implementation(project(":features:common"))
     implementation(project(":features:settings"))
+    implementation(project(":features:shared"))
+    implementation(project(":core:analytics"))
     implementation(project(":core:design"))
     implementation(project(":core:featureFlags"))
     implementation(project(":repositories:common"))

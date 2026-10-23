@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!--
+       Package visibility for the voice-input mic button (RecordDetailsCreateView): lets us check
+       whether a speech recogniser app is installed on Android 11+ before showing the button.
+    -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.action.RECOGNIZE_SPEECH" />
+        </intent>
+    </queries>
+
     <application>
         <activity
             android:name=".ModalActivity"

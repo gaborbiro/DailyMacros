@@ -13,6 +13,9 @@ Metering is by **request count** (a tripwire), not exact token cost:
 ~3000 requests/month ≈ $30 at ~$0.01/call. Tune it live in Firestore — no
 redeploy needed.
 
+For what every Firestore collection and document is for, see
+[FIRESTORE.md](FIRESTORE.md).
+
 ---
 
 ## One-time setup (Firebase console + CLI)
@@ -55,10 +58,11 @@ These steps need your Firebase login and can only be done by you.
    | `unlimitedClientIds` | array (optional) | `[]` |
    | `preSubTotalCap` | number (optional) | `9` |
    | `preSubSuccessCap` | number (optional) | `6` |
+   | `testingFreeForAll` | boolean (optional) | `false` |
 
    (If you skip this, the function falls back to 15 / 3000 / off / no
-   unlimited clients / 9+6 for the pre-subscription pool, shared between
-   `recognition` and `analysis`.)
+   unlimited clients / 9+6 for the pre-subscription pool / off, shared
+   between `recognition` and `analysis`.)
 
 ---
 
@@ -159,6 +163,14 @@ order) before trusting it — the Voided Purchases API's field/enum names in
 the code are per Google's documented shape but haven't been exercised
 against a live response here.
 
+Until Oct 2026 this job sent `type: 2`, which the API rejects (only `0` and
+`1` are valid), so no run ever completed. The first successful run after the
+fix looks back 30 days (the API's limit) instead of 3, then records
+`jobs/checkVoidedPurchases.catchUpCompletedAt` in Firestore so later runs go
+back to the normal window. Voids older than that are out of reach: check
+Play Console → Order management for refunds since launch and revoke those by
+hand in Firestore.
+
 ### Recovering a lost `users/{uid}` doc
 
 If a subscriber's `users/{uid}` doc is ever lost (an accidental Firestore
@@ -167,11 +179,12 @@ Two separate durable mappings (each its own collection, unaffected by
 `users/{uid}` being deleted) exist specifically so this is recoverable:
 `purchaseTokens/{token} -> {uid}` and `clientIds/{clientId} -> {uid}` — the
 first recovers the uid → purchase token link, the second means even just a
-support email quoting a three-word id is enough to find the uid at all.
+support email quoting a client ID is enough to find the uid at all.
 
 - **Automatic**: `openaiProxy` self-heals the first time it sees a
   not-yet-entitled request from a uid whose doc doesn't exist at all — it
-  checks `purchaseTokens` for a token on file, and if found, re-verifies with
+  checks `purchaseTokens` for the uid's newest token on file (by document
+  creation time — a resubscriber has one per purchase), and if found, re-verifies with
   Play and retries the same request before denying it. No waiting required,
   but it only fires when that uid happens to make a request.
 - **Manual**: `repairSubscription`, an on-demand HTTP endpoint, for fixing a
@@ -223,12 +236,12 @@ firebase deploy --only functions,firestore:rules
 
 ### Deploy from GitHub (no local `firebase login`)
 
-`.github/workflows/firebase-deploy.yml` runs this same deploy non-interactively,
+`.github/workflows/deploy-ai-proxy.yml` runs this same deploy non-interactively,
 authenticated as a service account instead of a personal Google login. It's
 **manual only, by design** — no path-based auto-detection on merge, since a
 functions deploy changes real enforcement behavior and that's a call worth
 making deliberately each time, not inferring from which files a PR happened to
-touch. Trigger it yourself: Actions tab → "Deploy Firebase functions" → Run
+touch. Trigger it yourself: Actions tab → "Deploy AI proxy & subscriptions" → Run
 workflow → pick `functions`, `firestore:rules`, or both.
 
 One-time setup (needs your GCP/GitHub access; nobody else can do this part):
@@ -302,14 +315,22 @@ client is wired to send its Firebase ID token — that's the follow-up step.
   subscribe (see `index.js`'s header comment) — a user's own progress toward
   those caps lives on their `users/{uid}` doc (`preSubTotal`/`preSubSuccess`).
 - **Unlock a test device from subscription enforcement entirely:** add its
-  three-word id to `config/limits.unlimitedClientIds` (see below) — cleaner
+  client ID to `config/limits.unlimitedClientIds` (see below) — cleaner
   than watching it burn through the pre-subscription allowance.
+- **Unlock everyone at once, for a closed test:** set
+  `config/limits.testingFreeForAll = true`. Same effect as adding every
+  current client ID to `unlimitedClientIds`, without needing to know any of
+  them — meant for a closed-test phase where there's no cheap way to map
+  landing-page signups to client IDs. The monthly budget still caps total
+  spend while it's on. Flip it back to `false` at public launch; testers
+  land on a fresh, unconsumed pre-subscription allowance rather than an
+  already-exhausted one (see `index.js`'s header comment).
 - **Emergency stop:** set `config/limits.killSwitch = true`. All proxied
   requests immediately return 503 until you flip it back.
-- **See usage:** `usage/global` holds the current month's count;
+- **See usage:** `meters/app` holds the current month's count;
   `users/{uid}` holds each device's daily count (`dailyCapCount`, valid for
   the UTC date in `dailyCapUtcDate`), plus `clientId` (the
-  three-word id shown in the app's Settings), `lastSeen`, and that same
+  three-word client ID shown in the app's Settings), `lastSeen`, and that same
   user's subscription fields (`subscriptionState`, `subscriptionProductId`,
   `subscriptionExpiryTimeMillis`, `subscriptionPurchaseToken`,
   `subscriptionUpdatedAt`, and `subscriptionVoidedAt` if ever revoked) — one
@@ -318,7 +339,7 @@ client is wired to send its Firebase ID token — that's the follow-up step.
   (lowercased, prefix stripped) — `active`, `pending`, `paused`,
   `in_grace_period`, `on_hold`, `canceled`, `expired`, `unspecified` — plus
   the synthetic `revoked` written only by `checkVoidedPurchases`.
-- **Find a user from a support email:** they quote their three-word id (e.g.
+- **Find a user from a support email:** they quote their client ID (e.g.
   `apple-fox-moon`). Console → Firestore → `clientIds/apple-fox-moon` — a
   direct doc lookup, no query needed, and it works even if `users/{uid}` was
   lost (that's the reason this mapping exists as its own collection instead
@@ -326,7 +347,7 @@ client is wired to send its Firebase ID token — that's the follow-up step.
   auth uid; open `users/{uid}` from there for today's count, last-seen time,
   and subscription state. (Not guaranteed unique at scale — see
   `repairSubscription`'s doc comment in `subscriptions.js`.)
-- **Unlock yourself permanently:** add your own three-word id to
+- **Unlock yourself permanently:** add your own client ID to
   `config/limits.unlimitedClientIds`. Those clients skip the per-user daily cap
   (they're still counted and still bounded by the global monthly budget).
 - **Unlock someone else permanently, with a note:** add an object instead of a
@@ -343,3 +364,105 @@ client is wired to send its Firebase ID token — that's the follow-up step.
   allowance.)
 - **Watch cost:** the Blaze budget alert (step 2) plus your OpenAI account's
   own hard usage limit are the outer backstops behind the in-function cap.
+
+---
+
+## Landing page signups and funnel stats (`joinWaitlist`, `joinTest`, `trackEvent`)
+
+The landing page (`web/`) has two signup forms:
+
+- `joinWaitlist` (see `waitlist.js`, built on the shared `lib/signupHandler.js`
+  + `lib/notifySignup.js`) — the primary "Get notified when Daily Macros
+  launches" CTA. Writes `waitlist/{id}` docs; email only, no Play Console
+  involvement.
+- `joinTest` (see `testers.js`, self-contained — predates the shared `lib/`
+  helpers) — the secondary "Join the Android beta" CTA. Writes `testers/{id}`
+  docs for the closed test, with a `platform` field (see below).
+
+Both email you on every *new* signup (not duplicates). The email is
+best-effort: a mail failure never fails the signup, and if the secrets below
+are unset the function simply skips it locally.
+
+`trackEvent` (see `stats.js`) increments `stats/counters.page_view`,
+`stats/counters.beta_cta_click` and `stats/counters.demo_start` (a visitor's
+first tap on the demo below) so you can see the funnel between a visit and
+each signup; it doesn't store any per-visitor data.
+
+One-time setup (the deploy fails until both secrets exist):
+
+1. Turn on 2-step verification for the Gmail account, then create an **app
+   password** (Google Account → Security → App passwords).
+2. Store both as Secret Manager secrets — via `firebase functions:secrets:set`
+   or the GCP console (Secret Manager → Create secret):
+   - `NOTIFY_EMAIL` — the Gmail address that sends *and* receives the alert
+   - `NOTIFY_APP_PASSWORD` — the app password from step 1
+3. Deploy with the "Deploy landing page" workflow.
+
+Review signups in Firestore → `waitlist` (email on launch) and `testers`
+(set `status` to `added` once the address is in Play Console).
+
+Each `testers` doc has a `platform`: `android` (status `pending` → `added`) or
+`ios` (status `waitlist`, nothing to approve, never counted as pending). Docs
+from before the iPhone option have no `platform` field and are all Android.
+iOS ids are hashed with an `ios:` prefix, so one email can be on both lists.
+
+---
+
+## Landing-page demo (`demoAnalyze`)
+
+The "Try it on a meal" section of `web/index.html` is an HTML replica of the
+home-screen widget. Everything on it is static except the analysis: the page
+downscales the visitor's photo (or takes a typed description) and POSTs it to
+`/api/demo`, a Hosting rewrite to `demoAnalyze` (see `demo.js`).
+
+`demoAnalyze` is deliberately **not** a pass-through like `openaiProxy`: it
+builds the OpenAI request itself from `lib/demoPrompt.js` (a copy of the app's
+nutrient-analysis prompt, so keep the two in step), so the endpoint can only
+ever analyse a meal. Because web visitors have no stable identity, it has its
+own caps instead of the per-user ones, all in `config/demo`:
+
+| Field | Type | Default | Meaning |
+|---|---|---|---|
+| `enabled` | boolean | `true` | The demo's own kill switch. |
+| `dailyBudget` | number | `60` | All demo calls per UTC day (`meters/demo`). Separate from `config/limits`, so an abused demo can't lock out app users. Worst case per month: 30 × this. |
+| `perIpDailyCap` | number | `3` | Calls per visitor IP per UTC day (`meters/demo/visitors/{sha256(day:ip)}`). A soft limit; `dailyBudget` is the real ceiling. |
+| `requireAppCheck` | boolean | `true` | Require a valid App Check token. |
+| `model` | string | `gpt-5.4-mini` | OpenAI model. |
+| `reasoningEffort` | string | `low` | The app uses `high`; a landing-page visitor won't wait that long. |
+
+One-time setup (until it's done, the demo answers every try with "couldn't
+verify this browser"):
+
+1. **Register a web app** in the Firebase console: *Project settings → Your
+   apps → Add app → Web*. Hosting then serves its config at
+   `/__/firebase/init.json`, which the page reads, so nothing else needs
+   pasting.
+2. **Create a reCAPTCHA Enterprise key**: Cloud console → *Security →
+   reCAPTCHA → Create key*, type *Website*, domains `dailymacros.dev`,
+   `dailymacros-9fab8.web.app` and `dailymacros-9fab8.firebaseapp.com`. Enable the reCAPTCHA Enterprise API if prompted.
+3. **Register it with App Check**: Firebase console → *App Check → Apps* →
+   the web app → *reCAPTCHA Enterprise* → paste the site key → *Save*. Don't
+   turn on enforcement for other Firebase products; `demoAnalyze` verifies
+   tokens itself.
+4. **Put the site key in the page**: `APP_CHECK_SITE_KEY` in the demo script
+   at the bottom of `web/index.html`. Site keys are public by design.
+5. **Add a TTL policy** so the per-IP docs delete themselves after two days:
+   ```bash
+   gcloud firestore fields ttls update expireAt \
+     --collection-group=visitors --enable-ttl --project=dailymacros-9fab8
+   ```
+6. **Deploy** functions and hosting (the `/api/demo` rewrite is in
+   `firebase.json`).
+
+To test on `localhost`, the page prints an App Check debug token to the
+browser console; add it under *App Check → Apps → ⋮ → Manage debug tokens*.
+
+Operating it:
+
+- **Stop the demo:** set `config/demo.enabled = false`. The page shows "The
+  demo is taking a break".
+- **See usage:** `meters/demo` holds today's count; `stats/counters.demo_start`
+  counts visitors who tried it.
+- **Sample photos:** `web/img/demo/*.jpg` are cut from the widget screenshot.
+  Real, larger food photos give the AI more to work with; replace the files
+  with the same names.

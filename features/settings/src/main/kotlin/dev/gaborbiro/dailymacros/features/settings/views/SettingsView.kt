@@ -82,6 +82,7 @@ internal fun SettingsView(
     onDiaryDayStartDialogDismissed: () -> Unit,
     onDiaryDayStartHourSelected: (Int) -> Unit,
     onAutoPhotoRecognitionToggled: (Boolean) -> Unit,
+    onMealRemindersToggled: (Boolean) -> Unit = {},
     onQuickPickConfirmationToggled: (Boolean) -> Unit,
     onWifiOnlyBackupToggled: (Boolean) -> Unit,
     onWifiOnlyAnalysisToggled: (Boolean) -> Unit,
@@ -104,6 +105,7 @@ internal fun SettingsView(
     onOverwriteDialogDismissed: () -> Unit,
     onSubscribeTapped: () -> Unit,
     onShowOnboardingTapped: () -> Unit = {},
+    onMealReminderDebugTapped: () -> Unit = {},
     onHealthConnectSyncToggled: (Boolean) -> Unit = {},
     onSuggestIntegrationTapped: () -> Unit = {},
 ) {
@@ -292,6 +294,21 @@ internal fun SettingsView(
                 )
             }
 
+            if (viewState.mealRemindersVisible) {
+                SettingSectionHeader(title = stringResource(R.string.settings_content_reminders_section))
+                SettingRow(
+                    title = stringResource(R.string.settings_meal_reminders_row),
+                    subtitle = stringResource(R.string.settings_meal_reminders_subtitle),
+                    onTapped = { onMealRemindersToggled(!viewState.mealRemindersEnabled) },
+                    trailing = {
+                        Switch(
+                            checked = viewState.mealRemindersEnabled,
+                            onCheckedChange = onMealRemindersToggled,
+                        )
+                    },
+                )
+            }
+
             SettingSectionHeader(title = stringResource(R.string.settings_content_widgets_section))
             SettingRow(
                 title = stringResource(R.string.settings_quick_pick_confirmation_row),
@@ -428,24 +445,22 @@ internal fun SettingsView(
             )
 
             SettingSectionHeader(title = stringResource(R.string.settings_content_connected_services_section))
-            if (viewState.healthConnectSyncVisible) {
-                SettingRow(
-                    title = stringResource(R.string.settings_health_connect_sync_row),
-                    subtitle = stringResource(R.string.settings_health_connect_sync_subtitle),
-                    enabled = !viewState.healthConnectSyncInProgress,
-                    onTapped = { onHealthConnectSyncToggled(!viewState.healthConnectSyncEnabled) },
-                    trailing = {
-                        if (viewState.healthConnectSyncInProgress) {
-                            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                        } else {
-                            Switch(
-                                checked = viewState.healthConnectSyncEnabled,
-                                onCheckedChange = onHealthConnectSyncToggled,
-                            )
-                        }
-                    },
-                )
-            }
+            SettingRow(
+                title = stringResource(R.string.settings_health_connect_sync_row),
+                subtitle = stringResource(R.string.settings_health_connect_sync_subtitle),
+                enabled = !viewState.healthConnectSyncInProgress,
+                onTapped = { onHealthConnectSyncToggled(!viewState.healthConnectSyncEnabled) },
+                trailing = {
+                    if (viewState.healthConnectSyncInProgress) {
+                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                    } else {
+                        Switch(
+                            checked = viewState.healthConnectSyncEnabled,
+                            onCheckedChange = onHealthConnectSyncToggled,
+                        )
+                    }
+                },
+            )
             SettingRow(
                 titleContent = {
                     val question = stringResource(R.string.settings_suggest_integration_row_question)
@@ -470,6 +485,11 @@ internal fun SettingsView(
                 SettingRow(
                     title = stringResource(R.string.settings_debug_show_onboarding_row),
                     onTapped = onShowOnboardingTapped,
+                )
+                SettingRow(
+                    title = stringResource(R.string.settings_debug_meal_reminders_row),
+                    subtitle = viewState.mealReminderDebugText,
+                    onTapped = onMealReminderDebugTapped,
                 )
             }
 

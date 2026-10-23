@@ -2,15 +2,16 @@ package dev.gaborbiro.dailymacros.features.modal.views
 
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -18,33 +19,23 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.StarBorder
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,6 +51,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -73,6 +65,7 @@ import dev.gaborbiro.dailymacros.features.modal.R
 import dev.gaborbiro.dailymacros.features.common.R as CommonR
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
+import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.features.common.utils.diaryDayStartTime
 import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryDate
 import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryToday
@@ -87,7 +80,17 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 private val recordTimestampFormatter = DateTimeFormatter.ofPattern("dd MMM, H:mm")
+private val recordTimeFormatter = DateTimeFormatter.ofPattern("H:mm")
 
+/**
+ * A logged meal, read top to bottom: photos, title with when it was eaten, description, the macros and what
+ * the AI inferred (with a link to correct it). Kept deliberately flat: no cards, borders or dividers, and the
+ * Quick Pick star lives in the dialog's header (see RecordDetailsDialog).
+ *
+ * Browsing and editing share this one layout: switching to [DialogHandle.RecordDetailsDialog.View.isEditing]
+ * turns the title and description into fields in place, slides in the photo controls and folds away the
+ * parts that only make sense while browsing.
+ */
 @Composable
 fun ColumnScope.RecordDetailsView(
     view: DialogHandle.RecordDetailsDialog.View,
@@ -102,6 +105,7 @@ fun ColumnScope.RecordDetailsView(
     nutrientBreakdown: NutrientBreakdownUiModel?,
     imageFilenames: List<String>,
     macrosExpanded: Boolean = false,
+    aiInferenceExpanded: Boolean = false,
     onImageTapped: (String) -> Unit,
     onImageDeleteTapped: (String) -> Unit,
     onImageMoveLeftTapped: (String) -> Unit,
@@ -112,362 +116,353 @@ fun ColumnScope.RecordDetailsView(
     variantPickerOptions: List<MealVariantPickerOption>?,
     selectedVariantTemplateId: Long,
     onVariantTemplatePicked: (Long) -> Unit,
-    showQuickPickStar: Boolean,
-    quickPickStarred: Boolean,
-    onQuickPickStarToggled: () -> Unit,
     onEditTimestampTapped: () -> Unit = {},
+    onCorrectionChanged: (TextFieldValue) -> Unit = {},
+    onReanalyzeTapped: () -> Unit = {},
 ) {
-    val browseMode = !view.isEditing
+    val editing = view.isEditing
+    val browseMode = !editing
     val browseInteractive = browseMode && view.allowEdit && !showCloseOnly
-    val browseReadOnly = browseMode && (showCloseOnly || !view.allowEdit)
-    val showImageControls = showPhotoManagement || (view.isEditing && view.allowEdit && !showCloseOnly)
+    val showImageControls = showPhotoManagement || (editing && view.allowEdit && !showCloseOnly)
     var macrosExpanded by remember(view.recordId, view.templateDbId) { mutableStateOf(macrosExpanded) }
+    var aiInferenceExpanded by remember(view.recordId, view.templateDbId) { mutableStateOf(aiInferenceExpanded) }
     // Session-scoped: survives View state replacements (e.g. variant switch) until this dialog leaves composition.
     var variantPickerRevealed by remember { mutableStateOf(false) }
 
-    if (browseMode && !variantPickerOptions.isNullOrEmpty()) {
-        if (!variantPickerRevealed) {
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = PaddingDefault)
-                    .padding(top = PaddingDefault)
-                    .padding(vertical = 8.dp)
-                    .clickable { variantPickerRevealed = true },
-                text = stringResource(R.string.meal_details_variant_different_link),
-                style = MaterialTheme.typography.labelLarge.copy(
-                    color = MaterialTheme.colorScheme.primary,
-                    textDecoration = TextDecoration.Underline,
-                ),
-                textAlign = TextAlign.Start,
-            )
-        } else {
-            VariantTemplateDropdown(
-                options = variantPickerOptions,
-                selectedTemplateId = selectedVariantTemplateId,
-                titleHint = titleHint,
-                titleErrorMessage = titleErrorMessage,
-                onTemplatePicked = onVariantTemplatePicked,
-            )
+    val variantRowShown = browseMode && !variantPickerOptions.isNullOrEmpty()
+    AnimatedVisibility(visible = variantRowShown, enter = editModeEnter, exit = editModeExit) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            if (!variantPickerRevealed) {
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = PaddingDefault)
+                        .padding(top = PaddingDefault)
+                        .padding(vertical = 8.dp)
+                        .clickable { variantPickerRevealed = true },
+                    text = stringResource(R.string.meal_details_variant_different_link),
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        color = MaterialTheme.colorScheme.primary,
+                        textDecoration = TextDecoration.Underline,
+                    ),
+                    textAlign = TextAlign.Start,
+                )
+            } else {
+                variantPickerOptions?.let { options ->
+                    VariantTemplateDropdown(
+                        options = options,
+                        selectedTemplateId = selectedVariantTemplateId,
+                        titleHint = titleHint,
+                        titleErrorMessage = titleErrorMessage,
+                        onTemplatePicked = onVariantTemplatePicked,
+                    )
+                }
+            }
         }
     }
 
-    ImageStrip(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 12.dp)
-            .padding(bottom = 12.dp),
-        showAddPhotoButtons = showImageControls,
-        showImageDeleteButton = showImageControls,
-        showImageReorderButtons = showImageControls,
-        showInfoButton = showImageControls,
-        imageFilenames = imageFilenames,
-        onImageTapped = onImageTapped,
-        onImageDeleteTapped = onImageDeleteTapped,
-        onImageMoveLeftTapped = onImageMoveLeftTapped,
-        onImageMoveRightTapped = onImageMoveRightTapped,
-        onAddImageViaCameraTapped = onAddImageViaCameraTapped,
-        onAddImageViaPickerTapped = onAddImageViaPickerTapped,
-        onInfoButtonTapped = onImagesInfoButtonTapped,
+    val hasImages = imageFilenames.isNotEmpty()
+    // While browsing, the header's star and overflow menu (RecordDetailsDialog's topEndAction) float over the
+    // strip's end, so keep photos from scrolling under them: 12dp outer padding + 2 x 48dp IconButtons.
+    val imageStripEndPadding by animateDpAsState(
+        targetValue = if (browseInteractive) 104.dp else 0.dp,
+        animationSpec = editModeSpec(),
+        label = "mealDetailsImageStripEndPadding",
     )
-
-    if (view.isEditing) {
-        TextField(
+    AnimatedVisibility(visible = hasImages || showImageControls, enter = editModeEnter, exit = editModeExit) {
+        ImageStrip(
             modifier = Modifier
-                .padding(horizontal = PaddingDefault)
                 .fillMaxWidth()
-                .wrapContentHeight(),
-            isError = titleErrorMessage.isNullOrBlank().not(),
-            textStyle = MaterialTheme.typography.bodyMedium,
-            placeholder = {
-                Text(
-                    text = titleHint,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontStyle = FontStyle.Italic,
-                    color = Color.Gray,
-                )
-            },
-            value = title,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Text,
-                capitalization = KeyboardCapitalization.Sentences,
-                imeAction = ImeAction.Next,
-            ),
-            onValueChange = { onTitleChanged(it) },
+                .padding(end = imageStripEndPadding)
+                .padding(top = 12.dp)
+                .padding(bottom = 12.dp),
+            showAddPhotoButtons = showImageControls,
+            showImageDeleteButton = showImageControls,
+            showImageReorderButtons = showImageControls,
+            showInfoButton = showImageControls,
+            imageFilenames = imageFilenames,
+            onImageTapped = onImageTapped,
+            onImageDeleteTapped = onImageDeleteTapped,
+            onImageMoveLeftTapped = onImageMoveLeftTapped,
+            onImageMoveRightTapped = onImageMoveRightTapped,
+            onAddImageViaCameraTapped = onAddImageViaCameraTapped,
+            onAddImageViaPickerTapped = onAddImageViaPickerTapped,
+            onInfoButtonTapped = onImagesInfoButtonTapped,
         )
-        if (titleErrorMessage.isNullOrBlank().not()) {
-            Text(
-                modifier = Modifier
-                    .height(16.dp)
-                    .padding(horizontal = PaddingDefault),
-                text = titleErrorMessage,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.labelSmall,
+    }
+
+    // Without a photo strip, the title is the first thing in the dialog, right under the fixed overflow
+    // menu (RecordDetailsDialog's topEndAction). Clear its footprint (12dp top padding + 48dp default
+    // IconButton) so a long title doesn't run under it.
+    val titleTopPadding by animateDpAsState(
+        targetValue = when {
+            editing -> 0.dp
+            browseInteractive && !hasImages && !variantRowShown -> 60.dp
+            else -> 12.dp
+        },
+        animationSpec = editModeSpec(),
+        label = "mealDetailsTitleTopPadding",
+    )
+    InPlaceTextField(
+        modifier = Modifier
+            .padding(horizontal = PaddingDefault)
+            .padding(top = titleTopPadding)
+            .fillMaxWidth(),
+        value = title,
+        onValueChange = onTitleChanged,
+        editing = editing,
+        textStyle = MaterialTheme.typography.titleMedium,
+        browseTextColor = MaterialTheme.colorScheme.onSurface,
+        placeholder = titleHint,
+        isError = titleErrorMessage.isNullOrBlank().not(),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Text,
+            capitalization = KeyboardCapitalization.Sentences,
+            imeAction = ImeAction.Next,
+        ),
+        trailingIcon = {
+            VoiceInputButton(
+                prompt = stringResource(R.string.modal_content_voice_input_prompt),
+                contentDescription = stringResource(R.string.modal_content_voice_input_cd),
+                onTextRecognised = { spoken ->
+                    onTitleChanged(appendSpokenText(title, spoken))
+                },
             )
-        }
-
-        Spacer(
-            modifier = Modifier
-                .height(PaddingDefault)
+        },
+    )
+    AnimatedVisibility(visible = browseMode, enter = editModeEnter, exit = editModeExit) {
+        TimestampLine(
+            view = view,
+            editable = browseInteractive,
+            onEditTimestampTapped = onEditTimestampTapped,
         )
-
-        TextField(
+    }
+    AnimatedVisibility(visible = editing && titleErrorMessage.isNullOrBlank().not()) {
+        Text(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = PaddingDefault)
-                .heightIn(min = 120.dp),
-            textStyle = MaterialTheme.typography.bodyMedium,
-            placeholder = {
-                Text(
-                    text = stringResource(R.string.meal_details_description_placeholder),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontStyle = FontStyle.Italic,
-                    color = Color.Gray,
-                )
-            },
-            value = description,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Text,
-                capitalization = KeyboardCapitalization.Sentences,
-            ),
-            onValueChange = { onDescriptionChanged(it) },
+                .height(16.dp)
+                .padding(horizontal = PaddingDefault),
+            text = titleErrorMessage.orEmpty(),
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.labelSmall,
         )
-    } else if (browseInteractive || browseReadOnly) {
-        Row(
+    }
+
+    AnimatedVisibility(
+        visible = editing || description.text.isNotBlank(),
+        enter = editModeEnter,
+        exit = editModeExit,
+    ) {
+        InPlaceTextField(
             modifier = Modifier
                 .padding(horizontal = PaddingDefault)
                 .padding(top = 12.dp)
                 .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                modifier = Modifier.weight(1f),
-                text = title.text,
-                style = MaterialTheme.typography.titleMedium,
-            )
-            if (showQuickPickStar) {
-                IconButton(
-                    modifier = Modifier.size(28.dp),
-                    onClick = onQuickPickStarToggled,
-                ) {
-                    Icon(
-                        imageVector = if (quickPickStarred) Icons.Filled.Star else Icons.Outlined.StarBorder,
-                        contentDescription = if (quickPickStarred) {
-                            stringResource(R.string.meal_details_quick_pick_unstar_cd)
-                        } else {
-                            stringResource(R.string.meal_details_quick_pick_star_cd)
-                        },
-                        tint = if (quickPickStarred) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        },
+            value = description,
+            onValueChange = onDescriptionChanged,
+            editing = editing,
+            textStyle = MaterialTheme.typography.bodyLarge,
+            browseTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            placeholder = stringResource(R.string.meal_details_description_placeholder),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                capitalization = KeyboardCapitalization.Sentences,
+            ),
+            editingMinHeight = 120.dp,
+            trailingIcon = {
+                VoiceInputButton(
+                    prompt = stringResource(R.string.modal_content_voice_input_description_prompt),
+                    contentDescription = stringResource(R.string.modal_content_voice_input_description_cd),
+                    onTextRecognised = { spoken ->
+                        onDescriptionChanged(appendSpokenText(description, spoken))
+                    },
+                )
+            },
+        )
+    }
+
+    AnimatedVisibility(visible = browseMode, enter = editModeEnter, exit = editModeExit) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            val correctionInput: (@Composable () -> Unit)? = if (view.allowCorrection && browseInteractive) {
+                {
+                    MealCorrectionInput(
+                        correction = view.correction,
+                        canReanalyze = view.canReanalyze,
+                        onCorrectionChanged = onCorrectionChanged,
+                        onReanalyzeTapped = onReanalyzeTapped,
                     )
                 }
+            } else {
+                null
             }
-        }
 
-        if (description.text.isNotBlank()) {
-            Text(
-                modifier = Modifier
-                    .padding(horizontal = PaddingDefault)
-                    .padding(top = 12.dp)
-                    .fillMaxWidth(),
-                text = description.text,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-
-        Row(
-            modifier = Modifier
-                .padding(horizontal = PaddingDefault)
-                .padding(top = 12.dp)
-                .fillMaxWidth()
-                .let {
-                    if (browseInteractive) it.clickable { onEditTimestampTapped() } else it
-                },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            val dayStart = diaryDayStartTime(view.diaryDayStartHour)
-            val recordDiaryDate = view.timestamp.logicalDiaryDate(dayStart)
-            val today = logicalDiaryToday(view.timestamp.zone, dayStart)
-            val relativeDayLabel = when (recordDiaryDate) {
-                today -> stringResource(R.string.edit_timestamp_day_today)
-                today.minusDays(1) -> stringResource(R.string.edit_timestamp_day_yesterday)
-                else -> null
-            }
-            val formattedTimestamp = view.timestamp.format(recordTimestampFormatter)
-            Text(
-                text = relativeDayLabel?.let { "$it, $formattedTimestamp" } ?: formattedTimestamp,
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (browseInteractive) {
-                IconButton(
-                    modifier = Modifier.size(28.dp),
-                    onClick = onEditTimestampTapped,
-                ) {
-                    Icon(
-                        modifier = Modifier.size(16.dp),
-                        imageVector = Icons.Filled.Edit,
-                        contentDescription = stringResource(R.string.meal_details_edit_timestamp_cd),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-        }
-
-        if (view.showLoadingIndicator) {
-            Row(
-                modifier = Modifier
-                    .padding(horizontal = PaddingDefault)
-                    .padding(top = 16.dp)
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    painter = painterResource(CommonR.drawable.ic_ai_borg),
-                    contentDescription = null,
+            if (view.showLoadingIndicator) {
+                Row(
                     modifier = Modifier
-                        .padding(end = PaddingHalf)
-                        .size(20.dp),
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-                Text(
-                    text = stringResource(R.string.record_details_analyzing),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontStyle = FontStyle.Italic,
-                )
-            }
-        }
-
-        if (!view.showLoadingIndicator && nutrientBreakdown?.hasDisplayableContent == true) {
-            Spacer(
-                modifier = Modifier
-                    .height(20.dp)
-            )
-
-            val macroFadeSpec = tween<Float>(durationMillis = 400)
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = PaddingHalf),
-            ) {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .let {
-                            if (macrosExpanded) {
-                                it
-                            } else {
-                                it.clickable { macrosExpanded = true }
-                            }
-                        },
-                    color = Color.Transparent,
-                    shape = MaterialTheme.shapes.small,
-                    border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.primary.copy(alpha = .45f)),
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .padding(top = PaddingHalf)
-                            .animateContentSize(animationSpec = tween(durationMillis = 280)),
-                    ) {
-                        AnimatedContent(
-                            targetState = macrosExpanded,
-                            transitionSpec = {
-                                fadeIn(macroFadeSpec) togetherWith fadeOut(macroFadeSpec)
-                            },
-                            label = "mealDetailsMacrosExpand",
-                        ) { expanded ->
-                            if (expanded) {
-                                NutrientsIndentedList(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(PaddingHalf),
-                                    nutrientBreakdown = nutrientBreakdown
-                                )
-                            } else {
-                                CompactMacroNutrientsGrid(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(PaddingHalf),
-                                    nutrients = view.compactNutrients,
-                                )
-                            }
-                        }
-
-                        Row(
-                            modifier = Modifier
-                                .height(28.dp)
-                                .fillMaxWidth()
-                                .let {
-                                    if (macrosExpanded) {
-                                        it.clickable { macrosExpanded = false }
-                                    } else {
-                                        it
-                                    }
-                                },
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = if (macrosExpanded) {
-                                    stringResource(R.string.meal_details_collapse)
-                                } else {
-                                    stringResource(R.string.meal_details_expand)
-                                },
-                                style = MaterialTheme.typography.labelLarge,
-                            )
-
-                            Spacer(
-                                modifier = Modifier
-                                    .size(6.dp)
-                            )
-
-                            Icon(
-                                imageVector = if (macrosExpanded) {
-                                    Icons.Filled.KeyboardArrowUp
-                                } else {
-                                    Icons.Filled.KeyboardArrowDown
-                                },
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                            )
-                        }
-                    }
-                }
-
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .offset(y = (-11).dp)
-                        .size(22.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surface),
-                    contentAlignment = Alignment.Center,
+                        .padding(horizontal = PaddingDefault)
+                        .padding(top = 16.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
                         painter = painterResource(CommonR.drawable.ic_ai_borg),
                         contentDescription = null,
-                        modifier = Modifier.size(20.dp),
+                        modifier = Modifier
+                            .padding(end = PaddingHalf)
+                            .size(20.dp),
                         tint = MaterialTheme.colorScheme.primary,
+                    )
+                    Text(
+                        text = stringResource(R.string.record_details_analyzing),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontStyle = FontStyle.Italic,
                     )
                 }
             }
-        } else if (!view.showLoadingIndicator && view.compactNutrients.hasAnyVisibleMacro()) {
-            Spacer(modifier = Modifier.height(20.dp))
-            CompactMacroNutrientsGrid(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = PaddingDefault),
-                nutrients = view.compactNutrients,
-            )
+
+            if (!view.showLoadingIndicator && nutrientBreakdown?.hasDisplayableContent == true) {
+                Spacer(modifier = Modifier.height(20.dp))
+                MacrosCard(
+                    nutrientBreakdown = nutrientBreakdown,
+                    compactNutrients = view.compactNutrients,
+                    expanded = macrosExpanded,
+                    onExpandedChange = { macrosExpanded = it },
+                )
+
+                if (nutrientBreakdown.hasAiInference) {
+                    Spacer(modifier = Modifier.height(PaddingDefault))
+                    AiInferenceSection(
+                        nutrientBreakdown = nutrientBreakdown,
+                        expanded = aiInferenceExpanded,
+                        onExpandedChange = { aiInferenceExpanded = it },
+                        correctionInput = correctionInput,
+                    )
+                } else {
+                    correctionInput?.invoke()
+                }
+            } else if (!view.showLoadingIndicator && view.compactNutrients.hasAnyVisibleMacro()) {
+                Spacer(modifier = Modifier.height(20.dp))
+                CompactMacroNutrientsGrid(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = PaddingDefault),
+                    nutrients = view.compactNutrients,
+                )
+                correctionInput?.invoke()
+            }
         }
     }
 }
 
+/** The macros at a glance; tapping them (or "More details") unfolds the full breakdown. */
+@Composable
+private fun MacrosCard(
+    nutrientBreakdown: NutrientBreakdownUiModel,
+    compactNutrients: NutrientsUiModel,
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+) {
+    val macroFadeSpec = tween<Float>(durationMillis = 400)
+    // Tapping the chips expands, but only the "Details" pill shows the press (see ExpandPill).
+    val toggleInteractions = remember { MutableInteractionSource() }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .let {
+                if (expanded) {
+                    it
+                } else {
+                    it.clickable(interactionSource = toggleInteractions, indication = null) { onExpandedChange(true) }
+                }
+            }
+            .animateContentSize(animationSpec = tween(durationMillis = 280)),
+    ) {
+        AnimatedContent(
+            targetState = expanded,
+            transitionSpec = {
+                fadeIn(macroFadeSpec) togetherWith fadeOut(macroFadeSpec)
+            },
+            label = "mealDetailsMacrosExpand",
+        ) { isExpanded ->
+            if (isExpanded) {
+                NutrientsIndentedList(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = PaddingDefault, vertical = PaddingHalf),
+                    nutrientBreakdown = nutrientBreakdown
+                )
+            } else {
+                CompactMacroNutrientsGrid(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = PaddingDefault),
+                    nutrients = compactNutrients,
+                )
+            }
+        }
+
+        ExpandToggleRow(
+            expanded = expanded,
+            onCollapseTapped = { onExpandedChange(false) },
+            interactionSource = toggleInteractions,
+        )
+    }
+}
+
+/** When the meal was eaten, as a quiet line under the title. Tapping it (on an editable meal) opens the picker. */
+@Composable
+private fun TimestampLine(
+    view: DialogHandle.RecordDetailsDialog.View,
+    editable: Boolean,
+    onEditTimestampTapped: () -> Unit,
+) {
+    val dayStart = diaryDayStartTime(view.diaryDayStartHour)
+    val recordDiaryDate = view.timestamp.logicalDiaryDate(dayStart)
+    val today = logicalDiaryToday(view.timestamp.zone, dayStart)
+    val relativeDayLabel = when (recordDiaryDate) {
+        today -> stringResource(R.string.edit_timestamp_day_today)
+        today.minusDays(1) -> stringResource(R.string.edit_timestamp_day_yesterday)
+        else -> null
+    }
+    // "Today" already says which day, so the date only shows for older meals.
+    val formattedTimestamp = relativeDayLabel
+        ?.let { "$it, ${view.timestamp.format(recordTimeFormatter)}" }
+        ?: view.timestamp.format(recordTimestampFormatter)
+    val editLabel = stringResource(R.string.meal_details_edit_timestamp_cd)
+    Row(
+        modifier = Modifier
+            .padding(horizontal = PaddingHalf)
+            .then(
+                if (editable) {
+                    Modifier
+                        .clip(MaterialTheme.shapes.small)
+                        .clickable(onClickLabel = editLabel) { onEditTimestampTapped() }
+                } else {
+                    Modifier
+                }
+            )
+            .padding(horizontal = PaddingHalf, vertical = PaddingQuarter),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = formattedTimestamp,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        if (editable) {
+            // Just enough to say "this can change"; the text stays the main thing.
+            Icon(
+                modifier = Modifier
+                    .padding(start = 6.dp)
+                    .size(14.dp),
+                imageVector = Icons.Outlined.Edit,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = .6f),
+            )
+        }
+    }
+}
 
 private fun NutrientsUiModel.hasAnyVisibleMacro(): Boolean =
     sequenceOf(calories, protein, fat, carbs, salt, fibre).any { !it.isNullOrBlank() }
@@ -517,54 +512,23 @@ private fun VariantTemplateDropdown(
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
         )
         DropdownMenu(
+            modifier = Modifier.exposedDropdownSize(),
             expanded = expanded,
             onDismissRequest = { expanded = false },
             scrollState = menuScrollState,
         ) {
-            options.forEach { option ->
+            options.forEachIndexed { index, option ->
                 val isSelected = option.templateId == selectedTemplateId
-                DropdownMenuItem(
-                    modifier = Modifier.semantics {
-                        selected = isSelected
-                    },
-                    leadingIcon = {
-                        Box(
-                            modifier = Modifier.size(24.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            if (isSelected) {
-                                Icon(
-                                    imageVector = Icons.Filled.Check,
-                                    contentDescription = selectedRowLabel,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                )
-                            }
-                        }
-                    },
-                    text = {
-                        Column(Modifier.padding(vertical = 4.dp)) {
-                            Text(
-                                text = option.title,
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = option.lastUsedDateLabel,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            if (option.componentsSubtitle.isNotEmpty()) {
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = option.componentsSubtitle,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            }
-                        }
-                    },
+                if (index > 0) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(start = 48.dp, end = 12.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                    )
+                }
+                VariantTemplateMenuItem(
+                    option = option,
+                    isSelected = isSelected,
+                    selectedRowLabel = selectedRowLabel,
                     onClick = {
                         expanded = false
                         onTemplatePicked(option.templateId)
@@ -573,6 +537,69 @@ private fun VariantTemplateDropdown(
             }
         }
     }
+}
+
+@Composable
+private fun VariantTemplateMenuItem(
+    option: MealVariantPickerOption,
+    isSelected: Boolean,
+    selectedRowLabel: String,
+    onClick: () -> Unit,
+) {
+    DropdownMenuItem(
+        modifier = Modifier
+            .then(
+                if (isSelected) {
+                    Modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f))
+                } else {
+                    Modifier
+                }
+            )
+            .semantics { selected = isSelected },
+        leadingIcon = {
+            Box(
+                modifier = Modifier.size(24.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (isSelected) {
+                    Icon(
+                        imageVector = Icons.Filled.Check,
+                        contentDescription = selectedRowLabel,
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+        },
+        text = {
+            Column(Modifier.padding(vertical = 10.dp)) {
+                Text(
+                    text = option.title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = option.lastUsedDateLabel,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (option.componentsSubtitle.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = option.componentsSubtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        },
+        onClick = onClick,
+    )
 }
 
 @Preview
@@ -584,7 +611,7 @@ private fun RecordDetailsViewPreviewBrowse() {
         templateDbId = 1L,
         variabilityAnchorTemplateDbId = 1L,
         title = TextFieldValue("Apple"),
-        titleHint = "Title",
+        titleHint = "Title (optional)",
         description = TextFieldValue("I ate an apple"),
         imageFilenames = listOf("1", "2"),
         allowEdit = true,
@@ -622,9 +649,6 @@ private fun RecordDetailsViewPreviewBrowse() {
             variantPickerOptions = null,
             selectedVariantTemplateId = view.templateDbId,
             onVariantTemplatePicked = {},
-            showQuickPickStar = true,
-            quickPickStarred = false,
-            onQuickPickStarToggled = {},
         )
     }
 }
@@ -638,7 +662,7 @@ private fun RecordDetailsViewPreviewBrowseExpanded() {
         templateDbId = 1L,
         variabilityAnchorTemplateDbId = 1L,
         title = TextFieldValue("Apple"),
-        titleHint = "Title",
+        titleHint = "Title (optional)",
         description = TextFieldValue("I ate an apple"),
         imageFilenames = listOf("1", "2"),
         allowEdit = true,
@@ -676,10 +700,8 @@ private fun RecordDetailsViewPreviewBrowseExpanded() {
             variantPickerOptions = null,
             selectedVariantTemplateId = view.templateDbId,
             onVariantTemplatePicked = {},
-            showQuickPickStar = true,
-            quickPickStarred = false,
-            onQuickPickStarToggled = {},
             macrosExpanded = true,
+            aiInferenceExpanded = true,
         )
     }
 }
@@ -693,7 +715,7 @@ private fun RecordDetailsViewPreviewEditing() {
         templateDbId = 1L,
         variabilityAnchorTemplateDbId = 1L,
         title = TextFieldValue("Apple"),
-        titleHint = "Title",
+        titleHint = "Title (optional)",
         description = TextFieldValue("I ate an apple"),
         imageFilenames = listOf("1", "2"),
         allowEdit = true,
@@ -731,9 +753,6 @@ private fun RecordDetailsViewPreviewEditing() {
             variantPickerOptions = null,
             selectedVariantTemplateId = view.templateDbId,
             onVariantTemplatePicked = {},
-            showQuickPickStar = false,
-            quickPickStarred = false,
-            onQuickPickStarToggled = {},
         )
     }
 }
@@ -747,7 +766,7 @@ private fun RecordDetailsViewPreviewVariantPicker() {
         templateDbId = 1L,
         variabilityAnchorTemplateDbId = 1L,
         title = TextFieldValue("Chicken curry"),
-        titleHint = "Title",
+        titleHint = "Title (optional)",
         description = TextFieldValue(),
         imageFilenames = listOf("1"),
         allowEdit = true,
@@ -759,12 +778,14 @@ private fun RecordDetailsViewPreviewVariantPicker() {
                 title = "Chicken curry",
                 lastUsedDateLabel = "Wed, 27 May",
                 isCurrentVariant = true,
+                componentsSubtitle = "chicken thigh, rice, coconut milk, curry paste",
             ),
             MealVariantPickerOption(
                 templateId = 2L,
                 title = "Chicken curry (large)",
                 lastUsedDateLabel = "Tue, 26 May",
                 isCurrentVariant = false,
+                componentsSubtitle = "chicken breast, basmati rice, yoghurt, naan",
             ),
         ),
         pristineSnapshot = RecordDetailsPristineSnapshot(
@@ -798,24 +819,15 @@ private fun RecordDetailsViewPreviewVariantPicker() {
             variantPickerOptions = view.variantPickerOptions,
             selectedVariantTemplateId = view.templateDbId,
             onVariantTemplatePicked = {},
-            showQuickPickStar = true,
-            quickPickStarred = true,
-            onQuickPickStarToggled = {},
         )
     }
 }
 
 private fun previewNutrientBreakdown() = NutrientBreakdownUiModel(
-    calories = "Calories: 2100 cal",
-    protein = "Protein: 150g",
-    fat = "Fat 100g",
-    ofWhichSaturated = "of which saturated: 20g",
-    carbs = "Carbs: 100g",
-    ofWhichSugar = "of which sugar: 30g",
-    ofWhichAddedSugar = "of which added sugar: 15g",
-    salt = "Salt: 5g",
-    fibre = "Fibre: 4.5g",
+    nutrients = previewNutrientRows(),
     notes = "Notes: This is a note",
+    components = listOf("- 1 apple", "- ~1 tbsp peanut butter (likely)"),
+    componentsSummary = "1 apple · ~1 tbsp peanut butter (likely)",
 )
 
 private fun previewCompactNutrients() = NutrientsUiModel(

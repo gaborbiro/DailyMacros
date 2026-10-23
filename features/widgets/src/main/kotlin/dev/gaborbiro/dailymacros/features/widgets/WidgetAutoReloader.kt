@@ -25,6 +25,7 @@ import kotlinx.coroutines.launch
 import java.time.ZonedDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.toKotlinInstant
 
 /**
  * Subscribes to the records repository for the lifetime of the app process and triggers a
@@ -85,7 +86,7 @@ class WidgetAutoReloader @Inject constructor(
             Log.i(TAG, "Widget data changed; reloading diary widget")
             val since = ZonedDateTime.now()
                 .minusDays(DiaryWidgetScreen.RECORD_DAYS_TO_DISPLAY.toLong())
-            val records = recordsRepository.getRecords(since)
+            val records = recordsRepository.getRecords(since.toInstant().toKotlinInstant())
             val quickPicks = recordsRepository.getQuickPicks(DiaryWidgetScreen.QUICK_PICK_COUNT)
             val recordsJson = PersistenceMapper.serializeRecords(records)
             val quickPicksJson = PersistenceMapper.serializeTemplates(quickPicks)

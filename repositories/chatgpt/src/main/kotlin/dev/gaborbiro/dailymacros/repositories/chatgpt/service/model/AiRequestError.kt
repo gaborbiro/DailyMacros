@@ -16,6 +16,9 @@ sealed class AiRequestError(
     override val cause: Throwable? = null,
 ) : Exception(analyticsMessage) {
 
+    /** Same reason as `DomainError.toString()`: don't let data class subtypes print their cause. */
+    final override fun toString(): String = super.toString()
+
     /** No connectivity / transport failure. */
     data class Network(override val cause: Throwable? = null) :
         AiRequestError(analyticsMessage = null, cause = cause)
