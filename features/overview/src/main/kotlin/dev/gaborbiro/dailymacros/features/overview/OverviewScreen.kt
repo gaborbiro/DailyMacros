@@ -90,6 +90,7 @@ fun OverviewScreen(
         onUndoDeleteDismissed = viewModel::onUndoDeleteDismissed,
         onUndoDeleteSnackbarShown = viewModel::onUndoDeleteSnackbarShown,
         onSearchTermChanged = viewModel::onSearchTermChanged,
+        onTrendsButtonTapped = viewModel::onTrendsButtonTapped,
         onSettingsButtonTapped = viewModel::onSettingsButtonTapped,
         onSubscribeBannerTapped = viewModel::onSubscribeBannerTapped,
         onSubscribeBannerDismissed = viewModel::onSubscribeBannerDismissed,

@@ -249,7 +249,7 @@ private fun OverviewListPreview() {
             listState = rememberLazyListState(),
             expandedId = 3L,
             viewState = OverviewUiState(
-                showSettingsButton = true,
+                showTopActions = true,
                 items = listOf(
                     ListUiModelDailySummary(
                         listItemId = 1L,
