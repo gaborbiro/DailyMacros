@@ -95,7 +95,7 @@
   .loop-arrow { color: var(--orange); font-size: 1.3rem; line-height: 1; padding: 4px 0; }
   .loop-arrow-cycle { display: flex; flex-direction: column; align-items: center; gap: 4px; }
   .loop-arrow-cycle span { font-size: .78rem; font-style: italic; color: var(--muted); line-height: 1.2; }
-  .loop-note { margin: 40px 0 22px; color: var(--muted); font-style: italic; font-size: .95rem; }
+  .loop-note { margin: 40px 0 22px; color: var(--muted); }
   /* Same size as .loop-step (it's .loop-step too) so it reads as the same
      kind of card, just reached a different way. Deliberately not
      button-shaped though (no solid fill, no shadow, dashed like .loop-end):
@@ -463,6 +463,22 @@
     </ul>
   </div>
 
+  <div class="wrap">
+    <section>
+      <h2>What it tracks</h2>
+      <div class="tracks">
+        <span class="chip c-cal">Calories</span>
+        <span class="chip c-pro">Protein</span>
+        <span class="chip c-carb">Carbs</span>
+        <span class="chip c-carb">Sugar &amp; added sugar</span>
+        <span class="chip c-fat">Fat</span>
+        <span class="chip c-fat">Saturated fat</span>
+        <span class="chip c-fib">Fibre</span>
+        <span class="chip c-salt">Salt</span>
+      </div>
+    </section>
+  </div>
+
   <div class="wrap demo" id="try">
     <div class="demo-phones pre-reveal" id="demo-phones">
       <figure class="demo-device" id="demo-widget-device">
@@ -646,20 +662,6 @@
       <div class="loop-step loop-shortcut">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>
         <strong>1-tap a Quick Pick</strong>
-      </div>
-    </section>
-
-    <section>
-      <h2>What it tracks</h2>
-      <div class="tracks">
-        <span class="chip c-cal">Calories</span>
-        <span class="chip c-pro">Protein</span>
-        <span class="chip c-carb">Carbs</span>
-        <span class="chip c-carb">Sugar &amp; added sugar</span>
-        <span class="chip c-fat">Fat</span>
-        <span class="chip c-fat">Saturated fat</span>
-        <span class="chip c-fib">Fibre</span>
-        <span class="chip c-salt">Salt</span>
       </div>
     </section>
   </div>
