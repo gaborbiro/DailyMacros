@@ -40,9 +40,20 @@
   h2 { font-size: 1.4rem; }
   p { margin: 0; }
 
-  header { padding: 20px 0 0; }
-  .brand { display: flex; align-items: center; gap: 16px; }
-  .brand img { width: 64px; height: 64px; border-radius: 15px; flex: none; }
+  header {
+    position: sticky; top: 0; z-index: 50; background: var(--bg);
+    padding: 20px 0; transition: padding .25s ease, box-shadow .25s ease;
+  }
+  header.is-stuck { padding: 10px 0; box-shadow: 0 2px 14px rgba(120, 60, 0, .12); }
+  .header-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .brand img { width: 48px; height: 48px; border-radius: 12px; flex: none; transition: width .25s ease, height .25s ease; }
+  .brand h1 { font-size: clamp(1.4rem, 6vw, 2.2rem); transition: font-size .25s ease; }
+  header.is-stuck .brand img { width: 34px; height: 34px; border-radius: 9px; }
+  header.is-stuck .brand h1 { font-size: 1.2rem; }
+  .header-cta { flex: none; white-space: nowrap; transition: padding .25s ease, font-size .25s ease; }
+  header.is-stuck .header-cta { padding: 8px 14px; font-size: .85rem; }
+  #join, #waitlist { scroll-margin-top: 72px; }
 
   .hero { padding: 36px 20px 28px; display: grid; gap: 16px; }
   .hero p { color: var(--muted); font-size: 1.1rem; max-width: 34em; }
@@ -143,7 +154,7 @@
      Trends screens. Only the AI analysis is real (POST /api/demo,
      functions/demo.js). */
   .hero-head { padding-bottom: 8px; }
-  .hero-tail { padding-top: 36px; }
+  .hero-tail { padding: 28px 0; display: grid; gap: 10px; justify-items: center; text-align: center; }
   .demo { display: grid; gap: 14px; padding-top: 28px; }
   /* Covers each phone's screen (keeping its shape/chrome intact) until the
      visitor interacts: testers never realised the plain replicas were
@@ -438,7 +449,7 @@
   @keyframes demo-slide-out { from { transform: none; } to { transform: translateX(100%); } }
   .trends.is-closing { animation: demo-slide-out .22s ease-in forwards; }
   @keyframes demo-in { from { opacity: 0; transform: translateY(-6px); background: rgba(245, 124, 0, .45); } to { opacity: 1; transform: none; } }
-  @media (prefers-reduced-motion: reduce) { .phone, .phone *, .demo-fade, .demo-phones, .demo-device { animation: none !important; transition: none !important; } }
+  @media (prefers-reduced-motion: reduce) { .phone, .phone *, .demo-fade, .demo-phones, .demo-device, header, header * { animation: none !important; transition: none !important; } }
 
   footer { padding: 24px 0 40px; }
   footer a { color: inherit; }
@@ -447,9 +458,12 @@
 <body>
 
 <header>
-  <div class="wrap brand">
-    <img src="/img/icon.png" alt="" width="64" height="64">
-    <h1>Daily Macros</h1>
+  <div class="wrap header-bar">
+    <div class="brand">
+      <img src="/img/icon.png" alt="" width="64" height="64">
+      <h1>Daily Macros</h1>
+    </div>
+    <a class="btn btn-ghost js-beta-cta header-cta" href="#join">Join the test</a>
   </div>
 </header>
 
@@ -666,16 +680,8 @@
     </section>
   </div>
 
-  <div class="wrap hero hero-tail">
-    <div class="hero-ctas">
-      <a class="btn btn-ghost js-beta-cta" href="#join">Join the test <span class="cta-badge">3 weeks free</span></a>
-      <a class="btn" href="#waitlist">Get notified when Daily Macros launches</a>
-    </div>
-    <p class="fine">Android first, with an iPhone version planned. Join the waitlist either way.</p>
-  </div>
-
   <div class="wrap">
-    <section id="join" hidden>
+    <section id="join">
       <div class="join">
         <div id="form-view">
           <h2>Join the test</h2>
@@ -718,6 +724,11 @@
         </div>
       </div>
     </section>
+
+    <div class="hero-tail">
+      <a class="btn" href="#waitlist">Get notified when Daily Macros launches</a>
+      <p class="fine">Android first, with an iPhone version planned. Join the waitlist either way.</p>
+    </div>
 
     <section id="waitlist" hidden>
       <div class="join">
@@ -767,6 +778,14 @@
     } catch (e) {}
   }
   sendEvent("page_view");
+
+  // Shrinks the sticky header (icon, title, Join the test button) once the
+  // page has scrolled at all - its own static position is already at the
+  // very top, so any scroll means it's pinned.
+  var headerEl = document.querySelector("header");
+  function updateHeaderStuck() { headerEl.classList.toggle("is-stuck", window.scrollY > 10); }
+  window.addEventListener("scroll", updateHeaderStuck, { passive: true });
+  updateHeaderStuck();
 
   var betaCtaLinks = document.querySelectorAll(".js-beta-cta");
   for (var i = 0; i < betaCtaLinks.length; i++) {
