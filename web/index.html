@@ -41,8 +41,8 @@
   p { margin: 0; }
 
   header { padding: 20px 0 0; }
-  .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 1.1rem; }
-  .brand img { width: 44px; height: 44px; border-radius: 11px; }
+  .brand { display: flex; align-items: center; gap: 16px; }
+  .brand img { width: 64px; height: 64px; border-radius: 15px; flex: none; }
 
   .hero { padding: 36px 20px 28px; display: grid; gap: 16px; }
   .hero p { color: var(--muted); font-size: 1.1rem; max-width: 34em; }
@@ -95,11 +95,13 @@
   .loop-arrow { color: var(--orange); font-size: 1.3rem; line-height: 1; padding: 2px 0; }
   .loop-arrow-cycle { display: flex; flex-direction: column; align-items: center; gap: 2px; }
   .loop-arrow-cycle span { font-size: .78rem; font-style: italic; color: var(--muted); line-height: 1.2; }
-  .loop-note { margin: 18px 0 0; color: var(--muted); font-style: italic; font-size: .95rem; }
+  .loop-note { margin: 36px 0 20px; color: var(--muted); font-style: italic; font-size: .95rem; }
+  /* Deliberately not button-shaped (no solid fill, no shadow, dashed like
+     .loop-end): it's the end state of the diagram, not something to tap. */
   .loop-shortcut {
-    display: inline-flex; align-items: center; gap: 10px; margin-top: 14px; padding: 14px 24px;
-    background: var(--orange); color: #fff; border-radius: 999px; font-weight: 700; font-size: 1.05rem;
-    box-shadow: 0 6px 18px rgba(245, 124, 0, .35);
+    display: inline-flex; align-items: center; gap: 10px; padding: 12px 22px;
+    background: #FFF1DD; color: var(--orange-dark); border: 1.5px dashed var(--orange);
+    border-radius: 14px; font-weight: 700; font-size: 1.05rem;
   }
   .loop-shortcut svg { width: 20px; height: 20px; flex: none; }
 
@@ -147,11 +149,13 @@
      screen underneath waiting to be used. Only the left phone carries the
      CTA text/buttons; the right one is just the glass. */
   .demo-veil {
-    position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; gap: 16px;
+    position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; gap: 12px;
     padding: 24px; text-align: center; background: rgba(18, 14, 12, .55);
     backdrop-filter: blur(14px) saturate(130%); -webkit-backdrop-filter: blur(14px) saturate(130%);
   }
-  .demo-veil h3 { margin: 0; font-size: 1.15rem; color: #fff; }
+  .demo-veil-text { display: grid; gap: 4px; }
+  .demo-veil h3 { margin: 0; font-size: 1.7rem; color: #fff; }
+  .demo-veil-sub { margin: 0; color: rgba(255, 255, 255, .78); font-size: .95rem; }
   .demo-cta-actions { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 220px; }
   .demo-veil .btn { font-size: .95rem; padding: 13px 20px; display: flex; align-items: center; justify-content: center; gap: 8px; }
   .demo-veil .btn svg { width: 20px; height: 20px; flex: none; }
@@ -437,36 +441,19 @@
 
 <header>
   <div class="wrap brand">
-    <img src="/img/icon.png" alt="" width="44" height="44">
-    <span>Daily Macros</span>
+    <img src="/img/icon.png" alt="" width="64" height="64">
+    <h1>Daily Macros</h1>
   </div>
 </header>
 
 <main>
   <div class="wrap hero hero-head">
-    <h1>Daily Macros</h1>
-    <p class="hero-sub">A food diary easy enough to actually stick with.</p>
+    <p class="hero-sub">Logging that takes seconds, not minutes — snap a photo, done.</p>
     <ul class="hero-points">
       <li>Snap a photo and let AI estimate the nutrition</li>
       <li>Or log your regular meals from your home screen in one tap</li>
       <li>Review what it inferred, fix anything that looks off, and move on</li>
     </ul>
-  </div>
-
-  <div class="wrap">
-    <section>
-      <h2>What it tracks</h2>
-      <div class="tracks">
-        <span class="chip c-cal">Calories</span>
-        <span class="chip c-pro">Protein</span>
-        <span class="chip c-carb">Carbs</span>
-        <span class="chip c-carb">Sugar &amp; added sugar</span>
-        <span class="chip c-fat">Fat</span>
-        <span class="chip c-fat">Saturated fat</span>
-        <span class="chip c-fib">Fibre</span>
-        <span class="chip c-salt">Salt</span>
-      </div>
-    </section>
   </div>
 
   <div class="wrap demo" id="try">
@@ -476,7 +463,10 @@
         <div class="phone" id="demo-phone" role="group" aria-label="Interactive replica of the Daily Macros home-screen widget">
           <div class="screen screen-home">
             <div class="demo-veil" id="demo-cta">
-              <h3>Interactive Demo with real AI - Try it out now</h3>
+              <div class="demo-veil-text">
+                <h3>Try it out now</h3>
+                <p class="demo-veil-sub">Interactive demo &middot; real AI</p>
+              </div>
               <div class="demo-cta-actions">
                 <button type="button" class="btn" id="demo-cta-camera">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 10a2 2 0 0 1 2-2h2l1.5-2h4.5L13.5 8H15a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/><circle cx="9.5" cy="14" r="3"/><path d="M20 2v6M17 5h6"/></svg>
@@ -630,7 +620,7 @@
         <div class="loop-arrow" aria-hidden="true">↓</div>
         <div class="loop-step">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
-          <div><strong>Verify it</strong><span>the AI's reasoning laid bare</span></div>
+          <div><strong>Verify it</strong><span>ingredients, grams and a confidence rating for each, laid bare</span></div>
         </div>
         <div class="loop-arrow loop-arrow-cycle" aria-hidden="true">↕<span>back and forth until it's right</span></div>
         <div class="loop-step">
@@ -649,6 +639,20 @@
       <div class="loop-shortcut">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>
         <strong>1-tap a Quick Pick</strong>
+      </div>
+    </section>
+
+    <section>
+      <h2>What it tracks</h2>
+      <div class="tracks">
+        <span class="chip c-cal">Calories</span>
+        <span class="chip c-pro">Protein</span>
+        <span class="chip c-carb">Carbs</span>
+        <span class="chip c-carb">Sugar &amp; added sugar</span>
+        <span class="chip c-fat">Fat</span>
+        <span class="chip c-fat">Saturated fat</span>
+        <span class="chip c-fib">Fibre</span>
+        <span class="chip c-salt">Salt</span>
       </div>
     </section>
   </div>
