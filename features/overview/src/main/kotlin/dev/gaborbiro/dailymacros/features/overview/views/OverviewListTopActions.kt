@@ -18,10 +18,12 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,7 +34,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.design.PaddingHalf
-import dev.gaborbiro.dailymacros.design.PaddingQuarter
 import dev.gaborbiro.dailymacros.features.overview.R
 
 /**
@@ -67,45 +68,53 @@ internal fun OverviewListTopActions(
             Surface(
                 modifier = Modifier.padding(PaddingHalf),
                 shape = RoundedCornerShape(50),
-                color = MaterialTheme.colorScheme.secondaryContainer,
+                // Slightly see-through, like Samsung Health's, so the list reads through it as it
+                // scrolls underneath. No shadow: Compose draws it behind the whole shape, which
+                // would show through the translucent fill as a dark smudge.
+                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.85f),
                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                shadowElevation = 6.dp,
             ) {
-                Row(
-                    modifier = Modifier.padding(PaddingQuarter),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    IconButton(onClick = onTrendsButtonTapped) {
-                        Icon(
-                            imageVector = Icons.Outlined.BarChart,
-                            contentDescription = stringResource(R.string.overview_content_trends_cd),
-                        )
-                    }
-                    Box {
-                        var menuExpanded by remember { mutableStateOf(false) }
-                        IconButton(onClick = { menuExpanded = true }) {
+                // Samsung Health's pill is ~46x86dp: two 40dp buttons with a 3dp rim. Material's
+                // 48dp minimum touch target would otherwise inflate it to 56x104dp, so it's relaxed
+                // to the 40dp visual size here (still comfortably tappable, and matches IconButton's
+                // own visual size).
+                CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 40.dp) {
+                    Row(
+                        modifier = Modifier.padding(3.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        IconButton(onClick = onTrendsButtonTapped) {
                             Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = stringResource(R.string.overview_content_more_options_cd),
+                                imageVector = Icons.Outlined.BarChart,
+                                contentDescription = stringResource(R.string.overview_content_trends_cd),
                             )
                         }
-                        DropdownMenu(
-                            expanded = menuExpanded,
-                            onDismissRequest = { menuExpanded = false },
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.overview_content_menu_settings)) },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Settings,
-                                        contentDescription = null,
-                                    )
-                                },
-                                onClick = {
-                                    menuExpanded = false
-                                    onSettingsButtonTapped()
-                                },
-                            )
+                        Box {
+                            var menuExpanded by remember { mutableStateOf(false) }
+                            IconButton(onClick = { menuExpanded = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.MoreVert,
+                                    contentDescription = stringResource(R.string.overview_content_more_options_cd),
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = menuExpanded,
+                                onDismissRequest = { menuExpanded = false },
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.overview_content_menu_settings)) },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Outlined.Settings,
+                                            contentDescription = null,
+                                        )
+                                    },
+                                    onClick = {
+                                        menuExpanded = false
+                                        onSettingsButtonTapped()
+                                    },
+                                )
+                            }
                         }
                     }
                 }
