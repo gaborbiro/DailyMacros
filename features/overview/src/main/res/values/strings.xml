@@ -19,7 +19,9 @@
     <string name="overview_content_undo">Undo</string>
     <string name="overview_content_add_widget_button">Tap here to\nadd a widget to your desktop</string>
     <!-- OverviewListTopActions -->
-    <string name="overview_content_settings_cd">Settings Button</string>
+    <string name="overview_content_trends_cd">Trends</string>
+    <string name="overview_content_more_options_cd">More options</string>
+    <string name="overview_content_menu_settings">Settings</string>
     <!-- SubscribeBanner -->
     <string name="overview_content_subscribe_banner_title">Unlock AI meal recognition</string>
     <string name="overview_content_subscribe_banner_body">Snap a photo and get instant macros — subscribe to keep using it.</string>
