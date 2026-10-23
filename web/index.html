@@ -40,8 +40,14 @@
   h2 { font-size: 1.4rem; }
   p { margin: 0; }
 
+  /* position:fixed, not sticky: sticky keeps the header in document flow, so
+     shrinking its padding on scroll changes the page's layout height, which
+     changes window.scrollY, which can flip the stuck/unstuck threshold back
+     - a feedback loop that made the header vibrate near the boundary. Fixed
+     takes it out of flow entirely, so its own size can never affect scroll
+     position; main's padding-top (set in JS) reserves the space instead. */
   header {
-    position: sticky; top: 0; z-index: 50; background: var(--bg);
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: var(--bg);
     padding: 20px 0; transition: padding .25s ease, box-shadow .25s ease;
   }
   header.is-stuck { padding: 10px 0; box-shadow: 0 2px 14px rgba(120, 60, 0, .12); }
@@ -779,13 +785,31 @@
   }
   sendEvent("page_view");
 
-  // Shrinks the sticky header (icon, title, Join the test button) once the
-  // page has scrolled at all - its own static position is already at the
-  // very top, so any scroll means it's pinned.
+  // Shrinks the fixed header (icon, title, Join the test button) once the
+  // page has scrolled a bit. Two different thresholds (not one) give it a
+  // dead zone, so momentum/rubber-band micro-scrolls near the boundary
+  // can't flicker it back and forth.
   var headerEl = document.querySelector("header");
-  function updateHeaderStuck() { headerEl.classList.toggle("is-stuck", window.scrollY > 10); }
+  var mainEl = document.querySelector("main");
+  function updateHeaderStuck() {
+    var y = window.scrollY;
+    if (y > 40) headerEl.classList.add("is-stuck");
+    else if (y < 10) headerEl.classList.remove("is-stuck");
+  }
   window.addEventListener("scroll", updateHeaderStuck, { passive: true });
   updateHeaderStuck();
+
+  // Fixed headers don't reserve layout space, so main needs its own padding
+  // to avoid sitting underneath it. Measured from the header's natural
+  // (unstuck) height, which only matters before the first scroll anyway.
+  function syncHeaderSpacer() {
+    var wasStuck = headerEl.classList.contains("is-stuck");
+    headerEl.classList.remove("is-stuck");
+    mainEl.style.paddingTop = headerEl.getBoundingClientRect().height + "px";
+    if (wasStuck) headerEl.classList.add("is-stuck");
+  }
+  window.addEventListener("resize", syncHeaderSpacer);
+  syncHeaderSpacer();
 
   var betaCtaLinks = document.querySelectorAll(".js-beta-cta");
   for (var i = 0; i < betaCtaLinks.length; i++) {
