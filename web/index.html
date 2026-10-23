@@ -40,12 +40,36 @@
   h2 { font-size: 1.4rem; }
   p { margin: 0; }
 
-  header { padding: 20px 0 0; }
-  .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 1.1rem; }
-  .brand img { width: 44px; height: 44px; border-radius: 11px; }
+  /* position:fixed, not sticky: sticky keeps the header in document flow, so
+     shrinking its padding on scroll changes the page's layout height, which
+     changes window.scrollY, which can flip the stuck/unstuck threshold back
+     - a feedback loop that made the header vibrate near the boundary. Fixed
+     takes it out of flow entirely, so its own size can never affect scroll
+     position; main's padding-top (set in JS) reserves the space instead. */
+  header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: var(--bg);
+    padding: 20px 0; transition: padding .25s ease, box-shadow .25s ease;
+  }
+  header.is-stuck { padding: 10px 0; box-shadow: 0 2px 14px rgba(120, 60, 0, .12); }
+  .header-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .brand img { width: 48px; height: 48px; border-radius: 12px; flex: none; transition: width .25s ease, height .25s ease; }
+  .brand h1 { font-size: clamp(1.4rem, 6vw, 2.2rem); transition: font-size .25s ease; }
+  header.is-stuck .brand img { width: 34px; height: 34px; border-radius: 9px; }
+  header.is-stuck .brand h1 { font-size: 1.2rem; }
+  .header-cta { flex: none; white-space: nowrap; transition: padding .25s ease, font-size .25s ease; }
+  header.is-stuck .header-cta { padding: 8px 14px; font-size: .85rem; }
+  #join, #waitlist { scroll-margin-top: 72px; }
 
   .hero { padding: 36px 20px 28px; display: grid; gap: 16px; }
   .hero p { color: var(--muted); font-size: 1.1rem; max-width: 34em; }
+  .hero-sub { color: var(--ink); font-size: 1.3rem; font-weight: 600; max-width: 34em; }
+  .hero-points { list-style: none; margin: -2px 0 0; padding: 0; display: grid; gap: 12px; max-width: 34em; }
+  .hero-points li { display: flex; align-items: flex-start; gap: 12px; color: var(--muted); font-size: 1.1rem; }
+  .hero-points li::before {
+    content: "✓"; flex: none; display: grid; place-items: center; width: 22px; height: 22px; margin-top: 1px;
+    border-radius: 50%; background: var(--orange); color: #fff; font-size: 12px; font-weight: 700;
+  }
   .btn {
     display: inline-block; border: 0; border-radius: 12px; cursor: pointer;
     background: var(--orange); color: #fff; font: inherit; font-weight: 700;
@@ -55,15 +79,12 @@
   .btn[disabled] { opacity: .6; cursor: default; }
   .btn-ghost { background: transparent; color: var(--orange-dark); border: 1.5px solid var(--orange); }
   .btn-ghost:hover { background: rgba(245, 124, 0, .08); }
-  .hero-ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
-  /* What testers get, on every "Join the test" button. */
-  .cta-badge {
-    display: inline-block; margin-left: 6px; padding: 2px 9px; border-radius: 999px; vertical-align: 1px;
-    background: var(--orange); color: #fff; font-size: .78em; font-weight: 700; white-space: nowrap;
-  }
-  .btn:not(.btn-ghost) .cta-badge { background: #fff; color: var(--orange-dark); }
   .fine { font-size: .875rem; color: var(--muted); }
   .fine a { color: var(--orange-dark); }
+  .perk {
+    display: inline-block; margin: 2px 0 14px; padding: 5px 12px; border-radius: 999px;
+    background: #FFF1DD; color: var(--orange-dark); font-weight: 700; font-size: .85rem;
+  }
 
   section { padding: 28px 0; }
   .tracks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
@@ -71,6 +92,34 @@
   .c-cal { background: #CFE8FF; } .c-pro { background: #C9F5E2; } .c-fat { background: #FFF1B8; }
   .c-carb { background: #FFDCC2; } .c-salt { background: #E6D9FF; } .c-fib { background: #FFD9E3; }
   .tracks + p { margin-top: 14px; color: var(--muted); }
+
+  .loop { text-align: center; padding-top: 64px; }
+  .loop h2 { max-width: 28em; margin: 0 auto; }
+  .loop-intro { color: var(--muted); max-width: 32em; margin: 10px auto 0; }
+  .loop-diagram { display: grid; justify-items: center; gap: 14px; margin: 32px auto 0; max-width: 360px; }
+  .loop-step {
+    display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px;
+    box-shadow: 0 2px 10px rgba(120, 60, 0, .06);
+  }
+  .loop-step svg { flex: none; width: 22px; height: 22px; color: var(--orange-dark); }
+  .loop-step strong { display: block; font-size: .98rem; }
+  .loop-step span { display: block; color: var(--muted); font-size: .85rem; margin-top: 2px; }
+  .loop-end { background: var(--bg); border-style: dashed; }
+  .loop-arrow { color: var(--orange); font-size: 1.3rem; line-height: 1; padding: 4px 0; }
+  .loop-arrow-cycle { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .loop-arrow-cycle span { font-size: .78rem; font-style: italic; color: var(--muted); line-height: 1.2; }
+  .loop-note { margin: 40px 0 22px; color: var(--muted); }
+  /* Same size as .loop-step (it's .loop-step too) so it reads as the same
+     kind of card, just reached a different way. Deliberately not
+     button-shaped though (no solid fill, no shadow, dashed like .loop-end):
+     it's the end state of the diagram, not something to tap. */
+  .loop-shortcut {
+    max-width: 360px; margin: 0 auto;
+    background: #FFF1DD; color: var(--orange-dark); border: 1.5px dashed var(--orange);
+    box-shadow: none; font-weight: 700; font-size: 1.05rem;
+  }
+  .loop-shortcut svg { color: var(--orange-dark); }
 
   .join {
     background: var(--card); border: 1px solid var(--line); border-radius: 18px;
@@ -108,7 +157,7 @@
      Trends screens. Only the AI analysis is real (POST /api/demo,
      functions/demo.js). */
   .hero-head { padding-bottom: 8px; }
-  .hero-tail { padding-top: 36px; }
+  .hero-tail { padding: 28px 0; display: grid; gap: 10px; justify-items: center; text-align: center; }
   .demo { display: grid; gap: 14px; padding-top: 28px; }
   /* Covers each phone's screen (keeping its shape/chrome intact) until the
      visitor interacts: testers never realised the plain replicas were
@@ -116,11 +165,13 @@
      screen underneath waiting to be used. Only the left phone carries the
      CTA text/buttons; the right one is just the glass. */
   .demo-veil {
-    position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; gap: 16px;
+    position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; gap: 12px;
     padding: 24px; text-align: center; background: rgba(18, 14, 12, .55);
     backdrop-filter: blur(14px) saturate(130%); -webkit-backdrop-filter: blur(14px) saturate(130%);
   }
-  .demo-veil h3 { margin: 0; font-size: 1.15rem; color: #fff; }
+  .demo-veil-text { display: grid; gap: 4px; }
+  .demo-veil h3 { margin: 0; font-size: 1.7rem; color: #fff; }
+  .demo-veil-sub { margin: 0; color: rgba(255, 255, 255, .78); font-size: .95rem; }
   .demo-cta-actions { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 220px; }
   .demo-veil .btn { font-size: .95rem; padding: 13px 20px; display: flex; align-items: center; justify-content: center; gap: 8px; }
   .demo-veil .btn svg { width: 20px; height: 20px; flex: none; }
@@ -130,22 +181,34 @@
      horizontal scroller would otherwise clip into a hard edge. */
   .demo-phones {
     display: flex; gap: 24px; align-items: flex-start; overflow-x: auto; scroll-snap-type: x mandatory;
-    margin: 0 -20px; padding: 4px 20px 40px; scrollbar-width: none;
+    margin: 0 -20px; padding: 4px 20px 40px; scrollbar-width: none; transition: gap .5s ease;
   }
   .demo-phones::-webkit-scrollbar { display: none; }
   /* Both phones fit side by side: no scroller, so nothing clips the shadows. */
   @media (min-width: 680px) { .demo-phones { justify-content: center; overflow: visible; } }
-  .demo-device { flex: 0 0 min(280px, 84vw); min-width: 0; margin: 0; scroll-snap-align: center; }
+  .demo-device {
+    flex: 0 0 min(280px, 84vw); min-width: 0; margin: 0; scroll-snap-align: center;
+    transition: flex-basis .5s ease, opacity .5s ease;
+  }
   .demo-device figcaption { margin-bottom: 8px; text-align: center; font-weight: 700; }
-  /* Only the left phone (with the CTA) shows at first; the right one and both
-     captions stay reserved-but-invisible, not display:none, so revealing them
-     on interaction can't shift the left phone's centered position at all.
-     .demo-fade (always present) carries the transition so removing
-     .demo-reveal fades opacity in, instead of the content just popping in. */
+  /* Before the visitor interacts, only the left phone (with the CTA) shows.
+     The right one collapses to zero width rather than just going invisible,
+     so the lone phone sits properly centred instead of looking shifted left
+     to make room for space it isn't using. On reveal, both its width and the
+     row's gap animate back in together instead of snapping. */
+  /* Centred regardless of viewport width: with the right phone's flex-basis
+     at 0 there's nothing to scroll to yet, so there's no swipe behaviour to
+     preserve here (unlike the two-phone state below, which only centres
+     past 680px so the mobile swipe still works). */
+  #demo-phones.pre-reveal { gap: 0; justify-content: center; }
+  #demo-phones.pre-reveal #demo-overview-device { flex-basis: 0; opacity: 0; pointer-events: none; }
+  /* The left caption still uses reserved-space hiding: its own phone never
+     moves, so there's nothing to realign when it fades in. */
   .demo-fade { transition: opacity .5s ease; }
   .demo-reveal { visibility: hidden; opacity: 0; }
   .demo-foot { display: grid; gap: 10px; justify-items: center; text-align: center; margin-top: -10px; }
   .demo-foot .fine { max-width: 36em; }
+  .demo-samples-label { font-size: 1.05rem; font-weight: 600; color: var(--ink); }
   .demo-samples { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 16px; }
   .demo-samples button {
     width: 76px; height: 52px; padding: 0; border: 0; border-radius: 10px; overflow: hidden; cursor: pointer;
@@ -278,6 +341,10 @@
   .ov-meal {
     display: grid; grid-template-columns: 54px 1fr; gap: 8px; margin-top: 8px; padding: 4px; border-radius: 10px; cursor: pointer;
   }
+  /* Without this, a 1fr grid track's default auto min-width lets a long meal
+     name or non-wrapping chip force the track (and the whole card) wider
+     than the phone, instead of actually truncating as intended. */
+  .ov-meal > div:last-child { min-width: 0; }
   .ov-meal:hover, .ov-meal:focus-visible { background: rgba(255, 255, 255, .06); outline: none; }
   .ov-photo { width: 54px; height: 54px; border-radius: 8px; object-fit: cover; background: #2C2C30; }
   .ov-meal-head { display: flex; justify-content: space-between; gap: 6px; color: #fff; font-size: 13px; }
@@ -312,7 +379,7 @@
      out-of-tries card. */
   .dialog-scrim {
     position: absolute; inset: 0; z-index: 4; display: flex; align-items: center; justify-content: center;
-    padding: 40px 10px 22px; background: rgba(0, 0, 0, .62); animation: demo-fade .2s ease-out;
+    padding: 40px 4px 22px; background: rgba(0, 0, 0, .62); animation: demo-fade .2s ease-out;
   }
   /* .dialog-box is the visible card and owns the pop-in; .dialog is just the
      scrolling content, with its native scrollbar hidden in favour of
@@ -385,7 +452,7 @@
   @keyframes demo-slide-out { from { transform: none; } to { transform: translateX(100%); } }
   .trends.is-closing { animation: demo-slide-out .22s ease-in forwards; }
   @keyframes demo-in { from { opacity: 0; transform: translateY(-6px); background: rgba(245, 124, 0, .45); } to { opacity: 1; transform: none; } }
-  @media (prefers-reduced-motion: reduce) { .phone, .phone *, .demo-fade { animation: none !important; transition: none !important; } }
+  @media (prefers-reduced-motion: reduce) { .phone, .phone *, .demo-fade, .demo-phones, .demo-device, header, header * { animation: none !important; transition: none !important; } }
 
   footer { padding: 24px 0 40px; }
   footer a { color: inherit; }
@@ -394,26 +461,52 @@
 <body>
 
 <header>
-  <div class="wrap brand">
-    <img src="/img/icon.png" alt="" width="44" height="44">
-    <span>Daily Macros</span>
+  <div class="wrap header-bar">
+    <div class="brand">
+      <img src="/img/icon.png" alt="" width="64" height="64">
+      <h1>Daily Macros</h1>
+    </div>
+    <a class="btn btn-ghost js-beta-cta header-cta" href="#join">Join the test</a>
   </div>
 </header>
 
 <main>
   <div class="wrap hero hero-head">
-    <h1>A food diary easy enough to actually stick with.</h1>
-    <p>Track what you eat without turning every meal into data entry. Snap a photo and let AI estimate the nutrition, or log your regular meals from your home screen in one tap. Review what it inferred, fix anything that looks off, and move on.</p>
+    <p class="hero-sub">Logging that takes seconds, not minutes — snap a photo, done.</p>
+    <ul class="hero-points">
+      <li>Snap a photo and let AI estimate the nutrition</li>
+      <li>Or log your regular meals from your home screen in one tap</li>
+      <li>Review what it inferred, fix anything that looks off, and move on</li>
+    </ul>
+  </div>
+
+  <div class="wrap">
+    <section>
+      <h2>What it tracks</h2>
+      <div class="tracks">
+        <span class="chip c-cal">Calories</span>
+        <span class="chip c-pro">Protein</span>
+        <span class="chip c-carb">Carbs</span>
+        <span class="chip c-carb">Sugar &amp; added sugar</span>
+        <span class="chip c-fat">Fat</span>
+        <span class="chip c-fat">Saturated fat</span>
+        <span class="chip c-fib">Fibre</span>
+        <span class="chip c-salt">Salt</span>
+      </div>
+    </section>
   </div>
 
   <div class="wrap demo" id="try">
-    <div class="demo-phones" id="demo-phones">
+    <div class="demo-phones pre-reveal" id="demo-phones">
       <figure class="demo-device" id="demo-widget-device">
         <figcaption class="demo-fade demo-reveal">Widgets</figcaption>
         <div class="phone" id="demo-phone" role="group" aria-label="Interactive replica of the Daily Macros home-screen widget">
           <div class="screen screen-home">
             <div class="demo-veil" id="demo-cta">
-              <h3>Interactive Demo with real AI - Try it out now</h3>
+              <div class="demo-veil-text">
+                <h3>Try it out now</h3>
+                <p class="demo-veil-sub">Interactive demo &middot; real AI</p>
+              </div>
               <div class="demo-cta-actions">
                 <button type="button" class="btn" id="demo-cta-camera">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 10a2 2 0 0 1 2-2h2l1.5-2h4.5L13.5 8H15a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/><circle cx="9.5" cy="14" r="3"/><path d="M20 2v6M17 5h6"/></svg>
@@ -481,7 +574,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
               </button>
               <p class="demo-end-text" id="demo-end-text"></p>
-              <a class="btn js-beta-cta" href="#join">Join the test <span class="cta-badge">3 weeks free</span></a>
+              <a class="btn js-beta-cta" href="#join">Join the test</a>
               <a class="btn btn-ghost" href="#waitlist">Get notified when it launches</a>
             </div>
             <div class="gesture"></div>
@@ -489,8 +582,8 @@
         </div>
       </figure>
 
-      <figure class="demo-device demo-fade demo-reveal" id="demo-overview-device">
-        <figcaption class="demo-fade demo-reveal">The app</figcaption>
+      <figure class="demo-device" id="demo-overview-device">
+        <figcaption>The app</figcaption>
         <div class="phone" role="group" aria-label="Interactive replica of the Daily Macros app's diary screen">
           <div class="screen">
             <div class="demo-veil"></div>
@@ -531,7 +624,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
               </button>
               <p class="demo-end-text" id="demo-end-text-app"></p>
-              <a class="btn js-beta-cta" href="#join">Join the test <span class="cta-badge">3 weeks free</span></a>
+              <a class="btn js-beta-cta" href="#join">Join the test</a>
               <a class="btn btn-ghost" href="#waitlist">Get notified when it launches</a>
             </div>
             <div class="gesture"></div>
@@ -541,7 +634,7 @@
     </div>
 
     <div class="demo-foot">
-      <p class="fine">No food handy? Try one of these:</p>
+      <p class="demo-samples-label">No food handy? Try one of these:</p>
       <div class="demo-samples">
         <button type="button" data-src="/img/demo/scrambled-egg.jpg" aria-label="Analyse a sample photo of scrambled egg on toast"><img src="/img/demo/scrambled-egg.jpg" alt=""></button>
         <button type="button" data-src="/img/demo/noodle-soup.jpg" aria-label="Analyse a sample photo of noodle soup"><img src="/img/demo/noodle-soup.jpg" alt=""></button>
@@ -554,72 +647,48 @@
     <input type="file" id="demo-gallery-input" accept="image/*" hidden>
   </div>
 
-  <div class="wrap hero hero-tail">
-    <div class="hero-ctas">
-      <a class="btn" href="#waitlist">Get notified when Daily Macros launches</a>
-      <a class="btn btn-ghost js-beta-cta" href="#join">Join the test <span class="cta-badge">3 weeks free</span></a>
-    </div>
-    <p class="fine">Android first, with an iPhone version planned. Join the waitlist either way.</p>
+  <div class="wrap">
+    <section class="loop">
+      <h2>Most logging is a verify-and-correct loop. Until it isn't.</h2>
+      <p class="loop-intro">AI gets you most of the way there in seconds. No app will tell you it's not perfectly accurate — so here's how this one deals with that honestly.</p>
+
+      <div class="loop-diagram">
+        <div class="loop-step">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 10a2 2 0 0 1 2-2h2l1.5-2h9L18 8h2a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/><circle cx="12" cy="14" r="3.5"/></svg>
+          <div><strong>Log it</strong><span>photo or voice</span></div>
+        </div>
+        <div class="loop-arrow" aria-hidden="true">↓</div>
+        <div class="loop-step">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+          <div><strong>Verify it</strong><span>ingredients, grams and a confidence rating for each, laid bare</span></div>
+        </div>
+        <div class="loop-arrow loop-arrow-cycle" aria-hidden="true">↕<span>back and forth until it's right</span></div>
+        <div class="loop-step">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          <div><strong>Fix it</strong><span>if something's off</span></div>
+        </div>
+        <div class="loop-arrow" aria-hidden="true">↓</div>
+        <div class="loop-step loop-end">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          <div><strong>Get on with your day</strong></div>
+        </div>
+      </div>
+
+      <p class="loop-note">After a few times, it becomes this:</p>
+
+      <div class="loop-step loop-shortcut">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>
+        <strong>1-tap a Quick Pick</strong>
+      </div>
+    </section>
   </div>
 
   <div class="wrap">
-    <section>
-      <h2>How it works</h2>
-      <ol class="steps">
-        <li><strong>Show it what you ate</strong> — Snap a photo. Add a few words if they help; typing is optional.</li>
-        <li><strong>Check what it inferred</strong> — Daily Macros identifies the foods and portions and estimates the nutrition. You can see the assumptions it made.</li>
-        <li><strong>Fix anything that’s off</strong> — Add a clarification or another photo and re-run the analysis.</li>
-        <li><strong>It’s in your diary</strong> — Your daily totals update automatically.</li>
-      </ol>
-      <p>Favourite meals get a one-tap home-screen widget, so most days you never need to open the app at all.</p>
-      <p>If you haven't logged by your usual mealtime, a reminder nudges you to catch up. Your diary also backs up to your own Google Drive — never to a server of mine — and syncs into Health Connect for any other health app you use.</p>
-    </section>
-
-    <section>
-      <h2>What it tracks</h2>
-      <div class="tracks">
-        <span class="chip c-cal">Calories</span>
-        <span class="chip c-pro">Protein</span>
-        <span class="chip c-carb">Carbs</span>
-        <span class="chip c-carb">Sugar &amp; added sugar</span>
-        <span class="chip c-fat">Fat</span>
-        <span class="chip c-fat">Saturated fat</span>
-        <span class="chip c-fib">Fibre</span>
-        <span class="chip c-salt">Salt</span>
-      </div>
-    </section>
-
-    <section id="waitlist">
-      <div class="join">
-        <div id="waitlist-form-view">
-          <h2>Get notified when Daily Macros launches</h2>
-          <form id="waitlist-form" novalidate>
-            <p class="hint" id="waitlist-email-hint">Just a heads-up when it's ready, and about any major update before then. Not a test signup, no Google Play Store email needed.</p>
-            <input id="waitlist-email" name="email" type="email" inputmode="email" autocomplete="email" aria-label="Email"
-                   autocapitalize="off" spellcheck="false" placeholder="you@example.com" required
-                   aria-describedby="waitlist-email-hint waitlist-email-error">
-            <div class="hp" aria-hidden="true">
-              <label for="waitlist-website">Leave this empty</label>
-              <input id="waitlist-website" name="website" type="text" tabindex="-1" autocomplete="off">
-            </div>
-            <div class="error" id="waitlist-email-error" role="alert"></div>
-            <button class="btn" id="waitlist-submit" type="submit">Get notified</button>
-            <p class="fine privacy">Your email is only used to tell you about the Daily Macros launch and major updates.</p>
-          </form>
-        </div>
-
-        <div id="waitlist-done-view" class="done" hidden tabindex="-1">
-          <h2>You're on the list.</h2>
-          <p>I'll email <strong id="waitlist-sent-email"></strong> when Daily Macros launches, and about any major updates before then.</p>
-          <p class="fine" style="margin-top:14px">That's it! This is just a launch waitlist, nothing to install.</p>
-        </div>
-      </div>
-    </section>
-
     <section id="join">
       <div class="join">
         <div id="form-view">
           <h2>Join the test</h2>
+          <p class="perk">Free while testing — no payment, no catch.</p>
           <div class="seg" role="radiogroup" aria-label="Your phone">
             <label><input type="radio" name="platform" value="android" checked><span>Android</span></label>
             <label><input type="radio" name="platform" value="ios"><span>iPhone</span></label>
@@ -659,6 +728,39 @@
         </div>
       </div>
     </section>
+
+    <div class="hero-tail">
+      <a class="btn" href="#waitlist">Get notified when Daily Macros launches</a>
+      <p class="perk">Free for your first 3 weeks after launch, then a subscription unlocks ongoing use.</p>
+      <p class="fine">Android first, with an iPhone version planned. Join the waitlist either way.</p>
+    </div>
+
+    <section id="waitlist" hidden>
+      <div class="join">
+        <div id="waitlist-form-view">
+          <h2>Get notified when Daily Macros launches</h2>
+          <form id="waitlist-form" novalidate>
+            <p class="hint" id="waitlist-email-hint">Just a heads-up when it's ready, and about any major update before then. Not a test signup, no Google Play Store email needed.</p>
+            <input id="waitlist-email" name="email" type="email" inputmode="email" autocomplete="email" aria-label="Email"
+                   autocapitalize="off" spellcheck="false" placeholder="you@example.com" required
+                   aria-describedby="waitlist-email-hint waitlist-email-error">
+            <div class="hp" aria-hidden="true">
+              <label for="waitlist-website">Leave this empty</label>
+              <input id="waitlist-website" name="website" type="text" tabindex="-1" autocomplete="off">
+            </div>
+            <div class="error" id="waitlist-email-error" role="alert"></div>
+            <button class="btn" id="waitlist-submit" type="submit">Get notified</button>
+            <p class="fine privacy">Your email is only used to tell you about the Daily Macros launch and major updates.</p>
+          </form>
+        </div>
+
+        <div id="waitlist-done-view" class="done" hidden tabindex="-1">
+          <h2>You're on the list.</h2>
+          <p>I'll email <strong id="waitlist-sent-email"></strong> when Daily Macros launches, and about any major updates before then.</p>
+          <p class="fine" style="margin-top:14px">That's it! This is just a launch waitlist, nothing to install.</p>
+        </div>
+      </div>
+    </section>
   </div>
 </main>
 
@@ -682,9 +784,48 @@
   }
   sendEvent("page_view");
 
+  // Shrinks the fixed header (icon, title, Join the test button) once the
+  // page has scrolled a bit. Two different thresholds (not one) give it a
+  // dead zone, so momentum/rubber-band micro-scrolls near the boundary
+  // can't flicker it back and forth.
+  var headerEl = document.querySelector("header");
+  var mainEl = document.querySelector("main");
+  function updateHeaderStuck() {
+    var y = window.scrollY;
+    if (y > 40) headerEl.classList.add("is-stuck");
+    else if (y < 10) headerEl.classList.remove("is-stuck");
+  }
+  window.addEventListener("scroll", updateHeaderStuck, { passive: true });
+  updateHeaderStuck();
+
+  // Fixed headers don't reserve layout space, so main needs its own padding
+  // to avoid sitting underneath it. Measured from the header's natural
+  // (unstuck) height, which only matters before the first scroll anyway.
+  function syncHeaderSpacer() {
+    var wasStuck = headerEl.classList.contains("is-stuck");
+    headerEl.classList.remove("is-stuck");
+    mainEl.style.paddingTop = headerEl.getBoundingClientRect().height + "px";
+    if (wasStuck) headerEl.classList.add("is-stuck");
+  }
+  window.addEventListener("resize", syncHeaderSpacer);
+  syncHeaderSpacer();
+
   var betaCtaLinks = document.querySelectorAll(".js-beta-cta");
   for (var i = 0; i < betaCtaLinks.length; i++) {
     betaCtaLinks[i].addEventListener("click", function () { sendEvent("beta_cta_click"); });
+  }
+
+  // The waitlist/join cards start hidden; any link to them reveals the card
+  // (once revealed it stays that way) instead of just jump-scrolling to it.
+  var ctaTargetLinks = document.querySelectorAll('a[href="#waitlist"], a[href="#join"]');
+  for (var j = 0; j < ctaTargetLinks.length; j++) {
+    ctaTargetLinks[j].addEventListener("click", function (e) {
+      e.preventDefault();
+      var target = document.querySelector(this.getAttribute("href"));
+      target.hidden = false;
+      var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+    });
   }
 
   var waitlistForm = document.getElementById("waitlist-form");
@@ -925,6 +1066,7 @@
   var tiles = ["apple-cake", "cheese-bread", "scrambled-egg", "noodle-soup"].map(function (k) { return FOODS[k]; });
 
   var veilEls = document.querySelectorAll(".demo-veil");
+  var demoPhonesEl = document.getElementById("demo-phones");
   var recentEl = document.getElementById("demo-recent");
   var recentMoreEl = document.getElementById("demo-recent-more");
   var tilesEl = document.getElementById("demo-tiles");
@@ -1287,13 +1429,14 @@
   // --- Visitor's first interaction ------------------------------------------
 
   // Counts the visitor once in stats/counters.demo_start, on any first tap.
-  // Also lifts the frosted-glass veils off both phones, and reveals the
-  // second phone plus both captions (reserved space all along, so this
-  // can't shift the left phone's position).
+  // Also lifts the frosted-glass veils off both phones, expands the second
+  // phone in from zero width (see #demo-phones.pre-reveal), and reveals the
+  // left caption (reserved space all along, so nothing jumps for it).
   function markStarted() {
     if (started) return;
     started = true;
     Array.prototype.forEach.call(veilEls, function (v) { v.hidden = true; });
+    demoPhonesEl.classList.remove("pre-reveal");
     Array.prototype.forEach.call(document.querySelectorAll(".demo-reveal"), function (el) {
       el.classList.remove("demo-reveal");
     });
