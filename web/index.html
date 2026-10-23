@@ -96,14 +96,16 @@
   .loop-arrow-cycle { display: flex; flex-direction: column; align-items: center; gap: 4px; }
   .loop-arrow-cycle span { font-size: .78rem; font-style: italic; color: var(--muted); line-height: 1.2; }
   .loop-note { margin: 40px 0 22px; color: var(--muted); font-style: italic; font-size: .95rem; }
-  /* Deliberately not button-shaped (no solid fill, no shadow, dashed like
-     .loop-end): it's the end state of the diagram, not something to tap. */
+  /* Same size as .loop-step (it's .loop-step too) so it reads as the same
+     kind of card, just reached a different way. Deliberately not
+     button-shaped though (no solid fill, no shadow, dashed like .loop-end):
+     it's the end state of the diagram, not something to tap. */
   .loop-shortcut {
-    display: inline-flex; align-items: center; gap: 10px; padding: 16px 26px;
+    max-width: 360px; margin: 0 auto;
     background: #FFF1DD; color: var(--orange-dark); border: 1.5px dashed var(--orange);
-    border-radius: 14px; font-weight: 700; font-size: 1.05rem;
+    box-shadow: none; font-weight: 700; font-size: 1.05rem;
   }
-  .loop-shortcut svg { width: 20px; height: 20px; flex: none; }
+  .loop-shortcut svg { color: var(--orange-dark); }
 
   .join {
     background: var(--card); border: 1px solid var(--line); border-radius: 18px;
@@ -641,7 +643,7 @@
 
       <p class="loop-note">After a few times, it becomes this:</p>
 
-      <div class="loop-shortcut">
+      <div class="loop-step loop-shortcut">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>
         <strong>1-tap a Quick Pick</strong>
       </div>
