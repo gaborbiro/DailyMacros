@@ -79,15 +79,12 @@
   .btn[disabled] { opacity: .6; cursor: default; }
   .btn-ghost { background: transparent; color: var(--orange-dark); border: 1.5px solid var(--orange); }
   .btn-ghost:hover { background: rgba(245, 124, 0, .08); }
-  .hero-ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
-  /* What testers get, on every "Join the test" button. */
-  .cta-badge {
-    display: inline-block; margin-left: 6px; padding: 2px 9px; border-radius: 999px; vertical-align: 1px;
-    background: var(--orange); color: #fff; font-size: .78em; font-weight: 700; white-space: nowrap;
-  }
-  .btn:not(.btn-ghost) .cta-badge { background: #fff; color: var(--orange-dark); }
   .fine { font-size: .875rem; color: var(--muted); }
   .fine a { color: var(--orange-dark); }
+  .perk {
+    display: inline-block; margin: 2px 0 14px; padding: 5px 12px; border-radius: 999px;
+    background: #FFF1DD; color: var(--orange-dark); font-weight: 700; font-size: .85rem;
+  }
 
   section { padding: 28px 0; }
   .tracks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
@@ -577,7 +574,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
               </button>
               <p class="demo-end-text" id="demo-end-text"></p>
-              <a class="btn js-beta-cta" href="#join">Join the test <span class="cta-badge">3 weeks free</span></a>
+              <a class="btn js-beta-cta" href="#join">Join the test</a>
               <a class="btn btn-ghost" href="#waitlist">Get notified when it launches</a>
             </div>
             <div class="gesture"></div>
@@ -627,7 +624,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
               </button>
               <p class="demo-end-text" id="demo-end-text-app"></p>
-              <a class="btn js-beta-cta" href="#join">Join the test <span class="cta-badge">3 weeks free</span></a>
+              <a class="btn js-beta-cta" href="#join">Join the test</a>
               <a class="btn btn-ghost" href="#waitlist">Get notified when it launches</a>
             </div>
             <div class="gesture"></div>
@@ -691,6 +688,7 @@
       <div class="join">
         <div id="form-view">
           <h2>Join the test</h2>
+          <p class="perk">Free while testing — no payment, no catch.</p>
           <div class="seg" role="radiogroup" aria-label="Your phone">
             <label><input type="radio" name="platform" value="android" checked><span>Android</span></label>
             <label><input type="radio" name="platform" value="ios"><span>iPhone</span></label>
@@ -733,6 +731,7 @@
 
     <div class="hero-tail">
       <a class="btn" href="#waitlist">Get notified when Daily Macros launches</a>
+      <p class="perk">Free for your first 3 weeks after launch, then a subscription unlocks ongoing use.</p>
       <p class="fine">Android first, with an iPhone version planned. Join the waitlist either way.</p>
     </div>
 
