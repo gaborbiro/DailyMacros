@@ -58,10 +58,11 @@ These steps need your Firebase login and can only be done by you.
    | `unlimitedClientIds` | array (optional) | `[]` |
    | `preSubTotalCap` | number (optional) | `9` |
    | `preSubSuccessCap` | number (optional) | `6` |
+   | `testingFreeForAll` | boolean (optional) | `false` |
 
    (If you skip this, the function falls back to 15 / 3000 / off / no
-   unlimited clients / 9+6 for the pre-subscription pool, shared between
-   `recognition` and `analysis`.)
+   unlimited clients / 9+6 for the pre-subscription pool / off, shared
+   between `recognition` and `analysis`.)
 
 ---
 
@@ -316,6 +317,14 @@ client is wired to send its Firebase ID token — that's the follow-up step.
 - **Unlock a test device from subscription enforcement entirely:** add its
   client ID to `config/limits.unlimitedClientIds` (see below) — cleaner
   than watching it burn through the pre-subscription allowance.
+- **Unlock everyone at once, for a closed test:** set
+  `config/limits.testingFreeForAll = true`. Same effect as adding every
+  current client ID to `unlimitedClientIds`, without needing to know any of
+  them — meant for a closed-test phase where there's no cheap way to map
+  landing-page signups to client IDs. The monthly budget still caps total
+  spend while it's on. Flip it back to `false` at public launch; testers
+  land on a fresh, unconsumed pre-subscription allowance rather than an
+  already-exhausted one (see `index.js`'s header comment).
 - **Emergency stop:** set `config/limits.killSwitch = true`. All proxied
   requests immediately return 503 until you flip it back.
 - **See usage:** `meters/app` holds the current month's count;

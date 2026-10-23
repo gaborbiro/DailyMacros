@@ -62,6 +62,17 @@
  *     0 restores their full daily allowance, a negative value (e.g. -10) grants
  *     that many extra requests on top of the cap. It resets to normal at the
  *     next UTC day.
+ *   - config/limits.testingFreeForAll: true makes EVERY caller unlimited, the
+ *     same way a single unlimitedClientIds entry would, without needing to
+ *     know anyone's client ID. Meant for the length of a closed test, where
+ *     there's no cheap way to map landing-page signups to client IDs one by
+ *     one: flip it on for the whole test, off again at public launch. Safe
+ *     to leave on for a while - the monthly budget check above still applies
+ *     regardless, and because isUnlimited also skips the pre-subscription
+ *     allowance increment (see below), nobody's allowance gets quietly used
+ *     up while it's on. Turning it off is a soft landing, not a cliff:
+ *     testers just become brand-new users with a full, untouched allowance,
+ *     same as anyone who installs after launch.
  *
  * Every request records the caller's client ID (X-Client-Id header)
  * and last-seen time on users/{uid} - AND writes it to a separate
@@ -241,10 +252,11 @@ exports.openaiProxy = onRequest(
         : [];
 
       const u = userSnap.data() || {};
-      // Allowlisted clients skip both the daily cap (checked below) and the
-      // subscription gate entirely (developer testing, reviewers) - still
-      // counted, still bounded by the global monthly budget checked above.
-      const isUnlimited = clientId != null && unlimitedClientIds.includes(clientId);
+      // Allowlisted clients, or everyone at once if testingFreeForAll is on,
+      // skip both the daily cap (checked below) and the subscription gate
+      // entirely (developer testing, reviewers) - still counted, still
+      // bounded by the global monthly budget checked above.
+      const isUnlimited = cfg.testingFreeForAll === true || (clientId != null && unlimitedClientIds.includes(clientId));
       const nowMillis = Date.now();
       // expiryTimeMillis is checked for every state, not just "canceled":
       // onSubscriptionNotification (RTDN) refreshes this doc on every real
