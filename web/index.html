@@ -137,18 +137,25 @@
      horizontal scroller would otherwise clip into a hard edge. */
   .demo-phones {
     display: flex; gap: 24px; align-items: flex-start; overflow-x: auto; scroll-snap-type: x mandatory;
-    margin: 0 -20px; padding: 4px 20px 40px; scrollbar-width: none;
+    margin: 0 -20px; padding: 4px 20px 40px; scrollbar-width: none; transition: gap .5s ease;
   }
   .demo-phones::-webkit-scrollbar { display: none; }
   /* Both phones fit side by side: no scroller, so nothing clips the shadows. */
   @media (min-width: 680px) { .demo-phones { justify-content: center; overflow: visible; } }
-  .demo-device { flex: 0 0 min(280px, 84vw); min-width: 0; margin: 0; scroll-snap-align: center; }
+  .demo-device {
+    flex: 0 0 min(280px, 84vw); min-width: 0; margin: 0; scroll-snap-align: center;
+    transition: flex-basis .5s ease, opacity .5s ease;
+  }
   .demo-device figcaption { margin-bottom: 8px; text-align: center; font-weight: 700; }
-  /* Only the left phone (with the CTA) shows at first; the right one and both
-     captions stay reserved-but-invisible, not display:none, so revealing them
-     on interaction can't shift the left phone's centered position at all.
-     .demo-fade (always present) carries the transition so removing
-     .demo-reveal fades opacity in, instead of the content just popping in. */
+  /* Before the visitor interacts, only the left phone (with the CTA) shows.
+     The right one collapses to zero width rather than just going invisible,
+     so the lone phone sits properly centred instead of looking shifted left
+     to make room for space it isn't using. On reveal, both its width and the
+     row's gap animate back in together instead of snapping. */
+  #demo-phones.pre-reveal { gap: 0; }
+  #demo-phones.pre-reveal #demo-overview-device { flex-basis: 0; opacity: 0; pointer-events: none; }
+  /* The left caption still uses reserved-space hiding: its own phone never
+     moves, so there's nothing to realign when it fades in. */
   .demo-fade { transition: opacity .5s ease; }
   .demo-reveal { visibility: hidden; opacity: 0; }
   .demo-foot { display: grid; gap: 10px; justify-items: center; text-align: center; margin-top: -10px; }
@@ -396,7 +403,7 @@
   @keyframes demo-slide-out { from { transform: none; } to { transform: translateX(100%); } }
   .trends.is-closing { animation: demo-slide-out .22s ease-in forwards; }
   @keyframes demo-in { from { opacity: 0; transform: translateY(-6px); background: rgba(245, 124, 0, .45); } to { opacity: 1; transform: none; } }
-  @media (prefers-reduced-motion: reduce) { .phone, .phone *, .demo-fade { animation: none !important; transition: none !important; } }
+  @media (prefers-reduced-motion: reduce) { .phone, .phone *, .demo-fade, .demo-phones, .demo-device { animation: none !important; transition: none !important; } }
 
   footer { padding: 24px 0 40px; }
   footer a { color: inherit; }
@@ -439,7 +446,7 @@
   </div>
 
   <div class="wrap demo" id="try">
-    <div class="demo-phones" id="demo-phones">
+    <div class="demo-phones pre-reveal" id="demo-phones">
       <figure class="demo-device" id="demo-widget-device">
         <figcaption class="demo-fade demo-reveal">Widgets</figcaption>
         <div class="phone" id="demo-phone" role="group" aria-label="Interactive replica of the Daily Macros home-screen widget">
@@ -521,8 +528,8 @@
         </div>
       </figure>
 
-      <figure class="demo-device demo-fade demo-reveal" id="demo-overview-device">
-        <figcaption class="demo-fade demo-reveal">The app</figcaption>
+      <figure class="demo-device" id="demo-overview-device">
+        <figcaption>The app</figcaption>
         <div class="phone" role="group" aria-label="Interactive replica of the Daily Macros app's diary screen">
           <div class="screen">
             <div class="demo-veil"></div>
@@ -931,6 +938,7 @@
   var tiles = ["apple-cake", "cheese-bread", "scrambled-egg", "noodle-soup"].map(function (k) { return FOODS[k]; });
 
   var veilEls = document.querySelectorAll(".demo-veil");
+  var demoPhonesEl = document.getElementById("demo-phones");
   var recentEl = document.getElementById("demo-recent");
   var recentMoreEl = document.getElementById("demo-recent-more");
   var tilesEl = document.getElementById("demo-tiles");
@@ -1293,13 +1301,14 @@
   // --- Visitor's first interaction ------------------------------------------
 
   // Counts the visitor once in stats/counters.demo_start, on any first tap.
-  // Also lifts the frosted-glass veils off both phones, and reveals the
-  // second phone plus both captions (reserved space all along, so this
-  // can't shift the left phone's position).
+  // Also lifts the frosted-glass veils off both phones, expands the second
+  // phone in from zero width (see #demo-phones.pre-reveal), and reveals the
+  // left caption (reserved space all along, so nothing jumps for it).
   function markStarted() {
     if (started) return;
     started = true;
     Array.prototype.forEach.call(veilEls, function (v) { v.hidden = true; });
+    demoPhonesEl.classList.remove("pre-reveal");
     Array.prototype.forEach.call(document.querySelectorAll(".demo-reveal"), function (el) {
       el.classList.remove("demo-reveal");
     });
