@@ -1,6 +1,6 @@
 # Daily Macros — Privacy Policy
 
-_Last updated: 2026-09-19_
+_Last updated: 2026-10-24_
 
 Daily Macros is a nutrition diary. This policy explains what data the app
 handles, where it goes, and the choices you have. It describes the app's current
@@ -15,7 +15,7 @@ behaviour; if it changes materially, this document will be updated.
   your meal photos or diary entries.
 - Optional cloud backup goes to **your own Google Drive**, not to the developer.
 - If you turn on **Health Connect sync** (off by default), your logged meals'
-  names and nutrition figures are also written to Android Health Connect, where
+  names and nutrition figures are also written to Health Connect, where
   other apps you've connected to it (e.g. Samsung Health) can read them.
 - The app sends **anonymous** usage and crash telemetry to Google Firebase, tied
   only to a randomly generated identifier — not to your name or email.
@@ -83,8 +83,11 @@ diagnose crashes. These send:
 - Crash diagnostics (stack traces and technical context).
 
 This telemetry is associated only with a **randomly generated identifier**
-created on your device, not with your name, email, or account. No meal photos or
-diary content are sent to analytics or crash reporting.
+created on your device, not with your name, email, or account. Your meal photos
+are never sent to analytics or crash reporting. Crash diagnostics may occasionally
+include a fragment of the AI service's own error message (for example, if it
+flags part of what you typed) — these diagnostics are kept because they are how
+production issues get diagnosed.
 
 ## Identifiers
 
