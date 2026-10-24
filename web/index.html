@@ -407,16 +407,36 @@
   .dialog h3:focus { outline: none; }
   .dialog .tracks { gap: 6px; margin: 0; }
   .dialog .chip { padding: 4px 9px; border-radius: 8px; font-size: 12px; }
-  .inferred { margin-top: 12px; padding: 10px 12px; border: 1.5px solid #F5A623; border-radius: 12px; }
-  .inferred strong { color: #fff; }
-  .inferred ul { margin: 6px 0 8px; padding: 0; list-style: none; }
-  .inferred em { display: block; margin-top: 8px; color: #A9A29C; }
-  .dialog-fix { display: flex; gap: 6px; margin-top: 12px; }
-  .dialog input[type=text], .dialog textarea {
-    flex: 1; min-width: 0; width: 100%; padding: 9px 10px; border: 1px solid #555; border-radius: 10px;
-    background: #1E1E1E; color: #fff; font: inherit; font-size: 13px;
+  /* Flat, no card/border: a muted caption, a 2-line preview that expands into the
+     full list - after the app's own decluttered meal-details redesign. */
+  .inferred { margin-top: 14px; }
+  .inferred-head { display: flex; align-items: center; gap: 6px; }
+  .inferred-head strong { color: #D8D2CA; font-size: 13px; font-weight: 700; }
+  .inferred-pill {
+    display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 16px;
+    border-radius: 999px; background: rgba(255, 255, 255, .12); color: #D8D2CA; font-size: 11px; line-height: 1;
   }
-  .dialog textarea { min-height: 80px; resize: vertical; }
+  .inferred-preview {
+    margin-top: 6px; color: #C9C2BA; font-size: 13px; line-height: 1.45;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .inferred ul { margin: 6px 0 0; padding: 0; list-style: none; color: #C9C2BA; font-size: 13px; line-height: 1.55; }
+  .inferred-notes { margin: 8px 0 0; color: #C9C2BA; font-size: 13px; line-height: 1.45; }
+  .inferred-footnote { display: block; margin-top: 8px; color: #A9A29C; font-style: italic; font-size: 12px; }
+  .inferred-toggle {
+    display: flex; align-items: center; justify-content: center; gap: 6px; height: 28px; margin-top: 2px;
+    color: #B8B0A8; font-size: 12px; font-weight: 600;
+  }
+  .correction { margin-top: 12px; }
+  .correction-link { color: #F5A623; font-weight: 600; font-size: 13px; cursor: pointer; }
+  .correction-link-disabled { color: #8A8178; cursor: default; }
+  .correction-open { margin-top: 8px; }
+  .correction-reanalyze { margin-top: 8px; }
+  .dialog textarea {
+    flex: 1; min-width: 0; width: 100%; padding: 9px 10px; border: 1px solid #555; border-radius: 10px;
+    background: #1E1E1E; color: #fff; font: inherit; font-size: 13px; min-height: 80px; resize: vertical;
+  }
+  .correction-open textarea { min-height: 56px; }
   .dialog .btn { width: 100%; margin-top: 12px; padding: 11px; font-size: 15px; background: #F5A623; color: #2B1A00; }
   .dialog .btn:hover { background: #FFB840; }
   .dialog .btn-small { width: auto; margin: 0; padding: 9px 12px; font-size: 13px; }
@@ -964,7 +984,7 @@
   var FIREBASE_SDK = "https://www.gstatic.com/firebasejs/11.0.2/";
   var MAX_PHOTO_PX = 768;
   var QUICK_PICKS_INDEX = 4; // the real widget lists Quick Picks after the 4th recent meal
-  var CONFIDENCE_MARK = { high: "", medium: " (?)", low: " (??)" };
+  var CONFIDENCE_MARK = { high: "", medium: " (likely)", low: " (guess)" };
 
   // The app's default daily targets. A min of 0 means "at most max".
   var MACROS = [
@@ -1627,47 +1647,121 @@
       || component.charAt(0).toUpperCase() + component.slice(1) || "Your meal";
   }
 
-  // The meal screen's title, nutrient chips and "What the AI inferred" box,
+  // "amount name (confidence)", shared by the collapsed preview and the full list.
+  function componentLine(c) {
+    return c.name + (c.amount ? " (" + c.amount + ")" : "") + CONFIDENCE_MARK[c.confidence];
+  }
+
+  var AI_FOOTNOTE = "If something looks off, try another photo or add a clarification to the description. We’ll re-run the analysis.";
+
+  // "What the AI inferred": collapsed to a 2-line preview with a chevron pill once
+  // there's more to show, expanding into the full component list and notes - after
+  // the app's own decluttered, collapsible meal-details redesign. The footnote only
+  // shows here when there's no separate correction link below (see buildCorrection).
+  function buildInferredSection(meal, showFootnote) {
+    var lines = meal.components.map(componentLine);
+    var summary = lines.join(" · ");
+    var wrap = el("div", "inferred");
+    var head = el("div", "inferred-head");
+    head.appendChild(el("strong", null, "What the AI inferred"));
+    var pill = el("span", "inferred-pill", "▾");
+    pill.hidden = true;
+    head.appendChild(pill);
+    wrap.appendChild(head);
+    var body = el("div");
+    wrap.appendChild(body);
+
+    var expanded = false;
+    var expandable = false;
+
+    function renderCollapsed() {
+      body.textContent = "";
+      var preview = el("div", "inferred-preview", summary);
+      preview.addEventListener("click", function () { if (expandable) toggle(); });
+      body.appendChild(preview);
+      requestAnimationFrame(function () {
+        expandable = preview.scrollHeight > preview.clientHeight + 1 || !!meal.notes;
+        pill.hidden = !expandable;
+        head.style.cursor = preview.style.cursor = expandable ? "pointer" : "default";
+        if (!expandable && showFootnote) body.appendChild(el("p", "inferred-footnote", AI_FOOTNOTE));
+      });
+    }
+
+    function renderExpanded() {
+      body.textContent = "";
+      var list = el("ul");
+      lines.forEach(function (line) { list.appendChild(el("li", null, "- " + line)); });
+      body.appendChild(list);
+      if (meal.notes) body.appendChild(el("p", "inferred-notes", meal.notes));
+      if (showFootnote) body.appendChild(el("p", "inferred-footnote", AI_FOOTNOTE));
+      var toggle = el("div", "inferred-toggle", "Collapse ▴");
+      toggle.addEventListener("click", function () { expanded = false; render(); });
+      body.appendChild(toggle);
+    }
+
+    function render() { expanded ? renderExpanded() : renderCollapsed(); }
+    function toggle() { expanded = !expanded; render(); }
+    head.addEventListener("click", function () { if (expandable) toggle(); });
+
+    render();
+    return wrap;
+  }
+
+  // "Something off?": a plain link that opens into a field and a Re-analyze button,
+  // after the app's MealCorrectionInput. Only shown where a re-run is possible.
+  function buildCorrectionSection(onReanalyze) {
+    var wrap = el("div", "correction");
+    var link = el("span", "correction-link", "Something off?");
+    wrap.appendChild(link);
+    if (remaining === 0) {
+      link.textContent = "No re-runs left today";
+      link.classList.add("correction-link-disabled");
+      return wrap;
+    }
+    link.addEventListener("click", function () {
+      link.hidden = true;
+      var open = el("div", "correction-open");
+      var field = el("textarea");
+      field.maxLength = 200;
+      field.placeholder = "e.g. it was a small portion";
+      field.setAttribute("aria-label", "Clarification for the analysis");
+      open.appendChild(field);
+      var reanalyzeBtn = button("btn btn-small correction-reanalyze", "Re-analyze", function () {
+        var text = field.value.trim();
+        if (!text) { field.focus(); return; }
+        onReanalyze(text);
+      });
+      reanalyzeBtn.hidden = true;
+      field.addEventListener("input", function () { reanalyzeBtn.hidden = !field.value.trim(); });
+      open.appendChild(reanalyzeBtn);
+      wrap.appendChild(open);
+      field.focus();
+    });
+    return wrap;
+  }
+
+  // The meal screen's title, nutrient chips and "What the AI inferred" section,
   // shared by a fresh analysis and a meal opened from the widget.
-  function mealDetailNodes(title, meal, canRerun) {
+  function mealDetailNodes(title, meal, showFootnote) {
     var heading = el("h3", null, title);
     heading.tabIndex = -1;
 
     var chips = el("div", "tracks");
     chipsFor(meal).forEach(function (c) { chips.appendChild(el("span", "chip " + c[0], c[1])); });
 
-    var inferred = el("div", "inferred");
-    inferred.appendChild(el("strong", null, "What the AI inferred"));
-    var list = el("ul");
-    meal.components.forEach(function (c) {
-      list.appendChild(el("li", null, "- " + c.name + (c.amount ? " (" + c.amount + ")" : "") + CONFIDENCE_MARK[c.confidence]));
-    });
-    inferred.appendChild(list);
-    if (meal.notes) inferred.appendChild(el("p", null, meal.notes));
-    if (canRerun) inferred.appendChild(el("em", null, "If something looks off, add a clarification below and re-run the analysis."));
+    var inferred = buildInferredSection(meal, showFootnote);
     return [heading, chips, inferred];
   }
 
   function showResult() {
-    var details = mealDetailNodes(mealTitle(), current.result, true);
+    var details = mealDetailNodes(mealTitle(), current.result, false);
 
-    var fix = el("div", "dialog-fix");
-    var note = el("input");
-    note.type = "text";
-    note.maxLength = 200;
-    note.placeholder = remaining === 0 ? "No re-runs left today" : "e.g. it was a small portion";
-    note.setAttribute("aria-label", "Clarification for the analysis");
-    var rerun = button("btn btn-small", "Re-run", function () {
-      var text = note.value.trim();
-      if (!text) { note.focus(); return; }
+    var correction = buildCorrectionSection(function (text) {
       analyse({ image: current.image, description: current.description ? current.description + "\n" + text : text });
     });
-    note.disabled = rerun.disabled = remaining === 0;
-    fix.appendChild(note);
-    fix.appendChild(rerun);
 
     openDialog(details.concat([
-      fix,
+      correction,
       button("btn", "Log meal", logAnalysed),
       button("dialog-link", "Close", closeWidgetDialog)
     ]), details[0]);
@@ -1677,7 +1771,7 @@
   // without the re-run, as in the app. Leaves `current` (the widget's
   // analysis) alone.
   function showMealDetails(meal, host) {
-    var details = mealDetailNodes(meal.name, meal, false);
+    var details = mealDetailNodes(meal.name, meal, true);
     function close() { closeDialog(host); }
     openDialog(details.concat([
       button("btn", "Log meal again", function () {

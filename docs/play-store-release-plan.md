@@ -39,7 +39,7 @@
   - **Health and fitness data, shared with other apps (opt-in):** if the user
     turns on Health Connect sync (Settings > Connected services, off by
     default), logged meals' names and nutrition figures — not photos — are
-    written to Android Health Connect, readable by any app the user has
+    written to Health Connect, readable by any app the user has
     connected to it (e.g. Samsung Health). Requires declaring the
     `health.WRITE_NUTRITION` permission in Play Console's Permissions
     Declaration form, separate from this Data safety form.
