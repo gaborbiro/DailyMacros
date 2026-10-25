@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.features.settings
 
 import android.Manifest
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
@@ -26,7 +27,7 @@ import dev.gaborbiro.dailymacros.features.common.ONBOARDING_ROUTE
 import dev.gaborbiro.dailymacros.features.common.SettingsRowId
 import dev.gaborbiro.dailymacros.features.settings.export.rememberCreatePublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.rememberOpenPublicDocumentUseCase
-import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectSyncUseCase
+import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectClientProvider
 import dev.gaborbiro.dailymacros.features.settings.goalsQuestionnaire.GoalsQuestionnaireActivity
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
 import dev.gaborbiro.dailymacros.features.settings.promptEditor.PromptEditorScreen
@@ -66,7 +67,7 @@ fun SettingsScreen(
     val healthConnectPermissionLauncher = rememberLauncherForActivityResult(
         contract = PermissionController.createRequestPermissionResultContract()
     ) { granted ->
-        if (granted.containsAll(HealthConnectSyncUseCase.PERMISSIONS)) {
+        if (granted.containsAll(HealthConnectClientProvider.PERMISSIONS)) {
             settingsViewModel.onHealthConnectPermissionsGranted()
         } else {
             settingsViewModel.onHealthConnectPermissionsDenied()
@@ -94,8 +95,9 @@ fun SettingsScreen(
                     }
                 }
                 SettingsUiUpdates.RequestHealthConnectPermissions -> {
-                    healthConnectPermissionLauncher.launch(HealthConnectSyncUseCase.PERMISSIONS)
+                    healthConnectPermissionLauncher.launch(HealthConnectClientProvider.PERMISSIONS)
                 }
+                is SettingsUiUpdates.OpenPlayStoreListing -> openPlayStoreListing(context, event.packageName)
                 else -> Unit
             }
         }
@@ -139,6 +141,7 @@ fun SettingsScreen(
         onShowOnboardingTapped = { navController.navigate(ONBOARDING_ROUTE) },
         onMealReminderDebugTapped = settingsViewModel::refreshMealReminderDebugText,
         onHealthConnectSyncToggled = settingsViewModel::onHealthConnectSyncToggled,
+        onHealthConnectInstallTapped = settingsViewModel::onHealthConnectInstallTapped,
         onSuggestIntegrationTapped = { openSuggestIntegrationEmail(context) },
     )
 
@@ -159,6 +162,8 @@ fun SettingsScreen(
             }
             // Meals may have been logged or moved elsewhere (e.g. from a widget) while away.
             if (event == Lifecycle.Event.ON_RESUME) settingsViewModel.refreshMealReminderDebugText()
+            // Health Connect may have been installed or updated from the Play Store while away.
+            if (event == Lifecycle.Event.ON_RESUME) settingsViewModel.onHealthConnectStatusRefreshRequested()
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
@@ -193,4 +198,18 @@ private fun openSuggestIntegrationEmail(context: Context) {
         putExtra(Intent.EXTRA_SUBJECT, "DailyMacros: sync integration suggestion")
     }
     runCatching { context.startActivity(intent) }
+}
+
+/** Prefers the Play Store app; falls back to the web listing on devices without it. */
+private fun openPlayStoreListing(context: Context, packageName: String) {
+    val marketIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName"))
+    try {
+        context.startActivity(marketIntent)
+    } catch (e: ActivityNotFoundException) {
+        val webIntent = Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse("https://play.google.com/store/apps/details?id=$packageName"),
+        )
+        context.startActivity(webIntent)
+    }
 }

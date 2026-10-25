@@ -22,8 +22,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCase
 import dev.gaborbiro.dailymacros.features.shared.photodiary.PhotoMonitorWorker
 import dev.gaborbiro.dailymacros.features.settings.export.OpenPublicDocumentUseCase
+import dev.gaborbiro.dailymacros.features.shared.healthconnect.GetHealthConnectStatusUseCase
+import dev.gaborbiro.dailymacros.features.shared.healthconnect.HasHealthConnectPermissionUseCase
+import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectClientProvider
+import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectStatus
 import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectSyncResult
-import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectSyncUseCase
+import dev.gaborbiro.dailymacros.features.shared.healthconnect.SyncRecordsToHealthConnectUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.pdf.DiaryDateRange
 import dev.gaborbiro.dailymacros.features.settings.export.pdf.PdfRangeSelection
 import dev.gaborbiro.dailymacros.features.settings.export.pdf.computeRange
@@ -73,7 +77,9 @@ class SettingsViewModel @Inject constructor(
     private val syncDatabaseUseCase: SyncDatabaseUseCase,
     private val reconcileCloudBackupConflictUseCase: ReconcileCloudBackupConflictUseCase,
     private val restoreFromDriveUseCase: RestoreFromDriveUseCase,
-    private val healthConnectSyncUseCase: HealthConnectSyncUseCase,
+    private val getHealthConnectStatusUseCase: GetHealthConnectStatusUseCase,
+    private val hasHealthConnectPermissionUseCase: HasHealthConnectPermissionUseCase,
+    private val syncRecordsToHealthConnectUseCase: SyncRecordsToHealthConnectUseCase,
     private val cloudSyncRepository: CloudSyncRepository,
     private val featureFlagStore: FeatureFlagStore,
     private val subscriptionRepository: SubscriptionRepository,
@@ -104,6 +110,7 @@ class SettingsViewModel @Inject constructor(
             wifiOnlyAnalysisEnabled = settingsRepository.getWifiOnlyAnalysisEnabled(),
             isDebugBuild = appInfo.isDebugBuild,
             healthConnectSyncEnabled = settingsRepository.getHealthConnectSyncEnabled(),
+            healthConnectStatus = getHealthConnectStatusUseCase.execute(),
         ),
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
@@ -594,14 +601,36 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             when {
                 // Checked first: on Android 12-13 Health Connect is a separate Play Store app that
-                // may be missing or outdated, and hasPermission() throws in that case.
-                !healthConnectSyncUseCase.isAvailable() -> _uiUpdates.emit(
+                // may be missing or outdated, and the permission check throws in that case. The
+                // status can also have changed since the row was drawn, so this refreshes it too.
+                refreshHealthConnectStatus() != HealthConnectStatus.AVAILABLE -> _uiUpdates.emit(
                     SettingsUiUpdates.ShowSnackbar(HEALTH_CONNECT_NOT_AVAILABLE_MESSAGE)
                 )
-                healthConnectSyncUseCase.hasPermission() -> enableHealthConnectSync()
+                hasHealthConnectPermissionUseCase.execute() -> enableHealthConnectSync()
                 else -> _uiUpdates.emit(SettingsUiUpdates.RequestHealthConnectPermissions)
             }
         }
+    }
+
+    /** Opens Health Connect's Play Store listing, where the user can install or update it. */
+    fun onHealthConnectInstallTapped() {
+        viewModelScope.launch {
+            _uiUpdates.emit(SettingsUiUpdates.OpenPlayStoreListing(HealthConnectClientProvider.PROVIDER_PACKAGE_NAME))
+        }
+    }
+
+    /**
+     * Re-reads whether Health Connect is installed and up to date. Called whenever the screen
+     * resumes, so coming back from the Play Store updates the Health Connect row.
+     */
+    fun onHealthConnectStatusRefreshRequested() {
+        refreshHealthConnectStatus()
+    }
+
+    private fun refreshHealthConnectStatus(): HealthConnectStatus {
+        val status = getHealthConnectStatusUseCase.execute()
+        _uiState.update { it.copy(healthConnectStatus = status) }
+        return status
     }
 
     fun onHealthConnectPermissionsGranted() {
@@ -655,7 +684,7 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(healthConnectSyncInProgress = true) }
             val since = ZonedDateTime.now().minusDays(HEALTH_CONNECT_INITIAL_SYNC_WINDOW_DAYS)
-            when (val result = healthConnectSyncUseCase.execute(since = since)) {
+            when (val result = syncRecordsToHealthConnectUseCase.execute(since = since)) {
                 is HealthConnectSyncResult.Success -> {
                     val message = if (result.count == 0) {
                         "Turned on. Nothing to sync yet."

@@ -76,7 +76,7 @@
 
         <!--
            Health Connect's required "permission rationale" for the experimental sync button
-           (see HealthConnectSyncUseCase / HealthConnectRationaleActivity): without these two
+           (see SettingsScreen / HealthConnectRationaleActivity): without these two
            entries, Health Connect auto-denies the permission request with no dialog shown.
         -->
         <activity

@@ -25,7 +25,7 @@ import javax.inject.Singleton
  * reloader.
  *
  * Only pushes the last [SYNC_WINDOW_DAYS] days on every trigger, not the whole diary: Health
- * Connect's own clientRecordId/version upsert (see [HealthConnectSyncUseCase]) makes an
+ * Connect's own clientRecordId/version upsert (see [SyncRecordsToHealthConnectUseCase]) makes an
  * unbounded full resync *correct*, but its cost still grows with total diary size on every single
  * edit, forever. A rolling window covers new entries and realistic corrections (fixing a meal
  * logged minutes/hours ago) without that unbounded growth.
@@ -38,7 +38,7 @@ import javax.inject.Singleton
 class HealthConnectSyncCoordinator @Inject constructor(
     private val recordsRepository: RecordsRepository,
     private val settingsRepository: SettingsRepository,
-    private val healthConnectSyncUseCase: HealthConnectSyncUseCase,
+    private val syncRecordsToHealthConnectUseCase: SyncRecordsToHealthConnectUseCase,
 ) {
 
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -62,7 +62,7 @@ class HealthConnectSyncCoordinator @Inject constructor(
     private suspend fun sync() {
         if (!settingsRepository.getHealthConnectSyncEnabled()) return
         val since = ZonedDateTime.now().minusDays(SYNC_WINDOW_DAYS)
-        when (val result = healthConnectSyncUseCase.execute(since)) {
+        when (val result = syncRecordsToHealthConnectUseCase.execute(since)) {
             is HealthConnectSyncResult.Success ->
                 Log.i(TAG, "Synced ${result.count} record(s) to Health Connect")
             is HealthConnectSyncResult.Error ->

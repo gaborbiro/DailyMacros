@@ -1,8 +1,5 @@
 package dev.gaborbiro.dailymacros.features.shared.healthconnect
 
-import android.app.Application
-import androidx.health.connect.client.HealthConnectClient
-import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.NutritionRecord
 import androidx.health.connect.client.records.metadata.Metadata
 import androidx.health.connect.client.units.Energy
@@ -28,29 +25,17 @@ sealed class HealthConnectSyncResult {
 /**
  * Pushes [Record]s to Health Connect as [NutritionRecord]s, one row per logged meal (not per meal
  * component - Health Connect has no itemized-component concept). Every write is a plain
- * `insertRecords` call keyed by a deterministic [clientRecordId] derived from [Record.recordId];
- * Health Connect itself decides insert vs. in-place replace based on that id and
- * [clientRecordVersion], so no local dedup/sync-state table is needed - see [toNutritionRecord].
+ * `insertRecords` call keyed by a deterministic [HealthConnectClientProvider.clientRecordId]
+ * derived from [Record.recordId]; Health Connect itself decides insert vs. in-place replace based
+ * on that id and [Metadata.clientRecordVersion], so no local dedup/sync-state table is needed -
+ * see [toNutritionRecord].
  */
-class HealthConnectSyncUseCase @Inject constructor(
-    private val application: Application,
+class SyncRecordsToHealthConnectUseCase @Inject constructor(
+    private val clientProvider: HealthConnectClientProvider,
     private val recordsRepository: RecordsRepository,
+    private val getHealthConnectStatusUseCase: GetHealthConnectStatusUseCase,
+    private val hasHealthConnectPermissionUseCase: HasHealthConnectPermissionUseCase,
 ) {
-
-    companion object {
-        val PERMISSIONS: Set<String> = setOf(HealthPermission.getWritePermission(NutritionRecord::class))
-
-        private fun clientRecordId(recordId: Long) = "dailymacros-record-$recordId"
-    }
-
-    /** False when Health Connect is missing or needs updating; [hasPermission] throws then. */
-    fun isAvailable(): Boolean =
-        HealthConnectClient.getSdkStatus(application) == HealthConnectClient.SDK_AVAILABLE
-
-    suspend fun hasPermission(): Boolean {
-        val client = HealthConnectClient.getOrCreate(application)
-        return client.permissionController.getGrantedPermissions().containsAll(PERMISSIONS)
-    }
 
     /**
      * Pushes every current [Record] logged at or after [since]. Safe to call repeatedly with an
@@ -58,14 +43,14 @@ class HealthConnectSyncUseCase @Inject constructor(
      * isn't newer than what it already has for that [Metadata.clientRecordId].
      */
     suspend fun execute(since: ZonedDateTime): HealthConnectSyncResult {
-        if (!isAvailable()) {
+        if (getHealthConnectStatusUseCase.execute() != HealthConnectStatus.AVAILABLE) {
             return HealthConnectSyncResult.NotAvailable
         }
-        if (!hasPermission()) {
+        if (!hasHealthConnectPermissionUseCase.execute()) {
             return HealthConnectSyncResult.PermissionRequired
         }
         return try {
-            val client = HealthConnectClient.getOrCreate(application)
+            val client = clientProvider.getClient()
             val nutritionRecords = recordsRepository.getRecords(since = since.toInstant().toKotlinInstant())
                 .filter { it.template.nutrients.calories != null }
                 .map { it.toNutritionRecord() }
@@ -76,18 +61,6 @@ class HealthConnectSyncUseCase @Inject constructor(
         } catch (e: Exception) {
             HealthConnectSyncResult.Error(e.message ?: e.toString())
         }
-    }
-
-    /** Removes [recordId]'s entry from Health Connect, if it was ever synced. No-op otherwise. */
-    suspend fun deleteRecord(recordId: Long) {
-        if (!isAvailable()) return
-        if (!hasPermission()) return
-        val client = HealthConnectClient.getOrCreate(application)
-        client.deleteRecords(
-            recordType = NutritionRecord::class,
-            recordIdsList = emptyList(),
-            clientRecordIdsList = listOf(clientRecordId(recordId)),
-        )
     }
 
     /**
@@ -108,7 +81,7 @@ class HealthConnectSyncUseCase @Inject constructor(
             endTime = startInstant + 1.minutes.toJavaDuration(),
             endZoneOffset = zoneOffset,
             metadata = Metadata.manualEntry(
-                clientRecordId = clientRecordId(recordId),
+                clientRecordId = HealthConnectClientProvider.clientRecordId(recordId),
                 clientRecordVersion = System.currentTimeMillis(),
             ),
             name = template.name.ifBlank { null },
