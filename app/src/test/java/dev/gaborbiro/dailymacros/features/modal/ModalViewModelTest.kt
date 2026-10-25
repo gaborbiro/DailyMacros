@@ -24,6 +24,8 @@ import dev.gaborbiro.dailymacros.features.shared.ListMealVariantsForTemplateUseC
 import dev.gaborbiro.dailymacros.features.modal.usecase.ModalRecordFixtures
 import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveFirstRecordIdForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.SaveRecordEditsUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.ScheduleAnalysisIfTemplateIncompleteUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
@@ -176,6 +178,7 @@ class ModalViewModelTest {
         val createTemplate = CreateTemplateUseCase(repo)
         val createFromTemplate = CreateRecordFromTemplateUseCase(repo)
         val updateRec = UpdateRecordWithNewTemplateUseCase(repo, createTemplate)
+        val scheduleAnalysis = ScheduleAnalysisIfTemplateIncompleteUseCase(app, repo)
         val imageStore = FakeImageStore()
         return ModalViewModel(
             application = app,
@@ -189,7 +192,8 @@ class ModalViewModelTest {
             createRecordFromTemplateUseCase = createFromTemplate,
             createTemplateUseCase = createTemplate,
             createRecordWithNewTemplateUseCase = CreateRecordWithNewTemplateUseCase(createTemplate, createFromTemplate),
-            updateRecordWithNewTemplateUseCase = updateRec,
+            saveRecordEditsUseCase = SaveRecordEditsUseCase(app, repo, updateRec),
+            scheduleAnalysisIfTemplateIncompleteUseCase = scheduleAnalysis,
             validateEditRecordUseCase = ValidateEditRecordUseCase(repo),
             validateCreateRecordUseCase = ValidateCreateRecordUseCase(),
             saveImageUseCase = SaveImageUseCase(app, imageStore, testSettingsRepository),
@@ -201,7 +205,7 @@ class ModalViewModelTest {
             logQuickPickMealUseCase = LogQuickPickMealUseCase(
                 appContext = app,
                 applicationScope = applicationScope,
-                logMealFromTemplateUseCase = LogMealFromTemplateUseCase(app, repo, createFromTemplate),
+                logMealFromTemplateUseCase = LogMealFromTemplateUseCase(createFromTemplate, scheduleAnalysis),
                 analyticsLogger = AnalyticsLogger(sinks = emptySet()),
             ),
             analyticsLogger = AnalyticsLogger(sinks = emptySet()),

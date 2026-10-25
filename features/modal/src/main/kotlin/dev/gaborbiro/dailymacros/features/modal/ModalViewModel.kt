@@ -30,7 +30,8 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveFirstRecordIdForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.SaveRecordEditsUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.ScheduleAnalysisIfTemplateIncompleteUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
@@ -43,7 +44,6 @@ import dev.gaborbiro.dailymacros.repositories.common.model.toZonedInstant
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import ellipsize
 import kotlinx.coroutines.CancellationException
@@ -80,7 +80,8 @@ class ModalViewModel @Inject constructor(
     private val createRecordFromTemplateUseCase: CreateRecordFromTemplateUseCase,
     private val createTemplateUseCase: CreateTemplateUseCase,
     private val createRecordWithNewTemplateUseCase: CreateRecordWithNewTemplateUseCase,
-    private val updateRecordWithNewTemplateUseCase: UpdateRecordWithNewTemplateUseCase,
+    private val saveRecordEditsUseCase: SaveRecordEditsUseCase,
+    private val scheduleAnalysisIfTemplateIncompleteUseCase: ScheduleAnalysisIfTemplateIncompleteUseCase,
     private val validateEditRecordUseCase: ValidateEditRecordUseCase,
     private val validateCreateRecordUseCase: ValidateCreateRecordUseCase,
     private val saveImageUseCase: SaveImageUseCase,
@@ -496,7 +497,7 @@ class ModalViewModel @Inject constructor(
             if (it.isEditing || !it.allowCorrection) {
                 it
             } else {
-                val capacity = modalUiMapper.correctionCapacity(it.pristineSnapshot.description, MAX_DESCRIPTION_LENGTH)
+                val capacity = MealEditRules.correctionCapacity(it.pristineSnapshot.description, MAX_DESCRIPTION_LENGTH)
                 val truncated = correction.truncatedTo(capacity)
                 it.copy(correction = truncated, canReanalyze = truncated.text.isNotBlank())
             }
@@ -535,7 +536,7 @@ class ModalViewModel @Inject constructor(
         val root = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return
         if (root.isEditing || !root.allowCorrection || !root.canReanalyze) return
         val pristine = root.pristineSnapshot
-        val description = modalUiMapper.appendCorrection(pristine.description, root.correction.text)
+        val description = MealEditRules.appendCorrection(pristine.description, root.correction.text)
         reanalysisProgress = ReanalysisProgress.REQUESTED
         updateRoot<DialogHandle.RecordDetailsDialog.View> {
             it.copy(correction = TextFieldValue(), canReanalyze = false, showLoadingIndicator = true)
@@ -888,45 +889,6 @@ class ModalViewModel @Inject constructor(
         }
     }
 
-    /** True when the meal family has other logged variants (variant combo is shown). */
-    private suspend fun isVariedTemplateFamily(details: DialogHandle.RecordDetailsDialog.View): Boolean {
-        if (details.variantPickerOptions != null) return true
-        val familyIds = recordsRepository.getTemplateIdsInSameVariantFamily(details.templateDbId)
-        return familyIds.count { recordsRepository.countRecordsForTemplate(it) > 0 } > 1
-    }
-
-    private fun templateNeedsMacroAnalysis(template: Template): Boolean =
-        template.isPending || template.nutrients.calories == null
-
-    private suspend fun scheduleMacroAnalysisForRecordIfTemplateIncomplete(
-        recordId: Long,
-        templateId: Long,
-    ) {
-        val t = recordsRepository.getTemplate(templateId)
-        if (templateNeedsMacroAnalysis(t)) {
-            NutrientAnalysisWorker.setWorkRequest(
-                appContext = application,
-                recordId = recordId,
-                force = true,
-                wifiOnly = false,
-            )
-        }
-    }
-
-    /**
-     * Analysis results are stored on the shared template, so every record using it is updated by a
-     * single run. Scheduling one job per record would repeat the same API call and notify N times.
-     */
-    private suspend fun scheduleMacroAnalysisForTemplate(templateId: Long) {
-        val record = recordsRepository.getRecordsByTemplate(templateId).firstOrNull() ?: return
-        NutrientAnalysisWorker.setWorkRequest(
-            appContext = application,
-            recordId = record.recordId,
-            force = true,
-            wifiOnly = false,
-        )
-    }
-
     private suspend fun applyVariantTemplateSwitch(
         preserveMode: DialogHandle.RecordDetailsDialog.View,
         newTemplateId: Long,
@@ -1002,66 +964,22 @@ class ModalViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Saves [title] and [description] (with the dialog's current photos) to the meal and schedules a new
-     * nutrient analysis when the wording or the set of photos changed. A meal with logged variants is
-     * updated in place (every log of it is re-analyzed); otherwise this log gets its own template.
-     */
+    /** Saves [title] and [description], with the dialog's current photos, to the meal. */
     private suspend fun persistRecordEdits(
         dialogHandle: DialogHandle.RecordDetailsDialog.View,
         title: String,
         description: String,
     ) {
-        val pristine = dialogHandle.pristineSnapshot
-        val imagesNeedReanalysis = modalUiMapper.imagesRequireMacroReanalysis(
-            pristine.imageFilenames,
-            dialogHandle.imageFilenames,
+        saveRecordEditsUseCase.execute(
+            recordId = dialogHandle.recordId,
+            templateId = dialogHandle.templateDbId,
+            pristine = dialogHandle.pristineSnapshot,
+            knownToHaveLoggedVariants = dialogHandle.variantPickerOptions != null,
+            title = title,
+            description = description,
+            imageFilenames = dialogHandle.imageFilenames,
+            imageRepresentativeFlags = dialogHandle.imageRepresentativeFlags,
         )
-        val contentChanged = title != pristine.title.trim() ||
-                description != pristine.description.trim()
-        val templateImages = dialogHandle.imageFilenames.map { filename ->
-            TemplateImageUpdate(
-                filename = filename,
-                isRepresentativeOfMeal = dialogHandle.imageRepresentativeFlags[filename],
-            )
-        }
-        if (isVariedTemplateFamily(dialogHandle)) {
-            recordsRepository.updateTemplate(
-                templateId = dialogHandle.templateDbId,
-                name = title,
-                description = description,
-                templateImages = templateImages,
-            )
-            if (imagesNeedReanalysis || contentChanged) {
-                scheduleMacroAnalysisForTemplate(dialogHandle.templateDbId)
-            }
-        } else {
-            val imagesReorderedOnly =
-                dialogHandle.imageFilenames != pristine.imageFilenames && !imagesNeedReanalysis
-            if (imagesReorderedOnly && !contentChanged) {
-                recordsRepository.updateTemplate(
-                    templateId = dialogHandle.templateDbId,
-                    name = title,
-                    description = description,
-                    templateImages = templateImages,
-                )
-            } else {
-                updateRecordWithNewTemplateUseCase.execute(
-                    recordId = dialogHandle.recordId,
-                    imageFilenames = dialogHandle.imageFilenames,
-                    title = title,
-                    description = description,
-                )
-                if (imagesNeedReanalysis || contentChanged) {
-                    NutrientAnalysisWorker.setWorkRequest(
-                        appContext = application,
-                        recordId = dialogHandle.recordId,
-                        force = true,
-                        wifiOnly = false,
-                    )
-                }
-            }
-        }
     }
 
     private suspend fun handleEditRecordSaveAndAdd(
@@ -1078,7 +996,7 @@ class ModalViewModel @Inject constructor(
                 templateId,
                 ZonedDateTime.now(ZoneId.systemDefault()),
             )
-            scheduleMacroAnalysisForRecordIfTemplateIncomplete(secondRecordId, templateId)
+            scheduleAnalysisIfTemplateIncompleteUseCase.execute(secondRecordId, templateId)
             closeAll()
             return
         }
@@ -1131,7 +1049,7 @@ class ModalViewModel @Inject constructor(
                 anchor,
                 ZonedDateTime.now(ZoneId.systemDefault()),
             )
-            scheduleMacroAnalysisForRecordIfTemplateIncomplete(recordId, anchor)
+            scheduleAnalysisIfTemplateIncompleteUseCase.execute(recordId, anchor)
             closeAll()
             return
         }
@@ -1156,7 +1074,7 @@ class ModalViewModel @Inject constructor(
                     parentTemplateId = anchor,
                 )
                 val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return
-                scheduleMacroAnalysisForRecordIfTemplateIncomplete(recordId, templateId)
+                scheduleAnalysisIfTemplateIncompleteUseCase.execute(recordId, templateId)
                 closeAll()
             }
         }
@@ -1245,7 +1163,12 @@ class ModalViewModel @Inject constructor(
             when (it) {
                 is DialogHandle.RecordDetailsDialog.View -> it.copy(
                     hasUnsavedEdits = modalUiMapper.hasUnsavedEdits(it),
-                    editsRequireAnalysis = modalUiMapper.editsRequireMacroAnalysis(it),
+                    editsRequireAnalysis = MealEditRules.editsRequireMacroAnalysis(
+                        pristine = it.pristineSnapshot,
+                        title = it.title.text,
+                        description = it.description.text,
+                        imageFilenames = it.imageFilenames,
+                    ),
                 )
                 is DialogHandle.RecordDetailsDialog.Edit -> it.copy(hasUnsavedEdits = modalUiMapper.hasUnsavedEdits(it))
             }

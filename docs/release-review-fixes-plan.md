@@ -52,7 +52,25 @@ launch failure is logged and shown, not swallowed.
   standard Hilt pattern.
 - Then there is one logging path, with one place that handles errors.
 
-## 3. ⬜ ModalViewModel and ModalUiMapper: move orchestration and business rules out
+## 3. ✅ ModalViewModel and ModalUiMapper: move orchestration and business rules out
+
+**Done:** no behaviour change.
+- Characterisation tests went in first, as their own commit, and pass unchanged after the move. They're in
+  `ModalViewModelTest` and cover which template a save writes (forked, updated in place or left
+  alone) and when analysis is queued, for:
+  - title, description, photo and timestamp edits
+  - AI corrections
+  - logging again from details or a quick pick
+- `SaveRecordEditsUseCase` holds what `persistRecordEdits` did, including the logged-variants check
+  and the one-run-per-shared-template scheduling.
+- `ScheduleAnalysisIfTemplateIncompleteUseCase` is shared by the ViewModel's three log-again paths and
+  `LogMealFromTemplateUseCase`.
+- The four rules live in a pure `MealEditRules` helper in `features/modal`, with `MealEditRulesTest`.
+  `ModalUiMapper` keeps only mapping, plus `hasUnsavedEdits` and `hasDisplayableContent`.
+
+**Found, not changed:** saving a whitespace-only title or description change (e.g. a trailing space)
+on a single-variant meal still gives the meal a new template without nutrients and doesn't queue an
+analysis. A test pins this down. Worth fixing separately.
 
 **Problem**
 - `persistRecordEdits` (`ModalViewModel.kt:995-1048`) coordinates repositories itself.
@@ -77,7 +95,12 @@ launch failure is logged and shown, not swallowed.
 **Risk** This is the most bug-fixed area in the app. Before moving any code, add tests
 that capture the current behaviour.
 
-## 4. ⬜ AiInferenceSection: values computed in the view
+## 4. ✅ AiInferenceSection: values computed in the view
+
+**Done:** `ModalUiMapper.mapNutrientBreakdowns` fills three plain fields on
+`NutrientBreakdownUiModel`: `hasAiInference`, `aiInferencePreview` and `notesHiddenByPreview`.
+`ModalUiMapperTest` covers the preview and hiding rules. Whether the preview overflows its two lines
+still comes from measuring the text in the view, because only the layout knows that.
 
 **Problem**
 - `views/AiInferenceSection.kt:64` has a computed `hasAiInference` extension.

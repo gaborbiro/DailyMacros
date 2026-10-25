@@ -1,10 +1,6 @@
 package dev.gaborbiro.dailymacros.features.modal
 
-import androidx.compose.ui.text.input.TextFieldValue
-import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
-import dev.gaborbiro.dailymacros.features.modal.model.RecordDetailsPristineSnapshot
 import dev.gaborbiro.dailymacros.features.shared.TemplateUiMapper
-import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.ComponentConfidence
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
@@ -99,64 +95,40 @@ class ModalUiMapperTest {
         assertNull(ui.componentsSummary)
     }
 
+    private val bread = MealComponent(name = "bread", estimatedAmount = "1 slice", confidence = ComponentConfidence.HIGH)
+
     @Test
-    fun `appendCorrection puts the correction on its own line after the description`() {
-        assertEquals("Leftover rice\nIt was brown rice", mapper.appendCorrection("Leftover rice ", " It was brown rice"))
+    fun `AI inference previews the components and hides the notes behind expanding`() {
+        val ui = mapper.mapNutrientBreakdowns(recordWith(mealComponents = listOf(bread), notes = "Assumed white bread"))
+        assertTrue(ui.hasAiInference)
+        assertEquals("1 slice bread", ui.aiInferencePreview)
+        assertTrue(ui.notesHiddenByPreview)
     }
 
     @Test
-    fun `appendCorrection without a description is just the correction`() {
-        assertEquals("About 200 g", mapper.appendCorrection("  ", "About 200 g"))
+    fun `AI inference with components only previews them and hides nothing`() {
+        val ui = mapper.mapNutrientBreakdowns(recordWith(mealComponents = listOf(bread), notes = " "))
+        assertTrue(ui.hasAiInference)
+        assertEquals("1 slice bread", ui.aiInferencePreview)
+        assertFalse(ui.notesHiddenByPreview)
     }
 
     @Test
-    fun `correctionCapacity leaves room for the separator`() {
-        assertEquals(256 - 5 - 1, mapper.correctionCapacity("Curry", maxDescriptionLength = 256))
-        assertEquals(256, mapper.correctionCapacity("", maxDescriptionLength = 256))
-        assertEquals(0, mapper.correctionCapacity("x".repeat(300), maxDescriptionLength = 256))
+    fun `AI inference without components previews the notes`() {
+        val ui = mapper.mapNutrientBreakdowns(recordWith(mealComponents = emptyList(), notes = "Assumed white bread"))
+        assertTrue(ui.hasAiInference)
+        assertEquals("Assumed white bread", ui.aiInferencePreview)
+        assertFalse(ui.notesHiddenByPreview)
     }
 
     @Test
-    fun `editsRequireMacroAnalysis ignores reordered photos and whitespace but not new wording or photos`() {
-        val pristine = viewDialog(title = "Soup", description = "Lentil", images = listOf("a", "b"))
-        assertFalse(mapper.editsRequireMacroAnalysis(pristine))
-        assertFalse(mapper.editsRequireMacroAnalysis(pristine.copy(imageFilenames = listOf("b", "a"))))
-        assertFalse(mapper.editsRequireMacroAnalysis(pristine.copy(title = TextFieldValue("Soup "))))
-        assertTrue(mapper.editsRequireMacroAnalysis(pristine.copy(title = TextFieldValue("Stew"))))
-        assertTrue(mapper.editsRequireMacroAnalysis(pristine.copy(description = TextFieldValue("Lentil, no cream"))))
-        assertTrue(mapper.editsRequireMacroAnalysis(pristine.copy(imageFilenames = listOf("a", "b", "c"))))
+    fun `no AI inference without components or notes`() {
+        val ui = mapper.mapNutrientBreakdowns(recordWith(mealComponents = emptyList(), notes = "  "))
+        assertFalse(ui.hasAiInference)
+        assertFalse(ui.notesHiddenByPreview)
     }
 
-    private fun viewDialog(title: String, description: String, images: List<String>) =
-        DialogHandle.RecordDetailsDialog.View(
-            recordId = 1L,
-            templateDbId = 1L,
-            variabilityAnchorTemplateDbId = 1L,
-            nutrientBreakdown = null,
-            compactNutrients = NutrientsUiModel(
-                calories = null,
-                protein = null,
-                fat = null,
-                carbs = null,
-                salt = null,
-                fibre = null,
-            ),
-            allowEdit = true,
-            isEditing = true,
-            titleHint = "",
-            title = TextFieldValue(title),
-            description = TextFieldValue(description),
-            imageFilenames = images,
-            pristineSnapshot = RecordDetailsPristineSnapshot(
-                templateDbId = 1L,
-                title = title,
-                description = description,
-                imageFilenames = images,
-            ),
-            timestamp = ZonedDateTime.of(2024, 1, 1, 12, 0, 0, 0, zone),
-        )
-
-    private fun recordWith(mealComponents: List<MealComponent>) = Record(
+    private fun recordWith(mealComponents: List<MealComponent>, notes: String = "") = Record(
         recordId = 1L,
         timestamp = ZonedDateTime.of(2024, 1, 1, 12, 0, 0, 0, zone).toZonedInstant(),
         template = Template(
@@ -170,7 +142,7 @@ class ModalUiMapperTest {
             updatedAtEpochMs = 0L,
             isPending = false,
             nutrients = Nutrients(calories = 170),
-            notes = "",
+            notes = notes,
             mealComponents = mealComponents,
             topContributors = TopContributors(),
             quickPickOverride = null,
