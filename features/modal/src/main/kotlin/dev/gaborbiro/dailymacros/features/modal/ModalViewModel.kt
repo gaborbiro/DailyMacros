@@ -121,35 +121,24 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onCreateRecordWithCameraDeeplinkReceived() {
-        setRoot(emptyRecordDetailsEdit())
+        setRoot(newRecordDetailsEdit())
         pushOverlay(DialogHandle.ImageInput(type = ImageInputType.Camera))
     }
 
     fun onCreateRecordWithBrowseImagesDeeplinkReceived() {
-        setRoot(emptyRecordDetailsEdit())
+        setRoot(newRecordDetailsEdit())
         pushOverlay(DialogHandle.ImageInput(type = ImageInputType.BrowseImages))
     }
 
     fun onCreateRecordWithTextDeeplinkReceived() {
-        setRoot(emptyRecordDetailsEdit())
+        setRoot(newRecordDetailsEdit())
     }
 
     fun onPhotoRecognitionDetailsDeeplinkReceived(recognisedTitle: String, imageFilename: String) {
-        val titleValue = TextFieldValue(recognisedTitle, TextRange(recognisedTitle.length))
         setRoot(
-            DialogHandle.RecordDetailsDialog.Edit(
-                title = titleValue,
-                titleHint = "Title (optional)",
-                description = TextFieldValue(),
+            newRecordDetailsEdit(
+                title = TextFieldValue(recognisedTitle, TextRange(recognisedTitle.length)),
                 imageFilenames = listOf(imageFilename),
-                recognisedFood = null,
-                showProgressIndicator = false,
-                pristineSnapshot = recordDetailsEditPristineSnapshot(
-                    title = titleValue,
-                    description = TextFieldValue(),
-                    imageFilenames = listOf(imageFilename),
-                ),
-                startedAt = ZonedDateTime.now(ZoneId.systemDefault()),
             )
         )
     }
@@ -269,21 +258,7 @@ class ModalViewModel @Inject constructor(
                 }
 
                 else -> {
-                    setRoot(
-                        DialogHandle.RecordDetailsDialog.Edit(
-                            title = TextFieldValue(),
-                            titleHint = "Title (optional)",
-                            description = TextFieldValue(),
-                            imageFilenames = persistedFilenames,
-                            recognisedFood = null,
-                            pristineSnapshot = recordDetailsEditPristineSnapshot(
-                                title = TextFieldValue(),
-                                description = TextFieldValue(),
-                                imageFilenames = persistedFilenames,
-                            ),
-                            startedAt = ZonedDateTime.now(ZoneId.systemDefault()),
-                        )
-                    )
+                    setRoot(newRecordDetailsEdit(imageFilenames = persistedFilenames))
                     runFoodRecognition(persistedFilenames)
                 }
             }
@@ -321,21 +296,7 @@ class ModalViewModel @Inject constructor(
 
                 is DialogHandle.RecordDetailsDialog.View -> {
                     if (!root.isEditing) {
-                        setRoot(
-                            DialogHandle.RecordDetailsDialog.Edit(
-                                title = TextFieldValue(),
-                                titleHint = "Title (optional)",
-                                description = TextFieldValue(),
-                                imageFilenames = persistedFilenames,
-                                recognisedFood = null,
-                                pristineSnapshot = recordDetailsEditPristineSnapshot(
-                                    title = TextFieldValue(),
-                                    description = TextFieldValue(),
-                                    imageFilenames = persistedFilenames,
-                                ),
-                                startedAt = ZonedDateTime.now(ZoneId.systemDefault()),
-                            )
-                        )
+                        setRoot(newRecordDetailsEdit(imageFilenames = persistedFilenames))
                         runFoodRecognition(persistedFilenames)
                     } else {
                         setRoot(root.copy(imageFilenames = root.imageFilenames + persistedFilenames))
@@ -344,21 +305,7 @@ class ModalViewModel @Inject constructor(
                 }
 
                 else -> {
-                    setRoot(
-                        DialogHandle.RecordDetailsDialog.Edit(
-                            title = TextFieldValue(),
-                            titleHint = "Title (optional)",
-                            description = TextFieldValue(),
-                            imageFilenames = persistedFilenames,
-                            recognisedFood = null,
-                            pristineSnapshot = recordDetailsEditPristineSnapshot(
-                                title = TextFieldValue(),
-                                description = TextFieldValue(),
-                                imageFilenames = persistedFilenames,
-                            ),
-                            startedAt = ZonedDateTime.now(ZoneId.systemDefault()),
-                        )
-                    )
+                    setRoot(newRecordDetailsEdit(imageFilenames = persistedFilenames))
                     runFoodRecognition(persistedFilenames)
                 }
             }
@@ -1234,20 +1181,31 @@ class ModalViewModel @Inject constructor(
         }
     }
 
-    private fun emptyRecordDetailsEdit() = DialogHandle.RecordDetailsDialog.Edit(
-        title = TextFieldValue(),
-        titleHint = "Title (optional)",
-        description = TextFieldValue(),
-        imageFilenames = emptyList(),
-        recognisedFood = null,
-        showProgressIndicator = false,
-        pristineSnapshot = recordDetailsEditPristineSnapshot(
-            title = TextFieldValue(),
+    /**
+     * A create-record dialog, optionally opened with content (a shared photo, a recognised title).
+     * Its baseline is always empty, so whatever it opens with counts as unsaved and cancelling asks
+     * before discarding it, just like content added after opening.
+     */
+    private fun newRecordDetailsEdit(
+        title: TextFieldValue = TextFieldValue(),
+        imageFilenames: List<String> = emptyList(),
+    ): DialogHandle.RecordDetailsDialog.Edit {
+        val edit = DialogHandle.RecordDetailsDialog.Edit(
+            title = title,
+            titleHint = "Title (optional)",
             description = TextFieldValue(),
-            imageFilenames = emptyList(),
-        ),
-        startedAt = ZonedDateTime.now(ZoneId.systemDefault()),
-    )
+            imageFilenames = imageFilenames,
+            recognisedFood = null,
+            showProgressIndicator = false,
+            pristineSnapshot = recordDetailsEditPristineSnapshot(
+                title = TextFieldValue(),
+                description = TextFieldValue(),
+                imageFilenames = emptyList(),
+            ),
+            startedAt = ZonedDateTime.now(ZoneId.systemDefault()),
+        )
+        return edit.copy(hasUnsavedEdits = modalUiMapper.hasUnsavedEdits(edit))
+    }
 
     private fun recomputeHasUnsavedEdits() {
         updateRoot<DialogHandle.RecordDetailsDialog> {
