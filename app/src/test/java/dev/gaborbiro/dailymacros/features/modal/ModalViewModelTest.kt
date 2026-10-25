@@ -1050,17 +1050,93 @@ class ModalViewModelTest {
         assertTrue(analysisQueuedFor(5L))
     }
 
+    /** Whitespace around the wording isn't new content: the meal keeps its template, and with it its nutrients. */
+    private fun assertSavedInPlaceWithoutReanalysis(repo: MealEditsRepo) {
+        assertEquals(
+            listOf(
+                MealEditsRepo.TemplateUpdate(
+                    templateId = 7L,
+                    name = "Soup",
+                    description = "Lentil",
+                    templateImages = listOf(TemplateImageUpdate("a.jpg", null), TemplateImageUpdate("b.jpg", null)),
+                ),
+            ),
+            repo.templateUpdates,
+        )
+        assertTrue(repo.savedTemplates.isEmpty())
+        assertEquals(7L, repo.records.value.template.dbId)
+        assertFalse(analysisQueuedFor(5L))
+        assertFalse(analysisQueuedFor(9L))
+    }
+
     @Test
-    fun `saving a whitespace-only title change gives the meal its own template without re-analysis`() =
+    fun `saving a whitespace-only title change keeps the meal's template without re-analysis`() =
         runTest(testDispatcher) {
             val repo = MealEditsRepo(loggedSoup())
             val vm = openForEditing(repo)
             vm.onTitleChanged(TextFieldValue("Soup "))
             save(vm)
-            assertEquals("Soup", repo.savedTemplates.single().name)
-            assertEquals(42L, repo.records.value.template.dbId)
-            assertTrue(repo.templateUpdates.isEmpty())
-            assertFalse(analysisQueuedFor(5L))
+            assertSavedInPlaceWithoutReanalysis(repo)
+        }
+
+    @Test
+    fun `saving a whitespace-only description change keeps the meal's template without re-analysis`() =
+        runTest(testDispatcher) {
+            val repo = MealEditsRepo(loggedSoup())
+            val vm = openForEditing(repo)
+            vm.onDescriptionChanged(TextFieldValue("Lentil "))
+            save(vm)
+            assertSavedInPlaceWithoutReanalysis(repo)
+        }
+
+    @Test
+    fun `saving a whitespace-only title change on a meal with logged variants doesn't re-analyze`() =
+        runTest(testDispatcher) {
+            val repo = MealEditsRepo(loggedSoup(), otherVariant = soupVariant())
+            val vm = openForEditing(repo)
+            vm.onTitleChanged(TextFieldValue(" Soup"))
+            save(vm)
+            assertSavedInPlaceWithoutReanalysis(repo)
+        }
+
+    @Test
+    fun `saving a whitespace-only description change on a meal with logged variants doesn't re-analyze`() =
+        runTest(testDispatcher) {
+            val repo = MealEditsRepo(loggedSoup(), otherVariant = soupVariant())
+            val vm = openForEditing(repo)
+            vm.onDescriptionChanged(TextFieldValue("Lentil\n"))
+            save(vm)
+            assertSavedInPlaceWithoutReanalysis(repo)
+        }
+
+    @Test
+    fun `saving a whitespace-only title change with a photo removed still re-analyzes`() = runTest(testDispatcher) {
+        val repo = MealEditsRepo(loggedSoup())
+        val vm = openForEditing(repo)
+        vm.onTitleChanged(TextFieldValue("Soup "))
+        vm.onImageDeleteTapped("a.jpg")
+        save(vm)
+        val saved = repo.savedTemplates.single()
+        assertEquals("Soup", saved.name)
+        assertEquals(listOf("b.jpg"), saved.imageFilenames)
+        assertEquals(42L, repo.records.value.template.dbId)
+        assertTrue(repo.templateUpdates.isEmpty())
+        assertTrue(analysisQueuedFor(5L))
+    }
+
+    @Test
+    fun `saving a whitespace-only title change with a photo removed on a meal with logged variants still re-analyzes`() =
+        runTest(testDispatcher) {
+            val repo = MealEditsRepo(loggedSoup(), otherVariant = soupVariant())
+            val vm = openForEditing(repo)
+            vm.onTitleChanged(TextFieldValue("Soup "))
+            vm.onImageDeleteTapped("a.jpg")
+            save(vm)
+            val update = repo.templateUpdates.single()
+            assertEquals("Soup", update.name)
+            assertEquals(listOf("b.jpg"), update.templateImages?.map { it.filename })
+            assertTrue(repo.savedTemplates.isEmpty())
+            assertTrue(analysisQueuedFor(5L))
         }
 
     @Test

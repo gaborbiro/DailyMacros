@@ -113,6 +113,15 @@ class SaveRecordEditsUseCaseTest {
     }
 
     @Test
+    fun `unchanged wording and photos on the only variant update the template in place`() = runTest {
+        val repo = Repo()
+        repo.save()
+        assertEquals(listOf(7L), repo.updatedTemplateIds)
+        assertTrue(repo.savedTemplates.isEmpty())
+        assertFalse(analysisQueuedFor(5L))
+    }
+
+    @Test
     fun `new wording on a meal with logged variants updates the shared template and re-analyzes`() = runTest {
         val repo = Repo(familyRecordCounts = mapOf(7L to 1, 8L to 2))
         repo.save(title = "Stew")

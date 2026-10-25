@@ -12,7 +12,8 @@ import javax.inject.Inject
 /**
  * Saves edits to a logged meal and schedules a new nutrient analysis when the wording or the set of
  * photos changed. A meal with logged variants is updated in place (every log of it is re-analyzed);
- * otherwise this log gets its own template, unless the photos were only reordered.
+ * otherwise this log gets its own template, unless nothing needs re-analyzing (reordered photos,
+ * whitespace around the wording), which updates the template in place and keeps its nutrients.
  */
 class SaveRecordEditsUseCase @Inject constructor(
     @ApplicationContext private val appContext: Context,
@@ -59,8 +60,9 @@ class SaveRecordEditsUseCase @Inject constructor(
                 scheduleAnalysisForTemplate(templateId)
             }
         } else {
-            val imagesReorderedOnly = imageFilenames != pristine.imageFilenames && !requiresAnalysis
-            if (imagesReorderedOnly) {
+            // Only edits that need a new analysis get their own template: the new template starts
+            // without nutrients, so forking without analysing would lose them.
+            if (!requiresAnalysis) {
                 recordsRepository.updateTemplate(
                     templateId = templateId,
                     name = title,
