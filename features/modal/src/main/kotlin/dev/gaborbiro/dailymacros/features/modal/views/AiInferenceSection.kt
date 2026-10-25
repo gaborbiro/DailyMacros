@@ -61,9 +61,6 @@ import dev.gaborbiro.dailymacros.features.modal.R
 import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.common.R as CommonR
 
-internal val NutrientBreakdownUiModel.hasAiInference: Boolean
-    get() = !notes.isNullOrBlank() || components.isNotEmpty()
-
 private const val PreviewMaxLines = 2
 
 /**
@@ -91,7 +88,7 @@ internal fun AiInferenceSection(
 ) {
     val showFootnote = correctionInput == null
     val fadeSpec = tween<Float>(durationMillis = 400)
-    val previewText = nutrientBreakdown.componentsSummary ?: nutrientBreakdown.notes.orEmpty()
+    val previewText = nutrientBreakdown.aiInferencePreview
     val previewStyle = MaterialTheme.typography.bodyMedium
     val textMeasurer = rememberTextMeasurer()
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
@@ -108,9 +105,7 @@ internal fun AiInferenceSection(
                 constraints = Constraints(maxWidth = previewWidthPx),
             )
         }
-        // Notes aren't part of the preview while it shows the components, so they'd be unreachable otherwise.
-        val notesHiddenByPreview = nutrientBreakdown.componentsSummary != null && !nutrientBreakdown.notes.isNullOrBlank()
-        val expandable = previewLayout.hasVisualOverflow || notesHiddenByPreview
+        val expandable = previewLayout.hasVisualOverflow || nutrientBreakdown.notesHiddenByPreview
 
         // Taps land anywhere on the caption or preview, but only the pill shows it (see ExpandPill).
         val toggleInteractions = remember { MutableInteractionSource() }
@@ -394,6 +389,9 @@ private fun previewAiNutrientBreakdown() = NutrientBreakdownUiModel(
     notes = "Assumed white bread with a thin spread of butter; marmalade amount estimated from the photo.",
     components = listOf("- 1 slice white bread", "- ~5g butter (likely)", "- ~1 tbsp orange marmalade (guess)"),
     componentsSummary = "1 slice white bread · ~5g butter (likely) · ~1 tbsp orange marmalade (guess)",
+    hasAiInference = true,
+    aiInferencePreview = "1 slice white bread · ~5g butter (likely) · ~1 tbsp orange marmalade (guess)",
+    notesHiddenByPreview = true,
 )
 
 @Preview
@@ -419,6 +417,8 @@ private fun AiInferenceSectionFitsPreview() {
                 notes = null,
                 components = listOf("- 1 slice white bread", "- ~1 tbsp orange marmalade (likely)"),
                 componentsSummary = "1 slice white bread · ~1 tbsp orange marmalade (likely)",
+                aiInferencePreview = "1 slice white bread · ~1 tbsp orange marmalade (likely)",
+                notesHiddenByPreview = false,
             ),
             expanded = false,
             onExpandedChange = {},

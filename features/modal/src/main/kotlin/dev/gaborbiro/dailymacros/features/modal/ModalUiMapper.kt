@@ -85,11 +85,18 @@ class ModalUiMapper @Inject constructor(
             },
         )
 
+        val componentsSummary = componentLabels.takeIf { it.isNotEmpty() }?.joinToString(separator = " · ")
+        val hasNotes = notes.isNotBlank()
+
         return NutrientBreakdownUiModel(
             nutrients = rows,
             notes = notes,
             components = componentLabels.map { "- $it" },
-            componentsSummary = componentLabels.takeIf { it.isNotEmpty() }?.joinToString(separator = " · "),
+            componentsSummary = componentsSummary,
+            hasAiInference = hasNotes || componentLabels.isNotEmpty(),
+            aiInferencePreview = componentsSummary ?: notes,
+            // Notes aren't part of the preview while it shows the components, so they'd be unreachable otherwise.
+            notesHiddenByPreview = componentsSummary != null && hasNotes,
         ).let { model -> model.copy(hasDisplayableContent = hasDisplayableContent(model)) }
     }
 
@@ -104,29 +111,5 @@ class ModalUiMapper @Inject constructor(
         return dialog.title.text != pristine.title ||
                 dialog.description.text != pristine.description ||
                 dialog.imageFilenames != pristine.imageFilenames
-    }
-
-    fun imagesRequireMacroReanalysis(pristine: List<String>, current: List<String>): Boolean =
-        pristine.toSet() != current.toSet()
-
-    /** Mirrors when saving edits schedules a new nutrient analysis: new wording or a different set of photos. */
-    fun editsRequireMacroAnalysis(dialog: DialogHandle.RecordDetailsDialog.View): Boolean {
-        val pristine = dialog.pristineSnapshot
-        return dialog.title.text.trim() != pristine.title.trim() ||
-                dialog.description.text.trim() != pristine.description.trim() ||
-                imagesRequireMacroReanalysis(pristine.imageFilenames, dialog.imageFilenames)
-    }
-
-    /** The description the AI re-analyzes with: the existing one, followed by the user's correction on a new line. */
-    fun appendCorrection(description: String, correction: String): String =
-        listOf(description.trim(), correction.trim())
-            .filter { it.isNotEmpty() }
-            .joinToString(separator = "\n")
-
-    /** How long a correction can be before the combined description exceeds [maxDescriptionLength]. */
-    fun correctionCapacity(description: String, maxDescriptionLength: Int): Int {
-        val existing = description.trim()
-        val separatorLength = if (existing.isEmpty()) 0 else 1
-        return (maxDescriptionLength - existing.length - separatorLength).coerceAtLeast(0)
     }
 }

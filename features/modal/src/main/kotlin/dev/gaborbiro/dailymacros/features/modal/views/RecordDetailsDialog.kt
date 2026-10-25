@@ -437,6 +437,8 @@ private fun NoteInputDialogContentPreviewView() {
             nutrientBreakdown = NutrientBreakdownUiModel(
                 nutrients = previewNutrientRows(),
                 notes = "Notes: This is a note",
+                hasAiInference = true,
+                aiInferencePreview = "Notes: This is a note",
             ),
             compactNutrients = NutrientsUiModel(
                 calories = "2100kcal",

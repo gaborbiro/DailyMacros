@@ -175,6 +175,12 @@ data class NutrientBreakdownUiModel(
     /** Single-line rendition of [components] (e.g. "1 slice bread · ~1 tbsp marmalade") for the collapsed AI section. */
     val componentsSummary: String? = null,
     val hasDisplayableContent: Boolean = false,
+    /** Whether the AI said what it read from the meal (notes or components), so the "What the AI inferred" section shows. */
+    val hasAiInference: Boolean = false,
+    /** What the collapsed AI section previews: [componentsSummary], or the notes when there are no components. */
+    val aiInferencePreview: String = "",
+    /** The preview shows the components, so the notes can only be reached by expanding the section. */
+    val notesHiddenByPreview: Boolean = false,
 )
 
 /** One line of the expanded macros, e.g. "Protein · 6g · red bean paste, egg". */

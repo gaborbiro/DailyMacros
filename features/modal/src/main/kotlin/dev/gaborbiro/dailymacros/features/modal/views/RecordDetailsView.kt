@@ -832,6 +832,9 @@ private fun previewNutrientBreakdown() = NutrientBreakdownUiModel(
     notes = "Notes: This is a note",
     components = listOf("- 1 apple", "- ~1 tbsp peanut butter (likely)"),
     componentsSummary = "1 apple · ~1 tbsp peanut butter (likely)",
+    hasAiInference = true,
+    aiInferencePreview = "1 apple · ~1 tbsp peanut butter (likely)",
+    notesHiddenByPreview = true,
 )
 
 private fun previewCompactNutrients() = NutrientsUiModel(

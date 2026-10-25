@@ -25,6 +25,8 @@ import dev.gaborbiro.dailymacros.features.shared.ListMealVariantsForTemplateUseC
 import dev.gaborbiro.dailymacros.features.modal.usecase.ModalRecordFixtures
 import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveFirstRecordIdForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.SaveRecordEditsUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.ScheduleAnalysisIfTemplateIncompleteUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
@@ -52,6 +54,7 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import dev.gaborbiro.dailymacros.test.WorkManagerTestSupport
+import androidx.work.WorkManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -60,6 +63,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -181,6 +185,7 @@ class ModalViewModelTest {
         val createTemplate = CreateTemplateUseCase(repo)
         val createFromTemplate = CreateRecordFromTemplateUseCase(repo)
         val updateRec = UpdateRecordWithNewTemplateUseCase(repo, createTemplate)
+        val scheduleAnalysis = ScheduleAnalysisIfTemplateIncompleteUseCase(app, repo)
         val imageStore = FakeImageStore()
         return ModalViewModel(
             application = app,
@@ -194,7 +199,8 @@ class ModalViewModelTest {
             createRecordFromTemplateUseCase = createFromTemplate,
             createTemplateUseCase = createTemplate,
             createRecordWithNewTemplateUseCase = CreateRecordWithNewTemplateUseCase(createTemplate, createFromTemplate),
-            updateRecordWithNewTemplateUseCase = updateRec,
+            saveRecordEditsUseCase = SaveRecordEditsUseCase(app, repo, updateRec),
+            scheduleAnalysisIfTemplateIncompleteUseCase = scheduleAnalysis,
             validateEditRecordUseCase = ValidateEditRecordUseCase(repo),
             validateCreateRecordUseCase = ValidateCreateRecordUseCase(),
             saveImageUseCase = SaveImageUseCase(app, imageStore, testSettingsRepository),
@@ -206,7 +212,7 @@ class ModalViewModelTest {
             logQuickPickMealUseCase = LogQuickPickMealUseCase(
                 appContext = app,
                 applicationScope = applicationScope,
-                logMealFromTemplateUseCase = LogMealFromTemplateUseCase(app, repo, createFromTemplate),
+                logMealFromTemplateUseCase = LogMealFromTemplateUseCase(createFromTemplate, scheduleAnalysis),
                 analyticsLogger = AnalyticsLogger(sinks = emptySet()),
             ),
             analyticsLogger = AnalyticsLogger(sinks = emptySet()),
@@ -869,5 +875,356 @@ class ModalViewModelTest {
         advanceUntilIdle()
         assertEquals(1, updateTemplateCalls)
         assertNull(vm.uiState.value.rootDialog)
+    }
+
+    // Saving edits and re-analysis: which template gets written and whether the AI runs again.
+
+    /** Whether a nutrient analysis is queued for [recordId], under the unique work name NutrientAnalysisWorker uses. */
+    private fun analysisQueuedFor(recordId: Long): Boolean =
+        WorkManager.getInstance(ApplicationProvider.getApplicationContext<Application>())
+            .getWorkInfosForUniqueWork("nutrient_analysis_$recordId").get()
+            .any { !it.state.isFinished }
+
+    /**
+     * A logged meal whose writes are recorded. With [otherVariant], the meal has another logged variant
+     * (record 9), so edits go to the shared template in place.
+     */
+    private class MealEditsRepo(
+        initial: Record,
+        private val otherVariant: Template? = null,
+    ) : BaseRecordsRepositoryStub() {
+        data class TemplateUpdate(
+            val templateId: Long,
+            val name: String?,
+            val description: String?,
+            val templateImages: List<TemplateImageUpdate>?,
+        )
+
+        private val ownTemplate = initial.template
+        val records = MutableStateFlow(initial)
+        val savedTemplates = mutableListOf<TemplateToSave>()
+        val templateUpdates = mutableListOf<TemplateUpdate>()
+        val loggedTemplateIds = mutableListOf<Long>()
+
+        override fun observe(recordId: Long) = records
+        override suspend fun get(recordId: Long) = records.value.takeIf { it.recordId == recordId }
+        override suspend fun getRecordsByTemplate(templateId: Long) =
+            if (templateId == records.value.template.dbId) {
+                listOf(records.value)
+            } else if (otherVariant != null && templateId == otherVariant.dbId) {
+                listOf(ModalRecordFixtures.record(9L, otherVariant))
+            } else {
+                emptyList()
+            }
+
+        override suspend fun countRecordsForTemplate(templateId: Long) = getRecordsByTemplate(templateId).size
+        override suspend fun getTemplateIdsInSameVariantFamily(templateId: Long) =
+            listOfNotNull(ownTemplate.dbId, otherVariant?.dbId)
+
+        override suspend fun getTemplate(templateId: Long) =
+            if (templateId == ownTemplate.dbId) {
+                ownTemplate
+            } else if (otherVariant != null && templateId == otherVariant.dbId) {
+                otherVariant
+            } else if (templateId == 42L) {
+                val saved = savedTemplates.last()
+                ModalRecordFixtures.template(
+                    dbId = 42L,
+                    name = saved.name,
+                    description = saved.description,
+                    imageFilenames = saved.imageFilenames,
+                )
+            } else {
+                error("unexpected template $templateId")
+            }
+
+        override suspend fun saveTemplate(templateToSave: TemplateToSave): Long {
+            savedTemplates += templateToSave
+            return 42L
+        }
+
+        override suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant): Long {
+            loggedTemplateIds += templateId
+            return 88L
+        }
+
+        override suspend fun updateRecord(record: Record) {
+            records.value = record
+        }
+
+        override suspend fun updateTemplate(
+            templateId: Long,
+            name: String?,
+            description: String?,
+            templateImages: List<TemplateImageUpdate>?,
+            nutrients: Pair<Nutrients, TopContributors>?,
+            notes: String?,
+            mealComponents: List<MealComponent>?,
+        ) {
+            templateUpdates += TemplateUpdate(templateId, name, description, templateImages)
+        }
+    }
+
+    private fun loggedSoup(nutrients: Nutrients = Nutrients(calories = 300), isPending: Boolean = false) =
+        ModalRecordFixtures.record(
+            5L,
+            ModalRecordFixtures.template(
+                dbId = 7L,
+                name = "Soup",
+                description = "Lentil",
+                imageFilenames = listOf("a.jpg", "b.jpg"),
+            ).copy(nutrients = nutrients, isPending = isPending),
+        )
+
+    private fun soupVariant() = ModalRecordFixtures.template(dbId = 8L, name = "Soup with bread")
+
+    private fun TestScope.openForEditing(repo: MealEditsRepo): ModalViewModel {
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        vm.onRecordDetailsEditStarted()
+        return vm
+    }
+
+    private fun TestScope.save(vm: ModalViewModel) {
+        vm.onSaveDetailsTapped()
+        advanceUntilIdle()
+        assertNull(vm.uiState.value.rootDialog)
+    }
+
+    @Test
+    fun `saving a new title gives the meal its own template and re-analyzes it`() = runTest(testDispatcher) {
+        val repo = MealEditsRepo(loggedSoup())
+        val vm = openForEditing(repo)
+        vm.onTitleChanged(TextFieldValue("Stew "))
+        save(vm)
+        val saved = repo.savedTemplates.single()
+        assertEquals("Stew", saved.name)
+        assertEquals("Lentil", saved.description)
+        assertEquals(listOf("a.jpg", "b.jpg"), saved.imageFilenames)
+        assertEquals(7L, saved.parentTemplateId)
+        assertEquals(42L, repo.records.value.template.dbId)
+        assertTrue(repo.templateUpdates.isEmpty())
+        assertTrue(analysisQueuedFor(5L))
+    }
+
+    @Test
+    fun `saving a new description gives the meal its own template and re-analyzes it`() = runTest(testDispatcher) {
+        val repo = MealEditsRepo(loggedSoup())
+        val vm = openForEditing(repo)
+        vm.onDescriptionChanged(TextFieldValue(" Lentil, no cream"))
+        save(vm)
+        assertEquals("Lentil, no cream", repo.savedTemplates.single().description)
+        assertTrue(analysisQueuedFor(5L))
+    }
+
+    @Test
+    fun `saving reordered photos updates the template in place without re-analysis`() = runTest(testDispatcher) {
+        val repo = MealEditsRepo(loggedSoup())
+        val vm = openForEditing(repo)
+        vm.onImageMoveRightTapped("a.jpg")
+        save(vm)
+        assertEquals(
+            listOf(
+                MealEditsRepo.TemplateUpdate(
+                    templateId = 7L,
+                    name = "Soup",
+                    description = "Lentil",
+                    templateImages = listOf(TemplateImageUpdate("b.jpg", null), TemplateImageUpdate("a.jpg", null)),
+                ),
+            ),
+            repo.templateUpdates,
+        )
+        assertTrue(repo.savedTemplates.isEmpty())
+        assertFalse(analysisQueuedFor(5L))
+    }
+
+    @Test
+    fun `saving with a photo removed gives the meal its own template and re-analyzes it`() = runTest(testDispatcher) {
+        val repo = MealEditsRepo(loggedSoup())
+        val vm = openForEditing(repo)
+        vm.onImageDeleteTapped("a.jpg")
+        save(vm)
+        assertEquals(listOf("b.jpg"), repo.savedTemplates.single().imageFilenames)
+        assertTrue(repo.templateUpdates.isEmpty())
+        assertTrue(analysisQueuedFor(5L))
+    }
+
+    @Test
+    fun `saving a whitespace-only title change gives the meal its own template without re-analysis`() =
+        runTest(testDispatcher) {
+            val repo = MealEditsRepo(loggedSoup())
+            val vm = openForEditing(repo)
+            vm.onTitleChanged(TextFieldValue("Soup "))
+            save(vm)
+            assertEquals("Soup", repo.savedTemplates.single().name)
+            assertEquals(42L, repo.records.value.template.dbId)
+            assertTrue(repo.templateUpdates.isEmpty())
+            assertFalse(analysisQueuedFor(5L))
+        }
+
+    @Test
+    fun `saving new wording on a meal with logged variants updates the shared template and re-analyzes it`() =
+        runTest(testDispatcher) {
+            val repo = MealEditsRepo(loggedSoup(), otherVariant = soupVariant())
+            val vm = openForEditing(repo)
+            vm.onDescriptionChanged(TextFieldValue("Lentil, no cream"))
+            save(vm)
+            val update = repo.templateUpdates.single()
+            assertEquals(7L, update.templateId)
+            assertEquals("Soup", update.name)
+            assertEquals("Lentil, no cream", update.description)
+            assertEquals(listOf("a.jpg", "b.jpg"), update.templateImages?.map { it.filename })
+            assertTrue(repo.savedTemplates.isEmpty())
+            // One run on the shared template covers every log of it.
+            assertTrue(analysisQueuedFor(5L))
+            assertFalse(analysisQueuedFor(9L))
+        }
+
+    @Test
+    fun `saving reordered photos on a meal with logged variants updates the shared template without re-analysis`() =
+        runTest(testDispatcher) {
+            val repo = MealEditsRepo(loggedSoup(), otherVariant = soupVariant())
+            val vm = openForEditing(repo)
+            vm.onImageMoveRightTapped("a.jpg")
+            save(vm)
+            assertEquals(listOf("b.jpg", "a.jpg"), repo.templateUpdates.single().templateImages?.map { it.filename })
+            assertTrue(repo.savedTemplates.isEmpty())
+            assertFalse(analysisQueuedFor(5L))
+        }
+
+    @Test
+    fun `editing only the timestamp neither writes the template nor re-analyzes`() = runTest(testDispatcher) {
+        val repo = MealEditsRepo(loggedSoup())
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        vm.onEditTimestampTapped()
+        vm.onTimestampPicked(ZonedDateTime.of(2024, 1, 1, 8, 30, 0, 0, ModalRecordFixtures.zone))
+        advanceUntilIdle()
+        assertEquals(7L, repo.records.value.template.dbId)
+        assertTrue(repo.savedTemplates.isEmpty())
+        assertTrue(repo.templateUpdates.isEmpty())
+        assertFalse(analysisQueuedFor(5L))
+    }
+
+    @Test
+    fun `re-analyze queues a nutrient analysis for the meal`() = runTest(testDispatcher) {
+        val repo = MealEditsRepo(loggedSoup())
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        vm.onCorrectionChanged(TextFieldValue("Small bowl"))
+        vm.onReanalyzeTapped()
+        advanceUntilIdle()
+        val saved = repo.savedTemplates.single()
+        assertEquals("Soup", saved.name)
+        assertEquals("Lentil\nSmall bowl", saved.description)
+        assertEquals(listOf("a.jpg", "b.jpg"), saved.imageFilenames)
+        assertTrue(analysisQueuedFor(5L))
+    }
+
+    @Test
+    fun `re-analyze on a meal with logged variants updates the shared template in place`() = runTest(testDispatcher) {
+        val repo = MealEditsRepo(loggedSoup(), otherVariant = soupVariant())
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        vm.onCorrectionChanged(TextFieldValue("Small bowl"))
+        vm.onReanalyzeTapped()
+        advanceUntilIdle()
+        val update = repo.templateUpdates.single()
+        assertEquals(7L, update.templateId)
+        assertEquals("Soup", update.name)
+        assertEquals("Lentil\nSmall bowl", update.description)
+        assertTrue(repo.savedTemplates.isEmpty())
+        assertTrue(analysisQueuedFor(5L))
+    }
+
+    @Test
+    fun `log again without edits queues analysis for the new log when the meal isn't analysed`() =
+        runTest(testDispatcher) {
+            val repo = MealEditsRepo(loggedSoup(nutrients = Nutrients(), isPending = true))
+            val vm = viewModel(repo)
+            vm.onRecordDetailsButtonTapped(5L)
+            advanceUntilIdle()
+            vm.onSaveAndAddDetailsTapped()
+            advanceUntilIdle()
+            assertEquals(listOf(7L), repo.loggedTemplateIds)
+            assertTrue(analysisQueuedFor(88L))
+            assertFalse(analysisQueuedFor(5L))
+        }
+
+    @Test
+    fun `log again without edits queues analysis when the meal has no calories yet`() = runTest(testDispatcher) {
+        val repo = MealEditsRepo(loggedSoup(nutrients = Nutrients(protein = 10f)))
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        vm.onSaveAndAddDetailsTapped()
+        advanceUntilIdle()
+        assertTrue(analysisQueuedFor(88L))
+    }
+
+    @Test
+    fun `log again without edits doesn't queue analysis for an analysed meal`() = runTest(testDispatcher) {
+        val repo = MealEditsRepo(loggedSoup())
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        vm.onSaveAndAddDetailsTapped()
+        advanceUntilIdle()
+        assertEquals(listOf(7L), repo.loggedTemplateIds)
+        assertFalse(analysisQueuedFor(88L))
+    }
+
+    @Test
+    fun `log again with edits logs a new variant and analyzes it`() = runTest(testDispatcher) {
+        val repo = MealEditsRepo(loggedSoup())
+        val vm = openForEditing(repo)
+        vm.onTitleChanged(TextFieldValue("Stew"))
+        vm.onSaveAndAddDetailsTapped()
+        advanceUntilIdle()
+        val saved = repo.savedTemplates.single()
+        assertEquals("Stew", saved.name)
+        assertEquals(7L, saved.parentTemplateId)
+        assertEquals(listOf(42L), repo.loggedTemplateIds)
+        assertEquals(7L, repo.records.value.template.dbId)
+        assertTrue(analysisQueuedFor(88L))
+        assertFalse(analysisQueuedFor(5L))
+    }
+
+    @Test
+    fun `quick pick details log again queues analysis when the meal isn't analysed`() = runTest(testDispatcher) {
+        val repo = MealEditsRepo(loggedSoup(nutrients = Nutrients(), isPending = true))
+        val vm = viewModel(repo)
+        vm.onTemplateDetailsButtonTapped(7L)
+        advanceUntilIdle()
+        vm.onSaveAndAddDetailsTapped()
+        advanceUntilIdle()
+        assertEquals(listOf(7L), repo.loggedTemplateIds)
+        assertTrue(analysisQueuedFor(88L))
+    }
+
+    @Test
+    fun `quick pick log queues analysis when the meal isn't analysed`() = runTest(testDispatcher) {
+        quickPickConfirmationEnabled = false
+        val repo = MealEditsRepo(loggedSoup(nutrients = Nutrients(), isPending = true))
+        val vm = viewModel(repo)
+        vm.onQuickPickWidgetConfirmDeeplinkReceived(7L, "Soup")
+        advanceUntilIdle()
+        assertEquals(listOf(7L), repo.loggedTemplateIds)
+        assertTrue(analysisQueuedFor(88L))
+    }
+
+    @Test
+    fun `quick pick log doesn't queue analysis for an analysed meal`() = runTest(testDispatcher) {
+        quickPickConfirmationEnabled = false
+        val repo = MealEditsRepo(loggedSoup())
+        val vm = viewModel(repo)
+        vm.onQuickPickWidgetConfirmDeeplinkReceived(7L, "Soup")
+        advanceUntilIdle()
+        assertEquals(listOf(7L), repo.loggedTemplateIds)
+        assertFalse(analysisQueuedFor(88L))
     }
 }
