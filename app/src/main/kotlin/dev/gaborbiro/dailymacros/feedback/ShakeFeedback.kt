@@ -1,14 +1,25 @@
 package dev.gaborbiro.dailymacros.feedback
 
 import android.app.Application
+import android.util.Log
 import com.shakebugs.shake.Shake
 import com.shakebugs.shake.ShakeScreen
 import dev.gaborbiro.dailymacros.BuildConfig
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 
 /**
- * Shake (shakebugs.com) in-app feedback for closed-alpha testers: a floating button opens Shake's
- * own "New ticket" screen with a screenshot, activity history and device/app info already
- * attached.
+ * Shake (shakebugs.com) in-app feedback for testers: a floating button opens Shake's own
+ * "New ticket" screen with a screenshot, activity history and device/app info already attached.
+ *
+ * Gated by the `shake_enabled` Remote Config flag (FeatureFlagStore.Key.SHAKE_ENABLED): on for
+ * every tester by default in the console, and a condition on the `client_id` custom signal can
+ * switch it on for one user (e.g. someone who just reported a problem). Changes apply mid-session
+ * via real-time Remote Config. Shake can't be stopped once started, so switching the flag off
+ * mid-session hides the button; from the next launch Shake doesn't start at all.
  *
  * Everything Shake-specific is kept in this package. Removing Shake = delete the package, its call
  * site in App.onCreate, the dependency (Shake + curtains)/SHAKE_API_KEY wiring in
@@ -22,14 +33,36 @@ import dev.gaborbiro.dailymacros.BuildConfig
  */
 object ShakeFeedback {
 
+    private const val TAG = "ShakeFeedback"
     private const val METADATA_CLIENT_ID = "clientId"
 
+    // Set on the main thread, read by ShakeAnalyticsSink from any thread.
+    @Volatile
     var isStarted = false
         private set
 
-    fun start(application: Application, clientId: String) {
-        // Never blank: the build refuses to package an app without it (verifyShakeApiKey).
+    /** Call once from App.onCreate. Follows [enabled] for the rest of the process. */
+    fun bind(application: Application, clientId: String, enabled: Flow<Boolean>) {
+        // Blank only in local builds without a key: CI fails up front when its secret is
+        // missing, so every build that reaches testers has one.
         val apiKey = BuildConfig.SHAKE_API_KEY
+        if (apiKey.isBlank()) {
+            Log.w(TAG, "No SHAKE_API_KEY in this build: in-app feedback is off")
+            return
+        }
+        // Main.immediate: the flag's already-activated value is applied synchronously, so Shake
+        // still starts inside App.onCreate (per Shake's guidance) when it was on last session.
+        CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate).launch {
+            enabled.collect { isEnabled ->
+                when {
+                    isEnabled && !isStarted -> start(application, apiKey, clientId)
+                    isStarted -> Shake.getReportConfiguration().isShowFloatingReportButton = isEnabled
+                }
+            }
+        }
+    }
+
+    private fun start(application: Application, apiKey: String, clientId: String) {
         // Defaults are spelled out on purpose so each capability can be switched off with a
         // one-line change after the alpha evaluation.
         Shake.getReportConfiguration().apply {

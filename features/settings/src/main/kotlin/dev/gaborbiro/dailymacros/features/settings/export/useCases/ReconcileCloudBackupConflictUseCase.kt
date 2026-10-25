@@ -4,7 +4,7 @@ import dev.gaborbiro.dailymacros.repositories.backup.domain.model.DriveBackupInf
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import javax.inject.Inject
 
-class CheckCloudBackupConflictUseCase @Inject constructor(
+class ReconcileCloudBackupConflictUseCase @Inject constructor(
     private val settingsRepository: SettingsRepository,
 ) {
     /**

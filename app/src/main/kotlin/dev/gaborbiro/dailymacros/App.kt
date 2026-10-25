@@ -10,6 +10,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.HiltAndroidApp
 import dagger.hilt.components.SingletonComponent
+import dev.gaborbiro.dailymacros.core.featureflags.FeatureFlagStore
 import dev.gaborbiro.dailymacros.feedback.ShakeFeedback
 import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectSyncCoordinator
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderCoordinator
@@ -36,6 +37,7 @@ interface AppBootstrapEntryPoint {
     fun subscriptionRepository(): SubscriptionRepository
     fun pendingDriveSyncInfoStore(): PendingDriveSyncInfoStore
     fun appPrefs(): AppPrefs
+    fun featureFlagStore(): FeatureFlagStore
 }
 
 @HiltAndroidApp
@@ -75,7 +77,11 @@ class App : Application(), Configuration.Provider {
         }
         // Early, per Shake's guidance, so it also covers launches that go straight to
         // ModalActivity (widgets, share sheet) without passing through MainActivity.
-        ShakeFeedback.start(this, clientId = bootstrap.appPrefs().clientId)
+        ShakeFeedback.bind(
+            application = this,
+            clientId = bootstrap.appPrefs().clientId,
+            enabled = bootstrap.featureFlagStore().observe(FeatureFlagStore.Key.SHAKE_ENABLED),
+        )
         bootstrap.widgetAutoReloader().start()
         bootstrap.healthConnectSyncCoordinator().start()
         bootstrap.mealReminderCoordinator().start()

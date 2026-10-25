@@ -3,11 +3,6 @@ package dev.gaborbiro.dailymacros.feedback
 import android.os.Bundle
 import com.shakebugs.shake.LogLevel
 import com.shakebugs.shake.Shake
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
-import dagger.multibindings.IntoSet
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsSink
 
 /**
@@ -50,13 +45,4 @@ internal object ShakeAnalyticsSink : AnalyticsSink {
             ?.takeIf { it.isNotEmpty() }
             ?.joinToString(prefix = " {", postfix = "}") { key -> "$key=${get(key)}" }
             .orEmpty()
-}
-
-@Module
-@InstallIn(SingletonComponent::class)
-internal object ShakeFeedbackModule {
-
-    @Provides
-    @IntoSet
-    fun shakeAnalyticsSink(): AnalyticsSink = ShakeAnalyticsSink
 }

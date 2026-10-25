@@ -26,7 +26,6 @@ data class SettingsUiState(
     val autoPhotoRecognitionEnabled: Boolean = false,
     val autoPhotoRecognitionVisible: Boolean = false,
     val mealRemindersEnabled: Boolean = false,
-    val mealRemindersVisible: Boolean = false,
     val quickPickConfirmationEnabled: Boolean = true,
     val autoBackupInterval: BackupInterval = BackupInterval.NEVER,
     val showAutoBackupIntervalDialog: Boolean = false,

@@ -89,6 +89,24 @@ include a fragment of the AI service's own error message (for example, if it
 flags part of what you typed) — these diagnostics are kept because they are how
 production issues get diagnosed.
 
+## In-app feedback for testers
+
+Testers, and users who contact the developer about a problem, may have an in-app
+feedback button switched on for them. It is off for everyone else. The button is
+powered by Shake (shakebugs.com). When you send a report through it, Shake receives:
+
+- What you write in the report.
+- A screenshot of the screen you were on. This can include meal photos and diary
+  entries, since they are often what the report is about.
+- Recent app activity: screens visited, app logs, and technical device details
+  (model, OS version, memory, battery, network type).
+- Your randomly generated Client ID (see below), so the report can be matched to
+  your issue.
+
+The screenshot, activity and logs are sent only when you submit a report. Reports are visible only to the
+developer, and are used only to diagnose and fix the problem you reported. Shake
+processes them under its own privacy policy.
+
 ## Identifiers
 
 On first run the app generates a random identifier (a set of three words, shown
@@ -104,6 +122,13 @@ person.
 - **Photos / media (`READ_MEDIA_IMAGES`)** — to read the meal photos you add to
   your food diary.
 - **Notifications** — to show reminders and status notifications.
+- **Run at startup (`RECEIVE_BOOT_COMPLETED`)** — to reschedule meal reminders
+  (if you turned them on) and refresh home-screen widgets after the phone
+  restarts.
+- **No microphone permission.** Voice input in text fields hands off to your
+  device's own speech recogniser (usually Google's), which records and
+  transcribes your speech under its own privacy policy and returns only the
+  text to Daily Macros. No audio passes through the app.
 - **Health Connect - write nutrition (`health.WRITE_NUTRITION`)** — only
   requested if you turn on Health Connect sync in Settings; lets the app write
   your logged meals' nutrition figures to Health Connect.

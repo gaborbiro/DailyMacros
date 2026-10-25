@@ -30,7 +30,7 @@ class AutoSyncUseCase @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val cloudSyncRepository: CloudSyncRepository,
     private val syncDatabaseUseCase: SyncDatabaseUseCase,
-    private val checkCloudBackupConflictUseCase: CheckCloudBackupConflictUseCase,
+    private val reconcileCloudBackupConflictUseCase: ReconcileCloudBackupConflictUseCase,
 ) {
     sealed interface Result {
         data object Skipped : Result
@@ -60,7 +60,7 @@ class AutoSyncUseCase @Inject constructor(
                     shouldNotify = recordErrorAndDecideNotify(AutoSyncError.FAILURE, interval),
                 )
             val driveInfo = cloudSyncRepository.getBackupInfo(token)
-            if (checkCloudBackupConflictUseCase.execute(driveInfo)) {
+            if (reconcileCloudBackupConflictUseCase.execute(driveInfo)) {
                 return Result.ConflictDetected(
                     shouldNotify = recordErrorAndDecideNotify(AutoSyncError.CONFLICT, interval),
                 )

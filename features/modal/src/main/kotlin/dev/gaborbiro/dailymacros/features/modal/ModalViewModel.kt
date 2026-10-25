@@ -926,7 +926,7 @@ class ModalViewModel @Inject constructor(
      * Analysis results are stored on the shared template, so every record using it is updated by a
      * single run. Scheduling one job per record would repeat the same API call and notify N times.
      */
-    private suspend fun scheduleMacroAnalysisForAllRecordsUsingTemplate(templateId: Long) {
+    private suspend fun scheduleMacroAnalysisForTemplate(templateId: Long) {
         val record = recordsRepository.getRecordsByTemplate(templateId).firstOrNull() ?: return
         NutrientAnalysisWorker.setWorkRequest(
             appContext = application,
@@ -1042,7 +1042,7 @@ class ModalViewModel @Inject constructor(
                 templateImages = templateImages,
             )
             if (imagesNeedReanalysis || contentChanged) {
-                scheduleMacroAnalysisForAllRecordsUsingTemplate(dialogHandle.templateDbId)
+                scheduleMacroAnalysisForTemplate(dialogHandle.templateDbId)
             }
         } else {
             val imagesReorderedOnly =

@@ -46,6 +46,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -294,20 +295,18 @@ internal fun SettingsView(
                 )
             }
 
-            if (viewState.mealRemindersVisible) {
-                SettingSectionHeader(title = stringResource(R.string.settings_content_reminders_section))
-                SettingRow(
-                    title = stringResource(R.string.settings_meal_reminders_row),
-                    subtitle = stringResource(R.string.settings_meal_reminders_subtitle),
-                    onTapped = { onMealRemindersToggled(!viewState.mealRemindersEnabled) },
-                    trailing = {
-                        Switch(
-                            checked = viewState.mealRemindersEnabled,
-                            onCheckedChange = onMealRemindersToggled,
-                        )
-                    },
-                )
-            }
+            SettingSectionHeader(title = stringResource(R.string.settings_content_reminders_section))
+            SettingRow(
+                title = stringResource(R.string.settings_meal_reminders_row),
+                subtitle = stringResource(R.string.settings_meal_reminders_subtitle),
+                onTapped = { onMealRemindersToggled(!viewState.mealRemindersEnabled) },
+                trailing = {
+                    Switch(
+                        checked = viewState.mealRemindersEnabled,
+                        onCheckedChange = onMealRemindersToggled,
+                    )
+                },
+            )
 
             SettingSectionHeader(title = stringResource(R.string.settings_content_widgets_section))
             SettingRow(
@@ -349,11 +348,12 @@ internal fun SettingsView(
             val cloudSyncIdle = !viewState.cloudSyncInProgress
             SettingSectionHeader(title = stringResource(R.string.settings_content_cloud_sync_section))
 
+            val locale = LocalLocale.current.platformLocale
             val lastSyncedText = if (isSignedIn) {
                 if (viewState.lastSyncedEpochMs != null) {
                     stringResource(
                         R.string.settings_content_last_backed_up,
-                        SimpleDateFormat("MMM d, yyyy HH:mm", Locale.getDefault()).format(Date(viewState.lastSyncedEpochMs))
+                        SimpleDateFormat("MMM d, yyyy HH:mm", locale).format(Date(viewState.lastSyncedEpochMs))
                     )
                 } else {
                     null

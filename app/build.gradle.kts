@@ -123,9 +123,10 @@ private val sha = (System.getenv("BUILD_SHA") ?: System.getenv("GITHUB_SHA"))?.t
 // Shake (in-app tester feedback, see ShakeFeedback.kt). Shake's "App API key" is write-only
 // (it can only submit tickets) and ends up in the APK anyway, but it's kept out of source
 // control like other credentials: locally, set SHAKE_API_KEY in local.properties (gitignored);
-// CI passes it as the SHAKE_API_KEY env var. The key is a hard requirement: packaging an APK/AAB
-// without it fails (see verifyShakeApiKey below), so a missing secret can't silently ship a build without tester feedback. Shake wants one dashboard
-// app per package name, so .debug/.qa builds need a different key than release.
+// CI passes it as the SHAKE_API_KEY env var. Without a key the app builds and runs, just without
+// Shake; CI workflows fail up front when their secret is missing, so tester builds always carry
+// one. Shake wants one dashboard app per package name, so .debug/.qa builds need a different key
+// than release.
 // A function, not a val: the android {} block above runs before vals declared down here are
 // initialised, and would read null.
 private fun shakeApiKey(): String = localProperty("SHAKE_API_KEY")
@@ -264,31 +265,6 @@ tasks.register("writeAppReleaseVersionNameFile") {
 afterEvaluate {
     tasks.named("bundleRelease").configure {
         dependsOn("writeAppReleaseVersionNameFile")
-    }
-}
-
-// Runs only before packaging (APK/AAB), so unit tests and lint still work without the key.
-val verifyShakeApiKey = tasks.register("verifyShakeApiKey") {
-    group = "verification"
-    description = "Fails the build when no Shake API key is configured (see ShakeFeedback.kt)"
-    val keyMissing = shakeApiKey().isEmpty()
-    doLast {
-        if (keyMissing) {
-            throw GradleException(
-                "Shake API key missing: refusing to build an app without tester feedback. " +
-                    "CI: set the GitHub Actions secret SHAKE_API_KEY (release.yml) or SHAKE_API_KEY_DEBUG " +
-                    "(android.yml). Locally: add SHAKE_API_KEY=<App API key> to local.properties " +
-                    "or export SHAKE_API_KEY."
-            )
-        }
-    }
-}
-
-androidComponents {
-    onVariants { variant ->
-        val name = variant.name.replaceFirstChar { it.uppercase() }
-        tasks.matching { it.name == "package$name" || it.name == "package${name}Bundle" }
-            .configureEach { dependsOn(verifyShakeApiKey) }
     }
 }
 

@@ -4,8 +4,10 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import dev.gaborbiro.dailymacros.repositories.settings.MealReminderRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.settings.PendingDriveSyncInfoStoreImpl
 import dev.gaborbiro.dailymacros.repositories.settings.SettingsRepositoryImpl
+import dev.gaborbiro.dailymacros.repositories.settings.domain.MealReminderRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.PendingDriveSyncInfoStore
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 
@@ -18,4 +20,7 @@ abstract class SettingsRepositoryModule {
 
     @Binds
     abstract fun bindPendingDriveSyncInfoStore(impl: PendingDriveSyncInfoStoreImpl): PendingDriveSyncInfoStore
+
+    @Binds
+    abstract fun bindMealReminderRepository(impl: MealReminderRepositoryImpl): MealReminderRepository
 }

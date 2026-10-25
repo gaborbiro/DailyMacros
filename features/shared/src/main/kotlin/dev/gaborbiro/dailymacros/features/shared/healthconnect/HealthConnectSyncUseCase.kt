@@ -43,6 +43,10 @@ class HealthConnectSyncUseCase @Inject constructor(
         private fun clientRecordId(recordId: Long) = "dailymacros-record-$recordId"
     }
 
+    /** False when Health Connect is missing or needs updating; [hasPermission] throws then. */
+    fun isAvailable(): Boolean =
+        HealthConnectClient.getSdkStatus(application) == HealthConnectClient.SDK_AVAILABLE
+
     suspend fun hasPermission(): Boolean {
         val client = HealthConnectClient.getOrCreate(application)
         return client.permissionController.getGrantedPermissions().containsAll(PERMISSIONS)
@@ -54,7 +58,7 @@ class HealthConnectSyncUseCase @Inject constructor(
      * isn't newer than what it already has for that [Metadata.clientRecordId].
      */
     suspend fun execute(since: ZonedDateTime): HealthConnectSyncResult {
-        if (HealthConnectClient.getSdkStatus(application) != HealthConnectClient.SDK_AVAILABLE) {
+        if (!isAvailable()) {
             return HealthConnectSyncResult.NotAvailable
         }
         if (!hasPermission()) {
@@ -76,7 +80,7 @@ class HealthConnectSyncUseCase @Inject constructor(
 
     /** Removes [recordId]'s entry from Health Connect, if it was ever synced. No-op otherwise. */
     suspend fun deleteRecord(recordId: Long) {
-        if (HealthConnectClient.getSdkStatus(application) != HealthConnectClient.SDK_AVAILABLE) return
+        if (!isAvailable()) return
         if (!hasPermission()) return
         val client = HealthConnectClient.getOrCreate(application)
         client.deleteRecords(

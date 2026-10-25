@@ -4,7 +4,9 @@ import android.content.Context
 import android.util.Log
 import androidx.work.WorkManager
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -31,7 +33,8 @@ import javax.inject.Singleton
 class MealReminderCoordinator @Inject constructor(
     @param:ApplicationContext private val appContext: Context,
     private val recordsRepository: RecordsRepository,
-    private val runner: MealReminderRunner,
+    private val runMealReminderPassUseCase: RunMealReminderPassUseCase,
+    private val analyticsLogger: AnalyticsLogger,
 ) : MealReminderRefresher {
 
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -66,9 +69,16 @@ class MealReminderCoordinator @Inject constructor(
         scope.launch { runSafely(trigger = trigger) }
     }
 
+    /** A failed pass must not end the diary observer; the next trigger simply tries again. */
     private suspend fun runSafely(trigger: String) {
-        runCatching { runner.run(trigger = trigger) }
-            .onFailure { Log.e(TAG, "Meal reminder pass failed", it) }
+        try {
+            runMealReminderPassUseCase.execute(trigger = trigger)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "Meal reminder pass failed", e)
+            analyticsLogger.logError(e)
+        }
     }
 
     private companion object {
