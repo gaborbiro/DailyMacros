@@ -11,10 +11,13 @@
  */
 
 const { createSignupHandler } = require("./lib/signupHandler");
-const { NOTIFY_EMAIL, NOTIFY_APP_PASSWORD } = require("./lib/secrets");
 
 exports.joinWaitlist = createSignupHandler({
   collection: "waitlist",
-  notifyLabel: "waitlist signup",
-  notifySecrets: [NOTIFY_EMAIL, NOTIFY_APP_PASSWORD],
+  notification: ({ email }) => ({
+    senderName: "Daily Macros",
+    subject: `New Daily Macros waitlist signup: ${email}`,
+    countPendingIn: "waitlist",
+    text: (pending) => `${email} just signed up (waitlist signup).\n\n${pending} pending in the waitlist collection.`,
+  }),
 });
