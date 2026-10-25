@@ -8,7 +8,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.CloseSignal
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
@@ -35,10 +34,9 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.ScheduleAnalysisIfTempla
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
-import dev.gaborbiro.dailymacros.features.shared.ErrorUiMapper
 import dev.gaborbiro.dailymacros.features.shared.ListMealVariantsForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.NutrientAnalysisWorker
-import dev.gaborbiro.dailymacros.features.shared.UserFacingError
+import dev.gaborbiro.dailymacros.features.shared.ReportUserFacingErrorUseCase
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderRefresher
 import dev.gaborbiro.dailymacros.repositories.common.model.toZonedInstant
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
@@ -91,8 +89,7 @@ class ModalViewModel @Inject constructor(
     private val foodRecognitionUseCase: FoodRecognitionUseCase,
     private val applyQuickPickOverrideAndReloadWidgetUseCase: ApplyQuickPickOverrideAndReloadWidgetUseCase,
     private val logQuickPickMealUseCase: LogQuickPickMealUseCase,
-    private val analyticsLogger: AnalyticsLogger,
-    private val errorUiMapper: ErrorUiMapper,
+    private val reportUserFacingErrorUseCase: ReportUserFacingErrorUseCase,
     private val mealReminderRefresher: MealReminderRefresher,
 ) : AndroidViewModel(application) {
 
@@ -470,8 +467,10 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onVoiceInputFailed(error: Throwable) {
-        val message = application.getString(R.string.modal_content_voice_input_unavailable_toast)
-        analyticsLogger.logError(UserFacingError(message, error))
+        val message = reportUserFacingErrorUseCase.execute(
+            error,
+            application.getString(R.string.modal_content_voice_input_unavailable_toast),
+        )
         viewModelScope.launch { _uiUpdates.emit(ModalUiUpdates.ShowToast(message)) }
     }
 
@@ -1041,9 +1040,7 @@ class ModalViewModel @Inject constructor(
 
     private fun makeErrorHandler(genericMessage: String) = CoroutineExceptionHandler { _, exception ->
         if (exception is CancellationException) return@CoroutineExceptionHandler
-        val userFacingError = errorUiMapper.map(exception, genericMessage)
-        analyticsLogger.logError(userFacingError)
-        val message = userFacingError.message
+        val message = reportUserFacingErrorUseCase.execute(exception, genericMessage)
         viewModelScope.launch {
             _uiUpdates.emit(ModalUiUpdates.Error(message.ellipsize(300) ?: message))
         }

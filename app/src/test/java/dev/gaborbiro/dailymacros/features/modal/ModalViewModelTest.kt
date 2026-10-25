@@ -32,6 +32,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseC
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.ErrorUiMapper
+import dev.gaborbiro.dailymacros.features.shared.ReportUserFacingErrorUseCase
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderRefresher
 import dev.gaborbiro.dailymacros.features.shared.TemplateUiMapper
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
@@ -187,6 +188,10 @@ class ModalViewModelTest {
         val updateRec = UpdateRecordWithNewTemplateUseCase(repo, createTemplate)
         val scheduleAnalysis = ScheduleAnalysisIfTemplateIncompleteUseCase(app, repo)
         val imageStore = FakeImageStore()
+        val reportUserFacingError = ReportUserFacingErrorUseCase(
+            errorUiMapper = ErrorUiMapper(app),
+            analyticsLogger = AnalyticsLogger(sinks = emptySet()),
+        )
         return ModalViewModel(
             application = app,
             modalUiMapper = modalUiMapper,
@@ -213,10 +218,9 @@ class ModalViewModelTest {
                 appContext = app,
                 applicationScope = applicationScope,
                 logMealFromTemplateUseCase = LogMealFromTemplateUseCase(createFromTemplate, scheduleAnalysis),
-                analyticsLogger = AnalyticsLogger(sinks = emptySet()),
+                reportUserFacingErrorUseCase = reportUserFacingError,
             ),
-            analyticsLogger = AnalyticsLogger(sinks = emptySet()),
-            errorUiMapper = ErrorUiMapper(app),
+            reportUserFacingErrorUseCase = reportUserFacingError,
             mealReminderRefresher = mealReminderRefresher,
         ).also { activeViewModels.add(it) }
     }
