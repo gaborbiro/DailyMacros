@@ -375,9 +375,9 @@ The landing page (`web/`) has two signup forms:
   + `lib/notifySignup.js`) — the primary "Get notified when Daily Macros
   launches" CTA. Writes `waitlist/{id}` docs; email only, no Play Console
   involvement.
-- `joinTest` (see `testers.js`, self-contained — predates the shared `lib/`
-  helpers) — the secondary "Join the Android beta" CTA. Writes `testers/{id}`
-  docs for the closed test, with a `platform` field (see below).
+- `joinTest` (see `testers.js`, built on the same `lib/` helpers) — the
+  secondary "Join the Android beta" CTA. Writes `testers/{id}` docs for the
+  closed test, with a `platform` field (see below).
 
 Both email you on every *new* signup (not duplicates). The email is
 best-effort: a mail failure never fails the signup, and if the secrets below
