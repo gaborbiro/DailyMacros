@@ -12,10 +12,14 @@ import dev.gaborbiro.dailymacros.BuildConfig
 import dev.gaborbiro.dailymacros.core.featureflags.RemoteConfigClientIdProvider
 import dev.gaborbiro.dailymacros.features.settings.SettingsAppInfo
 import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
+import dev.gaborbiro.dailymacros.features.shared.di.ApplicationScope
 import dev.gaborbiro.dailymacros.features.shared.notifications.MacroResultsNotificationSender
 import dev.gaborbiro.dailymacros.repositories.backup.domain.BackupClientIdProvider
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.RepositoryClientIdProvider
 import dev.gaborbiro.dailymacros.util.showMacroResultsNotification
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import javax.inject.Singleton
 
 @Module
@@ -25,6 +29,11 @@ object AppSingletonModule {
     @Provides
     @Singleton
     fun gson(): Gson = Gson()
+
+    @Provides
+    @Singleton
+    @ApplicationScope
+    fun applicationScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     @Provides
     @Singleton

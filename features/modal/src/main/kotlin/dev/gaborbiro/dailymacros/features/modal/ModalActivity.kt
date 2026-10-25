@@ -48,17 +48,9 @@ import dev.gaborbiro.dailymacros.features.modal.views.ImageDialog
 import dev.gaborbiro.dailymacros.features.modal.views.ConfirmSwitchTemplateDialog
 import dev.gaborbiro.dailymacros.features.modal.views.QuickPickWidgetConfirmDialog
 import dev.gaborbiro.dailymacros.features.modal.views.RecordDetailsDialog
-import dev.gaborbiro.dailymacros.features.shared.UserFacingError
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
-import dev.gaborbiro.dailymacros.features.modal.usecase.LogMealFromTemplateUseCase
-import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -74,29 +66,10 @@ class ModalActivity : AppCompatActivity() {
     @Inject
     lateinit var analyticsLogger: AnalyticsLogger
 
-    @Inject
-    lateinit var settingsRepository: SettingsRepository
-
-    @Inject
-    lateinit var logMealFromTemplateUseCase: LogMealFromTemplateUseCase
-
     private val viewModel: ModalViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        if (logQuickPickWithoutShowing()) {
-            finish()
-            return
-        }
-
-        setShowWhenLocked(true)
-        setTurnScreenOn(true)
-
-        val km = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
-        if (km.isKeyguardLocked) {
-            km.requestDismissKeyguard(this, null)
-        }
 
         dismissPendingNotification()
 
@@ -112,6 +85,22 @@ class ModalActivity : AppCompatActivity() {
                         return
                     }
             }
+
+        // The intent may need nothing on screen (e.g. a quick pick logged with its confirmation
+        // turned off): finish before the window is ever drawn, so the tap doesn't flash this
+        // Activity's dimmed backdrop (or Shake's feedback button).
+        if (viewModel.uiState.value.closeSignal == CloseSignal.CLOSE) {
+            finish()
+            return
+        }
+
+        setShowWhenLocked(true)
+        setTurnScreenOn(true)
+
+        val km = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
+        if (km.isKeyguardLocked) {
+            km.requestDismissKeyguard(this, null)
+        }
 
         setContent {
             val viewState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -211,33 +200,6 @@ class ModalActivity : AppCompatActivity() {
         if (notificationId != -1) {
             getSystemService(NotificationManager::class.java).cancel(notificationId)
         }
-    }
-
-    /**
-     * A quick pick widget tap with the "Log meal again?" confirmation turned off has nothing to
-     * show: log the meal and let onCreate finish before the window is ever drawn, so the tap
-     * doesn't flash this Activity's dimmed backdrop (or Shake's feedback button). With the
-     * confirmation on, the normal path shows the dialog.
-     */
-    private fun logQuickPickWithoutShowing(): Boolean {
-        if (intent.getStringExtra(EXTRA_ACTION) != Action.QUICK_PICK_WIDGET_CONFIRM.name) return false
-        if (settingsRepository.getQuickPickConfirmationEnabled()) return false
-        val templateId = intent.getLongExtra(EXTRA_TEMPLATE_ID, -1L).takeIf { it != -1L } ?: return false
-        val appContext = applicationContext
-        // Outlives this Activity, which finishes straight away; the write takes milliseconds.
-        CoroutineScope(SupervisorJob() + Dispatchers.Main).launch {
-            val message = try {
-                logMealFromTemplateUseCase.execute(templateId)
-                R.string.quick_pick_confirm_logged_toast
-            } catch (e: CancellationException) {
-                throw e
-            } catch (t: Throwable) {
-                analyticsLogger.logError(UserFacingError(appContext.getString(R.string.quick_pick_confirm_log_failed_toast), t))
-                R.string.quick_pick_confirm_log_failed_toast
-            }
-            Toast.makeText(appContext, message, Toast.LENGTH_SHORT).show()
-        }
-        return true
     }
 
     private fun getActionFromIntent(intent: Intent = this.intent): Action? {
