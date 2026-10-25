@@ -109,7 +109,7 @@ class SyncRecordsToHealthConnectUseCaseTest {
 
         val result = useCase(provider, records).execute(since)
 
-        assertEquals(HealthConnectSyncResult.Success(count = 2), result)
+        assertEquals(HealthConnectSyncResult.Success(count = 2, removed = 0), result)
         val written = client.insertedRecords.map { it as NutritionRecord }
         assertEquals(
             listOf("dailymacros-record-1", "dailymacros-record-3"),
@@ -137,13 +137,37 @@ class SyncRecordsToHealthConnectUseCaseTest {
     }
 
     @Test
+    fun `removes entries whose record was deleted, across pages`() = runBlocking {
+        val client = FakeHealthConnectClient(
+            syncedClientRecordIds = listOf("dailymacros-record-1", "dailymacros-record-2", "dailymacros-record-3"),
+        )
+        val provider = FakeHealthConnectClientProvider(client = client)
+
+        val result = useCase(provider, records = listOf(record(recordId = 2, calories = 500))).execute(since)
+
+        assertEquals(HealthConnectSyncResult.Success(count = 1, removed = 2), result)
+        assertEquals(setOf("dailymacros-record-1", "dailymacros-record-3"), client.deletedClientRecordIds.toSet())
+    }
+
+    @Test
+    fun `keeps the entry of a record that is waiting for analysis`() = runBlocking {
+        val client = FakeHealthConnectClient(syncedClientRecordIds = listOf("dailymacros-record-1"))
+        val provider = FakeHealthConnectClientProvider(client = client)
+
+        val result = useCase(provider, records = listOf(record(recordId = 1, calories = null))).execute(since)
+
+        assertEquals(HealthConnectSyncResult.Success(count = 0, removed = 0), result)
+        assertEquals(emptyList<String>(), client.deletedClientRecordIds)
+    }
+
+    @Test
     fun `Success with zero and no write when nothing has calories`() = runBlocking {
         val client = FakeHealthConnectClient()
         val provider = FakeHealthConnectClientProvider(client = client)
 
         val result = useCase(provider, records = listOf(record(recordId = 1, calories = null))).execute(since)
 
-        assertEquals(HealthConnectSyncResult.Success(count = 0), result)
+        assertEquals(HealthConnectSyncResult.Success(count = 0, removed = 0), result)
         assertEquals(emptyList<Any>(), client.insertedRecords)
     }
 

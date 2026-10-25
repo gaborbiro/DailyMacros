@@ -18,6 +18,9 @@ interface HealthConnectClientProvider {
     /** Throws when [getSdkStatus] isn't `SDK_AVAILABLE`. */
     fun getClient(): HealthConnectClient
 
+    /** This app's package, the data origin of everything it writes to Health Connect. */
+    val ownPackageName: String
+
     companion object {
         val PERMISSIONS: Set<String> = setOf(HealthPermission.getWritePermission(NutritionRecord::class))
 
@@ -35,4 +38,6 @@ class HealthConnectClientProviderImpl @Inject constructor(
     override fun getSdkStatus(): Int = HealthConnectClient.getSdkStatus(application)
 
     override fun getClient(): HealthConnectClient = HealthConnectClient.getOrCreate(application)
+
+    override val ownPackageName: String get() = application.packageName
 }

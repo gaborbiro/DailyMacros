@@ -64,7 +64,7 @@ class HealthConnectSyncCoordinator @Inject constructor(
         val since = ZonedDateTime.now().minusDays(SYNC_WINDOW_DAYS)
         when (val result = syncRecordsToHealthConnectUseCase.execute(since)) {
             is HealthConnectSyncResult.Success ->
-                Log.i(TAG, "Synced ${result.count} record(s) to Health Connect")
+                Log.i(TAG, "Synced ${result.count} record(s) to Health Connect, removed ${result.removed} deleted one(s)")
             is HealthConnectSyncResult.Error ->
                 Log.e(TAG, "Health Connect sync failed: ${result.message}")
             HealthConnectSyncResult.NotAvailable, HealthConnectSyncResult.PermissionRequired ->
