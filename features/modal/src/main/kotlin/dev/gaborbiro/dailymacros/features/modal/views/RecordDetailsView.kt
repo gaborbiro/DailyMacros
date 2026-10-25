@@ -119,6 +119,10 @@ fun ColumnScope.RecordDetailsView(
     onEditTimestampTapped: () -> Unit = {},
     onCorrectionChanged: (TextFieldValue) -> Unit = {},
     onReanalyzeTapped: () -> Unit = {},
+    onTitleSpoken: (String) -> Unit = {},
+    onDescriptionSpoken: (String) -> Unit = {},
+    onCorrectionSpoken: (String) -> Unit = {},
+    onVoiceInputFailed: (Throwable) -> Unit = {},
 ) {
     val editing = view.isEditing
     val browseMode = !editing
@@ -224,9 +228,8 @@ fun ColumnScope.RecordDetailsView(
             VoiceInputButton(
                 prompt = stringResource(R.string.modal_content_voice_input_prompt),
                 contentDescription = stringResource(R.string.modal_content_voice_input_cd),
-                onTextRecognised = { spoken ->
-                    onTitleChanged(appendSpokenText(title, spoken))
-                },
+                onTextRecognised = onTitleSpoken,
+                onLaunchFailed = onVoiceInputFailed,
             )
         },
     )
@@ -273,9 +276,8 @@ fun ColumnScope.RecordDetailsView(
                 VoiceInputButton(
                     prompt = stringResource(R.string.modal_content_voice_input_description_prompt),
                     contentDescription = stringResource(R.string.modal_content_voice_input_description_cd),
-                    onTextRecognised = { spoken ->
-                        onDescriptionChanged(appendSpokenText(description, spoken))
-                    },
+                    onTextRecognised = onDescriptionSpoken,
+                    onLaunchFailed = onVoiceInputFailed,
                 )
             },
         )
@@ -289,6 +291,8 @@ fun ColumnScope.RecordDetailsView(
                         correction = view.correction,
                         canReanalyze = view.canReanalyze,
                         onCorrectionChanged = onCorrectionChanged,
+                        onCorrectionSpoken = onCorrectionSpoken,
+                        onVoiceInputFailed = onVoiceInputFailed,
                         onReanalyzeTapped = onReanalyzeTapped,
                     )
                 }

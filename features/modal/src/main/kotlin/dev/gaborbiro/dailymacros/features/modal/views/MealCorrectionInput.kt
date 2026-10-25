@@ -55,6 +55,8 @@ internal fun MealCorrectionInput(
     correction: TextFieldValue,
     canReanalyze: Boolean,
     onCorrectionChanged: (TextFieldValue) -> Unit,
+    onCorrectionSpoken: (String) -> Unit,
+    onVoiceInputFailed: (Throwable) -> Unit,
     onReanalyzeTapped: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -114,9 +116,8 @@ internal fun MealCorrectionInput(
                         VoiceInputButton(
                             prompt = stringResource(R.string.meal_details_correction_voice_prompt),
                             contentDescription = stringResource(R.string.meal_details_correction_voice_cd),
-                            onTextRecognised = { spoken ->
-                                onCorrectionChanged(appendSpokenText(correction, spoken))
-                            },
+                            onTextRecognised = onCorrectionSpoken,
+                            onLaunchFailed = onVoiceInputFailed,
                         )
                     },
                     maxLines = 4,
@@ -158,6 +159,8 @@ private fun MealCorrectionInputClosedPreview() {
             correction = TextFieldValue(),
             canReanalyze = false,
             onCorrectionChanged = {},
+            onCorrectionSpoken = {},
+            onVoiceInputFailed = {},
             onReanalyzeTapped = {},
         )
     }
@@ -172,6 +175,8 @@ private fun MealCorrectionInputPreview() {
             correction = TextFieldValue("It was brown rice, about 200 g"),
             canReanalyze = true,
             onCorrectionChanged = {},
+            onCorrectionSpoken = {},
+            onVoiceInputFailed = {},
             onReanalyzeTapped = {},
         )
     }

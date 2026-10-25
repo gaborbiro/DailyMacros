@@ -69,6 +69,9 @@ fun ColumnScope.RecordDetailsCreateView(
     onAddImageViaPickerTapped: () -> Unit,
     onImagesInfoButtonTapped: () -> Unit,
     onRunAIButtonTapped: () -> Unit,
+    onTitleSpoken: (String) -> Unit = {},
+    onDescriptionSpoken: (String) -> Unit = {},
+    onVoiceInputFailed: (Throwable) -> Unit = {},
 ) {
     val focusRequester = remember { FocusRequester() }
 
@@ -113,9 +116,8 @@ fun ColumnScope.RecordDetailsCreateView(
                 VoiceInputButton(
                     prompt = stringResource(R.string.modal_content_voice_input_prompt),
                     contentDescription = stringResource(R.string.modal_content_voice_input_cd),
-                    onTextRecognised = { spoken ->
-                        onTitleChanged(appendSpokenText(title, spoken))
-                    },
+                    onTextRecognised = onTitleSpoken,
+                    onLaunchFailed = onVoiceInputFailed,
                 )
                 if (showProgressIndicator || showRunAIButton) {
                     Box(
@@ -209,9 +211,8 @@ fun ColumnScope.RecordDetailsCreateView(
             VoiceInputButton(
                 prompt = stringResource(R.string.modal_content_voice_input_description_prompt),
                 contentDescription = stringResource(R.string.modal_content_voice_input_description_cd),
-                onTextRecognised = { spoken ->
-                    onDescriptionChanged(appendSpokenText(description, spoken))
-                },
+                onTextRecognised = onDescriptionSpoken,
+                onLaunchFailed = onVoiceInputFailed,
             )
         },
         value = description,

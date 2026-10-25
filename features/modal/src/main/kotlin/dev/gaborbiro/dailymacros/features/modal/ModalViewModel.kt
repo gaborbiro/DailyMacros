@@ -512,6 +512,30 @@ class ModalViewModel @Inject constructor(
         }
     }
 
+    // Dictation appends to what's already typed, then takes the same path as typing, so
+    // truncation, validation and unsaved-edit tracking stay in one place.
+
+    fun onTitleSpoken(spoken: String) {
+        val root = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog ?: return
+        onTitleChanged(appendSpokenText(root.title, spoken))
+    }
+
+    fun onDescriptionSpoken(spoken: String) {
+        val root = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog ?: return
+        onDescriptionChanged(appendSpokenText(root.description, spoken))
+    }
+
+    fun onCorrectionSpoken(spoken: String) {
+        val root = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return
+        onCorrectionChanged(appendSpokenText(root.correction, spoken))
+    }
+
+    fun onVoiceInputFailed(error: Throwable) {
+        val message = application.getString(R.string.modal_content_voice_input_unavailable_toast)
+        analyticsLogger.logError(UserFacingError(message, error))
+        viewModelScope.launch { _uiUpdates.emit(ModalUiUpdates.ShowToast(message)) }
+    }
+
     /**
      * Folds the correction into the meal's description and sends it back to the AI, keeping the dialog
      * open: the record is observed, so the new results replace the old ones in place.

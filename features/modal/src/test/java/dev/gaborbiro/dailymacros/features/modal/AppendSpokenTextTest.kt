@@ -1,4 +1,4 @@
-package dev.gaborbiro.dailymacros.features.modal.views
+package dev.gaborbiro.dailymacros.features.modal
 
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
