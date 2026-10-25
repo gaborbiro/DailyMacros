@@ -8,43 +8,42 @@ import android.os.Build
 import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
-import dev.gaborbiro.dailymacros.core.featureflags.FeatureFlagStore
-import dev.gaborbiro.dailymacros.features.shared.ReportUserFacingErrorUseCase
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.GoogleAuthException
 import com.google.android.gms.auth.GoogleAuthUtil
 import com.google.android.gms.auth.UserRecoverableAuthException
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import dev.gaborbiro.dailymacros.features.settings.DRIVE_SCOPE_TOKEN
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.gaborbiro.dailymacros.core.featureflags.FeatureFlagStore
 import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCase
-import dev.gaborbiro.dailymacros.features.shared.photodiary.PhotoMonitorWorker
 import dev.gaborbiro.dailymacros.features.settings.export.OpenPublicDocumentUseCase
+import dev.gaborbiro.dailymacros.features.settings.export.pdf.DiaryDateRange
+import dev.gaborbiro.dailymacros.features.settings.export.pdf.PdfRangeSelection
+import dev.gaborbiro.dailymacros.features.settings.export.pdf.computeRange
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportPdfDiaryUseCase
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportSqliteDatabaseUseCase
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseResult
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseUseCase
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.PdfExportResult
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.ReconcileCloudBackupConflictUseCase
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.RestoreFromDriveUseCase
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.SyncDatabaseUseCase
+import dev.gaborbiro.dailymacros.features.settings.mealreminders.toDebugText
+import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
+import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
+import dev.gaborbiro.dailymacros.features.shared.ReportUserFacingErrorUseCase
 import dev.gaborbiro.dailymacros.features.shared.healthconnect.GetHealthConnectStatusUseCase
 import dev.gaborbiro.dailymacros.features.shared.healthconnect.HasHealthConnectPermissionUseCase
 import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectClientProvider
 import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectStatus
 import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectSyncResult
 import dev.gaborbiro.dailymacros.features.shared.healthconnect.SyncRecordsToHealthConnectUseCase
-import dev.gaborbiro.dailymacros.features.settings.export.pdf.DiaryDateRange
-import dev.gaborbiro.dailymacros.features.settings.export.pdf.PdfRangeSelection
-import dev.gaborbiro.dailymacros.features.settings.export.pdf.computeRange
-import dev.gaborbiro.dailymacros.features.settings.export.useCases.ReconcileCloudBackupConflictUseCase
-import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportPdfDiaryUseCase
-import dev.gaborbiro.dailymacros.features.settings.export.useCases.PdfExportResult
-import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportSqliteDatabaseUseCase
-import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseResult
-import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseUseCase
-import dev.gaborbiro.dailymacros.features.settings.export.useCases.RestoreFromDriveUseCase
-import dev.gaborbiro.dailymacros.features.settings.export.useCases.SyncDatabaseUseCase
-import dev.gaborbiro.dailymacros.features.settings.mealreminders.toDebugText
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.GetMealReminderPlanUseCase
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.GetMealReminderStatusUseCase
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderRefresher
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.SetMealRemindersEnabledUseCase
-import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
-import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
+import dev.gaborbiro.dailymacros.features.shared.photodiary.PhotoMonitorWorker
 import dev.gaborbiro.dailymacros.repositories.backup.domain.CloudSyncRepository
 import dev.gaborbiro.dailymacros.repositories.billing.domain.SubscriptionRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
@@ -98,7 +97,6 @@ class SettingsViewModel @Inject constructor(
             cloudSyncEmail = settingsRepository.getCloudSyncEmail(),
             lastSyncedEpochMs = settingsRepository.getLastSyncedEpochMs(),
             customiseAiEnabled = featureFlagStore.isEnabled(FeatureFlagStore.Key.CUSTOMISE_AI_ENABLED),
-            aiInsightsEnabled = featureFlagStore.isEnabled(FeatureFlagStore.Key.AI_INSIGHTS_ENABLED),
             autoPhotoRecognitionEnabled = settingsRepository.getAutoPhotoRecognitionEnabled(),
             autoPhotoRecognitionVisible = featureFlagStore.isEnabled(FeatureFlagStore.Key.AUTO_PHOTO_RECOGNITION_ENABLED),
             mealRemindersEnabled = getMealReminderStatusUseCase.execute().enabled,

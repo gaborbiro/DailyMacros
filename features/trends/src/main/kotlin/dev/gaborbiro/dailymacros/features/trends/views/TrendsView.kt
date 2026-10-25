@@ -58,7 +58,7 @@ import dev.gaborbiro.dailymacros.features.trends.model.TrendsUiState
 import kotlinx.coroutines.delay
 
 
-@OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun TrendsView(
     viewState: TrendsUiState,

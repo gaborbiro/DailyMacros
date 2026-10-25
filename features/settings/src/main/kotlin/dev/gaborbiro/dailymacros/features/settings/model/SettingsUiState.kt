@@ -23,7 +23,6 @@ data class SettingsUiState(
     val restoreDialogModifiedAtMs: Long = 0L,
     val restoreDialogFileId: String = "",
     val customiseAiEnabled: Boolean = false,
-    val aiInsightsEnabled: Boolean = false,
     val autoPhotoRecognitionEnabled: Boolean = false,
     val autoPhotoRecognitionVisible: Boolean = false,
     val mealRemindersEnabled: Boolean = false,
