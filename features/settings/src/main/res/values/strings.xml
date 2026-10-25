@@ -55,7 +55,7 @@
     <string name="settings_content_camera_section">Camera</string>
     <string name="settings_content_reminders_section">Reminders</string>
     <string name="settings_meal_reminders_row">Meal reminders</string>
-    <string name="settings_meal_reminders_subtitle">A nudge around your usual breakfast, lunch and dinner times, unless you\'ve already logged it</string>
+    <string name="settings_meal_reminders_subtitle">A nudge around your usual breakfast, lunch and dinner times, unless you’ve already logged it</string>
     <string name="settings_content_widgets_section">Widgets</string>
     <string name="settings_quick_pick_confirmation_row">Quick Pick confirmation</string>
     <string name="settings_quick_pick_confirmation_subtitle">When off, meals are logged immediately instead of showing a confirmation dialog when tapping a Quick Pick.</string>
@@ -165,6 +165,9 @@
     <string name="settings_content_connected_services_section">Connected services</string>
     <string name="settings_health_connect_sync_row">Sync to Health Connect</string>
     <string name="settings_health_connect_sync_subtitle">Automatically shares new and updated meals with Health Connect.</string>
+    <string name="settings_content_health_connect_install_subtitle">Install or update Health Connect from the Play Store to sync your meals.</string>
+    <string name="settings_content_health_connect_install_action">Install/Update</string>
+    <string name="settings_content_health_connect_not_supported_subtitle">Not available on this device.</string>
     <string name="settings_suggest_integration_row_question">Any other service you\'d like to sync with?</string>
     <string name="settings_suggest_integration_row_cta">Drop me a message</string>
     <string name="settings_suggest_integration_row_outro">and I\'ll look into it</string>

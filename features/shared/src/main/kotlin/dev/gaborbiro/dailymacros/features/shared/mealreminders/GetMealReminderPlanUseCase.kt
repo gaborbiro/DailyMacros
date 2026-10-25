@@ -1,36 +1,27 @@
 package dev.gaborbiro.dailymacros.features.shared.mealreminders
 
-import dev.gaborbiro.dailymacros.features.common.utils.diaryDayStartTime
-import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
-import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
+import dev.gaborbiro.dailymacros.repositories.settings.domain.MealReminderRepository
 import java.time.ZonedDateTime
 import javax.inject.Inject
-import kotlin.time.toKotlinInstant
 
 /** Loads the history [MealReminderPlanner] needs and returns today's plan for each meal slot. */
 class GetMealReminderPlanUseCase @Inject constructor(
-    private val recordsRepository: RecordsRepository,
-    private val settingsRepository: SettingsRepository,
-    private val loggedDayRuleProvider: LoggedDayRuleProvider,
-    private val prefs: MealReminderPrefs,
+    private val getMealReminderInputsUseCase: GetMealReminderInputsUseCase,
+    private val mealReminderRepository: MealReminderRepository,
 ) {
 
     suspend fun execute(
         now: ZonedDateTime = ZonedDateTime.now(),
-        history: Map<MealSlot, SlotReminderHistory> = prefs.history(),
+        history: Map<MealSlot, SlotReminderHistory> = mealReminderRepository.history(),
     ): MealReminderPlan {
-        // Two spare days so the lookback still covers whole diary days around the day-start shift.
-        val records = recordsRepository.getRecords(
-            since = now.minusDays(MealReminderPlanner.LOOKBACK_DAYS + 2).toInstant().toKotlinInstant(),
-        )
-        val loggedDayRule = loggedDayRuleProvider.get()
+        val inputs = getMealReminderInputsUseCase.execute(now)
         return MealReminderPlan(
-            loggedDayRule = loggedDayRule,
+            loggedDayRule = inputs.loggedDayRule,
             slots = MealReminderPlanner.plan(
-                records = records,
+                records = inputs.records,
                 now = now,
-                dayStart = diaryDayStartTime(settingsRepository.getDiaryDayStartHour()),
-                loggedDayRule = loggedDayRule,
+                dayStart = inputs.dayStart,
+                loggedDayRule = inputs.loggedDayRule,
                 history = history,
             ),
         )

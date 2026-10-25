@@ -21,7 +21,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAn
 import dev.gaborbiro.dailymacros.features.modal.usecase.BuildRecordDetailsViewDialogUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateTemplateUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.LogMealFromTemplateUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.LogQuickPickMealUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.ExportImageToGalleryUseCase
@@ -89,7 +89,7 @@ class ModalViewModel @Inject constructor(
     private val getTemplateImageUseCase: GetTemplateImageUseCase,
     private val foodRecognitionUseCase: FoodRecognitionUseCase,
     private val applyQuickPickOverrideAndReloadWidgetUseCase: ApplyQuickPickOverrideAndReloadWidgetUseCase,
-    private val logMealFromTemplateUseCase: LogMealFromTemplateUseCase,
+    private val logQuickPickMealUseCase: LogQuickPickMealUseCase,
     private val analyticsLogger: AnalyticsLogger,
     private val errorUiMapper: ErrorUiMapper,
     private val mealReminderRefresher: MealReminderRefresher,
@@ -171,9 +171,13 @@ class ModalViewModel @Inject constructor(
         openRecordDetails(recordId, edit = true)
     }
 
+    /**
+     * With the confirmation turned off, this logs the meal and closes before returning, so
+     * ModalActivity can finish before its window is ever drawn.
+     */
     fun onQuickPickWidgetConfirmDeeplinkReceived(templateId: Long, templateName: String) {
         if (settingsRepository.getQuickPickConfirmationEnabled().not()) {
-            logMealFromTemplate(templateId)
+            logQuickPickMeal(templateId)
             return
         }
         setRoot(
@@ -186,7 +190,7 @@ class ModalViewModel @Inject constructor(
 
     fun onQuickPickWidgetLogAgainTapped() {
         val dialog = _uiState.value.rootDialog as? DialogHandle.QuickPickWidgetConfirmDialog ?: return
-        logMealFromTemplate(dialog.templateId)
+        logQuickPickMeal(dialog.templateId)
     }
 
     fun onQuickPickWidgetDontShowAgainChanged(dontShowAgain: Boolean) {
@@ -195,23 +199,10 @@ class ModalViewModel @Inject constructor(
         _uiState.update { it.copy(rootDialog = dialog.copy(dontShowAgain = dontShowAgain)) }
     }
 
-    private fun logMealFromTemplate(templateId: Long) {
-        viewModelScope.launch {
-            try {
-                logMealFromTemplateUseCase.execute(templateId)
-                _uiUpdates.emit(
-                    ModalUiUpdates.ShowToast(application.getString(R.string.quick_pick_confirm_logged_toast))
-                )
-            } catch (e: CancellationException) {
-                throw e
-            } catch (t: Throwable) {
-                val message = application.getString(R.string.quick_pick_confirm_log_failed_toast)
-                analyticsLogger.logError(UserFacingError(message, t))
-                _uiUpdates.emit(ModalUiUpdates.ShowToast(message))
-            } finally {
-                closeAll()
-            }
-        }
+    /** The meal is logged (and confirmed with a toast) after this screen has closed. */
+    private fun logQuickPickMeal(templateId: Long) {
+        logQuickPickMealUseCase.execute(templateId)
+        closeAll()
     }
 
     fun onQuickPickWidgetOpenDetailsTapped() {
@@ -873,7 +864,7 @@ class ModalViewModel @Inject constructor(
      * Analysis results are stored on the shared template, so every record using it is updated by a
      * single run. Scheduling one job per record would repeat the same API call and notify N times.
      */
-    private suspend fun scheduleMacroAnalysisForAllRecordsUsingTemplate(templateId: Long) {
+    private suspend fun scheduleMacroAnalysisForTemplate(templateId: Long) {
         val record = recordsRepository.getRecordsByTemplate(templateId).firstOrNull() ?: return
         NutrientAnalysisWorker.setWorkRequest(
             appContext = application,
@@ -989,7 +980,7 @@ class ModalViewModel @Inject constructor(
                 templateImages = templateImages,
             )
             if (imagesNeedReanalysis || contentChanged) {
-                scheduleMacroAnalysisForAllRecordsUsingTemplate(dialogHandle.templateDbId)
+                scheduleMacroAnalysisForTemplate(dialogHandle.templateDbId)
             }
         } else {
             val imagesReorderedOnly =

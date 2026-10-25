@@ -1,5 +1,6 @@
 package dev.gaborbiro.dailymacros.features.settings.model
 
+import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectStatus
 import dev.gaborbiro.dailymacros.repositories.billing.domain.model.SubscriptionState
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.BackupInterval
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
@@ -26,7 +27,6 @@ data class SettingsUiState(
     val autoPhotoRecognitionEnabled: Boolean = false,
     val autoPhotoRecognitionVisible: Boolean = false,
     val mealRemindersEnabled: Boolean = false,
-    val mealRemindersVisible: Boolean = false,
     val quickPickConfirmationEnabled: Boolean = true,
     val autoBackupInterval: BackupInterval = BackupInterval.NEVER,
     val showAutoBackupIntervalDialog: Boolean = false,
@@ -43,4 +43,6 @@ data class SettingsUiState(
     val mealReminderDebugText: String? = null,
     val healthConnectSyncEnabled: Boolean = false,
     val healthConnectSyncInProgress: Boolean = false,
+    /** Decides whether the Health Connect row shows the toggle, an install/update action or neither. */
+    val healthConnectStatus: HealthConnectStatus = HealthConnectStatus.AVAILABLE,
 )

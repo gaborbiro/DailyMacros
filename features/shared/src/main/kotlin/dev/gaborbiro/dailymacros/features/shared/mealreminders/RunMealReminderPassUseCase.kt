@@ -5,12 +5,10 @@ import android.util.Log
 import androidx.core.os.bundleOf
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
-import dev.gaborbiro.dailymacros.features.common.utils.diaryDayStartTime
 import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryDate
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderPlanner.windowEnd
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderSchedule.isStale
-import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
-import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
+import dev.gaborbiro.dailymacros.repositories.settings.domain.MealReminderRepository
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.time.Duration
@@ -18,21 +16,20 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.time.toKotlinInstant
 
 /**
  * One pass of the meal reminder loop, safe to run any time (app start, a diary change, the
  * scheduled wake-up): settle earlier reminders' outcomes, clear reminders whose meal got logged,
  * post the ones that are due, and schedule the next wake-up. Every pass re-plans from scratch,
  * so nothing goes stale when meals are logged, edited or deleted in between.
+ *
+ * A singleton so that every caller shares the one [mutex].
  */
 @Singleton
-class MealReminderRunner @Inject constructor(
+class RunMealReminderPassUseCase @Inject constructor(
     @param:ApplicationContext private val appContext: Context,
-    private val recordsRepository: RecordsRepository,
-    private val settingsRepository: SettingsRepository,
-    private val loggedDayRuleProvider: LoggedDayRuleProvider,
-    private val prefs: MealReminderPrefs,
+    private val getMealReminderInputsUseCase: GetMealReminderInputsUseCase,
+    private val mealReminderRepository: MealReminderRepository,
     private val notifier: MealReminderNotifier,
     private val analyticsLogger: AnalyticsLogger,
 ) {
@@ -40,28 +37,17 @@ class MealReminderRunner @Inject constructor(
     // The app-start pass, the diary observer and the alarm can overlap; only one may post.
     private val mutex = Mutex()
 
-    data class Status(
-        val enabled: Boolean,
-        val notificationsAllowed: Boolean,
-        val lastPass: MealReminderPrefs.LastPass?,
-    )
-
-    fun status() = Status(prefs.enabled, notifier.canPost(), prefs.lastPass)
-
     /** [trigger] only feeds the Settings > Debug readout: what started this pass. */
-    suspend fun run(now: ZonedDateTime = ZonedDateTime.now(), trigger: String) = mutex.withLock {
-        if (!prefs.enabled) {
+    suspend fun execute(now: ZonedDateTime = ZonedDateTime.now(), trigger: String) = mutex.withLock {
+        if (!mealReminderRepository.isEnabled()) {
             MealReminderAlarm.cancel(appContext)
             notifier.cancelAll()
-            prefs.lastPass = MealReminderPrefs.LastPass(now, "$trigger: reminders off", nextWakeUp = null)
+            mealReminderRepository.setLastPass(now, "$trigger: reminders off", nextWakeUp = null)
             return@withLock
         }
-        val dayStart = diaryDayStartTime(settingsRepository.getDiaryDayStartHour())
-        val records = recordsRepository.getRecords(
-            since = now.minusDays(MealReminderPlanner.LOOKBACK_DAYS + 2).toInstant().toKotlinInstant(),
-        )
+        val (records, dayStart, loggedDayRule) = getMealReminderInputsUseCase.execute(now)
 
-        val previous = prefs.history()
+        val previous = mealReminderRepository.history()
         val history = MealReminderPlanner.resolveOutcomes(records, now, dayStart, previous).toMutableMap()
         history.forEach { (slot, resolved) ->
             if (previous[slot]?.awaitingOutcome == true && !resolved.awaitingOutcome) {
@@ -72,9 +58,9 @@ class MealReminderRunner @Inject constructor(
             }
         }
 
-        val plans = MealReminderPlanner.plan(records, now, dayStart, loggedDayRuleProvider.get(), history)
+        val plans = MealReminderPlanner.plan(records, now, dayStart, loggedDayRule, history)
         plans
-            .filter { (it.decision as? MealReminderDecision.Silent)?.reason == SilenceReason.ALREADY_LOGGED }
+            .filter { it.isAlreadyLogged() }
             .forEach { notifier.cancel(it.slot) }
 
         val due = MealReminderSchedule.due(plans, now)
@@ -88,22 +74,33 @@ class MealReminderRunner @Inject constructor(
                 bundleOf("slot" to slot.name.lowercase(), "style" to remind.style.name.lowercase()),
             )
         }
-        prefs.saveHistory(history)
+        mealReminderRepository.saveHistory(history)
 
         val next = MealReminderSchedule.nextCheck(plans, now, dayStart, excluding = due.map { it.first }.toSet())
         MealReminderAlarm.schedule(appContext, next)
 
-        val dropped = plans.filter { (it.decision as? MealReminderDecision.Remind)?.isStale(now) == true }
+        val dropped = plans.mapNotNull { plan -> plan.staleReminder(now)?.let { plan.slot to it } }
         val summary = buildList {
             if (posted.isNotEmpty()) add("posted ${posted.joinToString { it.first.label() }}")
             if (due.isNotEmpty() && !canPost) add("${due.joinToString { it.first.label() }} due but notifications blocked")
-            dropped.forEach { plan ->
-                val lateBy = Duration.between((plan.decision as MealReminderDecision.Remind).at, now).toMinutes()
-                add("dropped ${plan.slot.label()} (${lateBy}m late)")
+            dropped.forEach { (slot, remind) ->
+                val lateBy = Duration.between(remind.at, now).toMinutes()
+                add("dropped ${slot.label()} (${lateBy}m late)")
             }
         }.ifEmpty { listOf("nothing due") }.joinToString("; ")
-        prefs.lastPass = MealReminderPrefs.LastPass(now, "$trigger: $summary", nextWakeUp = next)
+        mealReminderRepository.setLastPass(now, "$trigger: $summary", nextWakeUp = next)
         Log.i(TAG, "$trigger: $summary, next check at ${next.format(DateTimeFormatter.ISO_LOCAL_TIME)}")
+    }
+
+    private fun MealSlotPlan.isAlreadyLogged() = when (val decision = decision) {
+        is MealReminderDecision.Silent -> decision.reason == SilenceReason.ALREADY_LOGGED
+        is MealReminderDecision.Remind -> false
+    }
+
+    /** The reminder that was due but is now too late to post, if any. */
+    private fun MealSlotPlan.staleReminder(now: ZonedDateTime) = when (val decision = decision) {
+        is MealReminderDecision.Remind -> decision.takeIf { it.isStale(now) }
+        is MealReminderDecision.Silent -> null
     }
 
     private fun MealSlot.label() = name.lowercase()
