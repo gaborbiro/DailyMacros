@@ -3,9 +3,8 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 import android.content.Context
 import android.widget.Toast
 import dagger.hilt.android.qualifiers.ApplicationContext
-import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.features.modal.R
-import dev.gaborbiro.dailymacros.features.shared.UserFacingError
+import dev.gaborbiro.dailymacros.features.shared.ReportUserFacingErrorUseCase
 import dev.gaborbiro.dailymacros.features.shared.di.ApplicationScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -22,19 +21,18 @@ class LogQuickPickMealUseCase @Inject constructor(
     @ApplicationContext private val appContext: Context,
     @ApplicationScope private val applicationScope: CoroutineScope,
     private val logMealFromTemplateUseCase: LogMealFromTemplateUseCase,
-    private val analyticsLogger: AnalyticsLogger,
+    private val reportUserFacingErrorUseCase: ReportUserFacingErrorUseCase,
 ) {
 
     fun execute(templateId: Long) {
         applicationScope.launch {
             val message = try {
                 logMealFromTemplateUseCase.execute(templateId)
-                R.string.quick_pick_confirm_logged_toast
+                appContext.getString(R.string.quick_pick_confirm_logged_toast)
             } catch (e: CancellationException) {
                 throw e
             } catch (t: Throwable) {
-                analyticsLogger.logError(UserFacingError(appContext.getString(R.string.quick_pick_confirm_log_failed_toast), t))
-                R.string.quick_pick_confirm_log_failed_toast
+                reportUserFacingErrorUseCase.execute(t, appContext.getString(R.string.quick_pick_confirm_log_failed_toast))
             }
             Toast.makeText(appContext, message, Toast.LENGTH_SHORT).show()
         }

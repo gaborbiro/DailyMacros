@@ -188,7 +188,20 @@ record.
 
 **Recommendation** Go with A. Splitting buys little and re-opens a bug-dense area.
 
-## 7. ⬜ Error mapping duplicated
+## 7. ✅ Error mapping duplicated
+
+**Done:** `ReportUserFacingErrorUseCase` (`features/shared`) maps the error with `ErrorUiMapper`,
+logs it as a `UserFacingError` and returns the message. It replaces the sequence in five places:
+- `ModalViewModel`: the coroutine error handler and the voice-input failure
+- `SettingsViewModel`: the purchase-flow error
+- `TrendsViewModel`: the insights error
+- `LogQuickPickMealUseCase`: the quick-log failure toast
+
+Each caller still shows the message its own way. The voice-input and quick-log failures used to
+wrap a fixed message without mapping. Their errors are never ones the mapper recognises, so they
+get the same generic message as before. `NutrientAnalysisUseCase` stays as it is: it builds a
+notification title plus message and throws the `UserFacingError` for the worker to log.
+`ReportUserFacingErrorUseCaseTest` covers the mapping and the logging.
 
 The `errorUiMapper.map` → `analyticsLogger.logError` → user message sequence is repeated
 in four places. Extract one helper or use case, e.g. `ReportUserFacingErrorUseCase`, that

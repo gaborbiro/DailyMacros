@@ -49,4 +49,7 @@ dependencies {
     testImplementation(libs.test.robolectric)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.kotlinx.coroutines.test)
+    // AnalyticsLogger records errors with Crashlytics, so tests that log need a FirebaseApp.
+    testImplementation(platform(libs.firebase.bom))
+    testImplementation(libs.firebase.crashlytics)
 }
