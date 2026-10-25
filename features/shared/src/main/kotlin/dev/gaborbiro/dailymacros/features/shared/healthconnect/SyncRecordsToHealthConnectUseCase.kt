@@ -4,10 +4,13 @@ import androidx.health.connect.client.records.NutritionRecord
 import androidx.health.connect.client.records.metadata.Metadata
 import androidx.health.connect.client.units.Energy
 import androidx.health.connect.client.units.Mass
+import dev.gaborbiro.dailymacros.features.common.utils.diaryDayStartTime
 import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
 import dev.gaborbiro.dailymacros.repositories.common.model.toZonedDateTime
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
+import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
+import java.time.LocalTime
 import java.time.ZonedDateTime
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.minutes
@@ -33,6 +36,7 @@ sealed class HealthConnectSyncResult {
 class SyncRecordsToHealthConnectUseCase @Inject constructor(
     private val clientProvider: HealthConnectClientProvider,
     private val recordsRepository: RecordsRepository,
+    private val settingsRepository: SettingsRepository,
     private val getHealthConnectStatusUseCase: GetHealthConnectStatusUseCase,
     private val hasHealthConnectPermissionUseCase: HasHealthConnectPermissionUseCase,
 ) {
@@ -51,9 +55,10 @@ class SyncRecordsToHealthConnectUseCase @Inject constructor(
         }
         return try {
             val client = clientProvider.getClient()
+            val dayStart = diaryDayStartTime(settingsRepository.getDiaryDayStartHour())
             val nutritionRecords = recordsRepository.getRecords(since = since.toInstant().toKotlinInstant())
                 .filter { it.template.nutrients.calories != null }
-                .map { it.toNutritionRecord() }
+                .map { it.toNutritionRecord(dayStart) }
             if (nutritionRecords.isNotEmpty()) {
                 client.insertRecords(nutritionRecords)
             }
@@ -70,10 +75,12 @@ class SyncRecordsToHealthConnectUseCase @Inject constructor(
      *
      * [Nutrients.ofWhichAddedSugar] has no Health Connect equivalent and is dropped.
      * [Nutrients.salt] is converted to sodium (salt ÷ 2.5).
+     * The meal type comes from the logged time, see [healthConnectMealType].
      */
-    private fun Record.toNutritionRecord(): NutritionRecord {
+    private fun Record.toNutritionRecord(dayStart: LocalTime): NutritionRecord {
         val startInstant = timestamp.instant.toJavaInstant()
-        val zoneOffset = timestamp.toZonedDateTime().offset
+        val zonedTimestamp = timestamp.toZonedDateTime()
+        val zoneOffset = zonedTimestamp.offset
         val nutrients = template.nutrients
         return NutritionRecord(
             startTime = startInstant,
@@ -85,6 +92,7 @@ class SyncRecordsToHealthConnectUseCase @Inject constructor(
                 clientRecordVersion = System.currentTimeMillis(),
             ),
             name = template.name.ifBlank { null },
+            mealType = healthConnectMealType(zonedTimestamp, dayStart),
             energy = nutrients.calories?.let { Energy.kilocalories(it.toDouble()) },
             protein = nutrients.protein?.let { Mass.grams(it.toDouble()) },
             totalFat = nutrients.fat?.let { Mass.grams(it.toDouble()) },
