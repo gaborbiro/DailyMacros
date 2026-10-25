@@ -37,9 +37,9 @@ import dev.gaborbiro.dailymacros.features.settings.export.useCases.RestoreFromDr
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.SyncDatabaseUseCase
 import dev.gaborbiro.dailymacros.features.settings.mealreminders.toDebugText
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.GetMealReminderPlanUseCase
-import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderCoordinator
-import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderPrefs
-import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderRunner
+import dev.gaborbiro.dailymacros.features.shared.mealreminders.GetMealReminderStatusUseCase
+import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderRefresher
+import dev.gaborbiro.dailymacros.features.shared.mealreminders.SetMealRemindersEnabledUseCase
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
 import dev.gaborbiro.dailymacros.repositories.backup.domain.CloudSyncRepository
@@ -78,9 +78,9 @@ class SettingsViewModel @Inject constructor(
     private val featureFlagStore: FeatureFlagStore,
     private val subscriptionRepository: SubscriptionRepository,
     private val getMealReminderPlanUseCase: GetMealReminderPlanUseCase,
-    private val mealReminderPrefs: MealReminderPrefs,
-    private val mealReminderCoordinator: MealReminderCoordinator,
-    private val mealReminderRunner: MealReminderRunner,
+    private val getMealReminderStatusUseCase: GetMealReminderStatusUseCase,
+    private val setMealRemindersEnabledUseCase: SetMealRemindersEnabledUseCase,
+    private val mealReminderRefresher: MealReminderRefresher,
     private val errorUiMapper: ErrorUiMapper,
     private val analyticsLogger: AnalyticsLogger,
 ) : AndroidViewModel(application) {
@@ -97,7 +97,7 @@ class SettingsViewModel @Inject constructor(
             aiInsightsEnabled = featureFlagStore.isEnabled(FeatureFlagStore.Key.AI_INSIGHTS_ENABLED),
             autoPhotoRecognitionEnabled = settingsRepository.getAutoPhotoRecognitionEnabled(),
             autoPhotoRecognitionVisible = featureFlagStore.isEnabled(FeatureFlagStore.Key.AUTO_PHOTO_RECOGNITION_ENABLED),
-            mealRemindersEnabled = mealReminderPrefs.enabled,
+            mealRemindersEnabled = getMealReminderStatusUseCase.execute().enabled,
             quickPickConfirmationEnabled = settingsRepository.getQuickPickConfirmationEnabled(),
             autoBackupInterval = settingsRepository.getAutoBackupInterval(),
             wifiOnlyBackupEnabled = settingsRepository.getWifiOnlyBackupEnabled(),
@@ -137,7 +137,7 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             val text = runCatching {
                 val now = ZonedDateTime.now()
-                getMealReminderPlanUseCase.execute(now = now).toDebugText(now, mealReminderRunner.status())
+                getMealReminderPlanUseCase.execute(now = now).toDebugText(now, getMealReminderStatusUseCase.execute())
             }.getOrElse { t ->
                 Log.e("MealReminders", "Failed to compute meal reminder plan", t)
                 "Failed: ${t.message}"
@@ -636,10 +636,10 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun setMealRemindersEnabled(enabled: Boolean) {
-        mealReminderPrefs.enabled = enabled
+        setMealRemindersEnabledUseCase.execute(enabled)
         _uiState.update { it.copy(mealRemindersEnabled = enabled) }
         // Schedules (or cancels) straight away instead of waiting for the next diary change.
-        mealReminderCoordinator.refresh(trigger = "settings")
+        mealReminderRefresher.refresh(trigger = "settings")
     }
 
     fun onHealthConnectPermissionsDenied() {

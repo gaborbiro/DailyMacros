@@ -5,8 +5,8 @@ import dev.gaborbiro.dailymacros.features.shared.mealreminders.LoggedDayRule
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderDecision
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderPlan
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderPlanner
-import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderRunner
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderSchedule.isStale
+import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderStatus
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealSlotPlan
 import dev.gaborbiro.dailymacros.features.shared.mealreminders.ReminderStyle
 import java.time.ZonedDateTime
@@ -16,7 +16,7 @@ import java.time.format.DateTimeFormatter
  * Plain-text readout of [MealReminderPlan] for Settings > Debug, so the learned meal times can be
  * sanity-checked against reality before any reminder is posted. Debug-only, hence not localised.
  */
-internal fun MealReminderPlan.toDebugText(now: ZonedDateTime, status: MealReminderRunner.Status): String = buildString {
+internal fun MealReminderPlan.toDebugText(now: ZonedDateTime, status: MealReminderStatus): String = buildString {
     appendLine(
         "Reminders: ${if (status.enabled) "on" else "OFF"}, " +
             "notifications ${if (status.notificationsAllowed) "allowed" else "BLOCKED"}"

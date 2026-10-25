@@ -88,7 +88,14 @@ that capture the current behaviour.
   fields.
 - Add mapper tests for the preview and hiding rules.
 
-## 5. ⬜ Meal reminders: layering and runner cleanup
+## 5. ✅ Meal reminders: layering and runner cleanup
+
+**Done:** the settings sit behind `MealReminderRepository` (`repositories/settings`), on the
+same `meal_reminders` prefs file and keys. `MealReminderRunner` is now `RunMealReminderPassUseCase`
+(it keeps the `Mutex`) plus `GetMealReminderStatusUseCase`. The record query is shared through
+`GetMealReminderInputsUseCase`, and `SettingsViewModel` uses `MealReminderRefresher` and the
+use cases only. `runSafely` rethrows cancellation and reports failures to Crashlytics. `trigger`
+is still a `String`, to keep this change small.
 
 **Problem**
 - `MealReminderPrefs` (SharedPreferences) lives in a feature module.

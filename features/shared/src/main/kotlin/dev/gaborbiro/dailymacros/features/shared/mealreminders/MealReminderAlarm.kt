@@ -15,7 +15,7 @@ import java.time.ZonedDateTime
 import javax.inject.Inject
 
 /**
- * The scheduled wake-up of [MealReminderRunner]: an inexact alarm with a [WINDOW_MS] window, so
+ * The scheduled wake-up of [RunMealReminderPassUseCase]: an inexact alarm with a [WINDOW_MS] window, so
  * no exact-alarm permission is needed. WorkManager was tried first, but a job can be held back
  * for an hour or more (Doze, app standby), which a meal reminder can't absorb. A windowed alarm
  * fires on time while the phone is in use, and as soon as it leaves Doze otherwise.
@@ -52,7 +52,7 @@ object MealReminderAlarm {
 @AndroidEntryPoint
 class MealReminderAlarmReceiver : BroadcastReceiver() {
 
-    @Inject lateinit var runner: MealReminderRunner
+    @Inject lateinit var runMealReminderPassUseCase: RunMealReminderPassUseCase
 
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
@@ -63,7 +63,7 @@ class MealReminderAlarmReceiver : BroadcastReceiver() {
                 val pendingResult = goAsync()
                 CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
                     try {
-                        runner.run(trigger = intent.action.orEmpty().substringAfterLast('.'))
+                        runMealReminderPassUseCase.execute(trigger =intent.action.orEmpty().substringAfterLast('.'))
                     } catch (t: Throwable) {
                         Log.e("MealReminders", "Meal reminder pass failed", t)
                     } finally {
