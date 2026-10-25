@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.test.core.app.ApplicationProvider
 import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
+import dev.gaborbiro.dailymacros.features.modal.model.CloseSignal
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.BaseRecordsRepositoryStub
@@ -14,6 +15,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.BuildRecordDetailsViewDi
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.LogMealFromTemplateUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.LogQuickPickMealUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ExportImageToGalleryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
@@ -49,10 +51,12 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import dev.gaborbiro.dailymacros.test.WorkManagerTestSupport
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -67,6 +71,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowToast
 import java.io.ByteArrayInputStream
 import java.time.ZonedDateTime
 
@@ -122,6 +127,8 @@ class ModalViewModelTest {
 
     private val disabledTarget = Target(enabled = false)
 
+    private var quickPickConfirmationEnabled = true
+
     private val testSettingsRepository = object : SettingsRepository {
         override fun getTargets(): Targets = Targets(
             calories = disabledTarget,
@@ -149,11 +156,13 @@ class ModalViewModelTest {
         override fun getApiKeyOverride(): String? = null
         override fun setApiKeyOverride(key: String) = Unit
         override fun clearApiKeyOverride() = Unit
+        override fun getQuickPickConfirmationEnabled() = quickPickConfirmationEnabled
     }
 
     private fun viewModel(
         repo: RecordsRepository = BaseRecordsRepositoryStub(),
         mealReminderRefresher: MealReminderRefresher = MealReminderRefresher { },
+        applicationScope: CoroutineScope = CoroutineScope(testDispatcher),
     ): ModalViewModel {
         val app = ApplicationProvider.getApplicationContext<Application>()
         val nutrients = TemplateUiMapper()
@@ -187,7 +196,12 @@ class ModalViewModelTest {
             getTemplateImageUseCase = GetTemplateImageUseCase(repo),
             foodRecognitionUseCase = FoodRecognitionUseCase(imageStore, VmFakeChatGpt(), testSettingsRepository),
             applyQuickPickOverrideAndReloadWidgetUseCase = ApplyQuickPickOverrideAndReloadWidgetUseCase(repo),
-            logMealFromTemplateUseCase = LogMealFromTemplateUseCase(app, repo, createFromTemplate),
+            logQuickPickMealUseCase = LogQuickPickMealUseCase(
+                appContext = app,
+                applicationScope = applicationScope,
+                logMealFromTemplateUseCase = LogMealFromTemplateUseCase(app, repo, createFromTemplate),
+                analyticsLogger = AnalyticsLogger(sinks = emptySet()),
+            ),
             analyticsLogger = AnalyticsLogger(sinks = emptySet()),
             errorUiMapper = ErrorUiMapper(app),
             mealReminderRefresher = mealReminderRefresher,
@@ -535,6 +549,66 @@ class ModalViewModelTest {
         assertEquals(0, saveTemplateCalls)
         assertEquals(1, saveRecordCalls)
         assertNull(vm.uiState.value.rootDialog)
+    }
+
+    /** A quick pick's meal, already analysed (so logging it schedules no analysis), counting what gets logged. */
+    private class QuickPickRepo : BaseRecordsRepositoryStub() {
+        val loggedTemplateIds = mutableListOf<Long>()
+        private val tpl = ModalRecordFixtures.template(dbId = 99L, name = "Snack").copy(
+            nutrients = Nutrients(calories = 200),
+        )
+
+        override suspend fun getTemplate(templateId: Long) = tpl
+
+        override suspend fun saveRecord(templateId: Long, timestamp: ZonedInstant): Long {
+            loggedTemplateIds += templateId
+            return 100L
+        }
+    }
+
+    @Test
+    fun `quick pick with confirmation off logs the meal and closes before returning`() = runTest(testDispatcher) {
+        quickPickConfirmationEnabled = false
+        val repo = QuickPickRepo()
+        val vm = viewModel(repo)
+        vm.onQuickPickWidgetConfirmDeeplinkReceived(99L, "Snack")
+        // Closed synchronously, so ModalActivity can finish before its window is drawn.
+        assertEquals(CloseSignal.CLOSE, vm.uiState.value.closeSignal)
+        assertNull(vm.uiState.value.rootDialog)
+        advanceUntilIdle()
+        assertEquals(listOf(99L), repo.loggedTemplateIds)
+        assertEquals("Meal logged", ShadowToast.getTextOfLatestToast())
+    }
+
+    @Test
+    fun `quick pick with confirmation on logs the meal only once log again is tapped`() = runTest(testDispatcher) {
+        val repo = QuickPickRepo()
+        val vm = viewModel(repo)
+        vm.onQuickPickWidgetConfirmDeeplinkReceived(99L, "Snack")
+        assertTrue(vm.uiState.value.rootDialog is DialogHandle.QuickPickWidgetConfirmDialog)
+        assertNull(vm.uiState.value.closeSignal)
+        assertTrue(repo.loggedTemplateIds.isEmpty())
+
+        vm.onQuickPickWidgetLogAgainTapped()
+        advanceUntilIdle()
+        assertEquals(CloseSignal.CLOSE, vm.uiState.value.closeSignal)
+        assertEquals(listOf(99L), repo.loggedTemplateIds)
+        assertEquals("Meal logged", ShadowToast.getTextOfLatestToast())
+    }
+
+    @Test
+    fun `quick pick meal still gets logged after the screen's scope is cancelled`() = runTest(testDispatcher) {
+        quickPickConfirmationEnabled = false
+        val repo = QuickPickRepo()
+        // Doesn't run launched work until the scheduler advances, unlike the screen's dispatcher.
+        val applicationScope = CoroutineScope(StandardTestDispatcher(testScheduler))
+        val vm = viewModel(repo, applicationScope = applicationScope)
+        vm.onQuickPickWidgetConfirmDeeplinkReceived(99L, "Snack")
+        // The Activity finishes straight away, which clears the ViewModel.
+        vm.viewModelScope.cancel()
+        assertTrue(repo.loggedTemplateIds.isEmpty())
+        advanceUntilIdle()
+        assertEquals(listOf(99L), repo.loggedTemplateIds)
     }
 
     /** A single-variant meal whose records can be re-pointed at a new template (as re-analysis does). */
