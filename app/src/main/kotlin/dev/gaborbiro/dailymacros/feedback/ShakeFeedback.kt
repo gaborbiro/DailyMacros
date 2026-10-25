@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
  * site in App.onCreate, the dependency (Shake + curtains)/SHAKE_API_KEY wiring in
  * app/build.gradle.kts, the button-size override res/layout/shake_sdk_view_report_button.xml, the
  * screen-capture callback overrides in MainActivity (they stop the "detected this screenshot"
- * toast) and the READ_EXTERNAL_STORAGE removal in AndroidManifest.xml. Screen names, custom keys,
+ * toast) and the READ_EXTERNAL_STORAGE / screen-recording removals in AndroidManifest.xml. Screen names, custom keys,
  * events and non-fatal errors reach Shake through AnalyticsLogger (see ShakeAnalyticsSink).
  *
  * Meal photos/details are intentionally NOT masked (no Shake.addPrivateView / FLAG_SECURE):
@@ -78,7 +78,8 @@ object ShakeFeedback {
             // Attachments
             isScreenshotIncluded = true
             // Off after the alpha evaluation: it asked for entire-screen capture consent on every
-            // launch, and the screenshot plus activity history were enough.
+            // launch, and the screenshot plus activity history were enough. Must stay off: the
+            // manifest strips Shake's mediaProjection ScreenRecordingService (Play declaration).
             isAutoVideoRecording = false
 
             // Diagnostic context: activity history (lifecycle events, screen changes, our

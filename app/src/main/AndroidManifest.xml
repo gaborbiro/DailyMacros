@@ -39,6 +39,14 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
 
     <!--
+       Shake also declares a mediaProjection foreground service (ScreenRecordingService, removed
+       below) for attaching screen recordings to reports. Video recording is turned off in
+       ShakeFeedback, and Play requires a declaration and justification for this foreground
+       service type, so both are stripped.
+    -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" tools:node="remove" />
+
+    <!--
        Package-visibility declaration required by the Health Connect integration guide so the
        app can reliably detect whether Health Connect is installed (HealthConnectClient.getSdkStatus)
        and launch its permission screen, on Android 11+'s restricted package visibility.
@@ -107,5 +115,10 @@
                 android:value="androidx.startup"
                 tools:node="remove" />
         </provider>
+
+        <!-- Shake's screen recording; see FOREGROUND_SERVICE_MEDIA_PROJECTION above. -->
+        <service
+            android:name="com.shakebugs.shake.internal.shake.recording.ScreenRecordingService"
+            tools:node="remove" />
     </application>
 </manifest>
