@@ -121,7 +121,7 @@ internal fun OverviewView(
     // Re-remembered on searchActive flips (not just the scroll direction change) since
     // derivedStateOf only reacts to snapshot-state reads captured in its lambda, and a plain
     // Boolean read from viewState wouldn't otherwise trigger a recompute of the remembered value.
-    val searchActive = !viewState.searchTerm.isNullOrBlank()
+    val searchActive = viewState.searchTerm != null
     val scrollVisibility = rememberHideOnScrollVisibility(listState)
     val fabsVisible by remember(searchActive) {
         derivedStateOf { scrollVisibility.value || searchActive }
@@ -198,7 +198,7 @@ internal fun OverviewView(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(remainingPadding),
-                        searchTerm = viewState.searchTerm.orEmpty().trim(),
+                        searchTerm = checkNotNull(viewState.searchTerm),
                     )
                 }
 

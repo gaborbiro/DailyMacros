@@ -98,9 +98,6 @@ class SettingsViewModel @Inject constructor(
             autoPhotoRecognitionEnabled = settingsRepository.getAutoPhotoRecognitionEnabled(),
             autoPhotoRecognitionVisible = featureFlagStore.isEnabled(FeatureFlagStore.Key.AUTO_PHOTO_RECOGNITION_ENABLED),
             mealRemindersEnabled = mealReminderPrefs.enabled,
-            // Debug builds always show it, so it can be tried before the flag is turned on.
-            mealRemindersVisible = appInfo.isDebugBuild ||
-                featureFlagStore.isEnabled(FeatureFlagStore.Key.MEAL_REMINDERS_VISIBLE),
             quickPickConfirmationEnabled = settingsRepository.getQuickPickConfirmationEnabled(),
             autoBackupInterval = settingsRepository.getAutoBackupInterval(),
             wifiOnlyBackupEnabled = settingsRepository.getWifiOnlyBackupEnabled(),
@@ -135,7 +132,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     /** Recomputes the debug readout. Also called whenever the screen resumes, so it's never stale. */
-    fun onMealReminderDebugRowTapped() {
+    fun refreshMealReminderDebugText() {
         if (!_uiState.value.isDebugBuild) return
         viewModelScope.launch {
             val text = runCatching {
@@ -595,10 +592,14 @@ class SettingsViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            if (healthConnectSyncUseCase.hasPermission()) {
-                enableHealthConnectSync()
-            } else {
-                _uiUpdates.emit(SettingsUiUpdates.RequestHealthConnectPermissions)
+            when {
+                // Checked first: on Android 12-13 Health Connect is a separate Play Store app that
+                // may be missing or outdated, and hasPermission() throws in that case.
+                !healthConnectSyncUseCase.isAvailable() -> _uiUpdates.emit(
+                    SettingsUiUpdates.ShowSnackbar(HEALTH_CONNECT_NOT_AVAILABLE_MESSAGE)
+                )
+                healthConnectSyncUseCase.hasPermission() -> enableHealthConnectSync()
+                else -> _uiUpdates.emit(SettingsUiUpdates.RequestHealthConnectPermissions)
             }
         }
     }
@@ -664,7 +665,7 @@ class SettingsViewModel @Inject constructor(
                     _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar(message))
                 }
                 HealthConnectSyncResult.NotAvailable ->
-                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Health Connect isn't available on this device."))
+                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar(HEALTH_CONNECT_NOT_AVAILABLE_MESSAGE))
                 HealthConnectSyncResult.PermissionRequired -> Unit // just granted; a stale check race, nothing to show
                 is HealthConnectSyncResult.Error -> {
                     Log.e("HealthConnect", "Sync failed", RuntimeException(result.message))
@@ -730,5 +731,7 @@ class SettingsViewModel @Inject constructor(
 
     private companion object {
         private const val HEALTH_CONNECT_INITIAL_SYNC_WINDOW_DAYS = 30L
+        private const val HEALTH_CONNECT_NOT_AVAILABLE_MESSAGE =
+            "Health Connect isn't available. Install or update it from the Play Store."
     }
 }

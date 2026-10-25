@@ -34,8 +34,6 @@ class ModalUiMapper @Inject constructor(
             "${component.estimatedAmount} ${component.name}$confidence"
         }
 
-        val n = nutrientBreakdown
-        val c = topContributors
         fun row(
             kind: NutrientKind,
             label: String,
@@ -55,34 +53,34 @@ class ModalUiMapper @Inject constructor(
         }
 
         val rows = listOfNotNull(
-            row(NutrientKind.CALORIES, "Calories", n.calories, NutrientDisplayLine.Calories, null) {
+            row(NutrientKind.CALORIES, "Calories", nutrientBreakdown.calories, NutrientDisplayLine.Calories, null) {
                 templateUiMapper.formatCalories(it)
             },
-            row(NutrientKind.PROTEIN, "Protein", n.protein, NutrientDisplayLine.Protein, c.topProteinContributors) {
+            row(NutrientKind.PROTEIN, "Protein", nutrientBreakdown.protein, NutrientDisplayLine.Protein, topContributors.topProteinContributors) {
                 templateUiMapper.formatProtein(it)
             },
-            row(NutrientKind.FAT, "Fat", n.fat, NutrientDisplayLine.Fat, c.topFatContributors) {
+            row(NutrientKind.FAT, "Fat", nutrientBreakdown.fat, NutrientDisplayLine.Fat, topContributors.topFatContributors) {
                 templateUiMapper.formatFat(value = it, saturated = null)
             },
             row(
-                NutrientKind.FAT, "Saturated", n.ofWhichSaturated, NutrientDisplayLine.OfWhichSaturated,
-                c.topSaturatedFatContributors, indent = 1,
+                NutrientKind.FAT, "Saturated", nutrientBreakdown.ofWhichSaturated, NutrientDisplayLine.OfWhichSaturated,
+                topContributors.topSaturatedFatContributors, indent = 1,
             ) { templateUiMapper.formatSaturatedFat(it) },
-            row(NutrientKind.CARBS, "Carbs", n.carbs, NutrientDisplayLine.Carb, c.topCarbsContributors) {
+            row(NutrientKind.CARBS, "Carbs", nutrientBreakdown.carbs, NutrientDisplayLine.Carb, topContributors.topCarbsContributors) {
                 templateUiMapper.formatCarbs(value = it, sugar = null, addedSugar = null)
             },
             row(
-                NutrientKind.CARBS, "Sugar", n.ofWhichSugar, NutrientDisplayLine.OfWhichSugar,
-                c.topSugarContributors, indent = 1,
+                NutrientKind.CARBS, "Sugar", nutrientBreakdown.ofWhichSugar, NutrientDisplayLine.OfWhichSugar,
+                topContributors.topSugarContributors, indent = 1,
             ) { templateUiMapper.formatSugar(it) },
             row(
-                NutrientKind.CARBS, "Added sugar", n.ofWhichAddedSugar, NutrientDisplayLine.OfWhichAddedSugar,
-                c.topAddedSugarContributors, indent = 2,
+                NutrientKind.CARBS, "Added sugar", nutrientBreakdown.ofWhichAddedSugar, NutrientDisplayLine.OfWhichAddedSugar,
+                topContributors.topAddedSugarContributors, indent = 2,
             ) { templateUiMapper.formatAddedSugar(it) },
-            row(NutrientKind.SALT, "Salt", n.salt, NutrientDisplayLine.Salt, c.topSaltContributors) {
+            row(NutrientKind.SALT, "Salt", nutrientBreakdown.salt, NutrientDisplayLine.Salt, topContributors.topSaltContributors) {
                 templateUiMapper.formatSalt(it)
             },
-            row(NutrientKind.FIBRE, "Fibre", n.fibre, NutrientDisplayLine.Fibre, c.topFibreContributors) {
+            row(NutrientKind.FIBRE, "Fibre", nutrientBreakdown.fibre, NutrientDisplayLine.Fibre, topContributors.topFibreContributors) {
                 templateUiMapper.formatFibre(it)
             },
         )
@@ -99,13 +97,13 @@ class ModalUiMapper @Inject constructor(
         model.nutrients.any { it.amount.isNotBlank() } || !model.notes.isNullOrBlank() || model.components.isNotEmpty()
 
     fun hasUnsavedEdits(dialog: DialogHandle.RecordDetailsDialog): Boolean {
-        val p = when (dialog) {
+        val pristine = when (dialog) {
             is DialogHandle.RecordDetailsDialog.View -> dialog.pristineSnapshot
             is DialogHandle.RecordDetailsDialog.Edit -> dialog.pristineSnapshot
         }
-        return dialog.title.text != p.title ||
-                dialog.description.text != p.description ||
-                dialog.imageFilenames != p.imageFilenames
+        return dialog.title.text != pristine.title ||
+                dialog.description.text != pristine.description ||
+                dialog.imageFilenames != pristine.imageFilenames
     }
 
     fun imagesRequireMacroReanalysis(pristine: List<String>, current: List<String>): Boolean =

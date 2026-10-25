@@ -1,0 +1,285 @@
+# Release 1.14 review: follow-up work plan
+
+Complex fixes from the two-axis review of the release diff (`origin/release...master`,
+PR #186). Each item is meant to land as its own PR so it can be reviewed separately.
+Items are ordered by value and by dependency: earlier items unblock later ones.
+
+The easy fixes are already done on `claude/release-review-fixes-4044a35`. They are listed
+at the end for reference.
+
+Status key: ⬜ not started · 🟨 needs a decision first · ✅ done
+
+---
+
+## 1. ⬜ Voice input: state through the ViewModel, available on every free-text field
+
+**Problem**
+- `appendSpokenText` (`features/modal/.../views/VoiceInput.kt:80`) trims, capitalises and
+  joins text inside the view layer. It is called from `RecordDetailsView`,
+  `RecordDetailsCreateView` and `MealCorrectionInput`. That breaks the no-logic-in-UI rule
+  and the unidirectional data flow.
+- `VoiceInputButton` swallows `ActivityNotFoundException` with an empty `catch`.
+- Dictation exists only on the meal fields. You want it on every input field.
+
+**Approach**
+1. Move `VoiceInputButton` to `features/common` so the overview, settings and modal modules
+   can all use it. The button only launches the recogniser and reports what came back, and
+   a launch failure, upward.
+2. Each screen's ViewModel gets an `onSpokenText(field, text)` handler. Joining the spoken
+   text to what's already typed moves to a mapper, with a unit test. The view only shows
+   the resulting `TextFieldValue`.
+3. A launch failure goes to the ViewModel. It logs the failure through `AnalyticsLogger`
+   and shows a snackbar ("Voice input isn't available").
+4. Add the mic to the remaining free-text fields:
+   - Overview search (`SearchFAB.kt:85`)
+   - The prompt editor fields (`PromptEditorBottomSheet.kt:300,375,433`)
+   - The edit-mode title field (`EditModeTransition.kt:116`), if it isn't already covered
+
+🟨 **Decision:** should the numeric fields get dictation too?
+- The fields are targets (`TargetsSettingsBottomSheet`), the goals questionnaire
+  (`QuestionnairePages`) and trends settings.
+- My suggestion is no: speaking "1,850" into a number box adds parsing edge cases for
+  little gain.
+
+**Done when** no view calls `appendSpokenText`, every free-text field has a mic, and the
+join logic has unit tests.
+
+## 2. ⬜ ModalActivity quick-log moves into the ViewModel
+
+**Problem**
+- `ModalActivity.kt:222-240` reads `settingsRepository` and runs
+  `LogMealFromTemplateUseCase` in its own `CoroutineScope`.
+- That duplicates `ModalViewModel.kt:212`, which logs the same meal for the
+  confirmation-dialog path.
+
+**Approach**
+- Keep the "finish before first draw" trick. Decide whether to show anything in the
+  Activity using a pure check: a small use case that answers "should log without showing?".
+- Hand the actual logging to a process-scoped runner that the ViewModel's path also uses.
+  It could be an `@ApplicationScope` `CoroutineScope` provided in `app/di`, which is the
+  standard Hilt pattern.
+- Then there is one logging path, with one place that handles errors.
+
+## 3. ⬜ ModalViewModel and ModalUiMapper: move orchestration and business rules out
+
+**Problem**
+- `persistRecordEdits` (`ModalViewModel.kt:995-1048`) coordinates repositories itself.
+  That belongs in a use case.
+- `scheduleMacroAnalysisForRecordIfTemplateIncomplete` (`ModalViewModel.kt:886`) repeats
+  `LogMealFromTemplateUseCase.kt:29-37`.
+- `ModalUiMapper.kt:111-133` also holds business rules:
+  - `imagesRequireMacroReanalysis`
+  - `editsRequireMacroAnalysis`
+  - `appendCorrection`
+  - `correctionCapacity`
+
+**Approach**
+- Extract `SaveRecordEditsUseCase`. It decides whether to re-analyse, persists the edits
+  and schedules the analysis.
+- Extract `ScheduleAnalysisIfTemplateIncompleteUseCase`. Both the ViewModel and
+  `LogMealFromTemplateUseCase` call it.
+- Move the edit and correction rules into those use cases, or into a small pure
+  `MealEditRules` helper in the feature that the use cases call.
+- The mapper goes back to only mapping models to UI models.
+
+**Risk** This is the most bug-fixed area in the app. Before moving any code, add tests
+that capture the current behaviour.
+
+## 4. ⬜ AiInferenceSection: values computed in the view
+
+**Problem**
+- `views/AiInferenceSection.kt:64` has a computed `hasAiInference` extension.
+- `:94` computes `previewText` and `:112` computes `notesHiddenByPreview`.
+
+**Approach**
+- `ModalUiMapper.map…` computes these and stores them on the breakdown UI model as plain
+  fields.
+- Add mapper tests for the preview and hiding rules.
+
+## 5. ⬜ Meal reminders: layering and runner cleanup
+
+**Problem**
+- `MealReminderPrefs` (SharedPreferences) lives in a feature module.
+- `SettingsViewModel` writes those prefs directly (`:638`) and injects the concrete
+  `MealReminderCoordinator`, although a `MealReminderRefresher` interface exists.
+- `MealReminderRunner` acts as a use case but exposes both `run()` and `status()`.
+- `MealReminderRunner.kt:59-62` repeats the record query in
+  `GetMealReminderPlanUseCase.kt:23-25`.
+- `decision as? Remind/Silent` casts appear at `:77`, `:96` and `:101`, where a `when` on
+  the sealed type would be clearer.
+- `trigger: String` is a free-form label, not a type.
+- `MealReminderCoordinator.runSafely` uses `runCatching`. That also catches
+  cancellation, and failures only reach Logcat, not Crashlytics.
+
+**Approach**
+1. Move the reminder settings (enabled, history, last pass) behind a repository:
+   - an interface in `repositories/settings/domain` (or a new `repositories/reminders`)
+   - the implementation in the Android module
+2. Split the runner:
+   - `RunMealReminderPassUseCase.execute(trigger)`
+   - `GetMealReminderStatusUseCase.execute()`
+   - Both share a "load recent records" step with `GetMealReminderPlanUseCase`.
+3. `SettingsViewModel` depends on `MealReminderRefresher` and the new use cases only.
+4. Replace the casts with `when` over `MealReminderDecision`.
+5. Model `trigger` as a small sealed type or enum. The alarm path maps intent actions onto
+   it. Low value, so do it only while touching the file.
+6. In `runSafely`, rethrow `CancellationException` and report other failures through
+   `AnalyticsLogger.logError`.
+
+## 6. 🟨 CheckCloudBackupConflictUseCase: rename or split
+
+**Facts**
+- `features/settings/.../export/useCases/CheckCloudBackupConflictUseCase.kt:22-24` does
+  write `lastSynced`. It happens only when Drive is newer *and* this install wrote the
+  file.
+- PR #174 calls this "adopting" the timestamp. It repairs bookkeeping lost when an upload
+  was cancelled, overlapped another sync, or lost its acknowledgement.
+- The early `return false` is what stops false conflicts, not the write. When the call
+  succeeds, both callers (`AutoSyncUseCase.kt:63` and `SettingsViewModel.kt:415`) set
+  `lastSynced` again right afterwards.
+- The write keeps the displayed "last backed up" time correct when the follow-up upload
+  fails.
+
+**History** (most relevant)
+
+| Commit | Date | PR | Change |
+|---|---|---|---|
+| 78ae3dde | 2026-07-10 | #71 | First conflict check |
+| 2c25c17d | 2026-07-12 | #71 | Removed a ViewModel write of the cloud timestamp into `lastSynced`, which "would defeat conflict detection" |
+| 3c0dde1a | 2026-07-24 | #85 | Matches a lost-ack upload against Drive within a 30s window |
+| 65dee82d | 2026-08-17 | #116 | Defers the `lastSynced` write until after the post-restore restart |
+| 56a79189 | 2026-10-11 | #174 | Extracted this use case and added the "written by this install" adopt-write |
+
+**Options**
+- **A. Rename only:** e.g. `ReconcileCloudBackupConflictUseCase`, with the KDoc already
+  explaining the adopt-write. No behaviour change.
+- **B. Split:** a pure `IsCloudBackupConflictUseCase`, plus an `AdoptOwnCloudBackupUseCase`
+  that both callers run.
+  - Riskier. It brings back the #174 self-conflicts if the written-by-this-install guard is
+    dropped.
+  - It brings back the 2c25c17d bug if the adopt-write loses either of its two conditions.
+  - Every caller has to call both.
+
+**Recommendation** Go with A. Splitting buys little and re-opens a bug-dense area.
+
+## 7. ⬜ Error mapping duplicated
+
+The `errorUiMapper.map` → `analyticsLogger.logError` → user message sequence is repeated
+in four places. Extract one helper or use case, e.g. `ReportUserFacingErrorUseCase`, that
+returns the message to show.
+
+## 8. 🟨 Shake key: replace `verifyShakeApiKey`
+
+**Now**
+- Gradle reads the key while configuring the build and writes it into `BuildConfig`.
+- A separate task finds the package tasks by name and fails the build when the key is
+  empty.
+- Fine-grained build-step wiring like that is brittle and mixes a CI concern into the
+  app's build.
+
+**Options**
+1. **Fail fast in CI (recommended).**
+   - Each workflow gets a first step that fails when its secret is empty:
+     `if: ${{ secrets.SHAKE_API_KEY == '' }}` → `run: echo "::error::SHAKE_API_KEY secret
+     missing" && exit 1`. That fails in seconds instead of after a full build, with a
+     clear message.
+   - Gradle then just passes the key through.
+   - `ShakeFeedback.start` goes back to skipping when the key is blank, with a log line,
+     so local builds and forks without a key still build and run.
+   - Only CI-built artifacts ever reach testers, and CI guarantees the key.
+2. **Fail in Gradle only on CI.**
+   - Keep the check, but run it while Gradle configures the build and only when
+     `System.getenv("CI") == "true"`.
+   - Drop the package-task wiring. Simpler than now, but Gradle still enforces a CI rule.
+3. **Keep the current task, tidied up.**
+   - Hook the check onto the variant's packaging step through AGP's variant API, instead
+     of matching task names.
+   - It still blocks local packaging without a key.
+
+**Decision needed:** 1 is my recommendation. It also means `CLAUDE.md` and the
+`ShakeFeedback` KDoc go back to "blank means not started".
+
+## 9. ⬜ Health Connect: better state when unavailable
+
+The crash is already fixed on the branch: the toggle now checks availability first and
+shows a snackbar. Follow-up work:
+- Expose the SDK status in `SettingsUiState`.
+  - When an install or update is needed, the row offers "Install/Update Health Connect",
+    which opens the Play listing for `com.google.android.apps.healthdata`.
+  - When the status is `SDK_UNAVAILABLE`, the row is disabled with "Not available on this
+    device".
+- `HealthConnectSyncUseCase` now has four public entry points: `isAvailable`,
+  `hasPermission`, `execute` and `deleteRecord`. Split it into single-`execute()` use
+  cases.
+
+## 10. 🟨 Privacy: Shake disclosure for testers
+
+- `PRIVACY.md:86-87` says "No meal photos or diary content are sent to analytics or crash
+  reporting." That is literally true, since Shake is a feedback tool. But Shake does
+  receive screenshots, including meal photos, plus logs and activity history.
+- Even with testers only, Play's Data safety form covers what the build can send, and
+  testers are still data subjects.
+- **Suggestion:** a short "Beta testing feedback" paragraph in `PRIVACY.md`:
+  - what Shake receives
+  - that only you see it
+  - Shake's privacy link
+- If Shake is ever gated to testers only (item 11), the paragraph can say so.
+
+## 11. ⬜ Gate Shake to testers before any production rollout
+
+- `App.kt:78` starts Shake for every build. That's fine while everyone is a tester.
+- Before production, gate it to the testing tracks: a Remote Config flag (default off), or
+  a separate tester build flavour.
+- Not urgent. Track it here so it isn't forgotten at launch.
+
+## 12. ⬜ Backend: `functions/testers.js` duplicates `lib/`
+
+`testers.js:29-30,42-89,91-156` re-implements:
+- the secrets
+- `normalizeEmail`
+- `dedupeKey`
+- the notification email
+- the sign-up handler
+
+`lib/` already provides all of these, and `lib/secrets.js` even says `testers.js` uses it.
+Switch `testers.js` to the `lib/` versions and deploy with
+`firebase deploy --only functions`.
+
+## 13. ⬜ KMP build logic: convention plugin
+
+The same KMP target block is repeated across 5 `build.gradle.kts` files. Move it into a
+`buildLogic` convention plugin, e.g. `dailymacros.kmp.library`. Fits the KMP migration
+plan.
+
+## Deferred (tolerated for now)
+
+- **Hardcoded user-facing strings, and string resource names that don't follow
+  `[feature].[section].[description]`:** both get fixed in one pass when the app is
+  internationalised.
+- **`testingFreeForAll` not respected by the client's subscribe banner:** accepted for
+  the alpha, since the banner can be dismissed.
+
+---
+
+## Already done on `claude/release-review-fixes-4044a35`
+
+- Stopped tracking the `.claude/.idea/` IDE files and added `.claude/.idea/` to
+  `.gitignore`.
+- Fixed the escaped apostrophes (`you\'ve` → `you’ve`) in the settings and trends strings.
+- Moved Hilt modules into `di/` packages:
+  - `MealReminderModule` to `features/shared/.../di`
+  - `AnalyticsSinkModule` to `core/analytics/.../di`
+  - `ShakeFeedbackModule` to `feedback/di`, which keeps Shake in its own package
+- Overview: the ViewModel trims the search term; the view no longer does.
+- Health Connect: the toggle checks availability before `hasPermission()`, which throws
+  when Health Connect is missing or outdated. That fixes a crash on Android 12–13 devices
+  without an up-to-date Health Connect.
+- Meal reminders released: removed `MEAL_REMINDERS_VISIBLE` and the debug-only gate, so
+  the Reminders section always shows. Reminders stay opt-in (`prefs.enabled` defaults to
+  false). The `meal_reminders_visible` key can be deleted in the Firebase console.
+- `PRIVACY.md`: added `RECEIVE_BOOT_COMPLETED` and how voice input works (no microphone
+  permission; the device's recogniser handles the audio).
+- Renames:
+  - `scheduleMacroAnalysisForAllRecordsUsingTemplate` → `scheduleMacroAnalysisForTemplate`
+  - `onMealReminderDebugRowTapped` → `refreshMealReminderDebugText`
+  - the variables `n`, `c` and `p` in `ModalUiMapper` → full names

@@ -118,7 +118,7 @@ class OverviewViewModel @Inject constructor(
         // Exposed so OverviewView can keep the search bar pinned open while a term is active,
         // rather than letting scroll-direction alone decide (see OverviewView.fabsVisible) -
         // SearchFAB's own text/expanded state is local and gets wiped if it's ever disposed.
-        _viewState.update { it.copy(hasMoreData = true, searchTerm = search) }
+        _viewState.update { it.copy(hasMoreData = true, searchTerm = search?.trim()?.ifEmpty { null }) }
         resubscribe(search)
     }
 

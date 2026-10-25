@@ -107,3 +107,6 @@ buildNumber.properties
 firebase-debug.log
 firestore-debug.log
 
+
+# IDE project opened on the .claude folder
+.claude/.idea/

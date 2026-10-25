@@ -137,7 +137,7 @@ fun SettingsScreen(
         onOverwriteDialogDismissed = settingsViewModel::onOverwriteDialogDismissed,
         onSubscribeTapped = { context.findActivity()?.let(settingsViewModel::onSubscribeRowTapped) },
         onShowOnboardingTapped = { navController.navigate(ONBOARDING_ROUTE) },
-        onMealReminderDebugTapped = settingsViewModel::onMealReminderDebugRowTapped,
+        onMealReminderDebugTapped = settingsViewModel::refreshMealReminderDebugText,
         onHealthConnectSyncToggled = settingsViewModel::onHealthConnectSyncToggled,
         onSuggestIntegrationTapped = { openSuggestIntegrationEmail(context) },
     )
@@ -158,7 +158,7 @@ fun SettingsScreen(
                 targetsSettingsViewModel.reloadFromRepository()
             }
             // Meals may have been logged or moved elsewhere (e.g. from a widget) while away.
-            if (event == Lifecycle.Event.ON_RESUME) settingsViewModel.onMealReminderDebugRowTapped()
+            if (event == Lifecycle.Event.ON_RESUME) settingsViewModel.refreshMealReminderDebugText()
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }

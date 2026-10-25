@@ -101,6 +101,13 @@ person.
 - **Photos / media (`READ_MEDIA_IMAGES`)** — to read the meal photos you add to
   your food diary.
 - **Notifications** — to show reminders and status notifications.
+- **Run at startup (`RECEIVE_BOOT_COMPLETED`)** — to reschedule meal reminders
+  (if you turned them on) and refresh home-screen widgets after the phone
+  restarts.
+- **No microphone permission.** Voice input in text fields hands off to your
+  device's own speech recogniser (usually Google's), which records and
+  transcribes your speech under its own privacy policy and returns only the
+  text to Daily Macros. No audio passes through the app.
 - **Health Connect - write nutrition (`health.WRITE_NUTRITION`)** — only
   requested if you turn on Health Connect sync in Settings; lets the app write
   your logged meals' nutrition figures to Health Connect.

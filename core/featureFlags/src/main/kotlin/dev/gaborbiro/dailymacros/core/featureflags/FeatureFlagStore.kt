@@ -6,7 +6,6 @@ interface FeatureFlagStore {
         AI_INSIGHTS_ENABLED("ai_insights_enabled", false),
         CUSTOMISE_AI_ENABLED("customise_ai_enabled", false),
         AUTO_PHOTO_RECOGNITION_ENABLED("auto_photo_recognition_enabled", false),
-        MEAL_REMINDERS_VISIBLE("meal_reminders_visible", false),
     }
 
     fun isEnabled(key: Key): Boolean
