@@ -11,7 +11,7 @@ Status key: ⬜ not started · 🟨 needs a decision first · ✅ done
 
 ---
 
-## 1. ⬜ Voice input: state through the ViewModel, available on every free-text field
+## 1. ⬜ Voice input: state through the ViewModel
 
 **Problem**
 - `appendSpokenText` (`features/modal/.../views/VoiceInput.kt:80`) trims, capitalises and
@@ -19,30 +19,22 @@ Status key: ⬜ not started · 🟨 needs a decision first · ✅ done
   `RecordDetailsCreateView` and `MealCorrectionInput`. That breaks the no-logic-in-UI rule
   and the unidirectional data flow.
 - `VoiceInputButton` swallows `ActivityNotFoundException` with an empty `catch`.
-- Dictation exists only on the meal fields. You want it on every input field.
+
+**Scope (decided):** dictation stays on the hot path only: title, description and the AI
+correction field. Those three already have it in both the create and the edit dialogs, so
+no fields are added. This item is the refactor only.
 
 **Approach**
-1. Move `VoiceInputButton` to `features/common` so the overview, settings and modal modules
-   can all use it. The button only launches the recogniser and reports what came back, and
-   a launch failure, upward.
-2. Each screen's ViewModel gets an `onSpokenText(field, text)` handler. Joining the spoken
-   text to what's already typed moves to a mapper, with a unit test. The view only shows
-   the resulting `TextFieldValue`.
-3. A launch failure goes to the ViewModel. It logs the failure through `AnalyticsLogger`
-   and shows a snackbar ("Voice input isn't available").
-4. Add the mic to the remaining free-text fields:
-   - Overview search (`SearchFAB.kt:85`)
-   - The prompt editor fields (`PromptEditorBottomSheet.kt:300,375,433`)
-   - The edit-mode title field (`EditModeTransition.kt:116`), if it isn't already covered
+1. `ModalViewModel` gets `onTitleSpoken`, `onDescriptionSpoken` and `onCorrectionSpoken`
+   handlers. The views pass the raw recognised text up and nothing else.
+2. Joining the spoken text to what's already typed (trim, capitalise the first letter when
+   the field is empty, cursor at the end) moves out of the view into a pure helper the
+   ViewModel calls, with unit tests.
+3. `VoiceInputButton` reports a launch failure upward. The ViewModel logs it through
+   `AnalyticsLogger` and shows a snackbar ("Voice input isn't available").
 
-🟨 **Decision:** should the numeric fields get dictation too?
-- The fields are targets (`TargetsSettingsBottomSheet`), the goals questionnaire
-  (`QuestionnairePages`) and trends settings.
-- My suggestion is no: speaking "1,850" into a number box adds parsing edge cases for
-  little gain.
-
-**Done when** no view calls `appendSpokenText`, every free-text field has a mic, and the
-join logic has unit tests.
+**Done when** no view calls `appendSpokenText`, the join logic has unit tests, and a
+launch failure is logged and shown, not swallowed.
 
 ## 2. ⬜ ModalActivity quick-log moves into the ViewModel
 
@@ -126,7 +118,11 @@ that capture the current behaviour.
 6. In `runSafely`, rethrow `CancellationException` and report other failures through
    `AnalyticsLogger.logError`.
 
-## 6. 🟨 CheckCloudBackupConflictUseCase: rename or split
+## 6. ✅ CheckCloudBackupConflictUseCase: rename or split
+
+**Outcome:** option A agreed and done. It's now `ReconcileCloudBackupConflictUseCase`, and
+its test is renamed to match. No behaviour changed. The notes below are kept for the
+record.
 
 **Facts**
 - `features/settings/.../export/useCases/CheckCloudBackupConflictUseCase.kt:22-24` does
@@ -283,3 +279,8 @@ plan.
   - `scheduleMacroAnalysisForAllRecordsUsingTemplate` → `scheduleMacroAnalysisForTemplate`
   - `onMealReminderDebugRowTapped` → `refreshMealReminderDebugText`
   - the variables `n`, `c` and `p` in `ModalUiMapper` → full names
+  - `CheckCloudBackupConflictUseCase` → `ReconcileCloudBackupConflictUseCase` (item 6)
+- Ported the two abandoned edits from the old `relaxed-bohr` worktree, then deleted it:
+  - the "Carb:" label → "Carbs:" (`TemplateUiMapper`)
+  - the "last backed up" date in Settings is formatted with Compose's `LocalLocale`
+    instead of `Locale.getDefault()`

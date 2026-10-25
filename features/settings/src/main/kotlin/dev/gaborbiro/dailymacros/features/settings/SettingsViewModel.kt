@@ -27,7 +27,7 @@ import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectSync
 import dev.gaborbiro.dailymacros.features.settings.export.pdf.DiaryDateRange
 import dev.gaborbiro.dailymacros.features.settings.export.pdf.PdfRangeSelection
 import dev.gaborbiro.dailymacros.features.settings.export.pdf.computeRange
-import dev.gaborbiro.dailymacros.features.settings.export.useCases.CheckCloudBackupConflictUseCase
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.ReconcileCloudBackupConflictUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportPdfDiaryUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.PdfExportResult
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportSqliteDatabaseUseCase
@@ -71,7 +71,7 @@ class SettingsViewModel @Inject constructor(
     private val exportSqliteDatabaseUseCase: ExportSqliteDatabaseUseCase,
     private val importSqliteDatabaseUseCase: ImportSqliteDatabaseUseCase,
     private val syncDatabaseUseCase: SyncDatabaseUseCase,
-    private val checkCloudBackupConflictUseCase: CheckCloudBackupConflictUseCase,
+    private val reconcileCloudBackupConflictUseCase: ReconcileCloudBackupConflictUseCase,
     private val restoreFromDriveUseCase: RestoreFromDriveUseCase,
     private val healthConnectSyncUseCase: HealthConnectSyncUseCase,
     private val cloudSyncRepository: CloudSyncRepository,
@@ -409,7 +409,7 @@ class SettingsViewModel @Inject constructor(
                     // detection would treat this device as in sync with the cloud backup.
                     _uiState.update { it.copy(lastSyncedEpochMs = driveInfo.modifiedTimeMs) }
                 }
-                if (driveInfo != null && checkCloudBackupConflictUseCase.execute(driveInfo)) {
+                if (driveInfo != null && reconcileCloudBackupConflictUseCase.execute(driveInfo)) {
                     _uiState.update {
                         it.copy(
                             cloudSyncInProgress = false,

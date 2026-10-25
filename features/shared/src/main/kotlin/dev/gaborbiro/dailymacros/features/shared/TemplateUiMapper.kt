@@ -24,7 +24,7 @@ class TemplateUiMapper @Inject constructor() {
                 "Fat: " + formatFat(fat, nutrients.ofWhichSaturated)
             },
             carbs = nutrients.carbs?.let { carbs ->
-                "Carb: " + formatCarbs(
+                "Carbs: " + formatCarbs(
                     carbs,
                     nutrients.ofWhichSugar,
                     nutrients.ofWhichAddedSugar
