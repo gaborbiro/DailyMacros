@@ -17,7 +17,7 @@ import dev.gaborbiro.dailymacros.features.overview.usecase.ResolveOverviewObserv
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.ListMealVariantsForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.NutrientAnalysisWorker
-import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectSyncUseCase
+import dev.gaborbiro.dailymacros.features.shared.healthconnect.DeleteRecordFromHealthConnectUseCase
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.repositories.billing.domain.SubscriptionRepository
@@ -62,7 +62,7 @@ class OverviewViewModel @Inject constructor(
     private val listMealVariantsForTemplateUseCase: ListMealVariantsForTemplateUseCase,
     private val createRecordFromTemplateUseCase: CreateRecordFromTemplateUseCase,
     private val subscriptionRepository: SubscriptionRepository,
-    private val healthConnectSyncUseCase: HealthConnectSyncUseCase,
+    private val deleteRecordFromHealthConnectUseCase: DeleteRecordFromHealthConnectUseCase,
 ) : AndroidViewModel(application) {
 
     private val _viewState: MutableStateFlow<OverviewUiState> =
@@ -381,7 +381,7 @@ class OverviewViewModel @Inject constructor(
         viewModelScope.launch {
             deleteUnusedTemplateIfOrphaned.execute(record.template.dbId)
             if (settingsRepository.getHealthConnectSyncEnabled()) {
-                healthConnectSyncUseCase.deleteRecord(record.recordId)
+                deleteRecordFromHealthConnectUseCase.execute(record.recordId)
             }
         }
     }

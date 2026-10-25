@@ -10,7 +10,7 @@ import android.os.Bundle
  * empty grant set, no UI) unless the requesting app declares a "rationale" it can link to - see
  * the two manifest entries pointing here (the pre-Android-14 rationale intent and the Android
  * 14+ ViewPermissionUsageActivity alias). This just opens the privacy policy and closes; it's
- * not meant to be seen, only to satisfy that requirement so HealthConnectSyncUseCase's
+ * not meant to be seen, only to satisfy that requirement so the Settings toggle's
  * permission request actually prompts the user.
  */
 class HealthConnectRationaleActivity : Activity() {

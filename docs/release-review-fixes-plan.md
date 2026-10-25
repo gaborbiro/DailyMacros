@@ -218,7 +218,18 @@ The original notes follow.
 **Decision needed:** 1 is my recommendation. It also means `CLAUDE.md` and the
 `ShakeFeedback` KDoc go back to "blank means not started".
 
-## 9. ⬜ Health Connect: better state when unavailable
+## 9. ✅ Health Connect: better state when unavailable
+
+**Done:**
+- `SettingsUiState.healthConnectStatus` holds `HealthConnectStatus` (available /
+  install-or-update required / not supported), read on start and whenever Settings resumes.
+- The Health Connect row shows the toggle, an "Install/Update" action that opens the Play
+  listing through the `OpenPlayStoreListing` UI update, or a disabled "Not available on this
+  device" row.
+- `HealthConnectSyncUseCase` is split into `GetHealthConnectStatusUseCase`,
+  `HasHealthConnectPermissionUseCase` (throws unless available),
+  `SyncRecordsToHealthConnectUseCase` and `DeleteRecordFromHealthConnectUseCase`, behind a
+  `HealthConnectClientProvider` seam so they're unit tested.
 
 The crash is already fixed on the branch: the toggle now checks availability first and
 shows a snackbar. Follow-up work:
