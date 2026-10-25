@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.features.modal
 
 import android.app.Application
 import android.graphics.Bitmap
+import android.net.Uri
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.viewModelScope
 import androidx.test.core.app.ApplicationProvider
@@ -52,14 +53,18 @@ import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
 import dev.gaborbiro.dailymacros.test.WorkManagerTestSupport
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -71,8 +76,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 import org.robolectric.shadows.ShadowToast
 import java.io.ByteArrayInputStream
+import java.io.File
 import java.time.ZonedDateTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -215,6 +222,40 @@ class ModalViewModelTest {
         val root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.Edit
         assertEquals("", root.title.text)
         assertTrue(root.imageFilenames.isEmpty())
+        // Nothing to lose yet, so cancelling closes without asking.
+        assertFalse(root.hasUnsavedEdits)
+    }
+
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE) // Real ImageDecoder, which saving the shared photo uses.
+    fun `photo shared into the app opens a new record that asks before discarding`() = runTest(testDispatcher) {
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        val photo = File(app.cacheDir, "shared.png").apply {
+            outputStream().use { Bitmap.createBitmap(4, 4, Bitmap.Config.ARGB_8888).compress(Bitmap.CompressFormat.PNG, 100, it) }
+        }
+        val vm = viewModel()
+        vm.onImagesShared(listOf(Uri.fromFile(photo)))
+        // Saving the photo hops to Dispatchers.IO, outside the test scheduler, so wait in real time.
+        val root = withContext(Dispatchers.Default.limitedParallelism(1)) {
+            withTimeout(5_000) {
+                vm.uiState.first { it.rootDialog is DialogHandle.RecordDetailsDialog.Edit }
+            }
+        }.rootDialog as DialogHandle.RecordDetailsDialog.Edit
+        assertEquals(1, root.imageFilenames.size)
+        // Same as picking the photo after opening the dialog from the widget.
+        assertTrue(root.hasUnsavedEdits)
+        // Stops the AI food recognition queued after the photo arrived; it isn't under test here.
+        vm.viewModelScope.cancel()
+    }
+
+    @Test
+    fun `photo recognition details open a new record that asks before discarding`() {
+        val vm = viewModel()
+        vm.onPhotoRecognitionDetailsDeeplinkReceived(recognisedTitle = "Pasta", imageFilename = "pic.jpg")
+        val root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.Edit
+        assertEquals("Pasta", root.title.text)
+        assertEquals(listOf("pic.jpg"), root.imageFilenames)
+        assertTrue(root.hasUnsavedEdits)
     }
 
     @Test
