@@ -11,6 +11,17 @@ jobs:
       contents: write
 
     steps:
+    # Fails in seconds rather than after a full build: a release must carry the Shake key
+    # (see ShakeFeedback.kt), and the app silently skips Shake without one.
+    - name: Require Shake API key
+      env:
+        SHAKE_API_KEY: ${{ secrets.SHAKE_API_KEY }}
+      run: |
+        if [ -z "$SHAKE_API_KEY" ]; then
+          echo "::error::GitHub Actions secret SHAKE_API_KEY is missing (Shake App API key for the release package)."
+          exit 1
+        fi
+
     - uses: actions/checkout@v4
       with:
         # Full history so `git rev-list --count HEAD` (the versionCode source) is accurate;
@@ -43,7 +54,7 @@ jobs:
         RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
         RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
         RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
-        # Shake tester feedback (see ShakeFeedback.kt). Required: the build fails without it.
+        # Shake tester feedback (see ShakeFeedback.kt). Presence is checked by the first step.
         SHAKE_API_KEY: ${{ secrets.SHAKE_API_KEY }}
       run: ./gradlew bundleRelease
 

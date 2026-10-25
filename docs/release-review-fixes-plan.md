@@ -164,7 +164,23 @@ The `errorUiMapper.map` → `analyticsLogger.logError` → user message sequence
 in four places. Extract one helper or use case, e.g. `ReportUserFacingErrorUseCase`, that
 returns the message to show.
 
-## 8. 🟨 Shake key: replace `verifyShakeApiKey`
+## 8. ✅ Shake key: replace `verifyShakeApiKey`
+
+**Outcome:** option 1 done.
+- Both workflows now open with a "Require Shake API key" step that fails when the secret is
+  empty.
+- `verifyShakeApiKey` and its package-task wiring are gone from `app/build.gradle.kts`.
+- `ShakeFeedback.start` logs a warning and returns when the key is blank.
+- `CLAUDE.md` is updated to match.
+
+Verified: unit tests and `assembleDebug` pass with a local key. **Not verified yet:**
+- the new CI step, which runs on the first push or PR
+- a local build with no key
+
+Fork and Dependabot PRs get no secrets, so they fail at the first step, as they did
+before, just earlier.
+
+The original notes follow.
 
 **Now**
 - Gradle reads the key while configuring the build and writes it into `BuildConfig`.
