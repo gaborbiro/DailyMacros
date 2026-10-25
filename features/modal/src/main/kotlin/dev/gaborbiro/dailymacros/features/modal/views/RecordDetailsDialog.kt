@@ -1,12 +1,26 @@
 package dev.gaborbiro.dailymacros.features.modal.views
 
 import android.content.res.Configuration
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,13 +28,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.gaborbiro.dailymacros.design.PaddingDefault
+import dev.gaborbiro.dailymacros.design.PaddingHalf
+import dev.gaborbiro.dailymacros.features.common.R as CommonR
 import dev.gaborbiro.dailymacros.features.modal.R
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.MealVariantPickerOption
@@ -63,11 +78,16 @@ internal fun RecordDetailsDialog(
     onRecordDetailsEditStarted: () -> Unit,
     onRecordDetailsEditCancelled: () -> Unit,
     onEditTimestampTapped: () -> Unit,
+    onCorrectionChanged: (TextFieldValue) -> Unit,
+    onReanalyzeTapped: () -> Unit,
+    onTitleSpoken: (String) -> Unit,
+    onDescriptionSpoken: (String) -> Unit,
+    onCorrectionSpoken: (String) -> Unit,
+    onVoiceInputFailed: (Throwable) -> Unit,
 ) {
     val ui = deconstructDialogHandle(dialogHandle)
     val viewDialog = dialogHandle as? DialogHandle.RecordDetailsDialog.View
     val showCloseOnly = dialogHandle is DialogHandle.RecordDetailsDialog.View && !dialogHandle.allowEdit
-    val showRecordEditAction = viewDialog != null && viewDialog.allowEdit && !viewDialog.isEditing && !showCloseOnly
     val showKeyboardOnOpen = remember(dialogHandle) { ui.showKeyboardOnOpen }
     val showPhotoManagement = when (dialogHandle) {
         is DialogHandle.RecordDetailsDialog.Edit -> true
@@ -114,28 +134,27 @@ internal fun RecordDetailsDialog(
                 variantPickerOptions = viewDialog?.variantPickerOptions,
                 selectedVariantTemplateId = viewDialog?.templateDbId ?: 0L,
                 onVariantTemplatePicked = onVariantTemplatePicked,
-                showQuickPickStar = viewDialog != null && viewDialog.allowEdit,
-                quickPickStarred = viewDialog?.quickPickStarred == true,
-                onQuickPickStarToggled = onQuickPickStarToggled,
                 onEditTimestampTapped = onEditTimestampTapped,
+                onCorrectionChanged = onCorrectionChanged,
+                onReanalyzeTapped = onReanalyzeTapped,
+                onTitleSpoken = onTitleSpoken,
+                onDescriptionSpoken = onDescriptionSpoken,
+                onCorrectionSpoken = onCorrectionSpoken,
+                onVoiceInputFailed = onVoiceInputFailed,
             )
         },
         errorMessages = errorMessages,
-        topEndAction = if (showRecordEditAction) {
+        topEndAction = if (viewDialog != null && !showCloseOnly) {
             {
-                IconButton(
-                    modifier = Modifier.padding(top = 12.dp, end = PaddingDefault),
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = Color.Gray.copy(alpha = .8f),
-                        contentColor = Color.White,
-                    ),
-                    onClick = onRecordDetailsEditStarted,
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Edit,
-                        contentDescription = stringResource(R.string.meal_details_begin_edit_cd),
-                    )
-                }
+                RecordDetailsHeaderActions(
+                    visible = !viewDialog.isEditing,
+                    quickPickStarred = viewDialog.quickPickStarred,
+                    onQuickPickStarToggled = onQuickPickStarToggled,
+                    // A quick pick's details already lead with "Log meal again".
+                    showLogMealAgain = !viewDialog.openedFromTemplateDetailsOnly,
+                    onEditTapped = onRecordDetailsEditStarted,
+                    onLogMealAgainTapped = onSaveAndAddDetailsTapped,
+                )
             }
         } else null,
         footer = {
@@ -145,59 +164,58 @@ internal fun RecordDetailsDialog(
                         showCloseOnly = false,
                         showSaveAndAdd = false,
                         primaryEnabled = true,
-                        primaryLabel = stringResource(R.string.meal_details_action_save),
+                        primaryLabel = stringResource(R.string.meal_details_action_save_and_analyze),
                         saveAndAddLabel = null,
                         onDismissRequested = { requestDismissRecordDetails() },
                         onSaveTapped = onSubmitButtonTapped,
                         onSaveAndAddTapped = {},
+                        primaryStartsAnalysis = true,
                     )
                 }
 
                 is DialogHandle.RecordDetailsDialog.View -> {
-                    val dirty = dialogHandle.hasUnsavedEdits
-                    when {
-                        showCloseOnly -> {
-                            RecordDetailsDialogButtons(
-                                showCloseOnly = true,
-                                showSaveAndAdd = false,
-                                primaryEnabled = true,
-                                primaryLabel = null,
-                                saveAndAddLabel = null,
-                                onDismissRequested = { requestDismissRecordDetails() },
-                                onSaveTapped = {},
-                                onSaveAndAddTapped = {},
-                            )
-                        }
-
-                        dialogHandle.isEditing -> {
-                            RecordDetailsViewEditButtons(
-                                primaryEnabled = dirty,
-                                primaryLabel = if (dialogHandle.linkedRecordCountForTemplate == 1) {
-                                    stringResource(R.string.meal_details_action_update)
-                                } else {
-                                    pluralStringResource(
-                                        R.plurals.meal_details_update_linked_records,
-                                        dialogHandle.linkedRecordCountForTemplate,
-                                        dialogHandle.linkedRecordCountForTemplate,
-                                    )
-                                },
-                                onUpdate = onSaveDetailsTapped,
-                                onSaveAndAdd = onSaveAndAddDetailsTapped,
-                                onCancel = {
-                                    if (dialogHandle.hasUnsavedEdits) {
-                                        pendingDiscard = PendingRecordDetailsDiscard.ExitEditMode
-                                    } else {
-                                        onRecordDetailsEditCancelled()
-                                    }
-                                },
-                            )
-                        }
-
-                        else -> {
-                            RecordDetailsViewBrowseButtons(
-                                onLogMealAgain = onSaveAndAddDetailsTapped,
-                                onDismissRequested = { requestDismissRecordDetails() },
-                            )
+                    if (showCloseOnly) {
+                        RecordDetailsDialogButtons(
+                            showCloseOnly = true,
+                            showSaveAndAdd = false,
+                            primaryEnabled = true,
+                            primaryLabel = null,
+                            saveAndAddLabel = null,
+                            onDismissRequested = { requestDismissRecordDetails() },
+                            onSaveTapped = {},
+                            onSaveAndAddTapped = {},
+                        )
+                    } else {
+                        AnimatedContent(
+                            targetState = dialogHandle.isEditing,
+                            transitionSpec = {
+                                fadeIn(editModeSpec()) togetherWith fadeOut(editModeSpec()) using
+                                        SizeTransform(clip = false) { _, _ -> editModeSpec() }
+                            },
+                            label = "mealDetailsFooter",
+                        ) { editing ->
+                            if (editing) {
+                                RecordDetailsViewEditButtons(
+                                    primaryEnabled = dialogHandle.hasUnsavedEdits,
+                                    primaryLabel = updateButtonLabel(dialogHandle),
+                                    primaryStartsAnalysis = dialogHandle.editsRequireAnalysis,
+                                    onUpdate = onSaveDetailsTapped,
+                                    onSaveAndAdd = onSaveAndAddDetailsTapped,
+                                    onCancel = {
+                                        if (dialogHandle.hasUnsavedEdits) {
+                                            pendingDiscard = PendingRecordDetailsDiscard.ExitEditMode
+                                        } else {
+                                            onRecordDetailsEditCancelled()
+                                        }
+                                    },
+                                )
+                            } else {
+                                RecordDetailsViewBrowseButtons(
+                                    showLogMealAgain = dialogHandle.openedFromTemplateDetailsOnly,
+                                    onLogMealAgain = onSaveAndAddDetailsTapped,
+                                    onDismissRequested = { requestDismissRecordDetails() },
+                                )
+                            }
                         }
                     }
                 }
@@ -217,6 +235,93 @@ internal fun RecordDetailsDialog(
             },
             onKeepEditing = { pendingDiscard = null },
         )
+    }
+}
+
+@Composable
+private fun updateButtonLabel(dialogHandle: DialogHandle.RecordDetailsDialog.View): String {
+    val linkedCount = dialogHandle.linkedRecordCountForTemplate
+    return when {
+        linkedCount == 1 && dialogHandle.editsRequireAnalysis ->
+            stringResource(R.string.meal_details_action_update_and_analyze)
+
+        linkedCount == 1 -> stringResource(R.string.meal_details_action_update)
+
+        dialogHandle.editsRequireAnalysis ->
+            pluralStringResource(R.plurals.meal_details_update_and_analyze_linked_records, linkedCount, linkedCount)
+
+        else -> pluralStringResource(R.plurals.meal_details_update_linked_records, linkedCount, linkedCount)
+    }
+}
+
+/**
+ * The Quick Pick star and an overflow menu. Editing and logging the meal again are things the user does
+ * later, if at all, so they sit behind the menu instead of competing with reading the results.
+ */
+@Composable
+private fun RecordDetailsHeaderActions(
+    visible: Boolean,
+    quickPickStarred: Boolean,
+    onQuickPickStarToggled: () -> Unit,
+    showLogMealAgain: Boolean,
+    onEditTapped: () -> Unit,
+    onLogMealAgainTapped: () -> Unit,
+) {
+    var menuExpanded by remember { mutableStateOf(false) }
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(editModeSpec()),
+        exit = fadeOut(editModeSpec()),
+    ) {
+        Row(modifier = Modifier.padding(top = 12.dp, end = PaddingHalf)) {
+            IconButton(onClick = onQuickPickStarToggled) {
+                Icon(
+                    imageVector = if (quickPickStarred) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                    contentDescription = if (quickPickStarred) {
+                        stringResource(R.string.meal_details_quick_pick_remove_cd)
+                    } else {
+                        stringResource(R.string.meal_details_quick_pick_add_cd)
+                    },
+                    tint = if (quickPickStarred) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                )
+            }
+            Box {
+                IconButton(onClick = { menuExpanded = true }) {
+                    Icon(
+                        imageVector = Icons.Filled.MoreVert,
+                        contentDescription = stringResource(R.string.meal_details_menu_cd),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.meal_details_menu_edit)) },
+                        leadingIcon = { Icon(imageVector = Icons.Filled.Edit, contentDescription = null) },
+                        onClick = {
+                            menuExpanded = false
+                            onEditTapped()
+                        },
+                    )
+                    if (showLogMealAgain) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.meal_details_action_add_new)) },
+                            leadingIcon = { Icon(painter = painterResource(CommonR.drawable.ic_exposure_plus_1), contentDescription = null) },
+                            onClick = {
+                                menuExpanded = false
+                                onLogMealAgainTapped()
+                            },
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -247,10 +352,13 @@ internal fun ColumnScope.RecordDetailsDialogContent(
     variantPickerOptions: List<MealVariantPickerOption>? = null,
     selectedVariantTemplateId: Long = 0L,
     onVariantTemplatePicked: (Long) -> Unit = { },
-    showQuickPickStar: Boolean = false,
-    quickPickStarred: Boolean = false,
-    onQuickPickStarToggled: () -> Unit = { },
     onEditTimestampTapped: () -> Unit = { },
+    onCorrectionChanged: (TextFieldValue) -> Unit = { },
+    onReanalyzeTapped: () -> Unit = { },
+    onTitleSpoken: (String) -> Unit = { },
+    onDescriptionSpoken: (String) -> Unit = { },
+    onCorrectionSpoken: (String) -> Unit = { },
+    onVoiceInputFailed: (Throwable) -> Unit = { },
 ) {
     when (dialogHandle) {
         is DialogHandle.RecordDetailsDialog.Edit ->
@@ -273,6 +381,9 @@ internal fun ColumnScope.RecordDetailsDialogContent(
                 onAddImageViaPickerTapped = onAddImageViaPickerTapped,
                 onImagesInfoButtonTapped = onImagesInfoButtonTapped,
                 onRunAIButtonTapped = onRunAIButtonTapped,
+                onTitleSpoken = onTitleSpoken,
+                onDescriptionSpoken = onDescriptionSpoken,
+                onVoiceInputFailed = onVoiceInputFailed,
             )
 
         is DialogHandle.RecordDetailsDialog.View ->
@@ -298,10 +409,13 @@ internal fun ColumnScope.RecordDetailsDialogContent(
                 variantPickerOptions = variantPickerOptions,
                 selectedVariantTemplateId = selectedVariantTemplateId,
                 onVariantTemplatePicked = onVariantTemplatePicked,
-                showQuickPickStar = showQuickPickStar,
-                quickPickStarred = quickPickStarred,
-                onQuickPickStarToggled = onQuickPickStarToggled,
                 onEditTimestampTapped = onEditTimestampTapped,
+                onCorrectionChanged = onCorrectionChanged,
+                onReanalyzeTapped = onReanalyzeTapped,
+                onTitleSpoken = onTitleSpoken,
+                onDescriptionSpoken = onDescriptionSpoken,
+                onCorrectionSpoken = onCorrectionSpoken,
+                onVoiceInputFailed = onVoiceInputFailed,
             )
     }
 }
@@ -316,21 +430,15 @@ private fun NoteInputDialogContentPreviewView() {
             templateDbId = 1L,
             variabilityAnchorTemplateDbId = 1L,
             title = TextFieldValue("Apple"),
-            titleHint = "Title",
+            titleHint = "Title (optional)",
             description = TextFieldValue("I ate an apple"),
             imageFilenames = listOf("1", "2"),
             allowEdit = true,
             nutrientBreakdown = NutrientBreakdownUiModel(
-                calories = "Calories: 2100 cal",
-                protein = "Protein: 150g",
-                fat = "Fat 100g",
-                ofWhichSaturated = "of which saturated: 20g",
-                carbs = "Carbs: 100g",
-                ofWhichSugar = "of which sugar: 30g",
-                ofWhichAddedSugar = "of which added sugar: 15g",
-                salt = "Salt: 5g",
-                fibre = "Fibre: 4.5g",
+                nutrients = previewNutrientRows(),
                 notes = "Notes: This is a note",
+                hasAiInference = true,
+                aiInferencePreview = "Notes: This is a note",
             ),
             compactNutrients = NutrientsUiModel(
                 calories = "2100kcal",
@@ -359,7 +467,7 @@ private fun NoteInputDialogContentPreviewSuggestion() {
     RecordDetailsDialogPreview(
         dialogHandle = DialogHandle.RecordDetailsDialog.Edit(
             title = TextFieldValue(),
-            titleHint = "Title",
+            titleHint = "Title (optional)",
             description = TextFieldValue(),
             imageFilenames = listOf("1", "2"),
             recognisedFood = RecognisedFood(
@@ -405,7 +513,7 @@ private fun NoteInputDialogContentPreviewError() {
     RecordDetailsDialogPreview(
         dialogHandle = DialogHandle.RecordDetailsDialog.Edit(
             title = TextFieldValue(),
-            titleHint = "Title",
+            titleHint = "Title (optional)",
             titleValidationError = "error",
             description = TextFieldValue(),
             imageFilenames = listOf("1", "2"),

@@ -68,11 +68,10 @@ internal class ChatGPTMapper @Inject constructor() {
             // Usage limit: not a technical/upstream failure, so it's shown to every
             // user. The kind rides in the cause; ErrorUiMapper turns it into copy.
             is AiRequestError.Proxy -> DomainError.DisplayMessageToUser.OperationFailed(
-                analyticsMessage = error.analyticsMessage,
                 cause = UsageLimitException(error.kind, error),
             )
-            is AiRequestError.Upstream -> DomainError.DisplayMessageToUser.TechnicalMessage(errorMessage = error.errorMessage, error) // for power users
-            is AiRequestError.Generic, is AiRequestError.Mapping -> DomainError.DisplayMessageToUser.OperationFailed(analyticsMessage = error.analyticsMessage, error)
+            is AiRequestError.Upstream, is AiRequestError.Generic, is AiRequestError.Mapping ->
+                DomainError.DisplayMessageToUser.OperationFailed(error)
         }
     }
 

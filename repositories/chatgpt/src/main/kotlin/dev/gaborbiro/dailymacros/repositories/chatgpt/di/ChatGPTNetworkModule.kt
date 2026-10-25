@@ -1,9 +1,8 @@
 package dev.gaborbiro.dailymacros.repositories.chatgpt.di
 
-import com.google.gson.Gson
+import com.google.firebase.auth.FirebaseAuth
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
-import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -14,7 +13,6 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGPTMapper
 import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGPTRepositoryImpl
 import dev.gaborbiro.dailymacros.repositories.chatgpt.ChatGptOkHttpTimeouts
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGPTRepository
-import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ChatGptClientGson
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ForImageUploadChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ForJsonBodyChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.RepositoryClientIdProvider
@@ -59,25 +57,14 @@ internal object ChatGPTNetworkModule {
 
     @Provides
     @Singleton
-    @ChatGptClientGson
-    fun chatGptGson(): Gson =
-        GsonBuilder()
-            .registerTypeAdapter(OutputContent::class.java, OutputContentDeserializer())
-            .registerTypeAdapter(
-                object : TypeToken<ContentEntry<OutputContent>>() {}.type,
-                ContentEntryOutputContentDeserializer(),
-            )
-            .create()
-
-    @Provides
-    @Singleton
     @ForImageUploadChatGpt
     fun imageUploadOkHttp(
         settingsRepository: SettingsRepository,
         clientIdProvider: RepositoryClientIdProvider,
     ): OkHttpClient {
         val logger = loggingInterceptor()
-        val authInterceptor = AuthInterceptor(settingsRepository, FirebaseAuth.getInstance(), clientIdProvider)
+        val authInterceptor =
+            AuthInterceptor(settingsRepository, FirebaseAuth.getInstance(), clientIdProvider)
         return OkHttpClient.Builder()
             .addNetworkInterceptor(logger)
             .addInterceptor(authInterceptor)
@@ -95,7 +82,8 @@ internal object ChatGPTNetworkModule {
         clientIdProvider: RepositoryClientIdProvider,
     ): OkHttpClient {
         val logger = loggingInterceptor()
-        val authInterceptor = AuthInterceptor(settingsRepository, FirebaseAuth.getInstance(), clientIdProvider)
+        val authInterceptor =
+            AuthInterceptor(settingsRepository, FirebaseAuth.getInstance(), clientIdProvider)
         return OkHttpClient.Builder()
             .addNetworkInterceptor(logger)
             .addInterceptor(authInterceptor)
@@ -110,12 +98,11 @@ internal object ChatGPTNetworkModule {
     @ForImageUploadChatGpt
     fun imageUploadRetrofit(
         @ForImageUploadChatGpt client: OkHttpClient,
-        @ChatGptClientGson gson: Gson,
     ): Retrofit =
         Retrofit.Builder()
             .baseUrl("https://api.openai.com/")
             .client(client)
-            .addConverterFactory(GsonConverterFactory.create(gson))
+            .addConverterFactory(gsonConverterFactory)
             .build()
 
     @Provides
@@ -123,13 +110,22 @@ internal object ChatGPTNetworkModule {
     @ForJsonBodyChatGpt
     fun jsonBodyRetrofit(
         @ForJsonBodyChatGpt client: OkHttpClient,
-        @ChatGptClientGson gson: Gson,
     ): Retrofit =
         Retrofit.Builder()
             .baseUrl("https://api.openai.com/")
             .client(client)
-            .addConverterFactory(GsonConverterFactory.create(gson))
+            .addConverterFactory(gsonConverterFactory)
             .build()
+
+    private val gsonConverterFactory = GsonConverterFactory.create(
+        GsonBuilder()
+            .registerTypeAdapter(OutputContent::class.java, OutputContentDeserializer())
+            .registerTypeAdapter(
+                object : TypeToken<ContentEntry<OutputContent>>() {}.type,
+                ContentEntryOutputContentDeserializer(),
+            )
+            .create()
+    )
 
     @Provides
     @Singleton

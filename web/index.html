@@ -1,0 +1,1963 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily Macros – an easier way to track food</title>
+<meta name="description" content="Track what you eat without turning every meal into data entry. Snap a photo and let AI estimate the nutrition, or log your regular meals from your home screen in one tap.">
+<meta name="theme-color" content="#F57C00">
+<link rel="icon" href="/favicon.png">
+<link rel="canonical" href="https://dailymacros.dev/">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Daily Macros – a food diary that's actually easy to keep up">
+<meta property="og:description" content="Snap a photo and let AI estimate the nutrition, or log your regular meals in one tap. Review what it inferred, fix anything off, and move on.">
+<meta property="og:url" content="https://dailymacros.dev/">
+<meta property="og:image" content="https://dailymacros.dev/img/og.png">
+<meta property="og:image:width" content="1024">
+<meta property="og:image:height" content="500">
+<meta name="twitter:card" content="summary_large_image">
+
+<style>
+  :root {
+    --orange: #F57C00;
+    --orange-dark: #C25E00;
+    --ink: #1F1A17;
+    --muted: #6B625B;
+    --bg: #FFF8F0;
+    --card: #FFFFFF;
+    --line: #EADFD3;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 20px; }
+  h1, h2 { line-height: 1.15; letter-spacing: -0.02em; margin: 0; }
+  h1 { font-size: clamp(2rem, 8vw, 3rem); }
+  h2 { font-size: 1.4rem; }
+  p { margin: 0; }
+
+  /* position:fixed, not sticky: sticky keeps the header in document flow, so
+     shrinking its padding on scroll changes the page's layout height, which
+     changes window.scrollY, which can flip the stuck/unstuck threshold back
+     - a feedback loop that made the header vibrate near the boundary. Fixed
+     takes it out of flow entirely, so its own size can never affect scroll
+     position; main's padding-top (set in JS) reserves the space instead. */
+  header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: var(--bg);
+    padding: 20px 0; transition: padding .25s ease, box-shadow .25s ease;
+  }
+  header.is-stuck { padding: 10px 0; box-shadow: 0 2px 14px rgba(120, 60, 0, .12); }
+  .header-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .brand img { width: 48px; height: 48px; border-radius: 12px; flex: none; transition: width .25s ease, height .25s ease; }
+  .brand h1 { font-size: clamp(1.4rem, 6vw, 2.2rem); transition: font-size .25s ease; }
+  header.is-stuck .brand img { width: 34px; height: 34px; border-radius: 9px; }
+  header.is-stuck .brand h1 { font-size: 1.2rem; }
+  .header-cta { flex: none; white-space: nowrap; transition: padding .25s ease, font-size .25s ease; }
+  header.is-stuck .header-cta { padding: 8px 14px; font-size: .85rem; }
+  #join, #waitlist { scroll-margin-top: 72px; }
+
+  .hero { padding: 36px 20px 28px; display: grid; gap: 16px; }
+  .hero p { color: var(--muted); font-size: 1.1rem; max-width: 34em; }
+  .hero-sub { color: var(--ink); font-size: 1.3rem; font-weight: 600; max-width: 34em; }
+  .hero-points { list-style: none; margin: -2px 0 0; padding: 0; display: grid; gap: 12px; max-width: 34em; }
+  .hero-points li { display: flex; align-items: flex-start; gap: 12px; color: var(--muted); font-size: 1.1rem; }
+  .hero-points li::before {
+    content: "✓"; flex: none; display: grid; place-items: center; width: 22px; height: 22px; margin-top: 1px;
+    border-radius: 50%; background: var(--orange); color: #fff; font-size: 12px; font-weight: 700;
+  }
+  .btn {
+    display: inline-block; border: 0; border-radius: 12px; cursor: pointer;
+    background: var(--orange); color: #fff; font: inherit; font-weight: 700;
+    padding: 14px 22px; text-decoration: none; text-align: center;
+  }
+  .btn:hover { background: var(--orange-dark); }
+  .btn[disabled] { opacity: .6; cursor: default; }
+  .btn-ghost { background: transparent; color: var(--orange-dark); border: 1.5px solid var(--orange); }
+  .btn-ghost:hover { background: rgba(245, 124, 0, .08); }
+  .fine { font-size: .875rem; color: var(--muted); }
+  .fine a { color: var(--orange-dark); }
+  .perk {
+    display: inline-block; margin: 2px 0 14px; padding: 5px 12px; border-radius: 999px;
+    background: #FFF1DD; color: var(--orange-dark); font-weight: 700; font-size: .85rem;
+  }
+
+  section { padding: 28px 0; }
+  .tracks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .chip { border-radius: 999px; padding: 6px 14px; font-weight: 600; font-size: .9rem; color: #2B2118; }
+  .c-cal { background: #CFE8FF; } .c-pro { background: #C9F5E2; } .c-fat { background: #FFF1B8; }
+  .c-carb { background: #FFDCC2; } .c-salt { background: #E6D9FF; } .c-fib { background: #FFD9E3; }
+  .tracks + p { margin-top: 14px; color: var(--muted); }
+
+  .loop { text-align: center; padding-top: 64px; }
+  .loop h2 { max-width: 28em; margin: 0 auto; }
+  .loop-intro { color: var(--muted); max-width: 32em; margin: 10px auto 0; }
+  .loop-diagram { display: grid; justify-items: center; gap: 14px; margin: 32px auto 0; max-width: 360px; }
+  .loop-step {
+    display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px;
+    box-shadow: 0 2px 10px rgba(120, 60, 0, .06);
+  }
+  .loop-step svg { flex: none; width: 22px; height: 22px; color: var(--orange-dark); }
+  .loop-step strong { display: block; font-size: .98rem; }
+  .loop-step span { display: block; color: var(--muted); font-size: .85rem; margin-top: 2px; }
+  .loop-end { background: var(--bg); border-style: dashed; }
+  .loop-arrow { color: var(--orange); font-size: 1.3rem; line-height: 1; padding: 4px 0; }
+  .loop-arrow-cycle { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .loop-arrow-cycle span { font-size: .78rem; font-style: italic; color: var(--muted); line-height: 1.2; }
+  .loop-note { margin: 40px 0 22px; color: var(--muted); }
+  /* Same size as .loop-step (it's .loop-step too) so it reads as the same
+     kind of card, just reached a different way. Deliberately not
+     button-shaped though (no solid fill, no shadow, dashed like .loop-end):
+     it's the end state of the diagram, not something to tap. */
+  .loop-shortcut {
+    max-width: 360px; margin: 0 auto;
+    background: #FFF1DD; color: var(--orange-dark); border: 1.5px dashed var(--orange);
+    box-shadow: none; font-weight: 700; font-size: 1.05rem;
+  }
+  .loop-shortcut svg { color: var(--orange-dark); }
+
+  .join {
+    background: var(--card); border: 1px solid var(--line); border-radius: 18px;
+    padding: 24px 20px; margin-bottom: 8px;
+  }
+  .steps { margin: 14px 0 22px; padding-left: 1.2em; color: var(--muted); }
+  .steps li { margin-bottom: 4px; }
+  .steps strong { color: var(--ink); }
+  label { display: block; font-weight: 700; margin-bottom: 4px; }
+  .hint { font-size: .9rem; color: var(--muted); margin-bottom: 10px; }
+  input[type=email] {
+    width: 100%; font: inherit; padding: 13px 14px; border: 1.5px solid #CDBFB0;
+    border-radius: 12px; background: #fff; color: var(--ink);
+  }
+  input[type=email]:focus { outline: 3px solid rgba(245, 124, 0, .35); border-color: var(--orange); }
+  form .btn { width: 100%; margin-top: 14px; }
+  .privacy { margin-top: 12px; }
+  .error { color: #B3261E; font-size: .95rem; margin-top: 10px; min-height: 1.2em; }
+  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: #F6ECE0; padding: 4px; border-radius: 12px; margin: 14px 0 18px; }
+  .seg label { position: relative; margin: 0; font-weight: 600; text-align: center; cursor: pointer; }
+  .seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .seg span { display: block; padding: 9px 0; border-radius: 9px; color: var(--muted); }
+  .seg input:checked + span { background: #fff; color: var(--ink); box-shadow: 0 1px 4px rgba(120, 60, 0, .18); }
+  .seg input:focus-visible + span { outline: 3px solid rgba(245, 124, 0, .45); }
+  #waitlist-form { margin-top: 12px; }
+  .ios-note { margin: 0 0 18px; color: var(--muted); }
+  .done h2 { margin-bottom: 10px; }
+  .done p + p { margin-top: 10px; }
+  .done .next { background: #FFF1DD; border-radius: 12px; padding: 12px 14px; margin-top: 14px; }
+  [hidden] { display: none !important; }
+
+  /* Try-it demo: HTML replicas of the home-screen widget and the Overview and
+     Trends screens. Only the AI analysis is real (POST /api/demo,
+     functions/demo.js). */
+  .hero-head { padding-bottom: 8px; }
+  .hero-tail { padding: 28px 0; display: grid; gap: 10px; justify-items: center; text-align: center; }
+  .demo { display: grid; gap: 14px; padding-top: 28px; }
+  /* Covers each phone's screen (keeping its shape/chrome intact) until the
+     visitor interacts: testers never realised the plain replicas were
+     tappable, so a frosted glass layer now makes clear there's a live
+     screen underneath waiting to be used. Only the left phone carries the
+     CTA text/buttons; the right one is just the glass. */
+  .demo-veil {
+    position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; gap: 12px;
+    padding: 24px; text-align: center; background: rgba(18, 14, 12, .55);
+    backdrop-filter: blur(14px) saturate(130%); -webkit-backdrop-filter: blur(14px) saturate(130%);
+  }
+  .demo-veil-text { display: grid; gap: 4px; }
+  .demo-veil h3 { margin: 0; font-size: 1.7rem; color: #fff; }
+  .demo-veil-sub { margin: 0; color: rgba(255, 255, 255, .78); font-size: .95rem; }
+  .demo-cta-actions { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 220px; }
+  .demo-veil .btn { font-size: .95rem; padding: 13px 20px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .demo-veil .btn svg { width: 20px; height: 20px; flex: none; }
+  .demo-veil .btn-ghost { background: rgba(255, 255, 255, .08); color: #fff; border-color: rgba(255, 255, 255, .5); }
+  .demo-veil .btn-ghost:hover { background: rgba(255, 255, 255, .16); }
+  /* The bottom padding leaves room for the phones' shadow, which the
+     horizontal scroller would otherwise clip into a hard edge. */
+  .demo-phones {
+    display: flex; gap: 24px; align-items: flex-start; overflow-x: auto; scroll-snap-type: x mandatory;
+    margin: 0 -20px; padding: 4px 20px 40px; scrollbar-width: none; transition: gap .5s ease;
+  }
+  .demo-phones::-webkit-scrollbar { display: none; }
+  /* Both phones fit side by side: no scroller, so nothing clips the shadows. */
+  @media (min-width: 680px) { .demo-phones { justify-content: center; overflow: visible; } }
+  .demo-device {
+    flex: 0 0 min(280px, 84vw); min-width: 0; margin: 0; scroll-snap-align: center;
+    transition: flex-basis .5s ease, opacity .5s ease;
+  }
+  .demo-device figcaption { margin-bottom: 8px; text-align: center; font-weight: 700; }
+  /* Before the visitor interacts, only the left phone (with the CTA) shows.
+     The right one collapses to zero width rather than just going invisible,
+     so the lone phone sits properly centred instead of looking shifted left
+     to make room for space it isn't using. On reveal, both its width and the
+     row's gap animate back in together instead of snapping. */
+  /* Centred regardless of viewport width: with the right phone's flex-basis
+     at 0 there's nothing to scroll to yet, so there's no swipe behaviour to
+     preserve here (unlike the two-phone state below, which only centres
+     past 680px so the mobile swipe still works). */
+  #demo-phones.pre-reveal { gap: 0; justify-content: center; }
+  #demo-phones.pre-reveal #demo-overview-device { flex-basis: 0; opacity: 0; pointer-events: none; }
+  /* The left caption still uses reserved-space hiding: its own phone never
+     moves, so there's nothing to realign when it fades in. */
+  .demo-fade { transition: opacity .5s ease; }
+  .demo-reveal { visibility: hidden; opacity: 0; }
+  .demo-foot { display: grid; gap: 10px; justify-items: center; text-align: center; margin-top: -10px; }
+  .demo-foot .fine { max-width: 36em; }
+  .demo-samples-label { font-size: 1.05rem; font-weight: 600; color: var(--ink); }
+  .demo-samples { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 16px; }
+  .demo-samples button {
+    width: 76px; height: 52px; padding: 0; border: 0; border-radius: 10px; overflow: hidden; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(120, 60, 0, .18);
+  }
+  .demo-samples button:focus-visible { outline: 3px solid rgba(245, 124, 0, .6); outline-offset: 2px; }
+  .demo-samples img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+  /* Phone frame, Pixel Pro-ish 20:9 ratio. */
+  .phone {
+    position: relative; height: 622px; padding: 8px; border-radius: 34px; background: #0E0E0E;
+    box-shadow: inset 0 0 0 1.5px #3A3A3A, 0 12px 30px rgba(120, 60, 0, .25);
+    color: #F3E9E1; font-size: 13px; line-height: 1.3;
+  }
+  .phone button { font: inherit; color: inherit; }
+  .screen { position: relative; display: flex; flex-direction: column; height: 100%; overflow: hidden; border-radius: 27px; background: #121212; }
+  .screen-home { background: #1E1A26 url(/img/demo/wallpaper.svg) center / cover no-repeat; }
+  .status {
+    position: relative; flex: none; display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 18px 8px; color: #fff; font-size: 12px; font-weight: 600;
+  }
+  .status::before {
+    content: ""; position: absolute; left: 50%; top: 9px; width: 11px; height: 11px; margin-left: -5.5px;
+    border-radius: 50%; background: #050505; box-shadow: 0 0 0 1.5px #2A2A2A;
+  }
+  .status-icons { display: flex; align-items: center; gap: 5px; }
+  .status-icons svg { width: 14px; height: 14px; }
+  .gesture {
+    position: absolute; left: 50%; bottom: 7px; z-index: 5; width: 96px; height: 4px; margin-left: -48px;
+    border-radius: 2px; background: rgba(255, 255, 255, .5); pointer-events: none;
+  }
+
+  /* Widget phone. */
+  .home { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 6px 12px 22px; }
+  .widget { background: rgba(46, 32, 25, .95); border-radius: 18px; overflow: hidden; box-shadow: 0 4px 14px rgba(0, 0, 0, .3); }
+  /* Recent meals and Quick Picks scroll together, like the real widget's list. */
+  .w-scroll {
+    max-height: 256px; overflow-y: auto; overscroll-behavior: contain;
+    scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, .25) transparent;
+  }
+  .w-scroll:focus-visible { outline: 2px solid rgba(245, 124, 0, .7); outline-offset: -2px; }
+  .w-recent { margin: 0; padding: 6px 10px; list-style: none; }
+  .w-recent li { border-radius: 8px; }
+  .w-row {
+    display: flex; align-items: center; gap: 10px; width: 100%; padding: 4px 2px; border: 0; border-radius: 8px;
+    background: none; text-align: left; cursor: pointer;
+  }
+  .w-row:hover, .w-row:focus-visible { background: rgba(255, 255, 255, .08); outline: none; }
+  .w-row-text { min-width: 0; }
+  .w-row-text > span { display: block; }
+  .w-thumb { flex: none; width: 52px; height: 38px; border-radius: 7px; object-fit: cover; background: #4A382D; }
+  .w-noimg { display: grid; place-items: center; color: #F2B489; font-size: 18px; }
+  .w-name { color: #fff; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .w-sub { color: #BFB2A8; font-size: 11.5px; }
+  .w-picks { padding: 6px 10px 8px; background: #4A3125; }
+  .w-picks-title { margin-bottom: 4px; text-align: center; color: #F2B489; font-weight: 700; }
+  .w-pick {
+    display: flex; align-items: center; gap: 10px; width: 100%; padding: 2px; border: 0; border-radius: 8px;
+    background: none; text-align: left; cursor: pointer;
+  }
+  .w-pick:hover, .w-pick:focus-visible { background: rgba(255, 255, 255, .08); outline: none; }
+  .w-pick-text { min-width: 0; }
+  .w-pick-text > span { display: block; }
+  .w-bar { display: flex; justify-content: space-around; padding: 6px 4px; background: #3A2920; }
+  .w-bar button {
+    display: grid; place-items: center; width: 44px; height: 40px; border: 0; border-radius: 10px;
+    background: none; color: #F3E6DC; cursor: pointer;
+  }
+  .w-bar button:hover, .w-bar button:focus-visible { background: rgba(255, 255, 255, .12); outline: none; }
+  .w-bar svg { width: 24px; height: 24px; }
+  .pulse { animation: demo-pulse 1.6s ease-out infinite; }
+  .w-bar .pulse:nth-of-type(2) { animation-delay: .4s; }
+  .w-hint {
+    width: fit-content; margin: 10px auto 0; padding: 5px 12px; border-radius: 999px;
+    background: var(--orange); color: #fff; font-weight: 700; font-size: 12.5px;
+  }
+  .w-hint:empty { background: none; } /* reserves the space without showing a hint */
+  .w-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 24px; }
+  .w-hint + .w-tiles { margin-top: 14px; }
+  .w-tile {
+    position: relative; height: 70px; padding: 0; border: 0; border-radius: 12px; overflow: hidden;
+    background: #4A382D; cursor: pointer; box-shadow: 0 4px 12px rgba(0, 0, 0, .3);
+  }
+  .w-tile img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .w-tile span {
+    position: absolute; left: 0; right: 0; bottom: 0; padding: 3px 7px; text-align: left;
+    background: rgba(0, 0, 0, .5); color: #fff; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .w-tile:focus-visible { outline: 3px solid rgba(245, 124, 0, .8); outline-offset: 1px; }
+  .is-new { animation: demo-in .7s ease-out; }
+
+  /* Overview phone. */
+  .ov-body { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .ov-scroll, .trends-scroll {
+    flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+    scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, .25) transparent;
+  }
+  .ov-scroll { padding: 0 2px 26px; }
+  .ov-scroll:focus-visible, .trends-scroll:focus-visible { outline: 2px solid rgba(245, 124, 0, .7); outline-offset: -2px; }
+  .ov-day { position: relative; margin: 6px 0 10px; text-align: center; color: #fff; font-size: 15px; }
+  .ov-day + .ov-summary { margin-top: 0; }
+  .ov-meals + .ov-day { margin-top: 22px; }
+  .ov-summary {
+    display: block; width: 100%; padding: 10px 4px 8px; border: 1px solid #2E2E33; border-radius: 14px;
+    background: #1B1B1F; text-align: left; cursor: pointer;
+  }
+  .ov-summary:hover, .ov-summary:focus-visible { border-color: #5E5A6B; outline: none; }
+  .ov-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 6px; }
+  .ov-row { display: grid; grid-template-columns: 46px 1fr; column-gap: 4px; align-items: center; }
+  .ov-label { grid-column: 1; grid-row: 1; text-align: right; color: #D9D2CC; font-size: 10px; }
+  /* Value and range stack (rather than share a line) so neither gets squeezed
+     against the card edge at this phone's narrower width. */
+  .ov-line {
+    grid-column: 2; grid-row: 2; display: flex; flex-direction: column; gap: 1px; margin-top: 3px;
+    color: #D9D2CC; font-size: 9px; white-space: nowrap;
+  }
+  .ov-line b { color: #fff; font-weight: 600; }
+  .ov-range { color: #8F8984; }
+  .ov-track { grid-column: 2; grid-row: 1; position: relative; height: 6px; border-radius: 3px; background: #2C2C30; }
+  .ov-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; transition: width .5s ease-out; }
+  .ov-tick { position: absolute; top: -2px; width: 2px; height: 10px; margin-left: -1px; border-radius: 1px; background: #3DBA5A; }
+  .ov-trends {
+    display: flex; align-items: center; gap: 8px; margin-top: 9px; padding: 8px 6px 0;
+    border-top: 1px solid #2E2E33; color: #BDB6B0; font-size: 11.5px;
+  }
+  .ov-spark { display: flex; align-items: flex-end; gap: 2px; height: 18px; }
+  .ov-spark i { display: block; width: 5px; border-radius: 1.5px; background: #5E7BA6; }
+  .ov-spark i:last-child { background: #A9CFF7; }
+  .ov-trends b { margin-left: auto; color: #F5A623; }
+  .ov-meal {
+    display: grid; grid-template-columns: 54px 1fr; gap: 8px; margin-top: 8px; padding: 4px; border-radius: 10px; cursor: pointer;
+  }
+  /* Without this, a 1fr grid track's default auto min-width lets a long meal
+     name or non-wrapping chip force the track (and the whole card) wider
+     than the phone, instead of actually truncating as intended. */
+  .ov-meal > div:last-child { min-width: 0; }
+  .ov-meal:hover, .ov-meal:focus-visible { background: rgba(255, 255, 255, .06); outline: none; }
+  .ov-photo { width: 54px; height: 54px; border-radius: 8px; object-fit: cover; background: #2C2C30; }
+  .ov-meal-head { display: flex; justify-content: space-between; gap: 6px; color: #fff; font-size: 13px; }
+  .ov-meal-head span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ov-meal-head span:last-child { flex: none; color: #BDB6B0; font-size: 11px; }
+  .ov-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-top: 4px; }
+  .ov-chips .chip {
+    padding: 2px 6px; border-radius: 6px; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* Trends, opened from a day's summary. */
+  .trends { position: absolute; inset: 0; display: flex; flex-direction: column; background: #121212; animation: demo-slide .25s ease-out; }
+  .trends-bar { display: flex; align-items: center; gap: 10px; padding: 6px 12px; background: #242424; color: #fff; font-size: 17px; }
+  .trends-bar button {
+    display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 50%;
+    background: none; cursor: pointer;
+  }
+  .trends-bar button:hover, .trends-bar button:focus-visible { background: rgba(255, 255, 255, .12); outline: none; }
+  .trends-bar svg { width: 20px; height: 20px; }
+  .trends-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 12px 12px 4px; }
+  .trends-tabs button {
+    padding: 6px 0; border: 1px solid #555; border-radius: 9px; background: none; color: #E8E2DC;
+    font-size: 12.5px; cursor: pointer;
+  }
+  .trends-tabs button[aria-pressed="true"] { border-color: #4A4658; background: #4A4658; color: #fff; }
+  .trends-tabs button:focus-visible { outline: 2px solid rgba(245, 124, 0, .8); }
+  .trends-scroll { padding: 0 8px 26px; }
+  .trend-title { margin: 14px 4px 2px; font-size: 13px; font-weight: 600; }
+  .trend svg { display: block; width: 100%; height: auto; }
+
+  /* Analysis dialog over a dark overlay, like the app's meal screen, and the
+     out-of-tries card. */
+  .dialog-scrim {
+    position: absolute; inset: 0; z-index: 4; display: flex; align-items: center; justify-content: center;
+    padding: 40px 4px 22px; background: rgba(0, 0, 0, .62); animation: demo-fade .2s ease-out;
+  }
+  /* .dialog-box is the visible card and owns the pop-in; .dialog is just the
+     scrolling content, with its native scrollbar hidden in favour of
+     .dialog-scrollbar below, which (unlike a native overlay scrollbar) never
+     fades out. */
+  .dialog-box {
+    position: relative; width: 100%; max-height: 100%; display: flex; flex-direction: column;
+    border-radius: 22px; background: #2B2B2B; box-shadow: 0 10px 40px rgba(0, 0, 0, .6);
+    animation: demo-pop .2s ease-out;
+  }
+  .dialog {
+    flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+    padding: 16px; color: #E8E2DC; scrollbar-width: none;
+  }
+  .dialog::-webkit-scrollbar { display: none; }
+  .dialog:focus { outline: none; }
+  .dialog-scrollbar {
+    position: absolute; top: 8px; right: 5px; bottom: 8px; width: 4px; border-radius: 2px;
+    background: rgba(255, 255, 255, .08); pointer-events: none;
+  }
+  .dialog-scrollbar-thumb { position: absolute; left: 0; right: 0; border-radius: 2px; background: rgba(255, 255, 255, .4); }
+  .dialog-photo { display: block; width: 84px; height: 84px; border-radius: 12px; object-fit: cover; }
+  .dialog > :first-child { margin-top: 0; } /* text-only meals have no photo on top */
+  .dialog h3 { margin: 12px 0 10px; color: #fff; font-size: 18px; line-height: 1.2; }
+  .dialog h3:focus { outline: none; }
+  .dialog .tracks { gap: 6px; margin: 0; }
+  .dialog .chip { padding: 4px 9px; border-radius: 8px; font-size: 12px; }
+  /* Flat, no card/border: a muted caption, a 2-line preview that expands into the
+     full list - after the app's own decluttered meal-details redesign. */
+  .inferred { margin-top: 14px; }
+  .inferred-head { display: flex; align-items: center; gap: 6px; }
+  .inferred-head strong { color: #D8D2CA; font-size: 13px; font-weight: 700; }
+  .inferred-pill {
+    display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 16px;
+    border-radius: 999px; background: rgba(255, 255, 255, .12); color: #D8D2CA; font-size: 11px; line-height: 1;
+  }
+  .inferred-preview {
+    margin-top: 6px; color: #C9C2BA; font-size: 13px; line-height: 1.45;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .inferred ul { margin: 6px 0 0; padding: 0; list-style: none; color: #C9C2BA; font-size: 13px; line-height: 1.55; }
+  .inferred-notes { margin: 8px 0 0; color: #C9C2BA; font-size: 13px; line-height: 1.45; }
+  .inferred-footnote { display: block; margin-top: 8px; color: #A9A29C; font-style: italic; font-size: 12px; }
+  .inferred-toggle {
+    display: flex; align-items: center; justify-content: center; gap: 6px; height: 28px; margin-top: 2px;
+    color: #B8B0A8; font-size: 12px; font-weight: 600;
+  }
+  .correction { margin-top: 12px; }
+  .correction-link { color: #F5A623; font-weight: 600; font-size: 13px; cursor: pointer; }
+  .correction-link-disabled { color: #8A8178; cursor: default; }
+  .correction-open { margin-top: 8px; }
+  .correction-reanalyze { margin-top: 8px; }
+  .dialog textarea {
+    flex: 1; min-width: 0; width: 100%; padding: 9px 10px; border: 1px solid #555; border-radius: 10px;
+    background: #1E1E1E; color: #fff; font: inherit; font-size: 13px; min-height: 80px; resize: vertical;
+  }
+  .correction-open textarea { min-height: 56px; }
+  .dialog .btn { width: 100%; margin-top: 12px; padding: 11px; font-size: 15px; background: #F5A623; color: #2B1A00; }
+  .dialog .btn:hover { background: #FFB840; }
+  .dialog .btn-small { width: auto; margin: 0; padding: 9px 12px; font-size: 13px; }
+  .dialog-link {
+    display: block; margin: 10px auto 0; border: 0; background: none; cursor: pointer;
+    color: #F5A623 !important; font-weight: 600;
+  }
+  .dialog-status { display: flex; align-items: center; gap: 12px; margin-top: 16px; color: #fff; }
+  .dialog-error { margin-top: 12px; color: #FFB4A9; }
+  .spinner {
+    flex: none; width: 28px; height: 28px; border: 3px solid rgba(255, 255, 255, .2);
+    border-top-color: #F5A623; border-radius: 50%; animation: demo-spin .9s linear infinite;
+  }
+  .demo-end {
+    position: absolute; inset: 0; z-index: 6; display: flex; flex-direction: column; justify-content: center; gap: 12px;
+    padding: 24px; text-align: center; background: rgba(20, 10, 0, .92); color: #fff;
+  }
+  .demo-end p { color: #E8DCD2; font-size: 15px; }
+  .demo-end-x {
+    position: absolute; top: 40px; right: 14px; display: grid; place-items: center; width: 36px; height: 36px;
+    border: 0; border-radius: 50%; background: rgba(255, 255, 255, .12); color: #fff; cursor: pointer;
+  }
+  .demo-end-x:hover, .demo-end-x:focus-visible { background: rgba(255, 255, 255, .24); outline: none; }
+  .demo-end-x svg { width: 18px; height: 18px; }
+  .demo-end .btn { font-size: 15px; padding: 12px 14px; }
+  .demo-end .btn-ghost { color: #FFD3A8; }
+
+  @keyframes demo-pulse { 0% { box-shadow: 0 0 0 0 rgba(245, 124, 0, .8); } 100% { box-shadow: 0 0 0 12px rgba(245, 124, 0, 0); } }
+  @keyframes demo-spin { to { transform: rotate(360deg); } }
+  @keyframes demo-fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes demo-pop { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+  @keyframes demo-slide { from { transform: translateX(100%); } to { transform: none; } }
+  @keyframes demo-slide-out { from { transform: none; } to { transform: translateX(100%); } }
+  .trends.is-closing { animation: demo-slide-out .22s ease-in forwards; }
+  @keyframes demo-in { from { opacity: 0; transform: translateY(-6px); background: rgba(245, 124, 0, .45); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .phone, .phone *, .demo-fade, .demo-phones, .demo-device, header, header * { animation: none !important; transition: none !important; } }
+
+  footer { padding: 24px 0 40px; }
+  footer a { color: inherit; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap header-bar">
+    <div class="brand">
+      <img src="/img/icon.png" alt="" width="64" height="64">
+      <h1>Daily Macros</h1>
+    </div>
+    <a class="btn btn-ghost js-beta-cta header-cta" href="#join">Join the test</a>
+  </div>
+</header>
+
+<main>
+  <div class="wrap hero hero-head">
+    <p class="hero-sub">Logging that takes seconds, not minutes — snap a photo, done.</p>
+    <ul class="hero-points">
+      <li>Snap a photo and let AI estimate the nutrition</li>
+      <li>Or log your regular meals from your home screen in one tap</li>
+      <li>Review what it inferred, fix anything that looks off, and move on</li>
+    </ul>
+  </div>
+
+  <div class="wrap">
+    <section>
+      <h2>What it tracks</h2>
+      <div class="tracks">
+        <span class="chip c-cal">Calories</span>
+        <span class="chip c-pro">Protein</span>
+        <span class="chip c-carb">Carbs</span>
+        <span class="chip c-carb">Sugar &amp; added sugar</span>
+        <span class="chip c-fat">Fat</span>
+        <span class="chip c-fat">Saturated fat</span>
+        <span class="chip c-fib">Fibre</span>
+        <span class="chip c-salt">Salt</span>
+      </div>
+    </section>
+  </div>
+
+  <div class="wrap demo" id="try">
+    <div class="demo-phones pre-reveal" id="demo-phones">
+      <figure class="demo-device" id="demo-widget-device">
+        <figcaption class="demo-fade demo-reveal">Widgets</figcaption>
+        <div class="phone" id="demo-phone" role="group" aria-label="Interactive replica of the Daily Macros home-screen widget">
+          <div class="screen screen-home">
+            <div class="demo-veil" id="demo-cta">
+              <div class="demo-veil-text">
+                <h3>Try it out now</h3>
+                <p class="demo-veil-sub">Interactive demo &middot; real AI</p>
+              </div>
+              <div class="demo-cta-actions">
+                <button type="button" class="btn" id="demo-cta-camera">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 10a2 2 0 0 1 2-2h2l1.5-2h4.5L13.5 8H15a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/><circle cx="9.5" cy="14" r="3"/><path d="M20 2v6M17 5h6"/></svg>
+                  Take a photo
+                </button>
+                <button type="button" class="btn btn-ghost" id="demo-cta-choose">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="15" height="14" rx="2"/><circle cx="7" cy="11.5" r="1.4"/><path d="M2 18l4-4 3 3 2.5-2.5L17 19"/><path d="M20 2v6M17 5h6"/></svg>
+                  Choose a photo
+                </button>
+              </div>
+            </div>
+            <div class="status" aria-hidden="true">
+              <span class="js-demo-clock">12:00</span>
+              <span class="status-icons">
+                <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="10" width="2.5" height="4" rx=".5"/><rect x="5" y="7.5" width="2.5" height="6.5" rx=".5"/><rect x="9" y="5" width="2.5" height="9" rx=".5"/><rect x="13" y="2" width="2.5" height="12" rx=".5"/></svg>
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1.5 6a9.5 9.5 0 0 1 13 0"/><path d="M4 8.8a6 6 0 0 1 8 0"/><path d="M6.4 11.4a2.5 2.5 0 0 1 3.2 0"/></svg>
+                <svg viewBox="0 0 24 16" style="width:21px"><rect x="1" y="3" width="19" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="3" y="5" width="15" height="6" rx="1.2" fill="currentColor"/><rect x="21" y="6" width="2" height="4" rx="1" fill="currentColor"/></svg>
+              </span>
+            </div>
+            <div class="home">
+              <div class="widget">
+                <div class="w-scroll" id="demo-widget-scroll" tabindex="0" aria-label="Recent meals and quick picks">
+                  <ul class="w-recent" id="demo-recent" aria-label="Recently logged meals"></ul>
+                  <div class="w-picks">
+                    <div class="w-picks-title">★ Quick Picks ★</div>
+                    <button type="button" class="w-pick" data-food="apple-cake" aria-label="Log apple cake again">
+                      <img class="w-thumb" src="/img/demo/apple-cake.jpg" alt="">
+                      <span class="w-pick-text"><span class="w-name">Apple cake</span><span class="w-sub">393kcal</span></span>
+                    </button>
+                    <button type="button" class="w-pick" data-food="scrambled-egg" aria-label="Log bacon cheese scrambled egg again">
+                      <img class="w-thumb" src="/img/demo/scrambled-egg.jpg" alt="">
+                      <span class="w-pick-text"><span class="w-name">Bacon cheese scrambled egg</span><span class="w-sub">509kcal</span></span>
+                    </button>
+                  </div>
+                  <ul class="w-recent" id="demo-recent-more" aria-label="Earlier meals"></ul>
+                </div>
+                <div class="w-bar">
+                  <button type="button" id="demo-camera" class="pulse" aria-label="Take a photo of your meal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 10a2 2 0 0 1 2-2h2l1.5-2h4.5L13.5 8H15a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/><circle cx="9.5" cy="14" r="3"/><path d="M20 2v6M17 5h6"/></svg>
+                  </button>
+                  <button type="button" id="demo-gallery" class="pulse" aria-label="Choose a photo of your meal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="15" height="14" rx="2"/><circle cx="7" cy="11.5" r="1.4"/><path d="M2 18l4-4 3 3 2.5-2.5L17 19"/><path d="M20 2v6M17 5h6"/></svg>
+                  </button>
+                  <button type="button" id="demo-text" aria-label="Describe your meal in words">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="15" height="14" rx="2"/><path d="M6 12h7M6 16h5"/><path d="M20 2v6M17 5h6"/></svg>
+                  </button>
+                </div>
+              </div>
+              <!-- Used to show "Tap the camera to log a meal"; kept empty (not removed) so the
+                   gap above the tiles doesn't change. -->
+              <p class="w-hint" aria-hidden="true"></p>
+              <div class="w-tiles" id="demo-tiles" aria-label="Favourite meals"></div>
+              <p class="w-hint pulse" id="demo-fav-hint" hidden>↑ Tap a favourite to log it in one tap</p>
+            </div>
+
+            <div class="dialog-scrim" id="demo-scrim" hidden>
+              <div class="dialog-box">
+                <div class="dialog" id="demo-dialog" role="dialog" aria-modal="true" aria-label="Meal analysis" tabindex="-1"></div>
+                <div class="dialog-scrollbar" id="demo-dialog-scrollbar" hidden><div class="dialog-scrollbar-thumb"></div></div>
+              </div>
+            </div>
+
+            <div class="demo-end" role="dialog" aria-describedby="demo-end-text" aria-label="Out of demo tries" hidden>
+              <button type="button" class="demo-end-x" aria-label="Close">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+              </button>
+              <p class="demo-end-text" id="demo-end-text"></p>
+              <a class="btn js-beta-cta" href="#join">Join the test</a>
+              <a class="btn btn-ghost" href="#waitlist">Get notified when it launches</a>
+            </div>
+            <div class="gesture"></div>
+          </div>
+        </div>
+      </figure>
+
+      <figure class="demo-device" id="demo-overview-device">
+        <figcaption>The app</figcaption>
+        <div class="phone" role="group" aria-label="Interactive replica of the Daily Macros app's diary screen">
+          <div class="screen">
+            <div class="demo-veil"></div>
+            <div class="status" aria-hidden="true">
+              <span class="js-demo-clock">12:00</span>
+              <span class="status-icons">
+                <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="10" width="2.5" height="4" rx=".5"/><rect x="5" y="7.5" width="2.5" height="6.5" rx=".5"/><rect x="9" y="5" width="2.5" height="9" rx=".5"/><rect x="13" y="2" width="2.5" height="12" rx=".5"/></svg>
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1.5 6a9.5 9.5 0 0 1 13 0"/><path d="M4 8.8a6 6 0 0 1 8 0"/><path d="M6.4 11.4a2.5 2.5 0 0 1 3.2 0"/></svg>
+                <svg viewBox="0 0 24 16" style="width:21px"><rect x="1" y="3" width="19" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="3" y="5" width="15" height="6" rx="1.2" fill="currentColor"/><rect x="21" y="6" width="2" height="4" rx="1" fill="currentColor"/></svg>
+              </span>
+            </div>
+            <div class="ov-body">
+              <div class="ov-scroll" id="demo-overview" tabindex="0" aria-label="Your diary"></div>
+              <div class="trends" id="demo-trends" role="dialog" aria-label="Trends" hidden>
+                <div class="trends-bar">
+                  <button type="button" id="demo-trends-back" aria-label="Back to the diary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+                  </button>
+                  <span>Trends</span>
+                </div>
+                <div class="trends-tabs" role="group" aria-label="Period">
+                  <button type="button" data-mode="days" aria-pressed="true">Days</button>
+                  <button type="button" data-mode="weeks" aria-pressed="false">Weeks</button>
+                  <button type="button" data-mode="months" aria-pressed="false">Months</button>
+                </div>
+                <div class="trends-scroll" id="demo-trends-charts" tabindex="0" aria-label="Charts"></div>
+              </div>
+            </div>
+            <div class="dialog-scrim" id="demo-app-scrim" hidden>
+              <div class="dialog-box">
+                <div class="dialog" id="demo-app-dialog" role="dialog" aria-modal="true" aria-label="Meal details" tabindex="-1"></div>
+                <div class="dialog-scrollbar" id="demo-app-dialog-scrollbar" hidden><div class="dialog-scrollbar-thumb"></div></div>
+              </div>
+            </div>
+            <!-- Same card as on the widget phone; both open and close together. -->
+            <div class="demo-end" role="dialog" aria-describedby="demo-end-text-app" aria-label="Out of demo tries" hidden>
+              <button type="button" class="demo-end-x" aria-label="Close">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+              </button>
+              <p class="demo-end-text" id="demo-end-text-app"></p>
+              <a class="btn js-beta-cta" href="#join">Join the test</a>
+              <a class="btn btn-ghost" href="#waitlist">Get notified when it launches</a>
+            </div>
+            <div class="gesture"></div>
+          </div>
+        </div>
+      </figure>
+    </div>
+
+    <div class="demo-foot">
+      <p class="demo-samples-label">No food handy? Try one of these:</p>
+      <div class="demo-samples">
+        <button type="button" data-src="/img/demo/scrambled-egg.jpg" aria-label="Analyse a sample photo of scrambled egg on toast"><img src="/img/demo/scrambled-egg.jpg" alt=""></button>
+        <button type="button" data-src="/img/demo/noodle-soup.jpg" aria-label="Analyse a sample photo of noodle soup"><img src="/img/demo/noodle-soup.jpg" alt=""></button>
+        <button type="button" data-src="/img/demo/apple-cake.jpg" aria-label="Analyse a sample photo of apple cake"><img src="/img/demo/apple-cake.jpg" alt=""></button>
+        <button type="button" data-src="/img/demo/cheese-bread.jpg" aria-label="Analyse a sample photo of cheese bread"><img src="/img/demo/cheese-bread.jpg" alt=""></button>
+      </div>
+      <p class="fine">Your photos are sent to OpenAI for analysis and aren’t stored by Daily Macros. This demo runs right in your browser. The phones are just a replica.</p>
+    </div>
+    <input type="file" id="demo-camera-input" accept="image/*" capture="environment" hidden>
+    <input type="file" id="demo-gallery-input" accept="image/*" hidden>
+  </div>
+
+  <div class="wrap">
+    <section class="loop">
+      <h2>Most logging is a verify-and-correct loop. Until it isn't.</h2>
+      <p class="loop-intro">AI gets you most of the way there in seconds. No app will tell you it's not perfectly accurate — so here's how this one deals with that honestly.</p>
+
+      <div class="loop-diagram">
+        <div class="loop-step">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 10a2 2 0 0 1 2-2h2l1.5-2h9L18 8h2a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/><circle cx="12" cy="14" r="3.5"/></svg>
+          <div><strong>Log it</strong><span>photo or voice</span></div>
+        </div>
+        <div class="loop-arrow" aria-hidden="true">↓</div>
+        <div class="loop-step">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+          <div><strong>Verify it</strong><span>ingredients, grams and a confidence rating for each, laid bare</span></div>
+        </div>
+        <div class="loop-arrow loop-arrow-cycle" aria-hidden="true">↕<span>back and forth until it's right</span></div>
+        <div class="loop-step">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          <div><strong>Fix it</strong><span>if something's off</span></div>
+        </div>
+        <div class="loop-arrow" aria-hidden="true">↓</div>
+        <div class="loop-step loop-end">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          <div><strong>Get on with your day</strong></div>
+        </div>
+      </div>
+
+      <p class="loop-note">After a few times, it becomes this:</p>
+
+      <div class="loop-step loop-shortcut">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>
+        <strong>1-tap a Quick Pick</strong>
+      </div>
+    </section>
+  </div>
+
+  <div class="wrap">
+    <section id="join">
+      <div class="join">
+        <div id="form-view">
+          <h2>Join the test</h2>
+          <p class="perk">Free while testing — no payment, no catch.</p>
+          <div class="seg" role="radiogroup" aria-label="Your phone">
+            <label><input type="radio" name="platform" value="android" checked><span>Android</span></label>
+            <label><input type="radio" name="platform" value="ios"><span>iPhone</span></label>
+          </div>
+          <p class="ios-note" id="ios-note" hidden>An iPhone version is planned, but it isn't available yet. Leave your email and I'll contact you about it.</p>
+          <ol class="steps" id="android-steps">
+            <li>Enter your Google Play Store email below.</li>
+            <li>I add that account to the test and send you the link.</li>
+            <li>Install Daily Macros and use it naturally when you can. Log a few meals, try taking photos, check the macros and explore the app. Any feedback, even something small or confusing, is very useful.</li>
+          </ol>
+          <form id="join-form" novalidate>
+            <label for="email" id="email-label">Google account email used in the Google Play Store</label>
+            <p class="hint" id="email-hint">Use the Google account that is signed into the Google Play Store on your Android phone.</p>
+            <input id="email" name="email" type="email" inputmode="email" autocomplete="email"
+                   autocapitalize="off" spellcheck="false" placeholder="you@gmail.com" required
+                   aria-describedby="email-hint email-error">
+            <div class="hp" aria-hidden="true">
+              <label for="website">Leave this empty</label>
+              <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
+            </div>
+            <div class="error" id="email-error" role="alert"></div>
+            <button class="btn" id="submit" type="submit">Join the Android test</button>
+            <p class="fine privacy" id="privacy">Your email will only be used to give you access to the Daily Macros test and contact you about testing.</p>
+          </form>
+        </div>
+
+        <div id="done-view" class="done" hidden tabindex="-1">
+          <div id="done-android">
+            <h2>Thanks, I've got your email.</h2>
+            <p>I received <strong id="sent-email"></strong>.</p>
+            <p class="next"><strong>One more step, on my side:</strong> I still need to add that Google account to the Daily Macros closed test. You can't install the app until I do. Once you're added, I'll email you the Google Play Store testing link.</p>          </div>
+          <div id="done-ios" hidden>
+            <h2>You're on the iPhone waitlist.</h2>
+            <p>I received <strong id="sent-email-ios"></strong>.</p>
+            <p class="next">There's no iPhone version yet, so there's nothing to install for now. I'll only use this email to contact you about it.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="hero-tail">
+      <a class="btn" href="#waitlist">Get notified when Daily Macros launches</a>
+      <p class="perk">Free for your first 3 weeks after launch, then a subscription unlocks ongoing use.</p>
+      <p class="fine">Android first, with an iPhone version planned. Join the waitlist either way.</p>
+    </div>
+
+    <section id="waitlist" hidden>
+      <div class="join">
+        <div id="waitlist-form-view">
+          <h2>Get notified when Daily Macros launches</h2>
+          <form id="waitlist-form" novalidate>
+            <p class="hint" id="waitlist-email-hint">Just a heads-up when it's ready, and about any major update before then. Not a test signup, no Google Play Store email needed.</p>
+            <input id="waitlist-email" name="email" type="email" inputmode="email" autocomplete="email" aria-label="Email"
+                   autocapitalize="off" spellcheck="false" placeholder="you@example.com" required
+                   aria-describedby="waitlist-email-hint waitlist-email-error">
+            <div class="hp" aria-hidden="true">
+              <label for="waitlist-website">Leave this empty</label>
+              <input id="waitlist-website" name="website" type="text" tabindex="-1" autocomplete="off">
+            </div>
+            <div class="error" id="waitlist-email-error" role="alert"></div>
+            <button class="btn" id="waitlist-submit" type="submit">Get notified</button>
+            <p class="fine privacy">Your email is only used to tell you about the Daily Macros launch and major updates.</p>
+          </form>
+        </div>
+
+        <div id="waitlist-done-view" class="done" hidden tabindex="-1">
+          <h2>You're on the list.</h2>
+          <p>I'll email <strong id="waitlist-sent-email"></strong> when Daily Macros launches, and about any major updates before then.</p>
+          <p class="fine" style="margin-top:14px">That's it! This is just a launch waitlist, nothing to install.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap fine">
+    Daily Macros is made by Gabor Biro. <a href="/privacy.html">Privacy policy</a>
+  </div>
+</footer>
+
+<script>
+(function () {
+  function sendEvent(type) {
+    try {
+      fetch("/api/event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: type }),
+        keepalive: true
+      }).catch(function () {});
+    } catch (e) {}
+  }
+  sendEvent("page_view");
+
+  // Shrinks the fixed header (icon, title, Join the test button) once the
+  // page has scrolled a bit. Two different thresholds (not one) give it a
+  // dead zone, so momentum/rubber-band micro-scrolls near the boundary
+  // can't flicker it back and forth.
+  var headerEl = document.querySelector("header");
+  var mainEl = document.querySelector("main");
+  function updateHeaderStuck() {
+    var y = window.scrollY;
+    if (y > 40) headerEl.classList.add("is-stuck");
+    else if (y < 10) headerEl.classList.remove("is-stuck");
+  }
+  window.addEventListener("scroll", updateHeaderStuck, { passive: true });
+  updateHeaderStuck();
+
+  // Fixed headers don't reserve layout space, so main needs its own padding
+  // to avoid sitting underneath it. Measured from the header's natural
+  // (unstuck) height, which only matters before the first scroll anyway.
+  function syncHeaderSpacer() {
+    var wasStuck = headerEl.classList.contains("is-stuck");
+    headerEl.classList.remove("is-stuck");
+    mainEl.style.paddingTop = headerEl.getBoundingClientRect().height + "px";
+    if (wasStuck) headerEl.classList.add("is-stuck");
+  }
+  window.addEventListener("resize", syncHeaderSpacer);
+  syncHeaderSpacer();
+
+  var betaCtaLinks = document.querySelectorAll(".js-beta-cta");
+  for (var i = 0; i < betaCtaLinks.length; i++) {
+    betaCtaLinks[i].addEventListener("click", function () { sendEvent("beta_cta_click"); });
+  }
+
+  // The waitlist/join cards start hidden; any link to them reveals the card
+  // (once revealed it stays that way) instead of just jump-scrolling to it.
+  var ctaTargetLinks = document.querySelectorAll('a[href="#waitlist"], a[href="#join"]');
+  for (var j = 0; j < ctaTargetLinks.length; j++) {
+    ctaTargetLinks[j].addEventListener("click", function (e) {
+      e.preventDefault();
+      var target = document.querySelector(this.getAttribute("href"));
+      target.hidden = false;
+      var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+    });
+  }
+
+  var waitlistForm = document.getElementById("waitlist-form");
+  var waitlistInput = document.getElementById("waitlist-email");
+  var waitlistErr = document.getElementById("waitlist-email-error");
+  var waitlistBtn = document.getElementById("waitlist-submit");
+  var waitlistHp = document.getElementById("waitlist-website");
+
+  waitlistForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    waitlistErr.textContent = "";
+    var email = waitlistInput.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      waitlistErr.textContent = "Please enter a valid email address.";
+      waitlistInput.focus();
+      return;
+    }
+    waitlistBtn.disabled = true;
+    waitlistBtn.textContent = "Sending…";
+    fetch("/api/waitlist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email, website: waitlistHp.value })
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (data) { return { ok: r.ok, data: data }; });
+    }).then(function (res) {
+      if (res.ok && res.data.ok) {
+        document.getElementById("waitlist-sent-email").textContent = email;
+        document.getElementById("waitlist-form-view").hidden = true;
+        var done = document.getElementById("waitlist-done-view");
+        done.hidden = false;
+        done.focus();
+        return;
+      }
+      throw new Error(res.data.message || "Something went wrong. Please try again.");
+    }).catch(function (ex) {
+      waitlistErr.textContent = ex instanceof TypeError ? "Couldn't reach the server. Check your connection and try again." : ex.message;
+      waitlistBtn.disabled = false;
+      waitlistBtn.textContent = "Get notified";
+    });
+  });
+})();
+</script>
+<script>
+(function () {
+  var form = document.getElementById("join-form");
+  var input = document.getElementById("email");
+  var err = document.getElementById("email-error");
+  var btn = document.getElementById("submit");
+  var radios = document.querySelectorAll('input[name="platform"]');
+
+  var COPY = {
+    android: {
+      label: "Google account email used in the Google Play Store",
+      hint: "Use the Google account that is signed into the Google Play Store on your Android phone.",
+      placeholder: "you@gmail.com",
+      cta: "Join the Android test",
+      privacy: "Your email will only be used to give you access to the Daily Macros test and contact you about testing."
+    },
+    ios: {
+      label: "Your email",
+      hint: "Any address you check. There's nothing to install on iPhone yet.",
+      placeholder: "you@example.com",
+      cta: "Join the iPhone waitlist",
+      privacy: "Your email will only be used to contact you about the Daily Macros iPhone version."
+    }
+  };
+
+  function platform() {
+    return document.querySelector('input[name="platform"]:checked').value;
+  }
+
+  function render() {
+    var p = platform(), c = COPY[p];
+    document.getElementById("email-label").textContent = c.label;
+    document.getElementById("email-hint").textContent = c.hint;
+    input.placeholder = c.placeholder;
+    btn.textContent = c.cta;
+    document.getElementById("privacy").textContent = c.privacy;
+    document.getElementById("android-steps").hidden = p !== "android";
+    document.getElementById("ios-note").hidden = p !== "ios";
+    err.textContent = "";
+  }
+
+  for (var i = 0; i < radios.length; i++) radios[i].addEventListener("change", render);
+  if (/iPhone|iPad|iPod/.test(navigator.userAgent)) document.querySelector('input[name="platform"][value="ios"]').checked = true;
+  render();
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    err.textContent = "";
+    var email = input.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      err.textContent = "Please enter a valid email address.";
+      input.focus();
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = "Sending…";
+    fetch("/api/join", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email, platform: platform(), website: document.getElementById("website").value })
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (data) { return { ok: r.ok, data: data }; });
+    }).then(function (res) {
+      if (res.ok && res.data.ok) {
+        var ios = platform() === "ios";
+        document.getElementById(ios ? "sent-email-ios" : "sent-email").textContent = email;
+        document.getElementById("done-android").hidden = ios;
+        document.getElementById("done-ios").hidden = !ios;
+        document.getElementById("form-view").hidden = true;
+        var done = document.getElementById("done-view");
+        done.hidden = false;
+        done.focus();
+        return;
+      }
+      throw new Error(res.data.message || "Something went wrong. Please try again.");
+    }).catch(function (ex) {
+      err.textContent = ex instanceof TypeError ? "Couldn't reach the server. Check your connection and try again." : ex.message;
+      btn.disabled = false;
+      btn.textContent = COPY[platform()].cta;
+    });
+  });
+})();
+</script>
+<script>
+// Try-it demo (#try): HTML replicas of the home-screen widget and the
+// Overview/Trends screens, sharing one in-memory diary. Everything is static
+// except the analysis, which POSTs to /api/demo (functions/demo.js).
+(function () {
+  // reCAPTCHA Enterprise site key for Firebase App Check (see "Landing-page
+  // demo setup" in functions/README.md). While empty, no App Check token is
+  // sent, which demoAnalyze rejects unless config/demo.requireAppCheck is false.
+  var APP_CHECK_SITE_KEY = "6LcHDfwtAAAAAG3vpzC7K7qKHjTa-TY2JsscxAl6";
+  var FIREBASE_SDK = "https://www.gstatic.com/firebasejs/11.0.2/";
+  var MAX_PHOTO_PX = 768;
+  var QUICK_PICKS_INDEX = 4; // the real widget lists Quick Picks after the 4th recent meal
+  var CONFIDENCE_MARK = { high: "", medium: " (likely)", low: " (guess)" };
+
+  // The app's default daily targets. A min of 0 means "at most max".
+  var MACROS = [
+    { key: "calories", label: "Calories", min: 2100, max: 2400, color: "#A9CFF7" },
+    { key: "protein", label: "Protein", min: 130, max: 300, color: "#9EE6C6" },
+    { key: "fat", label: "Fat", min: 50, max: 90, color: "#F6E39A" },
+    { key: "saturated", label: "saturated", min: 0, max: 25, color: "#F6E39A" },
+    { key: "carbs", label: "Carbs", min: 200, max: 300, color: "#F9C9A3" },
+    { key: "sugar", label: "sugar", min: 60, max: 80, color: "#F9C9A3" },
+    { key: "salt", label: "Salt", min: 0, max: 6, color: "#CDBBF5" },
+    { key: "fibre", label: "Fibre", min: 25, max: 100, color: "#F8B9CB" }
+  ];
+  // Everything Trends charts, in the app's order. addedSugar has no target.
+  var TRENDS = [
+    { key: "calories", label: "Calories (kcal)", color: "#8AB4F8" },
+    { key: "protein", label: "Protein (g)", color: "#81C995" },
+    { key: "fat", label: "Fat (g)", color: "#F2D27A" },
+    { key: "saturated", label: "of which saturated (g)", color: "#E3BE5A" },
+    { key: "carbs", label: "Carbs (g)", color: "#F6AE7E" },
+    { key: "sugar", label: "of which sugar (g)", color: "#F0976F" },
+    { key: "addedSugar", label: "of which added sugar (g)", color: "#E07F63" },
+    { key: "salt", label: "Salt (g)", color: "#C3A6F5" },
+    { key: "fibre", label: "Fibre (g)", color: "#F59AB5" }
+  ];
+  var TYPICAL_ADDED_SUGAR = 15;
+
+  // The sample meals, with the nutrition and AI notes the app logged for them.
+  // The ones without a photo were logged from a typed description.
+  function part(name, amount, confidence) { return { name: name, amount: amount, confidence: confidence }; }
+  var FOODS = {
+    "scrambled-egg": {
+      name: "Bacon cheese scrambled egg", image: "/img/demo/scrambled-egg.jpg",
+      calories: 509, protein: 31.9, fat: 27.2, saturated: 10.3, carbs: 32.7, sugar: 6.1, addedSugar: 1.5, salt: 2.5, fibre: 4.5,
+      components: [part("bread", "2 slices, ~90 g", "medium"), part("eggs", "about 3 large", "medium"), part("bacon", "about 35 g", "medium"),
+        part("grated mozzarella", "about 35 g", "medium"), part("cherry tomatoes", "about 40 g", "low"), part("cucumber", "about 40 g", "low")],
+      notes: "Packaging values were used for the bacon and mozzarella. Bread, eggs and vegetables were estimated from the photo. No separate cooking fat was counted."
+    },
+    "cheese-bread": {
+      name: "Cheese bread", image: "/img/demo/cheese-bread.jpg",
+      calories: 95, protein: 1.5, fat: 3.5, saturated: 1, carbs: 14, sugar: 0.6, addedSugar: 0, salt: 0.4, fibre: 0.3,
+      components: [part("cheese bread roll", "1 small roll, ~35 g", "medium")],
+      notes: "Estimated as one small Brazilian-style cheese bread roll."
+    },
+    "noodle-soup": {
+      name: "Noodle soup", image: "/img/demo/noodle-soup.jpg",
+      calories: 390, protein: 29, fat: 7, saturated: 1.8, carbs: 46, sugar: 3, addedSugar: 0.5, salt: 2.2, fibre: 2.5,
+      components: [part("egg noodles", "~120 g cooked", "medium"), part("chicken", "~90 g", "medium"),
+        part("broth", "~400 ml", "medium"), part("mixed vegetables", "~60 g", "low")],
+      notes: "Estimated from the photo, assuming a chicken stock broth."
+    },
+    "apple-cake": {
+      name: "Apple cake", image: "/img/demo/apple-cake.jpg",
+      calories: 393, protein: 4.3, fat: 16.1, saturated: 1.5, carbs: 58.7, sugar: 39, addedSugar: 34, salt: 0.4, fibre: 2.2,
+      components: [part("apple cake", "1 slice, ~120 g", "medium")],
+      notes: "One slice estimated from the photo, assuming a sponge base with apple and a sugar topping."
+    },
+    "yoghurt-bowl": {
+      name: "Greek yoghurt with berries and oats", image: null,
+      calories: 380, protein: 28, fat: 9, saturated: 5, carbs: 46, sugar: 22, addedSugar: 6, salt: 0.3, fibre: 8,
+      components: [part("Greek yoghurt", "~200 g", "high"), part("mixed berries", "~80 g", "high"),
+        part("oats", "~30 g", "high"), part("honey", "1 teaspoon", "medium")],
+      notes: "Estimated from the description."
+    },
+    "lentil-soup": {
+      name: "Lentil soup", image: null,
+      calories: 320, protein: 18, fat: 6, saturated: 1, carbs: 45, sugar: 6, addedSugar: 0, salt: 1.2, fibre: 12,
+      components: [part("red lentil soup", "1 large bowl, ~400 ml", "medium")],
+      notes: "Estimated from the description, assuming a home-made red lentil soup."
+    },
+    "chicken-rice": {
+      name: "Chicken, rice and broccoli", image: null,
+      calories: 650, protein: 55, fat: 12, saturated: 3, carbs: 75, sugar: 3, addedSugar: 0, salt: 1.2, fibre: 7,
+      components: [part("chicken breast", "~180 g", "high"), part("cooked rice", "~200 g", "medium"),
+        part("broccoli", "~100 g", "high"), part("olive oil", "1 teaspoon", "low")],
+      notes: "Estimated from the description."
+    }
+  };
+
+  // Today's meals are seeded relative to now (dropped if that would be before
+  // midnight), so "today" never shows a meal from the future.
+  function seedToday(foodKey, minutesAgo) {
+    var meal = Object.assign({}, FOODS[foodKey]);
+    meal.at = new Date(Date.now() - minutesAgo * 60000);
+    return daysAgo(meal.at) === 0 ? meal : null;
+  }
+  // Yesterday is a complete day that lands inside every target.
+  function seedYesterday(foodKey, hours, minutes) {
+    var meal = Object.assign({}, FOODS[foodKey]);
+    meal.at = startOfDay(new Date());
+    meal.at.setDate(meal.at.getDate() - 1);
+    meal.at.setHours(hours, minutes);
+    return meal;
+  }
+  var diary = [ // newest first
+    seedToday("apple-cake", 50), seedToday("noodle-soup", 200), seedToday("scrambled-egg", 360),
+    seedYesterday("chicken-rice", 19, 30), seedYesterday("apple-cake", 16, 15), seedYesterday("lentil-soup", 13, 0),
+    seedYesterday("yoghurt-bowl", 10, 30), seedYesterday("scrambled-egg", 7, 45)
+  ].filter(Boolean);
+  var tiles = ["apple-cake", "cheese-bread", "scrambled-egg", "noodle-soup"].map(function (k) { return FOODS[k]; });
+
+  var veilEls = document.querySelectorAll(".demo-veil");
+  var demoPhonesEl = document.getElementById("demo-phones");
+  var recentEl = document.getElementById("demo-recent");
+  var recentMoreEl = document.getElementById("demo-recent-more");
+  var tilesEl = document.getElementById("demo-tiles");
+  var overviewEl = document.getElementById("demo-overview");
+  var trendsEl = document.getElementById("demo-trends");
+  var chartsEl = document.getElementById("demo-trends-charts");
+  var scrim = document.getElementById("demo-scrim");
+  var dialog = document.getElementById("demo-dialog");
+  var favHint = document.getElementById("demo-fav-hint");
+  // The out-of-tries card, one per phone; they open and close together.
+  var ends = Array.prototype.slice.call(document.querySelectorAll(".demo-end"));
+  var cameraBtn = document.getElementById("demo-camera");
+  var cameraInput = document.getElementById("demo-camera-input");
+  var galleryInput = document.getElementById("demo-gallery-input");
+
+  var started = false;
+  var busy = false;
+  var analysedOnce = false; // an analysis succeeded at least once
+  var favouriteUsed = false;
+  var remaining = null; // unknown until the first answer from /api/demo
+  var current = null; // { image, description, result } of the meal in the dialog
+  var appCheck = null;
+  var trendsMode = "days";
+  var trendsOpener = null;
+
+  // --- Formatting -----------------------------------------------------------
+
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function hhmm(d) { return pad(d.getHours()) + ":" + pad(d.getMinutes()); }
+  function startOfDay(d) { var s = new Date(d); s.setHours(0, 0, 0, 0); return s; }
+  function daysAgo(d) { return Math.round((startOfDay(new Date()) - startOfDay(d)) / 86400000); }
+  function dayName(d) {
+    var ago = daysAgo(d);
+    return ago === 0 ? "Today" : ago === 1 ? "Yesterday" : d.toLocaleDateString("en-GB", { weekday: "short" });
+  }
+  function longDate(d) { return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }); }
+  function grams(n) { return n == null ? "?g" : Math.round(n * 10) / 10 + "g"; }
+  function kcal(n) { return Math.round(n || 0) + "kcal"; }
+  function range(m) {
+    return m.key === "calories" ? m.min / 1000 + "k-" + m.max / 1000 + "k" : m.min + "-" + m.max;
+  }
+  // Matches the app's TemplateUiMapper.targetProgress: the green marker sits at a
+  // fixed 75% of the bar for a real min-max range (not at a proportional position),
+  // with progress rescaled so reaching min lands exactly on the marker and reaching
+  // max fills the bar. A min of 0 ("at most max") has no floor, so it's plain total/max.
+  function targetProgress(m, total) {
+    return m.min > 0 && m.min < m.max
+      ? (total <= m.min ? (total / m.min) * 0.75 : 0.75 + ((total - m.min) / (m.max - m.min)) * 0.25)
+      : total / m.max;
+  }
+  function targetMarker0to1(m) {
+    return m.min > 0 ? 0.75 : 0;
+  }
+
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+  function button(className, text, onClick) {
+    var b = el("button", className, text);
+    b.type = "button";
+    b.addEventListener("click", onClick);
+    return b;
+  }
+  function img(className, src) {
+    var i = el("img", className);
+    i.src = src;
+    i.alt = "";
+    return i;
+  }
+  function chipsFor(meal) {
+    return [
+      ["c-cal", kcal(meal.calories)],
+      ["c-pro", "Protein: " + grams(meal.protein)],
+      ["c-fat", "Fat: " + grams(meal.fat) + "(" + grams(meal.saturated) + ")"],
+      ["c-carb", "Carb: " + grams(meal.carbs) + "(" + grams(meal.sugar) + "/" + grams(meal.addedSugar) + ")"],
+      ["c-salt", "Salt: " + grams(meal.salt)],
+      ["c-fib", "Fibre: " + grams(meal.fibre)]
+    ];
+  }
+
+  function tick() {
+    var now = hhmm(new Date());
+    Array.prototype.forEach.call(document.querySelectorAll(".js-demo-clock"), function (c) { c.textContent = now; });
+  }
+  tick();
+  setInterval(tick, 30000);
+
+  // --- Diary maths ----------------------------------------------------------
+
+  function mealsOn(ago) { return diary.filter(function (m) { return daysAgo(m.at) === ago; }); }
+  function totals(meals) {
+    var t = {};
+    TRENDS.forEach(function (m) {
+      t[m.key] = meals.reduce(function (sum, meal) { return sum + (meal[m.key] || 0); }, 0);
+    });
+    return t;
+  }
+  function targetFor(key) { return MACROS.filter(function (m) { return m.key === key; })[0] || null; }
+
+  // --- Widget ---------------------------------------------------------------
+
+  // Recent meals, with the Quick Picks block after the first QUICK_PICKS_INDEX
+  // of them and the older ones continuing below it. Each row opens the meal.
+  function renderWidget(highlightNewest) {
+    recentEl.textContent = "";
+    recentMoreEl.textContent = "";
+    diary.forEach(function (meal, i) {
+      var li = el("li", highlightNewest && i === 0 ? "is-new" : null);
+      var row = el("button", "w-row");
+      row.type = "button";
+      row.setAttribute("data-meal", String(i));
+      if (meal.image) {
+        row.appendChild(img("w-thumb", meal.image));
+      } else {
+        var noImg = el("span", "w-thumb w-noimg", "✎");
+        noImg.setAttribute("aria-hidden", "true");
+        row.appendChild(noImg);
+      }
+      var text = el("span", "w-row-text");
+      text.appendChild(el("span", "w-name", meal.name));
+      text.appendChild(el("span", "w-sub", dayName(meal.at) + ", " + hhmm(meal.at) + " (" + kcal(meal.calories) + ")"));
+      row.appendChild(text);
+      li.appendChild(row);
+      (i < QUICK_PICKS_INDEX ? recentEl : recentMoreEl).appendChild(li);
+    });
+    if (highlightNewest) document.getElementById("demo-widget-scroll").scrollTop = 0;
+  }
+
+  function renderTiles() {
+    tilesEl.textContent = "";
+    tiles.forEach(function (meal, i) {
+      var tile = el("button", "w-tile");
+      tile.type = "button";
+      tile.setAttribute("data-tile", String(i));
+      tile.setAttribute("aria-label", "Log " + meal.name);
+      if (meal.image) tile.appendChild(img(null, meal.image));
+      tile.appendChild(el("span", null, meal.name));
+      tilesEl.appendChild(tile);
+    });
+  }
+
+  // --- Overview -------------------------------------------------------------
+
+  function summaryCard(meals, ago) {
+    var t = totals(meals);
+    var card = el("button", "ov-summary");
+    card.type = "button";
+    card.setAttribute("aria-label", dayName(new Date(Date.now() - ago * 86400000)) + "’s totals: " + kcal(t.calories) + ". Open trends");
+    var grid = el("div", "ov-grid");
+    MACROS.forEach(function (m) {
+      var row = el("div", "ov-row");
+      row.appendChild(el("span", "ov-label", m.label));
+      var track = el("div", "ov-track");
+      var fill = el("div", "ov-fill");
+      fill.style.width = Math.min(targetProgress(m, t[m.key]), 1) * 100 + "%";
+      fill.style.background = m.color;
+      var tickMark = el("div", "ov-tick");
+      tickMark.style.left = targetMarker0to1(m) * 100 + "%";
+      track.appendChild(fill);
+      track.appendChild(tickMark);
+      row.appendChild(track);
+      var line = el("div", "ov-line");
+      line.appendChild(el("b", null, m.key === "calories" ? kcal(t.calories) : grams(t[m.key])));
+      line.appendChild(el("span", "ov-range", range(m)));
+      row.appendChild(line);
+      grid.appendChild(row);
+    });
+    card.appendChild(grid);
+
+    // The proposed Trends entry point: a labelled footer with the last 7 days'
+    // calories, on the card that already opens Trends in the app.
+    var footer = el("div", "ov-trends");
+    var spark = el("div", "ov-spark");
+    spark.setAttribute("aria-hidden", "true");
+    var week = series("calories", "days");
+    var top = Math.max.apply(null, week.concat([1]));
+    week.forEach(function (v) {
+      var bar = el("i");
+      bar.style.height = Math.max(2, v / top * 18) + "px";
+      spark.appendChild(bar);
+    });
+    footer.appendChild(spark);
+    footer.appendChild(el("span", null, "Last 7 days"));
+    footer.appendChild(el("b", null, "Trends ›"));
+    card.appendChild(footer);
+    return card;
+  }
+
+  function mealCard(meal, isNew) {
+    var card = el("div", "ov-meal" + (isNew ? " is-new" : ""));
+    // A div with button semantics: the card holds block layout a <button> can't.
+    card.setAttribute("role", "button");
+    card.tabIndex = 0;
+    card.setAttribute("data-meal", String(diary.indexOf(meal)));
+    card.setAttribute("aria-label", meal.name + ", " + hhmm(meal.at) + ", " + kcal(meal.calories) + ". Open details");
+    if (meal.image) {
+      card.appendChild(img("ov-photo", meal.image));
+    } else {
+      var noImg = el("div", "ov-photo w-noimg", "✎");
+      noImg.setAttribute("aria-hidden", "true");
+      card.appendChild(noImg);
+    }
+    var body = el("div");
+    var head = el("div", "ov-meal-head");
+    head.appendChild(el("span", null, meal.name));
+    head.appendChild(el("span", null, hhmm(meal.at)));
+    body.appendChild(head);
+    var chips = el("div", "ov-chips");
+    chipsFor(meal).forEach(function (c) { chips.appendChild(el("span", "chip " + c[0], c[1])); });
+    body.appendChild(chips);
+    card.appendChild(body);
+    return card;
+  }
+
+  function renderOverview(highlightNewest) {
+    var scrollTop = overviewEl.scrollTop;
+    overviewEl.textContent = "";
+    [0, 1].forEach(function (ago) {
+      var day = new Date(Date.now() - ago * 86400000);
+      var head = el("div", "ov-day", ago === 0 ? longDate(day) : "Yesterday, " + longDate(day));
+      overviewEl.appendChild(head);
+      var meals = mealsOn(ago);
+      overviewEl.appendChild(summaryCard(meals, ago));
+      var list = el("div", "ov-meals");
+      meals.forEach(function (meal) { list.appendChild(mealCard(meal, highlightNewest && meal === diary[0])); });
+      overviewEl.appendChild(list);
+    });
+    overviewEl.scrollTop = highlightNewest ? 0 : scrollTop;
+  }
+
+  // --- Trends ---------------------------------------------------------------
+
+  var PERIODS = { days: 7, weeks: 8, months: 6 };
+
+  function roundValue(v) { return v < 20 ? Math.round(v * 10) / 10 : Math.round(v); }
+
+  // The history is made up to show someone hitting their goals: inside each
+  // target band, or comfortably under an "at most" limit. In Days, the last two
+  // points are yesterday's (on-target) and today's (still growing) real totals.
+  function series(key, mode) {
+    var target = targetFor(key);
+    var n = PERIODS[mode];
+    var values = [];
+    for (var i = 0; i < n; i++) {
+      var wobble = 0.7 * Math.sin(i * 1.9 + key.length) + 0.3 * Math.cos(i * 0.7 + n); // -1..1
+      var v = !target ? TYPICAL_ADDED_SUGAR * (1 + 0.25 * wobble)
+        : target.min > 0 ? target.min + (target.max - target.min) * (0.5 + 0.3 * wobble)
+        : target.max * (0.65 + 0.15 * wobble);
+      values.push(roundValue(v));
+    }
+    if (mode === "days") {
+      values[n - 2] = roundValue(totals(mealsOn(1))[key]);
+      values[n - 1] = roundValue(totals(mealsOn(0))[key]);
+    }
+    return values;
+  }
+
+  function periodLabels(mode) {
+    var n = PERIODS[mode], labels = [], now = new Date();
+    for (var i = n - 1; i >= 0; i--) {
+      if (mode === "days") {
+        labels.push(i === 0 ? "Today" : new Date(now.getTime() - i * 86400000).toLocaleDateString("en-GB", { weekday: "short" }));
+      } else if (mode === "weeks") {
+        var monday = startOfDay(now);
+        monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7) - i * 7);
+        var sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        labels.push(monday.getDate() + "-" + sunday.getDate());
+      } else {
+        labels.push(new Date(now.getFullYear(), now.getMonth() - i, 1).toLocaleDateString("en-GB", { month: "short" }));
+      }
+    }
+    return labels;
+  }
+
+  function niceTop(v) {
+    var step = Math.pow(10, Math.floor(Math.log10(v / 4)));
+    var nice = [1, 2, 2.5, 5, 10].map(function (f) { return f * step; }).filter(function (s) { return s * 4 >= v; })[0];
+    return nice * 4;
+  }
+
+  function chartSvg(trend, mode) {
+    var target = targetFor(trend.key);
+    var values = series(trend.key, mode), labels = periodLabels(mode), n = values.length;
+    var color = trend.color;
+    var partialToday = mode === "days"; // today's total is still growing
+    var W = 280, H = 150, L = 36, R = 10, T = 10, B = 24;
+    var top = niceTop(Math.max.apply(null, values.concat(target ? [target.max] : [])) * 1.08);
+    function x(i) { return L + (W - L - R) * i / (n - 1); }
+    function y(v) { return T + (H - T - B) * (1 - v / top); }
+    function pts(from, to) { return values.slice(from, to).map(function (v, i) { return x(from + i) + "," + y(v); }).join(" "); }
+    var s = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + trend.label + " by " + mode.slice(0, -1) + '">';
+    for (var g = 0; g <= 4; g++) {
+      var gv = top * g / 4;
+      s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(gv) + '" y2="' + y(gv) + '" stroke="#333" stroke-dasharray="3 3"/>';
+      s += '<text x="' + (L - 5) + '" y="' + (y(gv) + 3) + '" fill="#BDB6B0" font-size="9" text-anchor="end">' + (Number.isInteger(gv) ? gv : gv.toFixed(1)) + "</text>";
+    }
+    if (target) {
+      [target.min, target.max].forEach(function (t) {
+        if (t > 0) s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(t) + '" y2="' + y(t) + '" stroke="' + color + '" stroke-width="1.5" stroke-dasharray="6 4" opacity=".8"/>';
+      });
+    }
+    s += '<polyline points="' + pts(0, partialToday ? n - 1 : n) + '" fill="none" stroke="' + color + '" stroke-width="2"/>';
+    if (partialToday) {
+      s += '<polyline points="' + pts(n - 2, n) + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-dasharray="3 3" opacity=".7"/>';
+    }
+    values.forEach(function (v, i) {
+      var hollow = partialToday && i === n - 1;
+      s += '<circle cx="' + x(i) + '" cy="' + y(v) + '" r="3.5" fill="' + (hollow ? "#121212" : color) + '" stroke="' + color + '" stroke-width="1.5"><title>'
+        + labels[i] + ": " + v + (hollow ? " so far" : "") + "</title></circle>";
+      if (n > 7 && (n - 1 - i) % 2 === 1) return; // every other week label, so they don't collide
+      var anchor = i === n - 1 ? "end" : "middle";
+      s += '<text x="' + (i === n - 1 ? x(i) + 4 : x(i)) + '" y="' + (H - 8) + '" fill="#BDB6B0" font-size="9" text-anchor="' + anchor + '">' + labels[i] + "</text>";
+    });
+    return s + "</svg>";
+  }
+
+  function renderTrends() {
+    chartsEl.textContent = "";
+    TRENDS.forEach(function (trend) {
+      var section = el("div", "trend");
+      var title = el("div", "trend-title", trend.label);
+      title.style.color = trend.color;
+      section.appendChild(title);
+      var chart = el("div");
+      chart.innerHTML = chartSvg(trend, trendsMode); // built from numbers and our own labels only
+      section.appendChild(chart.firstChild);
+      chartsEl.appendChild(section);
+    });
+    Array.prototype.forEach.call(trendsEl.querySelectorAll("[data-mode]"), function (b) {
+      b.setAttribute("aria-pressed", String(b.getAttribute("data-mode") === trendsMode));
+    });
+  }
+
+  function openTrends(opener) {
+    markStarted();
+    trendsOpener = opener;
+    renderTrends();
+    trendsEl.hidden = false;
+    chartsEl.scrollTop = 0;
+    document.getElementById("demo-trends-back").focus({ preventScroll: true });
+  }
+  function closeTrends() {
+    if (trendsEl.hidden || trendsEl.classList.contains("is-closing")) return;
+    function finish() {
+      trendsEl.classList.remove("is-closing");
+      trendsEl.hidden = true;
+      if (trendsOpener && document.body.contains(trendsOpener)) trendsOpener.focus({ preventScroll: true });
+      else overviewEl.focus({ preventScroll: true });
+    }
+    // With reduced motion there's no animation, so no animationend to wait for.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { finish(); return; }
+    trendsEl.addEventListener("animationend", finish, { once: true });
+    trendsEl.classList.add("is-closing");
+  }
+
+  // --- Visitor's first interaction ------------------------------------------
+
+  // Counts the visitor once in stats/counters.demo_start, on any first tap.
+  // Also lifts the frosted-glass veils off both phones, expands the second
+  // phone in from zero width (see #demo-phones.pre-reveal), and reveals the
+  // left caption (reserved space all along, so nothing jumps for it).
+  function markStarted() {
+    if (started) return;
+    started = true;
+    Array.prototype.forEach.call(veilEls, function (v) { v.hidden = true; });
+    demoPhonesEl.classList.remove("pre-reveal");
+    Array.prototype.forEach.call(document.querySelectorAll(".demo-reveal"), function (el) {
+      el.classList.remove("demo-reveal");
+    });
+    try {
+      fetch("/api/event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "demo_start" }),
+        keepalive: true
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  // The three buttons pulse until the visitor has really used one: a photo
+  // or description analysed successfully. Then the favourites hint takes
+  // over (shown when the result dialog closes).
+  function markAnalysed() {
+    analysedOnce = true;
+    Array.prototype.forEach.call(document.querySelectorAll(".w-bar .pulse"), function (b) {
+      b.classList.remove("pulse");
+    });
+  }
+
+  // The prompt wants the English name of the output language ("German"), the
+  // same form the app sends.
+  function language() {
+    try {
+      return new Intl.DisplayNames(["en"], { type: "language" }).of(navigator.language.split("-")[0]) || "English";
+    } catch (e) {
+      return "English";
+    }
+  }
+
+  // --- Photos: downscale to a small JPEG before upload ----------------------
+
+  function toJpeg(source) {
+    var w = source.naturalWidth || source.width, h = source.naturalHeight || source.height;
+    var scale = Math.min(1, MAX_PHOTO_PX / Math.max(w, h));
+    var canvas = document.createElement("canvas");
+    canvas.width = Math.round(w * scale);
+    canvas.height = Math.round(h * scale);
+    canvas.getContext("2d").drawImage(source, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/jpeg", 0.82);
+  }
+  function photoFromFile(file) {
+    // createImageBitmap honours EXIF orientation, so phone photos aren't sideways.
+    if (window.createImageBitmap) return createImageBitmap(file).then(toJpeg);
+    return photoFromUrl(URL.createObjectURL(file));
+  }
+  function photoFromUrl(url) {
+    // onload rather than decode(): decode() can stall in background tabs.
+    return new Promise(function (resolve, reject) {
+      var image = new Image();
+      image.onload = function () { resolve(toJpeg(image)); };
+      image.onerror = function () { reject(new Error("Couldn't load " + url)); };
+      image.src = url;
+    });
+  }
+
+  // --- App Check: loaded on first use, so visitors who never try the demo
+  //     don't load the Firebase SDK or reCAPTCHA -----------------------------
+
+  function appCheckToken() {
+    if (!APP_CHECK_SITE_KEY) return Promise.resolve(null);
+    if (!appCheck) {
+      // Prints a debug token to the console on localhost; register it in the
+      // Firebase console (App Check > Manage debug tokens) to test locally.
+      if (location.hostname === "localhost") self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+      appCheck = Promise.all([
+        import(FIREBASE_SDK + "firebase-app.js"),
+        import(FIREBASE_SDK + "firebase-app-check.js"),
+        fetch("/__/firebase/init.json").then(function (r) { return r.json(); })
+      ]).then(function (m) {
+        var app = m[0].initializeApp(m[2]);
+        var instance = m[1].initializeAppCheck(app, {
+          provider: new m[1].ReCaptchaEnterpriseProvider(APP_CHECK_SITE_KEY),
+          isTokenAutoRefreshEnabled: false
+        });
+        return { getToken: m[1].getToken, instance: instance };
+      });
+      appCheck.catch(function () { appCheck = null; }); // let the next try retry the load
+    }
+    return appCheck.then(function (a) {
+      return a.getToken(a.instance).then(function (t) { return t.token; });
+    });
+  }
+
+  // --- Dialog (the app's analysis screen) ------------------------------------
+
+  // Each phone has its own dialog layer: the widget's for the analysis and
+  // its recent meals, the app's for its diary entries. returnFocus is where
+  // focus goes when the dialog closes.
+  var widgetHost = {
+    scrim: scrim, dialog: dialog, returnFocus: cameraBtn, phone: document.getElementById("demo-widget-device"),
+    scrollbar: document.getElementById("demo-dialog-scrollbar"),
+  };
+  var appHost = {
+    scrim: document.getElementById("demo-app-scrim"), dialog: document.getElementById("demo-app-dialog"),
+    returnFocus: overviewEl, phone: document.getElementById("demo-overview-device"),
+    scrollbar: document.getElementById("demo-app-dialog-scrollbar"),
+  };
+
+  // The dialog's own native scrollbar is hidden (see .dialog::-webkit-scrollbar)
+  // in favour of this one, which - unlike a mobile browser's overlay scrollbar -
+  // stays visible for as long as the dialog has more content than fits.
+  function updateDialogScrollbar(host) {
+    var el = host.dialog, track = host.scrollbar, thumb = track.firstElementChild;
+    var overflowing = el.scrollHeight > el.clientHeight + 1;
+    track.hidden = !overflowing;
+    if (!overflowing) return;
+    var trackHeight = track.clientHeight;
+    var thumbHeight = Math.max((el.clientHeight / el.scrollHeight) * trackHeight, 24);
+    var maxScroll = el.scrollHeight - el.clientHeight;
+    var maxThumbTop = trackHeight - thumbHeight;
+    thumb.style.height = thumbHeight + "px";
+    thumb.style.top = (maxScroll > 0 ? (el.scrollTop / maxScroll) * maxThumbTop : 0) + "px";
+  }
+  [widgetHost, appHost].forEach(function (host) {
+    host.dialog.addEventListener("scroll", function () { updateDialogScrollbar(host); });
+  });
+
+  // image defaults to the photo of the meal being analysed in the widget.
+  function openDialog(nodes, focusTarget, host, image) {
+    host = host || widgetHost;
+    if (image === undefined) image = current && current.image;
+    host.dialog.textContent = "";
+    if (image) {
+      var photo = img("dialog-photo", image);
+      photo.alt = "Your meal";
+      host.dialog.appendChild(photo);
+    }
+    nodes.forEach(function (n) { host.dialog.appendChild(n); });
+    host.scrim.hidden = false;
+    // On narrow screens the two phones sit in a horizontally-scrollable strip;
+    // bring this dialog's phone into view, but only if it isn't already (like
+    // RecyclerView.scrollToPosition: nudge the minimum needed, or not at all).
+    host.phone.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+    (focusTarget || host.dialog).focus({ preventScroll: true });
+    updateDialogScrollbar(host);
+  }
+  function closeWidgetDialog() { closeDialog(widgetHost); }
+  function closeDialog(host) {
+    host = host || widgetHost;
+    if (host === widgetHost && busy) return;
+    host.scrim.hidden = true;
+    host.dialog.textContent = "";
+    host.returnFocus.focus({ preventScroll: true });
+    // Once they've tried the AI, point at the one-tap way of logging.
+    if (host === widgetHost && analysedOnce && !favouriteUsed) favHint.hidden = false;
+  }
+
+  function showTextEntry() {
+    current = null;
+    var title = el("h3", null, "What did you eat?");
+    var area = el("textarea");
+    area.maxLength = 500;
+    area.placeholder = "e.g. a bowl of porridge with banana and a spoon of honey";
+    area.setAttribute("aria-label", "Describe your meal");
+    openDialog([
+      title,
+      area,
+      button("btn", "Analyse", function () {
+        var text = area.value.trim();
+        if (!text) { area.focus(); return; }
+        analyse({ image: null, description: text });
+      }),
+      button("dialog-link", "Close", closeWidgetDialog)
+    ], area);
+  }
+
+  function showAnalysing() {
+    var status = el("div", "dialog-status");
+    status.setAttribute("role", "status");
+    status.appendChild(el("div", "spinner"));
+    var text = el("div");
+    text.appendChild(el("div", null, "Analysing your meal…"));
+    text.appendChild(el("div", "w-sub", "Usually takes 10–20 seconds."));
+    status.appendChild(text);
+    openDialog([status]);
+  }
+
+  // The AI's title, falling back to what the visitor typed, then the main
+  // component the AI found ("mushrooms" -> "Mushrooms").
+  function mealTitle() {
+    var r = current.result;
+    var component = r.components.length ? r.components[0].name : "";
+    return r.title || current.description.slice(0, 60)
+      || component.charAt(0).toUpperCase() + component.slice(1) || "Your meal";
+  }
+
+  // "amount name (confidence)", shared by the collapsed preview and the full list.
+  function componentLine(c) {
+    return c.name + (c.amount ? " (" + c.amount + ")" : "") + CONFIDENCE_MARK[c.confidence];
+  }
+
+  var AI_FOOTNOTE = "If something looks off, try another photo or add a clarification to the description. We’ll re-run the analysis.";
+
+  // "What the AI inferred": collapsed to a 2-line preview with a chevron pill once
+  // there's more to show, expanding into the full component list and notes - after
+  // the app's own decluttered, collapsible meal-details redesign. The footnote only
+  // shows here when there's no separate correction link below (see buildCorrection).
+  function buildInferredSection(meal, showFootnote) {
+    var lines = meal.components.map(componentLine);
+    var summary = lines.join(" · ");
+    var wrap = el("div", "inferred");
+    var head = el("div", "inferred-head");
+    head.appendChild(el("strong", null, "What the AI inferred"));
+    var pill = el("span", "inferred-pill", "▾");
+    pill.hidden = true;
+    head.appendChild(pill);
+    wrap.appendChild(head);
+    var body = el("div");
+    wrap.appendChild(body);
+
+    var expanded = false;
+    var expandable = false;
+
+    function renderCollapsed() {
+      body.textContent = "";
+      var preview = el("div", "inferred-preview", summary);
+      preview.addEventListener("click", function () { if (expandable) toggle(); });
+      body.appendChild(preview);
+      requestAnimationFrame(function () {
+        expandable = preview.scrollHeight > preview.clientHeight + 1 || !!meal.notes;
+        pill.hidden = !expandable;
+        head.style.cursor = preview.style.cursor = expandable ? "pointer" : "default";
+        if (!expandable && showFootnote) body.appendChild(el("p", "inferred-footnote", AI_FOOTNOTE));
+      });
+    }
+
+    function renderExpanded() {
+      body.textContent = "";
+      var list = el("ul");
+      lines.forEach(function (line) { list.appendChild(el("li", null, "- " + line)); });
+      body.appendChild(list);
+      if (meal.notes) body.appendChild(el("p", "inferred-notes", meal.notes));
+      if (showFootnote) body.appendChild(el("p", "inferred-footnote", AI_FOOTNOTE));
+      var toggle = el("div", "inferred-toggle", "Collapse ▴");
+      toggle.addEventListener("click", function () { expanded = false; render(); });
+      body.appendChild(toggle);
+    }
+
+    function render() { expanded ? renderExpanded() : renderCollapsed(); }
+    function toggle() { expanded = !expanded; render(); }
+    head.addEventListener("click", function () { if (expandable) toggle(); });
+
+    render();
+    return wrap;
+  }
+
+  // "Something off?": a plain link that opens into a field and a Re-analyze button,
+  // after the app's MealCorrectionInput. Only shown where a re-run is possible.
+  function buildCorrectionSection(onReanalyze) {
+    var wrap = el("div", "correction");
+    var link = el("span", "correction-link", "Something off?");
+    wrap.appendChild(link);
+    if (remaining === 0) {
+      link.textContent = "No re-runs left today";
+      link.classList.add("correction-link-disabled");
+      return wrap;
+    }
+    link.addEventListener("click", function () {
+      link.hidden = true;
+      var open = el("div", "correction-open");
+      var field = el("textarea");
+      field.maxLength = 200;
+      field.placeholder = "e.g. it was a small portion";
+      field.setAttribute("aria-label", "Clarification for the analysis");
+      open.appendChild(field);
+      var reanalyzeBtn = button("btn btn-small correction-reanalyze", "Re-analyze", function () {
+        var text = field.value.trim();
+        if (!text) { field.focus(); return; }
+        onReanalyze(text);
+      });
+      reanalyzeBtn.hidden = true;
+      field.addEventListener("input", function () { reanalyzeBtn.hidden = !field.value.trim(); });
+      open.appendChild(reanalyzeBtn);
+      wrap.appendChild(open);
+      field.focus();
+    });
+    return wrap;
+  }
+
+  // The meal screen's title, nutrient chips and "What the AI inferred" section,
+  // shared by a fresh analysis and a meal opened from the widget.
+  function mealDetailNodes(title, meal, showFootnote) {
+    var heading = el("h3", null, title);
+    heading.tabIndex = -1;
+
+    var chips = el("div", "tracks");
+    chipsFor(meal).forEach(function (c) { chips.appendChild(el("span", "chip " + c[0], c[1])); });
+
+    var inferred = buildInferredSection(meal, showFootnote);
+    return [heading, chips, inferred];
+  }
+
+  function showResult() {
+    var details = mealDetailNodes(mealTitle(), current.result, false);
+
+    var correction = buildCorrectionSection(function (text) {
+      analyse({ image: current.image, description: current.description ? current.description + "\n" + text : text });
+    });
+
+    openDialog(details.concat([
+      correction,
+      button("btn", "Log meal", logAnalysed),
+      button("dialog-link", "Close", closeWidgetDialog)
+    ]), details[0]);
+  }
+
+  // A logged meal, opened from the widget or the app's diary: the same screen
+  // without the re-run, as in the app. Leaves `current` (the widget's
+  // analysis) alone.
+  function showMealDetails(meal, host) {
+    var details = mealDetailNodes(meal.name, meal, true);
+    function close() { closeDialog(host); }
+    openDialog(details.concat([
+      button("btn", "Log meal again", function () {
+        close();
+        logMeal(meal);
+      }),
+      button("dialog-link", "Close", close)
+    ]), details[0], host, meal.image);
+  }
+
+  function showError(message, canRetry) {
+    var nodes = [el("p", "dialog-error", message)];
+    if (canRetry && current) {
+      nodes.push(button("btn", "Try again", function () { analyse(current); }));
+    }
+    nodes.push(button(canRetry ? "dialog-link" : "btn", "Try another photo", function () { cameraInput.click(); }));
+    nodes.push(button("dialog-link", "Close", closeWidgetDialog));
+    openDialog(nodes, nodes[nodes.length - 1]);
+  }
+
+  function showEnd(message) {
+    scrim.hidden = true;
+    ends.forEach(function (card) {
+      card.querySelector(".demo-end-text").textContent = message || "That's all the freebies for today.";
+      card.hidden = false;
+    });
+    ends[0].querySelector(".btn").focus({ preventScroll: true });
+  }
+  function closeEnd() {
+    ends.forEach(function (card) { card.hidden = true; });
+    cameraBtn.focus({ preventScroll: true });
+  }
+
+  // --- Analysis -------------------------------------------------------------
+
+  function analyse(meal) {
+    if (remaining === 0) { showEnd(); return; }
+    current = { image: meal.image, description: meal.description, result: null };
+    busy = true;
+    showAnalysing();
+    appCheckToken().then(function (token) {
+      var headers = { "Content-Type": "application/json" };
+      if (token) headers["X-Firebase-AppCheck"] = token;
+      return fetch("/api/demo", {
+        method: "POST",
+        headers: headers,
+        body: JSON.stringify({ image: current.image, description: current.description, language: language() })
+      });
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (data) { return { status: r.status, data: data }; });
+    }).then(function (res) {
+      busy = false;
+      if (typeof res.data.remaining === "number") remaining = res.data.remaining;
+      if (res.status === 200 && res.data.ok) {
+        markAnalysed();
+        current.result = res.data.result;
+        showResult();
+        return;
+      }
+      // No JSON error body means the request never reached demoAnalyze (e.g. a
+      // 404 with no /api/demo rewrite), so show the status to tell them apart.
+      var message = (res.data.error && res.data.error.message)
+        || "Something went wrong (HTTP " + res.status + "). Please try again.";
+      if (res.status === 429) { showEnd(message); return; }
+      // 422: the AI found no food to analyse - the same photo won't do better.
+      showError(message, res.status !== 422 && res.status !== 400);
+    }).catch(function (ex) {
+      busy = false;
+      showError(ex instanceof TypeError
+        ? "Couldn't reach the server. Check your connection and try again."
+        : "The demo couldn't verify this browser. Please reload the page.", true);
+    });
+  }
+
+  function startWithPhoto(photo) {
+    markStarted();
+    if (remaining === 0) { showEnd(); return; }
+    photo.then(function (image) {
+      analyse({ image: image, description: "" });
+    }).catch(function () {
+      current = null;
+      showError("That photo couldn't be opened here. Try a JPEG or PNG.", false);
+    });
+  }
+
+  // --- Logging: both phones show the same diary -----------------------------
+
+  function logMeal(food) {
+    markStarted();
+    var meal = Object.assign({}, food);
+    meal.at = new Date();
+    diary.unshift(meal);
+    renderWidget(true);
+    renderOverview(true);
+    if (!trendsEl.hidden) renderTrends();
+  }
+
+  function logAnalysed() {
+    var r = current.result;
+    var food = {
+      name: mealTitle(), image: current.image, calories: r.calories, protein: r.protein, fat: r.fat,
+      saturated: r.saturated, carbs: r.carbs, sugar: r.sugar, addedSugar: r.addedSugar, salt: r.salt, fibre: r.fibre,
+      components: r.components, notes: r.notes
+    };
+    closeDialog();
+    logMeal(food);
+    if (remaining === 0) setTimeout(function () { showEnd(); }, 1200);
+  }
+
+  // --- Wiring ---------------------------------------------------------------
+
+  renderWidget(false);
+  renderTiles();
+  renderOverview(false);
+
+  function logFavourite(food) {
+    favouriteUsed = true;
+    favHint.hidden = true;
+    logMeal(food);
+  }
+  document.getElementById("demo-widget-scroll").addEventListener("click", function (e) {
+    var row = e.target.closest("[data-meal]");
+    if (row) {
+      markStarted();
+      showMealDetails(diary[Number(row.getAttribute("data-meal"))], widgetHost);
+    }
+  });
+  tilesEl.addEventListener("click", function (e) {
+    var tile = e.target.closest("[data-tile]");
+    if (tile) logFavourite(tiles[Number(tile.getAttribute("data-tile"))]);
+  });
+  Array.prototype.forEach.call(document.querySelectorAll(".w-pick"), function (pick) {
+    pick.addEventListener("click", function () { logFavourite(FOODS[pick.getAttribute("data-food")]); });
+  });
+  function openDiaryEntry(card) {
+    markStarted();
+    appHost.returnFocus = card;
+    showMealDetails(diary[Number(card.getAttribute("data-meal"))], appHost);
+  }
+  overviewEl.addEventListener("click", function (e) {
+    var summary = e.target.closest(".ov-summary");
+    if (summary) { openTrends(summary); return; }
+    var card = e.target.closest(".ov-meal");
+    if (card) openDiaryEntry(card);
+  });
+  overviewEl.addEventListener("keydown", function (e) {
+    var card = e.target.closest(".ov-meal");
+    if (card && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
+      openDiaryEntry(card);
+    }
+  });
+  document.getElementById("demo-trends-back").addEventListener("click", closeTrends);
+  trendsEl.addEventListener("keydown", function (e) { if (e.key === "Escape") closeTrends(); });
+  trendsEl.querySelector(".trends-tabs").addEventListener("click", function (e) {
+    var tab = e.target.closest("[data-mode]");
+    if (!tab) return;
+    trendsMode = tab.getAttribute("data-mode");
+    renderTrends();
+  });
+  document.getElementById("demo-cta-camera").addEventListener("click", function () { markStarted(); cameraInput.click(); });
+  document.getElementById("demo-cta-choose").addEventListener("click", function () { markStarted(); galleryInput.click(); });
+  cameraBtn.addEventListener("click", function () { markStarted(); cameraInput.click(); });
+  document.getElementById("demo-gallery").addEventListener("click", function () { markStarted(); galleryInput.click(); });
+  document.getElementById("demo-text").addEventListener("click", function () {
+    markStarted();
+    if (remaining === 0) { showEnd(); return; }
+    showTextEntry();
+  });
+  [cameraInput, galleryInput].forEach(function (input) {
+    input.addEventListener("change", function () {
+      var file = input.files && input.files[0];
+      input.value = "";
+      if (file) startWithPhoto(photoFromFile(file));
+    });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll(".demo-samples button"), function (b) {
+    b.addEventListener("click", function () { startWithPhoto(photoFromUrl(b.getAttribute("data-src"))); });
+  });
+  ends.forEach(function (card) { card.querySelector(".demo-end-x").addEventListener("click", closeEnd); });
+  [widgetHost, appHost].forEach(function (host) {
+    host.dialog.addEventListener("keydown", function (e) { if (e.key === "Escape") closeDialog(host); });
+    // Tapping the overlay outside the dialog dismisses it, as on Android.
+    host.scrim.addEventListener("click", function (e) { if (e.target === host.scrim) closeDialog(host); });
+  });
+})();
+</script>
+</body>
+</html>

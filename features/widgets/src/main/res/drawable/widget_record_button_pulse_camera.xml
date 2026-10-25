@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Expanding, fading disc behind the widget's record buttons (mirrors the web demo's demo-pulse).
+    Widgets can't run animations directly; this plays as the indeterminate drawable of a
+    ProgressBar (see layout/widget_record_button_pulse_camera.xml), which the launcher keeps
+    animating. The _image and _text variants are identical apart from startOffset, which
+    staggers the three buttons by a third of the 1600ms cycle each.
+-->
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:drawable="@drawable/widget_record_button_pulse_disc">
+
+    <target android:name="disc">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="1600"
+                android:interpolator="@android:anim/decelerate_interpolator"
+                android:repeatCount="infinite"
+                android:startOffset="0">
+                <propertyValuesHolder
+                    android:propertyName="scaleX"
+                    android:valueFrom="0.5"
+                    android:valueTo="1"
+                    android:valueType="floatType" />
+                <propertyValuesHolder
+                    android:propertyName="scaleY"
+                    android:valueFrom="0.5"
+                    android:valueTo="1"
+                    android:valueType="floatType" />
+            </objectAnimator>
+        </aapt:attr>
+    </target>
+
+    <target android:name="fill">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="1600"
+                android:interpolator="@android:anim/decelerate_interpolator"
+                android:propertyName="fillAlpha"
+                android:repeatCount="infinite"
+                android:startOffset="0"
+                android:valueFrom="0.8"
+                android:valueTo="0"
+                android:valueType="floatType" />
+        </aapt:attr>
+    </target>
+</animated-vector>

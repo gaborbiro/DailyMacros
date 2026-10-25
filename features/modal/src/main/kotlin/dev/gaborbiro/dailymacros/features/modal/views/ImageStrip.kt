@@ -1,6 +1,11 @@
 package dev.gaborbiro.dailymacros.features.modal.views
 
 import android.content.res.Configuration
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -93,11 +98,12 @@ fun ImageStrip(
                     contentScale = ContentScale.Crop,
                     contentDescription = "",
                 )
-                if (showImageDeleteButton) {
+                FadingTileControl(
+                    modifier = Modifier.align(Alignment.TopEnd),
+                    visible = showImageDeleteButton,
+                ) {
                     IconButton(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .size(24.dp),
+                        modifier = Modifier.size(24.dp),
                         onClick = { onImageDeleteTapped(name) },
                         colors = imageDeleteColors,
                     ) {
@@ -108,10 +114,12 @@ fun ImageStrip(
                         )
                     }
                 }
-                if (showImageReorderButtons && imageFilenames.size > 1) {
+                FadingTileControl(
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                    visible = showImageReorderButtons && imageFilenames.size > 1,
+                ) {
                     Row(
                         modifier = Modifier
-                            .align(Alignment.BottomCenter)
                             .fillMaxWidth()
                             .background(Color.Gray.copy(alpha = .8f)),
                         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -145,47 +153,74 @@ fun ImageStrip(
                 }
             }
         }
-        if (showAddPhotoButtons) {
-            Box(
-                modifier = Modifier
-                    .size(tileSize)
-                    .clip(shape)
-                    .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f), shape)
-                    .clickable(onClick = onAddImageViaCameraTapped)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f), shape),
-                contentAlignment = Alignment.Center
+        // Slides out from the last photo when the dialog switches to editing.
+        AnimatedVisibility(
+            visible = showAddPhotoButtons,
+            enter = fadeIn(editModeSpec()) + expandHorizontally(editModeSpec(), expandFrom = Alignment.Start),
+            exit = fadeOut(editModeSpec()) + shrinkHorizontally(editModeSpec(), shrinkTowards = Alignment.Start),
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(
-                    painter = painterResource(CommonR.drawable.ic_add_photo),
-                    contentDescription = stringResource(R.string.modal_content_image_take_photo_cd),
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
-            Box(
-                modifier = Modifier
-                    .size(tileSize)
-                    .clip(shape)
-                    .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f), shape)
-                    .clickable(onClick = onAddImageViaPickerTapped)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f), shape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(CommonR.drawable.ic_add_picture),
-                    contentDescription = stringResource(R.string.modal_content_image_picker_cd),
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
-            if (showInfoButton) {
-                IconButton(onClick = onInfoButtonTapped) {
+                Box(
+                    modifier = Modifier
+                        .size(tileSize)
+                        .clip(shape)
+                        .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f), shape)
+                        .clickable(onClick = onAddImageViaCameraTapped)
+                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f), shape),
+                    contentAlignment = Alignment.Center
+                ) {
                     Icon(
-                        imageVector = Icons.Outlined.Info,
-                        contentDescription = stringResource(R.string.modal_content_image_info_cd)
+                        painter = painterResource(CommonR.drawable.ic_add_photo),
+                        contentDescription = stringResource(R.string.modal_content_image_take_photo_cd),
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .size(tileSize)
+                        .clip(shape)
+                        .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f), shape)
+                        .clickable(onClick = onAddImageViaPickerTapped)
+                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f), shape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(CommonR.drawable.ic_add_picture),
+                        contentDescription = stringResource(R.string.modal_content_image_picker_cd),
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                if (showInfoButton) {
+                    IconButton(onClick = onInfoButtonTapped) {
+                        Icon(
+                            imageVector = Icons.Outlined.Info,
+                            contentDescription = stringResource(R.string.modal_content_image_info_cd)
+                        )
+                    }
                 }
             }
         }
+    }
+}
+
+/** A control overlaid on a photo tile, faded in and out with the dialog's edit mode. */
+@Composable
+private fun FadingTileControl(
+    visible: Boolean,
+    modifier: Modifier,
+    content: @Composable () -> Unit,
+) {
+    AnimatedVisibility(
+        modifier = modifier,
+        visible = visible,
+        enter = fadeIn(editModeSpec()),
+        exit = fadeOut(editModeSpec()),
+    ) {
+        content()
     }
 }
 

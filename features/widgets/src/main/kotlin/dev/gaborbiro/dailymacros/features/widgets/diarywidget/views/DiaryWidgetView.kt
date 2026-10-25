@@ -37,6 +37,7 @@ internal fun DiaryWidgetView(
     modifier: GlanceModifier,
     navigator: WidgetNavigator,
     items: List<ListUiModelBase>,
+    highlightRecordButtons: Boolean,
 ) {
     val context = LocalContext.current
     Column(
@@ -59,8 +60,6 @@ internal fun DiaryWidgetView(
                     quickPickImageTapActionProvider = { templateId -> navigator.quickPickImageTapped(templateId) },
                     quickPickBodyTapActionProvider = { templateId, templateName -> navigator.quickPickBodyTapped(templateId, templateName) },
                 )
-            } else {
-                EmptyView()
             }
             Box(
                 modifier = GlanceModifier
@@ -92,6 +91,7 @@ internal fun DiaryWidgetView(
             modifier = GlanceModifier
                 .fillMaxWidth()
                 .wrapContentHeight(),
+            highlightRecordButtons = highlightRecordButtons,
             launchNoteViaCameraAction = { navigator.createRecordWithCamera() },
             launchNewNoteViaImagePickerActionProvider = { navigator.createRecordWithImagePicker() },
             launchNewNoteViaTextOnlyActionProvider = { navigator.createRecord() },
@@ -198,6 +198,7 @@ private fun WidgetViewPreview() {
                     showLoadingIndicator = false,
                 ),
             ),
+            highlightRecordButtons = false,
         )
     }
 }
@@ -212,6 +213,7 @@ private fun WidgetViewPreviewEmpty() {
                 .fillMaxSize(),
             navigator = PreviewWidgetNavigator,
             items = emptyList(),
+            highlightRecordButtons = true,
         )
     }
 }

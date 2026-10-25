@@ -15,14 +15,14 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
             val libs = rootProject.extensions.getByType<VersionCatalogsExtension>().named("libs")
             extensions.configure<LibraryExtension> {
                 val compileSdkVer = libs.findVersion("android-sdk-compile").get().requiredVersion
-                compileSdk = compileSdkVer.toString().toInt()
+                compileSdk = compileSdkVer.toInt()
                 defaultConfig {
                     val minSdkVer = libs.findVersion("android-sdk-min").get().requiredVersion
-                    minSdk = minSdkVer.toString().toInt()
+                    minSdk = minSdkVer.toInt()
                     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
                 }
                 compileOptions {
-                    val javaVersion = libs.findVersion("java").get().requiredVersion.toString()
+                    val javaVersion = libs.findVersion("java").get().requiredVersion
                     sourceCompatibility = JavaVersion.toVersion(javaVersion)
                     targetCompatibility = JavaVersion.toVersion(javaVersion)
                 }

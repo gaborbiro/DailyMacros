@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily Macros – website privacy policy</title>
+<meta name="description" content="What the Daily Macros website collects, why, and how to have it removed.">
+<meta name="theme-color" content="#F57C00">
+<link rel="icon" href="/favicon.png">
+
+<style>
+  :root {
+    --orange: #F57C00;
+    --orange-dark: #C25E00;
+    --ink: #1F1A17;
+    --muted: #6B625B;
+    --bg: #FFF8F0;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 20px; }
+  header { padding: 20px 0 0; }
+  .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 1.1rem; color: inherit; text-decoration: none; }
+  .brand img { width: 44px; height: 44px; border-radius: 11px; }
+  h1, h2 { line-height: 1.15; letter-spacing: -0.02em; }
+  h1 { font-size: clamp(1.8rem, 6vw, 2.4rem); margin: 32px 0 6px; }
+  h2 { font-size: 1.25rem; margin: 32px 0 8px; }
+  p, ul { margin: 0 0 12px; }
+  ul { padding-left: 1.2em; }
+  li { margin-bottom: 6px; }
+  a { color: var(--orange-dark); }
+  .fine { font-size: .875rem; color: var(--muted); }
+  footer { padding: 24px 0 40px; }
+  footer a { color: inherit; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a class="brand" href="/"><img src="/img/icon.png" alt="" width="44" height="44"><span>Daily Macros</span></a>
+  </div>
+</header>
+
+<main class="wrap">
+  <h1>Website privacy policy</h1>
+  <p class="fine">Last updated: 24 October 2026</p>
+
+  <p>This policy covers this website: the Daily Macros landing page, its signup forms and its demo. The Daily Macros app has its own <a href="https://github.com/gaborbiro/DailyMacros/blob/master/PRIVACY.md" rel="noopener">app privacy policy</a>.</p>
+
+  <h2>Summary</h2>
+  <ul>
+    <li>If you sign up for the launch waitlist or the test, your <strong>email address</strong> is stored and used only to contact you about Daily Macros.</li>
+    <li>Visits are counted <strong>without cookies</strong> and without storing anything about you.</li>
+    <li>If you try the demo, your photo or text is sent to <strong>OpenAI</strong> for analysis and is not stored. Google <strong>reCAPTCHA</strong> and a short-lived hash of your IP address are used to limit abuse.</li>
+  </ul>
+
+  <h2>Launch waitlist</h2>
+  <p>When you join the waitlist, the email address you enter is stored, together with the date you signed up. It is used only to tell you when Daily Macros launches and about major updates before then. The developer also receives an email notification of each new signup, which contains your address.</p>
+
+  <h2>Joining the test</h2>
+  <p>When you join the test, the email address you enter is stored, together with whether you chose Android or iPhone, the date you signed up, and whether you've been added to the test yet.</p>
+  <ul>
+    <li><strong>Android:</strong> your address is added to the Daily Macros closed test in Google Play Console, because Google only lets approved Google accounts install a test app. It is also used to send you the testing link and to contact you about testing.</li>
+    <li><strong>iPhone:</strong> your address is used only to contact you about an iPhone version.</li>
+  </ul>
+  <p>As with the waitlist, the developer receives an email notification of each new signup.</p>
+
+  <h2>Visit counts</h2>
+  <p>The site counts page views, clicks on the “Join the test” button, and how many visitors start the demo. Each is a single running total. No cookies are set for this, and nothing is stored that identifies you, your device or your browser.</p>
+
+  <h2>The “Try it on a meal” demo</h2>
+  <p>The demo is optional. Nothing below happens unless you use it.</p>
+  <ul>
+    <li><strong>What is sent to OpenAI:</strong> the photo you take or choose (shrunk to a small JPEG in your browser before it is uploaded) or the text you type, plus your browser’s language so the result comes back in your language. OpenAI’s handling of this data is governed by OpenAI’s own policies. Please don’t include anything in a photo or description that you don’t want analysed by a third party.</li>
+    <li><strong>What is stored:</strong> nothing of your meal. The developer’s server passes your photo or text to OpenAI and returns the result without keeping the photo, the text or the result. The demo exists only in your browser and is reset when you reload the page.</li>
+    <li><strong>Abuse limits:</strong> to limit how often the demo can be used, the server keeps a count of tries per visitor per day. The count is stored under a one-way hash of your IP address combined with the date, not under the IP address itself, and is deleted automatically after about two days. A separate daily total across all visitors contains nothing about individual visitors.</li>
+    <li><strong>Google reCAPTCHA:</strong> the demo uses Firebase App Check with Google reCAPTCHA Enterprise to tell real visitors from automated abuse. It loads only when you first use the demo. reCAPTCHA collects hardware and software information, such as device and browser data, and sends it to Google for analysis. Its use is subject to Google’s <a href="https://policies.google.com/privacy" rel="noopener">Privacy Policy</a> and <a href="https://policies.google.com/terms" rel="noopener">Terms of Service</a>.</li>
+  </ul>
+
+  <h2>Where your data is kept</h2>
+  <p>The site, its server functions and its database run on Google Firebase. Like any website host, Google processes technical data such as your IP address to deliver the pages, and may keep it briefly in server logs. Signup notifications are delivered through Gmail.</p>
+
+  <h2>Keeping and deleting your data</h2>
+  <ul>
+    <li><strong>Waitlist and test signups:</strong> kept until you ask for them to be removed, or until they are no longer needed for the launch or the test.</li>
+    <li><strong>Demo:</strong> your photo, text and result are not kept. The hashed try count is deleted automatically after about two days.</li>
+  </ul>
+  <p>To have your email address removed, or with any question about this policy, email <a href="mailto:nomadworkz@gmail.com">nomadworkz@gmail.com</a>. If you’ve been added to the Android test, removing your address also removes you from the test.</p>
+
+  <h2>Changes</h2>
+  <p>If what the website collects changes, this page will be updated and the date at the top changed.</p>
+</main>
+
+<footer>
+  <div class="wrap fine">
+    Daily Macros is made by Gabor Biro. <a href="/">Back to the home page</a>
+  </div>
+</footer>
+
+</body>
+</html>

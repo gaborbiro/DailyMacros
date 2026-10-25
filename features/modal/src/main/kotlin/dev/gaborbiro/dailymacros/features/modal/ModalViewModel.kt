@@ -8,7 +8,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.CloseSignal
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
@@ -21,6 +20,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAn
 import dev.gaborbiro.dailymacros.features.modal.usecase.BuildRecordDetailsViewDialogUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateRecordWithNewTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateTemplateUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.LogQuickPickMealUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.CreateValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.ExportImageToGalleryUseCase
@@ -29,18 +29,19 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveFirstRecordIdForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.SaveImageUseCase
-import dev.gaborbiro.dailymacros.features.modal.usecase.UpdateRecordWithNewTemplateUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.SaveRecordEditsUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.ScheduleAnalysisIfTemplateIncompleteUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
-import dev.gaborbiro.dailymacros.features.shared.ErrorUiMapper
 import dev.gaborbiro.dailymacros.features.shared.ListMealVariantsForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.NutrientAnalysisWorker
-import dev.gaborbiro.dailymacros.repositories.common.model.DomainError
+import dev.gaborbiro.dailymacros.features.shared.ReportUserFacingErrorUseCase
+import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderRefresher
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedInstant
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
-import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import ellipsize
 import kotlinx.coroutines.CancellationException
@@ -77,7 +78,8 @@ class ModalViewModel @Inject constructor(
     private val createRecordFromTemplateUseCase: CreateRecordFromTemplateUseCase,
     private val createTemplateUseCase: CreateTemplateUseCase,
     private val createRecordWithNewTemplateUseCase: CreateRecordWithNewTemplateUseCase,
-    private val updateRecordWithNewTemplateUseCase: UpdateRecordWithNewTemplateUseCase,
+    private val saveRecordEditsUseCase: SaveRecordEditsUseCase,
+    private val scheduleAnalysisIfTemplateIncompleteUseCase: ScheduleAnalysisIfTemplateIncompleteUseCase,
     private val validateEditRecordUseCase: ValidateEditRecordUseCase,
     private val validateCreateRecordUseCase: ValidateCreateRecordUseCase,
     private val saveImageUseCase: SaveImageUseCase,
@@ -86,8 +88,9 @@ class ModalViewModel @Inject constructor(
     private val getTemplateImageUseCase: GetTemplateImageUseCase,
     private val foodRecognitionUseCase: FoodRecognitionUseCase,
     private val applyQuickPickOverrideAndReloadWidgetUseCase: ApplyQuickPickOverrideAndReloadWidgetUseCase,
-    private val analyticsLogger: AnalyticsLogger,
-    private val errorUiMapper: ErrorUiMapper,
+    private val logQuickPickMealUseCase: LogQuickPickMealUseCase,
+    private val reportUserFacingErrorUseCase: ReportUserFacingErrorUseCase,
+    private val mealReminderRefresher: MealReminderRefresher,
 ) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(ModalUiState())
@@ -101,41 +104,39 @@ class ModalViewModel @Inject constructor(
 
     private var recordDetailsJob: Job? = null
 
+    /**
+     * A re-analysis the user started from the open details dialog. The worker only marks the meal as
+     * pending once it picks the job up, so until then (and while it runs) the dialog keeps showing
+     * "Analyzing…" instead of the stale or empty results in between.
+     */
+    private var reanalysisProgress = ReanalysisProgress.NONE
+
+    private enum class ReanalysisProgress { NONE, REQUESTED, RUNNING }
+
     private companion object {
         /** Matches widget reload ranking window (see ReloadWorker). */
         const val QUICK_PICK_RANK_CHECK_COUNT = 30
     }
 
     fun onCreateRecordWithCameraDeeplinkReceived() {
-        setRoot(emptyRecordDetailsEdit())
+        setRoot(newRecordDetailsEdit())
         pushOverlay(DialogHandle.ImageInput(type = ImageInputType.Camera))
     }
 
     fun onCreateRecordWithBrowseImagesDeeplinkReceived() {
-        setRoot(emptyRecordDetailsEdit())
+        setRoot(newRecordDetailsEdit())
         pushOverlay(DialogHandle.ImageInput(type = ImageInputType.BrowseImages))
     }
 
     fun onCreateRecordWithTextDeeplinkReceived() {
-        setRoot(emptyRecordDetailsEdit())
+        setRoot(newRecordDetailsEdit())
     }
 
     fun onPhotoRecognitionDetailsDeeplinkReceived(recognisedTitle: String, imageFilename: String) {
-        val titleValue = TextFieldValue(recognisedTitle, TextRange(recognisedTitle.length))
         setRoot(
-            DialogHandle.RecordDetailsDialog.Edit(
-                title = titleValue,
-                titleHint = "Title",
-                description = TextFieldValue(),
+            newRecordDetailsEdit(
+                title = TextFieldValue(recognisedTitle, TextRange(recognisedTitle.length)),
                 imageFilenames = listOf(imageFilename),
-                recognisedFood = null,
-                showProgressIndicator = false,
-                pristineSnapshot = recordDetailsEditPristineSnapshot(
-                    title = titleValue,
-                    description = TextFieldValue(),
-                    imageFilenames = listOf(imageFilename),
-                ),
-                startedAt = ZonedDateTime.now(ZoneId.systemDefault()),
             )
         )
     }
@@ -168,9 +169,13 @@ class ModalViewModel @Inject constructor(
         openRecordDetails(recordId, edit = true)
     }
 
+    /**
+     * With the confirmation turned off, this logs the meal and closes before returning, so
+     * ModalActivity can finish before its window is ever drawn.
+     */
     fun onQuickPickWidgetConfirmDeeplinkReceived(templateId: Long, templateName: String) {
         if (settingsRepository.getQuickPickConfirmationEnabled().not()) {
-            logMealFromTemplate(templateId)
+            logQuickPickMeal(templateId)
             return
         }
         setRoot(
@@ -183,7 +188,7 @@ class ModalViewModel @Inject constructor(
 
     fun onQuickPickWidgetLogAgainTapped() {
         val dialog = _uiState.value.rootDialog as? DialogHandle.QuickPickWidgetConfirmDialog ?: return
-        logMealFromTemplate(dialog.templateId)
+        logQuickPickMeal(dialog.templateId)
     }
 
     fun onQuickPickWidgetDontShowAgainChanged(dontShowAgain: Boolean) {
@@ -192,28 +197,10 @@ class ModalViewModel @Inject constructor(
         _uiState.update { it.copy(rootDialog = dialog.copy(dontShowAgain = dontShowAgain)) }
     }
 
-    private fun logMealFromTemplate(templateId: Long) {
-        viewModelScope.launch {
-            try {
-                val recordId = createRecordFromTemplateUseCase.execute(
-                    templateId,
-                    ZonedDateTime.now(ZoneId.systemDefault()),
-                )
-                scheduleMacroAnalysisForRecordIfTemplateIncomplete(recordId, templateId)
-                _uiUpdates.emit(
-                    ModalUiUpdates.ShowToast(application.getString(R.string.quick_pick_confirm_logged_toast))
-                )
-            } catch (e: CancellationException) {
-                throw e
-            } catch (t: Throwable) {
-                analyticsLogger.logError(t)
-                _uiUpdates.emit(
-                    ModalUiUpdates.ShowToast(application.getString(R.string.quick_pick_confirm_log_failed_toast))
-                )
-            } finally {
-                closeAll()
-            }
-        }
+    /** The meal is logged (and confirmed with a toast) after this screen has closed. */
+    private fun logQuickPickMeal(templateId: Long) {
+        logQuickPickMealUseCase.execute(templateId)
+        closeAll()
     }
 
     fun onQuickPickWidgetOpenDetailsTapped() {
@@ -260,21 +247,7 @@ class ModalViewModel @Inject constructor(
                 }
 
                 else -> {
-                    setRoot(
-                        DialogHandle.RecordDetailsDialog.Edit(
-                            title = TextFieldValue(),
-                            titleHint = "Title",
-                            description = TextFieldValue(),
-                            imageFilenames = persistedFilenames,
-                            recognisedFood = null,
-                            pristineSnapshot = recordDetailsEditPristineSnapshot(
-                                title = TextFieldValue(),
-                                description = TextFieldValue(),
-                                imageFilenames = persistedFilenames,
-                            ),
-                            startedAt = ZonedDateTime.now(ZoneId.systemDefault()),
-                        )
-                    )
+                    setRoot(newRecordDetailsEdit(imageFilenames = persistedFilenames))
                     runFoodRecognition(persistedFilenames)
                 }
             }
@@ -312,21 +285,7 @@ class ModalViewModel @Inject constructor(
 
                 is DialogHandle.RecordDetailsDialog.View -> {
                     if (!root.isEditing) {
-                        setRoot(
-                            DialogHandle.RecordDetailsDialog.Edit(
-                                title = TextFieldValue(),
-                                titleHint = "Title",
-                                description = TextFieldValue(),
-                                imageFilenames = persistedFilenames,
-                                recognisedFood = null,
-                                pristineSnapshot = recordDetailsEditPristineSnapshot(
-                                    title = TextFieldValue(),
-                                    description = TextFieldValue(),
-                                    imageFilenames = persistedFilenames,
-                                ),
-                                startedAt = ZonedDateTime.now(ZoneId.systemDefault()),
-                            )
-                        )
+                        setRoot(newRecordDetailsEdit(imageFilenames = persistedFilenames))
                         runFoodRecognition(persistedFilenames)
                     } else {
                         setRoot(root.copy(imageFilenames = root.imageFilenames + persistedFilenames))
@@ -335,21 +294,7 @@ class ModalViewModel @Inject constructor(
                 }
 
                 else -> {
-                    setRoot(
-                        DialogHandle.RecordDetailsDialog.Edit(
-                            title = TextFieldValue(),
-                            titleHint = "Title",
-                            description = TextFieldValue(),
-                            imageFilenames = persistedFilenames,
-                            recognisedFood = null,
-                            pristineSnapshot = recordDetailsEditPristineSnapshot(
-                                title = TextFieldValue(),
-                                description = TextFieldValue(),
-                                imageFilenames = persistedFilenames,
-                            ),
-                            startedAt = ZonedDateTime.now(ZoneId.systemDefault()),
-                        )
-                    )
+                    setRoot(newRecordDetailsEdit(imageFilenames = persistedFilenames))
                     runFoodRecognition(persistedFilenames)
                 }
             }
@@ -409,6 +354,7 @@ class ModalViewModel @Inject constructor(
                     imageFilenames = p.imageFilenames,
                     titleValidationError = null,
                     hasUnsavedEdits = false,
+                    editsRequireAnalysis = false,
                     editStartedAt = null,
                 )
             }
@@ -477,7 +423,7 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onDescriptionChanged(description: TextFieldValue) {
-        val description = description.truncatedTo(256)
+        val description = description.truncatedTo(MAX_DESCRIPTION_LENGTH)
         updateRoot<DialogHandle.RecordDetailsDialog> {
             when (it) {
                 is DialogHandle.RecordDetailsDialog.View ->
@@ -488,6 +434,74 @@ class ModalViewModel @Inject constructor(
             }
         }
         recomputeHasUnsavedEdits()
+    }
+
+    fun onCorrectionChanged(correction: TextFieldValue) {
+        updateRoot<DialogHandle.RecordDetailsDialog.View> {
+            if (it.isEditing || !it.allowCorrection) {
+                it
+            } else {
+                val capacity = MealEditRules.correctionCapacity(it.pristineSnapshot.description, MAX_DESCRIPTION_LENGTH)
+                val truncated = correction.truncatedTo(capacity)
+                it.copy(correction = truncated, canReanalyze = truncated.text.isNotBlank())
+            }
+        }
+    }
+
+    // Dictation appends to what's already typed, then takes the same path as typing, so
+    // truncation, validation and unsaved-edit tracking stay in one place.
+
+    fun onTitleSpoken(spoken: String) {
+        val root = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog ?: return
+        onTitleChanged(appendSpokenText(root.title, spoken))
+    }
+
+    fun onDescriptionSpoken(spoken: String) {
+        val root = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog ?: return
+        onDescriptionChanged(appendSpokenText(root.description, spoken))
+    }
+
+    fun onCorrectionSpoken(spoken: String) {
+        val root = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return
+        onCorrectionChanged(appendSpokenText(root.correction, spoken))
+    }
+
+    fun onVoiceInputFailed(error: Throwable) {
+        val message = reportUserFacingErrorUseCase.execute(
+            error,
+            application.getString(R.string.modal_content_voice_input_unavailable_toast),
+        )
+        viewModelScope.launch { _uiUpdates.emit(ModalUiUpdates.ShowToast(message)) }
+    }
+
+    /**
+     * Folds the correction into the meal's description and sends it back to the AI, keeping the dialog
+     * open: the record is observed, so the new results replace the old ones in place.
+     */
+    fun onReanalyzeTapped() {
+        val root = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return
+        if (root.isEditing || !root.allowCorrection || !root.canReanalyze) return
+        val pristine = root.pristineSnapshot
+        val description = MealEditRules.appendCorrection(pristine.description, root.correction.text)
+        reanalysisProgress = ReanalysisProgress.REQUESTED
+        updateRoot<DialogHandle.RecordDetailsDialog.View> {
+            it.copy(correction = TextFieldValue(), canReanalyze = false, showLoadingIndicator = true)
+        }
+        runSafely("Couldn't re-analyze your meal") {
+            try {
+                persistRecordEdits(
+                    dialogHandle = root,
+                    title = pristine.title.trim(),
+                    description = description,
+                )
+            } catch (t: Throwable) {
+                reanalysisProgress = ReanalysisProgress.NONE
+                updateRoot<DialogHandle.RecordDetailsDialog.View> {
+                    it.copy(correction = root.correction, canReanalyze = true, showLoadingIndicator = false)
+                }
+                throw t
+            }
+        }
     }
 
     fun onImageTapped(imageFilename: String) {
@@ -673,7 +687,9 @@ class ModalViewModel @Inject constructor(
         popOverlay()
         runSafely("Couldn't update the date and time") {
             val record = recordsRepository.get(overlay.recordId) ?: return@runSafely
-            recordsRepository.updateRecord(record.copy(timestamp = timestamp))
+            recordsRepository.updateRecord(record.copy(timestamp = timestamp.toZonedInstant()))
+            // Moving a meal can move it into another slot (dinner logged, then dated to lunch).
+            mealReminderRefresher.refresh(trigger = "timestamp edit")
             updateRoot<DialogHandle.RecordDetailsDialog.View> {
                 if (it.recordId == overlay.recordId) it.copy(timestamp = timestamp) else it
             }
@@ -736,6 +752,7 @@ class ModalViewModel @Inject constructor(
 
     private fun openRecordDetails(recordId: Long, edit: Boolean) {
         recordDetailsJob?.cancel()
+        reanalysisProgress = ReanalysisProgress.NONE
         recordDetailsJob = runSafely("Couldn't open the entry") {
             recordsRepository.get(recordId)?.let { record ->
                 setRoot(buildEnrichedView(record, edit, templateDetailsMode = false))
@@ -746,8 +763,19 @@ class ModalViewModel @Inject constructor(
                     // null: recordId doesn't/no longer exists (e.g. a stale
                     // widget row after a restore swapped in a different
                     // database) - nothing to update the dialog with.
-                    record?.let { setRoot(buildEnrichedView(it, edit, templateDetailsMode = false)) }
+                    record?.let {
+                        trackReanalysisProgress(it.template.isPending)
+                        setRoot(buildEnrichedView(it, edit, templateDetailsMode = false))
+                    }
                 }
+        }
+    }
+
+    private fun trackReanalysisProgress(templatePending: Boolean) {
+        reanalysisProgress = when (reanalysisProgress) {
+            ReanalysisProgress.REQUESTED -> if (templatePending) ReanalysisProgress.RUNNING else ReanalysisProgress.REQUESTED
+            ReanalysisProgress.RUNNING -> if (templatePending) ReanalysisProgress.RUNNING else ReanalysisProgress.NONE
+            ReanalysisProgress.NONE -> ReanalysisProgress.NONE
         }
     }
 
@@ -764,7 +792,8 @@ class ModalViewModel @Inject constructor(
             ?.toPickerOptions(diaryDayStartHour)
         val starred = resolveQuickPickStarred(record.template)
         val linkedCount = recordsRepository.countRecordsForTemplate(record.template.dbId)
-        return if (existing != null && existing.recordId == record.recordId && existing.isEditing) {
+        val sameRecord = existing != null && existing.recordId == record.recordId
+        val enriched = if (sameRecord && existing.isEditing) {
             base.copy(
                 variantPickerOptions = options,
                 quickPickStarred = starred,
@@ -777,6 +806,7 @@ class ModalViewModel @Inject constructor(
                 imageRepresentativeFlags = existing.imageRepresentativeFlags,
                 titleValidationError = existing.titleValidationError,
                 pristineSnapshot = existing.pristineSnapshot,
+                editsRequireAnalysis = existing.editsRequireAnalysis,
             )
         } else {
             base.copy(
@@ -786,6 +816,12 @@ class ModalViewModel @Inject constructor(
                 diaryDayStartHour = diaryDayStartHour,
             )
         }
+        return enriched.copy(
+            // A half-typed correction survives unrelated updates of the same meal (e.g. a star toggle).
+            correction = if (sameRecord) existing.correction else TextFieldValue(),
+            canReanalyze = sameRecord && existing.canReanalyze,
+            showLoadingIndicator = enriched.showLoadingIndicator || reanalysisProgress != ReanalysisProgress.NONE,
+        )
     }
 
     private suspend fun resolveQuickPickStarred(template: Template): Boolean {
@@ -796,42 +832,6 @@ class ModalViewModel @Inject constructor(
                 val picks = recordsRepository.getQuickPicks(QUICK_PICK_RANK_CHECK_COUNT)
                 return picks.any { it.dbId == template.dbId }
             }
-        }
-    }
-
-    /** True when the meal family has other logged variants (variant combo is shown). */
-    private suspend fun isVariedTemplateFamily(details: DialogHandle.RecordDetailsDialog.View): Boolean {
-        if (details.variantPickerOptions != null) return true
-        val familyIds = recordsRepository.getTemplateIdsInSameVariantFamily(details.templateDbId)
-        return familyIds.count { recordsRepository.countRecordsForTemplate(it) > 0 } > 1
-    }
-
-    private fun templateNeedsMacroAnalysis(template: Template): Boolean =
-        template.isPending || template.nutrients.calories == null
-
-    private suspend fun scheduleMacroAnalysisForRecordIfTemplateIncomplete(
-        recordId: Long,
-        templateId: Long,
-    ) {
-        val t = recordsRepository.getTemplate(templateId)
-        if (templateNeedsMacroAnalysis(t)) {
-            NutrientAnalysisWorker.setWorkRequest(
-                appContext = application,
-                recordId = recordId,
-                force = true,
-                wifiOnly = false,
-            )
-        }
-    }
-
-    private suspend fun scheduleMacroAnalysisForAllRecordsUsingTemplate(templateId: Long) {
-        recordsRepository.getRecordsByTemplate(templateId).forEach { record ->
-            NutrientAnalysisWorker.setWorkRequest(
-                appContext = application,
-                recordId = record.recordId,
-                force = true,
-                wifiOnly = false,
-            )
         }
     }
 
@@ -900,56 +900,7 @@ class ModalViewModel @Inject constructor(
         )
         when (result) {
             is EditValidationResult.Valid -> {
-                val pristine = dialogHandle.pristineSnapshot
-                val imagesNeedReanalysis = modalUiMapper.imagesRequireMacroReanalysis(
-                    pristine.imageFilenames,
-                    dialogHandle.imageFilenames,
-                )
-                val contentChanged = title != pristine.title.trim() ||
-                        description != pristine.description.trim()
-                val templateImages = dialogHandle.imageFilenames.map { filename ->
-                    TemplateImageUpdate(
-                        filename = filename,
-                        isRepresentativeOfMeal = dialogHandle.imageRepresentativeFlags[filename],
-                    )
-                }
-                if (isVariedTemplateFamily(dialogHandle)) {
-                    recordsRepository.updateTemplate(
-                        templateId = dialogHandle.templateDbId,
-                        name = title,
-                        description = description,
-                        templateImages = templateImages,
-                    )
-                    if (imagesNeedReanalysis || contentChanged) {
-                        scheduleMacroAnalysisForAllRecordsUsingTemplate(dialogHandle.templateDbId)
-                    }
-                } else {
-                    val imagesReorderedOnly =
-                        dialogHandle.imageFilenames != pristine.imageFilenames && !imagesNeedReanalysis
-                    if (imagesReorderedOnly && !contentChanged) {
-                        recordsRepository.updateTemplate(
-                            templateId = dialogHandle.templateDbId,
-                            name = title,
-                            description = description,
-                            templateImages = templateImages,
-                        )
-                    } else {
-                        updateRecordWithNewTemplateUseCase.execute(
-                            recordId = dialogHandle.recordId,
-                            imageFilenames = dialogHandle.imageFilenames,
-                            title = title,
-                            description = description,
-                        )
-                        if (imagesNeedReanalysis || contentChanged) {
-                            NutrientAnalysisWorker.setWorkRequest(
-                                appContext = application,
-                                recordId = dialogHandle.recordId,
-                                force = true,
-                                wifiOnly = false,
-                            )
-                        }
-                    }
-                }
+                persistRecordEdits(dialogHandle, title, description)
                 closeAll()
             }
 
@@ -957,6 +908,24 @@ class ModalViewModel @Inject constructor(
                 applyValidationError(result.message)
             }
         }
+    }
+
+    /** Saves [title] and [description], with the dialog's current photos, to the meal. */
+    private suspend fun persistRecordEdits(
+        dialogHandle: DialogHandle.RecordDetailsDialog.View,
+        title: String,
+        description: String,
+    ) {
+        saveRecordEditsUseCase.execute(
+            recordId = dialogHandle.recordId,
+            templateId = dialogHandle.templateDbId,
+            pristine = dialogHandle.pristineSnapshot,
+            knownToHaveLoggedVariants = dialogHandle.variantPickerOptions != null,
+            title = title,
+            description = description,
+            imageFilenames = dialogHandle.imageFilenames,
+            imageRepresentativeFlags = dialogHandle.imageRepresentativeFlags,
+        )
     }
 
     private suspend fun handleEditRecordSaveAndAdd(
@@ -973,7 +942,7 @@ class ModalViewModel @Inject constructor(
                 templateId,
                 ZonedDateTime.now(ZoneId.systemDefault()),
             )
-            scheduleMacroAnalysisForRecordIfTemplateIncomplete(secondRecordId, templateId)
+            scheduleAnalysisIfTemplateIncompleteUseCase.execute(secondRecordId, templateId)
             closeAll()
             return
         }
@@ -1026,7 +995,7 @@ class ModalViewModel @Inject constructor(
                 anchor,
                 ZonedDateTime.now(ZoneId.systemDefault()),
             )
-            scheduleMacroAnalysisForRecordIfTemplateIncomplete(recordId, anchor)
+            scheduleAnalysisIfTemplateIncompleteUseCase.execute(recordId, anchor)
             closeAll()
             return
         }
@@ -1051,7 +1020,7 @@ class ModalViewModel @Inject constructor(
                     parentTemplateId = anchor,
                 )
                 val templateId = recordsRepository.get(recordId)?.template?.dbId ?: return
-                scheduleMacroAnalysisForRecordIfTemplateIncomplete(recordId, templateId)
+                scheduleAnalysisIfTemplateIncompleteUseCase.execute(recordId, templateId)
                 closeAll()
             }
         }
@@ -1063,19 +1032,15 @@ class ModalViewModel @Inject constructor(
         }
     }
 
-    private fun runSafely(defaultMessage: String, task: suspend () -> Unit): Job {
-        return viewModelScope.launch(makeErrorHandler(defaultMessage)) {
+    private fun runSafely(genericMessage: String, task: suspend () -> Unit): Job {
+        return viewModelScope.launch(makeErrorHandler(genericMessage)) {
             task()
         }
     }
 
-    private fun makeErrorHandler(defaultMessage: String) = CoroutineExceptionHandler { _, exception ->
+    private fun makeErrorHandler(genericMessage: String) = CoroutineExceptionHandler { _, exception ->
         if (exception is CancellationException) return@CoroutineExceptionHandler
-        analyticsLogger.logError(exception)
-        val message = when {
-            exception is DomainError -> errorUiMapper.mapErrorMessage(exception, defaultMessage)
-            else -> defaultMessage
-        }
+        val message = reportUserFacingErrorUseCase.execute(exception, genericMessage)
         viewModelScope.launch {
             _uiUpdates.emit(ModalUiUpdates.Error(message.ellipsize(300) ?: message))
         }
@@ -1111,6 +1076,7 @@ class ModalViewModel @Inject constructor(
         recogniseFoodJob?.cancel()
         recordDetailsJob?.cancel()
         photoExportJob?.cancel()
+        reanalysisProgress = ReanalysisProgress.NONE
         _uiState.update {
             it.copy(
                 rootDialog = null,
@@ -1121,25 +1087,44 @@ class ModalViewModel @Inject constructor(
         }
     }
 
-    private fun emptyRecordDetailsEdit() = DialogHandle.RecordDetailsDialog.Edit(
-        title = TextFieldValue(),
-        titleHint = "Title",
-        description = TextFieldValue(),
-        imageFilenames = emptyList(),
-        recognisedFood = null,
-        showProgressIndicator = false,
-        pristineSnapshot = recordDetailsEditPristineSnapshot(
-            title = TextFieldValue(),
+    /**
+     * A create-record dialog, optionally opened with content (a shared photo, a recognised title).
+     * Its baseline is always empty, so whatever it opens with counts as unsaved and cancelling asks
+     * before discarding it, just like content added after opening.
+     */
+    private fun newRecordDetailsEdit(
+        title: TextFieldValue = TextFieldValue(),
+        imageFilenames: List<String> = emptyList(),
+    ): DialogHandle.RecordDetailsDialog.Edit {
+        val edit = DialogHandle.RecordDetailsDialog.Edit(
+            title = title,
+            titleHint = "Title (optional)",
             description = TextFieldValue(),
-            imageFilenames = emptyList(),
-        ),
-        startedAt = ZonedDateTime.now(ZoneId.systemDefault()),
-    )
+            imageFilenames = imageFilenames,
+            recognisedFood = null,
+            showProgressIndicator = false,
+            pristineSnapshot = recordDetailsEditPristineSnapshot(
+                title = TextFieldValue(),
+                description = TextFieldValue(),
+                imageFilenames = emptyList(),
+            ),
+            startedAt = ZonedDateTime.now(ZoneId.systemDefault()),
+        )
+        return edit.copy(hasUnsavedEdits = modalUiMapper.hasUnsavedEdits(edit))
+    }
 
     private fun recomputeHasUnsavedEdits() {
         updateRoot<DialogHandle.RecordDetailsDialog> {
             when (it) {
-                is DialogHandle.RecordDetailsDialog.View -> it.copy(hasUnsavedEdits = modalUiMapper.hasUnsavedEdits(it))
+                is DialogHandle.RecordDetailsDialog.View -> it.copy(
+                    hasUnsavedEdits = modalUiMapper.hasUnsavedEdits(it),
+                    editsRequireAnalysis = MealEditRules.editsRequireMacroAnalysis(
+                        pristine = it.pristineSnapshot,
+                        title = it.title.text,
+                        description = it.description.text,
+                        imageFilenames = it.imageFilenames,
+                    ),
+                )
                 is DialogHandle.RecordDetailsDialog.Edit -> it.copy(hasUnsavedEdits = modalUiMapper.hasUnsavedEdits(it))
             }
         }
@@ -1158,6 +1143,7 @@ class ModalViewModel @Inject constructor(
 }
 
 private const val MAX_IMAGES = 5
+private const val MAX_DESCRIPTION_LENGTH = 256
 
 private fun TextFieldValue.truncatedTo(maxLength: Int): TextFieldValue {
     if (text.length <= maxLength) return this

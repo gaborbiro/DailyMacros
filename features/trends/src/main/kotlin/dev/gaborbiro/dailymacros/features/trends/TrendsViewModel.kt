@@ -9,6 +9,7 @@ import dev.gaborbiro.dailymacros.features.common.utils.diaryDayStartTime
 import dev.gaborbiro.dailymacros.features.common.utils.diaryDayWindowStart
 import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryDate
 import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryToday
+import dev.gaborbiro.dailymacros.features.shared.ReportUserFacingErrorUseCase
 import dev.gaborbiro.dailymacros.features.trends.model.DayQualifier
 import dev.gaborbiro.dailymacros.features.trends.model.Timescale
 import dev.gaborbiro.dailymacros.features.trends.model.TrendsSettingsUIModel
@@ -19,11 +20,13 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.ForJsonBodyChatGpt
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.OngoingWeekInsightsRequest
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.PromptSegment
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.WeeklyInsightsRequest
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedDateTime
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Target
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.Targets
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,8 +45,9 @@ import java.time.format.TextStyle
 import java.time.temporal.WeekFields
 import java.util.Date
 import java.util.Locale
-import kotlin.math.abs
 import javax.inject.Inject
+import kotlin.math.abs
+import kotlin.time.toKotlinInstant
 
 @HiltViewModel
 class TrendsViewModel @Inject constructor(
@@ -53,6 +57,7 @@ class TrendsViewModel @Inject constructor(
     private val preferences: TrendsPreferences,
     private val mapper: TrendsUiMapper,
     @ForJsonBodyChatGpt private val chatGPTRepository: ChatGPTRepository,
+    private val reportUserFacingErrorUseCase: ReportUserFacingErrorUseCase,
     featureFlagStore: FeatureFlagStore,
 ) : AndroidViewModel(application) {
 
@@ -191,7 +196,7 @@ class TrendsViewModel @Inject constructor(
                 val lastCompleteWeekStart = today.with(weekFields.dayOfWeek(), 1).minusWeeks(1)
                 val prevWeekStart = lastCompleteWeekStart.minusWeeks(1)
                 val since = diaryDayWindowStart(prevWeekStart, dayStart, zone)
-                val records = recordsRepository.getRecords(since = since)
+                val records = recordsRepository.getRecords(since = since.toInstant().toKotlinInstant())
                 val targets = settingsRepository.getTargets()
                 val customisations = settingsRepository.getPromptCustomisations()
                 val diary = formatDiary(records, targets, zone, dayStart)
@@ -218,11 +223,14 @@ class TrendsViewModel @Inject constructor(
                         weeklyInsightsLoading = false,
                     )
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
+                val message = reportInsightsError(e)
                 _uiState.update {
                     it.copy(
                         weeklyInsightsLoading = false,
-                        weeklyInsightsError = e.message ?: "Failed to get insights",
+                        weeklyInsightsError = message,
                     )
                 }
             }
@@ -239,7 +247,7 @@ class TrendsViewModel @Inject constructor(
                 val weekFields = WeekFields.of(Locale.getDefault())
                 val thisWeekStart = today.with(weekFields.dayOfWeek(), 1)
                 val since = diaryDayWindowStart(thisWeekStart, dayStart, zone)
-                val records = recordsRepository.getRecords(since = since)
+                val records = recordsRepository.getRecords(since = since.toInstant().toKotlinInstant())
                 val targets = settingsRepository.getTargets()
                 val customisations = settingsRepository.getPromptCustomisations()
                 val diary = formatOngoingDiary(records, targets, zone, dayStart)
@@ -264,16 +272,23 @@ class TrendsViewModel @Inject constructor(
                         ongoingWeekInsightsLoading = false,
                     )
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
+                val message = reportInsightsError(e)
                 _uiState.update {
                     it.copy(
                         ongoingWeekInsightsLoading = false,
-                        ongoingWeekInsightsError = e.message ?: "Failed to get insights",
+                        ongoingWeekInsightsError = message,
                     )
                 }
             }
         }
     }
+
+    /** Logs [e] as what the user is shown and returns that message. */
+    private fun reportInsightsError(e: Exception): String =
+        reportUserFacingErrorUseCase.execute(e, getApplication<Application>().getString(R.string.trends_content_insights_error))
 
     private fun resolvePromptVersionLabel(
         tabType: String,
@@ -327,8 +342,8 @@ class TrendsViewModel @Inject constructor(
         appendTargetParts(sb, targets)
 
         val byDay = records
-            .sortedBy { it.timestamp }
-            .groupBy { it.timestamp.logicalDiaryDate(dayStart) }
+            .sortedBy { it.timestamp.instant }
+            .groupBy { it.timestamp.toZonedDateTime().logicalDiaryDate(dayStart) }
 
         val prevWeekDays = byDay.filterKeys { it >= prevWeekStart && it < lastCompleteWeekStart }.toSortedMap()
         val lastWeekDays = byDay.filterKeys { it >= lastCompleteWeekStart }.toSortedMap()
@@ -360,8 +375,8 @@ class TrendsViewModel @Inject constructor(
         appendTargetParts(sb, targets)
 
         val byDay = records
-            .sortedBy { it.timestamp }
-            .groupBy { it.timestamp.logicalDiaryDate(dayStart) }
+            .sortedBy { it.timestamp.instant }
+            .groupBy { it.timestamp.toZonedDateTime().logicalDiaryDate(dayStart) }
 
         val weekDays = byDay.filterKeys { it >= thisWeekStart }.toSortedMap()
 
@@ -431,7 +446,7 @@ class TrendsViewModel @Inject constructor(
         val timeFmt = DateTimeFormatter.ofPattern("HH:mm")
         sb.appendLine(day.format(dayFmt))
         records.forEach { record ->
-            val time = record.timestamp.withZoneSameInstant(zone).format(timeFmt)
+            val time = record.timestamp.toZonedDateTime().withZoneSameInstant(zone).format(timeFmt)
             sb.appendLine("  • ${record.template.name} ($time)")
             record.template.mealComponents.takeIf { it.isNotEmpty() }?.let { components ->
                 val ingredientsList = components.joinToString(", ") {

@@ -30,6 +30,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import dev.gaborbiro.dailymacros.features.modal.R
+import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
 import dev.gaborbiro.dailymacros.data.file.domain.FileStore
 import dev.gaborbiro.dailymacros.data.image.DefaultFoodPicExt
 import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
@@ -62,18 +63,13 @@ class ModalActivity : AppCompatActivity() {
     @FileStorePublicBucketEphemeral
     lateinit var cacheFileStore: FileStore
 
+    @Inject
+    lateinit var analyticsLogger: AnalyticsLogger
+
     private val viewModel: ModalViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        setShowWhenLocked(true)
-        setTurnScreenOn(true)
-
-        val km = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
-        if (km.isKeyguardLocked) {
-            km.requestDismissKeyguard(this, null)
-        }
 
         dismissPendingNotification()
 
@@ -90,8 +86,29 @@ class ModalActivity : AppCompatActivity() {
                     }
             }
 
+        // The intent may need nothing on screen (e.g. a quick pick logged with its confirmation
+        // turned off): finish before the window is ever drawn, so the tap doesn't flash this
+        // Activity's dimmed backdrop (or Shake's feedback button).
+        if (viewModel.uiState.value.closeSignal == CloseSignal.CLOSE) {
+            finish()
+            return
+        }
+
+        setShowWhenLocked(true)
+        setTurnScreenOn(true)
+
+        val km = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
+        if (km.isKeyguardLocked) {
+            km.requestDismissKeyguard(this, null)
+        }
+
         setContent {
             val viewState by viewModel.uiState.collectAsStateWithLifecycle()
+
+            val screen = viewState.toModalScreen()
+            LaunchedEffect(screen) {
+                screen?.let { analyticsLogger.logScreenView(it.name, it.args) }
+            }
 
             val notificationPermissionLauncher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.RequestPermission(),
@@ -277,6 +294,12 @@ class ModalActivity : AppCompatActivity() {
                 onRecordDetailsEditStarted = viewModel::onRecordDetailsEditStarted,
                 onRecordDetailsEditCancelled = viewModel::onRecordDetailsEditCancelled,
                 onEditTimestampTapped = viewModel::onEditTimestampTapped,
+                onCorrectionChanged = viewModel::onCorrectionChanged,
+                onReanalyzeTapped = viewModel::onReanalyzeTapped,
+                onTitleSpoken = viewModel::onTitleSpoken,
+                onDescriptionSpoken = viewModel::onDescriptionSpoken,
+                onCorrectionSpoken = viewModel::onCorrectionSpoken,
+                onVoiceInputFailed = viewModel::onVoiceInputFailed,
             )
 
             is DialogHandle.EditTimestampDialog -> EditTimestampBottomSheet(

@@ -9,9 +9,6 @@
     <string name="widgets_content_new_record_via_image_cd">New record via existing image</string>
     <string name="widgets_content_new_record_cd">New record</string>
     <string name="widgets_content_reload_cd">Reload</string>
-    <!-- EmptyView -->
-    <string name="widgets_content_empty_state">Tap one of these buttons\nto record your first meal</string>
-    <string name="widgets_content_arrow_cd">Arrow to bottom-left</string>
     <!-- ListItemQuickPickHeader -->
     <string name="widgets_content_favorite_cd">Favorite</string>
     <string name="widgets_content_quick_picks_header">Quick Picks</string>

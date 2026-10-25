@@ -12,9 +12,14 @@ import dev.gaborbiro.dailymacros.BuildConfig
 import dev.gaborbiro.dailymacros.core.featureflags.RemoteConfigClientIdProvider
 import dev.gaborbiro.dailymacros.features.settings.SettingsAppInfo
 import dev.gaborbiro.dailymacros.features.shared.ModalNavigator
+import dev.gaborbiro.dailymacros.features.shared.di.ApplicationScope
 import dev.gaborbiro.dailymacros.features.shared.notifications.MacroResultsNotificationSender
+import dev.gaborbiro.dailymacros.repositories.backup.domain.BackupClientIdProvider
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.RepositoryClientIdProvider
 import dev.gaborbiro.dailymacros.util.showMacroResultsNotification
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import javax.inject.Singleton
 
 @Module
@@ -27,10 +32,15 @@ object AppSingletonModule {
 
     @Provides
     @Singleton
+    @ApplicationScope
+    fun applicationScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
+    @Provides
+    @Singleton
     fun settingsAppInfo(appPrefs: AppPrefs): SettingsAppInfo =
         object : SettingsAppInfo {
             override val versionLabel: String
-                get() = "${BuildConfig.VERSION_NAME}\nUserID: ${appPrefs.userUUID}"
+                get() = "${BuildConfig.VERSION_NAME}\nClient ID: ${appPrefs.clientId}"
             override val isDebugBuild: Boolean
                 get() = BuildConfig.DEBUG
         }
@@ -40,7 +50,7 @@ object AppSingletonModule {
     fun clientIdProvider(appPrefs: AppPrefs): RepositoryClientIdProvider =
         object : RepositoryClientIdProvider {
             override val clientId: String
-                get() = appPrefs.userUUID
+                get() = appPrefs.clientId
         }
 
     @Provides
@@ -48,7 +58,15 @@ object AppSingletonModule {
     fun remoteConfigClientIdProvider(appPrefs: AppPrefs): RemoteConfigClientIdProvider =
         object : RemoteConfigClientIdProvider {
             override val clientId: String
-                get() = appPrefs.userUUID
+                get() = appPrefs.clientId
+        }
+
+    @Provides
+    @Singleton
+    fun backupClientIdProvider(appPrefs: AppPrefs): BackupClientIdProvider =
+        object : BackupClientIdProvider {
+            override val clientId: String
+                get() = appPrefs.clientId
         }
 
     @Provides

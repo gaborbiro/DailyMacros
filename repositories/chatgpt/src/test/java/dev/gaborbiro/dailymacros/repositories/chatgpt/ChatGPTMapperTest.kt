@@ -5,6 +5,7 @@ import dev.gaborbiro.dailymacros.repositories.common.model.DomainError
 import dev.gaborbiro.dailymacros.repositories.common.model.UsageLimitException
 import dev.gaborbiro.dailymacros.repositories.common.model.UsageLimitKind
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -25,14 +26,12 @@ class ChatGPTMapperTest {
     }
 
     @Test
-    fun `upstream error maps to power-user TechnicalMessage, not a usage limit`() {
-        val result = mapper.map(AiRequestError.Upstream(errorMessage = "server_error - boom"))
+    fun `upstream error maps to OperationFailed carrying it as cause, not a usage limit`() {
+        val upstream = AiRequestError.Upstream(errorMessage = "server_error - boom")
+        val result = mapper.map(upstream)
 
-        assertTrue(result is DomainError.DisplayMessageToUser.TechnicalMessage)
-        assertEquals(
-            "server_error - boom",
-            (result as DomainError.DisplayMessageToUser.TechnicalMessage).errorMessage,
-        )
+        assertTrue(result is DomainError.DisplayMessageToUser.OperationFailed)
+        assertSame(upstream, (result as DomainError.DisplayMessageToUser.OperationFailed).cause)
     }
 
     @Test

@@ -3,4 +3,6 @@
     <color name="widget_loading_background">@android:color/system_neutral1_10</color>
     <color name="widget_loading_on_background">@android:color/system_neutral1_900</color>
     <color name="widget_loading_icon">@android:color/system_accent1_600</color>
+    <!-- Brand orange; matches LightColors.primary in core:design Theme.kt -->
+    <color name="widget_record_button_pulse">#FB8C00</color>
 </resources>

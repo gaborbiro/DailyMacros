@@ -10,13 +10,14 @@ import dev.gaborbiro.dailymacros.data.db.model.entity.TemplateEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.TopContributorsEntity
 import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
 import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
+import dev.gaborbiro.dailymacros.repositories.common.model.ZonedInstant
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateToSave
-import java.time.Instant
-import java.time.ZoneId
-import java.time.ZonedDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toJavaLocalDateTime
 import javax.inject.Inject
+import kotlin.time.Instant
 
 class RecordsApiMapper @Inject constructor() {
 
@@ -87,21 +88,25 @@ class RecordsApiMapper @Inject constructor() {
 
     fun map(record: RecordJoined): Record {
         val epochMillis = record.entity.epochMillis
-        val zoneId = ZoneId.of(record.entity.zoneId)
+        val instant = Instant.fromEpochMilliseconds(epochMillis)
+        val timeZone = TimeZone.of(record.entity.zoneId)
         return Record(
             recordId = record.entity.id!!,
-            timestamp = Instant.ofEpochMilli(epochMillis).atZone(zoneId),
+            timestamp = ZonedInstant(
+                instant = instant,
+                timeZone = timeZone,
+            ),
             template = map(record.template),
         )
     }
 
     // -------- DB <— Domain: write helpers --------
 
-    fun map(templateId: Long, timestamp: ZonedDateTime): RecordEntity {
+    fun map(templateId: Long, timestamp: ZonedInstant): RecordEntity {
         return RecordEntity(
-            timestamp = timestamp.toLocalDateTime(),
-            zoneId = timestamp.zone.id,
-            epochMillis = timestamp.toInstant().toEpochMilli(),
+            timestamp = timestamp.localDateTime.toJavaLocalDateTime(),
+            zoneId = timestamp.timeZone.id,
+            epochMillis = timestamp.instant.toEpochMilliseconds(),
             templateId = templateId,
         )
     }

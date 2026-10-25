@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 620" preserveAspectRatio="xMidYMid slice">
+  <!-- Home-screen wallpaper for the landing page's widget demo: dark, so the
+       widgets stay readable, with a soft night landscape (moon, hills, a few stars) in muted purple,
+       teal and amber. -->
+  <defs>
+    <linearGradient id="base" x1="0" y1="0" x2=".3" y2="1">
+      <stop offset="0" stop-color="#241F33"/>
+      <stop offset="1" stop-color="#1A1414"/>
+    </linearGradient>
+    <linearGradient id="violet" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7A5CB3" stop-opacity=".7"/>
+      <stop offset="1" stop-color="#3B2E66" stop-opacity=".15"/>
+    </linearGradient>
+    <linearGradient id="teal" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3A8290" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#1F4450" stop-opacity=".12"/>
+    </linearGradient>
+    <linearGradient id="amber" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#E08A33" stop-opacity=".62"/>
+      <stop offset="1" stop-color="#8A3D1E" stop-opacity=".2"/>
+    </linearGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="6"/></filter>
+  </defs>
+  <rect width="300" height="620" fill="url(#base)"/>
+  <circle cx="255" cy="60" r="130" fill="url(#violet)" filter="url(#soft)"/>
+  <path d="M-30 290 C 50 220 130 350 215 290 S 330 230 340 240 V 470 H -30 Z" fill="url(#teal)" filter="url(#soft)"/>
+  <path d="M-30 470 C 60 395 155 525 240 450 S 320 410 340 415 V 650 H -30 Z" fill="url(#amber)" filter="url(#soft)"/>
+  <circle cx="45" cy="575" r="75" fill="#F2B489" fill-opacity=".1"/>
+  <circle cx="60" cy="150" r="3" fill="#FFFFFF" fill-opacity=".25"/>
+  <circle cx="110" cy="95" r="2" fill="#FFFFFF" fill-opacity=".2"/>
+  <circle cx="200" cy="200" r="2.5" fill="#FFFFFF" fill-opacity=".18"/>
+</svg>

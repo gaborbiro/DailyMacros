@@ -19,6 +19,10 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import android.content.Context
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedInstant
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.toJavaLocalDateTime
+import kotlinx.datetime.toKotlinLocalDateTime
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
@@ -96,13 +100,13 @@ class OverviewUiMapperTest {
 
     private fun stubRecord(id: Long, template: Template, hour: Int) = Record(
         recordId = id,
-        timestamp = ZonedDateTime.of(2024, 5, 10, hour, 0, 0, 0, zone),
+        timestamp = ZonedDateTime.of(2024, 5, 10, hour, 0, 0, 0, zone).toZonedInstant(),
         template = template,
     )
 
     private fun stubRecordAt(id: Long, calories: Int, timestamp: ZonedDateTime) = Record(
         recordId = id,
-        timestamp = timestamp,
+        timestamp = timestamp.toZonedInstant(),
         template = stubTemplate(id, "R$id").copy(nutrients = Nutrients(calories = calories)),
     )
 
@@ -120,11 +124,11 @@ class OverviewUiMapperTest {
     private fun dailySummaryFor(
         records: List<Record>,
         targets: Targets,
-        day: java.time.LocalDate,
+        day: LocalDateTime,
     ): ListUiModelDailySummary =
         mapper.map(records, targets)
             .filterIsInstance<ListUiModelDailySummary>()
-            .first { it.dayTitle.endsWith(day.format(java.time.format.DateTimeFormatter.ofPattern("dd MMM"))) }
+            .first { it.dayTitle.endsWith(day.toJavaLocalDateTime().format(java.time.format.DateTimeFormatter.ofPattern("dd MMM"))) }
 
     @Test
     fun `mapSearchResults orders most recent first when relevance ties`() {
@@ -140,12 +144,12 @@ class OverviewUiMapperTest {
     fun `mapSearchResults adds timezone shift label when zone changes between records`() {
         val r1 = Record(
             recordId = 1L,
-            timestamp = ZonedDateTime.of(2024, 5, 10, 8, 0, 0, 0, ZoneId.of("Europe/Lisbon")),
+            timestamp = ZonedDateTime.of(2024, 5, 10, 8, 0, 0, 0, ZoneId.of("Europe/Lisbon")).toZonedInstant(),
             template = stubTemplate(10L, "First"),
         )
         val r2 = Record(
             recordId = 2L,
-            timestamp = ZonedDateTime.of(2024, 5, 10, 14, 0, 0, 0, ZoneId.of("Asia/Dubai")),
+            timestamp = ZonedDateTime.of(2024, 5, 10, 14, 0, 0, 0, ZoneId.of("Asia/Dubai")).toZonedInstant(),
             template = stubTemplate(20L, "Second"),
         )
         val out = mapper.mapSearchResults(listOf(r1, r2), "e").filterIsInstance<ListUiModelRecord>()
@@ -178,12 +182,12 @@ class OverviewUiMapperTest {
     fun `map adds timezone shift label when zone changes between records`() {
         val r1 = Record(
             recordId = 1L,
-            timestamp = ZonedDateTime.of(2024, 5, 10, 8, 0, 0, 0, ZoneId.of("Europe/Lisbon")),
+            timestamp = ZonedDateTime.of(2024, 5, 10, 8, 0, 0, 0, ZoneId.of("Europe/Lisbon")).toZonedInstant(),
             template = stubTemplate(10L, "First"),
         )
         val r2 = Record(
             recordId = 2L,
-            timestamp = ZonedDateTime.of(2024, 5, 10, 14, 0, 0, 0, ZoneId.of("Asia/Dubai")),
+            timestamp = ZonedDateTime.of(2024, 5, 10, 14, 0, 0, 0, ZoneId.of("Asia/Dubai")).toZonedInstant(),
             template = stubTemplate(20L, "Second"),
         )
         val out = mapper.map(listOf(r1, r2), testSettingsRepository.getTargets())
@@ -227,7 +231,7 @@ class OverviewUiMapperTest {
         val day1 = stubRecordAt(1L, 300, ZonedDateTime.of(2024, 5, 10, 20, 0, 0, 0, ZoneOffset.UTC))
         val day2 = stubRecordAt(2L, 1500, ZonedDateTime.of(2024, 5, 11, 9, 0, 0, 0, ZoneOffset.UTC))
 
-        val summary = dailySummaryFor(listOf(day1, day2), caloriesOnlyTargets, day2.timestamp.toLocalDate())
+        val summary = dailySummaryFor(listOf(day1, day2), caloriesOnlyTargets, day2.timestamp.localDateTime)
 
         assertNull(summary.infoMessage)
         // unscaled: total(1500) <= min(1600) -> (1500/1600) * 0.75
@@ -241,7 +245,7 @@ class OverviewUiMapperTest {
         val day1 = stubRecordAt(1L, 300, ZonedDateTime.of(2024, 5, 10, 20, 0, 0, 0, ZoneOffset.UTC))
         val day2 = stubRecordAt(2L, 1500, ZonedDateTime.of(2024, 5, 11, 9, 0, 0, 0, ZoneOffset.ofHours(6)))
 
-        val summary = dailySummaryFor(listOf(day1, day2), caloriesOnlyTargets, day2.timestamp.toLocalDate())
+        val summary = dailySummaryFor(listOf(day1, day2), caloriesOnlyTargets, day2.timestamp.localDateTime)
 
         assertTrue(summary.infoMessage.orEmpty().contains("6 hrs behind"))
         assertTrue(summary.infoMessage.orEmpty().contains("shorter day"))
@@ -260,8 +264,8 @@ class OverviewUiMapperTest {
         val day2 = stubRecordAt(2L, 300, ZonedDateTime.of(2024, 5, 11, 9, 0, 0, 0, stopover))
         val day3 = stubRecordAt(3L, 1250, ZonedDateTime.of(2024, 5, 12, 9, 0, 0, 0, dest))
 
-        val day2Summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day2.timestamp.toLocalDate())
-        val day3Summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day3.timestamp.toLocalDate())
+        val day2Summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day2.timestamp.localDateTime)
+        val day3Summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day3.timestamp.localDateTime)
 
         // Day 2: home -> stopover is a 3hr shift.
         assertTrue(day2Summary.infoMessage.orEmpty().contains("3 hrs behind"))
@@ -284,8 +288,8 @@ class OverviewUiMapperTest {
         val day2 = stubRecordAt(2L, 300, ZonedDateTime.of(2024, 5, 11, 9, 0, 0, 0, blip))
         val day3 = stubRecordAt(3L, 300, ZonedDateTime.of(2024, 5, 12, 9, 0, 0, 0, farther))
 
-        val day2Summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day2.timestamp.toLocalDate())
-        val day3Summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day3.timestamp.toLocalDate())
+        val day2Summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day2.timestamp.localDateTime)
+        val day3Summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day3.timestamp.localDateTime)
 
         assertNull(day2Summary.infoMessage)
         // If the 2hr blip had wrongly become the new anchor, day 3 would read as a 3hr shift
@@ -303,8 +307,8 @@ class OverviewUiMapperTest {
         // A plain day after arrival, no shift of its own -- just continuing the same zone.
         val day3 = stubRecordAt(3L, 300, ZonedDateTime.of(2024, 5, 12, 17, 0, 0, 0, dest))
 
-        val day2Summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day2.timestamp.toLocalDate())
-        val day3Summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day3.timestamp.toLocalDate())
+        val day2Summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day2.timestamp.localDateTime)
+        val day3Summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day3.timestamp.localDateTime)
 
         assertTrue(day2Summary.infoMessage.orEmpty().contains("9 hrs behind"))
         assertNull(day3Summary.infoMessage)
@@ -328,9 +332,9 @@ class OverviewUiMapperTest {
         val phantomDaySummary = dailySummaryFor(
             listOf(day1, day3),
             caloriesOnlyTargets,
-            java.time.LocalDate.of(2024, 5, 11),
+            java.time.LocalDateTime.of(2024, 5, 11, 0, 0, 0).toKotlinLocalDateTime(),
         )
-        val day3Summary = dailySummaryFor(listOf(day1, day3), caloriesOnlyTargets, day3.timestamp.toLocalDate())
+        val day3Summary = dailySummaryFor(listOf(day1, day3), caloriesOnlyTargets, day3.timestamp.localDateTime)
 
         assertTrue(phantomDaySummary.infoMessage.orEmpty().contains("9 hrs behind"))
         // Day 3's shift is now measured from the phantom day's zone, not re-triggering the
@@ -371,8 +375,8 @@ class OverviewUiMapperTest {
         val day2 = stubRecordAt(2L, 300, ZonedDateTime.of(2024, 5, 15, 9, 0, 0, 0, dest))
         val day3 = stubRecordAt(3L, 300, ZonedDateTime.of(2024, 5, 16, 9, 0, 0, 0, dest))
 
-        val day2Summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day2.timestamp.toLocalDate())
-        val day3Summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day3.timestamp.toLocalDate())
+        val day2Summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day2.timestamp.localDateTime)
+        val day3Summary = dailySummaryFor(listOf(day1, day2, day3), caloriesOnlyTargets, day3.timestamp.localDateTime)
 
         // Too much time passed since the last log for the notice to still be useful.
         assertNull(day2Summary.infoMessage)
@@ -391,7 +395,7 @@ class OverviewUiMapperTest {
         // within the "fresh" window and should surface the advisory as before.
         val day2 = stubRecordAt(2L, 300, ZonedDateTime.of(2024, 5, 12, 9, 0, 0, 0, dest))
 
-        val day2Summary = dailySummaryFor(listOf(day1, day2), caloriesOnlyTargets, day2.timestamp.toLocalDate())
+        val day2Summary = dailySummaryFor(listOf(day1, day2), caloriesOnlyTargets, day2.timestamp.localDateTime)
 
         assertTrue(day2Summary.infoMessage.orEmpty().contains("9 hrs behind"))
     }

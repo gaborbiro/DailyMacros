@@ -46,6 +46,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -60,6 +61,7 @@ import dev.gaborbiro.dailymacros.features.common.utils.verticalScrollWithBar
 import dev.gaborbiro.dailymacros.features.settings.R
 import dev.gaborbiro.dailymacros.features.settings.export.pdf.PdfRangeSelection
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
+import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectStatus
 import dev.gaborbiro.dailymacros.repositories.billing.domain.model.SubscriptionState
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.BackupInterval
 import dev.gaborbiro.dailymacros.repositories.settings.domain.model.CloudSyncProvider
@@ -82,6 +84,7 @@ internal fun SettingsView(
     onDiaryDayStartDialogDismissed: () -> Unit,
     onDiaryDayStartHourSelected: (Int) -> Unit,
     onAutoPhotoRecognitionToggled: (Boolean) -> Unit,
+    onMealRemindersToggled: (Boolean) -> Unit = {},
     onQuickPickConfirmationToggled: (Boolean) -> Unit,
     onWifiOnlyBackupToggled: (Boolean) -> Unit,
     onWifiOnlyAnalysisToggled: (Boolean) -> Unit,
@@ -104,7 +107,9 @@ internal fun SettingsView(
     onOverwriteDialogDismissed: () -> Unit,
     onSubscribeTapped: () -> Unit,
     onShowOnboardingTapped: () -> Unit = {},
+    onMealReminderDebugTapped: () -> Unit = {},
     onHealthConnectSyncToggled: (Boolean) -> Unit = {},
+    onHealthConnectInstallTapped: () -> Unit = {},
     onSuggestIntegrationTapped: () -> Unit = {},
 ) {
 
@@ -292,6 +297,19 @@ internal fun SettingsView(
                 )
             }
 
+            SettingSectionHeader(title = stringResource(R.string.settings_content_reminders_section))
+            SettingRow(
+                title = stringResource(R.string.settings_meal_reminders_row),
+                subtitle = stringResource(R.string.settings_meal_reminders_subtitle),
+                onTapped = { onMealRemindersToggled(!viewState.mealRemindersEnabled) },
+                trailing = {
+                    Switch(
+                        checked = viewState.mealRemindersEnabled,
+                        onCheckedChange = onMealRemindersToggled,
+                    )
+                },
+            )
+
             SettingSectionHeader(title = stringResource(R.string.settings_content_widgets_section))
             SettingRow(
                 title = stringResource(R.string.settings_quick_pick_confirmation_row),
@@ -332,11 +350,12 @@ internal fun SettingsView(
             val cloudSyncIdle = !viewState.cloudSyncInProgress
             SettingSectionHeader(title = stringResource(R.string.settings_content_cloud_sync_section))
 
+            val locale = LocalLocale.current.platformLocale
             val lastSyncedText = if (isSignedIn) {
                 if (viewState.lastSyncedEpochMs != null) {
                     stringResource(
                         R.string.settings_content_last_backed_up,
-                        SimpleDateFormat("MMM d, yyyy HH:mm", Locale.getDefault()).format(Date(viewState.lastSyncedEpochMs))
+                        SimpleDateFormat("MMM d, yyyy HH:mm", locale).format(Date(viewState.lastSyncedEpochMs))
                     )
                 } else {
                     null
@@ -428,8 +447,8 @@ internal fun SettingsView(
             )
 
             SettingSectionHeader(title = stringResource(R.string.settings_content_connected_services_section))
-            if (viewState.healthConnectSyncVisible) {
-                SettingRow(
+            when (viewState.healthConnectStatus) {
+                HealthConnectStatus.AVAILABLE -> SettingRow(
                     title = stringResource(R.string.settings_health_connect_sync_row),
                     subtitle = stringResource(R.string.settings_health_connect_sync_subtitle),
                     enabled = !viewState.healthConnectSyncInProgress,
@@ -444,6 +463,22 @@ internal fun SettingsView(
                             )
                         }
                     },
+                )
+                HealthConnectStatus.INSTALL_OR_UPDATE_REQUIRED -> SettingRow(
+                    title = stringResource(R.string.settings_health_connect_sync_row),
+                    subtitle = stringResource(R.string.settings_content_health_connect_install_subtitle),
+                    onTapped = onHealthConnectInstallTapped,
+                    trailing = {
+                        TextButton(onClick = onHealthConnectInstallTapped) {
+                            Text(stringResource(R.string.settings_content_health_connect_install_action))
+                        }
+                    },
+                )
+                HealthConnectStatus.NOT_SUPPORTED -> SettingRow(
+                    title = stringResource(R.string.settings_health_connect_sync_row),
+                    subtitle = stringResource(R.string.settings_content_health_connect_not_supported_subtitle),
+                    enabled = false,
+                    onTapped = {},
                 )
             }
             SettingRow(
@@ -470,6 +505,11 @@ internal fun SettingsView(
                 SettingRow(
                     title = stringResource(R.string.settings_debug_show_onboarding_row),
                     onTapped = onShowOnboardingTapped,
+                )
+                SettingRow(
+                    title = stringResource(R.string.settings_debug_meal_reminders_row),
+                    subtitle = viewState.mealReminderDebugText,
+                    onTapped = onMealReminderDebugTapped,
                 )
             }
 

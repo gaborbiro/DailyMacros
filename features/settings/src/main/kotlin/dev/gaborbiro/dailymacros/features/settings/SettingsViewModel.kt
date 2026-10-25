@@ -8,32 +8,42 @@ import android.os.Build
 import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
-import dev.gaborbiro.dailymacros.core.featureflags.FeatureFlagStore
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.GoogleAuthException
 import com.google.android.gms.auth.GoogleAuthUtil
 import com.google.android.gms.auth.UserRecoverableAuthException
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import dev.gaborbiro.dailymacros.features.settings.DRIVE_SCOPE_TOKEN
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.gaborbiro.dailymacros.core.featureflags.FeatureFlagStore
 import dev.gaborbiro.dailymacros.features.settings.export.CreatePublicDocumentUseCase
-import dev.gaborbiro.dailymacros.features.shared.photodiary.PhotoMonitorWorker
 import dev.gaborbiro.dailymacros.features.settings.export.OpenPublicDocumentUseCase
-import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectSyncResult
-import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectSyncUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.pdf.DiaryDateRange
 import dev.gaborbiro.dailymacros.features.settings.export.pdf.PdfRangeSelection
 import dev.gaborbiro.dailymacros.features.settings.export.pdf.computeRange
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportPdfDiaryUseCase
-import dev.gaborbiro.dailymacros.features.settings.export.useCases.PdfExportResult
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ExportSqliteDatabaseUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseResult
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.ImportSqliteDatabaseUseCase
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.PdfExportResult
+import dev.gaborbiro.dailymacros.features.settings.export.useCases.ReconcileCloudBackupConflictUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.RestoreFromDriveUseCase
 import dev.gaborbiro.dailymacros.features.settings.export.useCases.SyncDatabaseUseCase
+import dev.gaborbiro.dailymacros.features.settings.mealreminders.toDebugText
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiState
 import dev.gaborbiro.dailymacros.features.settings.model.SettingsUiUpdates
+import dev.gaborbiro.dailymacros.features.shared.ReportUserFacingErrorUseCase
+import dev.gaborbiro.dailymacros.features.shared.healthconnect.GetHealthConnectStatusUseCase
+import dev.gaborbiro.dailymacros.features.shared.healthconnect.HasHealthConnectPermissionUseCase
+import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectClientProvider
+import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectStatus
+import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectSyncResult
+import dev.gaborbiro.dailymacros.features.shared.healthconnect.SyncRecordsToHealthConnectUseCase
+import dev.gaborbiro.dailymacros.features.shared.mealreminders.GetMealReminderPlanUseCase
+import dev.gaborbiro.dailymacros.features.shared.mealreminders.GetMealReminderStatusUseCase
+import dev.gaborbiro.dailymacros.features.shared.mealreminders.MealReminderRefresher
+import dev.gaborbiro.dailymacros.features.shared.mealreminders.SetMealRemindersEnabledUseCase
+import dev.gaborbiro.dailymacros.features.shared.photodiary.PhotoMonitorWorker
 import dev.gaborbiro.dailymacros.repositories.backup.domain.CloudSyncRepository
 import dev.gaborbiro.dailymacros.repositories.billing.domain.SubscriptionRepository
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
@@ -63,11 +73,19 @@ class SettingsViewModel @Inject constructor(
     private val exportSqliteDatabaseUseCase: ExportSqliteDatabaseUseCase,
     private val importSqliteDatabaseUseCase: ImportSqliteDatabaseUseCase,
     private val syncDatabaseUseCase: SyncDatabaseUseCase,
+    private val reconcileCloudBackupConflictUseCase: ReconcileCloudBackupConflictUseCase,
     private val restoreFromDriveUseCase: RestoreFromDriveUseCase,
-    private val healthConnectSyncUseCase: HealthConnectSyncUseCase,
+    private val getHealthConnectStatusUseCase: GetHealthConnectStatusUseCase,
+    private val hasHealthConnectPermissionUseCase: HasHealthConnectPermissionUseCase,
+    private val syncRecordsToHealthConnectUseCase: SyncRecordsToHealthConnectUseCase,
     private val cloudSyncRepository: CloudSyncRepository,
     private val featureFlagStore: FeatureFlagStore,
     private val subscriptionRepository: SubscriptionRepository,
+    private val getMealReminderPlanUseCase: GetMealReminderPlanUseCase,
+    private val getMealReminderStatusUseCase: GetMealReminderStatusUseCase,
+    private val setMealRemindersEnabledUseCase: SetMealRemindersEnabledUseCase,
+    private val mealReminderRefresher: MealReminderRefresher,
+    private val reportUserFacingErrorUseCase: ReportUserFacingErrorUseCase,
 ) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(
@@ -79,16 +97,16 @@ class SettingsViewModel @Inject constructor(
             cloudSyncEmail = settingsRepository.getCloudSyncEmail(),
             lastSyncedEpochMs = settingsRepository.getLastSyncedEpochMs(),
             customiseAiEnabled = featureFlagStore.isEnabled(FeatureFlagStore.Key.CUSTOMISE_AI_ENABLED),
-            aiInsightsEnabled = featureFlagStore.isEnabled(FeatureFlagStore.Key.AI_INSIGHTS_ENABLED),
             autoPhotoRecognitionEnabled = settingsRepository.getAutoPhotoRecognitionEnabled(),
             autoPhotoRecognitionVisible = featureFlagStore.isEnabled(FeatureFlagStore.Key.AUTO_PHOTO_RECOGNITION_ENABLED),
+            mealRemindersEnabled = getMealReminderStatusUseCase.execute().enabled,
             quickPickConfirmationEnabled = settingsRepository.getQuickPickConfirmationEnabled(),
             autoBackupInterval = settingsRepository.getAutoBackupInterval(),
             wifiOnlyBackupEnabled = settingsRepository.getWifiOnlyBackupEnabled(),
             wifiOnlyAnalysisEnabled = settingsRepository.getWifiOnlyAnalysisEnabled(),
             isDebugBuild = appInfo.isDebugBuild,
             healthConnectSyncEnabled = settingsRepository.getHealthConnectSyncEnabled(),
-            healthConnectSyncVisible = featureFlagStore.isEnabled(FeatureFlagStore.Key.HEALTH_CONNECT_SYNC_VISIBLE),
+            healthConnectStatus = getHealthConnectStatusUseCase.execute(),
         ),
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
@@ -101,6 +119,32 @@ class SettingsViewModel @Inject constructor(
             subscriptionRepository.observeState().collect { state ->
                 _uiState.update { it.copy(subscriptionState = state) }
             }
+        }
+        // This ViewModel is activity-scoped and its snackbar is drawn over every screen, so this
+        // catches failures from all subscribe entry points (Settings, Paywall, Onboarding).
+        viewModelScope.launch {
+            subscriptionRepository.observePurchaseFlowFailures().collect { error ->
+                val message = reportUserFacingErrorUseCase.execute(
+                    error,
+                    getApplication<Application>().getString(R.string.settings_content_purchase_flow_error),
+                )
+                _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar(message))
+            }
+        }
+    }
+
+    /** Recomputes the debug readout. Also called whenever the screen resumes, so it's never stale. */
+    fun refreshMealReminderDebugText() {
+        if (!_uiState.value.isDebugBuild) return
+        viewModelScope.launch {
+            val text = runCatching {
+                val now = ZonedDateTime.now()
+                getMealReminderPlanUseCase.execute(now = now).toDebugText(now, getMealReminderStatusUseCase.execute())
+            }.getOrElse { t ->
+                Log.e("MealReminders", "Failed to compute meal reminder plan", t)
+                "Failed: ${t.message}"
+            }
+            _uiState.update { it.copy(mealReminderDebugText = text) }
         }
     }
 
@@ -367,8 +411,7 @@ class SettingsViewModel @Inject constructor(
                     // detection would treat this device as in sync with the cloud backup.
                     _uiState.update { it.copy(lastSyncedEpochMs = driveInfo.modifiedTimeMs) }
                 }
-                val lastSynced = settingsRepository.getLastSyncedEpochMs()
-                if (driveInfo != null && driveInfo.modifiedTimeMs > (lastSynced ?: 0L)) {
+                if (driveInfo != null && reconcileCloudBackupConflictUseCase.execute(driveInfo)) {
                     _uiState.update {
                         it.copy(
                             cloudSyncInProgress = false,
@@ -551,16 +594,76 @@ class SettingsViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            if (healthConnectSyncUseCase.hasPermission()) {
-                enableHealthConnectSync()
-            } else {
-                _uiUpdates.emit(SettingsUiUpdates.RequestHealthConnectPermissions)
+            when {
+                // Checked first: on Android 12-13 Health Connect is a separate Play Store app that
+                // may be missing or outdated, and the permission check throws in that case. The
+                // status can also have changed since the row was drawn, so this refreshes it too.
+                refreshHealthConnectStatus() != HealthConnectStatus.AVAILABLE -> _uiUpdates.emit(
+                    SettingsUiUpdates.ShowSnackbar(HEALTH_CONNECT_NOT_AVAILABLE_MESSAGE)
+                )
+                hasHealthConnectPermissionUseCase.execute() -> enableHealthConnectSync()
+                else -> _uiUpdates.emit(SettingsUiUpdates.RequestHealthConnectPermissions)
             }
         }
     }
 
+    /** Opens Health Connect's Play Store listing, where the user can install or update it. */
+    fun onHealthConnectInstallTapped() {
+        viewModelScope.launch {
+            _uiUpdates.emit(SettingsUiUpdates.OpenPlayStoreListing(HealthConnectClientProvider.PROVIDER_PACKAGE_NAME))
+        }
+    }
+
+    /**
+     * Re-reads whether Health Connect is installed and up to date. Called whenever the screen
+     * resumes, so coming back from the Play Store updates the Health Connect row.
+     */
+    fun onHealthConnectStatusRefreshRequested() {
+        refreshHealthConnectStatus()
+    }
+
+    private fun refreshHealthConnectStatus(): HealthConnectStatus {
+        val status = getHealthConnectStatusUseCase.execute()
+        _uiState.update { it.copy(healthConnectStatus = status) }
+        return status
+    }
+
     fun onHealthConnectPermissionsGranted() {
         enableHealthConnectSync()
+    }
+
+    fun onMealRemindersToggled(enabled: Boolean) {
+        if (!enabled) {
+            setMealRemindersEnabled(false)
+            return
+        }
+        val needsPermission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(
+                getApplication(),
+                Manifest.permission.POST_NOTIFICATIONS,
+            ) != PackageManager.PERMISSION_GRANTED
+        if (needsPermission) {
+            viewModelScope.launch { _uiUpdates.emit(SettingsUiUpdates.RequestNotificationPermission) }
+        } else {
+            setMealRemindersEnabled(true)
+        }
+    }
+
+    fun onNotificationPermissionGranted() {
+        setMealRemindersEnabled(true)
+    }
+
+    fun onNotificationPermissionDenied() {
+        viewModelScope.launch {
+            _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Allow notifications to get meal reminders."))
+        }
+    }
+
+    private fun setMealRemindersEnabled(enabled: Boolean) {
+        setMealRemindersEnabledUseCase.execute(enabled)
+        _uiState.update { it.copy(mealRemindersEnabled = enabled) }
+        // Schedules (or cancels) straight away instead of waiting for the next diary change.
+        mealReminderRefresher.refresh(trigger = "settings")
     }
 
     fun onHealthConnectPermissionsDenied() {
@@ -576,7 +679,7 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(healthConnectSyncInProgress = true) }
             val since = ZonedDateTime.now().minusDays(HEALTH_CONNECT_INITIAL_SYNC_WINDOW_DAYS)
-            when (val result = healthConnectSyncUseCase.execute(since = since)) {
+            when (val result = syncRecordsToHealthConnectUseCase.execute(since = since)) {
                 is HealthConnectSyncResult.Success -> {
                     val message = if (result.count == 0) {
                         "Turned on. Nothing to sync yet."
@@ -586,7 +689,7 @@ class SettingsViewModel @Inject constructor(
                     _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar(message))
                 }
                 HealthConnectSyncResult.NotAvailable ->
-                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar("Health Connect isn't available on this device."))
+                    _uiUpdates.emit(SettingsUiUpdates.ShowSnackbar(HEALTH_CONNECT_NOT_AVAILABLE_MESSAGE))
                 HealthConnectSyncResult.PermissionRequired -> Unit // just granted; a stale check race, nothing to show
                 is HealthConnectSyncResult.Error -> {
                     Log.e("HealthConnect", "Sync failed", RuntimeException(result.message))
@@ -652,5 +755,7 @@ class SettingsViewModel @Inject constructor(
 
     private companion object {
         private const val HEALTH_CONNECT_INITIAL_SYNC_WINDOW_DAYS = 30L
+        private const val HEALTH_CONNECT_NOT_AVAILABLE_MESSAGE =
+            "Health Connect isn't available. Install or update it from the Play Store."
     }
 }

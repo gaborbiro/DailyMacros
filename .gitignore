@@ -102,3 +102,11 @@ buildNumber.properties
 # Claude Code local-only settings (per-user permissions, not shared)
 .claude/settings.local.json
 
+# Firebase CLI local cache (per-machine, e.g. hosting deploy/channel state)
+.firebase/
+firebase-debug.log
+firestore-debug.log
+
+
+# IDE project opened on the .claude folder
+.claude/.idea/

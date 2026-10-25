@@ -17,7 +17,7 @@ import dev.gaborbiro.dailymacros.features.overview.usecase.ResolveOverviewObserv
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.ListMealVariantsForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.NutrientAnalysisWorker
-import dev.gaborbiro.dailymacros.features.shared.healthconnect.HealthConnectSyncUseCase
+import dev.gaborbiro.dailymacros.features.shared.healthconnect.DeleteRecordFromHealthConnectUseCase
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelBase
 import dev.gaborbiro.dailymacros.features.shared.model.ListUiModelRecord
 import dev.gaborbiro.dailymacros.repositories.billing.domain.SubscriptionRepository
@@ -62,7 +62,7 @@ class OverviewViewModel @Inject constructor(
     private val listMealVariantsForTemplateUseCase: ListMealVariantsForTemplateUseCase,
     private val createRecordFromTemplateUseCase: CreateRecordFromTemplateUseCase,
     private val subscriptionRepository: SubscriptionRepository,
-    private val healthConnectSyncUseCase: HealthConnectSyncUseCase,
+    private val deleteRecordFromHealthConnectUseCase: DeleteRecordFromHealthConnectUseCase,
 ) : AndroidViewModel(application) {
 
     private val _viewState: MutableStateFlow<OverviewUiState> =
@@ -118,7 +118,7 @@ class OverviewViewModel @Inject constructor(
         // Exposed so OverviewView can keep the search bar pinned open while a term is active,
         // rather than letting scroll-direction alone decide (see OverviewView.fabsVisible) -
         // SearchFAB's own text/expanded state is local and gets wiped if it's ever disposed.
-        _viewState.update { it.copy(hasMoreData = true, searchTerm = search) }
+        _viewState.update { it.copy(hasMoreData = true, searchTerm = search?.trim()?.ifEmpty { null }) }
         resubscribe(search)
     }
 
@@ -185,7 +185,7 @@ class OverviewViewModel @Inject constructor(
                                 // "true" also permanently hid the Search FAB, which is gated
                                 // on this same flag.
                                 showAddWidgetButton = false,
-                                showSettingsButton = notSearching,
+                                showTopActions = notSearching,
                                 showSubscribeBanner = notSearching && showSubscribeBanner,
                             )
 
@@ -203,7 +203,7 @@ class OverviewViewModel @Inject constructor(
                                 isLoadingMore = false,
                                 hasMoreData = hasMore,
                                 showAddWidgetButton = notSearching,
-                                showSettingsButton = false,
+                                showTopActions = false,
                                 showSubscribeBanner = false,
                             )
                         }
@@ -339,6 +339,13 @@ class OverviewViewModel @Inject constructor(
         }
     }
 
+    /** The plain "View trends" entry point: opens Trends at its default timescale/position. */
+    fun onTrendsButtonTapped() {
+        viewModelScope.launch {
+            _uiUpdates.emit(OverviewUiUpdates.OpenTrendsScreen())
+        }
+    }
+
     fun onSettingsButtonTapped() {
         viewModelScope.launch {
             _uiUpdates.emit(OverviewUiUpdates.OpenSettingsScreen)
@@ -374,7 +381,7 @@ class OverviewViewModel @Inject constructor(
         viewModelScope.launch {
             deleteUnusedTemplateIfOrphaned.execute(record.template.dbId)
             if (settingsRepository.getHealthConnectSyncEnabled()) {
-                healthConnectSyncUseCase.deleteRecord(record.recordId)
+                deleteRecordFromHealthConnectUseCase.execute(record.recordId)
             }
         }
     }

@@ -19,4 +19,15 @@
     <string name="shared_content_usage_limit_monthly">Daily Macros is at capacity right now. Please try again later.</string>
     <string name="shared_content_usage_limit_unavailable">AI analysis is temporarily unavailable. Please try again later.</string>
     <string name="shared_content_usage_limit_subscription_required">Subscribe to keep using AI analysis.</string>
+    <!-- Meal reminders -->
+    <string name="meal_reminder_photo_title_breakfast">Breakfast time? 📸</string>
+    <string name="meal_reminder_photo_title_lunch">Lunch time? 📸</string>
+    <string name="meal_reminder_photo_title_dinner">Dinner time? 📸</string>
+    <string name="meal_reminder_photo_text">Snap it before you dig in.</string>
+    <string name="meal_reminder_photo_action_describe">Describe instead</string>
+    <string name="meal_reminder_catch_up_title_breakfast">Had breakfast yet?</string>
+    <string name="meal_reminder_catch_up_title_lunch">Had lunch yet?</string>
+    <string name="meal_reminder_catch_up_title_dinner">Had dinner yet?</string>
+    <string name="meal_reminder_catch_up_text">Log it now, even without a photo.</string>
+    <string name="meal_reminder_catch_up_action_photo">Pick a photo</string>
 </resources>

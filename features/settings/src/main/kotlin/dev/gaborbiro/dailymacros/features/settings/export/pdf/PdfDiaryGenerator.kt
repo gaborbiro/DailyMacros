@@ -13,6 +13,7 @@ import dev.gaborbiro.dailymacros.features.common.utils.logicalDiaryDate
 import dev.gaborbiro.dailymacros.features.settings.R
 import dev.gaborbiro.dailymacros.features.settings.export.StreamWriter
 import dev.gaborbiro.dailymacros.features.shared.model.TravelDay
+import dev.gaborbiro.dailymacros.repositories.common.model.toZonedDateTime
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.settings.domain.SettingsRepository
@@ -26,6 +27,8 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 import javax.inject.Inject
+import kotlin.time.toJavaInstant
+import kotlin.time.toKotlinInstant
 
 /**
  * Produces the food-diary PDF: queries records for a range, loads and downscales photos, renders the
@@ -46,8 +49,8 @@ class PdfDiaryGenerator @Inject constructor(
         val dayStart = diaryDayStartTime(settingsRepository.getDiaryDayStartHour())
         val windowStart = diaryDayWindowStart(range.from, dayStart, zone)
         val windowEndExclusive = diaryDayWindowStart(range.to.plusDays(1), dayStart, zone)
-        return recordRepository.getRecords(since = windowStart)
-            .filter { it.timestamp.toInstant() < windowEndExclusive.toInstant() }
+        return recordRepository.getRecords(since = windowStart.toInstant().toKotlinInstant())
+            .filter { it.timestamp.instant.toJavaInstant() < windowEndExclusive.toInstant() }
     }
 
     /** Generates the PDF for [range]/[options] and writes it to [uri]. Assumes the range is non-empty. */
@@ -117,14 +120,17 @@ class PdfDiaryGenerator @Inject constructor(
     }
 
     private fun List<Record>.groupByDiaryDay(dayStart: LocalTime): List<TravelDay> =
-        sortedBy { it.timestamp.toInstant() }
-            .groupByTo(sortedMapOf(), { it.timestamp.logicalDiaryDate(dayStart) }, { it })
+        sortedBy { it.timestamp.instant }
+            .groupByTo(
+                sortedMapOf(),
+                { it.timestamp.toZonedDateTime().logicalDiaryDate(dayStart) },
+                { it })
             .map { (day, dayRecords) ->
                 TravelDay(
                     records = dayRecords.toList(),
                     day = day,
-                    firstLog = dayRecords.minBy { it.timestamp.toInstant() }.timestamp,
-                    lastLog = dayRecords.maxBy { it.timestamp.toInstant() }.timestamp,
+                    firstLog = dayRecords.minBy { it.timestamp.instant }.timestamp.toZonedDateTime(),
+                    lastLog = dayRecords.maxBy { it.timestamp.instant }.timestamp.toZonedDateTime(),
                     diaryDayStart = dayStart,
                 )
             }

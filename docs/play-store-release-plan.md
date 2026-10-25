@@ -23,8 +23,8 @@
 ### 2. Play Store listing materials *(required, ~1 day)*
 - Short description (80 chars), long description (~4000 chars): drafted in
   `docs/play-store-listing.md`.
-- Screenshots: done — 4 captioned marketing screenshots in `docs/screenshots/`
-  (`screenshot_1_diary.png` … `screenshot_4_detail.png`), replacing the earlier
+- Screenshots: done — 5 captioned marketing screenshots in `docs/screenshots/`
+  (`screenshot_1_diary.png` … `screenshot_5_trends.png`), replacing the earlier
   plain `1.png`–`4.png`.
 - Feature graphic: 1024×500px banner — still TODO, needs a design tool (not
   code). See `docs/play-store-listing.md` for notes.
@@ -39,7 +39,7 @@
   - **Health and fitness data, shared with other apps (opt-in):** if the user
     turns on Health Connect sync (Settings > Connected services, off by
     default), logged meals' names and nutrition figures — not photos — are
-    written to Android Health Connect, readable by any app the user has
+    written to Health Connect, readable by any app the user has
     connected to it (e.g. Samsung Health). Requires declaring the
     `health.WRITE_NUTRITION` permission in Play Console's Permissions
     Declaration form, separate from this Data safety form.
