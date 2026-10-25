@@ -13,6 +13,8 @@ android {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    // FeatureFlagStore.observe exposes a Flow.
+    api(libs.kotlinx.coroutines.core)
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.config)

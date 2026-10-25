@@ -235,14 +235,40 @@ shows a snackbar. Follow-up work:
   - what Shake receives
   - that only you see it
   - Shake's privacy link
-- If Shake is ever gated to testers only (item 11), the paragraph can say so.
+- Shake is now gated (item 11), so the paragraph can say it's only switched on for testers
+  and for users who ask for help.
 
-## 11. ⬜ Gate Shake to testers before any production rollout
+## 11. ✅ Gate Shake behind a Remote Config flag (allowlist)
 
-- `App.kt:78` starts Shake for every build. That's fine while everyone is a tester.
-- Before production, gate it to the testing tracks: a Remote Config flag (default off), or
-  a separate tester build flavour.
-- Not urgent. Track it here so it isn't forgotten at launch.
+**Decided:** allowlist only. Android can't tell which Play track installed the app, so
+"tester" means "on the list". Separate tester builds were considered and rejected, because
+they would stop the same AAB being promoted to production.
+
+**Done**
+- **Flag:** `FeatureFlagStore.Key.SHAKE_ENABLED` (`shake_enabled`).
+  - The code default is `false`, so Shake stays off when Remote Config is unreachable.
+  - The console default is `true` while every user is a tester.
+- **Live updates:** `FeatureFlagStore.observe(key)` emits the current value and then every
+  activation. That includes real-time Remote Config (`addOnConfigUpdateListener`), so a
+  console change applies within seconds, without the one-hour fetch throttle or a restart.
+- **App start:** `ShakeFeedback.bind` in `App.onCreate` starts Shake when the flag turns on.
+  - When the flag was already on last session, Shake still starts inside `onCreate`.
+  - Turning the flag off mid-session hides the floating button, since Shake can't be
+    stopped. From the next launch Shake doesn't start at all.
+- **Per-user:** the app already sends its client ID as the `client_id` custom signal. The
+  user reads their ID from Settings, and you add it to a console condition (custom signal
+  `client_id` exactly matches …) that sets `shake_enabled` to `true`.
+
+**At production launch:** switch the console default to `false`. From then on only
+allowlisted users get Shake, so collecting testers' client IDs becomes part of tester
+onboarding.
+
+**Not verified yet:**
+- Shake appearing mid-session after a console change, on a device. My expectation is that
+  it shows on the next screen; the button might not appear on the screen that's already
+  open.
+- Whether real-time updates connect for this project. If they don't, it shows as a
+  `FeatureFlags` warning in Logcat.
 
 ## 12. ⬜ Backend: `functions/testers.js` duplicates `lib/`
 
