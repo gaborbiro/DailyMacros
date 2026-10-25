@@ -7,6 +7,8 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import dagger.hilt.android.AndroidEntryPoint
+import dev.gaborbiro.dailymacros.core.analytics.AnalyticsLogger
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -54,6 +56,8 @@ class MealReminderAlarmReceiver : BroadcastReceiver() {
 
     @Inject lateinit var runMealReminderPassUseCase: RunMealReminderPassUseCase
 
+    @Inject lateinit var analyticsLogger: AnalyticsLogger
+
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
             MealReminderAlarm.ACTION_ALARM,
@@ -63,9 +67,12 @@ class MealReminderAlarmReceiver : BroadcastReceiver() {
                 val pendingResult = goAsync()
                 CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
                     try {
-                        runMealReminderPassUseCase.execute(trigger =intent.action.orEmpty().substringAfterLast('.'))
-                    } catch (t: Throwable) {
-                        Log.e("MealReminders", "Meal reminder pass failed", t)
+                        runMealReminderPassUseCase.execute(trigger = intent.action.orEmpty().substringAfterLast('.'))
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        Log.e("MealReminders", "Meal reminder pass failed", e)
+                        analyticsLogger.logError(e)
                     } finally {
                         pendingResult.finish()
                     }
