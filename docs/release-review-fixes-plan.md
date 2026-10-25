@@ -4,14 +4,47 @@ Complex fixes from the two-axis review of the release diff (`origin/release...ma
 PR #186). Each item is meant to land as its own PR so it can be reviewed separately.
 Items are ordered by value and by dependency: earlier items unblock later ones.
 
-The easy fixes are already done on `claude/release-review-fixes-4044a35`. They are listed
-at the end for reference.
+The easy fixes merged in #190. They are listed at the end for reference.
 
-Status key: ⬜ not started · 🟨 needs a decision first · ✅ done
+Status key: ⬜ not started · 🔄 in progress · 🟨 needs a decision first · ✅ done
+
+## Status (2026-10-25)
+
+| # | Item | Status | PR |
+|---|---|---|---|
+| — | Easy fixes, Health Connect availability crash | ✅ merged | #190 |
+| 1 | Voice input through the ViewModel | ✅ merged | #188 |
+| 2 | Quick-log single path | ✅ merged | #189 |
+| 3 | Edit saving and edit rules out of ModalViewModel/ModalUiMapper | ✅ merged | #195 |
+| 4 | AiInferenceSection values computed in the mapper | ✅ merged | #195 |
+| 5 | Meal reminders layering and runner split, plus the alarm receiver error handling | ✅ merged | #192 |
+| 6 | Backup conflict use case renamed | ✅ merged | #190 |
+| 7 | Error-mapping dedupe | ⬜ next | — |
+| 8 | Shake key checked in CI | ✅ merged | #190 |
+| 9 | Health Connect states, meal types, stale-entry cleanup | ✅ merged | #193 |
+| 10 | Shake privacy disclosure | ✅ merged | #190 |
+| 11 | Shake behind the `shake_enabled` flag | ✅ merged | #190 |
+| 12 | `testers.js` on the shared `lib/` helpers | ✅ merged, deployed and checked live | #191 |
+| 13 | KMP convention plugin | ⬜ the owner's (KMP practice) | — |
+
+**Found along the way**
+- **Share sheet and photo-recognition dialogs skipped the "Discard?" confirmation:** ✅ merged in #194.
+- **Health Connect showed every meal as a snack:** the meal type is now set from the reminder meal windows, in #193.
+- **A whitespace-only edit loses a meal's macros:** 🔄 in progress, in its own PR stacked on #195.
+
+**Still the owner's to do**
+- Remote Config: delete `meal_reminders_visible`.
+- Play Data safety: add user-initiated diagnostics (Shake reports).
+- Cloud Logging: alerts matching `Tester signup failed` need the new text, `testers signup failed`.
+- Release 1.14.0 (#186).
 
 ---
 
-## 1. ⬜ Voice input: state through the ViewModel
+## 1. ✅ Voice input: state through the ViewModel (#188)
+
+**Done:** the views pass the raw recognised text to `ModalViewModel`. A pure helper joins it
+to what's already typed, with unit tests. A recogniser launch failure is logged and shown
+as a toast instead of being swallowed.
 
 **Problem**
 - `appendSpokenText` (`features/modal/.../views/VoiceInput.kt:80`) trims, capitalises and
@@ -36,7 +69,10 @@ no fields are added. This item is the refactor only.
 **Done when** no view calls `appendSpokenText`, the join logic has unit tests, and a
 launch failure is logged and shown, not swallowed.
 
-## 2. ⬜ ModalActivity quick-log moves into the ViewModel
+## 2. ✅ ModalActivity quick-log moves into the ViewModel (#189)
+
+**Done:** quick-pick logging has one path. The widget tap without confirmation still
+finishes before the first draw, and errors are handled in one place.
 
 **Problem**
 - `ModalActivity.kt:222-240` reads `settingsRepository` and runs
@@ -52,7 +88,7 @@ launch failure is logged and shown, not swallowed.
   standard Hilt pattern.
 - Then there is one logging path, with one place that handles errors.
 
-## 3. ✅ ModalViewModel and ModalUiMapper: move orchestration and business rules out
+## 3. ✅ ModalViewModel and ModalUiMapper: move orchestration and business rules out (#195)
 
 **Done:** no behaviour change.
 - Characterisation tests went in first, as their own commit, and pass unchanged after the move. They're in
@@ -95,7 +131,7 @@ analysis. A test pins this down. Worth fixing separately.
 **Risk** This is the most bug-fixed area in the app. Before moving any code, add tests
 that capture the current behaviour.
 
-## 4. ✅ AiInferenceSection: values computed in the view
+## 4. ✅ AiInferenceSection: values computed in the view (#195)
 
 **Done:** `ModalUiMapper.mapNutrientBreakdowns` fills three plain fields on
 `NutrientBreakdownUiModel`: `hasAiInference`, `aiInferencePreview` and `notesHiddenByPreview`.
@@ -111,7 +147,7 @@ still comes from measuring the text in the view, because only the layout knows t
   fields.
 - Add mapper tests for the preview and hiding rules.
 
-## 5. ✅ Meal reminders: layering and runner cleanup
+## 5. ✅ Meal reminders: layering and runner cleanup (#192)
 
 **Done:** the settings sit behind `MealReminderRepository` (`repositories/settings`), on the
 same `meal_reminders` prefs file and keys. `MealReminderRunner` is now `RunMealReminderPassUseCase`
@@ -148,7 +184,7 @@ is still a `String`, to keep this change small.
 6. In `runSafely`, rethrow `CancellationException` and report other failures through
    `AnalyticsLogger.logError`.
 
-## 6. ✅ CheckCloudBackupConflictUseCase: rename or split
+## 6. ✅ CheckCloudBackupConflictUseCase: rename or split (#190)
 
 **Outcome:** option A agreed and done. It's now `ReconcileCloudBackupConflictUseCase`, and
 its test is renamed to match. No behaviour changed. The notes below are kept for the
@@ -194,7 +230,7 @@ The `errorUiMapper.map` → `analyticsLogger.logError` → user message sequence
 in four places. Extract one helper or use case, e.g. `ReportUserFacingErrorUseCase`, that
 returns the message to show.
 
-## 8. ✅ Shake key: replace `verifyShakeApiKey`
+## 8. ✅ Shake key: replace `verifyShakeApiKey` (#190)
 
 **Outcome:** option 1 done.
 - Both workflows now open with a "Require Shake API key" step that fails when the secret is
@@ -241,7 +277,7 @@ The original notes follow.
 **Decision needed:** 1 is my recommendation. It also means `CLAUDE.md` and the
 `ShakeFeedback` KDoc go back to "blank means not started".
 
-## 9. ✅ Health Connect: better state when unavailable
+## 9. ✅ Health Connect: better state when unavailable (#193)
 
 **Done:**
 - `SettingsUiState.healthConnectStatus` holds `HealthConnectStatus` (available /
@@ -253,9 +289,13 @@ The original notes follow.
   `HasHealthConnectPermissionUseCase` (throws unless available),
   `SyncRecordsToHealthConnectUseCase` and `DeleteRecordFromHealthConnectUseCase`, behind a
   `HealthConnectClientProvider` seam so they're unit tested.
+- **Added after device testing:**
+  - Synced meals get a Health Connect meal type from the reminder meal windows (breakfast,
+    lunch, dinner, otherwise snack), where before every meal showed as a snack.
+  - Each sync also removes entries for meals that no longer exist.
 
-The crash is already fixed on the branch: the toggle now checks availability first and
-shows a snackbar. Follow-up work:
+The original notes follow. The crash was fixed in #190: the toggle checks availability
+first and shows a snackbar. The follow-up work was:
 - Expose the SDK status in `SettingsUiState`.
   - When an install or update is needed, the row offers "Install/Update Health Connect",
     which opens the Play listing for `com.google.android.apps.healthdata`.
@@ -265,7 +305,7 @@ shows a snackbar. Follow-up work:
   `hasPermission`, `execute` and `deleteRecord`. Split it into single-`execute()` use
   cases.
 
-## 10. ✅ Privacy: Shake disclosure for testers
+## 10. ✅ Privacy: Shake disclosure for testers (#190)
 
 **Done:** `PRIVACY.md` has a new "In-app feedback for testers" section. It covers:
 - who gets the button
@@ -288,7 +328,7 @@ diagnostics.
 - Shake is now gated (item 11), so the paragraph can say it's only switched on for testers
   and for users who ask for help.
 
-## 11. ✅ Gate Shake behind a Remote Config flag (allowlist)
+## 11. ✅ Gate Shake behind a Remote Config flag (allowlist) (#190)
 
 **Decided:** allowlist only. Android can't tell which Play track installed the app, so
 "tester" means "on the list". Separate tester builds were considered and rejected, because
@@ -320,7 +360,13 @@ onboarding.
 - Whether real-time updates connect for this project. If they don't, it shows as a
   `FeatureFlags` warning in Logcat.
 
-## 12. ⬜ Backend: `functions/testers.js` duplicates `lib/`
+## 12. ✅ Backend: `functions/testers.js` duplicates `lib/` (#191)
+
+**Done:** `joinTest` runs on the shared `lib/` signup code. `lib/` gained options for the
+platform split and per-form emails, and `waitlist.js` keeps its own email text.
+- **Checks:** an old-vs-new comparison matched exactly, and after deployment a live signup
+  plus repeats wrote one doc and sent one email each.
+- **One deliberate change:** the failure log line now reads `testers signup failed`.
 
 `testers.js:29-30,42-89,91-156` re-implements:
 - the secrets
@@ -333,7 +379,7 @@ onboarding.
 Switch `testers.js` to the `lib/` versions and deploy with
 `firebase deploy --only functions`.
 
-## 13. ⬜ KMP build logic: convention plugin
+## 13. ⬜ KMP build logic: convention plugin (owner, KMP practice)
 
 The same KMP target block is repeated across 5 `build.gradle.kts` files. Move it into a
 `buildLogic` convention plugin, e.g. `dailymacros.kmp.library`. Fits the KMP migration
@@ -349,7 +395,7 @@ plan.
 
 ---
 
-## Already done on `claude/release-review-fixes-4044a35`
+## Easy fixes (merged in #190)
 
 - Stopped tracking the `.claude/.idea/` IDE files and added `.claude/.idea/` to
   `.gitignore`.
