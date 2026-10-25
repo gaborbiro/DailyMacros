@@ -224,7 +224,16 @@ shows a snackbar. Follow-up work:
   `hasPermission`, `execute` and `deleteRecord`. Split it into single-`execute()` use
   cases.
 
-## 10. 🟨 Privacy: Shake disclosure for testers
+## 10. ✅ Privacy: Shake disclosure for testers
+
+**Done:** `PRIVACY.md` has a new "In-app feedback for testers" section. It covers:
+- who gets the button
+- what Shake receives
+- that reports are sent only on submit
+- who sees them
+
+Update the Play Data safety form to match if it doesn't already list user-initiated
+diagnostics.
 
 - `PRIVACY.md:86-87` says "No meal photos or diary content are sent to analytics or crash
   reporting." That is literally true, since Shake is a feedback tool. But Shake does

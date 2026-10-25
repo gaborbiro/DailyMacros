@@ -86,6 +86,24 @@ This telemetry is associated only with a **randomly generated identifier**
 created on your device, not with your name, email, or account. No meal photos or
 diary content are sent to analytics or crash reporting.
 
+## In-app feedback for testers
+
+Testers, and users who contact the developer about a problem, may have an in-app
+feedback button switched on for them. It is off for everyone else. The button is
+powered by Shake (shakebugs.com). When you send a report through it, Shake receives:
+
+- What you write in the report.
+- A screenshot of the screen you were on. This can include meal photos and diary
+  entries, since they are often what the report is about.
+- Recent app activity: screens visited, app logs, and technical device details
+  (model, OS version, memory, battery, network type).
+- Your randomly generated Client ID (see below), so the report can be matched to
+  your issue.
+
+The screenshot, activity and logs are sent only when you submit a report. Reports are visible only to the
+developer, and are used only to diagnose and fix the problem you reported. Shake
+processes them under its own privacy policy.
+
 ## Identifiers
 
 On first run the app generates a random identifier (a set of three words, shown
