@@ -67,6 +67,7 @@
     <string name="modal_content_voice_input_prompt">What did you eat?</string>
     <string name="modal_content_voice_input_description_cd">Dictate description</string>
     <string name="modal_content_voice_input_description_prompt">Any details? Ingredients, portion size…</string>
+    <string name="modal_content_voice_input_unavailable_toast">Voice input isn’t available right now</string>
     <!-- ViewImageDialog -->
     <string name="modal_content_view_image_close_cd">Close</string>
     <!-- ImageStrip -->

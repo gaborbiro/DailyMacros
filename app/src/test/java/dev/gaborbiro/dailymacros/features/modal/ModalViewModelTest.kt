@@ -640,6 +640,39 @@ class ModalViewModelTest {
     }
 
     @Test
+    fun `dictated title is appended to what's already typed`() = runTest(testDispatcher) {
+        val vm = viewModel()
+        vm.onCreateRecordWithTextDeeplinkReceived()
+        vm.onTitleChanged(TextFieldValue("Porridge "))
+        vm.onTitleSpoken("with blueberries")
+        val root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.Edit
+        assertEquals("Porridge with blueberries", root.title.text)
+    }
+
+    @Test
+    fun `dictated description starts an empty field with a capital`() = runTest(testDispatcher) {
+        val vm = viewModel()
+        vm.onCreateRecordWithTextDeeplinkReceived()
+        vm.onDescriptionSpoken(" two eggs on toast ")
+        val root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.Edit
+        assertEquals("Two eggs on toast", root.description.text)
+    }
+
+    @Test
+    fun `dictated correction is capped like a typed one`() = runTest(testDispatcher) {
+        val repo = ReanalysisRepo(
+            ModalRecordFixtures.record(5L, ModalRecordFixtures.template(dbId = 7L, description = "x".repeat(250))),
+        )
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        vm.onCorrectionSpoken("abcdefgh")
+        val root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertEquals("Abcde", root.correction.text)
+        assertTrue(root.canReanalyze)
+    }
+
+    @Test
     fun `quick pick details don't take corrections`() = runTest(testDispatcher) {
         val repo = ReanalysisRepo(analysedSoup())
         val vm = viewModel(repo)

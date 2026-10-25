@@ -80,6 +80,10 @@ internal fun RecordDetailsDialog(
     onEditTimestampTapped: () -> Unit,
     onCorrectionChanged: (TextFieldValue) -> Unit,
     onReanalyzeTapped: () -> Unit,
+    onTitleSpoken: (String) -> Unit,
+    onDescriptionSpoken: (String) -> Unit,
+    onCorrectionSpoken: (String) -> Unit,
+    onVoiceInputFailed: (Throwable) -> Unit,
 ) {
     val ui = deconstructDialogHandle(dialogHandle)
     val viewDialog = dialogHandle as? DialogHandle.RecordDetailsDialog.View
@@ -133,6 +137,10 @@ internal fun RecordDetailsDialog(
                 onEditTimestampTapped = onEditTimestampTapped,
                 onCorrectionChanged = onCorrectionChanged,
                 onReanalyzeTapped = onReanalyzeTapped,
+                onTitleSpoken = onTitleSpoken,
+                onDescriptionSpoken = onDescriptionSpoken,
+                onCorrectionSpoken = onCorrectionSpoken,
+                onVoiceInputFailed = onVoiceInputFailed,
             )
         },
         errorMessages = errorMessages,
@@ -347,6 +355,10 @@ internal fun ColumnScope.RecordDetailsDialogContent(
     onEditTimestampTapped: () -> Unit = { },
     onCorrectionChanged: (TextFieldValue) -> Unit = { },
     onReanalyzeTapped: () -> Unit = { },
+    onTitleSpoken: (String) -> Unit = { },
+    onDescriptionSpoken: (String) -> Unit = { },
+    onCorrectionSpoken: (String) -> Unit = { },
+    onVoiceInputFailed: (Throwable) -> Unit = { },
 ) {
     when (dialogHandle) {
         is DialogHandle.RecordDetailsDialog.Edit ->
@@ -369,6 +381,9 @@ internal fun ColumnScope.RecordDetailsDialogContent(
                 onAddImageViaPickerTapped = onAddImageViaPickerTapped,
                 onImagesInfoButtonTapped = onImagesInfoButtonTapped,
                 onRunAIButtonTapped = onRunAIButtonTapped,
+                onTitleSpoken = onTitleSpoken,
+                onDescriptionSpoken = onDescriptionSpoken,
+                onVoiceInputFailed = onVoiceInputFailed,
             )
 
         is DialogHandle.RecordDetailsDialog.View ->
@@ -397,6 +412,10 @@ internal fun ColumnScope.RecordDetailsDialogContent(
                 onEditTimestampTapped = onEditTimestampTapped,
                 onCorrectionChanged = onCorrectionChanged,
                 onReanalyzeTapped = onReanalyzeTapped,
+                onTitleSpoken = onTitleSpoken,
+                onDescriptionSpoken = onDescriptionSpoken,
+                onCorrectionSpoken = onCorrectionSpoken,
+                onVoiceInputFailed = onVoiceInputFailed,
             )
     }
 }
