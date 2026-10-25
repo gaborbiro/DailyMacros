@@ -9,6 +9,16 @@
  * junk rows in a table you review by hand): a honeypot field, strict email
  * validation, a tiny body shape, and maxInstances to bound cost. No App Check
  * / reCAPTCHA.
+ *
+ * Options:
+ *   - `collection`: where docs land, as `{collection}/{sha256(keyPrefix + dedupeKey)}`.
+ *   - `variant(body)`: splits one collection into sub-lists (testers.js:
+ *     Android vs iPhone). Runs after email validation and returns either
+ *     `{ invalid: { error, message } }` (sent as a 400) or `{ keyPrefix,
+ *     fields }`: `keyPrefix` namespaces the dedupe hash so one email can be on
+ *     several lists, `fields` are stored on the doc. Defaults to one list.
+ *   - `notification({ email, fields })`: the email's wording, passed to
+ *     notifySignup (see lib/notifySignup.js).
  */
 const { onRequest } = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
@@ -17,18 +27,24 @@ const { FieldValue } = require("firebase-admin/firestore");
 const crypto = require("crypto");
 const { normalizeEmail, dedupeKey } = require("./signupEmail");
 const { notifySignup } = require("./notifySignup");
+const { NOTIFY_EMAIL, NOTIFY_APP_PASSWORD } = require("./secrets");
 
 const db = admin.firestore();
 
-function createSignupHandler({ collection, notifyLabel, notifyNote, notifySecrets }) {
-  const [NOTIFY_EMAIL, NOTIFY_APP_PASSWORD] = notifySecrets;
+function singleList() {
+  return {
+    keyPrefix: "",
+    fields: { status: "pending" }, // flipped to e.g. "added"/"notified" once acted on.
+  };
+}
 
+function createSignupHandler({ collection, variant = singleList, notification }) {
   return onRequest(
     {
       region: "us-central1", // must match the Hosting rewrite in firebase.json.
       maxInstances: 3,
       memory: "256MiB",
-      secrets: notifySecrets,
+      secrets: [NOTIFY_EMAIL, NOTIFY_APP_PASSWORD],
       timeoutSeconds: 30,
       cors: false, // same-origin via Hosting; no cross-origin caller needed.
     },
@@ -54,22 +70,21 @@ function createSignupHandler({ collection, notifyLabel, notifyNote, notifySecret
         return;
       }
 
-      const id = crypto.createHash("sha256").update(dedupeKey(email)).digest("hex");
+      const list = variant(body);
+      if (list.invalid) {
+        res.status(400).json(list.invalid);
+        return;
+      }
+
+      const id = crypto.createHash("sha256").update(list.keyPrefix + dedupeKey(email)).digest("hex");
       try {
         await db.doc(`${collection}/${id}`).create({
           email,
-          status: "pending", // flipped to e.g. "added"/"notified" once acted on.
+          ...list.fields,
           source: "landing-page",
           createdAt: FieldValue.serverTimestamp(),
         });
-        await notifySignup({
-          collection,
-          label: notifyLabel,
-          email,
-          note: notifyNote,
-          to: NOTIFY_EMAIL.value(),
-          pass: NOTIFY_APP_PASSWORD.value(),
-        });
+        await notifySignup(notification({ email, fields: list.fields }));
         res.status(200).json({ ok: true });
       } catch (e) {
         // ALREADY_EXISTS (gRPC code 6): same person submitting twice. Treat as
