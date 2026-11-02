@@ -163,6 +163,13 @@ ORDER BY
     @Insert
     suspend fun insertImages(images: List<ImageEntity>)
 
+    /** Observers must never see an empty/partial photo strip while analysis refreshes image metadata. */
+    @Transaction
+    suspend fun replaceImages(templateId: Long, images: List<ImageEntity>) {
+        deleteAllImagesForTemplate(templateId)
+        insertImages(images)
+    }
+
     @Query("SELECT * FROM template_images WHERE templateId = :templateId ORDER BY sortOrder ASC")
     suspend fun getImagesForTemplate(templateId: Long): List<ImageEntity>
 

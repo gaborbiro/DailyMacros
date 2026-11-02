@@ -313,22 +313,29 @@ fun ColumnScope.RecordDetailsView(
                 )
             }
             if (view.showLoadingIndicator) {
-                Row(
+                Column(
                     modifier = Modifier
                         .padding(horizontal = PaddingDefault)
                         .padding(top = 16.dp)
                         .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.padding(end = PaddingHalf).size(20.dp),
-                        strokeWidth = 2.dp,
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.padding(end = PaddingHalf).size(20.dp),
+                            strokeWidth = 2.dp,
+                        )
+                        Text(
+                            text = stringResource(R.string.record_details_analyzing),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontStyle = FontStyle.Italic,
+                        )
+                    }
                     Text(
-                        text = stringResource(R.string.record_details_analyzing),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontStyle = FontStyle.Italic,
+                        modifier = Modifier.padding(top = PaddingHalf),
+                        text = stringResource(R.string.record_details_analysis_can_close),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }

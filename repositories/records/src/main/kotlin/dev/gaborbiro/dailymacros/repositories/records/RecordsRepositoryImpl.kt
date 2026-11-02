@@ -124,16 +124,16 @@ class RecordsRepositoryImpl @Inject constructor(
     override suspend fun saveTemplate(templateToSave: TemplateToSave): Long {
         val template = mapper.map(templateToSave)
         val templateId = templatesDAO.insertOrUpdate(template)
-        templatesDAO.deleteAllImagesForTemplate(templateId)
-        templateToSave.imageFilenames.forEachIndexed { index, image ->
-            templatesDAO.upsertImage(
+        templatesDAO.replaceImages(
+            templateId,
+            templateToSave.imageFilenames.mapIndexed { index, image ->
                 ImageEntity(
                     templateId = templateId,
                     image = image,
                     sortOrder = index,
                 )
-            )
-        }
+            },
+        )
         return templateId
     }
 
@@ -187,17 +187,17 @@ class RecordsRepositoryImpl @Inject constructor(
         }
 
         templateImages?.let { rows ->
-            templatesDAO.deleteAllImagesForTemplate(templateId)
-            rows.forEachIndexed { index, row ->
-                templatesDAO.upsertImage(
+            templatesDAO.replaceImages(
+                templateId,
+                rows.mapIndexed { index, row ->
                     ImageEntity(
                         templateId = templateId,
                         image = row.filename,
                         sortOrder = index,
                         isRepresentativeMealPhoto = row.isRepresentativeOfMeal,
                     )
-                )
-            }
+                },
+            )
         }
 
         if (nutrients != null) {
