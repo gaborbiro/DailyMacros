@@ -1,5 +1,6 @@
 <resources>
     <string name="record_details_analyzing">Analyzing…</string>
+    <string name="record_details_analysis_can_close">You can close this dialog while analysis continues.</string>
     <string name="record_details_ai_disclaimer">* Nutrition estimates are based on AI analysis and may not be exact.</string>
     <string name="meal_details_action_cancel">Cancel</string>
     <string name="meal_details_action_close">Close</string>
@@ -15,10 +16,6 @@
     <string name="meal_details_menu_cd">More options</string>
     <string name="meal_details_menu_edit">Edit meal</string>
     <string name="meal_details_correction_link">Something off?</string>
-    <string name="meal_details_correction_placeholder">Tell the AI what’s different</string>
-    <string name="meal_details_correction_reanalyze">Re-analyze</string>
-    <string name="meal_details_correction_voice_cd">Dictate a correction</string>
-    <string name="meal_details_correction_voice_prompt">What’s different?</string>
     <string name="meal_details_quick_pick_add_cd">Add to Quick Picks</string>
     <string name="meal_details_quick_pick_remove_cd">Remove from Quick Picks</string>
     <string name="meal_details_expand">Details</string>

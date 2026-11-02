@@ -56,7 +56,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
@@ -333,9 +332,23 @@ class ModalViewModel @Inject constructor(
         }
     }
 
-    fun onRecordDetailsEditStarted() {
-        updateRoot<DialogHandle.RecordDetailsDialog.View> {
-            it.copy(isEditing = true, editStartedAt = ZonedDateTime.now(ZoneId.systemDefault()))
+    fun onRecordDetailsEditStarted() = startRecordDetailsEdit(fromCorrection = false)
+
+    fun onCorrectionEditStarted() = startRecordDetailsEdit(fromCorrection = true)
+
+    private fun startRecordDetailsEdit(fromCorrection: Boolean) {
+        updateRoot<DialogHandle.RecordDetailsDialog.View> { view ->
+            if (!view.allowEdit || view.isEditing || view.isSavingEdits ||
+                (fromCorrection && (!view.allowCorrection || view.showLoadingIndicator))) return@updateRoot view
+            val description = if (fromCorrection) {
+                MealEditRules.descriptionForCorrection(view.description.text, MAX_DESCRIPTION_LENGTH)
+            } else view.description.text
+            view.copy(
+                isEditing = true,
+                editingFromCorrection = fromCorrection,
+                description = TextFieldValue(description, selection = TextRange(description.length)),
+                editStartedAt = ZonedDateTime.now(ZoneId.systemDefault()),
+            )
         }
     }
 
@@ -349,6 +362,7 @@ class ModalViewModel @Inject constructor(
                 val desc = p.description
                 v.copy(
                     isEditing = false,
+                    editingFromCorrection = false,
                     title = TextFieldValue(title, selection = TextRange(title.length)),
                     description = TextFieldValue(desc, selection = TextRange(desc.length)),
                     imageFilenames = p.imageFilenames,
@@ -396,6 +410,7 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onTitleChanged(title: TextFieldValue) {
+        if ((_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View)?.isSavingEdits == true) return
         val title = title.truncatedTo(256)
         val root = _uiState.value.rootDialog
         if (root is DialogHandle.RecordDetailsDialog.Edit && title.text.isNotBlank() && title.text != root.title.text) {
@@ -423,6 +438,7 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onDescriptionChanged(description: TextFieldValue) {
+        if ((_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View)?.isSavingEdits == true) return
         val description = description.truncatedTo(MAX_DESCRIPTION_LENGTH)
         updateRoot<DialogHandle.RecordDetailsDialog> {
             when (it) {
@@ -434,18 +450,6 @@ class ModalViewModel @Inject constructor(
             }
         }
         recomputeHasUnsavedEdits()
-    }
-
-    fun onCorrectionChanged(correction: TextFieldValue) {
-        updateRoot<DialogHandle.RecordDetailsDialog.View> {
-            if (it.isEditing || !it.allowCorrection) {
-                it
-            } else {
-                val capacity = MealEditRules.correctionCapacity(it.pristineSnapshot.description, MAX_DESCRIPTION_LENGTH)
-                val truncated = correction.truncatedTo(capacity)
-                it.copy(correction = truncated, canReanalyze = truncated.text.isNotBlank())
-            }
-        }
     }
 
     // Dictation appends to what's already typed, then takes the same path as typing, so
@@ -461,47 +465,12 @@ class ModalViewModel @Inject constructor(
         onDescriptionChanged(appendSpokenText(root.description, spoken))
     }
 
-    fun onCorrectionSpoken(spoken: String) {
-        val root = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return
-        onCorrectionChanged(appendSpokenText(root.correction, spoken))
-    }
-
     fun onVoiceInputFailed(error: Throwable) {
         val message = reportUserFacingErrorUseCase.execute(
             error,
             application.getString(R.string.modal_content_voice_input_unavailable_toast),
         )
         viewModelScope.launch { _uiUpdates.emit(ModalUiUpdates.ShowToast(message)) }
-    }
-
-    /**
-     * Folds the correction into the meal's description and sends it back to the AI, keeping the dialog
-     * open: the record is observed, so the new results replace the old ones in place.
-     */
-    fun onReanalyzeTapped() {
-        val root = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View ?: return
-        if (root.isEditing || !root.allowCorrection || !root.canReanalyze) return
-        val pristine = root.pristineSnapshot
-        val description = MealEditRules.appendCorrection(pristine.description, root.correction.text)
-        reanalysisProgress = ReanalysisProgress.REQUESTED
-        updateRoot<DialogHandle.RecordDetailsDialog.View> {
-            it.copy(correction = TextFieldValue(), canReanalyze = false, showLoadingIndicator = true)
-        }
-        runSafely("Couldn't re-analyze your meal") {
-            try {
-                persistRecordEdits(
-                    dialogHandle = root,
-                    title = pristine.title.trim(),
-                    description = description,
-                )
-            } catch (t: Throwable) {
-                reanalysisProgress = ReanalysisProgress.NONE
-                updateRoot<DialogHandle.RecordDetailsDialog.View> {
-                    it.copy(correction = root.correction, canReanalyze = true, showLoadingIndicator = false)
-                }
-                throw t
-            }
-        }
     }
 
     fun onImageTapped(imageFilename: String) {
@@ -533,6 +502,7 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onImageDeleteTapped(image: String) {
+        if ((_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View)?.isSavingEdits == true) return
         updateRoot<DialogHandle.RecordDetailsDialog> {
             when (it) {
                 is DialogHandle.RecordDetailsDialog.View ->
@@ -545,6 +515,7 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onImageMoveLeftTapped(image: String) {
+        if ((_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View)?.isSavingEdits == true) return
         updateRoot<DialogHandle.RecordDetailsDialog> {
             val index = it.imageFilenames.indexOf(image)
             if (index <= 0) return@updateRoot it
@@ -562,6 +533,7 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onImageMoveRightTapped(image: String) {
+        if ((_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View)?.isSavingEdits == true) return
         updateRoot<DialogHandle.RecordDetailsDialog> {
             val index = it.imageFilenames.indexOf(image)
             if (index < 0 || index >= it.imageFilenames.lastIndex) return@updateRoot it
@@ -579,11 +551,13 @@ class ModalViewModel @Inject constructor(
     }
 
     fun onAddImageViaCameraTapped() {
+        if ((_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View)?.isSavingEdits == true) return
         recogniseFoodJob?.cancel()
         pushOverlay(DialogHandle.ImageInput(type = ImageInputType.Camera))
     }
 
     fun onAddImageViaPickerTapped() {
+        if ((_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View)?.isSavingEdits == true) return
         recogniseFoodJob?.cancel()
         pushOverlay(DialogHandle.ImageInput(type = ImageInputType.BrowseImages))
     }
@@ -600,9 +574,14 @@ class ModalViewModel @Inject constructor(
 
     fun onSaveDetailsTapped() {
         val details = (_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View) ?: return
-        if (!details.isEditing) return
+        if (!details.isEditing || details.isSavingEdits) return
+        updateRoot<DialogHandle.RecordDetailsDialog.View> { it.copy(isSavingEdits = true) }
         runSafely("Couldn't save your changes") {
-            handleEditRecordDialogSubmitted(details)
+            try {
+                handleEditRecordDialogSubmitted(details)
+            } finally {
+                updateRoot<DialogHandle.RecordDetailsDialog.View> { it.copy(isSavingEdits = false) }
+            }
         }
     }
 
@@ -754,18 +733,22 @@ class ModalViewModel @Inject constructor(
         recordDetailsJob?.cancel()
         reanalysisProgress = ReanalysisProgress.NONE
         recordDetailsJob = runSafely("Couldn't open the entry") {
-            recordsRepository.get(recordId)?.let { record ->
-                setRoot(buildEnrichedView(record, edit, templateDetailsMode = false))
-            }
             recordsRepository.observe(recordId)
-                .drop(1)
                 .collect { record ->
                     // null: recordId doesn't/no longer exists (e.g. a stale
                     // widget row after a restore swapped in a different
                     // database) - nothing to update the dialog with.
                     record?.let {
                         trackReanalysisProgress(it.template.isPending)
-                        setRoot(buildEnrichedView(it, edit, templateDetailsMode = false))
+                        val current = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View
+                        // Saving refreshes from the persisted record itself. Do not replace its draft mid-save.
+                        if (current?.isSavingEdits == true) return@collect
+                        val refreshed = buildEnrichedView(it, edit, templateDetailsMode = false)
+                        currentCoroutineContext().ensureActive()
+                        val latest = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View
+                        if (latest?.isSavingEdits != true && (latest == null || latest.isEditing == refreshed.isEditing)) {
+                            setRoot(refreshed)
+                        }
                     }
                 }
         }
@@ -783,6 +766,7 @@ class ModalViewModel @Inject constructor(
         record: Record,
         edit: Boolean,
         templateDetailsMode: Boolean,
+        preserveEdits: Boolean = true,
     ): DialogHandle.RecordDetailsDialog.View {
         val existing = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View
         val base = buildRecordDetailsViewDialogUseCase.execute(record, edit, templateDetailsMode)
@@ -793,13 +777,17 @@ class ModalViewModel @Inject constructor(
         val starred = resolveQuickPickStarred(record.template)
         val linkedCount = recordsRepository.countRecordsForTemplate(record.template.dbId)
         val sameRecord = existing != null && existing.recordId == record.recordId
-        val enriched = if (sameRecord && existing.isEditing) {
+        val enriched = if (sameRecord && existing.isEditing && preserveEdits) {
             base.copy(
                 variantPickerOptions = options,
                 quickPickStarred = starred,
                 linkedRecordCountForTemplate = linkedCount,
                 diaryDayStartHour = diaryDayStartHour,
                 isEditing = true,
+                editingFromCorrection = existing.editingFromCorrection,
+                isSavingEdits = existing.isSavingEdits,
+                editStartedAt = existing.editStartedAt,
+                hasUnsavedEdits = existing.hasUnsavedEdits,
                 title = existing.title,
                 description = existing.description,
                 imageFilenames = existing.imageFilenames,
@@ -817,9 +805,6 @@ class ModalViewModel @Inject constructor(
             )
         }
         return enriched.copy(
-            // A half-typed correction survives unrelated updates of the same meal (e.g. a star toggle).
-            correction = if (sameRecord) existing.correction else TextFieldValue(),
-            canReanalyze = sameRecord && existing.canReanalyze,
             showLoadingIndicator = enriched.showLoadingIndicator || reanalysisProgress != ReanalysisProgress.NONE,
         )
     }
@@ -885,7 +870,7 @@ class ModalViewModel @Inject constructor(
     private suspend fun handleEditRecordDialogSubmitted(
         dialogHandle: DialogHandle.RecordDetailsDialog.View,
     ) {
-        recordDetailsJob?.cancel()
+        if (!dialogHandle.editingFromCorrection) recordDetailsJob?.cancel()
         if (!dialogHandle.hasUnsavedEdits) {
             closeAll()
             return
@@ -900,8 +885,25 @@ class ModalViewModel @Inject constructor(
         )
         when (result) {
             is EditValidationResult.Valid -> {
-                persistRecordEdits(dialogHandle, title, description)
-                closeAll()
+                if (dialogHandle.editingFromCorrection) {
+                    if (dialogHandle.editsRequireAnalysis) reanalysisProgress = ReanalysisProgress.REQUESTED
+                    try {
+                        persistRecordEdits(dialogHandle, title, description)
+                    } catch (t: Throwable) {
+                        reanalysisProgress = ReanalysisProgress.NONE
+                        throw t
+                    }
+                    // Finish persistence and refresh before enabling Done, so closing cannot interrupt saving.
+                    val record = recordsRepository.get(dialogHandle.recordId)
+                        ?: error("The saved meal could not be loaded")
+                    val savedView = buildEnrichedView(
+                        record, edit = true, templateDetailsMode = false, preserveEdits = false,
+                    )
+                    setRoot(savedView)
+                } else {
+                    persistRecordEdits(dialogHandle, title, description)
+                    closeAll()
+                }
             }
 
             is EditValidationResult.Error -> {

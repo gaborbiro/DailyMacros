@@ -141,6 +141,8 @@ internal fun RecordDetailsViewEditButtons(
     onUpdate: () -> Unit,
     onSaveAndAdd: () -> Unit,
     onCancel: () -> Unit,
+    showSaveAndAdd: Boolean = true,
+    saving: Boolean = false,
 ) {
     Column(
         modifier = Modifier
@@ -152,7 +154,7 @@ internal fun RecordDetailsViewEditButtons(
         Button(
             modifier = Modifier.fillMaxWidth(),
             onClick = onUpdate,
-            enabled = primaryEnabled,
+            enabled = primaryEnabled && !saving,
         ) {
             if (primaryStartsAnalysis) {
                 AiActionIcon()
@@ -162,19 +164,22 @@ internal fun RecordDetailsViewEditButtons(
                 style = MaterialTheme.typography.labelLarge,
             )
         }
-        OutlinedButton(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = onSaveAndAdd,
-            enabled = primaryEnabled,
-        ) {
-            Text(
-                text = stringResource(R.string.meal_details_action_add_new_template),
-                style = MaterialTheme.typography.labelLarge,
-            )
+        if (showSaveAndAdd) {
+            OutlinedButton(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = onSaveAndAdd,
+                enabled = primaryEnabled && !saving,
+            ) {
+                Text(
+                    text = stringResource(R.string.meal_details_action_add_new_template),
+                    style = MaterialTheme.typography.labelLarge,
+                )
+            }
         }
         TextButton(
             modifier = Modifier.fillMaxWidth(),
             onClick = onCancel,
+            enabled = !saving,
         ) {
             Text(
                 text = stringResource(R.string.meal_details_action_cancel),

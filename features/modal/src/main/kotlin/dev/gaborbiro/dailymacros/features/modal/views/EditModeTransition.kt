@@ -17,9 +17,13 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +37,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.lerp
@@ -75,6 +83,8 @@ internal fun InPlaceTextField(
     modifier: Modifier = Modifier,
     isError: Boolean = false,
     editingMinHeight: Dp = 0.dp,
+    enabled: Boolean = true,
+    requestFocusOnEdit: Boolean = false,
 ) {
     val progress by animateFloatAsState(
         targetValue = if (editing) 1f else 0f,
@@ -92,6 +102,26 @@ internal fun InPlaceTextField(
     }
     val indicatorThickness = if (focused) 2.dp else 1.dp
     val focusManager = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
+    val focusRequester = remember { FocusRequester() }
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val imeBottomPx = WindowInsets.ime.getBottom(LocalDensity.current)
+
+    LaunchedEffect(editing, requestFocusOnEdit) {
+        if (editing && requestFocusOnEdit) {
+            focusRequester.requestFocus()
+            keyboard?.show()
+        }
+    }
+    LaunchedEffect(focused, imeBottomPx) {
+        if (focused) bringIntoViewRequester.bringIntoView()
+    }
+    LaunchedEffect(enabled) {
+        if (!enabled) {
+            focusManager.clearFocus()
+            keyboard?.hide()
+        }
+    }
 
     LaunchedEffect(editing) {
         if (!editing) focusManager.clearFocus()
@@ -116,6 +146,8 @@ internal fun InPlaceTextField(
         BasicTextField(
             modifier = Modifier
                 .weight(1f)
+                .focusRequester(focusRequester)
+                .bringIntoViewRequester(bringIntoViewRequester)
                 // A tall description field starts typing at the top, like a regular text field.
                 .align(Alignment.Top)
                 .padding(
@@ -128,7 +160,7 @@ internal fun InPlaceTextField(
                 },
             value = value,
             onValueChange = onValueChange,
-            enabled = editing,
+            enabled = editing && enabled,
             textStyle = textStyle.copy(color = lerp(browseTextColor, colors.focusedTextColor, progress)),
             cursorBrush = SolidColor(if (isError) colors.errorCursorColor else colors.cursorColor),
             keyboardOptions = keyboardOptions,

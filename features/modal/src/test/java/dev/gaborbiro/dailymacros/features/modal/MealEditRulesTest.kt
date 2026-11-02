@@ -9,20 +9,18 @@ import org.junit.Test
 class MealEditRulesTest {
 
     @Test
-    fun `appendCorrection puts the correction on its own line after the description`() {
-        assertEquals("Leftover rice\nIt was brown rice", MealEditRules.appendCorrection("Leftover rice ", " It was brown rice"))
+    fun `description shortcut puts the cursor on one new line without rewriting the description`() {
+        assertEquals("Leftover rice \n", MealEditRules.descriptionForCorrection("Leftover rice ", 256))
+        assertEquals("Leftover rice\n", MealEditRules.descriptionForCorrection("Leftover rice\n", 256))
+        assertEquals("", MealEditRules.descriptionForCorrection("", 256))
     }
 
     @Test
-    fun `appendCorrection without a description is just the correction`() {
-        assertEquals("About 200 g", MealEditRules.appendCorrection("  ", "About 200 g"))
-    }
-
-    @Test
-    fun `correctionCapacity leaves room for the separator`() {
-        assertEquals(256 - 5 - 1, MealEditRules.correctionCapacity("Curry", maxDescriptionLength = 256))
-        assertEquals(256, MealEditRules.correctionCapacity("", maxDescriptionLength = 256))
-        assertEquals(0, MealEditRules.correctionCapacity("x".repeat(300), maxDescriptionLength = 256))
+    fun `description shortcut never truncates existing text to make room for a newline`() {
+        val full = "x".repeat(256)
+        assertEquals(full, MealEditRules.descriptionForCorrection(full, 256))
+        val almostFull = "x".repeat(255)
+        assertEquals(almostFull + "\n", MealEditRules.descriptionForCorrection(almostFull, 256))
     }
 
     @Test

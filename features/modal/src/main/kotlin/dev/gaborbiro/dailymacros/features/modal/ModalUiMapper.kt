@@ -108,8 +108,14 @@ class ModalUiMapper @Inject constructor(
             is DialogHandle.RecordDetailsDialog.View -> dialog.pristineSnapshot
             is DialogHandle.RecordDetailsDialog.Edit -> dialog.pristineSnapshot
         }
+        // Opening the shortcut adds a newline for the cursor, not a meaningful edit.
+        val descriptionChanged = if (dialog is DialogHandle.RecordDetailsDialog.View && dialog.editingFromCorrection) {
+            dialog.description.text.trimEnd('\n') != pristine.description.trimEnd('\n')
+        } else {
+            dialog.description.text != pristine.description
+        }
         return dialog.title.text != pristine.title ||
-                dialog.description.text != pristine.description ||
+                descriptionChanged ||
                 dialog.imageFilenames != pristine.imageFilenames
     }
 }
