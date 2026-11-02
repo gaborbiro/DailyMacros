@@ -75,8 +75,8 @@ private const val PreviewLastLineFadeFraction = 1f
  * the bottom of the last line when there is more. It only offers to expand (tap the preview; a chevron in the
  * caption's pill hints at it) when the preview hides something. No card or border: it reads as a caption to the macros.
  *
- * [correctionInput], when given, closes the card: the place to tell the AI what it got wrong, right after
- * reading what it inferred. It replaces the footnote that otherwise points the user at the description.
+ * [correctionLink], when given, closes the section with a shortcut to edit the description, right after
+ * reading what the AI inferred. It replaces the footnote that otherwise points the user at the description.
  */
 @Composable
 internal fun AiInferenceSection(
@@ -84,9 +84,9 @@ internal fun AiInferenceSection(
     nutrientBreakdown: NutrientBreakdownUiModel,
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
-    correctionInput: (@Composable () -> Unit)? = null,
+    correctionLink: (@Composable () -> Unit)? = null,
 ) {
-    val showFootnote = correctionInput == null
+    val showFootnote = correctionLink == null
     val fadeSpec = tween<Float>(durationMillis = 400)
     val previewText = nutrientBreakdown.aiInferencePreview
     val previewStyle = MaterialTheme.typography.bodyMedium
@@ -216,7 +216,7 @@ internal fun AiInferenceSection(
                 }
             }
             // Outside the collapsed preview's tap target, so typing here doesn't expand it.
-            correctionInput?.invoke()
+            correctionLink?.invoke()
         }
     }
 }

@@ -3,7 +3,7 @@ package dev.gaborbiro.dailymacros.features.modal
 import dev.gaborbiro.dailymacros.features.modal.model.RecordDetailsPristineSnapshot
 
 /**
- * When edits to a logged meal send it back to the AI, and how an AI correction joins its description.
+ * When edits to a logged meal send it back to the AI, and how the description shortcut opens.
  */
 internal object MealEditRules {
 
@@ -22,16 +22,9 @@ internal object MealEditRules {
                 description.trim() != pristine.description.trim() ||
                 imagesRequireMacroReanalysis(pristine.imageFilenames, imageFilenames)
 
-    /** The description the AI re-analyzes with: the existing one, followed by the user's correction on a new line. */
-    fun appendCorrection(description: String, correction: String): String =
-        listOf(description.trim(), correction.trim())
-            .filter { it.isNotEmpty() }
-            .joinToString(separator = "\n")
-
-    /** How long a correction can be before the combined description exceeds [maxDescriptionLength]. */
-    fun correctionCapacity(description: String, maxDescriptionLength: Int): Int {
-        val existing = description.trim()
-        val separatorLength = if (existing.isEmpty()) 0 else 1
-        return (maxDescriptionLength - existing.length - separatorLength).coerceAtLeast(0)
+    /** Put the cursor on a new line without changing an empty or full description. */
+    fun descriptionForCorrection(description: String, maxDescriptionLength: Int): String = when {
+        description.isBlank() || description.endsWith("\n") || description.length >= maxDescriptionLength -> description
+        else -> "$description\n"
     }
 }

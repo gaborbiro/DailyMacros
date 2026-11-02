@@ -176,6 +176,8 @@ internal fun RecordDetailsDialogPreview(
                                     )
                                 },
                                 primaryStartsAnalysis = dialogHandle.editsRequireAnalysis,
+                                showSaveAndAdd = !dialogHandle.editingFromCorrection,
+                                saving = dialogHandle.isSavingEdits,
                                 onUpdate = onSubmitButtonTapped,
                                 onSaveAndAdd = onSubmitButtonTapped,
                                 onCancel = onDismissRequested,

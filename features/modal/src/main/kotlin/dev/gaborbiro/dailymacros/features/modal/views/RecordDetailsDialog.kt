@@ -76,13 +76,11 @@ internal fun RecordDetailsDialog(
     onVariantTemplatePicked: (Long) -> Unit,
     onQuickPickStarToggled: () -> Unit,
     onRecordDetailsEditStarted: () -> Unit,
+    onCorrectionEditStarted: () -> Unit,
     onRecordDetailsEditCancelled: () -> Unit,
     onEditTimestampTapped: () -> Unit,
-    onCorrectionChanged: (TextFieldValue) -> Unit,
-    onReanalyzeTapped: () -> Unit,
     onTitleSpoken: (String) -> Unit,
     onDescriptionSpoken: (String) -> Unit,
-    onCorrectionSpoken: (String) -> Unit,
     onVoiceInputFailed: (Throwable) -> Unit,
 ) {
     val ui = deconstructDialogHandle(dialogHandle)
@@ -98,6 +96,7 @@ internal fun RecordDetailsDialog(
     var pendingDiscard by remember { mutableStateOf<PendingRecordDetailsDiscard?>(null) }
 
     fun requestDismissRecordDetails() {
+        if (viewDialog?.isSavingEdits == true) return
         if (dialogHandle.hasUnsavedEdits) {
             pendingDiscard = PendingRecordDetailsDiscard.CloseDialog
         } else {
@@ -135,11 +134,9 @@ internal fun RecordDetailsDialog(
                 selectedVariantTemplateId = viewDialog?.templateDbId ?: 0L,
                 onVariantTemplatePicked = onVariantTemplatePicked,
                 onEditTimestampTapped = onEditTimestampTapped,
-                onCorrectionChanged = onCorrectionChanged,
-                onReanalyzeTapped = onReanalyzeTapped,
+                onCorrectionEditStarted = onCorrectionEditStarted,
                 onTitleSpoken = onTitleSpoken,
                 onDescriptionSpoken = onDescriptionSpoken,
-                onCorrectionSpoken = onCorrectionSpoken,
                 onVoiceInputFailed = onVoiceInputFailed,
             )
         },
@@ -199,6 +196,8 @@ internal fun RecordDetailsDialog(
                                     primaryEnabled = dialogHandle.hasUnsavedEdits,
                                     primaryLabel = updateButtonLabel(dialogHandle),
                                     primaryStartsAnalysis = dialogHandle.editsRequireAnalysis,
+                                    showSaveAndAdd = !dialogHandle.editingFromCorrection,
+                                    saving = dialogHandle.isSavingEdits,
                                     onUpdate = onSaveDetailsTapped,
                                     onSaveAndAdd = onSaveAndAddDetailsTapped,
                                     onCancel = {
@@ -353,11 +352,9 @@ internal fun ColumnScope.RecordDetailsDialogContent(
     selectedVariantTemplateId: Long = 0L,
     onVariantTemplatePicked: (Long) -> Unit = { },
     onEditTimestampTapped: () -> Unit = { },
-    onCorrectionChanged: (TextFieldValue) -> Unit = { },
-    onReanalyzeTapped: () -> Unit = { },
+    onCorrectionEditStarted: () -> Unit = { },
     onTitleSpoken: (String) -> Unit = { },
     onDescriptionSpoken: (String) -> Unit = { },
-    onCorrectionSpoken: (String) -> Unit = { },
     onVoiceInputFailed: (Throwable) -> Unit = { },
 ) {
     when (dialogHandle) {
@@ -410,11 +407,9 @@ internal fun ColumnScope.RecordDetailsDialogContent(
                 selectedVariantTemplateId = selectedVariantTemplateId,
                 onVariantTemplatePicked = onVariantTemplatePicked,
                 onEditTimestampTapped = onEditTimestampTapped,
-                onCorrectionChanged = onCorrectionChanged,
-                onReanalyzeTapped = onReanalyzeTapped,
+                onCorrectionEditStarted = onCorrectionEditStarted,
                 onTitleSpoken = onTitleSpoken,
                 onDescriptionSpoken = onDescriptionSpoken,
-                onCorrectionSpoken = onCorrectionSpoken,
                 onVoiceInputFailed = onVoiceInputFailed,
             )
     }

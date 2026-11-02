@@ -26,6 +26,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,6 +38,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,7 +47,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
@@ -62,7 +63,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.gaborbiro.dailymacros.features.modal.R
-import dev.gaborbiro.dailymacros.features.common.R as CommonR
 import dev.gaborbiro.dailymacros.design.PaddingDefault
 import dev.gaborbiro.dailymacros.design.PaddingHalf
 import dev.gaborbiro.dailymacros.design.PaddingQuarter
@@ -76,6 +76,7 @@ import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.RecordDetailsPristineSnapshot
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.shared.views.CompactMacroNutrientsGrid
+import kotlinx.coroutines.delay
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
@@ -117,11 +118,9 @@ fun ColumnScope.RecordDetailsView(
     selectedVariantTemplateId: Long,
     onVariantTemplatePicked: (Long) -> Unit,
     onEditTimestampTapped: () -> Unit = {},
-    onCorrectionChanged: (TextFieldValue) -> Unit = {},
-    onReanalyzeTapped: () -> Unit = {},
+    onCorrectionEditStarted: () -> Unit = {},
     onTitleSpoken: (String) -> Unit = {},
     onDescriptionSpoken: (String) -> Unit = {},
-    onCorrectionSpoken: (String) -> Unit = {},
     onVoiceInputFailed: (Throwable) -> Unit = {},
 ) {
     val editing = view.isEditing
@@ -132,6 +131,15 @@ fun ColumnScope.RecordDetailsView(
     var aiInferenceExpanded by remember(view.recordId, view.templateDbId) { mutableStateOf(aiInferenceExpanded) }
     // Session-scoped: survives View state replacements (e.g. variant switch) until this dialog leaves composition.
     var variantPickerRevealed by remember { mutableStateOf(false) }
+
+    var showAnalysisFinished by remember(view.recordId) { mutableStateOf(false) }
+    LaunchedEffect(view.showAnalysisFinished) {
+        showAnalysisFinished = view.showAnalysisFinished
+        if (showAnalysisFinished) {
+            delay(4000)
+            showAnalysisFinished = false
+        }
+    }
 
     val variantRowShown = browseMode && !variantPickerOptions.isNullOrEmpty()
     AnimatedVisibility(visible = variantRowShown, enter = editModeEnter, exit = editModeExit) {
@@ -215,6 +223,7 @@ fun ColumnScope.RecordDetailsView(
         value = title,
         onValueChange = onTitleChanged,
         editing = editing,
+        enabled = !view.isSavingEdits,
         textStyle = MaterialTheme.typography.titleMedium,
         browseTextColor = MaterialTheme.colorScheme.onSurface,
         placeholder = titleHint,
@@ -264,6 +273,8 @@ fun ColumnScope.RecordDetailsView(
             value = description,
             onValueChange = onDescriptionChanged,
             editing = editing,
+            enabled = !view.isSavingEdits,
+            requestFocusOnEdit = view.editingFromCorrection,
             textStyle = MaterialTheme.typography.bodyLarge,
             browseTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
             placeholder = stringResource(R.string.meal_details_description_placeholder),
@@ -285,21 +296,22 @@ fun ColumnScope.RecordDetailsView(
 
     AnimatedVisibility(visible = browseMode, enter = editModeEnter, exit = editModeExit) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            val correctionInput: (@Composable () -> Unit)? = if (view.allowCorrection && browseInteractive) {
+            val correctionLink: (@Composable () -> Unit)? = if (view.allowCorrection && browseInteractive && !view.showLoadingIndicator) {
                 {
-                    MealCorrectionInput(
-                        correction = view.correction,
-                        canReanalyze = view.canReanalyze,
-                        onCorrectionChanged = onCorrectionChanged,
-                        onCorrectionSpoken = onCorrectionSpoken,
-                        onVoiceInputFailed = onVoiceInputFailed,
-                        onReanalyzeTapped = onReanalyzeTapped,
-                    )
+                    MealCorrectionLink(onClick = onCorrectionEditStarted)
                 }
             } else {
                 null
             }
 
+            AnimatedVisibility(visible = showAnalysisFinished && !view.showLoadingIndicator) {
+                Text(
+                    modifier = Modifier.padding(horizontal = PaddingDefault).padding(top = 16.dp),
+                    text = stringResource(R.string.record_details_analysis_finished),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
             if (view.showLoadingIndicator) {
                 Row(
                     modifier = Modifier
@@ -308,13 +320,9 @@ fun ColumnScope.RecordDetailsView(
                         .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(
-                        painter = painterResource(CommonR.drawable.ic_ai_borg),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .padding(end = PaddingHalf)
-                            .size(20.dp),
-                        tint = MaterialTheme.colorScheme.primary,
+                    CircularProgressIndicator(
+                        modifier = Modifier.padding(end = PaddingHalf).size(20.dp),
+                        strokeWidth = 2.dp,
                     )
                     Text(
                         text = stringResource(R.string.record_details_analyzing),
@@ -325,35 +333,43 @@ fun ColumnScope.RecordDetailsView(
                 }
             }
 
-            if (!view.showLoadingIndicator && nutrientBreakdown?.hasDisplayableContent == true) {
-                Spacer(modifier = Modifier.height(20.dp))
-                MacrosCard(
-                    nutrientBreakdown = nutrientBreakdown,
-                    compactNutrients = view.compactNutrients,
-                    expanded = macrosExpanded,
-                    onExpandedChange = { macrosExpanded = it },
-                )
+            AnimatedVisibility(
+                visible = !view.showLoadingIndicator,
+                enter = fadeIn(editModeSpec()),
+                exit = fadeOut(editModeSpec()),
+            ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    if (nutrientBreakdown?.hasDisplayableContent == true) {
+                        Spacer(modifier = Modifier.height(20.dp))
+                        MacrosCard(
+                            nutrientBreakdown = nutrientBreakdown,
+                            compactNutrients = view.compactNutrients,
+                            expanded = macrosExpanded,
+                            onExpandedChange = { macrosExpanded = it },
+                        )
 
-                if (nutrientBreakdown.hasAiInference) {
-                    Spacer(modifier = Modifier.height(PaddingDefault))
-                    AiInferenceSection(
-                        nutrientBreakdown = nutrientBreakdown,
-                        expanded = aiInferenceExpanded,
-                        onExpandedChange = { aiInferenceExpanded = it },
-                        correctionInput = correctionInput,
-                    )
-                } else {
-                    correctionInput?.invoke()
+                        if (nutrientBreakdown.hasAiInference) {
+                            Spacer(modifier = Modifier.height(PaddingDefault))
+                            AiInferenceSection(
+                                nutrientBreakdown = nutrientBreakdown,
+                                expanded = aiInferenceExpanded,
+                                onExpandedChange = { aiInferenceExpanded = it },
+                                correctionLink = correctionLink,
+                            )
+                        } else {
+                            correctionLink?.invoke()
+                        }
+                    } else if (view.compactNutrients.hasAnyVisibleMacro()) {
+                        Spacer(modifier = Modifier.height(20.dp))
+                        CompactMacroNutrientsGrid(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = PaddingDefault),
+                            nutrients = view.compactNutrients,
+                        )
+                        correctionLink?.invoke()
+                    }
                 }
-            } else if (!view.showLoadingIndicator && view.compactNutrients.hasAnyVisibleMacro()) {
-                Spacer(modifier = Modifier.height(20.dp))
-                CompactMacroNutrientsGrid(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = PaddingDefault),
-                    nutrients = view.compactNutrients,
-                )
-                correctionInput?.invoke()
             }
         }
     }

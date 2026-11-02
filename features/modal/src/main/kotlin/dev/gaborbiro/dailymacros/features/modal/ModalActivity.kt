@@ -292,13 +292,11 @@ class ModalActivity : AppCompatActivity() {
                 onVariantTemplatePicked = viewModel::onVariantTemplateSelected,
                 onQuickPickStarToggled = viewModel::onQuickPickStarToggled,
                 onRecordDetailsEditStarted = viewModel::onRecordDetailsEditStarted,
+                onCorrectionEditStarted = viewModel::onCorrectionEditStarted,
                 onRecordDetailsEditCancelled = viewModel::onRecordDetailsEditCancelled,
                 onEditTimestampTapped = viewModel::onEditTimestampTapped,
-                onCorrectionChanged = viewModel::onCorrectionChanged,
-                onReanalyzeTapped = viewModel::onReanalyzeTapped,
                 onTitleSpoken = viewModel::onTitleSpoken,
                 onDescriptionSpoken = viewModel::onDescriptionSpoken,
-                onCorrectionSpoken = viewModel::onCorrectionSpoken,
                 onVoiceInputFailed = viewModel::onVoiceInputFailed,
             )
 
