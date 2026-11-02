@@ -6,6 +6,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -46,6 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -141,7 +144,7 @@ fun ColumnScope.RecordDetailsView(
         }
     }
 
-    val variantRowShown = browseMode && !variantPickerOptions.isNullOrEmpty()
+    val variantRowShown = browseMode && !view.showLoadingIndicator && !variantPickerOptions.isNullOrEmpty()
     AnimatedVisibility(visible = variantRowShown, enter = editModeEnter, exit = editModeExit) {
         Column(modifier = Modifier.fillMaxWidth()) {
             if (!variantPickerRevealed) {
@@ -304,14 +307,6 @@ fun ColumnScope.RecordDetailsView(
                 null
             }
 
-            AnimatedVisibility(visible = showAnalysisFinished && !view.showLoadingIndicator) {
-                Text(
-                    modifier = Modifier.padding(horizontal = PaddingDefault).padding(top = 16.dp),
-                    text = stringResource(R.string.record_details_analysis_finished),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
             if (view.showLoadingIndicator) {
                 Column(
                     modifier = Modifier
@@ -341,11 +336,37 @@ fun ColumnScope.RecordDetailsView(
             }
 
             AnimatedVisibility(
+                modifier = Modifier.fillMaxWidth().clipToBounds(),
                 visible = !view.showLoadingIndicator,
-                enter = fadeIn(editModeSpec()),
-                exit = fadeOut(editModeSpec()),
+                enter = fadeIn(editModeSpec()) + expandVertically(
+                    animationSpec = editModeSpec(),
+                    expandFrom = Alignment.Top,
+                    clip = true,
+                ),
+                exit = fadeOut(editModeSpec()) + shrinkVertically(
+                    animationSpec = editModeSpec(),
+                    shrinkTowards = Alignment.Top,
+                    clip = true,
+                ),
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
+                    // Expand downward from the description; the default Bottom anchor shifts text upward.
+                    AnimatedVisibility(
+                        visible = showAnalysisFinished,
+                        enter = fadeIn(editModeSpec()) + expandVertically(
+                            animationSpec = editModeSpec(), expandFrom = Alignment.Top,
+                        ),
+                        exit = fadeOut(editModeSpec()) + shrinkVertically(
+                            animationSpec = editModeSpec(), shrinkTowards = Alignment.Top,
+                        ),
+                    ) {
+                        Text(
+                            modifier = Modifier.padding(horizontal = PaddingDefault).padding(top = 16.dp),
+                            text = stringResource(R.string.record_details_analysis_finished),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
                     if (nutrientBreakdown?.hasDisplayableContent == true) {
                         Spacer(modifier = Modifier.height(20.dp))
                         MacrosCard(

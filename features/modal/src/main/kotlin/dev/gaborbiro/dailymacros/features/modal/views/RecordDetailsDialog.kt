@@ -184,24 +184,27 @@ internal fun RecordDetailsDialog(
                         )
                     } else {
                         AnimatedContent(
-                            targetState = dialogHandle.isEditing,
+                            // Keep the outgoing edit footer's labels and actions until its fade completes.
+                            // The key prevents a new transition for every keystroke or saving-state update.
+                            targetState = dialogHandle,
+                            contentKey = { it.isEditing },
                             transitionSpec = {
                                 fadeIn(editModeSpec()) togetherWith fadeOut(editModeSpec()) using
                                         SizeTransform(clip = false) { _, _ -> editModeSpec() }
                             },
                             label = "mealDetailsFooter",
-                        ) { editing ->
-                            if (editing) {
+                        ) { footer ->
+                            if (footer.isEditing) {
                                 RecordDetailsViewEditButtons(
-                                    primaryEnabled = dialogHandle.hasUnsavedEdits,
-                                    primaryLabel = updateButtonLabel(dialogHandle),
-                                    primaryStartsAnalysis = dialogHandle.editsRequireAnalysis,
-                                    showSaveAndAdd = !dialogHandle.editingFromCorrection,
-                                    saving = dialogHandle.isSavingEdits,
+                                    primaryEnabled = footer.hasUnsavedEdits,
+                                    primaryLabel = updateButtonLabel(footer),
+                                    primaryStartsAnalysis = footer.editsRequireAnalysis,
+                                    showSaveAndAdd = !footer.editingFromCorrection,
+                                    saving = footer.isSavingEdits,
                                     onUpdate = onSaveDetailsTapped,
                                     onSaveAndAdd = onSaveAndAddDetailsTapped,
                                     onCancel = {
-                                        if (dialogHandle.hasUnsavedEdits) {
+                                        if (footer.hasUnsavedEdits) {
                                             pendingDiscard = PendingRecordDetailsDiscard.ExitEditMode
                                         } else {
                                             onRecordDetailsEditCancelled()
@@ -210,7 +213,7 @@ internal fun RecordDetailsDialog(
                                 )
                             } else {
                                 RecordDetailsViewBrowseButtons(
-                                    showLogMealAgain = dialogHandle.openedFromTemplateDetailsOnly,
+                                    showLogMealAgain = footer.openedFromTemplateDetailsOnly,
                                     onLogMealAgain = onSaveAndAddDetailsTapped,
                                     onDismissRequested = { requestDismissRecordDetails() },
                                 )
