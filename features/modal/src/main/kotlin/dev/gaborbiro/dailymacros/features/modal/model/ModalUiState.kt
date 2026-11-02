@@ -103,8 +103,6 @@ sealed class DialogHandle {
             val editingFromCorrection: Boolean = false,
             /** Brief persistence step before analysis is handed to the background worker. */
             val isSavingEdits: Boolean = false,
-            /** A completed analysis in this open dialog; cleared when editing starts again. */
-            val showAnalysisFinished: Boolean = false,
             /** Whether saving the current edits sends the meal back to the AI. */
             val editsRequireAnalysis: Boolean = false,
         ) : RecordDetailsDialog(

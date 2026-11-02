@@ -348,7 +348,6 @@ class ModalViewModel @Inject constructor(
                 editingFromCorrection = fromCorrection,
                 description = TextFieldValue(description, selection = TextRange(description.length)),
                 editStartedAt = ZonedDateTime.now(ZoneId.systemDefault()),
-                showAnalysisFinished = false,
             )
         }
     }
@@ -756,9 +755,6 @@ class ModalViewModel @Inject constructor(
     }
 
     private fun trackReanalysisProgress(templatePending: Boolean) {
-        if (reanalysisProgress == ReanalysisProgress.RUNNING && !templatePending) {
-            updateRoot<DialogHandle.RecordDetailsDialog.View> { it.copy(showAnalysisFinished = true) }
-        }
         reanalysisProgress = when (reanalysisProgress) {
             ReanalysisProgress.REQUESTED -> if (templatePending) ReanalysisProgress.RUNNING else ReanalysisProgress.REQUESTED
             ReanalysisProgress.RUNNING -> if (templatePending) ReanalysisProgress.RUNNING else ReanalysisProgress.NONE
@@ -809,7 +805,6 @@ class ModalViewModel @Inject constructor(
             )
         }
         return enriched.copy(
-            showAnalysisFinished = sameRecord && existing.showAnalysisFinished,
             showLoadingIndicator = enriched.showLoadingIndicator || reanalysisProgress != ReanalysisProgress.NONE,
         )
     }

@@ -758,7 +758,6 @@ class ModalViewModelTest {
 
         // Forked template, not yet picked up by the worker: no results, not marked pending.
         assertTrue(details().showLoadingIndicator)
-        assertFalse(details().showAnalysisFinished)
         val forked = repo.records.value
         repo.records.value = forked.copy(template = forked.template.copy(isPending = true))
         advanceUntilIdle()
@@ -768,7 +767,6 @@ class ModalViewModelTest {
         )
         advanceUntilIdle()
         assertFalse(details().showLoadingIndicator)
-        assertTrue(details().showAnalysisFinished)
         assertEquals("250kcal", details().compactNutrients.calories)
     }
 

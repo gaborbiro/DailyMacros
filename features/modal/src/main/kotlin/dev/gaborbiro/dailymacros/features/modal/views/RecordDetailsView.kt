@@ -79,7 +79,6 @@ import dev.gaborbiro.dailymacros.features.modal.model.NutrientBreakdownUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.RecordDetailsPristineSnapshot
 import dev.gaborbiro.dailymacros.features.shared.model.NutrientsUiModel
 import dev.gaborbiro.dailymacros.features.shared.views.CompactMacroNutrientsGrid
-import kotlinx.coroutines.delay
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
@@ -135,16 +134,15 @@ fun ColumnScope.RecordDetailsView(
     // Session-scoped: survives View state replacements (e.g. variant switch) until this dialog leaves composition.
     var variantPickerRevealed by remember { mutableStateOf(false) }
 
-    var showAnalysisFinished by remember(view.recordId) { mutableStateOf(false) }
-    LaunchedEffect(view.showAnalysisFinished) {
-        showAnalysisFinished = view.showAnalysisFinished
-        if (showAnalysisFinished) {
-            delay(4000)
-            showAnalysisFinished = false
-        }
+    // Once analysis starts, keep the simpler browse layout until this composable session ends.
+    // Plain remember deliberately survives record/template refreshes and resets when the dialog is reopened.
+    var hideVariantPickerForSession by remember { mutableStateOf(view.showLoadingIndicator) }
+    LaunchedEffect(view.showLoadingIndicator) {
+        if (view.showLoadingIndicator) hideVariantPickerForSession = true
     }
 
-    val variantRowShown = browseMode && !view.showLoadingIndicator && !variantPickerOptions.isNullOrEmpty()
+    val variantRowShown = browseMode && !view.showLoadingIndicator &&
+            !hideVariantPickerForSession && !variantPickerOptions.isNullOrEmpty()
     AnimatedVisibility(visible = variantRowShown, enter = editModeEnter, exit = editModeExit) {
         Column(modifier = Modifier.fillMaxWidth()) {
             if (!variantPickerRevealed) {
@@ -350,23 +348,6 @@ fun ColumnScope.RecordDetailsView(
                 ),
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    // Expand downward from the description; the default Bottom anchor shifts text upward.
-                    AnimatedVisibility(
-                        visible = showAnalysisFinished,
-                        enter = fadeIn(editModeSpec()) + expandVertically(
-                            animationSpec = editModeSpec(), expandFrom = Alignment.Top,
-                        ),
-                        exit = fadeOut(editModeSpec()) + shrinkVertically(
-                            animationSpec = editModeSpec(), shrinkTowards = Alignment.Top,
-                        ),
-                    ) {
-                        Text(
-                            modifier = Modifier.padding(horizontal = PaddingDefault).padding(top = 16.dp),
-                            text = stringResource(R.string.record_details_analysis_finished),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                    }
                     if (nutrientBreakdown?.hasDisplayableContent == true) {
                         Spacer(modifier = Modifier.height(20.dp))
                         MacrosCard(
