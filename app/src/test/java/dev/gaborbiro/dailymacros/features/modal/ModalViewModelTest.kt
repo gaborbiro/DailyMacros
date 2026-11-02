@@ -3,6 +3,7 @@ package dev.gaborbiro.dailymacros.features.modal
 import android.app.Application
 import android.graphics.Bitmap
 import android.net.Uri
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.viewModelScope
 import androidx.test.core.app.ApplicationProvider
@@ -699,30 +700,47 @@ class ModalViewModelTest {
     )
 
     @Test
-    fun `re-analyze adds the correction to the description and keeps the dialog open`() = runTest(testDispatcher) {
+    fun `description shortcut opens the editor at a new line without marking it dirty`() = runTest(testDispatcher) {
         val repo = ReanalysisRepo(analysedSoup())
         val vm = viewModel(repo)
         vm.onRecordDetailsButtonTapped(5L)
         advanceUntilIdle()
-        var root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        vm.onCorrectionEditStarted()
+
+        val root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
         assertTrue(root.allowCorrection)
-        assertFalse(root.canReanalyze)
+        assertTrue(root.isEditing)
+        assertTrue(root.editingFromCorrection)
+        assertEquals("Lentil\n", root.description.text)
+        assertEquals(TextRange(root.description.text.length), root.description.selection)
+        assertFalse(root.hasUnsavedEdits)
+        assertFalse(root.editsRequireAnalysis)
+        assertTrue(repo.savedTemplates.isEmpty())
+    }
 
-        vm.onCorrectionChanged(TextFieldValue("It was brown rice"))
-        root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
-        assertTrue(root.canReanalyze)
-
-        vm.onReanalyzeTapped()
+    @Test
+    fun `saving from the description shortcut uses the rewritten description and keeps the dialog open`() = runTest(testDispatcher) {
+        val repo = ReanalysisRepo(analysedSoup())
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        vm.onCorrectionEditStarted()
+        vm.onDescriptionChanged(TextFieldValue("Lentil, no cream"))
+        vm.onSaveDetailsTapped()
         advanceUntilIdle()
 
         assertEquals(1, repo.savedTemplates.size)
         assertEquals("Soup", repo.savedTemplates.single().name)
-        assertEquals("Lentil\nIt was brown rice", repo.savedTemplates.single().description)
-        root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertEquals("Lentil, no cream", repo.savedTemplates.single().description)
+        val root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
         assertEquals(42L, root.templateDbId)
-        assertEquals("", root.correction.text)
-        assertFalse(root.canReanalyze)
+        assertEquals("Lentil, no cream", root.description.text)
+        assertFalse(root.isEditing)
+        assertFalse(root.editingFromCorrection)
+        assertFalse(root.isSavingEdits)
+        assertFalse(root.hasUnsavedEdits)
         assertTrue(root.showLoadingIndicator)
+        assertNull(vm.uiState.value.closeSignal)
     }
 
     @Test
@@ -731,27 +749,107 @@ class ModalViewModelTest {
         val vm = viewModel(repo)
         vm.onRecordDetailsButtonTapped(5L)
         advanceUntilIdle()
-        vm.onCorrectionChanged(TextFieldValue("Small bowl"))
-        vm.onReanalyzeTapped()
+        vm.onCorrectionEditStarted()
+        vm.onDescriptionChanged(TextFieldValue("Lentil\nSmall bowl"))
+        vm.onSaveDetailsTapped()
         advanceUntilIdle()
 
-        fun showsAnalyzing() = (vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View).showLoadingIndicator
+        fun details() = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
 
         // Forked template, not yet picked up by the worker: no results, not marked pending.
-        assertTrue(showsAnalyzing())
+        assertTrue(details().showLoadingIndicator)
+        assertFalse(details().showAnalysisFinished)
         val forked = repo.records.value
         repo.records.value = forked.copy(template = forked.template.copy(isPending = true))
         advanceUntilIdle()
-        assertTrue(showsAnalyzing())
+        assertTrue(details().showLoadingIndicator)
         repo.records.value = forked.copy(
             template = forked.template.copy(isPending = false, nutrients = Nutrients(calories = 250)),
         )
         advanceUntilIdle()
-        assertFalse(showsAnalyzing())
+        assertFalse(details().showLoadingIndicator)
+        assertTrue(details().showAnalysisFinished)
+        assertEquals("250kcal", details().compactNutrients.calories)
     }
 
     @Test
-    fun `correction is capped so the description stays within its limit`() = runTest(testDispatcher) {
+    fun `closing after submitting a correction leaves the queued analysis running and never reopens the dialog`() = runTest(testDispatcher) {
+        val repo = ReanalysisRepo(analysedSoup())
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        vm.onCorrectionEditStarted()
+        vm.onDescriptionChanged(TextFieldValue("Lentil, small bowl"))
+        vm.onSaveDetailsTapped()
+        advanceUntilIdle()
+        val root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertFalse(root.hasUnsavedEdits)
+
+        vm.onDialogDismissRequested(root)
+        assertNull(vm.uiState.value.rootDialog)
+        assertEquals(CloseSignal.CLOSE, vm.uiState.value.closeSignal)
+        assertTrue(analysisQueuedFor(5L))
+        val forked = repo.records.value
+        repo.records.value = forked.copy(template = forked.template.copy(isPending = true))
+        advanceUntilIdle()
+        repo.records.value = forked.copy(template = forked.template.copy(nutrients = Nutrients(calories = 250)))
+        advanceUntilIdle()
+        assertNull(vm.uiState.value.rootDialog)
+    }
+
+    @Test
+    fun `cancelling a correction restores the description and ordinary editing mode`() = runTest(testDispatcher) {
+        val repo = ReanalysisRepo(analysedSoup())
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        vm.onCorrectionEditStarted()
+        vm.onDescriptionChanged(TextFieldValue("Changed description"))
+        assertTrue((vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View).hasUnsavedEdits)
+        vm.onRecordDetailsEditCancelled()
+        var root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertEquals("Lentil", root.description.text)
+        assertFalse(root.hasUnsavedEdits)
+        assertFalse(root.isEditing)
+        assertFalse(root.editingFromCorrection)
+        assertTrue(repo.savedTemplates.isEmpty())
+
+        vm.onRecordDetailsEditStarted()
+        root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertTrue(root.isEditing)
+        assertFalse(root.editingFromCorrection)
+        assertEquals("Lentil", root.description.text)
+    }
+
+    @Test
+    fun `failed validation keeps correction edits available for retry`() = runTest(testDispatcher) {
+        val repo = ReanalysisRepo(analysedSoup())
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        vm.onCorrectionEditStarted()
+        vm.onDescriptionChanged(TextFieldValue("Lentil, small bowl"))
+        vm.onTitleChanged(TextFieldValue(""))
+        vm.onSaveDetailsTapped()
+        advanceUntilIdle()
+        val root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertTrue(root.isEditing)
+        assertTrue(root.editingFromCorrection)
+        assertTrue(root.hasUnsavedEdits)
+        assertFalse(root.isSavingEdits)
+        assertEquals("Lentil, small bowl", root.description.text)
+        assertEquals("Title cannot be empty", root.titleValidationError)
+        assertTrue(repo.savedTemplates.isEmpty())
+
+        vm.onTitleChanged(TextFieldValue("Soup"))
+        vm.onSaveDetailsTapped()
+        advanceUntilIdle()
+        assertEquals("Lentil, small bowl", repo.savedTemplates.single().description)
+        assertFalse((vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View).isEditing)
+    }
+
+    @Test
+    fun `description edits through the shortcut keep the existing length limit`() = runTest(testDispatcher) {
         val longDescription = "x".repeat(250)
         val repo = ReanalysisRepo(
             ModalRecordFixtures.record(5L, ModalRecordFixtures.template(dbId = 7L, description = longDescription)),
@@ -759,9 +857,12 @@ class ModalViewModelTest {
         val vm = viewModel(repo)
         vm.onRecordDetailsButtonTapped(5L)
         advanceUntilIdle()
-        vm.onCorrectionChanged(TextFieldValue("abcdefgh"))
+        vm.onCorrectionEditStarted()
+        vm.onDescriptionChanged(TextFieldValue(longDescription + "\nabcdefgh"))
         val root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
-        assertEquals("abcde", root.correction.text)
+        assertEquals(longDescription + "\nabcde", root.description.text)
+        assertEquals(256, root.description.text.length)
+        assertTrue(root.hasUnsavedEdits)
     }
 
     @Test
@@ -784,31 +885,36 @@ class ModalViewModelTest {
     }
 
     @Test
-    fun `dictated correction is capped like a typed one`() = runTest(testDispatcher) {
+    fun `dictation in the shortcut edits the description with its existing length limit`() = runTest(testDispatcher) {
         val repo = ReanalysisRepo(
             ModalRecordFixtures.record(5L, ModalRecordFixtures.template(dbId = 7L, description = "x".repeat(250))),
         )
         val vm = viewModel(repo)
         vm.onRecordDetailsButtonTapped(5L)
         advanceUntilIdle()
-        vm.onCorrectionSpoken("abcdefgh")
+        vm.onCorrectionEditStarted()
+        vm.onDescriptionSpoken("abcdefgh")
         val root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
-        assertEquals("Abcde", root.correction.text)
-        assertTrue(root.canReanalyze)
+        assertEquals("x".repeat(250) + " abcde", root.description.text)
+        assertTrue(root.hasUnsavedEdits)
+        assertTrue(root.editsRequireAnalysis)
     }
 
     @Test
-    fun `quick pick details don't take corrections`() = runTest(testDispatcher) {
+    fun `quick pick details do not enter the description correction flow`() = runTest(testDispatcher) {
         val repo = ReanalysisRepo(analysedSoup())
         val vm = viewModel(repo)
         vm.onTemplateDetailsButtonTapped(7L)
         advanceUntilIdle()
-        vm.onCorrectionChanged(TextFieldValue("Small bowl"))
-        vm.onReanalyzeTapped()
+        vm.onCorrectionEditStarted()
+        vm.onDescriptionChanged(TextFieldValue("Lentil\nSmall bowl"))
+        vm.onSaveDetailsTapped()
         advanceUntilIdle()
         val root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
         assertFalse(root.allowCorrection)
-        assertEquals("", root.correction.text)
+        assertFalse(root.isEditing)
+        assertFalse(root.editingFromCorrection)
+        assertEquals("Lentil", root.description.text)
         assertTrue(repo.savedTemplates.isEmpty())
     }
 
@@ -1189,13 +1295,14 @@ class ModalViewModelTest {
     }
 
     @Test
-    fun `re-analyze queues a nutrient analysis for the meal`() = runTest(testDispatcher) {
+    fun `updating through the description shortcut queues a nutrient analysis for the meal`() = runTest(testDispatcher) {
         val repo = MealEditsRepo(loggedSoup())
         val vm = viewModel(repo)
         vm.onRecordDetailsButtonTapped(5L)
         advanceUntilIdle()
-        vm.onCorrectionChanged(TextFieldValue("Small bowl"))
-        vm.onReanalyzeTapped()
+        vm.onCorrectionEditStarted()
+        vm.onDescriptionChanged(TextFieldValue("Lentil\nSmall bowl"))
+        vm.onSaveDetailsTapped()
         advanceUntilIdle()
         val saved = repo.savedTemplates.single()
         assertEquals("Soup", saved.name)
@@ -1205,13 +1312,14 @@ class ModalViewModelTest {
     }
 
     @Test
-    fun `re-analyze on a meal with logged variants updates the shared template in place`() = runTest(testDispatcher) {
+    fun `updating through the description shortcut keeps logged variants on their shared template`() = runTest(testDispatcher) {
         val repo = MealEditsRepo(loggedSoup(), otherVariant = soupVariant())
         val vm = viewModel(repo)
         vm.onRecordDetailsButtonTapped(5L)
         advanceUntilIdle()
-        vm.onCorrectionChanged(TextFieldValue("Small bowl"))
-        vm.onReanalyzeTapped()
+        vm.onCorrectionEditStarted()
+        vm.onDescriptionChanged(TextFieldValue("Lentil\nSmall bowl"))
+        vm.onSaveDetailsTapped()
         advanceUntilIdle()
         val update = repo.templateUpdates.single()
         assertEquals(7L, update.templateId)
