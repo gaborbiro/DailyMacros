@@ -700,6 +700,65 @@ class ModalViewModelTest {
     )
 
     @Test
+    fun `macros updates keep the timestamp editor open and confirming preserves the new macros`() = runTest(testDispatcher) {
+        val repo = ReanalysisRepo(analysedSoup())
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        vm.onEditTimestampTapped()
+        val editor = vm.uiState.value.overlayDialog as DialogHandle.EditTimestampDialog
+
+        repo.records.value = repo.records.value.let { it.copy(template = it.template.copy(isPending = true)) }
+        advanceUntilIdle()
+        assertTrue(editor === vm.uiState.value.overlayDialog)
+        assertTrue((vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View).showLoadingIndicator)
+
+        repo.records.value = repo.records.value.let {
+            it.copy(template = it.template.copy(isPending = false, nutrients = Nutrients(calories = 250)))
+        }
+        advanceUntilIdle()
+        assertTrue(editor === vm.uiState.value.overlayDialog)
+        val refreshed = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertFalse(refreshed.showLoadingIndicator)
+        assertEquals("250kcal", refreshed.compactNutrients.calories)
+        assertNull(vm.uiState.value.closeSignal)
+
+        val picked = editor.timestamp.minusDays(1).withHour(8).withMinute(30)
+        vm.onTimestampPicked(picked)
+        advanceUntilIdle()
+        assertNull(vm.uiState.value.overlayDialog)
+        assertEquals(picked, repo.records.value.timestamp.toZonedDateTime())
+        assertEquals(250, repo.records.value.template.nutrients?.calories)
+        val saved = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertEquals(picked, saved.timestamp)
+        assertEquals("250kcal", saved.compactNutrients.calories)
+    }
+
+    @Test
+    fun `timestamp editor can be cancelled after macros arrive without closing meal details`() = runTest(testDispatcher) {
+        val repo = ReanalysisRepo(analysedSoup())
+        val vm = viewModel(repo)
+        vm.onRecordDetailsButtonTapped(5L)
+        advanceUntilIdle()
+        vm.onEditTimestampTapped()
+        val editor = vm.uiState.value.overlayDialog as DialogHandle.EditTimestampDialog
+
+        repo.records.value = repo.records.value.let {
+            it.copy(template = it.template.copy(nutrients = Nutrients(calories = 250)))
+        }
+        advanceUntilIdle()
+        assertTrue(editor === vm.uiState.value.overlayDialog)
+
+        vm.onDialogDismissRequested(editor)
+        assertNull(vm.uiState.value.overlayDialog)
+        assertNull(vm.uiState.value.closeSignal)
+        val details = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.View
+        assertEquals(editor.timestamp, details.timestamp)
+        assertEquals(editor.timestamp, repo.records.value.timestamp.toZonedDateTime())
+        assertEquals("250kcal", details.compactNutrients.calories)
+    }
+
+    @Test
     fun `description shortcut opens the editor at a new line without marking it dirty`() = runTest(testDispatcher) {
         val repo = ReanalysisRepo(analysedSoup())
         val vm = viewModel(repo)
