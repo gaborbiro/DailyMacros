@@ -747,7 +747,12 @@ class ModalViewModel @Inject constructor(
                         currentCoroutineContext().ensureActive()
                         val latest = _uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View
                         if (latest?.isSavingEdits != true && (latest == null || latest.isEditing == refreshed.isEditing)) {
-                            setRoot(refreshed)
+                            if (latest?.recordId == refreshed.recordId) {
+                                // Live meal updates must leave the current overlay (and its draft) open.
+                                updateRoot<DialogHandle.RecordDetailsDialog.View> { refreshed }
+                            } else {
+                                setRoot(refreshed)
+                            }
                         }
                     }
                 }
