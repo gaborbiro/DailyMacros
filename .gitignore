@@ -93,6 +93,7 @@ buildNumber.properties
 /.idea/markdown-navigator-enh.xml
 /.idea/jarRepositories.xml
 .idea/deploymentTargetSelector.xml
+.idea/artifacts/
 
 # Claude Code local git-worktree checkouts — throwaway copies of the repo.
 # Not for version control, and excluding them keeps code searches from
