@@ -172,6 +172,11 @@
   .demo-veil-text { display: grid; gap: 4px; }
   .demo-veil h3 { margin: 0; font-size: 1.7rem; color: #fff; }
   .demo-veil-sub { margin: 0; color: rgba(255, 255, 255, .78); font-size: .95rem; }
+  /* Testers still hesitated on the veil, so a bold arrow points from the
+     title down to the two buttons. */
+  .demo-veil-hint { align-self: end; display: grid; justify-items: center; gap: 6px; color: #f57c00; font-weight: 800; font-size: 1.25rem; letter-spacing: .02em; text-shadow: 0 1px 8px rgba(0, 0, 0, .5); }
+  .demo-veil-hint svg { width: 60px; height: 84px; filter: drop-shadow(0 2px 8px rgba(245, 124, 0, .55)); animation: demo-bob 1.4s ease-in-out infinite; }
+  @keyframes demo-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
   .demo-cta-actions { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 220px; }
   .demo-veil .btn { font-size: .95rem; padding: 13px 20px; display: flex; align-items: center; justify-content: center; gap: 8px; }
   .demo-veil .btn svg { width: 20px; height: 20px; flex: none; }
@@ -472,7 +477,7 @@
   @keyframes demo-slide-out { from { transform: none; } to { transform: translateX(100%); } }
   .trends.is-closing { animation: demo-slide-out .22s ease-in forwards; }
   @keyframes demo-in { from { opacity: 0; transform: translateY(-6px); background: rgba(245, 124, 0, .45); } to { opacity: 1; transform: none; } }
-  @media (prefers-reduced-motion: reduce) { .phone, .phone *, .demo-fade, .demo-phones, .demo-device, header, header * { animation: none !important; transition: none !important; } }
+  @media (prefers-reduced-motion: reduce) { .phone, .phone *, .demo-fade, .demo-phones, .demo-device, .demo-veil-hint svg, header, header * { animation: none !important; transition: none !important; } }
 
   footer { padding: 24px 0 40px; }
   footer a { color: inherit; }
@@ -526,6 +531,10 @@
               <div class="demo-veil-text">
                 <h3>Try it out now</h3>
                 <p class="demo-veil-sub">Interactive demo &middot; real AI</p>
+              </div>
+              <div class="demo-veil-hint" aria-hidden="true">
+                <span>Tap a button to start</span>
+                <svg viewBox="0 0 48 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M24 4v52"/><path d="M6 38l18 20 18-20"/></svg>
               </div>
               <div class="demo-cta-actions">
                 <button type="button" class="btn" id="demo-cta-camera">
