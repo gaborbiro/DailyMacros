@@ -27,7 +27,9 @@ exports.trackEvent = onRequest(
     region: "us-central1", // must match the Hosting rewrite in firebase.json.
     maxInstances: 3,
     memory: "256MiB",
-    timeoutSeconds: 10,
+    // Cloud Run counts a cold start against this, and starting from zero
+    // instances takes up to ~10s - a lower limit 504s the first page view.
+    timeoutSeconds: 60,
     cors: false, // same-origin via Hosting; no cross-origin caller needed.
   },
   async (req, res) => {
