@@ -16,6 +16,7 @@ import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
 import dev.gaborbiro.dailymacros.repositories.common.model.ZonedInstant
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.PhotoUsage
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
@@ -252,7 +253,18 @@ class RecordsRepositoryImpl @Inject constructor(
         templatesDAO.deleteQuickPickOverride(templateId)
     }
 
-    private suspend fun deleteImageIfUnused(imageFilename: String): Boolean {
+    override suspend fun getPhotoUsages(): List<PhotoUsage> =
+        templatesDAO.getPhotoUsages().map {
+            PhotoUsage(
+                filename = it.filename,
+                mealTitle = it.mealTitle,
+                mealDescription = it.mealDescription,
+                isRepresentativeOfMeal = it.isRepresentativeMealPhoto,
+                lastUsedEpochMillis = it.lastUsedEpochMillis,
+            )
+        }
+
+    override suspend fun deleteImageIfUnused(imageFilename: String): Boolean {
         val refs = templatesDAO.countTemplatesByImage(imageFilename)
         if (refs == 0) {
             imageStore.delete(imageFilename)

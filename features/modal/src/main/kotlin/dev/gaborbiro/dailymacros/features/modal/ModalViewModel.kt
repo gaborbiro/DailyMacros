@@ -8,12 +8,13 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.gaborbiro.dailymacros.data.image.domain.ImageStore
 import dev.gaborbiro.dailymacros.features.modal.model.CloseSignal
 import dev.gaborbiro.dailymacros.features.modal.model.DialogHandle
 import dev.gaborbiro.dailymacros.features.modal.model.ImageInputType
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiState
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
+import dev.gaborbiro.dailymacros.features.modal.model.PastPhoto
+import dev.gaborbiro.dailymacros.features.modal.model.PastPhotoUiModel
 import dev.gaborbiro.dailymacros.features.modal.model.recordDetailsEditPristineSnapshot
 import dev.gaborbiro.dailymacros.features.modal.model.toPickerOptions
 import dev.gaborbiro.dailymacros.features.modal.usecase.ApplyQuickPickOverrideAndReloadWidgetUseCase
@@ -25,6 +26,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.CreateValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.EditValidationResult
 import dev.gaborbiro.dailymacros.features.modal.usecase.ExportImageToGalleryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.GetPastPhotosUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ResolveFirstRecordIdForTemplateUseCase
@@ -33,6 +35,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.SaveRecordEditsUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ScheduleAnalysisIfTemplateIncompleteUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateCreateRecordUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ValidateEditRecordUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.filterPastPhotos
 import dev.gaborbiro.dailymacros.features.shared.CreateRecordFromTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.ListMealVariantsForTemplateUseCase
 import dev.gaborbiro.dailymacros.features.shared.NutrientAnalysisWorker
@@ -68,7 +71,6 @@ import kotlin.time.Duration.Companion.seconds
 class ModalViewModel @Inject constructor(
     application: Application,
     private val modalUiMapper: ModalUiMapper,
-    private val imageStore: ImageStore,
     private val recordsRepository: RecordsRepository,
     private val buildRecordDetailsViewDialogUseCase: BuildRecordDetailsViewDialogUseCase,
     private val resolveFirstRecordIdForTemplateUseCase: ResolveFirstRecordIdForTemplateUseCase,
@@ -82,6 +84,7 @@ class ModalViewModel @Inject constructor(
     private val validateEditRecordUseCase: ValidateEditRecordUseCase,
     private val validateCreateRecordUseCase: ValidateCreateRecordUseCase,
     private val saveImageUseCase: SaveImageUseCase,
+    private val getPastPhotosUseCase: GetPastPhotosUseCase,
     private val exportImageToGalleryUseCase: ExportImageToGalleryUseCase,
     private val getRecordImageUseCase: GetRecordImageUseCase,
     private val getTemplateImageUseCase: GetTemplateImageUseCase,
@@ -102,6 +105,12 @@ class ModalViewModel @Inject constructor(
     private var photoExportJob: Job? = null
 
     private var recordDetailsJob: Job? = null
+
+    /** Loads [pastPhotos] for the open past-photo picker. */
+    private var pastPhotosJob: Job? = null
+
+    /** Every past photo, loaded when the past-photo picker opens and searched in memory as the user types. */
+    private var pastPhotos: List<PastPhoto> = emptyList()
 
     /**
      * A re-analysis the user started from the open details dialog. The worker only marks the meal as
@@ -209,12 +218,7 @@ class ModalViewModel @Inject constructor(
 
     fun onImagesSelected(uris: List<Uri>) {
         runSafely("Couldn't add the selected images") {
-            val existingCount = when (val root = _uiState.value.rootDialog) {
-                is DialogHandle.RecordDetailsDialog.Edit -> root.imageFilenames.size
-                is DialogHandle.RecordDetailsDialog.View -> if (root.isEditing) root.imageFilenames.size else 0
-                else -> 0
-            }
-            if (existingCount + uris.size > MAX_IMAGES) {
+            if (existingImageCount() + uris.size > MAX_IMAGES) {
                 _uiUpdates.emit(ModalUiUpdates.ShowToast("Too many images selected. Maximum $MAX_IMAGES total."))
                 if (_uiState.value.overlayDialog is DialogHandle.ImageInput) {
                     popOverlay()
@@ -222,33 +226,44 @@ class ModalViewModel @Inject constructor(
                 return@runSafely
             }
             val persistedFilenames = uris.map { saveImageUseCase.execute(it) }
+            addImages(persistedFilenames)
+        }
+    }
 
-            when (val root = _uiState.value.rootDialog) {
-                is DialogHandle.RecordDetailsDialog.Edit -> {
-                    val updatedImages = root.imageFilenames + persistedFilenames
-                    val titleAlreadySet = root.title.text.isNotBlank()
-                    setRoot(
-                        root.copy(
-                            imageFilenames = updatedImages,
-                            recognisedFood = if (titleAlreadySet) root.recognisedFood else null,
-                        )
+    /** Photos already on the meal being created or edited. */
+    private fun existingImageCount(): Int = when (val root = _uiState.value.rootDialog) {
+        is DialogHandle.RecordDetailsDialog.Edit -> root.imageFilenames.size
+        is DialogHandle.RecordDetailsDialog.View -> if (root.isEditing) root.imageFilenames.size else 0
+        else -> 0
+    }
+
+    /** Adds stored photos to the meal being created or edited, or starts a new meal with them. */
+    private fun addImages(filenames: List<String>) {
+        when (val root = _uiState.value.rootDialog) {
+            is DialogHandle.RecordDetailsDialog.Edit -> {
+                val updatedImages = root.imageFilenames + filenames
+                val titleAlreadySet = root.title.text.isNotBlank()
+                setRoot(
+                    root.copy(
+                        imageFilenames = updatedImages,
+                        recognisedFood = if (titleAlreadySet) root.recognisedFood else null,
                     )
-                    recomputeHasUnsavedEdits()
-                    if (!titleAlreadySet) {
-                        runFoodRecognition(updatedImages)
-                    }
+                )
+                recomputeHasUnsavedEdits()
+                if (!titleAlreadySet) {
+                    runFoodRecognition(updatedImages)
                 }
+            }
 
-                is DialogHandle.RecordDetailsDialog.View -> {
-                    if (!root.isEditing) return@runSafely
-                    setRoot(root.copy(imageFilenames = root.imageFilenames + persistedFilenames))
-                    recomputeHasUnsavedEdits()
-                }
+            is DialogHandle.RecordDetailsDialog.View -> {
+                if (!root.isEditing) return
+                setRoot(root.copy(imageFilenames = root.imageFilenames + filenames))
+                recomputeHasUnsavedEdits()
+            }
 
-                else -> {
-                    setRoot(newRecordDetailsEdit(imageFilenames = persistedFilenames))
-                    runFoodRecognition(persistedFilenames)
-                }
+            else -> {
+                setRoot(newRecordDetailsEdit(imageFilenames = filenames))
+                runFoodRecognition(filenames)
             }
         }
     }
@@ -303,18 +318,22 @@ class ModalViewModel @Inject constructor(
     fun onNoImageSelected() {
         if (_uiState.value.overlayDialog is DialogHandle.ImageInput) {
             popOverlay()
-            (_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.Edit)?.let { edit ->
-                // Auto-recognition only ever runs for the first photo. Tapping an add-photo button
-                // cancels it as a signal that a second photo is coming; if the user backs out of
-                // that without picking one, the first photo's recognition is left interrupted with
-                // no button shown - resume it here. Backing out of a *third+* photo should do
-                // nothing: by then recognition already ran its course and the AI button is available.
-                if (edit.imageFilenames.size == 1 && !edit.showRunAIButton && !edit.showProgressIndicator) {
-                    runFoodRecognition(edit.imageFilenames)
-                }
-            }
+            resumeInterruptedFoodRecognition()
         } else {
             closeAll()
+        }
+    }
+
+    private fun resumeInterruptedFoodRecognition() {
+        (_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.Edit)?.let { edit ->
+            // Auto-recognition only ever runs for the first photo. Tapping an add-photo button
+            // cancels it as a signal that a second photo is coming; if the user backs out of
+            // that without picking one, the first photo's recognition is left interrupted with
+            // no button shown - resume it here. Backing out of a *third+* photo should do
+            // nothing: by then recognition already ran its course and the AI button is available.
+            if (edit.imageFilenames.size == 1 && !edit.showRunAIButton && !edit.showProgressIndicator) {
+                runFoodRecognition(edit.imageFilenames)
+            }
         }
     }
 
@@ -377,6 +396,8 @@ class ModalViewModel @Inject constructor(
 
     fun onDialogDismissRequested(dialog: DialogHandle) {
         when {
+            dialog is DialogHandle.PastPhotoPicker -> onPastPhotoPickerDismissed()
+
             dialog === _uiState.value.overlayDialog -> {
                 popOverlay()
             }
@@ -396,8 +417,9 @@ class ModalViewModel @Inject constructor(
 
             dialog is DialogHandle.RecordDetailsDialog.Edit -> {
                 runSafely("Couldn't discard the entry") {
+                    // A photo reused from an earlier meal still belongs to that meal.
                     dialog.imageFilenames.forEach { img ->
-                        imageStore.delete(img)
+                        recordsRepository.deleteImageIfUnused(img)
                     }
                     closeAll()
                 }
@@ -560,6 +582,96 @@ class ModalViewModel @Inject constructor(
         if ((_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View)?.isSavingEdits == true) return
         recogniseFoodJob?.cancel()
         pushOverlay(DialogHandle.ImageInput(type = ImageInputType.BrowseImages))
+    }
+
+    fun onAddImageFromPastTapped() {
+        if ((_uiState.value.rootDialog as? DialogHandle.RecordDetailsDialog.View)?.isSavingEdits == true) return
+        val room = MAX_IMAGES - existingImageCount()
+        if (room <= 0) {
+            viewModelScope.launch {
+                _uiUpdates.emit(ModalUiUpdates.ShowToast("A meal can have at most $MAX_IMAGES photos."))
+            }
+            return
+        }
+        recogniseFoodJob?.cancel()
+        pushOverlay(DialogHandle.PastPhotoPicker(maxSelectable = room))
+        pastPhotosJob?.cancel()
+        pastPhotosJob = runSafely("Couldn't load your past photos") {
+            try {
+                pastPhotos = getPastPhotosUseCase.execute()
+                updatePastPhotoPicker { it.copy(hasPastPhotos = pastPhotos.isNotEmpty()) }
+            } finally {
+                updatePastPhotoPicker { it.copy(isLoading = false) }
+            }
+        }
+    }
+
+    fun onPastPhotoQueryChanged(query: TextFieldValue) {
+        updatePastPhotoPicker { it.copy(query = query.truncatedTo(MAX_DESCRIPTION_LENGTH)) }
+    }
+
+    fun onPastPhotoToggled(filename: String) {
+        val picker = _uiState.value.overlayDialog as? DialogHandle.PastPhotoPicker ?: return
+        if (filename !in picker.selectedFilenames && picker.selectedFilenames.size >= picker.maxSelectable) {
+            viewModelScope.launch {
+                _uiUpdates.emit(
+                    ModalUiUpdates.ShowToast(
+                        application.resources.getQuantityString(
+                            R.plurals.past_photos_limit_toast,
+                            picker.maxSelectable,
+                            picker.maxSelectable,
+                        )
+                    )
+                )
+            }
+            return
+        }
+        updatePastPhotoPicker {
+            it.copy(
+                selectedFilenames = if (filename in it.selectedFilenames) {
+                    it.selectedFilenames - filename
+                } else {
+                    it.selectedFilenames + filename
+                }
+            )
+        }
+    }
+
+    fun onPastPhotosConfirmed() {
+        val picker = _uiState.value.overlayDialog as? DialogHandle.PastPhotoPicker ?: return
+        if (picker.selectedFilenames.isEmpty()) {
+            onPastPhotoPickerDismissed()
+            return
+        }
+        pastPhotosJob?.cancel()
+        popOverlay()
+        // Shared, not copied: the photo files are reference counted by the meals using them.
+        addImages(picker.selectedFilenames)
+    }
+
+    /** Closes the past-photo picker without adding anything. */
+    fun onPastPhotoPickerDismissed() {
+        if (_uiState.value.overlayDialog !is DialogHandle.PastPhotoPicker) return
+        pastPhotosJob?.cancel()
+        popOverlay()
+        resumeInterruptedFoodRecognition()
+    }
+
+    /** Applies [transform] to the open past-photo picker and refreshes its search results. */
+    private fun updatePastPhotoPicker(
+        transform: (DialogHandle.PastPhotoPicker) -> DialogHandle.PastPhotoPicker,
+    ) {
+        _uiState.update { state ->
+            val picker = state.overlayDialog as? DialogHandle.PastPhotoPicker ?: return@update state
+            val updated = transform(picker)
+            val alreadyAdded = (state.rootDialog as? DialogHandle.RecordDetailsDialog)?.imageFilenames.orEmpty()
+            val matches = filterPastPhotos(pastPhotos, updated.query.text, alreadyAdded)
+            state.copy(
+                overlayDialog = updated.copy(
+                    photos = matches.map { PastPhotoUiModel(filename = it.filename, caption = it.caption) },
+                ),
+            )
+        }
     }
 
     fun onSubmitButtonTapped() {
@@ -1083,6 +1195,7 @@ class ModalViewModel @Inject constructor(
         recogniseFoodJob?.cancel()
         recordDetailsJob?.cancel()
         photoExportJob?.cancel()
+        pastPhotosJob?.cancel()
         reanalysisProgress = ReanalysisProgress.NONE
         _uiState.update {
             it.copy(

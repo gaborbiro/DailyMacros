@@ -127,6 +127,20 @@ sealed class DialogHandle {
 
     data class ImageInput(val type: ImageInputType) : DialogHandle()
 
+    /** Search among photos of earlier meals, to add them to the meal being edited without retaking them. */
+    data class PastPhotoPicker(
+        val query: TextFieldValue = TextFieldValue(),
+        /** Matches for [query], best first. */
+        val photos: List<PastPhotoUiModel> = emptyList(),
+        val isLoading: Boolean = true,
+        /** Whether there are any past photos at all, to tell an empty history from a search with no hits. */
+        val hasPastPhotos: Boolean = false,
+        /** In the order they were picked, which is the order they are added in. */
+        val selectedFilenames: List<String> = emptyList(),
+        /** Photos the meal still has room for. */
+        val maxSelectable: Int,
+    ) : DialogHandle()
+
     data class ConfirmSwitchTemplateDialog(
         val pendingTemplateId: Long,
     ) : DialogHandle()

@@ -8,6 +8,7 @@ import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
 import dev.gaborbiro.dailymacros.repositories.common.model.ZonedInstant
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.PhotoUsage
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
@@ -86,6 +87,8 @@ internal class FakeRecordsRepository(private val records: List<Record> = emptyLi
     ) = error("unused")
     override suspend fun addQuickPickOverride(templateId: Long, type: Template.QuickPickOverride) = error("unused")
     override suspend fun removeQuickPickOverride(templateId: Long) = error("unused")
+    override suspend fun getPhotoUsages(): List<PhotoUsage> = error("unused")
+    override suspend fun deleteImageIfUnused(imageFilename: String): Boolean = error("unused")
 }
 
 /** Only the diary day start is read by the meal reminder use cases. */

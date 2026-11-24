@@ -67,6 +67,7 @@ fun ColumnScope.RecordDetailsCreateView(
     onImageMoveRightTapped: (String) -> Unit,
     onAddImageViaCameraTapped: () -> Unit,
     onAddImageViaPickerTapped: () -> Unit,
+    onAddImageFromPastTapped: () -> Unit,
     onImagesInfoButtonTapped: () -> Unit,
     onRunAIButtonTapped: () -> Unit,
     onTitleSpoken: (String) -> Unit = {},
@@ -98,6 +99,7 @@ fun ColumnScope.RecordDetailsCreateView(
         onImageMoveRightTapped = onImageMoveRightTapped,
         onAddImageViaCameraTapped = onAddImageViaCameraTapped,
         onAddImageViaPickerTapped = onAddImageViaPickerTapped,
+        onAddImageFromPastTapped = onAddImageFromPastTapped,
         onInfoButtonTapped = onImagesInfoButtonTapped,
     )
 
@@ -246,6 +248,7 @@ private fun RecordDetailsCreateViewPreview() {
             onImageMoveRightTapped = {},
             onAddImageViaCameraTapped = {},
             onAddImageViaPickerTapped = {},
+            onAddImageFromPastTapped = {},
             onImagesInfoButtonTapped = {},
             onRunAIButtonTapped = {},
         )
@@ -274,6 +277,7 @@ private fun RecordDetailsCreateViewPreviewRunAi() {
             onImageMoveRightTapped = {},
             onAddImageViaCameraTapped = {},
             onAddImageViaPickerTapped = {},
+            onAddImageFromPastTapped = {},
             onImagesInfoButtonTapped = {},
             onRunAIButtonTapped = {},
         )
@@ -302,6 +306,7 @@ private fun RecordDetailsCreateViewPreviewError() {
             onImageMoveRightTapped = {},
             onAddImageViaCameraTapped = {},
             onAddImageViaPickerTapped = {},
+            onAddImageFromPastTapped = {},
             onImagesInfoButtonTapped = {},
             onRunAIButtonTapped = {},
         )

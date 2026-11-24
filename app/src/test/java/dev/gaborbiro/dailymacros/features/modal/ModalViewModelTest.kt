@@ -20,6 +20,7 @@ import dev.gaborbiro.dailymacros.features.modal.usecase.LogMealFromTemplateUseCa
 import dev.gaborbiro.dailymacros.features.modal.usecase.LogQuickPickMealUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.ExportImageToGalleryUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.FoodRecognitionUseCase
+import dev.gaborbiro.dailymacros.features.modal.usecase.GetPastPhotosUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetRecordImageUseCase
 import dev.gaborbiro.dailymacros.features.modal.usecase.GetTemplateImageUseCase
 import dev.gaborbiro.dailymacros.features.shared.ListMealVariantsForTemplateUseCase
@@ -43,6 +44,7 @@ import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnaly
 import dev.gaborbiro.dailymacros.repositories.chatgpt.domain.model.NutrientAnalysisRequest
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.PhotoUsage
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
@@ -196,7 +198,6 @@ class ModalViewModelTest {
         return ModalViewModel(
             application = app,
             modalUiMapper = modalUiMapper,
-            imageStore = imageStore,
             recordsRepository = repo,
             buildRecordDetailsViewDialogUseCase = buildDetails,
             resolveFirstRecordIdForTemplateUseCase = ResolveFirstRecordIdForTemplateUseCase(repo),
@@ -210,6 +211,7 @@ class ModalViewModelTest {
             validateEditRecordUseCase = ValidateEditRecordUseCase(repo),
             validateCreateRecordUseCase = ValidateCreateRecordUseCase(),
             saveImageUseCase = SaveImageUseCase(app, imageStore, testSettingsRepository),
+            getPastPhotosUseCase = GetPastPhotosUseCase(repo),
             exportImageToGalleryUseCase = ExportImageToGalleryUseCase(app, imageStore),
             getRecordImageUseCase = GetRecordImageUseCase(repo),
             getTemplateImageUseCase = GetTemplateImageUseCase(repo),
@@ -267,6 +269,107 @@ class ModalViewModelTest {
         assertEquals("Pasta", root.title.text)
         assertEquals(listOf("pic.jpg"), root.imageFilenames)
         assertTrue(root.hasUnsavedEdits)
+    }
+
+    private class PastPhotosRepo(
+        private val usages: List<PhotoUsage>,
+    ) : BaseRecordsRepositoryStub() {
+        val deleteRequests = mutableListOf<String>()
+        override suspend fun getPhotoUsages() = usages
+        override suspend fun deleteImageIfUnused(imageFilename: String): Boolean {
+            deleteRequests += imageFilename
+            return false
+        }
+    }
+
+    private fun photoUsage(filename: String, title: String, lastUsed: Long) = PhotoUsage(
+        filename = filename,
+        mealTitle = title,
+        mealDescription = "",
+        isRepresentativeOfMeal = null,
+        lastUsedEpochMillis = lastUsed,
+    )
+
+    @Test
+    fun `past photos are searched and added to the new meal in the order picked`() {
+        val repo = PastPhotosRepo(
+            listOf(
+                photoUsage("milk.jpg", "Granola with soy milk", lastUsed = 1),
+                photoUsage("milk.jpg", "Porridge with soy milk", lastUsed = 2),
+                photoUsage("latte.jpg", "Soy latte", lastUsed = 3),
+                photoUsage("pasta.jpg", "Pasta", lastUsed = 4),
+            )
+        )
+        val vm = viewModel(repo)
+        vm.onCreateRecordWithTextDeeplinkReceived()
+        // A title skips AI food recognition, which isn't under test here.
+        vm.onTitleChanged(TextFieldValue("Granola"))
+
+        vm.onAddImageFromPastTapped()
+        var picker = vm.uiState.value.overlayDialog as DialogHandle.PastPhotoPicker
+        assertFalse(picker.isLoading)
+        assertTrue(picker.hasPastPhotos)
+        // Each photo once, however many meals used it.
+        assertEquals(listOf("pasta.jpg", "latte.jpg", "milk.jpg"), picker.photos.map { it.filename })
+        assertEquals("Porridge with soy milk", picker.photos.last().caption)
+
+        vm.onPastPhotoQueryChanged(TextFieldValue("soy"))
+        picker = vm.uiState.value.overlayDialog as DialogHandle.PastPhotoPicker
+        assertEquals(listOf("latte.jpg", "milk.jpg"), picker.photos.map { it.filename })
+
+        vm.onPastPhotoToggled("milk.jpg")
+        vm.onPastPhotoToggled("latte.jpg")
+        vm.onPastPhotosConfirmed()
+
+        assertNull(vm.uiState.value.overlayDialog)
+        val root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.Edit
+        assertEquals(listOf("milk.jpg", "latte.jpg"), root.imageFilenames)
+
+        // Photos already on the meal aren't offered again.
+        vm.onAddImageFromPastTapped()
+        picker = vm.uiState.value.overlayDialog as DialogHandle.PastPhotoPicker
+        assertEquals(listOf("pasta.jpg"), picker.photos.map { it.filename })
+        assertEquals(3, picker.maxSelectable)
+    }
+
+    @Test
+    fun `past photo picker stops picking when the meal is full`() {
+        val repo = PastPhotosRepo((1..6).map { photoUsage("$it.jpg", "Meal $it", lastUsed = it.toLong()) })
+        val vm = viewModel(repo)
+        vm.onPhotoRecognitionDetailsDeeplinkReceived(recognisedTitle = "Pasta", imageFilename = "pic.jpg")
+        vm.onAddImageFromPastTapped()
+        (1..6).forEach { vm.onPastPhotoToggled("$it.jpg") }
+        val picker = vm.uiState.value.overlayDialog as DialogHandle.PastPhotoPicker
+        assertEquals(listOf("1.jpg", "2.jpg", "3.jpg", "4.jpg"), picker.selectedFilenames)
+    }
+
+    @Test
+    fun `closing the past photo picker keeps the new meal open`() {
+        val vm = viewModel(PastPhotosRepo(listOf(photoUsage("a.jpg", "Soup", lastUsed = 1))))
+        vm.onPhotoRecognitionDetailsDeeplinkReceived(recognisedTitle = "Pasta", imageFilename = "pic.jpg")
+        vm.onAddImageFromPastTapped()
+        vm.onPastPhotoToggled("a.jpg")
+        vm.onPastPhotoPickerDismissed()
+        assertNull(vm.uiState.value.overlayDialog)
+        assertNull(vm.uiState.value.closeSignal)
+        val root = vm.uiState.value.rootDialog as DialogHandle.RecordDetailsDialog.Edit
+        assertEquals(listOf("pic.jpg"), root.imageFilenames)
+    }
+
+    @Test
+    fun `discarding a new meal only deletes photos no other meal uses`() {
+        val repo = PastPhotosRepo(listOf(photoUsage("milk.jpg", "Granola", lastUsed = 1)))
+        val vm = viewModel(repo)
+        vm.onPhotoRecognitionDetailsDeeplinkReceived(recognisedTitle = "Granola", imageFilename = "new.jpg")
+        vm.onAddImageFromPastTapped()
+        vm.onPastPhotoToggled("milk.jpg")
+        vm.onPastPhotosConfirmed()
+
+        vm.onDialogDismissRequested(vm.uiState.value.rootDialog!!)
+
+        // The repository keeps milk.jpg: the earlier meal still uses it.
+        assertEquals(listOf("new.jpg", "milk.jpg"), repo.deleteRequests)
+        assertEquals(CloseSignal.CLOSE, vm.uiState.value.closeSignal)
     }
 
     @Test

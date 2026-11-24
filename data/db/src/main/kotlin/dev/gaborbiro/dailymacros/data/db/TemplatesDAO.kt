@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
+import dev.gaborbiro.dailymacros.data.db.model.PhotoUsageRow
 import dev.gaborbiro.dailymacros.data.db.model.TemplateJoined
 import dev.gaborbiro.dailymacros.data.db.model.entity.ImageEntity
 import dev.gaborbiro.dailymacros.data.db.model.entity.MacrosEntity
@@ -181,6 +182,25 @@ ORDER BY
 
     @Query("SELECT COUNT(*) FROM template_images WHERE image = :image")
     suspend fun countTemplatesByImage(image: String): Int
+
+    /**
+     * Every photo of every meal, one row per (photo, meal) pair, so a photo shared by several meals
+     * appears once for each of them.
+     */
+    @Query(
+        """
+        SELECT ti.image AS filename,
+            t.name AS mealTitle,
+            t.description AS mealDescription,
+            ti.isRepresentativeMealPhoto AS isRepresentativeMealPhoto,
+            MAX(COALESCE(r.epochMillis, t.updatedAtEpochMs)) AS lastUsedEpochMillis
+        FROM template_images ti
+        INNER JOIN templates t ON t._id = ti.templateId
+        LEFT JOIN records r ON r.templateId = t._id
+        GROUP BY ti._id
+        """,
+    )
+    suspend fun getPhotoUsages(): List<PhotoUsageRow>
 
     @Query("UPDATE template_images SET sortOrder = :sort WHERE _id = :imageId")
     suspend fun setSortOrder(imageId: Long, sort: Int): Int
