@@ -637,6 +637,14 @@ class ModalViewModel @Inject constructor(
         }
     }
 
+    fun onPastPhotoPreviewTapped(filename: String) {
+        updatePastPhotoPicker { it.copy(previewFilename = filename) }
+    }
+
+    fun onPastPhotoPreviewDismissed() {
+        updatePastPhotoPicker { it.copy(previewFilename = null) }
+    }
+
     fun onPastPhotosConfirmed() {
         val picker = _uiState.value.overlayDialog as? DialogHandle.PastPhotoPicker ?: return
         if (picker.selectedFilenames.isEmpty()) {

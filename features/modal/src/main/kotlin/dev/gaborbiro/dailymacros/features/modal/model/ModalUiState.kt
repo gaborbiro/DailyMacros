@@ -139,6 +139,8 @@ sealed class DialogHandle {
         val selectedFilenames: List<String> = emptyList(),
         /** Photos the meal still has room for. */
         val maxSelectable: Int,
+        /** The photo opened full screen, or null when none is. */
+        val previewFilename: String? = null,
     ) : DialogHandle()
 
     data class ConfirmSwitchTemplateDialog(

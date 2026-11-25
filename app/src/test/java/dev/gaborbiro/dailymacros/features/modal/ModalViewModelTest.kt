@@ -120,6 +120,8 @@ class ModalViewModelTest {
 
         override suspend fun read(filename: String, thumbnail: Boolean) = null
 
+        override suspend fun readScaled(filename: String, maxEdgePx: Int) = null
+
         override suspend fun write(filename: String, bitmap: Bitmap) = Unit
 
         override suspend fun delete(filename: String) = Unit
@@ -341,6 +343,21 @@ class ModalViewModelTest {
         (1..6).forEach { vm.onPastPhotoToggled("$it.jpg") }
         val picker = vm.uiState.value.overlayDialog as DialogHandle.PastPhotoPicker
         assertEquals(listOf("1.jpg", "2.jpg", "3.jpg", "4.jpg"), picker.selectedFilenames)
+    }
+
+    @Test
+    fun `a past photo can be previewed and picked from the preview`() {
+        val vm = viewModel(PastPhotosRepo(listOf(photoUsage("a.jpg", "Soup", lastUsed = 1))))
+        vm.onPhotoRecognitionDetailsDeeplinkReceived(recognisedTitle = "Pasta", imageFilename = "pic.jpg")
+        vm.onAddImageFromPastTapped()
+        vm.onPastPhotoPreviewTapped("a.jpg")
+        assertEquals("a.jpg", (vm.uiState.value.overlayDialog as DialogHandle.PastPhotoPicker).previewFilename)
+
+        vm.onPastPhotoToggled("a.jpg")
+        vm.onPastPhotoPreviewDismissed()
+        val picker = vm.uiState.value.overlayDialog as DialogHandle.PastPhotoPicker
+        assertNull(picker.previewFilename)
+        assertEquals(listOf("a.jpg"), picker.selectedFilenames)
     }
 
     @Test

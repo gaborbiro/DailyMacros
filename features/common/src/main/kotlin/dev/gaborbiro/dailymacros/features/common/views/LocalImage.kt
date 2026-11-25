@@ -16,6 +16,10 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 
 
+/**
+ * @param maxEdgePx when set, the photo is decoded to this size on its longer edge, for tiles too big
+ * for the stored thumbnail to look sharp; otherwise the thumbnail is shown
+ */
 @Composable
 fun LocalImage(
     name: String,
@@ -24,13 +28,14 @@ fun LocalImage(
     contentScale: ContentScale = ContentScale.Crop,
     placeholder: @Composable () -> Unit = { Box(modifier.background(Color.LightGray.copy(alpha = 0.15f))) },
     error: @Composable () -> Unit = { Box(modifier.background(Color.Red.copy(alpha = 0.08f))) },
+    maxEdgePx: Int? = null,
 ) {
     val store = LocalImageStore.current
 
-    val bmp by produceState<Bitmap?>(initialValue = null, key1 = name, key2 = store) {
+    val bmp by produceState<Bitmap?>(initialValue = null, key1 = name, key2 = store, key3 = maxEdgePx) {
         value = null
         value = try {
-            store.read(name, thumbnail = true)
+            if (maxEdgePx != null) store.readScaled(name, maxEdgePx) else store.read(name, thumbnail = true)
         } catch (_: Throwable) {
             null
         }

@@ -14,6 +14,8 @@ object DummyImageStore : ImageStore {
             eraseColor(randomColor())
         }
 
+    override suspend fun readScaled(filename: String, maxEdgePx: Int): Bitmap = read(filename, thumbnail = true)
+
     override suspend fun write(filename: String, bitmap: Bitmap) { /* no-op */
     }
 

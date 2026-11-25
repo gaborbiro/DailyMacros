@@ -75,9 +75,25 @@ class ImageStoreImpl @Inject constructor(
     private val inflight = ConcurrentHashMap<String, Deferred<Bitmap?>>()
     private val decodeLimiter = Semaphore(permits = 2) // tune: 2–3
 
-    override suspend fun read(filename: String, thumbnail: Boolean): Bitmap? = coroutineScope {
-        val key = if (thumbnail) thumbName(filename) else filename
+    override suspend fun read(filename: String, thumbnail: Boolean): Bitmap? =
+        cachedDecode(key = if (thumbnail) thumbName(filename) else filename) {
+            if (thumbnail) {
+                decodeIfExists(thumbName(filename), thumbStore) ?: decodeAndCreateThumb(filename)
+            } else {
+                // Full-size lives in cache and may have been evicted; fall back to thumbnail.
+                decodeIfExists(filename, fullSizeStore)
+                    ?: decodeIfExists(thumbName(filename), thumbStore)
+            }
+        }
 
+    override suspend fun readScaled(filename: String, maxEdgePx: Int): Bitmap? =
+        cachedDecode(key = "$filename@$maxEdgePx") {
+            decodeBoundedIfExists(filename, fullSizeStore, maxEdgePx)
+                ?: decodeIfExists(thumbName(filename), thumbStore)
+        }
+
+    /** Decodes on the IO pool at most two at a time, sharing concurrent requests and caching the result under [key]. */
+    private suspend fun cachedDecode(key: String, decode: () -> Bitmap?): Bitmap? = coroutineScope {
         // cache hit?
         cacheLock.withLock {
             memCache.get(key)?.let { return@coroutineScope it }
@@ -86,14 +102,7 @@ class ImageStoreImpl @Inject constructor(
         inflight.computeIfAbsent(key) {
             async(io) {
                 decodeLimiter.withPermit {
-                    // decode from disk (or generate thumb)
-                    val bmp: Bitmap? = if (thumbnail) {
-                        decodeIfExists(thumbName(filename), thumbStore) ?: decodeAndCreateThumb(filename)
-                    } else {
-                        // Full-size lives in cache and may have been evicted; fall back to thumbnail.
-                        decodeIfExists(filename, fullSizeStore)
-                            ?: decodeIfExists(thumbName(filename), thumbStore)
-                    }
+                    val bmp: Bitmap? = decode()
 
                     // cache or purge on miss
                     cacheLock.withLock {
@@ -149,6 +158,21 @@ class ImageStoreImpl @Inject constructor(
         return ImageDecoder.decodeBitmap(src) { decoder, _, _ ->
             decoder.isMutableRequired = false
             decoder.allocator = ImageDecoder.ALLOCATOR_HARDWARE // fast rendering
+        }
+    }
+
+    /** Decodes [filename] scaled down to at most [maxEdge] on its longer edge, or null if it doesn't exist. */
+    private fun decodeBoundedIfExists(filename: String, store: FileStore, maxEdge: Int): Bitmap? {
+        val file = File(store.resolveFilePath(filename))
+        if (!file.exists()) return null
+        return ImageDecoder.decodeBitmap(ImageDecoder.createSource(file)) { decoder, info, _ ->
+            val (w, h) = info.size.width to info.size.height
+            val (tw, th) = boundSize(w, h, maxEdge)
+            if (tw > 0 && th > 0 && (tw < w || th < h)) {
+                decoder.setTargetSize(tw, th)
+            }
+            decoder.isMutableRequired = false
+            decoder.allocator = ImageDecoder.ALLOCATOR_HARDWARE
         }
     }
 

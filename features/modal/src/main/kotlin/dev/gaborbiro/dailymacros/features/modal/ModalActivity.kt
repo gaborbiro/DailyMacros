@@ -324,6 +324,8 @@ class ModalActivity : AppCompatActivity() {
                 dialogHandle = dialogHandle,
                 onQueryChanged = viewModel::onPastPhotoQueryChanged,
                 onPhotoToggled = viewModel::onPastPhotoToggled,
+                onPreviewTapped = viewModel::onPastPhotoPreviewTapped,
+                onPreviewDismissed = viewModel::onPastPhotoPreviewDismissed,
                 onAddTapped = viewModel::onPastPhotosConfirmed,
                 onDismissRequested = viewModel::onPastPhotoPickerDismissed,
             )

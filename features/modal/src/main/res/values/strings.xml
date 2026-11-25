@@ -80,6 +80,10 @@
     <string name="past_photos_add">Add</string>
     <string name="past_photos_add_count">Add (%d)</string>
     <string name="past_photos_empty">No photos yet. Photos you add to meals will show up here to reuse.</string>
+    <string name="past_photos_preview_cd">View full screen</string>
+    <string name="past_photos_preview_close_cd">Close preview</string>
+    <string name="past_photos_preview_select">Select</string>
+    <string name="past_photos_preview_selected">Selected (%d)</string>
     <string name="past_photos_no_matches">No past photos match \"%s\"</string>
     <plurals name="past_photos_limit_toast">
         <item quantity="one">This meal has room for 1 more photo</item>

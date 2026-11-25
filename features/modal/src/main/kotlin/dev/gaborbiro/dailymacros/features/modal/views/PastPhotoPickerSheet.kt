@@ -1,9 +1,10 @@
 package dev.gaborbiro.dailymacros.features.modal.views
 
 import android.content.res.Configuration
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,32 +19,45 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -52,6 +66,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import dev.gaborbiro.dailymacros.features.common.views.LocalImage
 import dev.gaborbiro.dailymacros.features.common.views.ViewPreviewContext
 import dev.gaborbiro.dailymacros.features.modal.R
@@ -65,6 +81,8 @@ internal fun PastPhotoPickerSheet(
     dialogHandle: DialogHandle.PastPhotoPicker,
     onQueryChanged: (TextFieldValue) -> Unit,
     onPhotoToggled: (String) -> Unit,
+    onPreviewTapped: (String) -> Unit,
+    onPreviewDismissed: () -> Unit,
     onAddTapped: () -> Unit,
     onDismissRequested: () -> Unit,
 ) {
@@ -80,8 +98,18 @@ internal fun PastPhotoPickerSheet(
             dialogHandle = dialogHandle,
             onQueryChanged = onQueryChanged,
             onPhotoToggled = onPhotoToggled,
+            onPreviewTapped = onPreviewTapped,
             onAddTapped = onAddTapped,
             onCloseTapped = onDismissRequested,
+        )
+    }
+    dialogHandle.previewFilename?.let { filename ->
+        PastPhotoPreview(
+            photos = dialogHandle.photos,
+            initialFilename = filename,
+            selectedFilenames = dialogHandle.selectedFilenames,
+            onPhotoToggled = onPhotoToggled,
+            onDismissRequested = onPreviewDismissed,
         )
     }
 }
@@ -91,6 +119,7 @@ private fun PastPhotoPickerContent(
     dialogHandle: DialogHandle.PastPhotoPicker,
     onQueryChanged: (TextFieldValue) -> Unit,
     onPhotoToggled: (String) -> Unit,
+    onPreviewTapped: (String) -> Unit,
     onAddTapped: () -> Unit,
     onCloseTapped: () -> Unit,
     modifier: Modifier = Modifier,
@@ -181,6 +210,7 @@ private fun PastPhotoPickerContent(
                             photo = photo,
                             selectionNumber = dialogHandle.selectedFilenames.indexOf(photo.filename) + 1,
                             onTapped = { onPhotoToggled(photo.filename) },
+                            onPreviewTapped = { onPreviewTapped(photo.filename) },
                         )
                     }
                 }
@@ -190,18 +220,33 @@ private fun PastPhotoPickerContent(
 }
 
 /**
+ * Tapping picks the photo, like in the system photo picker. The expand button in the corner, or a
+ * long press anywhere, opens it full screen instead, to read a label before picking it.
+ *
  * @param selectionNumber the photo's position among the picked ones (they are added in that order),
  * or 0 when it isn't picked
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun PastPhotoTile(
     photo: PastPhotoUiModel,
     selectionNumber: Int,
     onTapped: () -> Unit,
+    onPreviewTapped: () -> Unit,
 ) {
     val shape = RoundedCornerShape(12.dp)
     val selected = selectionNumber > 0
-    Column(modifier = Modifier.clickable(onClick = onTapped)) {
+    val haptics = LocalHapticFeedback.current
+    Column(
+        modifier = Modifier.combinedClickable(
+            onClick = onTapped,
+            onLongClick = {
+                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                onPreviewTapped()
+            },
+            onLongClickLabel = stringResource(R.string.past_photos_preview_cd),
+        ),
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -218,7 +263,28 @@ private fun PastPhotoTile(
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
                 contentDescription = photo.caption,
+                maxEdgePx = TILE_IMAGE_MAX_EDGE_PX,
             )
+            IconButton(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .size(40.dp),
+                onClick = onPreviewTapped,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .background(Color.Black.copy(alpha = 0.55f), CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        modifier = Modifier.size(16.dp),
+                        imageVector = Icons.Filled.OpenInFull,
+                        contentDescription = stringResource(R.string.past_photos_preview_cd),
+                        tint = Color.White,
+                    )
+                }
+            }
             if (selected) {
                 Box(
                     modifier = Modifier
@@ -249,6 +315,107 @@ private fun PastPhotoTile(
     }
 }
 
+/**
+ * A past photo full screen, zoomable to read its label, swipeable through the search results, with a
+ * button to pick the photo on show.
+ */
+@Composable
+private fun PastPhotoPreview(
+    photos: List<PastPhotoUiModel>,
+    initialFilename: String,
+    selectedFilenames: List<String>,
+    onPhotoToggled: (String) -> Unit,
+    onDismissRequested: () -> Unit,
+) {
+    if (photos.isEmpty()) return
+    Dialog(
+        onDismissRequest = onDismissRequested,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
+        val pagerState = rememberPagerState(
+            initialPage = photos.indexOfFirst { it.filename == initialFilename }.coerceAtLeast(0),
+            pageCount = { photos.size },
+        )
+        var currentPageZoomed by remember { mutableStateOf(false) }
+        val current = photos[pagerState.currentPage.coerceIn(0, photos.lastIndex)]
+        val selectionNumber = selectedFilenames.indexOf(current.filename) + 1
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.9f)),
+        ) {
+            HorizontalPager(
+                modifier = Modifier.fillMaxSize(),
+                state = pagerState,
+                key = { photos[it].filename },
+                beyondViewportPageCount = 1,
+                userScrollEnabled = !currentPageZoomed,
+            ) { page ->
+                LazyZoomableImage(
+                    imageFilename = photos[page].filename,
+                    contentDescription = photos[page].caption,
+                    onZoomChanged = { scale ->
+                        if (page == pagerState.currentPage) currentPageZoomed = scale > 1f
+                    },
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopStart)
+                    .background(Color.Black.copy(alpha = 0.4f))
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = onDismissRequested) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = stringResource(R.string.past_photos_preview_close_cd),
+                        tint = Color.White,
+                    )
+                }
+                Text(
+                    modifier = Modifier.weight(1f),
+                    text = current.caption,
+                    color = Color.White,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+
+            val toggle = { onPhotoToggled(current.filename) }
+            val buttonModifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 32.dp)
+            if (selectionNumber > 0) {
+                Button(modifier = buttonModifier, onClick = toggle) {
+                    Icon(
+                        modifier = Modifier.size(18.dp),
+                        imageVector = Icons.Filled.Check,
+                        contentDescription = null,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.past_photos_preview_selected, selectionNumber))
+                }
+            } else {
+                OutlinedButton(
+                    modifier = buttonModifier,
+                    onClick = toggle,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color.Black.copy(alpha = 0.4f),
+                        contentColor = Color.White,
+                    ),
+                ) {
+                    Text(stringResource(R.string.past_photos_preview_select))
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun EmptyMessage(text: String) {
     Text(
@@ -261,6 +428,9 @@ private fun EmptyMessage(text: String) {
         textAlign = TextAlign.Center,
     )
 }
+
+/** Tiles are at most about 140dp wide; this keeps them sharp up to ~3.5x screen density. */
+private const val TILE_IMAGE_MAX_EDGE_PX = 480
 
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
@@ -283,6 +453,7 @@ private fun PastPhotoPickerPreview() {
             ),
             onQueryChanged = {},
             onPhotoToggled = {},
+            onPreviewTapped = {},
             onAddTapped = {},
             onCloseTapped = {},
         )
@@ -303,6 +474,7 @@ private fun PastPhotoPickerNoMatchesPreview() {
             ),
             onQueryChanged = {},
             onPhotoToggled = {},
+            onPreviewTapped = {},
             onAddTapped = {},
             onCloseTapped = {},
         )
