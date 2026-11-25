@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,6 +32,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -58,6 +61,7 @@ fun ImageStrip(
     onImageMoveRightTapped: (String) -> Unit = {},
     onAddImageViaCameraTapped: () -> Unit,
     onAddImageViaPickerTapped: () -> Unit,
+    onAddImageFromPastTapped: () -> Unit,
     modifier: Modifier = Modifier,
     tileSize: Dp = 64.dp,
     onInfoButtonTapped: () -> Unit,
@@ -163,37 +167,24 @@ fun ImageStrip(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(tileSize)
-                        .clip(shape)
-                        .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f), shape)
-                        .clickable(onClick = onAddImageViaCameraTapped)
-                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f), shape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(CommonR.drawable.ic_add_photo),
-                        contentDescription = stringResource(R.string.modal_content_image_take_photo_cd),
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                Box(
-                    modifier = Modifier
-                        .size(tileSize)
-                        .clip(shape)
-                        .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f), shape)
-                        .clickable(onClick = onAddImageViaPickerTapped)
-                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f), shape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(CommonR.drawable.ic_add_picture),
-                        contentDescription = stringResource(R.string.modal_content_image_picker_cd),
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
+                AddPhotoTile(
+                    painter = painterResource(CommonR.drawable.ic_add_photo),
+                    contentDescription = stringResource(R.string.modal_content_image_take_photo_cd),
+                    tileSize = tileSize,
+                    onClick = onAddImageViaCameraTapped,
+                )
+                AddPhotoTile(
+                    painter = painterResource(CommonR.drawable.ic_add_picture),
+                    contentDescription = stringResource(R.string.modal_content_image_picker_cd),
+                    tileSize = tileSize,
+                    onClick = onAddImageViaPickerTapped,
+                )
+                AddPhotoTile(
+                    painter = rememberVectorPainter(Icons.Outlined.History),
+                    contentDescription = stringResource(R.string.modal_content_image_past_photos_cd),
+                    tileSize = tileSize,
+                    onClick = onAddImageFromPastTapped,
+                )
                 if (showInfoButton) {
                     IconButton(onClick = onInfoButtonTapped) {
                         Icon(
@@ -204,6 +195,32 @@ fun ImageStrip(
                 }
             }
         }
+    }
+}
+
+/** An empty tile at the end of the strip that adds photos from one source. */
+@Composable
+private fun AddPhotoTile(
+    painter: Painter,
+    contentDescription: String,
+    tileSize: Dp,
+    onClick: () -> Unit,
+) {
+    val shape = RoundedCornerShape(12.dp)
+    Box(
+        modifier = Modifier
+            .size(tileSize)
+            .clip(shape)
+            .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f), shape)
+            .clickable(onClick = onClick)
+            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f), shape),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painter,
+            contentDescription = contentDescription,
+            tint = MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 
@@ -240,6 +257,7 @@ private fun ImageStripPreview() {
             onImageMoveRightTapped = {},
             onAddImageViaCameraTapped = {},
             onAddImageViaPickerTapped = {},
+            onAddImageFromPastTapped = {},
             onInfoButtonTapped = {},
         )
     }
@@ -258,6 +276,7 @@ private fun ImageStripPreviewViewOnly() {
             onImageDeleteTapped = {},
             onAddImageViaCameraTapped = {},
             onAddImageViaPickerTapped = {},
+            onAddImageFromPastTapped = {},
             onInfoButtonTapped = {},
         )
     }

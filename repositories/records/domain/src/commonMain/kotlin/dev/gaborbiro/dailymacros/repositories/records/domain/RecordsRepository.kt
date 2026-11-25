@@ -4,6 +4,7 @@ import dev.gaborbiro.dailymacros.repositories.common.model.Nutrients
 import dev.gaborbiro.dailymacros.repositories.common.model.TopContributors
 import dev.gaborbiro.dailymacros.repositories.common.model.ZonedInstant
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.PhotoUsage
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
@@ -76,4 +77,15 @@ interface RecordsRepository {
     suspend fun addQuickPickOverride(templateId: Long, type: Template.QuickPickOverride)
 
     suspend fun removeQuickPickOverride(templateId: Long)
+
+    /** Every photo of every meal, one entry per (photo, meal) pair. */
+    suspend fun getPhotoUsages(): List<PhotoUsage>
+
+    /**
+     * Deletes the photo file unless a meal still uses it. Photos can be shared between meals, so
+     * this is the only safe way to throw away a photo that may have been reused.
+     *
+     * @return whether the file was deleted
+     */
+    suspend fun deleteImageIfUnused(imageFilename: String): Boolean
 }

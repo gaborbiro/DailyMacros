@@ -45,6 +45,7 @@ import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates
 import dev.gaborbiro.dailymacros.features.modal.model.ModalUiUpdates.ShareImage
 import dev.gaborbiro.dailymacros.features.modal.views.EditTimestampBottomSheet
 import dev.gaborbiro.dailymacros.features.modal.views.ImageDialog
+import dev.gaborbiro.dailymacros.features.modal.views.PastPhotoPickerSheet
 import dev.gaborbiro.dailymacros.features.modal.views.ConfirmSwitchTemplateDialog
 import dev.gaborbiro.dailymacros.features.modal.views.QuickPickWidgetConfirmDialog
 import dev.gaborbiro.dailymacros.features.modal.views.RecordDetailsDialog
@@ -286,6 +287,7 @@ class ModalActivity : AppCompatActivity() {
                 onImageMoveRightTapped = viewModel::onImageMoveRightTapped,
                 onAddImageViaCameraTapped = viewModel::onAddImageViaCameraTapped,
                 onAddImageViaPickerTapped = viewModel::onAddImageViaPickerTapped,
+                onAddImageFromPastTapped = viewModel::onAddImageFromPastTapped,
                 onDismissRequested = onDismissRequested,
                 onImagesInfoButtonTapped = viewModel::onImagesInfoButtonTapped,
                 onRunAIButtonTapped = viewModel::onRunAIButtonTapped,
@@ -316,6 +318,16 @@ class ModalActivity : AppCompatActivity() {
                 onDismissRequested = onDismissRequested,
                 onImageDownloadTapped = viewModel::onImageDownloadTapped,
                 photoExportInProgress = photoExportInProgress,
+            )
+
+            is DialogHandle.PastPhotoPicker -> PastPhotoPickerSheet(
+                dialogHandle = dialogHandle,
+                onQueryChanged = viewModel::onPastPhotoQueryChanged,
+                onPhotoToggled = viewModel::onPastPhotoToggled,
+                onPreviewTapped = viewModel::onPastPhotoPreviewTapped,
+                onPreviewDismissed = viewModel::onPastPhotoPreviewDismissed,
+                onAddTapped = viewModel::onPastPhotosConfirmed,
+                onDismissRequested = viewModel::onPastPhotoPickerDismissed,
             )
 
             is DialogHandle.ImageInput -> {

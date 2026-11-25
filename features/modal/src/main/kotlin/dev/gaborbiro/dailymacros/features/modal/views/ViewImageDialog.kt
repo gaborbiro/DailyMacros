@@ -224,8 +224,9 @@ private fun BoxScope.DownloadButton(
     }
 }
 
+/** A full-size photo that loads lazily and can be pinch-zoomed and panned. */
 @Composable
-private fun LazyZoomableImage(
+internal fun LazyZoomableImage(
     imageFilename: String,
     contentDescription: String,
     onZoomChanged: (Float) -> Unit = {},

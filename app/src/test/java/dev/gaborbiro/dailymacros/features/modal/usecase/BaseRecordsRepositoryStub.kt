@@ -2,6 +2,7 @@ package dev.gaborbiro.dailymacros.features.modal.usecase
 
 import dev.gaborbiro.dailymacros.repositories.records.domain.RecordsRepository
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.MealComponent
+import dev.gaborbiro.dailymacros.repositories.records.domain.model.PhotoUsage
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Record
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.Template
 import dev.gaborbiro.dailymacros.repositories.records.domain.model.TemplateImageUpdate
@@ -44,4 +45,6 @@ open class BaseRecordsRepositoryStub : RecordsRepository {
     ) = Unit
     override suspend fun addQuickPickOverride(templateId: Long, type: Template.QuickPickOverride) = Unit
     override suspend fun removeQuickPickOverride(templateId: Long) = Unit
+    override suspend fun getPhotoUsages(): List<PhotoUsage> = emptyList()
+    override suspend fun deleteImageIfUnused(imageFilename: String): Boolean = false
 }

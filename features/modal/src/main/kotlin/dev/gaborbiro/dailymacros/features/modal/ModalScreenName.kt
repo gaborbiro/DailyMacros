@@ -36,6 +36,7 @@ private fun DialogHandle.screenName(): String = when (this) {
         ImageInputType.Camera -> "camera"
         ImageInputType.BrowseImages -> "photo_picker"
     }
+    is DialogHandle.PastPhotoPicker -> "past_photo_picker"
     is DialogHandle.ConfirmSwitchTemplateDialog -> "confirm_switch_template"
     is DialogHandle.InfoDialog -> "info"
     is DialogHandle.QuickPickWidgetConfirmDialog -> "quick_pick_widget_confirm"

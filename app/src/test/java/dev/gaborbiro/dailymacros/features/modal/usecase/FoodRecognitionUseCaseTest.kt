@@ -25,6 +25,8 @@ class FoodRecognitionUseCaseTest {
 
         override suspend fun read(filename: String, thumbnail: Boolean) = null
 
+        override suspend fun readScaled(filename: String, maxEdgePx: Int) = null
+
         override suspend fun write(filename: String, bitmap: Bitmap) = Unit
 
         override suspend fun delete(filename: String) = Unit
